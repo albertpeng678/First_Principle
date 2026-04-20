@@ -9,7 +9,7 @@ app.use(express.json());
 app.use(express.static(path.join(__dirname, 'public')));
 
 // 路由（Task 9-11 完成後取消註解）
-// app.use('/api/sessions', require('./routes/sessions'));
+app.use('/api/sessions', require('./routes/sessions'));
 // app.use('/api/guest/sessions', require('./routes/guest-sessions'));
 // app.use('/api/migrate-guest', require('./routes/migrate'));
 
