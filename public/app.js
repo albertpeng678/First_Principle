@@ -410,6 +410,7 @@ function bindPractice() {
 
 function formatCoachReply(coachReply) {
   if (!coachReply) return '';
+  // hint rendered separately via showHintCard (added in Task 6)
   return `<strong>【被訪談者】</strong><br>${escHtml(coachReply.interviewee)}<hr><strong>【教練點評】</strong><br>${escHtml(coachReply.coaching)}`;
 }
 
