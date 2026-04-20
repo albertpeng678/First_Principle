@@ -623,75 +623,129 @@ function renderRadar(scores) {
 function renderReport() {
   const s = AppState.currentSession;
   const scores = s?.scores_json;
-  if (!scores) return '<p>沒有評分資料</p>';
+  if (!scores) return '<p style="padding:16px">沒有評分資料</p>';
 
   const dims = Object.keys(DIM_LABELS);
-  const scoreCards = dims.map(d => `
-    <div class="score-card">
-      <div class="score-card-title">${DIM_LABELS[d]}</div>
-      <div class="score-card-score" style="color:${(scores.scores[d]?.score||0)>=14?'var(--success)':'var(--warning)'}">
-        ${scores.scores[d]?.score || 0} <span style="font-size:0.9rem;color:var(--text-secondary)">/20</span>
+  const totalScore = scores.totalScore || 0;
+  const turnCount = s.conversation?.length || s.turn_count || 0;
+  const source = s.issue_json?.source || '';
+
+  const scoreBars = dims.map(d => {
+    const sc = scores.scores[d]?.score || 0;
+    return `<div class="score-bar-row">
+      <div class="score-bar-label">
+        <span>${DIM_LABELS[d]}</span>
+        <span style="color:${sc >= 14 ? 'var(--success)' : 'var(--warning)'}">${sc}/20</span>
       </div>
-      <div class="score-label">✅ ${escHtml(scores.scores[d]?.did || '')}</div>
-      <div class="score-label" style="margin-top:4px">❌ ${escHtml(scores.scores[d]?.missed || '')}</div>
-      <div class="score-label" style="margin-top:4px;color:var(--accent)">💡 ${escHtml(scores.scores[d]?.tip || '')}</div>
+      <div class="score-bar-track"><div class="score-bar-fill" style="width:${sc / 20 * 100}%"></div></div>
+    </div>`;
+  }).join('');
+
+  const scoreDetails = dims.map(d => `
+    <div class="score-detail-card">
+      <div style="font-weight:700;font-size:0.9rem;color:var(--accent)">${DIM_LABELS[d]}</div>
+      <div class="score-detail-row"><i class="ph ph-check-circle" style="color:var(--success)"></i><span>${escHtml(scores.scores[d]?.did || '')}</span></div>
+      <div class="score-detail-row"><i class="ph ph-x-circle" style="color:var(--danger)"></i><span>${escHtml(scores.scores[d]?.missed || '')}</span></div>
+      <div class="score-detail-row"><i class="ph ph-lightbulb" style="color:var(--accent)"></i><span>${escHtml(scores.scores[d]?.tip || '')}</span></div>
     </div>
   `).join('');
 
   const turnAnalysis = scores.turnAnalysis || [];
-  const reviewRows = s.conversation.map((t, i) => {
-    const ideal = turnAnalysis[i]?.idealFocus || '—';
-    return `
-      <tr>
-        <td style="white-space:nowrap;color:var(--text-secondary)">第 ${i+1} 輪</td>
-        <td>${escHtml(t.userMessage)}</td>
-        <td style="color:var(--accent)">${escHtml(ideal)}</td>
-        <td>${escHtml(t.coachReply?.interviewee || '')}</td>
-        <td style="color:var(--text-secondary)">${escHtml(t.coachReply?.coaching || '')}</td>
-      </tr>
-    `;
-  }).join('');
+  const reviewRows = s.conversation.map((t, i) => `
+    <tr>
+      <td style="white-space:nowrap;color:var(--text-secondary)">第 ${i+1} 輪</td>
+      <td>${escHtml(t.userMessage)}</td>
+      <td style="color:var(--accent)">${escHtml(turnAnalysis[i]?.idealFocus || '—')}</td>
+      <td>${escHtml(t.coachReply?.interviewee || '')}</td>
+      <td style="color:var(--text-secondary)">${escHtml(t.coachReply?.coaching || '')}</td>
+    </tr>
+  `).join('');
+
+  const reviewCards = s.conversation.map((t, i) => `
+    <div class="review-card">
+      <div class="review-card-round">第 ${i+1} 輪</div>
+      <div class="review-card-section"><div class="review-card-section-label">學員提問</div>${escHtml(t.userMessage)}</div>
+      <div class="review-card-section"><div class="review-card-section-label">預期重點</div>${escHtml(turnAnalysis[i]?.idealFocus || '—')}</div>
+      <div class="review-card-section"><div class="review-card-section-label">被訪談者</div>${escHtml(t.coachReply?.interviewee || '')}</div>
+      <div class="review-card-section"><div class="review-card-section-label">教練點評</div>${escHtml(t.coachReply?.coaching || '')}</div>
+    </div>
+  `).join('');
+
+  const highlights = scores.highlights || {};
+  const tab = AppState.activeReportTab;
+  const tabs = [
+    { id: 'overview',    label: '評分總覽', short: '總覽' },
+    { id: 'review',      label: '練習回顧', short: '回顧' },
+    { id: 'highlights',  label: '亮點摘要', short: '亮點' },
+    { id: 'export',      label: '匯出',     short: '匯出' },
+  ];
 
   return `
-    <div id="report-content">
-      <div style="text-align:center;margin-bottom:24px">
-        <div style="font-size:3rem;font-weight:900;color:var(--accent)">${scores.totalScore}</div>
-        <div style="color:var(--text-secondary)">總分 / 100</div>
+    <div class="score-summary-bar">
+      <div>
+        <div class="score-big">${totalScore}</div>
+        <div class="score-meta">${escHtml(source)} · ${turnCount} 輪</div>
       </div>
-
-      <div class="radar-container">${renderRadar(scores.scores)}</div>
-
-      <div class="score-cards">${scoreCards}</div>
-
-      <div class="card" style="margin-top:16px">
-        <p style="font-weight:700;margin-bottom:8px">練習亮點</p>
-        <p>🏆 ${escHtml(scores.highlights?.bestMove || '')}</p>
-        <p style="margin-top:6px">⚠️ ${escHtml(scores.highlights?.mainTrap || '')}</p>
-        <p style="margin-top:8px;color:var(--text-secondary);font-style:italic">${escHtml(scores.highlights?.summary || '')}</p>
-      </div>
-
-      <div class="card" style="margin-top:16px;overflow-x:auto">
-        <p style="font-weight:700;margin-bottom:12px">練習回顧表</p>
-        <table class="review-table">
-          <thead>
-            <tr>
-              <th>輪次</th><th>學員提問</th><th>本輪預期拆解重點</th><th>被訪談者回答</th><th>教練點評</th>
-            </tr>
-          </thead>
-          <tbody>${reviewRows}</tbody>
-        </table>
+      <div class="score-progress">
+        <div class="score-progress-fill" style="width:${totalScore}%"></div>
       </div>
     </div>
-
-    <div class="export-actions">
-      <button class="btn btn-ghost" id="btn-export-pdf">📄 匯出 PDF</button>
-      <button class="btn btn-ghost" id="btn-export-png">🖼️ 匯出 PNG</button>
-      <button class="btn btn-primary" onclick="navigate('home')">再練一次</button>
+    <div class="tab-bar">
+      ${tabs.map(t => `
+        <button class="tab-btn ${tab === t.id ? 'active' : ''}" data-tab="${t.id}">
+          <span class="tab-label-full">${t.label}</span>
+          <span class="tab-label-short">${t.short}</span>
+        </button>
+      `).join('')}
+    </div>
+    <div class="tab-content" id="report-content">
+      <div class="tab-pane ${tab === 'overview' ? 'active' : ''}" id="tab-overview">
+        <div class="radar-container">${renderRadar(scores.scores)}</div>
+        ${scoreBars}
+        ${scoreDetails}
+      </div>
+      <div class="tab-pane ${tab === 'review' ? 'active' : ''}" id="tab-review">
+        <div class="review-cards">${reviewCards}</div>
+        <div style="overflow-x:auto">
+          <table class="review-table">
+            <thead><tr><th>輪次</th><th>學員提問</th><th>本輪預期重點</th><th>被訪談者回答</th><th>教練點評</th></tr></thead>
+            <tbody>${reviewRows}</tbody>
+          </table>
+        </div>
+      </div>
+      <div class="tab-pane ${tab === 'highlights' ? 'active' : ''}" id="tab-highlights">
+        <div class="highlight-card">
+          <i class="ph ph-trophy highlight-icon trophy"></i>
+          <div><div style="font-weight:700;margin-bottom:4px">最佳亮點</div>${escHtml(highlights.bestMove || '')}</div>
+        </div>
+        <div class="highlight-card">
+          <i class="ph ph-warning highlight-icon warning-icon"></i>
+          <div><div style="font-weight:700;margin-bottom:4px">主要陷阱</div>${escHtml(highlights.mainTrap || '')}</div>
+        </div>
+        <div class="highlight-summary">${escHtml(highlights.summary || '')}</div>
+      </div>
+      <div class="tab-pane ${tab === 'export' ? 'active' : ''}" id="tab-export">
+        <div class="export-tab-actions">
+          <button class="btn btn-ghost" id="btn-export-pdf"><i class="ph ph-file-pdf"></i> 匯出 PDF</button>
+          <button class="btn btn-ghost" id="btn-export-png"><i class="ph ph-image"></i> 匯出 PNG</button>
+          <p class="export-hint">PDF 使用瀏覽器列印；PNG 截取報告畫面</p>
+          <button class="btn btn-primary" onclick="navigate('home')">再練一次</button>
+        </div>
+      </div>
     </div>
   `;
 }
 
 function bindReport() {
+  document.querySelectorAll('.tab-btn').forEach(btn => {
+    btn.addEventListener('click', () => {
+      AppState.activeReportTab = btn.dataset.tab;
+      document.querySelectorAll('.tab-btn').forEach(b => b.classList.remove('active'));
+      document.querySelectorAll('.tab-pane').forEach(p => p.classList.remove('active'));
+      btn.classList.add('active');
+      document.getElementById(`tab-${btn.dataset.tab}`)?.classList.add('active');
+    });
+  });
   document.getElementById('btn-export-pdf')?.addEventListener('click', exportPDF);
   document.getElementById('btn-export-png')?.addEventListener('click', exportPNG);
 }
@@ -717,7 +771,7 @@ async function exportPNG() {
     window.print();
   }
   btn.disabled = false;
-  btn.textContent = '🖼️ 匯出 PNG';
+  btn.innerHTML = '<i class="ph ph-image"></i> 匯出 PNG';
 }
 
 // ── Task 19: History View (登入用戶) ──────────────
