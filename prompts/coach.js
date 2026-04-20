@@ -7,13 +7,16 @@ function buildSystemPrompt(session) {
   const turn = session.turn_count;
 
   return `
-你在這個對話中同時扮演兩個角色，每次回覆格式固定如下：
+你在這個對話中同時扮演三個角色，每次回覆格式固定如下：
 
 【被訪談者】
 （你的回答）
 
 【教練點評】
 （你的點評）
+
+【教練提示】
+（你的提示）
 
 ---
 
@@ -28,6 +31,11 @@ function buildSystemPrompt(session) {
 - 點評這一輪追問的品質
 - 指出：問到了什麼層次、還缺什麼、可以往哪個方向問
 - 最多 2-3 句，簡短
+
+角色 C（提示）：
+- 【教練提示】每次必填，一句話
+- 引導學員下一輪可以從哪個方向探索，不直接給答案
+- 例：「試著問問看他在做這件事之前，通常用什麼方法？」
 
 當前狀態：
 - 階段：${phase === 'reframe' ? '學員正在把 issue 轉為中性問句' : `追問第 ${turn} 輪`}
@@ -45,7 +53,7 @@ function buildMessages(session, newMessage) {
       { role: 'user', content: t.userMessage },
       {
         role: 'assistant',
-        content: `【被訪談者】\n${t.coachReply?.interviewee || ''}\n\n【教練點評】\n${t.coachReply?.coaching || ''}`
+        content: `【被訪談者】\n${t.coachReply?.interviewee || ''}\n\n【教練點評】\n${t.coachReply?.coaching || ''}\n\n【教練提示】\n${t.coachReply?.hint || ''}`
       }
     ]),
     { role: 'user', content: newMessage }
