@@ -10,7 +10,7 @@ const AppState = {
   user: null,
   currentSession: null,
   isStreaming: false,
-  theme: localStorage.getItem('theme') || 'dark',
+  theme: localStorage.getItem('theme') || 'light',
   view: 'home',
 };
 
