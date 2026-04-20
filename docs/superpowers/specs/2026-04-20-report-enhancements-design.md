@@ -157,10 +157,12 @@ Each `score-detail-card` gets a new row:
 
 ### 練習回顧 tab changes
 
+**Remove** the 「本輪預期重點」column (`turnAnalysis.idealFocus`) entirely — not shown in any view.
+
 Desktop: two-column layout (學員 left, 教練 right).
 Mobile: stacked (學員 first, 教練 below, separated by divider).
 
-Coach column shows `coachQuestion` + `intervieweeReply` per round. If coach has fewer rounds than student, remaining rows are empty. Coach column hidden entirely if `coach_demo_json` is null.
+Coach column shows `coachQuestion` + `intervieweeReply` per round. Coach text (questions and replies) renders in `var(--accent)` (purple). If coach has fewer rounds than student, remaining rows are empty. Coach column hidden entirely if `coach_demo_json` is null.
 
 ---
 
