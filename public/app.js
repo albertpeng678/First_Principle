@@ -202,6 +202,7 @@ async function init() {
     localStorage.setItem('guestId', crypto.randomUUID());
   }
   AppState.guestId = localStorage.getItem('guestId');
+  document.body.dataset.view = AppState.view;
 
   await initSupabase();
 
@@ -234,15 +235,25 @@ window.navigate = navigate;
 window.applyTheme = applyTheme;
 window.AppState = AppState;
 window.submitDefinition = submitDefinition;
+window.openOffcanvas = openOffcanvas;
+window.closeOffcanvas = closeOffcanvas;
+window.showHintCard = showHintCard;
 
 // ── View stubs（後續 Task 填入）────────────────────
 
 // ── Task 15: Home View ────────────────────────────
 function renderHome() {
+  const DIFFICULTY_ICONS = { '入門': 'ph-leaf', '進階': 'ph-flame', '困難': 'ph-lightning' };
+  const DIFFICULTY_DESC = {
+    '入門': '單一角色，問題明顯',
+    '進階': '多角色交錯，需多層追問',
+    '困難': '表象與本質落差大',
+  };
+
   const issuePreview = AppState.currentSession
     ? `<div class="card" style="margin-bottom:16px">
         <p style="color:var(--text-secondary);font-size:0.85rem">上次練習</p>
-        <p style="margin-top:6px">${AppState.currentSession.issue_json?.issueText?.slice(0, 80)}...</p>
+        <p style="margin-top:6px">${escHtml(AppState.currentSession.issue_json?.issueText?.slice(0, 80))}…</p>
         <button class="btn btn-primary" style="margin-top:12px" id="btn-continue">繼續練習</button>
       </div>` : '';
 
@@ -252,14 +263,12 @@ function renderHome() {
       <p style="color:var(--text-secondary)">選擇難度，開始一輪 PM 思維練習</p>
     </div>
     ${issuePreview}
-    <div class="difficulty-cards">
+    <div class="difficulty-grid">
       ${['入門','進階','困難'].map(d => `
         <div class="difficulty-card" data-difficulty="${d}">
-          <div style="font-size:2rem;margin-bottom:8px">${d==='入門'?'🌱':d==='進階'?'🔥':'⚡'}</div>
+          <div class="difficulty-icon"><i class="ph ${DIFFICULTY_ICONS[d]}"></i></div>
           <div style="font-weight:700;font-size:1.1rem">${d}</div>
-          <div style="color:var(--text-secondary);font-size:0.8rem;margin-top:6px">
-            ${d==='入門'?'單一角色，問題明顯':d==='進階'?'多角色交錯，需多層追問':'表象與本質落差大'}
-          </div>
+          <div style="color:var(--text-secondary);font-size:0.8rem;margin-top:6px">${DIFFICULTY_DESC[d]}</div>
         </div>
       `).join('')}
     </div>
@@ -360,7 +369,7 @@ function renderSteps(currentPhase) {
   return `<div class="steps">
     ${PHASE_STEPS.map((s, i) => `
       <div class="step ${i < idx ? 'done' : i === idx ? 'active' : ''}">
-        <div class="step-dot">${i < idx ? '✓' : i + 1}</div>
+        <div class="step-dot">${i < idx ? '<i class="ph ph-check"></i>' : i + 1}</div>
         <span>${s.label}</span>
       </div>
     `).join('')}
