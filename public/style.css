@@ -186,6 +186,7 @@ body[data-view="practice"] .practice-bottom-bar {
   .bubble { max-width: 95%; }
   .review-table { display: none; }
   .review-cards { display: flex; flex-direction: column; }
+  .onboarding-dims { grid-template-columns: 1fr 1fr; }
 }
 @media (min-width: 601px) {
   .review-cards { display: none; }
@@ -391,7 +392,7 @@ body[data-view="practice"] .practice-bottom-bar {
   font-size: 1.5rem; color: var(--accent); flex-shrink: 0;
 }
 .onboarding-title {
-  font-size: 1.1rem; font-weight: 700;
+  font-size: 1.1rem; font-weight: 700; margin: 0;
 }
 .onboarding-what {
   display: flex; gap: 14px; align-items: flex-start;
