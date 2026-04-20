@@ -438,8 +438,238 @@ async function submitDefinition() {
   }
 }
 
-// ── Task 18 & 19: Stub Views ──────────────────────
-function renderReport() { return '<p>Report View — Task 18</p>'; }
-function bindReport() {}
-function renderHistory() { return '<p>History View — Task 19</p>'; }
-function bindHistory() {}
+// ── Task 18: Report View (雷達圖 + 練習回顧表) ────
+const DIM_LABELS = {
+  roleClarity: '角色定位',
+  taskBreakpoint: '任務卡點',
+  workaround: '替代行為',
+  lossQuantification: '損失量化',
+  definitionQuality: '定義品質',
+};
+
+function renderRadar(scores) {
+  const dims = Object.keys(DIM_LABELS);
+  const size = 220;
+  const cx = size / 2, cy = size / 2, r = 80;
+  const n = dims.length;
+  const toXY = (i, val) => {
+    const angle = (Math.PI * 2 * i / n) - Math.PI / 2;
+    const rv = (val / 20) * r;
+    return [cx + rv * Math.cos(angle), cy + rv * Math.sin(angle)];
+  };
+  const labelXY = (i) => {
+    const angle = (Math.PI * 2 * i / n) - Math.PI / 2;
+    return [cx + (r + 24) * Math.cos(angle), cy + (r + 24) * Math.sin(angle)];
+  };
+
+  const circles = [0.25, 0.5, 0.75, 1].map(f =>
+    `<circle cx="${cx}" cy="${cy}" r="${r*f}" fill="none" stroke="var(--border)" stroke-width="1"/>`
+  ).join('');
+
+  const axes = dims.map((_, i) => {
+    const [x, y] = toXY(i, 20);
+    return `<line x1="${cx}" y1="${cy}" x2="${x}" y2="${y}" stroke="var(--border)" stroke-width="1"/>`;
+  }).join('');
+
+  const points = dims.map((d, i) => toXY(i, scores[d]?.score || 0).join(',')).join(' ');
+  const polygon = `<polygon points="${points}" fill="var(--accent)" fill-opacity="0.25" stroke="var(--accent)" stroke-width="2"/>`;
+
+  const labels = dims.map((d, i) => {
+    const [x, y] = labelXY(i);
+    return `<text x="${x}" y="${y}" text-anchor="middle" dominant-baseline="middle" font-size="10" fill="var(--text-secondary)">${DIM_LABELS[d]}</text>`;
+  }).join('');
+
+  return `<svg width="${size}" height="${size}" viewBox="0 0 ${size} ${size}">${circles}${axes}${polygon}${labels}</svg>`;
+}
+
+function renderReport() {
+  const s = AppState.currentSession;
+  const scores = s?.scores_json;
+  if (!scores) return '<p>沒有評分資料</p>';
+
+  const dims = Object.keys(DIM_LABELS);
+  const scoreCards = dims.map(d => `
+    <div class="score-card">
+      <div class="score-card-title">${DIM_LABELS[d]}</div>
+      <div class="score-card-score" style="color:${(scores.scores[d]?.score||0)>=14?'var(--success)':'var(--warning)'}">
+        ${scores.scores[d]?.score || 0} <span style="font-size:0.9rem;color:var(--text-secondary)">/20</span>
+      </div>
+      <div class="score-label">✅ ${escHtml(scores.scores[d]?.did || '')}</div>
+      <div class="score-label" style="margin-top:4px">❌ ${escHtml(scores.scores[d]?.missed || '')}</div>
+      <div class="score-label" style="margin-top:4px;color:var(--accent)">💡 ${escHtml(scores.scores[d]?.tip || '')}</div>
+    </div>
+  `).join('');
+
+  const turnAnalysis = scores.turnAnalysis || [];
+  const reviewRows = s.conversation.map((t, i) => {
+    const ideal = turnAnalysis[i]?.idealFocus || '—';
+    return `
+      <tr>
+        <td style="white-space:nowrap;color:var(--text-secondary)">第 ${i+1} 輪</td>
+        <td>${escHtml(t.userMessage)}</td>
+        <td style="color:var(--accent)">${escHtml(ideal)}</td>
+        <td>${escHtml(t.coachReply?.interviewee || '')}</td>
+        <td style="color:var(--text-secondary)">${escHtml(t.coachReply?.coaching || '')}</td>
+      </tr>
+    `;
+  }).join('');
+
+  return `
+    <div id="report-content">
+      <div style="text-align:center;margin-bottom:24px">
+        <div style="font-size:3rem;font-weight:900;color:var(--accent)">${scores.totalScore}</div>
+        <div style="color:var(--text-secondary)">總分 / 100</div>
+      </div>
+
+      <div class="radar-container">${renderRadar(scores.scores)}</div>
+
+      <div class="score-cards">${scoreCards}</div>
+
+      <div class="card" style="margin-top:16px">
+        <p style="font-weight:700;margin-bottom:8px">練習亮點</p>
+        <p>🏆 ${escHtml(scores.highlights?.bestMove || '')}</p>
+        <p style="margin-top:6px">⚠️ ${escHtml(scores.highlights?.mainTrap || '')}</p>
+        <p style="margin-top:8px;color:var(--text-secondary);font-style:italic">${escHtml(scores.highlights?.summary || '')}</p>
+      </div>
+
+      <div class="card" style="margin-top:16px;overflow-x:auto">
+        <p style="font-weight:700;margin-bottom:12px">練習回顧表</p>
+        <table class="review-table">
+          <thead>
+            <tr>
+              <th>輪次</th><th>學員提問</th><th>本輪預期拆解重點</th><th>被訪談者回答</th><th>教練點評</th>
+            </tr>
+          </thead>
+          <tbody>${reviewRows}</tbody>
+        </table>
+      </div>
+    </div>
+
+    <div class="export-actions">
+      <button class="btn btn-ghost" id="btn-export-pdf">📄 匯出 PDF</button>
+      <button class="btn btn-ghost" id="btn-export-png">🖼️ 匯出 PNG</button>
+      <button class="btn btn-primary" onclick="navigate('home')">再練一次</button>
+    </div>
+  `;
+}
+
+function bindReport() {
+  document.getElementById('btn-export-pdf')?.addEventListener('click', exportPDF);
+  document.getElementById('btn-export-png')?.addEventListener('click', exportPNG);
+}
+
+function exportPDF() {
+  window.print();
+}
+
+async function exportPNG() {
+  const btn = document.getElementById('btn-export-png');
+  btn.disabled = true;
+  btn.textContent = '截圖中…';
+  try {
+    const { default: html2canvas } = await import('https://esm.sh/html2canvas@1.4.1');
+    const el = document.getElementById('report-content');
+    const canvas = await html2canvas(el, { backgroundColor: getComputedStyle(document.documentElement).getPropertyValue('--bg-primary').trim() });
+    const a = document.createElement('a');
+    a.href = canvas.toDataURL('image/png');
+    a.download = `pm-drill-report-${Date.now()}.png`;
+    a.click();
+  } catch (e) {
+    alert('截圖失敗，改用 PDF 列印');
+    window.print();
+  }
+  btn.disabled = false;
+  btn.textContent = '🖼️ 匯出 PNG';
+}
+
+// ── Task 19: History View (登入用戶) ──────────────
+function renderHistory() {
+  return `
+    <div style="margin-bottom:24px;display:flex;justify-content:space-between;align-items:center">
+      <h2 style="font-weight:700">練習歷史</h2>
+      <button class="btn btn-ghost" onclick="navigate('home')">← 返回</button>
+    </div>
+    <div id="history-chart" style="margin-bottom:24px">載入中…</div>
+    <div id="history-list" class="history-list">載入中…</div>
+  `;
+}
+
+function bindHistory() {
+  loadHistory();
+}
+
+async function loadHistory() {
+  if (AppState.mode !== 'auth') return;
+  try {
+    const res = await fetch('/api/sessions', { headers: apiHeaders() });
+    const sessions = await res.json();
+    renderHistoryChart(sessions);
+    renderHistoryList(sessions);
+  } catch (e) {
+    document.getElementById('history-list').textContent = '載入失敗';
+  }
+}
+
+function renderHistoryChart(sessions) {
+  const completed = sessions.filter(s => s.status === 'completed' && s.scores_json?.totalScore != null)
+    .sort((a, b) => new Date(a.created_at) - new Date(b.created_at))
+    .slice(-10);
+
+  if (completed.length < 2) {
+    document.getElementById('history-chart').innerHTML = '<p style="color:var(--text-secondary)">完成至少 2 次練習後顯示進步曲線</p>';
+    return;
+  }
+
+  const w = 600, h = 160, padL = 40, padB = 30, padT = 10, padR = 20;
+  const scores = completed.map(s => s.scores_json.totalScore);
+  const minS = Math.min(...scores) - 5;
+  const maxS = Math.max(...scores) + 5;
+  const toX = i => padL + (i / (completed.length - 1)) * (w - padL - padR);
+  const toY = v => padT + (1 - (v - minS) / (maxS - minS)) * (h - padT - padB);
+
+  const points = completed.map((_, i) => `${toX(i)},${toY(scores[i])}`).join(' ');
+  const dots = completed.map((s, i) => `
+    <circle cx="${toX(i)}" cy="${toY(scores[i])}" r="4" fill="var(--accent)"/>
+    <text x="${toX(i)}" y="${toY(scores[i]) - 8}" text-anchor="middle" font-size="10" fill="var(--text-primary)">${scores[i]}</text>
+  `).join('');
+
+  document.getElementById('history-chart').innerHTML = `
+    <div class="card">
+      <p style="font-weight:700;margin-bottom:12px">總分趨勢</p>
+      <svg width="100%" viewBox="0 0 ${w} ${h}">
+        <polyline points="${points}" fill="none" stroke="var(--accent)" stroke-width="2"/>
+        ${dots}
+        <line x1="${padL}" y1="${padT}" x2="${padL}" y2="${h - padB}" stroke="var(--border)" stroke-width="1"/>
+        <line x1="${padL}" y1="${h - padB}" x2="${w - padR}" y2="${h - padB}" stroke="var(--border)" stroke-width="1"/>
+      </svg>
+    </div>
+  `;
+}
+
+function renderHistoryList(sessions) {
+  const el = document.getElementById('history-list');
+  if (!sessions.length) { el.textContent = '還沒有練習記錄'; return; }
+
+  el.innerHTML = sessions.map(s => `
+    <div class="history-item" data-id="${s.id}">
+      <div style="display:flex;justify-content:space-between">
+        <span>${s.difficulty} · ${s.status === 'completed' ? '已完成' : '進行中'}</span>
+        <span style="color:${s.scores_json?.totalScore >= 70 ? 'var(--success)' : 'var(--warning)'}">
+          ${s.scores_json?.totalScore != null ? s.scores_json.totalScore + ' 分' : '—'}
+        </span>
+      </div>
+      <div style="color:var(--text-secondary);font-size:0.8rem;margin-top:4px">
+        ${new Date(s.created_at).toLocaleString('zh-TW')}
+      </div>
+    </div>
+  `).join('');
+
+  el.querySelectorAll('.history-item').forEach(item => {
+    item.addEventListener('click', async () => {
+      const res = await fetch(`/api/sessions/${item.dataset.id}`, { headers: apiHeaders() });
+      const session = await res.json();
+      AppState.currentSession = session;
+      navigate(session.status === 'completed' ? 'report' : 'practice');
+    });
+  });
+}
