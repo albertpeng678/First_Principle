@@ -288,7 +288,7 @@ body[data-view="practice"] .practice-bottom-bar {
   padding: 6px 12px; border-radius: 8px; border: 1px solid rgba(108,99,255,0.4);
   background: var(--bg-surface-2); color: var(--accent);
   cursor: pointer; font-size: 0.85rem; display: flex; align-items: center; gap: 6px;
-  transition: border-color 0.15s, color 0.15s;
+  transition: border-color 0.15s;
 }
 [data-theme="light"] .btn-tool { border-color: rgba(90,82,224,0.4); }
 .btn-tool:hover { border-color: var(--accent); }

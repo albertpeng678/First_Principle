@@ -382,7 +382,6 @@ function renderPractice() {
   if (!s) return '<p style="padding:16px">沒有進行中的練習</p>';
 
   const turnCount = s.turn_count || 0;
-  const progressPct = Math.min(100, Math.round((turnCount / 7) * 100));
   const showSubmit = s.current_phase === 'submit' || turnCount >= 3;
 
   const bubbles = s.conversation.map(t => `
@@ -410,7 +409,7 @@ function renderPractice() {
         <button class="btn-tool" id="btn-update-def"><i class="ph ph-note-pencil"></i> 更新定義</button>
       </div>
       <label class="essence-label" for="final-def">問題本質定義（提交前可隨時更新）</label>
-      <div id="def-hint" style="display:none;font-size:0.78rem;color:var(--text-secondary);">完成 3 輪對話後即可編輯定義</div>
+      <div id="def-hint" class="essence-label" style="display:none;">完成 3 輪對話後即可編輯定義</div>
       <textarea id="final-def" class="essence-textarea" rows="2"
         placeholder="用中性問句描述問題本質…&#10;例：如何讓 [角色] 在 [情境] 下更有效率達成 [目標]？"
         ${!showSubmit ? 'disabled' : ''}></textarea>
