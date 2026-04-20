@@ -155,6 +155,12 @@ async function init() {
 
 init();
 
+// 暴露至全域，讓 HTML inline onclick 可使用
+window.navigate = navigate;
+window.applyTheme = applyTheme;
+window.AppState = AppState;
+window.submitDefinition = submitDefinition;
+
 // ── View stubs（後續 Task 填入）────────────────────
 
 // ── Task 15: Home View ────────────────────────────
