@@ -96,27 +96,96 @@ function render() {
 
 function navigate(view) {
   AppState.view = view;
+  document.body.dataset.view = view;
   render();
 }
 
 function renderNavbar() {
   const el = document.getElementById('navbar-actions');
-  const themeIcon = AppState.theme === 'dark' ? '☀️' : '🌙';
+  const themeIcon = AppState.theme === 'dark'
+    ? '<i class="ph ph-sun"></i>'
+    : '<i class="ph ph-moon"></i>';
+  const homeBtn = AppState.view === 'report'
+    ? `<button class="btn-icon" title="返回首頁" onclick="navigate('home')"><i class="ph ph-house"></i></button>`
+    : '';
+
   if (AppState.mode === 'auth') {
     el.innerHTML = `
+      ${homeBtn}
       <span style="color:var(--text-secondary);font-size:0.85rem">${AppState.user?.email}</span>
-      <button class="btn btn-ghost" onclick="navigate('history')">歷史記錄</button>
       <button class="btn btn-ghost" id="btn-logout">登出</button>
-      <button class="btn-icon" onclick="applyTheme(AppState.theme==='dark'?'light':'dark')">${themeIcon}</button>
+      <button class="btn-icon" title="切換主題" onclick="applyTheme(AppState.theme==='dark'?'light':'dark')">${themeIcon}</button>
     `;
     document.getElementById('btn-logout')?.addEventListener('click', () => supabase.auth.signOut());
   } else if (AppState.mode === 'guest') {
     el.innerHTML = `
+      ${homeBtn}
       <button class="btn btn-ghost" onclick="navigate('login')">登入</button>
-      <button class="btn-icon" onclick="applyTheme(AppState.theme==='dark'?'light':'dark')">${themeIcon}</button>
+      <button class="btn-icon" title="切換主題" onclick="applyTheme(AppState.theme==='dark'?'light':'dark')">${themeIcon}</button>
     `;
   } else {
     el.innerHTML = '';
+  }
+
+  document.getElementById('btn-hamburger')?.addEventListener('click', openOffcanvas);
+}
+
+function openOffcanvas() {
+  document.getElementById('offcanvas').classList.add('open');
+  document.getElementById('offcanvas-overlay').classList.add('open');
+  document.body.style.overflow = 'hidden';
+  loadOffcanvasSessions();
+  document.getElementById('btn-offcanvas-close')?.addEventListener('click', closeOffcanvas, { once: true });
+  document.getElementById('offcanvas-overlay')?.addEventListener('click', closeOffcanvas, { once: true });
+}
+
+function closeOffcanvas() {
+  document.getElementById('offcanvas').classList.remove('open');
+  document.getElementById('offcanvas-overlay').classList.remove('open');
+  document.body.style.overflow = '';
+}
+
+async function loadOffcanvasSessions() {
+  const listEl = document.getElementById('offcanvas-list');
+  listEl.innerHTML = '載入中…';
+  try {
+    const res = await fetch(sessionRoute(), { headers: apiHeaders() });
+    if (!res.ok) throw new Error('failed');
+    const sessions = await res.json();
+    if (!sessions.length) {
+      listEl.innerHTML = '<p style="color:var(--text-secondary);padding:8px 0">還沒有練習記錄</p>';
+      return;
+    }
+    listEl.innerHTML = sessions.map(s => {
+      const date = new Date(s.created_at).toLocaleString('zh-TW', { month: 'numeric', day: 'numeric', hour: '2-digit', minute: '2-digit' });
+      const badge = s.status === 'in_progress'
+        ? `<span class="badge badge-blue">進行中</span>`
+        : `<span class="badge badge-green">${s.scores_json?.totalScore ?? '—'}分</span>`;
+      return `<div class="offcanvas-item" data-id="${s.id}" data-status="${s.status}">
+        <div style="display:flex;align-items:center;justify-content:space-between">
+          ${badge}<span style="font-size:0.75rem;color:var(--text-secondary)">${s.difficulty || ''}</span>
+        </div>
+        <div style="font-size:0.8rem;color:var(--text-secondary);margin-top:4px">${date}</div>
+      </div>`;
+    }).join('');
+
+    listEl.querySelectorAll('.offcanvas-item').forEach(item => {
+      item.addEventListener('click', async () => {
+        closeOffcanvas();
+        const id = item.dataset.id;
+        const status = item.dataset.status;
+        if (AppState.currentSession?.id === id) {
+          navigate(status === 'completed' ? 'report' : 'practice');
+          return;
+        }
+        const r = await fetch(sessionRoute(`/${id}`), { headers: apiHeaders() });
+        const session = await r.json();
+        AppState.currentSession = session;
+        navigate(status === 'completed' ? 'report' : 'practice');
+      });
+    });
+  } catch (_) {
+    listEl.innerHTML = '<p style="color:var(--text-secondary);padding:8px 0">載入失敗</p>';
   }
 }
 
