@@ -84,6 +84,7 @@ function applyTheme(theme) {
 
 // ── Render ────────────────────────────────────────
 function render() {
+  document.body.dataset.view = AppState.view;
   renderNavbar();
   const main = document.getElementById('main');
   switch (AppState.view) {
@@ -392,15 +393,15 @@ function renderPractice() {
   const issueSummary = escHtml((s.issue_json?.issueText || '').slice(0, 55)) + '…';
 
   return `
-    <div style="height:4px;background:var(--bg-surface-2);margin:0 -16px">
+    <div style="height:4px;background:var(--bg-surface-2);margin:0 -24px">
       <div style="height:100%;width:${progressPct}%;background:var(--accent);transition:width 0.3s"></div>
     </div>
     <div class="issue-banner" id="issue-banner">
       <div class="issue-banner-header" id="issue-banner-header">
         <h4><span class="badge badge-blue" style="margin-right:6px">${escHtml(s.issue_json?.source || '')}</span>抱怨內容</h4>
-        <div style="display:flex;align-items:center;gap:8px">
+        <div style="display:flex;align-items:center;gap:8px;min-width:0;overflow:hidden">
           <span class="issue-banner-summary">${issueSummary}</span>
-          <i class="ph ph-caret-up" id="issue-caret" style="font-size:1rem;color:var(--text-secondary)"></i>
+          <i class="ph ph-caret-up issue-banner-caret" id="issue-caret"></i>
         </div>
       </div>
       <div class="issue-banner-body">${escHtml(s.issue_json?.issueText || '')}</div>
@@ -434,8 +435,10 @@ function bindPractice() {
   }
 
   document.getElementById('btn-send')?.addEventListener('click', sendChat);
-  document.getElementById('chat-input')?.addEventListener('keydown', e => {
-    if (e.key === 'Enter' && !e.shiftKey) { e.preventDefault(); sendChat(); }
+  const chatInput = document.getElementById('chat-input');
+  chatInput?.addEventListener('input', () => {
+    chatInput.style.height = 'auto';
+    chatInput.style.height = Math.min(chatInput.scrollHeight, 160) + 'px';
   });
   document.getElementById('btn-submit')?.addEventListener('click', submitDefinition);
 
@@ -443,7 +446,7 @@ function bindPractice() {
     const banner = document.getElementById('issue-banner');
     const caret = document.getElementById('issue-caret');
     const collapsed = banner.classList.toggle('collapsed');
-    caret.className = collapsed ? 'ph ph-caret-down' : 'ph ph-caret-up';
+    caret.className = collapsed ? 'ph ph-caret-down issue-banner-caret' : 'ph ph-caret-up issue-banner-caret';
   });
 
   document.getElementById('btn-hint')?.addEventListener('click', showHintCard);
@@ -490,6 +493,7 @@ async function sendChat() {
   const message = input?.value?.trim();
   if (!message || AppState.isStreaming) return;
   input.value = '';
+  input.style.height = '';
 
   AppState.isStreaming = true;
   const defEl = document.getElementById('final-def');

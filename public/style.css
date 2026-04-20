@@ -118,8 +118,27 @@ body {
   flex: 1; padding: 12px; border-radius: 8px;
   border: 1px solid var(--border); background: var(--bg-surface-2);
   color: var(--text-primary); font-size: 0.95rem; resize: none;
+  min-height: 44px; max-height: 160px; overflow-y: auto;
+  font-family: inherit; line-height: 1.5;
 }
 .chat-input:focus { outline: none; border-color: var(--accent); }
+
+/* ── Practice Full-Height Layout ── */
+body[data-view="practice"] { overflow: hidden; }
+body[data-view="practice"] #app {
+  height: 100dvh; display: flex; flex-direction: column;
+  overflow: hidden; padding-bottom: 0;
+}
+body[data-view="practice"] main#main {
+  flex: 1; display: flex; flex-direction: column;
+  overflow: hidden; min-height: 0;
+}
+body[data-view="practice"] .chat-scroll {
+  flex: 1; overflow-y: auto; min-height: 0;
+}
+body[data-view="practice"] .practice-bottom-bar {
+  position: static;
+}
 
 /* Report */
 .radar-container { display: flex; justify-content: center; margin: 24px 0; }
@@ -225,22 +244,24 @@ body {
   background: var(--bg-surface);
   border-left: 3px solid var(--accent);
   border-bottom: 1px solid var(--border);
-  padding: 10px 16px;
-  margin: 0 -16px;
+  padding: 10px 24px;
+  margin: 0 -24px;
+  flex-shrink: 0;
 }
 .issue-banner-header {
   display: flex; justify-content: space-between; align-items: center;
   cursor: pointer; user-select: none;
 }
-.issue-banner-header h4 { font-size: 0.8rem; color: var(--text-secondary); font-weight: 600; margin: 0; }
+.issue-banner-header h4 { font-size: 0.8rem; color: var(--text-secondary); font-weight: 600; margin: 0; min-width: 0; }
 .issue-banner-body { margin-top: 8px; font-size: 0.9rem; line-height: 1.5; }
 .issue-banner.collapsed .issue-banner-body { display: none; }
 .issue-banner-summary {
   font-size: 0.82rem; color: var(--text-secondary);
   display: none; white-space: nowrap; overflow: hidden;
-  text-overflow: ellipsis; max-width: 55%;
+  text-overflow: ellipsis; flex: 1; min-width: 0;
 }
 .issue-banner.collapsed .issue-banner-summary { display: block; }
+.issue-banner-caret { flex-shrink: 0; font-size: 1rem; color: var(--text-secondary); }
 
 .chat-scroll { display: flex; flex-direction: column; gap: 12px; padding: 16px 0; min-height: 200px; }
 
@@ -256,10 +277,11 @@ body {
   position: sticky; bottom: 0;
   background: var(--bg-surface);
   border-top: 1px solid var(--border);
-  padding: 10px 16px;
+  padding: 10px 24px;
   padding-bottom: max(10px, env(safe-area-inset-bottom));
-  margin: 0 -16px;
+  margin: 0 -24px;
   display: flex; flex-direction: column; gap: 8px;
+  flex-shrink: 0;
 }
 .bottom-toolbar { display: flex; gap: 8px; flex-wrap: wrap; }
 .btn-tool {
