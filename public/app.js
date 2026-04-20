@@ -12,6 +12,8 @@ const AppState = {
   isStreaming: false,
   theme: localStorage.getItem('theme') || 'light',
   view: 'home',
+  essenceDraft: '',
+  activeReportTab: 'overview',
 };
 
 // ── Supabase ──────────────────────────────────────
@@ -427,6 +429,7 @@ async function sendChat() {
   input.value = '';
 
   AppState.isStreaming = true;
+  AppState.essenceDraft = document.getElementById('final-def')?.value ?? AppState.essenceDraft;
   AppState.currentSession.conversation.push({ userMessage: message, coachReply: null });
   render();
 
@@ -485,10 +488,12 @@ async function sendChat() {
 
 function parseCoachReply(fullText) {
   const intervieweeMatch = fullText.match(/【被訪談者】\s*([\s\S]*?)(?=【教練點評】|$)/);
-  const coachingMatch = fullText.match(/【教練點評】\s*([\s\S]*?)$/);
+  const coachingMatch = fullText.match(/【教練點評】\s*([\s\S]*?)(?=【教練提示】|$)/);
+  const hintMatch = fullText.match(/【教練提示】\s*([\s\S]*?)$/);
   return {
     interviewee: intervieweeMatch?.[1]?.trim() || fullText,
     coaching: coachingMatch?.[1]?.trim() || '',
+    hint: hintMatch?.[1]?.trim() || '',
   };
 }
 
