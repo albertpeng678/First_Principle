@@ -14,13 +14,14 @@ const SYSTEM = `
 輸出格式：
 {
   "scores": {
-    "roleClarity":        { "score": 0-20, "did": "...", "missed": "...", "tip": "..." },
-    "taskBreakpoint":     { "score": 0-20, "did": "...", "missed": "...", "tip": "..." },
-    "workaround":         { "score": 0-20, "did": "...", "missed": "...", "tip": "..." },
-    "lossQuantification": { "score": 0-20, "did": "...", "missed": "...", "tip": "..." },
-    "definitionQuality":  { "score": 0-20, "did": "...", "missed": "...", "tip": "..." }
+    "roleClarity":        { "score": 0-20, "did": "...", "missed": "...", "tip": "...", "exampleQuestion": "如果是優秀學員，這個維度他會怎麼問（一句話）" },
+    "taskBreakpoint":     { "score": 0-20, "did": "...", "missed": "...", "tip": "...", "exampleQuestion": "..." },
+    "workaround":         { "score": 0-20, "did": "...", "missed": "...", "tip": "...", "exampleQuestion": "..." },
+    "lossQuantification": { "score": 0-20, "did": "...", "missed": "...", "tip": "...", "exampleQuestion": "..." },
+    "definitionQuality":  { "score": 0-20, "did": "...", "missed": "...", "tip": "...", "exampleQuestion": "..." }
   },
   "totalScore": 0-100,
+  "essenceExample": "針對這個 issue，一個優質問題本質定義的範例（中性問句）",
   "highlights": {
     "bestMove": "這次練習最亮的一個動作（具體）",
     "mainTrap": "最容易掉進的陷阱（具體）",
