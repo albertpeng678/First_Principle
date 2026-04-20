@@ -26,6 +26,17 @@ router.post('/', requireGuestId, async (req, res) => {
   }
 });
 
+// GET /api/guest/sessions — list all sessions for this guest
+router.get('/', requireGuestId, async (req, res) => {
+  const { data, error } = await db
+    .from('guest_sessions')
+    .select('id, difficulty, status, current_phase, turn_count, scores_json, created_at')
+    .eq('guest_id', req.guestId)
+    .order('created_at', { ascending: false });
+  if (error) return res.status(500).json({ error: error.message });
+  res.json(data || []);
+});
+
 // GET /api/guest/sessions/:id
 router.get('/:id', requireGuestId, async (req, res) => {
   const { data, error } = await db
