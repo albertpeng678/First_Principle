@@ -393,9 +393,6 @@ function renderPractice() {
   const issueSummary = escHtml((s.issue_json?.issueText || '').slice(0, 55)) + '…';
 
   return `
-    <div style="height:4px;background:var(--bg-surface-2);margin:0 -24px">
-      <div style="height:100%;width:${progressPct}%;background:var(--accent);transition:width 0.3s"></div>
-    </div>
     <div class="issue-banner" id="issue-banner">
       <div class="issue-banner-header" id="issue-banner-header">
         <h4><span class="badge badge-blue" style="margin-right:6px">${escHtml(s.issue_json?.source || '')}</span>抱怨內容</h4>
@@ -413,6 +410,7 @@ function renderPractice() {
         <button class="btn-tool" id="btn-update-def"><i class="ph ph-note-pencil"></i> 更新定義</button>
       </div>
       <label class="essence-label" for="final-def">問題本質定義（提交前可隨時更新）</label>
+      <div id="def-hint" style="display:none;font-size:0.78rem;color:var(--text-secondary);">完成 3 輪對話後即可編輯定義</div>
       <textarea id="final-def" class="essence-textarea" rows="2"
         placeholder="用中性問句描述問題本質…&#10;例：如何讓 [角色] 在 [情境] 下更有效率達成 [目標]？"
         ${!showSubmit ? 'disabled' : ''}></textarea>
@@ -451,7 +449,16 @@ function bindPractice() {
 
   document.getElementById('btn-hint')?.addEventListener('click', showHintCard);
   document.getElementById('btn-update-def')?.addEventListener('click', () => {
-    document.getElementById('final-def')?.focus();
+    const defEl = document.getElementById('final-def');
+    if (defEl?.disabled) {
+      const hint = document.getElementById('def-hint');
+      if (hint) {
+        hint.style.display = 'block';
+        setTimeout(() => { hint.style.display = 'none'; }, 2500);
+      }
+    } else {
+      defEl?.focus();
+    }
   });
 
   scrollChatToBottom();
