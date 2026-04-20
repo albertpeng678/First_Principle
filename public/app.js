@@ -369,43 +369,96 @@ function renderSteps(currentPhase) {
 
 function renderPractice() {
   const s = AppState.currentSession;
-  if (!s) return '<p>沒有進行中的練習</p>';
+  if (!s) return '<p style="padding:16px">沒有進行中的練習</p>';
+
+  const turnCount = s.turn_count || 0;
+  const progressPct = Math.min(100, Math.round((turnCount / 7) * 100));
+  const showSubmit = s.current_phase === 'submit' || turnCount >= 3;
 
   const bubbles = s.conversation.map(t => `
     <div class="bubble bubble-user">${escHtml(t.userMessage)}</div>
     <div class="bubble bubble-ai">${formatCoachReply(t.coachReply)}</div>
   `).join('');
 
-  const submitSection = s.current_phase === 'submit' || s.turn_count >= 3 ? `
-    <div class="card" style="margin-top:16px">
-      <p style="font-weight:600;margin-bottom:8px">提交你的問題定義</p>
-      <textarea id="final-def" class="chat-input" rows="3" style="width:100%" placeholder="用一句中性問句描述這個問題的本質…"></textarea>
-      <button class="btn btn-primary" style="margin-top:8px" id="btn-submit">提交定義</button>
-    </div>
-  ` : '';
+  const issueSummary = escHtml((s.issue_json?.issueText || '').slice(0, 55)) + '…';
 
   return `
-    ${renderSteps(s.current_phase)}
-    <div class="card" style="margin-bottom:16px">
-      <p style="font-size:0.8rem;color:var(--text-secondary)">${s.issue_json?.source || ''}</p>
-      <p style="margin-top:6px;font-weight:500">${escHtml(s.issue_json?.issueText || '')}</p>
+    <div style="height:4px;background:var(--bg-surface-2);margin:0 -16px">
+      <div style="height:100%;width:${progressPct}%;background:var(--accent);transition:width 0.3s"></div>
     </div>
-    <div class="chat-area" id="chat-area">${bubbles}</div>
-    <div class="chat-input-area">
-      <textarea id="chat-input" class="chat-input" rows="2" placeholder="輸入你的問題或觀察…" ${AppState.isStreaming ? 'disabled' : ''}></textarea>
-      <button class="btn btn-primary" id="btn-send" ${AppState.isStreaming ? 'disabled' : ''}>送出</button>
+    <div class="issue-banner" id="issue-banner">
+      <div class="issue-banner-header" id="issue-banner-header">
+        <h4><span class="badge badge-blue" style="margin-right:6px">${escHtml(s.issue_json?.source || '')}</span>抱怨內容</h4>
+        <div style="display:flex;align-items:center;gap:8px">
+          <span class="issue-banner-summary">${issueSummary}</span>
+          <i class="ph ph-caret-up" id="issue-caret" style="font-size:1rem;color:var(--text-secondary)"></i>
+        </div>
+      </div>
+      <div class="issue-banner-body">${escHtml(s.issue_json?.issueText || '')}</div>
     </div>
-    ${submitSection}
+    <div class="chat-scroll" id="chat-area">${bubbles}</div>
+    <div class="practice-bottom-bar">
+      <div class="bottom-toolbar">
+        <button class="btn-tool" id="btn-hint"><i class="ph ph-lightbulb"></i> 本輪提示</button>
+        <button class="btn-tool" id="btn-update-def"><i class="ph ph-note-pencil"></i> 更新定義</button>
+      </div>
+      <label class="essence-label" for="final-def">問題本質定義（提交前可隨時更新）</label>
+      <textarea id="final-def" class="essence-textarea" rows="2"
+        placeholder="用中性問句描述問題本質…&#10;例：如何讓 [角色] 在 [情境] 下更有效率達成 [目標]？"
+        ${!showSubmit ? 'disabled' : ''}></textarea>
+      <div class="chat-send-row">
+        <textarea id="chat-input" class="chat-input" style="flex:1" rows="2"
+          placeholder="輸入你的問題或觀察…"
+          ${AppState.isStreaming ? 'disabled' : ''}></textarea>
+        <button class="btn btn-primary" id="btn-send" ${AppState.isStreaming ? 'disabled' : ''}>送出</button>
+      </div>
+      ${showSubmit ? '<button class="btn btn-primary" style="align-self:flex-start" id="btn-submit">提交定義</button>' : ''}
+    </div>
   `;
 }
 
 function bindPractice() {
+  const finalDefEl = document.getElementById('final-def');
+  if (finalDefEl) {
+    finalDefEl.value = AppState.essenceDraft;
+    finalDefEl.addEventListener('input', e => { AppState.essenceDraft = e.target.value; });
+  }
+
   document.getElementById('btn-send')?.addEventListener('click', sendChat);
   document.getElementById('chat-input')?.addEventListener('keydown', e => {
     if (e.key === 'Enter' && !e.shiftKey) { e.preventDefault(); sendChat(); }
   });
   document.getElementById('btn-submit')?.addEventListener('click', submitDefinition);
+
+  document.getElementById('issue-banner-header')?.addEventListener('click', () => {
+    const banner = document.getElementById('issue-banner');
+    const caret = document.getElementById('issue-caret');
+    const collapsed = banner.classList.toggle('collapsed');
+    caret.className = collapsed ? 'ph ph-caret-down' : 'ph ph-caret-up';
+  });
+
+  document.getElementById('btn-hint')?.addEventListener('click', showHintCard);
+  document.getElementById('btn-update-def')?.addEventListener('click', () => {
+    document.getElementById('final-def')?.focus();
+  });
+
   scrollChatToBottom();
+}
+
+function showHintCard() {
+  const conv = AppState.currentSession?.conversation || [];
+  const lastHint = conv[conv.length - 1]?.coachReply?.hint;
+  const hint = lastHint || '請先進行至少一輪對話，再查看本輪提示。';
+
+  const chatArea = document.getElementById('chat-area');
+  if (!chatArea) return;
+  chatArea.querySelector('.hint-card')?.remove();
+
+  const card = document.createElement('div');
+  card.className = 'hint-card';
+  card.innerHTML = `<i class="ph ph-lightbulb" style="margin-top:2px;flex-shrink:0;color:#f0a04b"></i><span>${escHtml(hint)}</span>`;
+  chatArea.appendChild(card);
+  card.scrollIntoView({ behavior: 'smooth', block: 'nearest' });
 }
 
 function formatCoachReply(coachReply) {
