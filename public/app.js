@@ -651,7 +651,7 @@ function renderReport() {
   `).join('');
 
   const turnAnalysis = scores.turnAnalysis || [];
-  const reviewRows = s.conversation.map((t, i) => `
+  const reviewRows = (s.conversation || []).map((t, i) => `
     <tr>
       <td style="white-space:nowrap;color:var(--text-secondary)">第 ${i+1} 輪</td>
       <td>${escHtml(t.userMessage)}</td>
@@ -661,7 +661,7 @@ function renderReport() {
     </tr>
   `).join('');
 
-  const reviewCards = s.conversation.map((t, i) => `
+  const reviewCards = (s.conversation || []).map((t, i) => `
     <div class="review-card">
       <div class="review-card-round">第 ${i+1} 輪</div>
       <div class="review-card-section"><div class="review-card-section-label">學員提問</div>${escHtml(t.userMessage)}</div>
@@ -729,7 +729,7 @@ function renderReport() {
           <button class="btn btn-ghost" id="btn-export-pdf"><i class="ph ph-file-pdf"></i> 匯出 PDF</button>
           <button class="btn btn-ghost" id="btn-export-png"><i class="ph ph-image"></i> 匯出 PNG</button>
           <p class="export-hint">PDF 使用瀏覽器列印；PNG 截取報告畫面</p>
-          <button class="btn btn-primary" onclick="navigate('home')">再練一次</button>
+          <button class="btn btn-primary" id="btn-practice-again">再練一次</button>
         </div>
       </div>
     </div>
@@ -748,6 +748,7 @@ function bindReport() {
   });
   document.getElementById('btn-export-pdf')?.addEventListener('click', exportPDF);
   document.getElementById('btn-export-png')?.addEventListener('click', exportPNG);
+  document.getElementById('btn-practice-again')?.addEventListener('click', () => navigate('home'));
 }
 
 function exportPDF() {
@@ -756,6 +757,7 @@ function exportPDF() {
 
 async function exportPNG() {
   const btn = document.getElementById('btn-export-png');
+  if (!btn) return;
   btn.disabled = true;
   btn.textContent = '截圖中…';
   try {
