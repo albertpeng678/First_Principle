@@ -1,0 +1,175 @@
+:root,
+[data-theme="dark"] {
+  --bg-primary: #0f1117;
+  --bg-surface: #1a1d27;
+  --bg-surface-2: #252836;
+  --text-primary: #e8eaf0;
+  --text-secondary: #9399a6;
+  --accent: #6c63ff;
+  --accent-hover: #5a52e0;
+  --success: #4caf7d;
+  --warning: #f0a04b;
+  --danger: #e05252;
+  --border: rgba(255,255,255,0.08);
+  --shadow: 0 4px 24px rgba(0,0,0,0.4);
+  --bubble-user-bg: #6c63ff;
+  --bubble-user-text: #ffffff;
+  --bubble-ai-bg: #252836;
+  --bubble-ai-text: #e8eaf0;
+}
+
+[data-theme="light"] {
+  --bg-primary: #ffffff;
+  --bg-surface: #f5f5f5;
+  --bg-surface-2: #ebebeb;
+  --text-primary: #1a1d27;
+  --text-secondary: #5a5e6b;
+  --accent: #5a52e0;
+  --accent-hover: #4840c8;
+  --success: #2e7d52;
+  --warning: #d4821a;
+  --danger: #c0392b;
+  --border: rgba(0,0,0,0.1);
+  --shadow: 0 4px 24px rgba(0,0,0,0.1);
+  --bubble-user-bg: #5a52e0;
+  --bubble-user-text: #ffffff;
+  --bubble-ai-bg: #ebebeb;
+  --bubble-ai-text: #1a1d27;
+}
+
+* { box-sizing: border-box; margin: 0; padding: 0; }
+
+body {
+  font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
+  background: var(--bg-primary);
+  color: var(--text-primary);
+  min-height: 100vh;
+  transition: background 0.2s, color 0.2s;
+}
+
+/* Layout */
+#app { max-width: 800px; margin: 0 auto; padding: 16px; }
+
+/* Navbar */
+.navbar {
+  display: flex; justify-content: space-between; align-items: center;
+  padding: 12px 0; margin-bottom: 24px;
+  border-bottom: 1px solid var(--border);
+}
+.navbar-logo { font-size: 1.1rem; font-weight: 700; color: var(--accent); }
+.navbar-actions { display: flex; gap: 8px; align-items: center; }
+
+/* Buttons */
+.btn {
+  padding: 8px 16px; border-radius: 8px; border: none;
+  cursor: pointer; font-size: 0.9rem; font-weight: 500;
+  transition: background 0.15s, opacity 0.15s;
+}
+.btn-primary { background: var(--accent); color: #fff; }
+.btn-primary:hover { background: var(--accent-hover); }
+.btn-ghost {
+  background: transparent; color: var(--text-secondary);
+  border: 1px solid var(--border);
+}
+.btn-ghost:hover { background: var(--bg-surface); }
+.btn-icon { background: transparent; border: none; cursor: pointer; font-size: 1.2rem; padding: 4px 8px; }
+.btn:disabled { opacity: 0.5; cursor: not-allowed; }
+
+/* Cards */
+.card {
+  background: var(--bg-surface); border: 1px solid var(--border);
+  border-radius: 12px; padding: 20px;
+  box-shadow: var(--shadow);
+}
+
+/* Progress Steps */
+.steps {
+  display: flex; justify-content: space-between;
+  margin-bottom: 24px; position: relative;
+}
+.steps::before {
+  content: ''; position: absolute; top: 16px; left: 10%; right: 10%;
+  height: 2px; background: var(--border);
+}
+.step {
+  display: flex; flex-direction: column; align-items: center; gap: 6px;
+  font-size: 0.75rem; color: var(--text-secondary); z-index: 1;
+}
+.step-dot {
+  width: 32px; height: 32px; border-radius: 50%;
+  background: var(--bg-surface-2); border: 2px solid var(--border);
+  display: flex; align-items: center; justify-content: center; font-size: 0.8rem;
+}
+.step.active .step-dot { background: var(--accent); border-color: var(--accent); color: #fff; }
+.step.done .step-dot { background: var(--success); border-color: var(--success); color: #fff; }
+.step.active { color: var(--accent); font-weight: 600; }
+
+/* Chat Bubbles */
+.chat-area { display: flex; flex-direction: column; gap: 12px; margin-bottom: 16px; min-height: 300px; }
+.bubble { max-width: 80%; padding: 12px 16px; border-radius: 16px; line-height: 1.5; }
+.bubble-user { align-self: flex-end; background: var(--bubble-user-bg); color: var(--bubble-user-text); border-bottom-right-radius: 4px; }
+.bubble-ai { align-self: flex-start; background: var(--bubble-ai-bg); color: var(--bubble-ai-text); border-bottom-left-radius: 4px; white-space: pre-wrap; }
+.bubble-ai hr { border-color: var(--border); margin: 8px 0; }
+
+/* Chat Input */
+.chat-input-area { display: flex; gap: 8px; }
+.chat-input {
+  flex: 1; padding: 12px; border-radius: 8px;
+  border: 1px solid var(--border); background: var(--bg-surface-2);
+  color: var(--text-primary); font-size: 0.95rem; resize: none;
+}
+.chat-input:focus { outline: none; border-color: var(--accent); }
+
+/* Report */
+.radar-container { display: flex; justify-content: center; margin: 24px 0; }
+.score-cards { display: grid; grid-template-columns: 1fr 1fr; gap: 12px; margin: 16px 0; }
+.score-card { background: var(--bg-surface-2); border-radius: 10px; padding: 14px; }
+.score-card-title { font-weight: 700; font-size: 0.85rem; color: var(--accent); margin-bottom: 6px; }
+.score-card-score { font-size: 1.4rem; font-weight: 800; margin-bottom: 8px; }
+.score-label { font-size: 0.75rem; color: var(--text-secondary); }
+
+/* Review Table */
+.review-table { width: 100%; border-collapse: collapse; font-size: 0.85rem; margin-top: 16px; }
+.review-table th { background: var(--bg-surface-2); padding: 10px; text-align: left; }
+.review-table td { padding: 10px; border-bottom: 1px solid var(--border); vertical-align: top; }
+
+/* History */
+.history-list { display: flex; flex-direction: column; gap: 8px; margin-top: 16px; }
+.history-item {
+  background: var(--bg-surface); border: 1px solid var(--border);
+  border-radius: 10px; padding: 14px; cursor: pointer;
+}
+.history-item:hover { border-color: var(--accent); }
+
+/* Difficulty Cards */
+.difficulty-cards { display: grid; grid-template-columns: repeat(3, 1fr); gap: 16px; margin-top: 24px; }
+.difficulty-card {
+  background: var(--bg-surface); border: 2px solid var(--border);
+  border-radius: 14px; padding: 24px; cursor: pointer; text-align: center;
+  transition: border-color 0.15s, transform 0.15s;
+}
+.difficulty-card:hover { border-color: var(--accent); transform: translateY(-2px); }
+
+/* Export Buttons */
+.export-actions { display: flex; gap: 12px; margin-top: 24px; justify-content: center; }
+
+/* Print styles */
+@media print {
+  .navbar, .steps, .export-actions, .btn { display: none !important; }
+  body { background: white; color: black; }
+  .card { box-shadow: none; border: 1px solid #ddd; }
+}
+
+/* Responsive */
+@media (max-width: 600px) {
+  .difficulty-cards { grid-template-columns: 1fr; }
+  .score-cards { grid-template-columns: 1fr; }
+  .bubble { max-width: 95%; }
+}
+
+/* Loading dots */
+.typing::after {
+  content: '●●●'; animation: typing 1s infinite;
+  color: var(--text-secondary); font-size: 0.6rem; letter-spacing: 2px;
+}
+@keyframes typing { 0%,100%{opacity:0.3} 50%{opacity:1} }
