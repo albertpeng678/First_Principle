@@ -273,6 +273,54 @@ function renderHome() {
         </div>
       `).join('')}
     </div>
+
+    <!-- Onboarding Section -->
+    <div class="onboarding-section">
+      <div class="onboarding-header">
+        <i class="ph ph-graduation-cap onboarding-header-icon"></i>
+        <h2 class="onboarding-title">這個訓練在練什麼？</h2>
+      </div>
+
+      <div class="onboarding-what">
+        <div class="onboarding-what-icon"><i class="ph ph-brain"></i></div>
+        <div>
+          <div class="onboarding-what-label">第一性原理（First Principles）</div>
+          <div class="onboarding-what-desc">剝除假設，找到問題的根本。不問「怎麼修這個抱怨」，而是問「真正需要解決的問題是什麼」。訓練 PM 在訪談利害關係人時，透過精準提問提煉出真實的問題定義，避免「為對的抱怨做出錯的解法」。</div>
+        </div>
+      </div>
+
+      <div class="onboarding-dims-label">
+        <i class="ph ph-list-checks"></i>
+        訓練的 5 個維度
+      </div>
+      <div class="onboarding-dims">
+        <div class="onboarding-dim">
+          <div class="onboarding-dim-icon"><i class="ph ph-user-focus"></i></div>
+          <div class="onboarding-dim-name">角色定位</div>
+          <div class="onboarding-dim-desc">釐清誰真正被影響、其具體職責是什麼</div>
+        </div>
+        <div class="onboarding-dim">
+          <div class="onboarding-dim-icon"><i class="ph ph-git-branch"></i></div>
+          <div class="onboarding-dim-name">任務卡點</div>
+          <div class="onboarding-dim-desc">定位工作流程中哪個步驟真正斷掉</div>
+        </div>
+        <div class="onboarding-dim">
+          <div class="onboarding-dim-icon"><i class="ph ph-arrows-split"></i></div>
+          <div class="onboarding-dim-name">替代行為</div>
+          <div class="onboarding-dim-desc">挖掘用戶改用什麼替代方案——揭示真實痛點</div>
+        </div>
+        <div class="onboarding-dim">
+          <div class="onboarding-dim-icon"><i class="ph ph-chart-bar"></i></div>
+          <div class="onboarding-dim-name">損失量化</div>
+          <div class="onboarding-dim-desc">用具體維度與規模衡量影響大小</div>
+        </div>
+        <div class="onboarding-dim">
+          <div class="onboarding-dim-icon"><i class="ph ph-target"></i></div>
+          <div class="onboarding-dim-name">定義品質</div>
+          <div class="onboarding-dim-desc">以中立提問框架問題，不預設解法方向</div>
+        </div>
+      </div>
+    </div>
   `;
 }
 
