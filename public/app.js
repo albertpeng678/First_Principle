@@ -127,7 +127,8 @@ function renderNavbar() {
     el.innerHTML = '';
   }
 
-  document.getElementById('btn-hamburger')?.addEventListener('click', openOffcanvas);
+  const hamburger = document.getElementById('btn-hamburger');
+  if (hamburger) hamburger.onclick = openOffcanvas;
 }
 
 function openOffcanvas() {
@@ -135,7 +136,8 @@ function openOffcanvas() {
   document.getElementById('offcanvas-overlay').classList.add('open');
   document.body.style.overflow = 'hidden';
   loadOffcanvasSessions();
-  document.getElementById('btn-offcanvas-close')?.addEventListener('click', closeOffcanvas, { once: true });
+  const closeBtn = document.getElementById('btn-offcanvas-close');
+  if (closeBtn) closeBtn.onclick = closeOffcanvas;
   document.getElementById('offcanvas-overlay')?.addEventListener('click', closeOffcanvas, { once: true });
 }
 
@@ -179,6 +181,7 @@ async function loadOffcanvasSessions() {
           return;
         }
         const r = await fetch(sessionRoute(`/${id}`), { headers: apiHeaders() });
+        if (!r.ok) return;
         const session = await r.json();
         AppState.currentSession = session;
         navigate(status === 'completed' ? 'report' : 'practice');
