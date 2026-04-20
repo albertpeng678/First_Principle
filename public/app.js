@@ -568,6 +568,7 @@ async function submitDefinition() {
     AppState.currentSession.scores_json = scores;
     AppState.currentSession.final_definition = def;
     AppState.currentSession.current_phase = 'done';
+    AppState.activeReportTab = 'overview';
     navigate('report');
   } catch (e) {
     alert('評分失敗：' + e.message);
@@ -624,6 +625,7 @@ function renderReport() {
   const s = AppState.currentSession;
   const scores = s?.scores_json;
   if (!scores) return '<p style="padding:16px">沒有評分資料</p>';
+  if (!scores.scores) return '<p style="padding:16px">評分資料不完整</p>';
 
   const dims = Object.keys(DIM_LABELS);
   const totalScore = scores.totalScore || 0;
@@ -763,12 +765,15 @@ async function exportPNG() {
   try {
     const { default: html2canvas } = await import('https://esm.sh/html2canvas@1.4.1');
     const el = document.getElementById('report-content');
+    document.querySelectorAll('.tab-pane').forEach(p => { p.style.display = 'block'; });
     const canvas = await html2canvas(el, { backgroundColor: getComputedStyle(document.documentElement).getPropertyValue('--bg-primary').trim() });
+    document.querySelectorAll('.tab-pane').forEach(p => { p.style.display = ''; });
     const a = document.createElement('a');
     a.href = canvas.toDataURL('image/png');
     a.download = `pm-drill-report-${Date.now()}.png`;
     a.click();
   } catch (e) {
+    document.querySelectorAll('.tab-pane').forEach(p => { p.style.display = ''; });
     alert('截圖失敗，改用 PDF 列印');
     window.print();
   }
