@@ -48,7 +48,7 @@ body {
 }
 
 /* Layout */
-#app { max-width: 800px; margin: 0 auto; padding: 16px; }
+#app { max-width: 1100px; margin: 0 auto; padding: 16px; }
 
 /* Navbar */
 .navbar {
