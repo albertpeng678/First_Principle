@@ -706,7 +706,7 @@ function renderHistoryChart(sessions) {
   const toY = v => padT + (1 - (v - minS) / (maxS - minS)) * (h - padT - padB);
 
   const points = completed.map((_, i) => `${toX(i)},${toY(scores[i])}`).join(' ');
-  const dots = completed.map((s, i) => `
+  const dots = completed.map((_, i) => `
     <circle cx="${toX(i)}" cy="${toY(scores[i])}" r="4" fill="var(--accent)"/>
     <text x="${toX(i)}" y="${toY(scores[i]) - 8}" text-anchor="middle" font-size="10" fill="var(--text-primary)">${scores[i]}</text>
   `).join('');
