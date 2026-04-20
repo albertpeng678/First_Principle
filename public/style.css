@@ -190,7 +190,7 @@ body {
   transition: opacity 0.25s ease;
   z-index: 100;
 }
-.offcanvas-overlay.open { opacity: 1; pointer-events: all; }
+.offcanvas-overlay.open { opacity: 1; pointer-events: auto; }
 .offcanvas {
   position: fixed; top: 0; left: 0; bottom: 0;
   width: 280px; max-width: 80vw;
