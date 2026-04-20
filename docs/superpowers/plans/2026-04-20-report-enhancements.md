@@ -4,6 +4,16 @@
 
 **Goal:** Add dimension example questions, coach demo conversation, coach problem essence, and full-page PDF print to the PM Drill report.
 
+---
+
+## Completed Pre-work (2026-04-21)
+
+These tasks were completed before executing this plan:
+
+- [x] **Practice View UI Fixes** — removed accent progress bar from practice view, fixed negative-margin elements not reaching viewport edges (removed `overflow:hidden` from `main#main`), made `.btn-tool` use accent purple color, added inline hint feedback when "更新定義" clicked while disabled. Commits: `fix: resolve 4 practice view UI issues`, `fix: remove dead progressPct variable, minor css cleanup`
+
+- [x] **Home Page Onboarding** — added onboarding section to `renderHome()` explaining First Principles thinking, 5 training dimensions (with Phosphor icons), and PM benefits. Added corresponding `.onboarding-*` CSS classes. Commit: `feat: add home page onboarding section for new users`
+
 **Architecture:** Four backend changes (evaluator extended, new coach-demo module, both submit routes updated, DB column added) and four frontend changes (submitDefinition updated, renderReport 5-tab layout, review two-column layout, print CSS). Coach demo runs synchronously at submit time after evaluation. All coach data flows through `coach_demo_json` stored on the session. Visibility is automatic — coach content only renders when `coach_demo_json` is present.
 
 **Tech Stack:** Vanilla JS (ES modules), Node.js/Express, Supabase (Postgres/JSONB), OpenAI GPT-4o JSON mode.
@@ -25,12 +35,12 @@
 
 ---
 
-### Task 1: New backend module — `prompts/coach-demo.js`
+### Task 1: New backend module — `prompts/coach-demo.js` ✅ DONE (commit 71e4aac)
 
 **Files:**
 - Create: `prompts/coach-demo.js`
 
-- [ ] **Step 1: Create the file**
+- [x] **Step 1: Create the file**
 
 ```javascript
 const OpenAI = require('openai');
@@ -93,14 +103,14 @@ ${issue.issueText}
 module.exports = { generateCoachDemo };
 ```
 
-- [ ] **Step 2: Verify the module loads**
+- [x] **Step 2: Verify the module loads**
 
 ```bash
 node -e "const {generateCoachDemo} = require('./prompts/coach-demo'); console.log('ok')"
 ```
 Expected: `ok` with no errors.
 
-- [ ] **Step 3: Commit**
+- [x] **Step 3: Commit**
 
 ```bash
 git add prompts/coach-demo.js
@@ -109,12 +119,12 @@ git commit -m "feat: add coach-demo module for generating coach demonstration co
 
 ---
 
-### Task 2: Extend evaluator — `exampleQuestion` + `essenceExample`
+### Task 2: Extend evaluator — `exampleQuestion` + `essenceExample` ✅ DONE (commit 11ef5fb)
 
 **Files:**
 - Modify: `prompts/evaluator.js`
 
-- [ ] **Step 1: Update the SYSTEM prompt**
+- [x] **Step 1: Update the SYSTEM prompt**
 
 Find the `const SYSTEM` string. Replace the output format section with:
 
@@ -152,14 +162,14 @@ const SYSTEM = `
 `;
 ```
 
-- [ ] **Step 2: Verify the module still loads**
+- [x] **Step 2: Verify the module still loads**
 
 ```bash
 node -e "const {evaluate} = require('./prompts/evaluator'); console.log('ok')"
 ```
 Expected: `ok`
 
-- [ ] **Step 3: Commit**
+- [x] **Step 3: Commit**
 
 ```bash
 git add prompts/evaluator.js
