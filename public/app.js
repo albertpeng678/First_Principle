@@ -483,11 +483,12 @@ async function sendChat() {
   input.value = '';
 
   AppState.isStreaming = true;
-  AppState.essenceDraft = document.getElementById('final-def')?.value ?? AppState.essenceDraft;
+  const defEl = document.getElementById('final-def');
+  if (defEl && !defEl.disabled) AppState.essenceDraft = defEl.value;
   AppState.currentSession.conversation.push({ userMessage: message, coachReply: null });
   render();
 
-  const coachEl = document.querySelector('.chat-area .bubble-ai:last-child') || (() => {
+  const coachEl = document.querySelector('#chat-area .bubble-ai:last-child') || (() => {
     const el = document.createElement('div');
     el.className = 'bubble bubble-ai typing';
     document.getElementById('chat-area').appendChild(el);
