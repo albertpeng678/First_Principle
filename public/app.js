@@ -527,11 +527,12 @@ function renderPractice() {
         <button class="btn-tool" id="btn-hint"><i class="ph ph-lightbulb"></i> 本輪提示</button>
         <button class="btn-tool" id="btn-update-def"><i class="ph ph-note-pencil"></i> 更新定義</button>
       </div>
-      <label class="essence-label" for="final-def">問題本質定義（提交前可隨時更新）</label>
       <div id="def-hint" class="essence-label" style="display:none;">完成 3 輪對話後即可編輯定義</div>
-      <textarea id="final-def" class="essence-textarea" rows="2"
-        placeholder="用中性問句描述問題本質…&#10;例：如何讓 [角色] 在 [情境] 下更有效率達成 [目標]？"
-        ${!showSubmit ? 'disabled' : ''}></textarea>
+      ${showSubmit ? `
+  <label class="essence-label" for="final-def">問題本質定義（提交前可隨時更新）</label>
+  <textarea id="final-def" class="essence-textarea" rows="2"
+    placeholder="用中性問句描述問題本質…&#10;例：如何讓 [角色] 在 [情境] 下更有效率達成 [目標]？"></textarea>
+` : ''}
       <div class="chat-send-row">
         <textarea id="chat-input" class="chat-input" style="flex:1" rows="2"
           placeholder="輸入你的問題或觀察…"
