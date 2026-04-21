@@ -1026,14 +1026,58 @@ function renderHistoryChart(sessions) {
   `;
 }
 
+function attachHistoryDeleteListeners(el) {
+  el.querySelectorAll('.history-delete-btn').forEach(btn => {
+    btn.addEventListener('click', e => {
+      e.stopPropagation();
+      const id = btn.dataset.id;
+      const item = btn.closest('.history-item');
+      const originalHTML = item.innerHTML;
+
+      item.innerHTML = `
+        <span style="font-size:0.85rem">確定刪除嗎？</span>
+        <div style="display:flex;gap:6px;margin-top:6px">
+          <button class="btn btn-ghost history-cancel-delete" style="font-size:0.8rem;padding:4px 10px">取消</button>
+          <button class="btn-danger history-confirm-delete" style="font-size:0.8rem">刪除</button>
+        </div>
+      `;
+
+      item.querySelector('.history-cancel-delete').addEventListener('click', () => {
+        item.innerHTML = originalHTML;
+        attachHistoryDeleteListeners(item);
+      });
+
+      item.querySelector('.history-confirm-delete').addEventListener('click', async () => {
+        try {
+          const res = await fetch(`/api/sessions/${id}`, { method: 'DELETE', headers: apiHeaders() });
+          if (!res.ok) {
+            item.innerHTML = originalHTML;
+            attachHistoryDeleteListeners(item);
+            return;
+          }
+          if (AppState.currentSession?.id === id) {
+            AppState.currentSession = null;
+            navigate('home');
+          } else {
+            item.remove();
+          }
+        } catch (_) {
+          item.innerHTML = originalHTML;
+          attachHistoryDeleteListeners(item);
+        }
+      });
+    });
+  });
+}
+
 function renderHistoryList(sessions) {
   const el = document.getElementById('history-list');
   if (!sessions.length) { el.textContent = '還沒有練習記錄'; return; }
 
   el.innerHTML = sessions.map(s => `
-    <div class="history-item" data-id="${s.id}">
-      <div style="display:flex;justify-content:space-between">
-        <span>${s.difficulty} · ${s.status === 'completed' ? '已完成' : '進行中'}</span>
+    <div class="history-item" data-id="${s.id}" style="position:relative">
+      <div style="display:flex;justify-content:space-between;padding-right:28px">
+        <span>${escHtml(s.difficulty)} · ${s.status === 'completed' ? '已完成' : '進行中'}</span>
         <span style="color:${s.scores_json?.totalScore >= 70 ? 'var(--success)' : 'var(--warning)'}">
           ${s.scores_json?.totalScore != null ? s.scores_json.totalScore + ' 分' : '—'}
         </span>
@@ -1041,6 +1085,9 @@ function renderHistoryList(sessions) {
       <div style="color:var(--text-secondary);font-size:0.8rem;margin-top:4px">
         ${new Date(s.created_at).toLocaleString('zh-TW')}
       </div>
+      <button class="btn-icon history-delete-btn" title="刪除" style="position:absolute;top:8px;right:8px;font-size:1rem;padding:2px 6px" data-id="${s.id}">
+        <i class="ph ph-trash"></i>
+      </button>
     </div>
   `).join('');
 
@@ -1052,4 +1099,6 @@ function renderHistoryList(sessions) {
       navigate(session.status === 'completed' ? 'report' : 'practice');
     });
   });
+
+  attachHistoryDeleteListeners(el);
 }
