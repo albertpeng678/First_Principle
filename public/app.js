@@ -984,8 +984,7 @@ async function loadHistory() {
     const sessions = await res.json();
     renderHistoryChart(sessions);
     renderHistoryList(sessions);
-  } catch (e) {
-    console.error('loadHistory error:', e);
+  } catch (_) {
     document.getElementById('history-list').textContent = '載入失敗';
   }
 }
