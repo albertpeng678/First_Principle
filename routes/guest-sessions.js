@@ -59,7 +59,8 @@ router.delete('/:id', requireGuestId, async (req, res) => {
     .eq('guest_id', req.guestId)
     .select('id')
     .single();
-  if (error || !data) return res.status(404).json({ error: 'not_found' });
+  if (error && error.code !== 'PGRST116') return res.status(500).json({ error: error.message });
+  if (!data) return res.status(404).json({ error: 'not_found' });
   res.json({ ok: true });
 });
 
