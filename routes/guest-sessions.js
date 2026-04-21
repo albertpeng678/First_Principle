@@ -5,6 +5,7 @@ const { requireGuestId } = require('../middleware/guest');
 const { generateIssue } = require('../prompts/issue-generator');
 const { streamCoachReply } = require('../prompts/coach');
 const { evaluate } = require('../prompts/evaluator');
+const { generateCoachDemo } = require('../prompts/coach-demo');
 
 // POST /api/guest/sessions
 router.post('/', requireGuestId, async (req, res) => {
@@ -108,13 +109,23 @@ router.post('/:id/submit', requireGuestId, async (req, res) => {
 
   try {
     const scores = await evaluate({ ...session, final_definition: finalDefinition });
+
+    let coachDemo = null;
+    try {
+      coachDemo = await generateCoachDemo(session);
+    } catch (e) {
+      console.error('coach-demo failed:', e.message);
+    }
+
     await db.from('guest_sessions').update({
       final_definition: finalDefinition,
       scores_json: scores,
+      coach_demo_json: coachDemo,
       status: 'completed',
       current_phase: 'done'
     }).eq('id', req.params.id);
-    res.json(scores);
+
+    res.json({ scores, coachDemo });
   } catch (e) {
     res.status(500).json({ error: e.message });
   }
