@@ -171,13 +171,17 @@ function attachOffcanvasDeleteListeners(listEl) {
         attachOffcanvasDeleteListeners(item);
       });
 
-      item.querySelector('.offcanvas-confirm-delete').addEventListener('click', async () => {
+      item.querySelector('.offcanvas-confirm-delete').addEventListener('click', async (e) => {
+        e.stopPropagation();
         try {
           const res = await fetch(sessionRoute(`/${id}`), { method: 'DELETE', headers: apiHeaders() });
           if (!res.ok) {
             item.innerHTML = originalHTML;
             attachOffcanvasDeleteListeners(item);
             return;
+          }
+          if (localStorage.getItem('lastSessionId') === id) {
+            localStorage.removeItem('lastSessionId');
           }
           if (AppState.currentSession?.id === id) {
             AppState.currentSession = null;
