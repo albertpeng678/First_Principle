@@ -50,6 +50,19 @@ router.get('/:id', requireGuestId, async (req, res) => {
   res.json(data);
 });
 
+// DELETE /api/guest/sessions/:id
+router.delete('/:id', requireGuestId, async (req, res) => {
+  const { data, error } = await db
+    .from('guest_sessions')
+    .delete()
+    .eq('id', req.params.id)
+    .eq('guest_id', req.guestId)
+    .select('id')
+    .single();
+  if (error || !data) return res.status(404).json({ error: 'not_found' });
+  res.json({ ok: true });
+});
+
 // POST /api/guest/sessions/:id/chat
 router.post('/:id/chat', requireGuestId, async (req, res) => {
   const { message } = req.body;
