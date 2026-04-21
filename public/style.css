@@ -140,6 +140,7 @@ body[data-view="practice"] main#main {
 body[data-view="practice"] .chat-scroll {
   flex: 1; overflow-y: auto; min-height: 0;
 }
+body[data-view="practice"] .navbar { margin-bottom: 0; }
 body[data-view="practice"] .practice-bottom-bar {
   position: static;
 }
@@ -307,6 +308,15 @@ body[data-view="practice"] .practice-bottom-bar {
 .essence-textarea:focus { outline: none; border-color: var(--accent); }
 .essence-textarea:disabled { opacity: 0.5; cursor: not-allowed; }
 .chat-send-row { display: flex; gap: 8px; }
+.def-panel {
+  display: none;
+  gap: 8px;
+  align-items: flex-start;
+}
+.def-panel.open { display: flex; }
+.def-panel .essence-textarea { flex: 1; margin: 0; }
+.btn-tool.active { background: rgba(108,99,255,0.12); border-color: var(--accent); }
+[data-theme="light"] .btn-tool.active { background: rgba(90,82,224,0.1); }
 
 /* ── Report Layout ── */
 .score-summary-bar {

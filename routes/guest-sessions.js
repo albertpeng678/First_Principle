@@ -131,13 +131,14 @@ router.post('/:id/submit', requireGuestId, async (req, res) => {
       console.error('coach-demo failed:', e.message);
     }
 
-    await db.from('guest_sessions').update({
+    const { error: updateError } = await db.from('guest_sessions').update({
       final_definition: finalDefinition,
       scores_json: scores,
       coach_demo_json: coachDemo,
       status: 'completed',
       current_phase: 'done'
-    }).eq('id', req.params.id);
+    }).eq('id', req.params.id).eq('guest_id', req.guestId);
+    if (updateError) throw updateError;
 
     res.json({ scores, coachDemo });
   } catch (e) {

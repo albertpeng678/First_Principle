@@ -499,9 +499,13 @@ function renderSteps(currentPhase) {
 function renderPractice() {
   const s = AppState.currentSession;
   if (!s) return '<p style="padding:16px">沒有進行中的練習</p>';
+  if (s.current_phase === 'done') {
+    setTimeout(() => navigate('report'), 0);
+    return '';
+  }
 
   const turnCount = s.turn_count || 0;
-  const showSubmit = s.current_phase === 'submit' || turnCount >= 3;
+  const showSubmit = turnCount >= 3;
 
   const bubbles = s.conversation.map(t => `
     <div class="bubble bubble-user">${escHtml(t.userMessage)}</div>
@@ -525,21 +529,23 @@ function renderPractice() {
     <div class="practice-bottom-bar">
       <div class="bottom-toolbar">
         <button class="btn-tool" id="btn-hint"><i class="ph ph-lightbulb"></i> 本輪提示</button>
-        <button class="btn-tool" id="btn-update-def"><i class="ph ph-note-pencil"></i> 更新定義</button>
+        <button class="btn-tool" id="btn-update-def">
+          <i class="ph ph-note-pencil"></i> 更新定義${showSubmit ? ' <i class="ph ph-caret-up" id="def-caret" style="font-size:0.7rem;margin-left:2px"></i>' : ''}
+        </button>
       </div>
       <div id="def-hint" class="essence-label" style="display:none;">完成 3 輪對話後即可編輯定義</div>
       ${showSubmit ? `
-  <label class="essence-label" for="final-def">問題本質定義（提交前可隨時更新）</label>
-  <textarea id="final-def" class="essence-textarea" rows="2"
-    placeholder="用中性問句描述問題本質…&#10;例：如何讓 [角色] 在 [情境] 下更有效率達成 [目標]？"></textarea>
-` : ''}
+      <div class="def-panel" id="def-panel">
+        <textarea id="final-def" class="essence-textarea" rows="2"
+          placeholder="用中性問句描述問題本質…&#10;例：如何讓 [角色] 在 [情境] 下更有效率達成 [目標]？" style="flex:1"></textarea>
+        <button class="btn btn-primary" id="btn-submit" style="flex-shrink:0;align-self:flex-start">提交定義</button>
+      </div>` : ''}
       <div class="chat-send-row">
         <textarea id="chat-input" class="chat-input" style="flex:1" rows="2"
           placeholder="輸入你的問題或觀察…"
           ${AppState.isStreaming ? 'disabled' : ''}></textarea>
         <button class="btn btn-primary" id="btn-send" ${AppState.isStreaming ? 'disabled' : ''}>送出</button>
       </div>
-      ${showSubmit ? '<button class="btn btn-primary" style="align-self:flex-start" id="btn-submit">提交定義</button>' : ''}
     </div>
   `;
 }
@@ -568,16 +574,21 @@ function bindPractice() {
 
   document.getElementById('btn-hint')?.addEventListener('click', showHintCard);
   document.getElementById('btn-update-def')?.addEventListener('click', () => {
-    const defEl = document.getElementById('final-def');
-    if (!defEl || defEl.disabled) {
+    const panel = document.getElementById('def-panel');
+    if (!panel) {
       const hint = document.getElementById('def-hint');
       if (hint) {
         hint.style.display = 'block';
         setTimeout(() => { hint.style.display = 'none'; }, 2500);
       }
-    } else {
-      defEl.focus();
+      return;
     }
+    const isOpen = panel.classList.toggle('open');
+    const caret = document.getElementById('def-caret');
+    const btn = document.getElementById('btn-update-def');
+    if (caret) caret.className = isOpen ? 'ph ph-caret-down' : 'ph ph-caret-up';
+    if (btn) btn.classList.toggle('active', isOpen);
+    if (isOpen) document.getElementById('final-def')?.focus();
   });
 
   scrollChatToBottom();
@@ -708,6 +719,7 @@ async function submitDefinition() {
     AppState.currentSession.coach_demo_json = data.coachDemo || null;
     AppState.currentSession.final_definition = def;
     AppState.currentSession.current_phase = 'done';
+    localStorage.removeItem('lastSessionId');
     AppState.activeReportTab = 'overview';
     navigate('report');
   } catch (e) {

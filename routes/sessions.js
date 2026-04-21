@@ -117,13 +117,14 @@ router.post('/:id/submit', requireAuth, async (req, res) => {
       console.error('coach-demo failed:', e.message);
     }
 
-    await db.from('practice_sessions').update({
+    const { error: updateError } = await db.from('practice_sessions').update({
       final_definition: finalDefinition,
       scores_json: scores,
       coach_demo_json: coachDemo,
       status: 'completed',
       current_phase: 'done'
-    }).eq('id', req.params.id);
+    }).eq('id', req.params.id).eq('user_id', req.user.id);
+    if (updateError) throw updateError;
 
     res.json({ scores, coachDemo });
   } catch (e) {
