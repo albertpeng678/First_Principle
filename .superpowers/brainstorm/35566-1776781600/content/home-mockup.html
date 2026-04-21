@@ -1,0 +1,372 @@
+<!DOCTYPE html>
+<html lang="zh-TW">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>Home Mockup</title>
+<style>
+* { box-sizing: border-box; margin: 0; padding: 0; }
+body { background: #1a1b2e; font-family: -apple-system, 'Segoe UI', sans-serif; display: flex; justify-content: center; padding: 32px 16px; min-height: 100vh; }
+
+.phone {
+  width: 375px;
+  min-height: 812px;
+  background: #f8f9ff;
+  border-radius: 44px;
+  overflow: hidden;
+  box-shadow: 0 32px 80px rgba(0,0,0,0.5), 0 0 0 2px #333;
+  display: flex;
+  flex-direction: column;
+}
+
+/* Navbar */
+.navbar {
+  background: #fff;
+  border-bottom: 1px solid #eee;
+  padding: 12px 16px;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  position: sticky;
+  top: 0;
+  z-index: 10;
+}
+.nav-left { display: flex; align-items: center; gap: 10px; }
+.nav-icon { width: 44px; height: 44px; display: flex; align-items: center; justify-content: center; border-radius: 10px; cursor: pointer; font-size: 20px; }
+.nav-icon:active { background: #f0f0f0; }
+.nav-logo { font-weight: 700; font-size: 17px; color: #1a1d27; letter-spacing: -0.3px; }
+.nav-right { display: flex; gap: 4px; }
+
+/* Main scroll area */
+.main { flex: 1; overflow-y: auto; padding: 20px 16px 32px; }
+
+/* Hero */
+.hero { text-align: center; padding: 8px 0 20px; }
+.hero h1 { font-size: 22px; font-weight: 700; color: #1a1d27; line-height: 1.3; margin-bottom: 6px; }
+.hero p { font-size: 14px; color: #6b7280; line-height: 1.5; }
+
+/* Mode selector */
+.section-label {
+  font-size: 11px;
+  font-weight: 600;
+  color: #9ca3af;
+  letter-spacing: 0.8px;
+  text-transform: uppercase;
+  margin-bottom: 10px;
+}
+
+.mode-cards {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 10px;
+  margin-bottom: 24px;
+}
+
+.mode-card {
+  background: #fff;
+  border: 2px solid #e5e7eb;
+  border-radius: 16px;
+  padding: 16px 14px;
+  cursor: pointer;
+  transition: all 0.15s ease;
+  position: relative;
+  overflow: hidden;
+}
+.mode-card.active {
+  border-color: #6c63ff;
+  background: #f5f3ff;
+}
+.mode-card .mode-icon {
+  font-size: 28px;
+  margin-bottom: 8px;
+  display: block;
+}
+.mode-card h3 {
+  font-size: 14px;
+  font-weight: 700;
+  color: #1a1d27;
+  margin-bottom: 4px;
+  line-height: 1.3;
+}
+.mode-card p {
+  font-size: 12px;
+  color: #6b7280;
+  line-height: 1.4;
+}
+.mode-card .badge {
+  position: absolute;
+  top: 10px;
+  right: 10px;
+  background: #fef3c7;
+  color: #92400e;
+  font-size: 10px;
+  font-weight: 600;
+  padding: 2px 6px;
+  border-radius: 99px;
+}
+.mode-card.active .badge {
+  background: #ede9fe;
+  color: #5b21b6;
+}
+
+/* Difficulty grid (for PM Drill mode) */
+.difficulty-section { margin-bottom: 24px; }
+.difficulty-grid { display: flex; flex-direction: column; gap: 10px; }
+
+.diff-card {
+  background: #fff;
+  border: 1.5px solid #e5e7eb;
+  border-radius: 14px;
+  padding: 14px 16px;
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  cursor: pointer;
+  transition: all 0.15s ease;
+}
+.diff-card:active { transform: scale(0.98); }
+.diff-icon {
+  width: 44px;
+  height: 44px;
+  border-radius: 12px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 20px;
+  flex-shrink: 0;
+}
+.diff-icon.green { background: #d1fae5; }
+.diff-icon.orange { background: #ffedd5; }
+.diff-icon.red { background: #fee2e2; }
+.diff-info { flex: 1; }
+.diff-info h4 { font-size: 15px; font-weight: 600; color: #1a1d27; margin-bottom: 2px; }
+.diff-info p { font-size: 12px; color: #6b7280; }
+.diff-arrow { color: #d1d5db; font-size: 16px; }
+
+/* NSM mode (when NSM tab selected) */
+.nsm-section { margin-bottom: 24px; }
+.nsm-intro {
+  background: linear-gradient(135deg, #f5f3ff 0%, #ede9fe 100%);
+  border: 1.5px solid #c4b5fd;
+  border-radius: 14px;
+  padding: 14px 16px;
+  margin-bottom: 14px;
+}
+.nsm-intro p { font-size: 13px; color: #5b21b6; line-height: 1.5; }
+.nsm-intro strong { font-weight: 700; }
+
+.nsm-stats {
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  gap: 8px;
+  margin-bottom: 14px;
+}
+.nsm-stat {
+  background: #fff;
+  border: 1.5px solid #e5e7eb;
+  border-radius: 12px;
+  padding: 12px 8px;
+  text-align: center;
+}
+.nsm-stat .num { font-size: 20px; font-weight: 700; color: #6c63ff; }
+.nsm-stat .lbl { font-size: 11px; color: #9ca3af; margin-top: 2px; }
+
+.btn-start {
+  width: 100%;
+  background: #6c63ff;
+  color: #fff;
+  border: none;
+  border-radius: 14px;
+  padding: 16px;
+  font-size: 16px;
+  font-weight: 700;
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 8px;
+  transition: all 0.15s;
+}
+.btn-start:active { transform: scale(0.98); background: #5a52e0; }
+
+/* Recent sessions */
+.recent-label {
+  font-size: 11px;
+  font-weight: 600;
+  color: #9ca3af;
+  letter-spacing: 0.8px;
+  text-transform: uppercase;
+  margin-bottom: 10px;
+}
+.session-item {
+  background: #fff;
+  border: 1.5px solid #e5e7eb;
+  border-radius: 12px;
+  padding: 12px 14px;
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  margin-bottom: 8px;
+}
+.session-badge {
+  padding: 3px 8px;
+  border-radius: 99px;
+  font-size: 11px;
+  font-weight: 600;
+  flex-shrink: 0;
+}
+.badge-progress { background: #dbeafe; color: #1e40af; }
+.badge-score { background: #d1fae5; color: #065f46; }
+.session-info { flex: 1; min-width: 0; }
+.session-info h4 { font-size: 13px; font-weight: 600; color: #1a1d27; margin-bottom: 2px; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+.session-info p { font-size: 11px; color: #9ca3af; }
+
+/* Tab toggle */
+.tab-toggle {
+  display: flex;
+  background: #f0f0f8;
+  border-radius: 12px;
+  padding: 4px;
+  margin-bottom: 20px;
+}
+.tab-toggle button {
+  flex: 1;
+  border: none;
+  background: transparent;
+  border-radius: 9px;
+  padding: 10px 8px;
+  font-size: 13px;
+  font-weight: 600;
+  color: #9ca3af;
+  cursor: pointer;
+  transition: all 0.15s;
+}
+.tab-toggle button.active {
+  background: #fff;
+  color: #6c63ff;
+  box-shadow: 0 1px 4px rgba(0,0,0,0.1);
+}
+
+/* Annotation */
+.annotation {
+  position: fixed;
+  right: 24px;
+  top: 50%;
+  transform: translateY(-50%);
+  width: 200px;
+  display: flex;
+  flex-direction: column;
+  gap: 16px;
+}
+.ann-item {
+  background: #fff;
+  border-radius: 10px;
+  padding: 12px 14px;
+  box-shadow: 0 2px 12px rgba(0,0,0,0.15);
+  font-size: 13px;
+  color: #374151;
+  line-height: 1.5;
+}
+.ann-item strong { color: #6c63ff; display: block; margin-bottom: 4px; font-size: 12px; text-transform: uppercase; letter-spacing: 0.5px; }
+</style>
+</head>
+<body>
+
+<div class="phone">
+  <!-- Navbar -->
+  <div class="navbar">
+    <div class="nav-left">
+      <div class="nav-icon">☰</div>
+      <span class="nav-logo">PM Drill</span>
+    </div>
+    <div class="nav-right">
+      <div class="nav-icon" title="切換主題">☀️</div>
+    </div>
+  </div>
+
+  <!-- Main -->
+  <div class="main">
+
+    <!-- Hero -->
+    <div class="hero">
+      <h1>今天要練哪個？</h1>
+      <p>選擇練習類型，開始你的 PM 訓練</p>
+    </div>
+
+    <!-- Mode Toggle -->
+    <div class="tab-toggle">
+      <button class="active">🎙 PM 訪談</button>
+      <button>⭐ 北極星指標</button>
+    </div>
+
+    <!-- PM Drill mode content -->
+    <div class="difficulty-section">
+      <div class="section-label">選擇難度</div>
+      <div class="difficulty-grid">
+        <div class="diff-card">
+          <div class="diff-icon green">🌱</div>
+          <div class="diff-info">
+            <h4>入門</h4>
+            <p>消費性 App 場景</p>
+          </div>
+          <div class="diff-arrow">›</div>
+        </div>
+        <div class="diff-card">
+          <div class="diff-icon orange">🔥</div>
+          <div class="diff-info">
+            <h4>進階</h4>
+            <p>B2B / 雙邊平台</p>
+          </div>
+          <div class="diff-arrow">›</div>
+        </div>
+        <div class="diff-card">
+          <div class="diff-icon red">⚡</div>
+          <div class="diff-info">
+            <h4>困難</h4>
+            <p>策略 / 多方利害</p>
+          </div>
+          <div class="diff-arrow">›</div>
+        </div>
+      </div>
+    </div>
+
+    <!-- Recent -->
+    <div class="recent-label">最近練習</div>
+    <div class="session-item">
+      <span class="session-badge badge-progress">進行中</span>
+      <div class="session-info">
+        <h4>進階 · Shopee 物流投訴</h4>
+        <p>4 小時前 · 第 3 輪</p>
+      </div>
+      <div style="font-size:12px;color:#9ca3af">›</div>
+    </div>
+    <div class="session-item">
+      <span class="session-badge badge-score">78 分</span>
+      <div class="session-info">
+        <h4>入門 · 外送 App 評分差</h4>
+        <p>昨天 · 完成</p>
+      </div>
+      <div style="font-size:12px;color:#9ca3af">›</div>
+    </div>
+
+  </div>
+</div>
+
+<!-- Annotations -->
+<div class="annotation">
+  <div class="ann-item">
+    <strong>Tab Toggle（新）</strong>
+    切換 PM訪談 / 北極星指標，取代原本只有難度選擇的首頁
+  </div>
+  <div class="ann-item">
+    <strong>難度卡片改版</strong>
+    從 Grid 改為 List，手機上更易點擊（44px 高），加入場景說明
+  </div>
+  <div class="ann-item">
+    <strong>最近練習</strong>
+    從 Offcanvas 移到首頁，降低導覽層級；PM 訪談 + NSM 混合顯示
+  </div>
+</div>
+
+</body>
+</html>

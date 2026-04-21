@@ -1,0 +1,118 @@
+<h2>PM Drill — UI/UX 稽查報告</h2>
+<p class="subtitle">嚴苛調查員出爐：共 31 個問題 · 4 CRITICAL · 10 HIGH · 10 MEDIUM · 7 LOW</p>
+
+<div class="section">
+  <div class="label">🔴 CRITICAL — 4 項（必須修）</div>
+  <div style="display:flex;flex-direction:column;gap:10px;margin-top:12px">
+
+    <div style="background:rgba(220,38,38,0.08);border-left:3px solid #dc2626;border-radius:8px;padding:14px 16px">
+      <div style="font-weight:700;color:#dc2626;margin-bottom:4px">#1 — Practice 底欄 Overlap 導致無法輸入</div>
+      <div style="font-size:0.9rem;color:var(--text-secondary)">定義面板開啟後無 max-height 限制，累積高度超出視口，Chat Input 被推離螢幕。使用者完全無法打字。</div>
+      <div style="font-size:0.8rem;margin-top:6px;opacity:0.7">位置：.practice-bottom-bar · CSS line 282–291 · .def-panel</div>
+    </div>
+
+    <div style="background:rgba(220,38,38,0.08);border-left:3px solid #dc2626;border-radius:8px;padding:14px 16px">
+      <div style="font-weight:700;color:#dc2626;margin-bottom:4px">#2 — 375px 手機上 Practice View 完全崩壞</div>
+      <div style="font-size:0.9rem;color:var(--text-secondary)">Practice view 無任何手機 RWD 斷點。100dvh 高度 + 24px 左右 padding 在 375px 螢幕上只剩 ~150px 給 chat 區域，底欄堆疊讓整個 layout 瓦解。</div>
+      <div style="font-size:0.8rem;margin-top:6px;opacity:0.7">位置：body[data-view="practice"] · 無任何 mobile media query</div>
+    </div>
+
+    <div style="background:rgba(220,38,38,0.08);border-left:3px solid #dc2626;border-radius:8px;padding:14px 16px">
+      <div style="font-weight:700;color:#dc2626;margin-bottom:4px">#3 — 所有 Icon 按鈕點擊區域只有 ~24px（標準：44px）</div>
+      <div style="font-size:0.9rem;color:var(--text-secondary)">.btn-icon 的 padding 只有 4px 8px，實際可點範圍遠低於 Apple HIG / Material 的 44×44pt 最低標準。漢堡選單、關閉按鈕全部中招。</div>
+      <div style="font-size:0.8rem;margin-top:6px;opacity:0.7">位置：.btn-icon · CSS line 77</div>
+    </div>
+
+    <div style="background:rgba(220,38,38,0.08);border-left:3px solid #dc2626;border-radius:8px;padding:14px 16px">
+      <div style="font-weight:700;color:#dc2626;margin-bottom:4px">#4 — API 呼叫中無任何 Loading 回饋</div>
+      <div style="font-size:0.9rem;color:var(--text-secondary)">選難度、送出對話、提交定義均無 spinner 或進度指示。網路慢時使用者以為 app 當掉，反覆點擊造成重複 API 請求。</div>
+      <div style="font-size:0.8rem;margin-top:6px;opacity:0.7">位置：sendChat() · submitDefinition() · difficulty card click</div>
+    </div>
+  </div>
+</div>
+
+<div class="section">
+  <div class="label">🟠 HIGH — 10 項（本次改版應修）</div>
+  <div style="display:flex;flex-direction:column;gap:8px;margin-top:12px">
+
+    <div style="background:rgba(234,88,12,0.07);border-left:3px solid #ea580c;border-radius:8px;padding:12px 16px">
+      <div style="font-weight:600;color:#ea580c;margin-bottom:3px">#5 — 定義面板開啟後無法關閉（手機上完全卡死）</div>
+      <div style="font-size:0.85rem;color:var(--text-secondary)">沒有關閉按鈕，也沒有 ESC handler。使用者只能靠猜到再點「更新定義」按鈕才能收合。</div>
+    </div>
+
+    <div style="background:rgba(234,88,12,0.07);border-left:3px solid #ea580c;border-radius:8px;padding:12px 16px">
+      <div style="font-weight:600;color:#ea580c;margin-bottom:3px">#6 — Report Tab Bar 在 375px 上全部擠在一起</div>
+      <div style="font-size:0.85rem;color:var(--text-secondary)">5 個 Tab 塞進 375px，每個只有 ~75px，無 overflow-x scroll。字縮小但仍難點選。</div>
+    </div>
+
+    <div style="background:rgba(234,88,12,0.07);border-left:3px solid #ea580c;border-radius:8px;padding:12px 16px">
+      <div style="font-weight:600;color:#ea580c;margin-bottom:3px">#7 — Chat 輸入框在手機上吃掉太多視口高度</div>
+      <div style="font-size:0.85rem;color:var(--text-secondary)">Textarea max-height: 160px + 工具欄 flex-wrap，在小螢幕上底部佔 50% 視口，上方對話幾乎看不到。</div>
+    </div>
+
+    <div style="background:rgba(234,88,12,0.07);border-left:3px solid #ea580c;border-radius:8px;padding:12px 16px">
+      <div style="font-weight:600;color:#ea580c;margin-bottom:3px">#8 — Offcanvas 關閉後 body overflow 可能未正確還原</div>
+      <div style="font-size:0.85rem;color:var(--text-secondary)">navigate() 可能在 offcanvas 開著時被呼叫，body overflow: hidden 不會自動還原，導致頁面無法滾動。</div>
+    </div>
+
+    <div style="background:rgba(234,88,12,0.07);border-left:3px solid #ea580c;border-radius:8px;padding:12px 16px">
+      <div style="font-weight:600;color:#ea580c;margin-bottom:3px">#9 — 工具列按鈕（本輪提示/更新定義）點擊區域僅 28px 高</div>
+      <div style="font-size:0.85rem;color:var(--text-secondary)">.btn-tool padding: 6px 12px，低於最低標準 44px。手機用戶難以精準點擊。</div>
+    </div>
+
+    <div style="background:rgba(234,88,12,0.07);border-left:3px solid #ea580c;border-radius:8px;padding:12px 16px">
+      <div style="font-weight:600;color:#ea580c;margin-bottom:3px">#10 — Chat 區域空狀態（第一次進入）不知所措</div>
+      <div style="font-size:0.85rem;color:var(--text-secondary)">min-height: 300px 的空白區域沒有任何引導提示，新使用者不知道要做什麼。</div>
+    </div>
+
+    <div style="background:rgba(234,88,12,0.07);border-left:3px solid #ea580c;border-radius:8px;padding:12px 16px">
+      <div style="font-weight:600;color:#ea580c;margin-bottom:3px">#11 — Issue Banner 展開/收合視覺提示不夠明顯</div>
+      <div style="font-size:0.85rem;color:var(--text-secondary)">收合後只有箭頭方向改變，缺乏 hover/active 狀態，使用者不確定是否可互動。</div>
+    </div>
+
+    <div style="background:rgba(234,88,12,0.07);border-left:3px solid #ea580c;border-radius:8px;padding:12px 16px">
+      <div style="font-weight:600;color:#ea580c;margin-bottom:3px">#12 — API 失敗訊息無視覺區分，混入正常 bubble</div>
+      <div style="font-size:0.85rem;color:var(--text-secondary)">「連線中斷，請重試」與一般 AI 回應外觀一樣，使用者不知道是錯誤還是正常回應。</div>
+    </div>
+
+    <div style="background:rgba(234,88,12,0.07);border-left:3px solid #ea580c;border-radius:8px;padding:12px 16px">
+      <div style="font-weight:600;color:#ea580c;margin-bottom:3px">#13 — Review Table 桌面版沒有完整資料展示</div>
+      <div style="font-size:0.85rem;color:var(--text-secondary)">CSS 隱藏 table 改用 card，但 card 在桌面版的佈局不如 table 緊湊，資訊密度低。</div>
+    </div>
+
+    <div style="background:rgba(234,88,12,0.07);border-left:3px solid #ea580c;border-radius:8px;padding:12px 16px">
+      <div style="font-weight:600;color:#ea580c;margin-bottom:3px">#14 — 手機版 Placeholder 多行文字超出 textarea 可見範圍</div>
+      <div style="font-size:0.85rem;color:var(--text-secondary)">問題本質 textarea 的 placeholder 含換行符，在手機上視覺凌亂。</div>
+    </div>
+  </div>
+</div>
+
+<div class="section">
+  <div class="label">🟡 MEDIUM — 10 項 · 🔵 LOW — 7 項（設計文件中列入待辦）</div>
+  <div style="display:flex;flex-wrap:wrap;gap:8px;margin-top:10px">
+    <span style="background:rgba(234,179,8,0.1);color:#a16207;padding:4px 10px;border-radius:99px;font-size:0.8rem">主題切換按鈕無 aria-label</span>
+    <span style="background:rgba(234,179,8,0.1);color:#a16207;padding:4px 10px;border-radius:99px;font-size:0.8rem">雷達圖無 aria title</span>
+    <span style="background:rgba(234,179,8,0.1);color:#a16207;padding:4px 10px;border-radius:99px;font-size:0.8rem">Tab 無鍵盤 arrow key 支援</span>
+    <span style="background:rgba(234,179,8,0.1);color:#a16207;padding:4px 10px;border-radius:99px;font-size:0.8rem">載入中… 無 timeout 處理</span>
+    <span style="background:rgba(234,179,8,0.1);color:#a16207;padding:4px 10px;border-radius:99px;font-size:0.8rem">Chat 自動捲動打斷閱讀</span>
+    <span style="background:rgba(234,179,8,0.1);color:#a16207;padding:4px 10px;border-radius:99px;font-size:0.8rem">匯出無成功 Toast</span>
+    <span style="background:rgba(234,179,8,0.1);color:#a16207;padding:4px 10px;border-radius:99px;font-size:0.8rem">按鈕 padding 不一致</span>
+    <span style="background:rgba(234,179,8,0.1);color:#a16207;padding:4px 10px;border-radius:99px;font-size:0.8rem">hint-card 顏色硬碼</span>
+    <span style="background:rgba(234,179,8,0.1);color:#a16207;padding:4px 10px;border-radius:99px;font-size:0.8rem">手機版無 :active 回饋</span>
+    <span style="background:rgba(234,179,8,0.1);color:#a16207;padding:4px 10px;border-radius:99px;font-size:0.8rem">Focus ring 幾乎不可見</span>
+    <span style="background:rgba(234,179,8,0.1);color:#a16207;padding:4px 10px;border-radius:99px;font-size:0.8rem">Score bar 上限視覺不明確</span>
+    <span style="background:rgba(234,179,8,0.1);color:#a16207;padding:4px 10px;border-radius:99px;font-size:0.8rem">Offcanvas close 按鈕不明顯</span>
+    <span style="background:rgba(234,179,8,0.1);color:#a16207;padding:4px 10px;border-radius:99px;font-size:0.8rem">極小螢幕 Navbar 溢出</span>
+    <span style="background:rgba(234,179,8,0.1);color:#a16207;padding:4px 10px;border-radius:99px;font-size:0.8rem">Score detail card 手機截斷</span>
+    <span style="background:rgba(234,179,8,0.1);color:#a16207;padding:4px 10px;border-radius:99px;font-size:0.8rem">手機泡泡寬度 95%（太貼邊）</span>
+    <span style="background:rgba(234,179,8,0.1);color:#a16207;padding:4px 10px;border-radius:99px;font-size:0.8rem">字體大小手機未縮放</span>
+    <span style="background:rgba(234,179,8,0.1);color:#a16207;padding:4px 10px;border-radius:99px;font-size:0.8rem">深色主題 border 消失</span>
+  </div>
+</div>
+
+<div class="section" style="background:rgba(99,102,241,0.06);border-radius:10px;padding:16px">
+  <div style="font-weight:700;margin-bottom:8px">調查員結論</div>
+  <div style="font-size:0.9rem;color:var(--text-secondary);line-height:1.7">
+    這個 app 在桌面版勉強堪用，但在手機上幾乎是不能用的狀態。<strong>4 個 CRITICAL 問題都需要在本次改版中修復</strong>，尤其是 Practice View 的底欄 layout 崩壞問題——這是核心流程的核心頁面，使用者在 375px 手機上根本無法完成練習。RWD 不是加分項，是基本。
+  </div>
+</div>

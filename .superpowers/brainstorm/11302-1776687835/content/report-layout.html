@@ -1,0 +1,250 @@
+<link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/@phosphor-icons/web@2.1.1/src/regular/style.css">
+
+<h2>Report View — 資訊架構方案</h2>
+<p class="subtitle">目前報告頁所有內容線性堆疊，需要大量滾動。以下是三種重新規劃的方式。</p>
+
+<div class="cards" style="gap:24px;">
+
+  <!-- Option A: Tab navigation -->
+  <div class="card" data-choice="tabs" onclick="toggleSelect(this)">
+    <div class="card-image" style="padding:16px;background:#f8f9ff;border-bottom:1px solid #e0e0e0;">
+      <div style="font-family:system-ui;font-size:11px;color:#333;border:1px solid #ccc;border-radius:8px;overflow:hidden;height:420px;display:flex;flex-direction:column;">
+        <!-- Navbar -->
+        <div style="background:#6c63ff;color:#fff;padding:8px 12px;display:flex;align-items:center;gap:8px;font-size:11px;flex-shrink:0;">
+          <i class="ph ph-list" style="font-size:16px;"></i>
+          <span>練習報告</span>
+          <span style="margin-left:auto;display:flex;gap:8px;align-items:center;">
+            <button style="background:rgba(255,255,255,0.2);border:none;color:#fff;border-radius:5px;padding:3px 8px;font-size:9px;cursor:pointer;display:flex;align-items:center;gap:3px;">
+              <i class="ph ph-house"></i> 回首頁
+            </button>
+          </span>
+        </div>
+        <!-- Score summary bar -->
+        <div style="background:#fff;border-bottom:1px solid #eee;padding:8px 12px;display:flex;align-items:center;gap:12px;flex-shrink:0;">
+          <div style="text-align:center;">
+            <div style="font-size:22px;font-weight:bold;color:#6c63ff;">74</div>
+            <div style="font-size:8px;color:#888;">總分 /100</div>
+          </div>
+          <div style="flex:1;height:6px;background:#eee;border-radius:3px;overflow:hidden;">
+            <div style="width:74%;height:100%;background:linear-gradient(90deg,#6c63ff,#4caf7d);border-radius:3px;"></div>
+          </div>
+          <div style="font-size:9px;color:#4caf7d;display:flex;align-items:center;gap:3px;">
+            <i class="ph ph-trending-up"></i> 進階難度 · 7 輪對話
+          </div>
+        </div>
+        <!-- Tab bar -->
+        <div style="background:#fff;border-bottom:2px solid #eee;display:flex;flex-shrink:0;">
+          <button style="flex:1;padding:7px 4px;font-size:9px;border:none;background:none;border-bottom:2px solid #6c63ff;color:#6c63ff;font-weight:bold;margin-bottom:-2px;cursor:pointer;">
+            <i class="ph ph-chart-radar"></i> 評分總覽
+          </button>
+          <button style="flex:1;padding:7px 4px;font-size:9px;border:none;background:none;color:#888;cursor:pointer;">
+            <i class="ph ph-list-checks"></i> 練習回顧
+          </button>
+          <button style="flex:1;padding:7px 4px;font-size:9px;border:none;background:none;color:#888;cursor:pointer;">
+            <i class="ph ph-star"></i> 亮點摘要
+          </button>
+          <button style="flex:1;padding:7px 4px;font-size:9px;border:none;background:none;color:#888;cursor:pointer;">
+            <i class="ph ph-download-simple"></i> 匯出
+          </button>
+        </div>
+        <!-- Tab content: 評分總覽 active -->
+        <div style="flex:1;overflow-y:auto;padding:10px 12px;">
+          <!-- Radar + scores side by side on desktop -->
+          <div style="display:flex;gap:12px;margin-bottom:10px;">
+            <!-- Mini radar placeholder -->
+            <div style="width:100px;height:100px;flex-shrink:0;background:#f5f3ff;border-radius:50%;display:flex;align-items:center;justify-content:center;">
+              <svg width="90" height="90" viewBox="-1 -1 2 2">
+                <polygon points="0,-0.8 0.76,-0.25 0.47,0.65 -0.47,0.65 -0.76,-0.25" fill="none" stroke="#ddd" stroke-width="0.05"/>
+                <polygon points="0,-0.4 0.38,-0.12 0.235,0.325 -0.235,0.325 -0.38,-0.12" fill="none" stroke="#ddd" stroke-width="0.03"/>
+                <polygon points="0,-0.65 0.55,-0.1 0.2,0.55 -0.4,0.5 -0.6,-0.2" fill="rgba(108,99,255,0.3)" stroke="#6c63ff" stroke-width="0.04"/>
+              </svg>
+            </div>
+            <!-- Score list -->
+            <div style="flex:1;display:flex;flex-direction:column;gap:5px;font-size:9px;">
+              <div style="display:flex;align-items:center;gap:5px;">
+                <span style="color:#555;width:70px;flex-shrink:0;">角色定位清晰度</span>
+                <div style="flex:1;height:5px;background:#eee;border-radius:3px;"><div style="width:75%;height:100%;background:#6c63ff;border-radius:3px;"></div></div>
+                <span style="color:#6c63ff;font-weight:bold;width:20px;text-align:right;">15</span>
+              </div>
+              <div style="display:flex;align-items:center;gap:5px;">
+                <span style="color:#555;width:70px;flex-shrink:0;">任務斷點描述</span>
+                <div style="flex:1;height:5px;background:#eee;border-radius:3px;"><div style="width:60%;height:100%;background:#6c63ff;border-radius:3px;"></div></div>
+                <span style="color:#6c63ff;font-weight:bold;width:20px;text-align:right;">12</span>
+              </div>
+              <div style="display:flex;align-items:center;gap:5px;">
+                <span style="color:#555;width:70px;flex-shrink:0;">替代方案挖掘</span>
+                <div style="flex:1;height:5px;background:#eee;border-radius:3px;"><div style="width:80%;height:100%;background:#4caf7d;border-radius:3px;"></div></div>
+                <span style="color:#4caf7d;font-weight:bold;width:20px;text-align:right;">16</span>
+              </div>
+              <div style="display:flex;align-items:center;gap:5px;">
+                <span style="color:#555;width:70px;flex-shrink:0;">損失量化</span>
+                <div style="flex:1;height:5px;background:#eee;border-radius:3px;"><div style="width:55%;height:100%;background:#f0a04b;border-radius:3px;"></div></div>
+                <span style="color:#f0a04b;font-weight:bold;width:20px;text-align:right;">11</span>
+              </div>
+              <div style="display:flex;align-items:center;gap:5px;">
+                <span style="color:#555;width:70px;flex-shrink:0;">定義品質</span>
+                <div style="flex:1;height:5px;background:#eee;border-radius:3px;"><div style="width:100%;height:100%;background:#4caf7d;border-radius:3px;"></div></div>
+                <span style="color:#4caf7d;font-weight:bold;width:20px;text-align:right;">20</span>
+              </div>
+            </div>
+          </div>
+          <div style="font-size:9px;color:#888;text-align:center;border-top:1px solid #eee;padding-top:8px;">點選各維度查看詳細 did / missed / tip →</div>
+        </div>
+      </div>
+    </div>
+    <div class="card-body">
+      <h3>A — Tab 分頁（推薦）</h3>
+      <p>頂部固定總分條 + 4 個 Tab：評分總覽、練習回顧、亮點摘要、匯出。每個 Tab 獨立滾動，手機一欄完整適應。回首頁按鈕在 Navbar。</p>
+    </div>
+  </div>
+
+  <!-- Option B: Accordion -->
+  <div class="card" data-choice="accordion" onclick="toggleSelect(this)">
+    <div class="card-image" style="padding:16px;background:#f8f9ff;border-bottom:1px solid #e0e0e0;">
+      <div style="font-family:system-ui;font-size:11px;color:#333;border:1px solid #ccc;border-radius:8px;overflow:hidden;height:420px;display:flex;flex-direction:column;">
+        <!-- Navbar -->
+        <div style="background:#6c63ff;color:#fff;padding:8px 12px;display:flex;align-items:center;gap:8px;font-size:11px;flex-shrink:0;">
+          <i class="ph ph-list" style="font-size:16px;"></i>
+          <span>練習報告</span>
+          <span style="margin-left:auto;display:flex;gap:8px;">
+            <button style="background:rgba(255,255,255,0.2);border:none;color:#fff;border-radius:5px;padding:3px 8px;font-size:9px;cursor:pointer;">
+              <i class="ph ph-house"></i> 回首頁
+            </button>
+          </span>
+        </div>
+        <!-- Score bar -->
+        <div style="background:#fff;border-bottom:1px solid #eee;padding:8px 12px;display:flex;align-items:center;gap:8px;flex-shrink:0;">
+          <span style="font-size:20px;font-weight:bold;color:#6c63ff;">74</span>
+          <span style="font-size:8px;color:#888;">/100 · 進階 · 7 輪</span>
+          <div style="margin-left:auto;display:flex;gap:5px;">
+            <button style="background:#f0eeff;border:1px solid #c0b8f0;color:#6c63ff;border-radius:4px;padding:3px 6px;font-size:8px;display:flex;align-items:center;gap:2px;"><i class="ph ph-download-simple"></i> PDF</button>
+            <button style="background:#f0eeff;border:1px solid #c0b8f0;color:#6c63ff;border-radius:4px;padding:3px 6px;font-size:8px;display:flex;align-items:center;gap:2px;"><i class="ph ph-image"></i> PNG</button>
+          </div>
+        </div>
+        <!-- Accordion list -->
+        <div style="flex:1;overflow-y:auto;">
+          <!-- Section 1: open -->
+          <div style="border-bottom:1px solid #eee;">
+            <div style="padding:9px 12px;display:flex;align-items:center;gap:6px;background:#f5f3ff;cursor:pointer;font-size:10px;font-weight:bold;color:#6c63ff;">
+              <i class="ph ph-chart-radar"></i> 評分總覽
+              <i class="ph ph-caret-up" style="margin-left:auto;font-size:12px;"></i>
+            </div>
+            <div style="padding:8px 12px;background:#fff;font-size:9px;color:#555;">
+              <div style="display:flex;gap:5px;align-items:center;margin-bottom:4px;">
+                <span style="width:65px;">角色定位清晰度</span>
+                <div style="flex:1;height:4px;background:#eee;border-radius:2px;"><div style="width:75%;height:100%;background:#6c63ff;border-radius:2px;"></div></div>
+                <span style="color:#6c63ff;font-weight:bold;">15/20</span>
+              </div>
+              <div style="display:flex;gap:5px;align-items:center;margin-bottom:4px;">
+                <span style="width:65px;">任務斷點描述</span>
+                <div style="flex:1;height:4px;background:#eee;border-radius:2px;"><div style="width:60%;height:100%;background:#6c63ff;border-radius:2px;"></div></div>
+                <span style="color:#6c63ff;font-weight:bold;">12/20</span>
+              </div>
+              <div style="text-align:right;font-size:8px;color:#aaa;">展開查看詳細評語 ▼</div>
+            </div>
+          </div>
+          <!-- Section 2: collapsed -->
+          <div style="border-bottom:1px solid #eee;">
+            <div style="padding:9px 12px;display:flex;align-items:center;gap:6px;cursor:pointer;font-size:10px;color:#555;">
+              <i class="ph ph-list-checks"></i> 練習回顧表
+              <i class="ph ph-caret-down" style="margin-left:auto;font-size:12px;color:#aaa;"></i>
+            </div>
+          </div>
+          <!-- Section 3: collapsed -->
+          <div style="border-bottom:1px solid #eee;">
+            <div style="padding:9px 12px;display:flex;align-items:center;gap:6px;cursor:pointer;font-size:10px;color:#555;">
+              <i class="ph ph-star"></i> 亮點摘要
+              <i class="ph ph-caret-down" style="margin-left:auto;font-size:12px;color:#aaa;"></i>
+            </div>
+          </div>
+          <!-- Section 4 -->
+          <div>
+            <div style="padding:9px 12px;display:flex;align-items:center;gap:6px;cursor:pointer;font-size:10px;color:#555;">
+              <i class="ph ph-pencil-simple"></i> 再練一次
+              <i class="ph ph-arrow-right" style="margin-left:auto;font-size:12px;color:#aaa;"></i>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+    <div class="card-body">
+      <h3>B — Accordion 折疊區塊</h3>
+      <p>每個區塊可展開/收合，頁面保持緊湊。缺點是使用者需要多一個展開動作才看到內容，對「一次看完報告」的情境不夠流暢。</p>
+    </div>
+  </div>
+
+  <!-- Option C: Sticky sidebar (desktop) / tabs (mobile) -->
+  <div class="card" data-choice="hybrid" onclick="toggleSelect(this)">
+    <div class="card-image" style="padding:16px;background:#f8f9ff;border-bottom:1px solid #e0e0e0;">
+      <div style="font-family:system-ui;font-size:11px;color:#333;border:1px solid #ccc;border-radius:8px;overflow:hidden;height:420px;display:flex;flex-direction:column;">
+        <!-- Navbar -->
+        <div style="background:#6c63ff;color:#fff;padding:8px 12px;display:flex;align-items:center;gap:8px;font-size:11px;flex-shrink:0;">
+          <i class="ph ph-list" style="font-size:16px;"></i>
+          <span>練習報告 · 74分</span>
+          <span style="margin-left:auto;display:flex;gap:6px;">
+            <button style="background:rgba(255,255,255,0.2);border:none;color:#fff;border-radius:5px;padding:3px 7px;font-size:9px;cursor:pointer;"><i class="ph ph-house"></i></button>
+            <button style="background:rgba(255,255,255,0.2);border:none;color:#fff;border-radius:5px;padding:3px 7px;font-size:9px;cursor:pointer;"><i class="ph ph-download-simple"></i></button>
+          </span>
+        </div>
+        <!-- Body: sidebar + main -->
+        <div style="flex:1;display:flex;overflow:hidden;">
+          <!-- Sticky sidebar nav (desktop only) -->
+          <div style="width:90px;border-right:1px solid #eee;background:#fff;display:flex;flex-direction:column;padding:8px 0;gap:2px;flex-shrink:0;">
+            <div style="padding:6px 8px;background:#f0eeff;color:#6c63ff;font-size:8px;font-weight:bold;display:flex;flex-direction:column;align-items:center;gap:2px;border-right:2px solid #6c63ff;cursor:pointer;">
+              <i class="ph ph-chart-radar" style="font-size:16px;"></i>評分總覽
+            </div>
+            <div style="padding:6px 8px;color:#888;font-size:8px;display:flex;flex-direction:column;align-items:center;gap:2px;cursor:pointer;">
+              <i class="ph ph-list-checks" style="font-size:16px;"></i>練習回顧
+            </div>
+            <div style="padding:6px 8px;color:#888;font-size:8px;display:flex;flex-direction:column;align-items:center;gap:2px;cursor:pointer;">
+              <i class="ph ph-star" style="font-size:16px;"></i>亮點
+            </div>
+            <div style="padding:6px 8px;color:#888;font-size:8px;display:flex;flex-direction:column;align-items:center;gap:2px;cursor:pointer;margin-top:auto;">
+              <i class="ph ph-arrow-clockwise" style="font-size:16px;"></i>再練一次
+            </div>
+          </div>
+          <!-- Main content -->
+          <div style="flex:1;overflow-y:auto;padding:10px 10px;background:#fafafa;">
+            <div style="font-size:9px;font-weight:bold;color:#333;margin-bottom:8px;">評分總覽</div>
+            <div style="background:#fff;border-radius:6px;padding:8px;border:1px solid #eee;margin-bottom:8px;">
+              <div style="font-size:8px;color:#888;margin-bottom:5px;">五維度評分</div>
+              <div style="display:flex;flex-direction:column;gap:4px;font-size:8px;">
+                <div style="display:flex;align-items:center;gap:4px;">
+                  <span style="color:#555;flex-shrink:0;width:55px;font-size:7px;">角色定位</span>
+                  <div style="flex:1;height:4px;background:#eee;border-radius:2px;"><div style="width:75%;height:100%;background:#6c63ff;border-radius:2px;"></div></div>
+                  <span style="color:#6c63ff;font-weight:bold;font-size:8px;">15</span>
+                </div>
+                <div style="display:flex;align-items:center;gap:4px;">
+                  <span style="color:#555;flex-shrink:0;width:55px;font-size:7px;">任務斷點</span>
+                  <div style="flex:1;height:4px;background:#eee;border-radius:2px;"><div style="width:60%;height:100%;background:#6c63ff;border-radius:2px;"></div></div>
+                  <span style="color:#6c63ff;font-weight:bold;font-size:8px;">12</span>
+                </div>
+                <div style="display:flex;align-items:center;gap:4px;">
+                  <span style="color:#555;flex-shrink:0;width:55px;font-size:7px;">替代方案</span>
+                  <div style="flex:1;height:4px;background:#eee;border-radius:2px;"><div style="width:80%;height:100%;background:#4caf7d;border-radius:2px;"></div></div>
+                  <span style="color:#4caf7d;font-weight:bold;font-size:8px;">16</span>
+                </div>
+              </div>
+            </div>
+            <div style="font-size:8px;color:#aaa;text-align:center;">在左側導覽切換區塊</div>
+          </div>
+        </div>
+      </div>
+    </div>
+    <div class="card-body">
+      <h3>C — 側邊導覽（桌機）</h3>
+      <p>桌機：左側固定垂直導覽，右側內容區滾動。手機：自動退化成頂部 Tab。最接近 dashboard 工具感，但實作需要兩套 responsive 邏輯。</p>
+    </div>
+  </div>
+
+</div>
+
+<div class="section" style="margin-top:16px;background:#e8f5e9;border-radius:8px;padding:12px;border-left:4px solid #4caf7d;">
+  <strong style="font-size:13px;">三種方案共同點</strong>
+  <ul style="font-size:12px;color:#333;margin:6px 0 0;padding-left:18px;line-height:1.8;">
+    <li>Navbar 都有「回首頁」按鈕</li>
+    <li>頂部固定顯示總分摘要</li>
+    <li>匯出（PDF/PNG）收進 Navbar 或獨立 Tab，不散落在頁面底部</li>
+    <li>「再練一次」明確入口</li>
+  </ul>
+</div>

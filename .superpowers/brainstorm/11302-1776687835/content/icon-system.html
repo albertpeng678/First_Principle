@@ -1,0 +1,171 @@
+<link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/@phosphor-icons/web@2.1.1/src/regular/style.css">
+<link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/lucide-static@0.473.0/font/lucide.css">
+
+<h2>Icon 系統選擇</h2>
+<p class="subtitle">替換所有 emoji，建立統一視覺語言。三個主流方案實際呈現在 App 情境中。</p>
+
+<div class="cards" style="gap:20px;">
+
+  <!-- Phosphor -->
+  <div class="card" data-choice="phosphor" onclick="toggleSelect(this)">
+    <div class="card-image" style="padding:20px;background:#fafafa;border-bottom:1px solid #e0e0e0;">
+      <div style="font-size:12px;font-weight:bold;color:#333;margin-bottom:12px;display:flex;align-items:center;gap:8px;">
+        <span style="background:#6c63ff;color:#fff;padding:2px 8px;border-radius:4px;font-size:10px;">Phosphor Icons</span>
+        <span style="color:#888;font-size:10px;">CDN · 約 1300+ icons · 6 種 weight</span>
+      </div>
+      <!-- Nav icons -->
+      <div style="border:1px solid #ddd;border-radius:8px;overflow:hidden;margin-bottom:10px;">
+        <div style="background:#6c63ff;color:#fff;padding:8px 12px;display:flex;align-items:center;gap:10px;font-size:12px;">
+          <i class="ph ph-list" style="font-size:18px;"></i>
+          <span>第一性原理訓練器</span>
+          <span style="margin-left:auto;display:flex;gap:12px;align-items:center;">
+            <i class="ph ph-sun" style="font-size:16px;"></i>
+            <i class="ph ph-user-circle" style="font-size:16px;"></i>
+          </span>
+        </div>
+        <div style="padding:10px 12px;background:#fff;font-size:11px;">
+          <div style="display:flex;gap:8px;margin-bottom:8px;">
+            <div style="border:1px solid #6c63ff;border-radius:6px;padding:6px 10px;flex:1;text-align:center;font-size:11px;">
+              <i class="ph ph-lightning" style="font-size:20px;color:#6c63ff;display:block;margin-bottom:2px;"></i>
+              <span style="color:#555;">入門</span>
+            </div>
+            <div style="border:1px solid #6c63ff;border-radius:6px;padding:6px 10px;flex:1;text-align:center;font-size:11px;">
+              <i class="ph ph-flame" style="font-size:20px;color:#f0a04b;display:block;margin-bottom:2px;"></i>
+              <span style="color:#555;">進階</span>
+            </div>
+            <div style="border:1px solid #6c63ff;border-radius:6px;padding:6px 10px;flex:1;text-align:center;font-size:11px;">
+              <i class="ph ph-skull" style="font-size:20px;color:#e05252;display:block;margin-bottom:2px;"></i>
+              <span style="color:#555;">困難</span>
+            </div>
+          </div>
+          <div style="display:flex;gap:6px;font-size:10px;color:#555;">
+            <span><i class="ph ph-lightbulb" style="color:#f0a04b;"></i> 提示</span>
+            <span><i class="ph ph-file-text" style="color:#6c63ff;"></i> 定義</span>
+            <span><i class="ph ph-check-circle" style="color:#4caf7d;"></i> 完成</span>
+            <span><i class="ph ph-x-circle" style="color:#e05252;"></i> 錯誤</span>
+            <span><i class="ph ph-trophy" style="color:#f0a04b;"></i> 最佳</span>
+            <span><i class="ph ph-export" style="color:#888;"></i> 匯出</span>
+          </div>
+        </div>
+      </div>
+      <div style="font-size:10px;color:#888;text-align:center;">線條優雅、風格成熟，有 thin/light/regular/bold/fill/duotone 6 種 weight</div>
+    </div>
+    <div class="card-body">
+      <h3>A — Phosphor Icons</h3>
+      <p>1300+ icons，風格最豐富，支援 weight 調節（thin → bold）。CDN 一行引入。最靈活，適合設計感較高的產品。</p>
+    </div>
+  </div>
+
+  <!-- Lucide -->
+  <div class="card" data-choice="lucide" onclick="toggleSelect(this)">
+    <div class="card-image" style="padding:20px;background:#fafafa;border-bottom:1px solid #e0e0e0;">
+      <div style="font-size:12px;font-weight:bold;color:#333;margin-bottom:12px;display:flex;align-items:center;gap:8px;">
+        <span style="background:#333;color:#fff;padding:2px 8px;border-radius:4px;font-size:10px;">Lucide Icons</span>
+        <span style="color:#888;font-size:10px;">CDN · 1000+ icons · 清爽線條</span>
+      </div>
+      <div style="border:1px solid #ddd;border-radius:8px;overflow:hidden;margin-bottom:10px;">
+        <div style="background:#6c63ff;color:#fff;padding:8px 12px;display:flex;align-items:center;gap:10px;font-size:12px;">
+          <i class="lucide-menu" style="font-size:18px;"></i>
+          <span>第一性原理訓練器</span>
+          <span style="margin-left:auto;display:flex;gap:12px;align-items:center;">
+            <i class="lucide-sun" style="font-size:16px;"></i>
+            <i class="lucide-user" style="font-size:16px;"></i>
+          </span>
+        </div>
+        <div style="padding:10px 12px;background:#fff;font-size:11px;">
+          <div style="display:flex;gap:8px;margin-bottom:8px;">
+            <div style="border:1px solid #6c63ff;border-radius:6px;padding:6px 10px;flex:1;text-align:center;">
+              <i class="lucide-zap" style="font-size:20px;color:#6c63ff;display:block;margin-bottom:2px;"></i>
+              <span style="color:#555;font-size:10px;">入門</span>
+            </div>
+            <div style="border:1px solid #6c63ff;border-radius:6px;padding:6px 10px;flex:1;text-align:center;">
+              <i class="lucide-flame" style="font-size:20px;color:#f0a04b;display:block;margin-bottom:2px;"></i>
+              <span style="color:#555;font-size:10px;">進階</span>
+            </div>
+            <div style="border:1px solid #6c63ff;border-radius:6px;padding:6px 10px;flex:1;text-align:center;">
+              <i class="lucide-triangle-alert" style="font-size:20px;color:#e05252;display:block;margin-bottom:2px;"></i>
+              <span style="color:#555;font-size:10px;">困難</span>
+            </div>
+          </div>
+          <div style="display:flex;gap:6px;font-size:10px;color:#555;">
+            <span><i class="lucide-lightbulb" style="color:#f0a04b;"></i> 提示</span>
+            <span><i class="lucide-file-text" style="color:#6c63ff;"></i> 定義</span>
+            <span><i class="lucide-circle-check" style="color:#4caf7d;"></i> 完成</span>
+            <span><i class="lucide-circle-x" style="color:#e05252;"></i> 錯誤</span>
+            <span><i class="lucide-trophy" style="color:#f0a04b;"></i> 最佳</span>
+            <span><i class="lucide-download" style="color:#888;"></i> 匯出</span>
+          </div>
+        </div>
+      </div>
+      <div style="font-size:10px;color:#888;text-align:center;">統一 2px stroke，極度一致，是 Feather Icons 的現代繼承者</div>
+    </div>
+    <div class="card-body">
+      <h3>B — Lucide Icons</h3>
+      <p>Feather 的現代繼承者，1000+ icons，全部統一 2px stroke 線條，風格高度一致。最受工具型產品歡迎（Linear、Vercel 等都用）。</p>
+    </div>
+  </div>
+
+  <!-- Heroicons -->
+  <div class="card" data-choice="heroicons" onclick="toggleSelect(this)">
+    <div class="card-image" style="padding:20px;background:#fafafa;border-bottom:1px solid #e0e0e0;">
+      <div style="font-size:12px;font-weight:bold;color:#333;margin-bottom:12px;display:flex;align-items:center;gap:8px;">
+        <span style="background:#0ea5e9;color:#fff;padding:2px 8px;border-radius:4px;font-size:10px;">Heroicons</span>
+        <span style="color:#888;font-size:10px;">SVG inline · 300 icons · Tailwind 系</span>
+      </div>
+      <div style="border:1px solid #ddd;border-radius:8px;overflow:hidden;margin-bottom:10px;">
+        <div style="background:#6c63ff;color:#fff;padding:8px 12px;display:flex;align-items:center;gap:10px;font-size:12px;">
+          <!-- Bars3 -->
+          <svg style="width:18px;height:18px;" fill="none" stroke="currentColor" stroke-width="1.5" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M3.75 6.75h16.5M3.75 12h16.5m-16.5 5.25h16.5"/></svg>
+          <span>第一性原理訓練器</span>
+          <span style="margin-left:auto;display:flex;gap:12px;align-items:center;">
+            <!-- Sun -->
+            <svg style="width:16px;height:16px;" fill="none" stroke="currentColor" stroke-width="1.5" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M12 3v2.25m6.364.386-1.591 1.591M21 12h-2.25m-.386 6.364-1.591-1.591M12 18.75V21m-4.773-4.227-1.591 1.591M5.25 12H3m4.227-4.773L5.636 5.636M15.75 12a3.75 3.75 0 1 1-7.5 0 3.75 3.75 0 0 1 7.5 0Z"/></svg>
+            <!-- User -->
+            <svg style="width:16px;height:16px;" fill="none" stroke="currentColor" stroke-width="1.5" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M15.75 6a3.75 3.75 0 1 1-7.5 0 3.75 3.75 0 0 1 7.5 0ZM4.501 20.118a7.5 7.5 0 0 1 14.998 0A17.933 17.933 0 0 1 12 21.75c-2.676 0-5.216-.584-7.499-1.632Z"/></svg>
+          </span>
+        </div>
+        <div style="padding:10px 12px;background:#fff;font-size:11px;">
+          <div style="display:flex;gap:8px;margin-bottom:8px;">
+            <div style="border:1px solid #6c63ff;border-radius:6px;padding:6px 10px;flex:1;text-align:center;">
+              <svg style="width:20px;height:20px;color:#6c63ff;display:block;margin:0 auto 2px;" fill="none" stroke="currentColor" stroke-width="1.5" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M3.75 13.5l10.5-11.25L12 10.5h8.25L9.75 21.75 12 13.5H3.75z"/></svg>
+              <span style="color:#555;font-size:10px;">入門</span>
+            </div>
+            <div style="border:1px solid #6c63ff;border-radius:6px;padding:6px 10px;flex:1;text-align:center;">
+              <svg style="width:20px;height:20px;color:#f0a04b;display:block;margin:0 auto 2px;" fill="none" stroke="currentColor" stroke-width="1.5" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M15.362 5.214A8.252 8.252 0 0 1 12 21 8.25 8.25 0 0 1 6.038 7.047 8.287 8.287 0 0 0 9 9.601a8.983 8.983 0 0 1 3.361-6.867 8.21 8.21 0 0 0 3 2.48Z"/></svg>
+              <span style="color:#555;font-size:10px;">進階</span>
+            </div>
+            <div style="border:1px solid #6c63ff;border-radius:6px;padding:6px 10px;flex:1;text-align:center;">
+              <svg style="width:20px;height:20px;color:#e05252;display:block;margin:0 auto 2px;" fill="none" stroke="currentColor" stroke-width="1.5" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M12 9v3.75m-9.303 3.376c-.866 1.5.217 3.374 1.948 3.374h14.71c1.73 0 2.813-1.874 1.948-3.374L13.949 3.378c-.866-1.5-3.032-1.5-3.898 0L2.697 16.126ZM12 15.75h.007v.008H12v-.008Z"/></svg>
+              <span style="color:#555;font-size:10px;">困難</span>
+            </div>
+          </div>
+          <div style="display:flex;gap:8px;font-size:10px;color:#555;align-items:center;">
+            <span style="display:flex;align-items:center;gap:2px;">
+              <svg style="width:13px;height:13px;color:#f0a04b;" fill="none" stroke="currentColor" stroke-width="1.5" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M12 18v-5.25m0 0a6.01 6.01 0 0 0 1.5-.189m-1.5.189a6.01 6.01 0 0 1-1.5-.189m3.75 7.478a12.06 12.06 0 0 1-4.5 0m3.75 2.383a14.406 14.406 0 0 1-3 0M14.25 18v-.192c0-.983.658-1.823 1.508-2.316a7.5 7.5 0 1 0-7.517 0c.85.493 1.509 1.333 1.509 2.316V18"/></svg>
+              提示
+            </span>
+            <span style="display:flex;align-items:center;gap:2px;">
+              <svg style="width:13px;height:13px;color:#4caf7d;" fill="none" stroke="currentColor" stroke-width="1.5" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M9 12.75 11.25 15 15 9.75M21 12a9 9 0 1 1-18 0 9 9 0 0 1 18 0Z"/></svg>
+              完成
+            </span>
+            <span style="display:flex;align-items:center;gap:2px;">
+              <svg style="width:13px;height:13px;color:#888;" fill="none" stroke="currentColor" stroke-width="1.5" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M3 16.5v2.25A2.25 2.25 0 0 0 5.25 21h13.5A2.25 2.25 0 0 0 21 18.75V16.5M16.5 12 12 16.5m0 0L7.5 12m4.5 4.5V3"/></svg>
+              匯出
+            </span>
+          </div>
+        </div>
+      </div>
+      <div style="font-size:10px;color:#888;text-align:center;">Tailwind CSS 官方 icon，只有 300 個，需 inline SVG 或 npm 安裝</div>
+    </div>
+    <div class="card-body">
+      <h3>C — Heroicons</h3>
+      <p>Tailwind 官方出品，只有約 300 個 icons，需 inline SVG（無 font CDN）。選擇少，實作麻煩，但風格極度精煉。適合已用 Tailwind 的專案。</p>
+    </div>
+  </div>
+
+</div>
+
+<div class="section" style="margin-top:16px;background:#fff8e1;border-radius:8px;padding:14px;border-left:4px solid #f0a04b;">
+  <strong style="font-size:13px;">推薦：Phosphor Icons</strong>
+  <p style="font-size:12px;color:#555;margin:6px 0 0;">此專案純 Vanilla JS + HTML，無打包工具。Phosphor 有官方 font CDN，一行引入即可用 <code>&lt;i class="ph ph-sun"&gt;</code>。1300+ icons 涵蓋所有需要的圖示，且 weight 選項可以在不同情境用 regular / bold 做視覺強弱區分。</p>
+</div>

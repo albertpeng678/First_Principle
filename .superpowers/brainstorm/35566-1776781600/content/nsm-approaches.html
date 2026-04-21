@@ -1,0 +1,122 @@
+<h2>NSM 模組架構方案</h2>
+<p class="subtitle">三種 vanilla JS 實作方式，選一個繼續視覺設計</p>
+
+<div class="options">
+
+  <div class="option" data-choice="a" onclick="toggleSelect(this)">
+    <div class="letter">A</div>
+    <div class="content">
+      <h3>Wizard 單一 View（推薦）</h3>
+      <p>新增一個 <code>view: 'nsm'</code>，內部用 <code>AppState.nsmStep</code>（1–4）控制當前階段。每個 step 是 renderNSM() 的 sub-section，頂部有固定進度條。</p>
+      <div style="margin:10px 0;padding:10px;background:var(--bg-surface-2);border-radius:8px;font-size:0.82rem">
+        <div style="display:flex;gap:4px;align-items:center;margin-bottom:6px">
+          <div style="background:#6c63ff;color:#fff;border-radius:4px;padding:2px 8px;font-size:0.75rem">Step 1</div>
+          <div style="height:2px;flex:1;background:#6c63ff;opacity:0.3"></div>
+          <div style="border:1px solid #6c63ff;color:#6c63ff;border-radius:4px;padding:2px 8px;font-size:0.75rem">Step 2</div>
+          <div style="height:2px;flex:1;background:#6c63ff;opacity:0.3"></div>
+          <div style="border:1px solid var(--border);border-radius:4px;padding:2px 8px;font-size:0.75rem;opacity:0.5">Step 3</div>
+          <div style="height:2px;flex:1;background:var(--border)"></div>
+          <div style="border:1px solid var(--border);border-radius:4px;padding:2px 8px;font-size:0.75rem;opacity:0.5">Step 4</div>
+        </div>
+        <div style="color:var(--text-secondary)">情境抽選 → 定義 NSM → 拆解維度 → 評分報告</div>
+      </div>
+      <div class="pros-cons">
+        <div class="pros">
+          <h4>優</h4>
+          <ul>
+            <li>手機體驗最佳（單一滾動區域）</li>
+            <li>與現有 practice view 模式一致</li>
+            <li>Back 按鈕自然返回上一 step</li>
+            <li>進度條清楚，使用者不迷路</li>
+          </ul>
+        </div>
+        <div class="cons">
+          <h4>劣</h4>
+          <ul>
+            <li>nsmStep 狀態需要妥善管理</li>
+            <li>每 step 的 UI 差異需要條件渲染</li>
+          </ul>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <div class="option" data-choice="b" onclick="toggleSelect(this)">
+    <div class="letter">B</div>
+    <div class="content">
+      <h3>多 View 路由</h3>
+      <p>每個 NSM Stage 是獨立的 view：<code>nsm-select</code> → <code>nsm-define</code> → <code>nsm-breakdown</code> → <code>nsm-report</code>，各自有 render + bind 函數。</p>
+      <div style="margin:10px 0;padding:10px;background:var(--bg-surface-2);border-radius:8px;font-size:0.82rem">
+        <div style="display:flex;flex-direction:column;gap:4px">
+          <div style="display:flex;gap:8px;align-items:center">
+            <div style="background:#6c63ff;color:#fff;border-radius:4px;padding:2px 10px;font-size:0.75rem">nsm-select</div>
+            <span style="opacity:0.5">→</span>
+            <div style="background:#6c63ff;color:#fff;border-radius:4px;padding:2px 10px;font-size:0.75rem">nsm-define</div>
+          </div>
+          <div style="display:flex;gap:8px;align-items:center;padding-left:20px">
+            <span style="opacity:0.5">→</span>
+            <div style="background:#6c63ff;color:#fff;border-radius:4px;padding:2px 10px;font-size:0.75rem">nsm-breakdown</div>
+            <span style="opacity:0.5">→</span>
+            <div style="background:#6c63ff;color:#fff;border-radius:4px;padding:2px 10px;font-size:0.75rem">nsm-report</div>
+          </div>
+        </div>
+      </div>
+      <div class="pros-cons">
+        <div class="pros">
+          <h4>優</h4>
+          <ul>
+            <li>每個 stage 完全獨立，易測試</li>
+            <li>可深度連結到特定 stage</li>
+            <li>程式碼分離清晰</li>
+          </ul>
+        </div>
+        <div class="cons">
+          <h4>劣</h4>
+          <ul>
+            <li>app.js 需新增 4 個 render 函數</li>
+            <li>跨 stage 狀態傳遞較麻煩</li>
+            <li>手機上 4 次頁面切換感覺較重</li>
+          </ul>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <div class="option" data-choice="c" onclick="toggleSelect(this)">
+    <div class="letter">C</div>
+    <div class="content">
+      <h3>同頁面漸進解鎖</h3>
+      <p>NSM 所有 Stage 在同一個滾動頁面，Stage 1 完成後 Stage 2 才出現，以此類推。使用者一路往下滾動完成練習。</p>
+      <div style="margin:10px 0;padding:10px;background:var(--bg-surface-2);border-radius:8px;font-size:0.82rem">
+        <div style="display:flex;flex-direction:column;gap:6px">
+          <div style="border-left:3px solid #6c63ff;padding:4px 10px;font-size:0.8rem">① 情境抽選（解鎖）</div>
+          <div style="border-left:3px solid #6c63ff;padding:4px 10px;font-size:0.8rem">② 定義 NSM（解鎖）</div>
+          <div style="border-left:3px solid var(--border);padding:4px 10px;font-size:0.8rem;opacity:0.4">③ 拆解維度（鎖定）</div>
+          <div style="border-left:3px solid var(--border);padding:4px 10px;font-size:0.8rem;opacity:0.4">④ 評分報告（鎖定）</div>
+        </div>
+      </div>
+      <div class="pros-cons">
+        <div class="pros">
+          <h4>優</h4>
+          <ul>
+            <li>全程不換頁，流暢感強</li>
+            <li>使用者能看到整體進度脈絡</li>
+          </ul>
+        </div>
+        <div class="cons">
+          <h4>劣</h4>
+          <ul>
+            <li>手機上長頁面難以管理</li>
+            <li>Stage 4 的雙欄樹狀圖在手機上會很擠</li>
+            <li>儲存中途狀態複雜（沒有明確 step 概念）</li>
+          </ul>
+        </div>
+      </div>
+    </div>
+  </div>
+
+</div>
+
+<div style="margin-top:20px;padding:14px 16px;background:rgba(99,102,241,0.06);border-radius:10px;font-size:0.88rem;color:var(--text-secondary)">
+  💡 <strong>推薦 A</strong> — Wizard 單一 View 最符合手機優先原則，且與現有 practice view 的實作模式一致，新增程式碼最少。
+</div>

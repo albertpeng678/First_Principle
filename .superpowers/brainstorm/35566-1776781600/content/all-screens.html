@@ -1,0 +1,828 @@
+<!DOCTYPE html>
+<html lang="zh-TW">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>All Screens Mockup</title>
+<link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/@phosphor-icons/web@2.1.1/src/regular/style.css">
+<style>
+* { box-sizing: border-box; margin: 0; padding: 0; }
+body { background: #0f1117; font-family: -apple-system, 'Segoe UI', sans-serif; padding: 40px 24px; min-height: 100vh; }
+
+h1.page-title { color: #fff; font-size: 22px; font-weight: 700; margin-bottom: 8px; text-align: center; }
+p.page-sub { color: #6b7280; font-size: 14px; text-align: center; margin-bottom: 40px; }
+
+.screen-row {
+  display: flex;
+  gap: 24px;
+  overflow-x: auto;
+  padding-bottom: 24px;
+  margin-bottom: 48px;
+  align-items: flex-start;
+}
+.screen-col { flex-shrink: 0; display: flex; flex-direction: column; align-items: center; gap: 10px; }
+.screen-label { color: #9ca3af; font-size: 12px; font-weight: 600; letter-spacing: 0.5px; text-transform: uppercase; }
+.section-heading { color: #e5e7eb; font-size: 16px; font-weight: 700; margin-bottom: 16px; padding-left: 4px; border-left: 3px solid #6c63ff; padding-left: 12px; }
+
+/* Phone frame */
+.phone {
+  width: 320px;
+  background: #ffffff;
+  border-radius: 40px;
+  overflow: hidden;
+  box-shadow: 0 24px 64px rgba(0,0,0,0.6), 0 0 0 2px #2d2d3a;
+  display: flex;
+  flex-direction: column;
+  font-size: 13px;
+}
+.phone.dark { background: #0f1117; }
+
+/* Common navbar */
+.ph-navbar {
+  background: #fff;
+  border-bottom: 1px solid #f0f0f0;
+  padding: 0 12px;
+  height: 52px;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  flex-shrink: 0;
+}
+.phone.dark .ph-navbar { background: #1a1d27; border-bottom: 1px solid rgba(255,255,255,0.08); }
+.ph-navbar-left { display: flex; align-items: center; gap: 6px; }
+.ph-navbar-logo { font-weight: 700; font-size: 15px; color: #1a1d27; }
+.phone.dark .ph-navbar-logo { color: #e8eaf0; }
+.ph-navbar-right { display: flex; gap: 0; }
+.nav-btn { width: 44px; height: 44px; display: flex; align-items: center; justify-content: center; border-radius: 10px; color: #6b7280; font-size: 18px; cursor: pointer; }
+.phone.dark .nav-btn { color: #9399a6; }
+
+/* Scroll body */
+.ph-body { flex: 1; overflow-y: auto; padding: 16px 14px 24px; background: #f8f9ff; }
+.phone.dark .ph-body { background: #0f1117; }
+
+/* Tab toggle */
+.ph-tabs { display: flex; background: #efefef; border-radius: 10px; padding: 3px; margin-bottom: 16px; }
+.ph-tab { flex: 1; text-align: center; padding: 8px 4px; border-radius: 8px; font-size: 12px; font-weight: 600; color: #9ca3af; cursor: pointer; }
+.ph-tab.active { background: #fff; color: #6c63ff; box-shadow: 0 1px 4px rgba(0,0,0,0.12); }
+.phone.dark .ph-tabs { background: #252836; }
+.phone.dark .ph-tab.active { background: #1a1d27; color: #6c63ff; }
+
+/* Section label */
+.sec-lbl { font-size: 10px; font-weight: 700; color: #9ca3af; letter-spacing: 0.8px; text-transform: uppercase; margin-bottom: 8px; }
+
+/* Difficulty list */
+.diff-item { background: #fff; border: 1.5px solid #e5e7eb; border-radius: 12px; padding: 12px 12px; display: flex; align-items: center; gap: 10px; margin-bottom: 8px; }
+.phone.dark .diff-item { background: #1a1d27; border-color: rgba(255,255,255,0.08); }
+.diff-dot { width: 40px; height: 40px; border-radius: 10px; display: flex; align-items: center; justify-content: center; font-size: 18px; flex-shrink: 0; }
+.dot-green { background: #d1fae5; color: #065f46; }
+.dot-orange { background: #ffedd5; color: #9a3412; }
+.dot-red { background: #fee2e2; color: #991b1b; }
+.diff-text { flex: 1; }
+.diff-text h4 { font-size: 13px; font-weight: 700; color: #1a1d27; margin-bottom: 2px; }
+.diff-text p { font-size: 11px; color: #9ca3af; }
+.phone.dark .diff-text h4 { color: #e8eaf0; }
+.diff-chev { color: #d1d5db; font-size: 14px; }
+
+/* Recent sessions */
+.sess-item { background: #fff; border: 1.5px solid #e5e7eb; border-radius: 10px; padding: 10px 12px; display: flex; align-items: center; gap: 8px; margin-bottom: 6px; }
+.phone.dark .sess-item { background: #1a1d27; border-color: rgba(255,255,255,0.08); }
+.sess-badge { padding: 2px 7px; border-radius: 99px; font-size: 10px; font-weight: 700; flex-shrink: 0; }
+.b-prog { background: #dbeafe; color: #1e40af; }
+.b-score { background: #d1fae5; color: #065f46; }
+.b-nsm { background: #ede9fe; color: #5b21b6; }
+.sess-text h4 { font-size: 12px; font-weight: 600; color: #1a1d27; }
+.sess-text p { font-size: 10px; color: #9ca3af; }
+.phone.dark .sess-text h4 { color: #e8eaf0; }
+
+/* NSM tab */
+.nsm-intro { background: linear-gradient(135deg,#f5f3ff,#ede9fe); border: 1.5px solid #c4b5fd; border-radius: 12px; padding: 12px; margin-bottom: 12px; }
+.nsm-intro p { font-size: 12px; color: #5b21b6; line-height: 1.5; }
+.nsm-stats { display: grid; grid-template-columns: repeat(3,1fr); gap: 6px; margin-bottom: 12px; }
+.nsm-stat { background: #fff; border: 1.5px solid #e5e7eb; border-radius: 10px; padding: 10px 6px; text-align: center; }
+.nsm-stat .n { font-size: 18px; font-weight: 700; color: #6c63ff; }
+.nsm-stat .l { font-size: 10px; color: #9ca3af; margin-top: 2px; }
+.btn-primary-full { width: 100%; background: #6c63ff; color: #fff; border: none; border-radius: 12px; padding: 14px; font-size: 14px; font-weight: 700; display: flex; align-items: center; justify-content: center; gap: 8px; cursor: pointer; }
+
+/* Progress bar (NSM wizard) */
+.progress-bar { padding: 8px 14px; background: #fff; border-bottom: 1px solid #f0f0f0; flex-shrink: 0; }
+.phone.dark .progress-bar { background: #1a1d27; border-bottom: 1px solid rgba(255,255,255,0.06); }
+.progress-steps { display: flex; align-items: center; gap: 0; }
+.p-step { display: flex; flex-direction: column; align-items: center; flex: 1; }
+.p-circle { width: 22px; height: 22px; border-radius: 99px; display: flex; align-items: center; justify-content: center; font-size: 10px; font-weight: 700; border: 2px solid #e5e7eb; color: #d1d5db; }
+.p-circle.done { background: #6c63ff; border-color: #6c63ff; color: #fff; }
+.p-circle.active { border-color: #6c63ff; color: #6c63ff; }
+.p-label { font-size: 9px; color: #9ca3af; margin-top: 3px; text-align: center; }
+.p-label.active { color: #6c63ff; font-weight: 600; }
+.p-line { flex: 1; height: 2px; background: #e5e7eb; margin-top: -10px; }
+.p-line.done { background: #6c63ff; }
+
+/* NSM scenario card */
+.scenario-card { background: #fff; border: 1.5px solid #e5e7eb; border-radius: 12px; padding: 12px; margin-bottom: 8px; cursor: pointer; transition: all 0.15s; }
+.scenario-card.selected { border-color: #6c63ff; background: #f5f3ff; }
+.phone.dark .scenario-card { background: #1a1d27; border-color: rgba(255,255,255,0.08); }
+.scenario-card .co-badge { display: inline-flex; align-items: center; gap: 4px; background: #f3f4f6; border-radius: 99px; padding: 3px 8px; font-size: 10px; font-weight: 700; color: #374151; margin-bottom: 6px; }
+.scenario-card p { font-size: 11px; color: #6b7280; line-height: 1.5; }
+.phone.dark .scenario-card p { color: #9399a6; }
+
+/* Define NSM input */
+.field-label { font-size: 11px; font-weight: 600; color: #374151; margin-bottom: 6px; }
+.phone.dark .field-label { color: #9399a6; }
+.field-input { width: 100%; border: 1.5px solid #e5e7eb; border-radius: 10px; padding: 10px 12px; font-size: 13px; color: #1a1d27; background: #fff; resize: none; font-family: inherit; }
+.phone.dark .field-input { background: #1a1d27; border-color: rgba(255,255,255,0.12); color: #e8eaf0; }
+
+/* Warning card */
+.warn-card { background: #fff7ed; border: 1.5px solid #fed7aa; border-radius: 12px; padding: 12px; margin: 10px 0; }
+.warn-card .warn-title { display: flex; align-items: center; gap: 6px; font-size: 12px; font-weight: 700; color: #c2410c; margin-bottom: 6px; }
+.warn-card p { font-size: 11px; color: #7c2d12; line-height: 1.5; margin-bottom: 8px; }
+.warn-card .warn-guide { background: #fff; border: 1px solid #fed7aa; border-radius: 8px; padding: 8px 10px; font-size: 11px; color: #9a3412; line-height: 1.5; }
+.warn-actions { display: flex; gap: 6px; margin-top: 8px; }
+.btn-revise { flex: 2; background: #ea580c; color: #fff; border: none; border-radius: 8px; padding: 9px; font-size: 12px; font-weight: 700; }
+.btn-continue { flex: 1; background: transparent; border: 1.5px solid #d1d5db; border-radius: 8px; padding: 9px; font-size: 11px; color: #6b7280; }
+
+/* Breakdown */
+.dim-card { background: #fff; border: 1.5px solid #e5e7eb; border-radius: 12px; margin-bottom: 8px; overflow: hidden; }
+.phone.dark .dim-card { background: #1a1d27; border-color: rgba(255,255,255,0.08); }
+.dim-header { padding: 10px 12px; display: flex; align-items: center; gap: 8px; }
+.dim-dot { width: 8px; height: 8px; border-radius: 99px; flex-shrink: 0; }
+.dim-header h4 { font-size: 12px; font-weight: 700; color: #1a1d27; flex: 1; }
+.phone.dark .dim-header h4 { color: #e8eaf0; }
+.dim-header small { font-size: 10px; color: #9ca3af; }
+.dim-body { padding: 0 12px 10px; }
+.dim-input { width: 100%; border: 1.5px solid #e5e7eb; border-radius: 8px; padding: 8px 10px; font-size: 11px; color: #374151; background: #f9fafb; font-family: inherit; }
+.phone.dark .dim-input { background: #252836; border-color: rgba(255,255,255,0.08); color: #9399a6; }
+.dim-hint { font-size: 10px; color: #9ca3af; margin-top: 4px; }
+
+/* NSM Report */
+.score-bar-wrap { background: #fff; border-bottom: 1px solid #f0f0f0; padding: 12px 14px; flex-shrink: 0; }
+.phone.dark .score-bar-wrap { background: #1a1d27; border-bottom: 1px solid rgba(255,255,255,0.06); }
+.score-num { font-size: 26px; font-weight: 800; color: #6c63ff; }
+.score-sub { font-size: 11px; color: #9ca3af; }
+.score-track { height: 6px; background: #e5e7eb; border-radius: 99px; margin: 6px 0; overflow: hidden; }
+.score-fill { height: 100%; border-radius: 99px; background: linear-gradient(90deg,#6c63ff,#a78bfa); }
+
+.report-tabs { display: flex; border-bottom: 1.5px solid #f0f0f0; flex-shrink: 0; background: #fff; }
+.phone.dark .report-tabs { background: #1a1d27; border-bottom: 1px solid rgba(255,255,255,0.06); }
+.r-tab { flex: 1; padding: 10px 4px; font-size: 10px; font-weight: 600; color: #9ca3af; text-align: center; border-bottom: 2px solid transparent; }
+.r-tab.active { color: #6c63ff; border-bottom-color: #6c63ff; }
+
+/* Tree comparison */
+.tree-wrap { display: flex; gap: 8px; }
+.tree-col { flex: 1; }
+.tree-col h5 { font-size: 10px; font-weight: 700; color: #6b7280; text-align: center; margin-bottom: 8px; }
+.tree-root { background: #6c63ff; color: #fff; border-radius: 8px; padding: 7px 6px; text-align: center; font-size: 10px; font-weight: 700; margin-bottom: 4px; line-height: 1.3; }
+.tree-root.coach { background: #059669; }
+.tree-connector { width: 1px; background: #e5e7eb; height: 8px; margin: 0 auto; }
+.tree-children { display: flex; flex-direction: column; gap: 4px; }
+.tree-node { border: 1.5px solid #e5e7eb; border-radius: 7px; padding: 6px 7px; font-size: 9px; color: #374151; line-height: 1.3; cursor: pointer; }
+.tree-node:active { background: #f5f3ff; border-color: #6c63ff; }
+.tree-node.correct { border-color: #6ee7b7; background: #ecfdf5; color: #065f46; }
+.tree-node.missing { border-color: #fca5a5; background: #fff5f5; color: #991b1b; font-style: italic; opacity: 0.8; }
+
+/* Radar placeholder */
+.radar-wrap { background: #f9fafb; border-radius: 10px; padding: 10px; margin-bottom: 10px; display: flex; align-items: center; justify-content: center; height: 110px; }
+.phone.dark .radar-wrap { background: #252836; }
+
+/* Score bars */
+.score-row { display: flex; align-items: center; gap: 8px; margin-bottom: 7px; }
+.score-row-label { font-size: 10px; color: #6b7280; width: 54px; flex-shrink: 0; }
+.score-row-track { flex: 1; height: 6px; background: #e5e7eb; border-radius: 99px; overflow: hidden; }
+.score-row-fill { height: 100%; border-radius: 99px; background: #6c63ff; }
+.score-row-val { font-size: 10px; font-weight: 700; color: #6c63ff; width: 22px; text-align: right; }
+
+/* Practice view */
+.issue-banner { background: #fff; border-bottom: 1px solid #f0f0f0; border-left: 3px solid #6c63ff; padding: 10px 12px; flex-shrink: 0; display: flex; align-items: flex-start; justify-content: space-between; gap: 8px; }
+.phone.dark .issue-banner { background: #1a1d27; border-bottom: 1px solid rgba(255,255,255,0.06); }
+.issue-banner .issue-body { flex: 1; }
+.issue-banner .issue-src { font-size: 10px; font-weight: 700; color: #6c63ff; margin-bottom: 3px; }
+.issue-banner .issue-text { font-size: 11px; color: #374151; line-height: 1.4; }
+.phone.dark .issue-banner .issue-text { color: #9399a6; }
+.issue-banner .caret { color: #9ca3af; font-size: 14px; flex-shrink: 0; margin-top: 2px; }
+
+.chat-area { flex: 1; overflow-y: auto; padding: 12px 12px; display: flex; flex-direction: column; gap: 10px; background: #f8f9ff; }
+.phone.dark .chat-area { background: #0f1117; }
+.bubble { max-width: 85%; padding: 9px 11px; border-radius: 14px; font-size: 12px; line-height: 1.5; }
+.bubble.user { background: #6c63ff; color: #fff; align-self: flex-end; border-bottom-right-radius: 4px; }
+.bubble.ai { background: #fff; color: #374151; align-self: flex-start; border-bottom-left-radius: 4px; box-shadow: 0 1px 4px rgba(0,0,0,0.08); }
+.phone.dark .bubble.ai { background: #1a1d27; color: #9399a6; }
+.bubble-label { font-size: 10px; color: #9ca3af; margin-bottom: 2px; }
+.bubble-ai-wrap { display: flex; flex-direction: column; max-width: 85%; }
+
+.hint-card { background: #fffbeb; border: 1.5px solid #fde68a; border-left: 3px solid #f59e0b; border-radius: 10px; padding: 8px 10px; font-size: 11px; color: #92400e; line-height: 1.5; }
+
+.bottom-bar { background: #fff; border-top: 1px solid #f0f0f0; padding: 8px 10px; flex-shrink: 0; }
+.phone.dark .bottom-bar { background: #1a1d27; border-top: 1px solid rgba(255,255,255,0.06); }
+.toolbar { display: flex; gap: 6px; margin-bottom: 8px; }
+.tool-btn { display: flex; align-items: center; gap: 5px; padding: 9px 12px; border: 1.5px solid #e5e7eb; border-radius: 10px; background: #fff; font-size: 11px; font-weight: 600; color: #374151; flex: 1; justify-content: center; min-height: 44px; }
+.phone.dark .tool-btn { background: #252836; border-color: rgba(255,255,255,0.08); color: #9399a6; }
+.chat-input-row { display: flex; gap: 6px; align-items: flex-end; }
+.chat-input { flex: 1; border: 1.5px solid #e5e7eb; border-radius: 10px; padding: 10px 12px; font-size: 13px; background: #f8f9ff; resize: none; font-family: inherit; min-height: 44px; }
+.phone.dark .chat-input { background: #252836; border-color: rgba(255,255,255,0.08); color: #e8eaf0; }
+.send-btn { width: 44px; height: 44px; background: #6c63ff; border: none; border-radius: 10px; display: flex; align-items: center; justify-content: center; color: #fff; font-size: 18px; flex-shrink: 0; }
+
+/* Def panel */
+.def-panel { background: #f5f3ff; border: 1.5px solid #c4b5fd; border-radius: 10px; padding: 8px 10px; margin-bottom: 8px; }
+.def-panel label { font-size: 10px; font-weight: 700; color: #7c3aed; margin-bottom: 4px; display: block; }
+.def-panel textarea { width: 100%; border: none; background: transparent; font-size: 12px; color: #4c1d95; resize: none; font-family: inherit; outline: none; }
+</style>
+</head>
+<body>
+
+<h1 class="page-title">PM Drill — 全頁面 Mockup</h1>
+<p class="page-sub">手機 320px 視圖 · Phosphor Icons · 亮色主題</p>
+
+<!-- ROW 1: HOME -->
+<div class="section-heading">首頁</div>
+<div class="screen-row">
+
+  <!-- Home: PM Drill tab -->
+  <div class="screen-col">
+    <div class="screen-label">首頁 · PM 訪談</div>
+    <div class="phone">
+      <div class="ph-navbar">
+        <div class="ph-navbar-left">
+          <div class="nav-btn"><i class="ph ph-list"></i></div>
+          <span class="ph-navbar-logo">PM Drill</span>
+        </div>
+        <div class="ph-navbar-right">
+          <div class="nav-btn"><i class="ph ph-sun"></i></div>
+        </div>
+      </div>
+      <div class="ph-body">
+        <div class="ph-tabs">
+          <div class="ph-tab active"><i class="ph ph-microphone" style="margin-right:3px"></i>PM 訪談</div>
+          <div class="ph-tab"><i class="ph ph-target" style="margin-right:3px"></i>北極星指標</div>
+        </div>
+        <div class="sec-lbl">選擇難度</div>
+        <div class="diff-item">
+          <div class="diff-dot dot-green"><i class="ph ph-leaf"></i></div>
+          <div class="diff-text"><h4>入門</h4><p>消費性 App 場景</p></div>
+          <i class="ph ph-caret-right diff-chev"></i>
+        </div>
+        <div class="diff-item">
+          <div class="diff-dot dot-orange"><i class="ph ph-flame"></i></div>
+          <div class="diff-text"><h4>進階</h4><p>B2B / 雙邊平台</p></div>
+          <i class="ph ph-caret-right diff-chev"></i>
+        </div>
+        <div class="diff-item">
+          <div class="diff-dot dot-red"><i class="ph ph-lightning"></i></div>
+          <div class="diff-text"><h4>困難</h4><p>策略 / 多方利害</p></div>
+          <i class="ph ph-caret-right diff-chev"></i>
+        </div>
+        <div class="sec-lbl" style="margin-top:16px">最近練習</div>
+        <div class="sess-item">
+          <span class="sess-badge b-prog">進行中</span>
+          <div class="sess-text"><h4>進階 · 客服投訴處理</h4><p>4 小時前 · 第 3 輪</p></div>
+          <i class="ph ph-caret-right" style="color:#d1d5db;font-size:12px"></i>
+        </div>
+        <div class="sess-item">
+          <span class="sess-badge b-score">78 分</span>
+          <div class="sess-text"><h4>入門 · 外送 App 評分差</h4><p>昨天 · 完成</p></div>
+          <i class="ph ph-caret-right" style="color:#d1d5db;font-size:12px"></i>
+        </div>
+        <div class="sess-item">
+          <span class="sess-badge b-nsm" style="background:#ede9fe;color:#5b21b6">NSM 74分</span>
+          <div class="sess-text"><h4>Spotify · 音樂串流</h4><p>2 天前 · 完成</p></div>
+          <i class="ph ph-caret-right" style="color:#d1d5db;font-size:12px"></i>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Home: NSM tab -->
+  <div class="screen-col">
+    <div class="screen-label">首頁 · 北極星指標</div>
+    <div class="phone">
+      <div class="ph-navbar">
+        <div class="ph-navbar-left">
+          <div class="nav-btn"><i class="ph ph-list"></i></div>
+          <span class="ph-navbar-logo">PM Drill</span>
+        </div>
+        <div class="ph-navbar-right">
+          <div class="nav-btn"><i class="ph ph-sun"></i></div>
+        </div>
+      </div>
+      <div class="ph-body">
+        <div class="ph-tabs">
+          <div class="ph-tab"><i class="ph ph-microphone" style="margin-right:3px"></i>PM 訪談</div>
+          <div class="ph-tab active"><i class="ph ph-target" style="margin-right:3px"></i>北極星指標</div>
+        </div>
+        <div class="nsm-intro">
+          <p><strong>北極星指標 (NSM)</strong> 是你的產品真正在衡量什麼。學著從真實商業情境中找出它——並嚴格拆解為可操作的先行指標。</p>
+        </div>
+        <div class="nsm-stats">
+          <div class="nsm-stat"><div class="n">12</div><div class="l">題庫</div></div>
+          <div class="nsm-stat"><div class="n">5</div><div class="l">維度評分</div></div>
+          <div class="nsm-stat"><div class="n">4</div><div class="l">拆解步驟</div></div>
+        </div>
+        <button class="btn-primary-full" style="margin-bottom:16px">
+          <i class="ph ph-shuffle"></i>
+          隨機盲抽開始
+        </button>
+        <div class="sec-lbl">或手動選題</div>
+        <div class="scenario-card">
+          <div class="co-badge"><i class="ph ph-building-office"></i> Spotify</div>
+          <p>音樂串流平台需確保用戶真實享受內容而非被動播放，以支撐廣告與訂閱雙收入模型。</p>
+        </div>
+        <div class="scenario-card">
+          <div class="co-badge"><i class="ph ph-building-office"></i> Shopee</div>
+          <p>已過補貼獲客期，需提升買賣雙方黏著度，確保平台真實交易流通。</p>
+        </div>
+        <div class="scenario-card">
+          <div class="co-badge"><i class="ph ph-building-office"></i> GitHub</div>
+          <p>平台真正的價值在於協助團隊交付程式碼與開源協作。</p>
+        </div>
+      </div>
+    </div>
+  </div>
+
+</div>
+
+<!-- ROW 2: NSM FLOW -->
+<div class="section-heading">NSM 練習流程</div>
+<div class="screen-row">
+
+  <!-- NSM S1: Select -->
+  <div class="screen-col">
+    <div class="screen-label">Step 1 · 情境選擇</div>
+    <div class="phone">
+      <div class="ph-navbar">
+        <div class="ph-navbar-left">
+          <div class="nav-btn"><i class="ph ph-arrow-left"></i></div>
+          <span class="ph-navbar-logo">北極星指標</span>
+        </div>
+      </div>
+      <!-- Progress -->
+      <div class="progress-bar">
+        <div class="progress-steps">
+          <div class="p-step">
+            <div class="p-circle active">1</div>
+            <div class="p-label active">情境</div>
+          </div>
+          <div class="p-line"></div>
+          <div class="p-step">
+            <div class="p-circle">2</div>
+            <div class="p-label">定義</div>
+          </div>
+          <div class="p-line"></div>
+          <div class="p-step">
+            <div class="p-circle">3</div>
+            <div class="p-label">拆解</div>
+          </div>
+          <div class="p-line"></div>
+          <div class="p-step">
+            <div class="p-circle">4</div>
+            <div class="p-label">評分</div>
+          </div>
+        </div>
+      </div>
+      <div class="ph-body">
+        <div class="sec-lbl" style="margin-bottom:10px">選擇一個情境開始練習</div>
+        <div class="scenario-card selected">
+          <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:4px">
+            <div class="co-badge" style="background:#ede9fe;color:#5b21b6"><i class="ph ph-building-office"></i> Spotify · 音樂串流</div>
+            <i class="ph ph-check-circle" style="color:#6c63ff;font-size:16px"></i>
+          </div>
+          <p>音樂串流平台需確保用戶真實享受內容，而非被動播放，以支撐廣告與訂閱雙收入模型。</p>
+        </div>
+        <div class="scenario-card">
+          <div class="co-badge"><i class="ph ph-building-office"></i> Shopee · 雙邊電商</div>
+          <p>已過補貼獲客期，需提升買賣雙方黏著度，確保平台真實交易流通。</p>
+        </div>
+        <div class="scenario-card">
+          <div class="co-badge"><i class="ph ph-building-office"></i> Slack · B2B SaaS</div>
+          <p>企業付費是為了效率，若只註冊未發言將導致高退訂率。</p>
+        </div>
+        <div style="margin-top:12px">
+          <button class="btn-primary-full">
+            以此情境開始
+            <i class="ph ph-arrow-right"></i>
+          </button>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- NSM S2: Define -->
+  <div class="screen-col">
+    <div class="screen-label">Step 2 · 定義 NSM（含警告）</div>
+    <div class="phone">
+      <div class="ph-navbar">
+        <div class="ph-navbar-left">
+          <div class="nav-btn"><i class="ph ph-arrow-left"></i></div>
+          <span class="ph-navbar-logo">北極星指標</span>
+        </div>
+      </div>
+      <div class="progress-bar">
+        <div class="progress-steps">
+          <div class="p-step"><div class="p-circle done"><i class="ph ph-check" style="font-size:9px"></i></div><div class="p-label">情境</div></div>
+          <div class="p-line done"></div>
+          <div class="p-step"><div class="p-circle active">2</div><div class="p-label active">定義</div></div>
+          <div class="p-line"></div>
+          <div class="p-step"><div class="p-circle">3</div><div class="p-label">拆解</div></div>
+          <div class="p-line"></div>
+          <div class="p-step"><div class="p-circle">4</div><div class="p-label">評分</div></div>
+        </div>
+      </div>
+      <div class="ph-body">
+        <!-- Sticky scenario -->
+        <div style="background:#f5f3ff;border:1.5px solid #c4b5fd;border-radius:10px;padding:10px 12px;margin-bottom:14px">
+          <div style="font-size:10px;font-weight:700;color:#7c3aed;margin-bottom:3px">目前情境 · Spotify</div>
+          <div style="font-size:11px;color:#5b21b6;line-height:1.4">需確保用戶真實享受內容，支撐廣告與訂閱雙收入模型。</div>
+        </div>
+        <div class="field-label">你認為 Spotify 的北極星指標是？</div>
+        <textarea class="field-input" rows="2">DAU（每日活躍用戶數）</textarea>
+
+        <!-- Vanity warning (soft) -->
+        <div class="warn-card">
+          <div class="warn-title">
+            <i class="ph ph-warning"></i>
+            這可能是虛榮指標
+          </div>
+          <p>DAU 告訴你有多少人開了 App，但不能告訴你他們有沒有真的享受音樂。如果 DAU 翻倍，Spotify 一定更賺錢嗎？</p>
+          <div class="warn-guide">
+            <strong style="color:#92400e;display:block;margin-bottom:3px"><i class="ph ph-lightbulb"></i> 教練引導</strong>
+            想想看：Spotify 靠什麼留住付費用戶？當用戶發現他們「非聽不可」的那個時刻是什麼？
+          </div>
+          <div class="warn-actions">
+            <button class="btn-revise"><i class="ph ph-pencil-simple"></i> 重新定義</button>
+            <button class="btn-continue">繼續</button>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- NSM S3: Breakdown -->
+  <div class="screen-col">
+    <div class="screen-label">Step 3 · 拆解維度</div>
+    <div class="phone">
+      <div class="ph-navbar">
+        <div class="ph-navbar-left">
+          <div class="nav-btn"><i class="ph ph-arrow-left"></i></div>
+          <span class="ph-navbar-logo">北極星指標</span>
+        </div>
+      </div>
+      <div class="progress-bar">
+        <div class="progress-steps">
+          <div class="p-step"><div class="p-circle done"><i class="ph ph-check" style="font-size:9px"></i></div><div class="p-label">情境</div></div>
+          <div class="p-line done"></div>
+          <div class="p-step"><div class="p-circle done"><i class="ph ph-check" style="font-size:9px"></i></div><div class="p-label">定義</div></div>
+          <div class="p-line done"></div>
+          <div class="p-step"><div class="p-circle active">3</div><div class="p-label active">拆解</div></div>
+          <div class="p-line"></div>
+          <div class="p-step"><div class="p-circle">4</div><div class="p-label">評分</div></div>
+        </div>
+      </div>
+      <div class="ph-body">
+        <div style="background:#f5f3ff;border:1.5px solid #c4b5fd;border-radius:10px;padding:8px 12px;margin-bottom:12px;font-size:11px;color:#5b21b6">
+          <strong>你的 NSM：</strong> 每月付費活躍收聽時長（含社交功能參與度）
+        </div>
+        <div class="sec-lbl" style="margin-bottom:10px">將 NSM 拆解為四個先行指標（MECE 原則）</div>
+
+        <div class="dim-card">
+          <div class="dim-header">
+            <div class="dim-dot" style="background:#3b82f6"></div>
+            <h4>觸及廣度 (Reach)</h4>
+            <small>有多少人</small>
+          </div>
+          <div class="dim-body">
+            <textarea class="dim-input" rows="2" placeholder="例：每月啟動播放的 MAU 數量">每月有多少用戶開始收聽</textarea>
+            <div class="dim-hint"><i class="ph ph-info"></i> 衡量你的 NSM 觸及多少獨立用戶</div>
+          </div>
+        </div>
+
+        <div class="dim-card">
+          <div class="dim-header">
+            <div class="dim-dot" style="background:#8b5cf6"></div>
+            <h4>使用深度 (Depth)</h4>
+            <small>用得多深</small>
+          </div>
+          <div class="dim-body">
+            <textarea class="dim-input" rows="2" placeholder="例：每次 session 平均收聽時長">每次收聽 session 的平均時長</textarea>
+            <div class="dim-hint"><i class="ph ph-info"></i> 衡量每次互動的品質與深度</div>
+          </div>
+        </div>
+
+        <div class="dim-card">
+          <div class="dim-header">
+            <div class="dim-dot" style="background:#10b981"></div>
+            <h4>使用頻率 (Frequency)</h4>
+            <small>多常回來</small>
+          </div>
+          <div class="dim-body">
+            <textarea class="dim-input" rows="2" placeholder="例：每週平均開啟次數">用戶每週收聽的天數</textarea>
+            <div class="dim-hint"><i class="ph ph-info"></i> 衡量使用習慣是否形成</div>
+          </div>
+        </div>
+
+        <div class="dim-card">
+          <div class="dim-header">
+            <div class="dim-dot" style="background:#f59e0b"></div>
+            <h4>轉換效率 (Efficiency)</h4>
+            <small>轉換成什麼</small>
+          </div>
+          <div class="dim-body">
+            <textarea class="dim-input" rows="2" placeholder="例：免費轉付費轉換率">試用到付費訂閱的轉換率</textarea>
+            <div class="dim-hint"><i class="ph ph-info"></i> 衡量行為是否最終帶來商業價值</div>
+          </div>
+        </div>
+
+        <button class="btn-primary-full" style="margin-top:10px">
+          提交拆解
+          <i class="ph ph-paper-plane-tilt"></i>
+        </button>
+      </div>
+    </div>
+  </div>
+
+  <!-- NSM S4: Report -->
+  <div class="screen-col">
+    <div class="screen-label">Step 4 · 評分報告</div>
+    <div class="phone" style="height:640px;overflow:hidden">
+      <div class="ph-navbar">
+        <div class="ph-navbar-left">
+          <div class="nav-btn"><i class="ph ph-house"></i></div>
+          <span class="ph-navbar-logo">NSM 報告</span>
+        </div>
+      </div>
+      <!-- Score bar -->
+      <div class="score-bar-wrap">
+        <div style="display:flex;align-items:baseline;gap:8px">
+          <span class="score-num">74</span>
+          <span class="score-sub">/ 100 · Spotify · 3 分鐘前</span>
+        </div>
+        <div class="score-track"><div class="score-fill" style="width:74%"></div></div>
+      </div>
+      <!-- Tabs -->
+      <div class="report-tabs">
+        <div class="r-tab active">總覽</div>
+        <div class="r-tab">對比</div>
+        <div class="r-tab">亮點</div>
+        <div class="r-tab">匯出</div>
+      </div>
+      <!-- Tab body -->
+      <div class="ph-body" style="background:#f8f9ff;padding:12px">
+        <!-- Radar placeholder -->
+        <div class="radar-wrap">
+          <svg viewBox="0 0 120 110" width="120" height="110">
+            <polygon points="60,10 100,35 90,80 30,80 20,35" fill="none" stroke="#e5e7eb" stroke-width="1.5"/>
+            <polygon points="60,25 85,42 78,70 42,70 35,42" fill="none" stroke="#e5e7eb" stroke-width="1"/>
+            <polygon points="60,40 70,50 67,63 53,63 50,50" fill="none" stroke="#e5e7eb" stroke-width="0.5"/>
+            <polygon points="60,18 88,40 80,72 40,72 32,40" fill="rgba(108,99,255,0.2)" stroke="#6c63ff" stroke-width="1.5"/>
+            <text x="60" y="7" text-anchor="middle" font-size="8" fill="#9ca3af">價值</text>
+            <text x="104" y="38" font-size="8" fill="#9ca3af">領先</text>
+            <text x="88" y="84" font-size="8" fill="#9ca3af">操作</text>
+            <text x="18" y="84" font-size="8" fill="#9ca3af">理解</text>
+            <text x="5" y="38" font-size="8" fill="#9ca3af">週期</text>
+          </svg>
+        </div>
+        <!-- Score rows -->
+        <div class="score-row">
+          <div class="score-row-label">價值關聯</div>
+          <div class="score-row-track"><div class="score-row-fill" style="width:80%;background:#6c63ff"></div></div>
+          <div class="score-row-val">4</div>
+        </div>
+        <div class="score-row">
+          <div class="score-row-label">領先指標</div>
+          <div class="score-row-track"><div class="score-row-fill" style="width:60%"></div></div>
+          <div class="score-row-val">3</div>
+        </div>
+        <div class="score-row">
+          <div class="score-row-label">操作性</div>
+          <div class="score-row-track"><div class="score-row-fill" style="width:80%"></div></div>
+          <div class="score-row-val">4</div>
+        </div>
+        <div class="score-row">
+          <div class="score-row-label">可理解性</div>
+          <div class="score-row-track"><div class="score-row-fill" style="width:100%"></div></div>
+          <div class="score-row-val">5</div>
+        </div>
+        <div class="score-row">
+          <div class="score-row-label">週期敏感</div>
+          <div class="score-row-track"><div class="score-row-fill" style="width:60%"></div></div>
+          <div class="score-row-val">3</div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- NSM S4: Compare tab -->
+  <div class="screen-col">
+    <div class="screen-label">Step 4 · 對比 Tab</div>
+    <div class="phone" style="height:640px;overflow:hidden">
+      <div class="ph-navbar">
+        <div class="ph-navbar-left">
+          <div class="nav-btn"><i class="ph ph-house"></i></div>
+          <span class="ph-navbar-logo">NSM 報告</span>
+        </div>
+      </div>
+      <div class="score-bar-wrap">
+        <div style="display:flex;align-items:baseline;gap:8px">
+          <span class="score-num">74</span>
+          <span class="score-sub">/ 100 · Spotify</span>
+        </div>
+        <div class="score-track"><div class="score-fill" style="width:74%"></div></div>
+      </div>
+      <div class="report-tabs">
+        <div class="r-tab">總覽</div>
+        <div class="r-tab active">對比</div>
+        <div class="r-tab">亮點</div>
+        <div class="r-tab">匯出</div>
+      </div>
+      <div class="ph-body" style="background:#f8f9ff;padding:12px">
+        <div class="sec-lbl" style="margin-bottom:10px">指標拆解樹對比（點節點看說明）</div>
+        <div class="tree-wrap">
+          <div class="tree-col">
+            <h5>你的拆解</h5>
+            <div class="tree-root">付費活躍<br>收聽時長</div>
+            <div class="tree-connector"></div>
+            <div class="tree-children">
+              <div class="tree-node correct"><strong style="color:#065f46">觸及：</strong>月啟動播放 MAU</div>
+              <div class="tree-node correct"><strong style="color:#065f46">深度：</strong>單次 session 時長</div>
+              <div class="tree-node"><strong>頻率：</strong>週收聽天數</div>
+              <div class="tree-node missing"><strong>效率：</strong>試用轉付費率</div>
+            </div>
+          </div>
+          <div class="tree-col">
+            <h5>教練拆解</h5>
+            <div class="tree-root coach">每月付費用戶<br>深度收聽時長</div>
+            <div class="tree-connector"></div>
+            <div class="tree-children">
+              <div class="tree-node correct"><strong style="color:#065f46">觸及：</strong>付費 MAU 數</div>
+              <div class="tree-node correct"><strong style="color:#065f46">深度：</strong>完整曲目完成率</div>
+              <div class="tree-node correct"><strong style="color:#065f46">頻率：</strong>連續 7 天收聽率</div>
+              <div class="tree-node" style="border-color:#c4b5fd;background:#f5f3ff;color:#5b21b6"><strong>效率：</strong>Playlist 互動後轉付費</div>
+            </div>
+          </div>
+        </div>
+        <div style="margin-top:12px;background:#fff7ed;border:1.5px solid #fed7aa;border-radius:10px;padding:10px 12px">
+          <div style="font-size:10px;font-weight:700;color:#c2410c;margin-bottom:4px"><i class="ph ph-warning"></i> 「效率」維度需補強</div>
+          <div style="font-size:11px;color:#7c2d12;line-height:1.5">你的「試用轉付費率」方向正確，但未考慮行為觸發點。教練版本連結了 Playlist 互動作為轉換的驅動事件。</div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+</div>
+
+<!-- ROW 3: PRACTICE & REPORT (existing views with fixes) -->
+<div class="section-heading">現有頁面改版（UX 修正）</div>
+<div class="screen-row">
+
+  <!-- Practice view -->
+  <div class="screen-col">
+    <div class="screen-label">Practice View（修正後）</div>
+    <div class="phone" style="height:680px;display:flex;flex-direction:column;overflow:hidden">
+      <div class="ph-navbar">
+        <div class="ph-navbar-left">
+          <div class="nav-btn"><i class="ph ph-arrow-left"></i></div>
+          <span class="ph-navbar-logo">PM 訪談</span>
+        </div>
+        <div class="ph-navbar-right">
+          <div class="nav-btn" style="font-size:11px;width:auto;padding:0 10px;background:#ede9fe;color:#6c63ff;border-radius:8px;height:36px">第 2 輪 / 6</div>
+        </div>
+      </div>
+      <!-- Issue banner (collapsible) -->
+      <div class="issue-banner">
+        <div class="issue-body">
+          <div class="issue-src"><i class="ph ph-user"></i> 客服主管 · 進階</div>
+          <div class="issue-text">最近一個月外送員投訴量上升了 40%，主要集中在「等待時間過長」和「餐廳接單慢」，我們老闆要我...</div>
+        </div>
+        <i class="ph ph-caret-up issue-caret"></i>
+      </div>
+      <!-- Chat -->
+      <div class="chat-area">
+        <div class="bubble-ai-wrap">
+          <div class="bubble-label">被訪談者</div>
+          <div class="bubble ai">我是客服主管，主要負責處理投訴記錄，不太清楚後端系統的細節。</div>
+        </div>
+        <div class="bubble user">這些投訴主要是哪些類型的外送員提出的？新手還是老手？</div>
+        <div class="bubble-ai-wrap">
+          <div class="bubble-label">被訪談者</div>
+          <div class="bubble ai">大多是做了 1-3 個月的外送員，新手投訴少因為他們覺得等待很正常。</div>
+        </div>
+        <!-- Hint card -->
+        <div class="hint-card">
+          <div style="font-size:10px;font-weight:700;color:#92400e;margin-bottom:4px"><i class="ph ph-lightbulb"></i> 本輪提示</div>
+          <div style="font-size:11px;line-height:1.5">你已釐清「誰在投訴」，下一步可以深入了解這些外送員流失的時間點與觸發原因。</div>
+        </div>
+      </div>
+      <!-- Bottom bar (fixed, with proper min-height) -->
+      <div class="bottom-bar">
+        <div class="toolbar">
+          <button class="tool-btn"><i class="ph ph-lightbulb"></i> 本輪提示</button>
+          <button class="tool-btn"><i class="ph ph-note-pencil"></i> 更新定義</button>
+        </div>
+        <div class="chat-input-row">
+          <textarea class="chat-input" rows="2" placeholder="輸入你的問題…">這些外送員的投訴集中在哪個時段？</textarea>
+          <button class="send-btn"><i class="ph ph-paper-plane-tilt"></i></button>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Practice + def panel open -->
+  <div class="screen-col">
+    <div class="screen-label">Practice · 定義面板開啟</div>
+    <div class="phone" style="height:680px;display:flex;flex-direction:column;overflow:hidden">
+      <div class="ph-navbar">
+        <div class="ph-navbar-left">
+          <div class="nav-btn"><i class="ph ph-arrow-left"></i></div>
+          <span class="ph-navbar-logo">PM 訪談</span>
+        </div>
+        <div class="ph-navbar-right">
+          <div class="nav-btn" style="font-size:11px;width:auto;padding:0 10px;background:#ede9fe;color:#6c63ff;border-radius:8px;height:36px">第 2 輪 / 6</div>
+        </div>
+      </div>
+      <div class="issue-banner" style="opacity:0.6">
+        <div class="issue-body">
+          <div class="issue-src"><i class="ph ph-user"></i> 客服主管 · 進階</div>
+          <div class="issue-text">最近一個月外送員投訴量上升...</div>
+        </div>
+        <i class="ph ph-caret-down issue-caret"></i>
+      </div>
+      <div class="chat-area" style="min-height:0;flex:1">
+        <div class="bubble user">這些外送員的投訴集中在哪個時段？</div>
+        <div class="bubble-ai-wrap">
+          <div class="bubble-label">被訪談者</div>
+          <div class="bubble ai">主要是晚餐時段，17:00-20:00，這時候訂單量最大。</div>
+        </div>
+      </div>
+      <div class="bottom-bar">
+        <!-- Def panel with close btn (UX fix) -->
+        <div class="def-panel" style="margin-bottom:8px">
+          <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:4px">
+            <label style="font-size:10px;font-weight:700;color:#7c3aed;margin:0">問題本質定義</label>
+            <button style="background:none;border:none;color:#9ca3af;font-size:16px;cursor:pointer;padding:0"><i class="ph ph-x"></i></button>
+          </div>
+          <textarea style="width:100%;border:none;background:transparent;font-size:12px;color:#4c1d95;resize:none;font-family:inherit;outline:none" rows="2">如何讓外送員在尖峰時段更有效率地完成接單？</textarea>
+        </div>
+        <div class="toolbar">
+          <button class="tool-btn"><i class="ph ph-lightbulb"></i> 本輪提示</button>
+          <button class="tool-btn" style="border-color:#6c63ff;color:#6c63ff;background:#f5f3ff"><i class="ph ph-note-pencil"></i> 更新定義</button>
+        </div>
+        <div class="chat-input-row">
+          <textarea class="chat-input" rows="1" placeholder="輸入你的問題…"></textarea>
+          <button class="send-btn"><i class="ph ph-paper-plane-tilt"></i></button>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Report view -->
+  <div class="screen-col">
+    <div class="screen-label">Report View（Tab 改版）</div>
+    <div class="phone" style="height:640px;display:flex;flex-direction:column;overflow:hidden">
+      <div class="ph-navbar">
+        <div class="ph-navbar-left">
+          <div class="nav-btn"><i class="ph ph-list"></i></div>
+          <span class="ph-navbar-logo">練習報告</span>
+        </div>
+        <div class="ph-navbar-right">
+          <div class="nav-btn"><i class="ph ph-house"></i></div>
+        </div>
+      </div>
+      <div class="score-bar-wrap">
+        <div style="display:flex;align-items:baseline;gap:8px">
+          <span class="score-num">82</span>
+          <span class="score-sub">/ 100 · 進階 · 7 輪</span>
+        </div>
+        <div class="score-track"><div class="score-fill" style="width:82%"></div></div>
+      </div>
+      <!-- Tab bar: scrollable on mobile, 4 tabs -->
+      <div style="display:flex;overflow-x:auto;border-bottom:1.5px solid #f0f0f0;background:#fff;flex-shrink:0;-webkit-overflow-scrolling:touch">
+        <div style="min-width:72px;padding:10px 8px;font-size:11px;font-weight:700;color:#6c63ff;border-bottom:2px solid #6c63ff;text-align:center;white-space:nowrap">評分總覽</div>
+        <div style="min-width:72px;padding:10px 8px;font-size:11px;font-weight:600;color:#9ca3af;text-align:center;white-space:nowrap">練習回顧</div>
+        <div style="min-width:72px;padding:10px 8px;font-size:11px;font-weight:600;color:#9ca3af;text-align:center;white-space:nowrap">亮點摘要</div>
+        <div style="min-width:72px;padding:10px 8px;font-size:11px;font-weight:600;color:#9ca3af;text-align:center;white-space:nowrap">匯出</div>
+      </div>
+      <div class="ph-body" style="background:#f8f9ff;padding:12px">
+        <div class="radar-wrap">
+          <svg viewBox="0 0 120 110" width="120" height="110">
+            <polygon points="60,10 100,35 90,80 30,80 20,35" fill="none" stroke="#e5e7eb" stroke-width="1.5"/>
+            <polygon points="60,25 85,42 78,70 42,70 35,42" fill="none" stroke="#e5e7eb" stroke-width="1"/>
+            <polygon points="60,18 92,38 84,74 36,74 28,38" fill="rgba(108,99,255,0.2)" stroke="#6c63ff" stroke-width="1.5"/>
+            <text x="60" y="7" text-anchor="middle" font-size="8" fill="#9ca3af">角色定位</text>
+            <text x="104" y="38" font-size="8" fill="#9ca3af">任務卡點</text>
+            <text x="88" y="84" font-size="8" fill="#9ca3af">替代行為</text>
+            <text x="12" y="84" font-size="8" fill="#9ca3af">損失量化</text>
+            <text x="0" y="38" font-size="8" fill="#9ca3af">定義品質</text>
+          </svg>
+        </div>
+        <div class="score-row"><div class="score-row-label">角色定位</div><div class="score-row-track"><div class="score-row-fill" style="width:90%"></div></div><div class="score-row-val">18</div></div>
+        <div class="score-row"><div class="score-row-label">任務卡點</div><div class="score-row-track"><div class="score-row-fill" style="width:80%"></div></div><div class="score-row-val">16</div></div>
+        <div class="score-row"><div class="score-row-label">替代行為</div><div class="score-row-track"><div class="score-row-fill" style="width:75%"></div></div><div class="score-row-val">15</div></div>
+        <div class="score-row"><div class="score-row-label">損失量化</div><div class="score-row-track"><div class="score-row-fill" style="width:85%"></div></div><div class="score-row-val">17</div></div>
+        <div class="score-row"><div class="score-row-label">定義品質</div><div class="score-row-track"><div class="score-row-fill" style="width:80%"></div></div><div class="score-row-val">16</div></div>
+        <div style="margin-top:10px;background:#fff;border:1.5px solid #e5e7eb;border-radius:10px;padding:10px 12px">
+          <div style="display:flex;align-items:center;gap:6px;font-size:11px;font-weight:700;color:#065f46;margin-bottom:4px"><i class="ph ph-trophy" style="color:#059669"></i> 最佳亮點</div>
+          <div style="font-size:11px;color:#374151;line-height:1.5">清楚釐清了「誰有問題」與「問題發生的時機點」，讓訪談聚焦在尖峰時段的結構性原因而非個案。</div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+</div>
+
+</body>
+</html>

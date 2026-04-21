@@ -1,0 +1,207 @@
+<h2>Practice View — 佈局方案比較</h2>
+<p class="subtitle">涉及：固定輸入區 (#4)、置頂抱怨內容 (#6)、問題本質引導 (#3 #5)、提示機制 (#2)</p>
+
+<div class="cards" style="gap:24px;">
+
+  <!-- Option A -->
+  <div class="card" data-choice="a" onclick="toggleSelect(this)">
+    <div class="card-image" style="padding:16px;background:#f8f9ff;border-bottom:1px solid #e0e0e0;">
+      <div style="font-family:monospace;font-size:11px;color:#555;border:1px solid #ccc;border-radius:8px;overflow:hidden;height:440px;display:flex;flex-direction:column;">
+        <!-- Top bar -->
+        <div style="background:#6c63ff;color:#fff;padding:8px 12px;font-size:10px;display:flex;align-items:center;gap:8px;flex-shrink:0;">
+          <span style="font-size:14px;">☰</span>
+          <span>第一性原理訓練器</span>
+          <span style="margin-left:auto;font-size:10px;opacity:0.8;">☀ | 登入</span>
+        </div>
+        <!-- Progress steps -->
+        <div style="background:#fff;padding:8px 12px;border-bottom:1px solid #eee;flex-shrink:0;display:flex;justify-content:space-between;align-items:center;font-size:9px;">
+          <span style="color:#6c63ff;font-weight:bold;">① 重構問題</span>
+          <span style="color:#aaa;">— ② 深度追問 —</span>
+          <span style="color:#aaa;">③ 提交 —</span>
+          <span style="color:#aaa;">④ 完成</span>
+        </div>
+        <!-- Sticky issue banner -->
+        <div style="background:#f0eeff;border-bottom:2px solid #6c63ff;padding:8px 12px;flex-shrink:0;font-size:9px;color:#333;">
+          <span style="color:#6c63ff;font-weight:bold;font-size:8px;text-transform:uppercase;letter-spacing:0.5px;">客服主管抱怨 · 進階</span><br>
+          「最近退貨率一直很高，客服被罵得很慘，希望你們 PM 想想辦法…」
+          <span style="float:right;color:#aaa;cursor:pointer;font-size:9px;">▲ 收起</span>
+        </div>
+        <!-- Chat area (scrollable) -->
+        <div style="flex:1;overflow-y:auto;padding:10px 12px;display:flex;flex-direction:column;gap:8px;background:#fafafa;">
+          <div style="align-self:flex-end;background:#6c63ff;color:#fff;padding:6px 10px;border-radius:12px 12px 2px 12px;font-size:9px;max-width:70%;">退貨率高是什麼時間點開始的？</div>
+          <div style="align-self:flex-start;background:#fff;border:1px solid #eee;padding:8px 10px;border-radius:12px 12px 12px 2px;font-size:9px;max-width:80%;">
+            <span style="color:#888;font-size:8px;">【被訪談者】</span><br>大概上個季開始吧，具體數字不太清楚...<br>
+            <span style="color:#6c63ff;font-size:8px;">【教練點評】</span><br>問到了時間軸，但缺少量化規模。
+          </div>
+          <div style="align-self:flex-end;background:#6c63ff;color:#fff;padding:6px 10px;border-radius:12px 12px 2px 12px;font-size:9px;max-width:70%;">退貨率大概幾％？跟行業平均比怎樣？</div>
+          <div style="background:#fffbe6;border:1px solid #f0e0a0;padding:5px 8px;border-radius:6px;font-size:8px;color:#7a6000;align-self:center;">
+            💡 教練提示（點擊展開）
+          </div>
+        </div>
+        <!-- Fixed bottom: definition + input -->
+        <div style="border-top:1px solid #eee;background:#fff;padding:8px 12px;flex-shrink:0;">
+          <div style="font-size:8px;color:#888;margin-bottom:4px;">📝 問題本質定義（提交前可隨時更新）</div>
+          <div style="background:#f8f8f8;border:1px solid #ddd;border-radius:6px;padding:5px 8px;font-size:8px;color:#555;margin-bottom:6px;min-height:28px;">用中性問句描述問題本質…<br><span style="font-size:7px;color:#aaa;">例：如何讓 X 用戶在 Y 情境下更有效率達成 Z？</span></div>
+          <div style="display:flex;gap:6px;align-items:flex-end;">
+            <textarea style="flex:1;border:1px solid #6c63ff;border-radius:6px;padding:5px;font-size:8px;resize:none;height:32px;outline:none;" placeholder="輸入你的問題…"></textarea>
+            <button style="background:#6c63ff;color:#fff;border:none;border-radius:6px;padding:6px 10px;font-size:9px;cursor:pointer;">送出</button>
+          </div>
+        </div>
+      </div>
+    </div>
+    <div class="card-body">
+      <h3>A — 三層固定底欄</h3>
+      <p>Bottom bar 分兩層：上層保留問題本質輸入（不清空）+ 下層為聊天輸入。問題本質有引導提示文字。最完整但底部佔空間較多（約 110px）。</p>
+    </div>
+  </div>
+
+  <!-- Option B -->
+  <div class="card" data-choice="b" onclick="toggleSelect(this)">
+    <div class="card-image" style="padding:16px;background:#f8f9ff;border-bottom:1px solid #e0e0e0;">
+      <div style="font-family:monospace;font-size:11px;color:#555;border:1px solid #ccc;border-radius:8px;overflow:hidden;height:440px;display:flex;flex-direction:column;">
+        <!-- Top bar -->
+        <div style="background:#6c63ff;color:#fff;padding:8px 12px;font-size:10px;display:flex;align-items:center;gap:8px;flex-shrink:0;">
+          <span style="font-size:14px;">☰</span>
+          <span>第一性原理訓練器</span>
+          <span style="margin-left:auto;font-size:10px;opacity:0.8;">☀ | 登入</span>
+        </div>
+        <!-- Progress steps -->
+        <div style="background:#fff;padding:8px 12px;border-bottom:1px solid #eee;flex-shrink:0;display:flex;justify-content:space-between;align-items:center;font-size:9px;">
+          <span style="color:#6c63ff;font-weight:bold;">① 重構問題</span>
+          <span style="color:#aaa;">② 深度追問</span>
+          <span style="color:#aaa;">③ 提交</span>
+          <span style="color:#aaa;">④ 完成</span>
+        </div>
+        <!-- Collapsible issue card -->
+        <div style="background:#f5f3ff;border-bottom:1px solid #d0c8f0;padding:6px 12px;flex-shrink:0;font-size:9px;color:#333;cursor:pointer;">
+          <span style="color:#6c63ff;font-weight:bold;font-size:8px;">▼ 客服主管抱怨 · 進階</span>
+          <span style="float:right;color:#999;font-size:8px;">點擊展開</span>
+        </div>
+        <!-- Chat area -->
+        <div style="flex:1;overflow-y:auto;padding:10px 12px;display:flex;flex-direction:column;gap:8px;background:#fafafa;">
+          <div style="align-self:flex-end;background:#6c63ff;color:#fff;padding:6px 10px;border-radius:12px 12px 2px 12px;font-size:9px;max-width:70%;">退貨率高是什麼時間點開始的？</div>
+          <div style="align-self:flex-start;background:#fff;border:1px solid #eee;padding:8px 10px;border-radius:12px 12px 12px 2px;font-size:9px;max-width:80%;">
+            <span style="color:#888;font-size:8px;">【被訪談者】</span><br>大概上個季開始吧...<br>
+            <span style="color:#6c63ff;font-size:8px;">【教練點評】</span><br>問到了時間軸，但缺少量化。
+          </div>
+          <div style="align-self:flex-end;background:#6c63ff;color:#fff;padding:6px 10px;border-radius:12px 12px 2px 12px;font-size:9px;max-width:70%;">退貨率大概幾％？</div>
+          <div style="align-self:flex-start;background:#fff;border:1px solid #eee;padding:8px 10px;border-radius:12px 12px 12px 2px;font-size:9px;max-width:80%;">
+            <span style="color:#888;font-size:8px;">【被訪談者】</span><br>大概 15%，行業是 8% 左右...<br>
+            <span style="color:#6c63ff;font-size:8px;">【教練點評】</span><br>很好，拿到了量化數據！
+          </div>
+        </div>
+        <!-- Fixed bottom: single input + hint + def button -->
+        <div style="border-top:1px solid #eee;background:#fff;padding:8px 12px;flex-shrink:0;">
+          <div style="display:flex;gap:6px;align-items:center;margin-bottom:6px;">
+            <button style="background:#fffbe6;border:1px solid #f0e0a0;color:#7a6000;border-radius:5px;padding:3px 7px;font-size:8px;cursor:pointer;">💡 本輪提示</button>
+            <button style="background:#f0eeff;border:1px solid #c0b8f0;color:#5a52e0;border-radius:5px;padding:3px 7px;font-size:8px;cursor:pointer;margin-left:auto;">📝 更新問題定義</button>
+          </div>
+          <div style="display:flex;gap:6px;align-items:flex-end;">
+            <textarea style="flex:1;border:1px solid #6c63ff;border-radius:6px;padding:5px;font-size:8px;resize:none;height:32px;outline:none;" placeholder="輸入你的問題…"></textarea>
+            <button style="background:#6c63ff;color:#fff;border:none;border-radius:6px;padding:6px 10px;font-size:9px;">送出</button>
+          </div>
+        </div>
+      </div>
+    </div>
+    <div class="card-body">
+      <h3>B — 工具列 + 折疊 Issue</h3>
+      <p>Issue 可折疊（預設顯示一行標題，點展開）。底部只有一層輸入框，提示和定義以小按鈕呈現。問題定義在 modal/drawer 中編輯，不佔空間。底部僅約 65px。</p>
+    </div>
+  </div>
+
+  <!-- Option C -->
+  <div class="card" data-choice="c" onclick="toggleSelect(this)">
+    <div class="card-image" style="padding:16px;background:#f8f9ff;border-bottom:1px solid #e0e0e0;">
+      <div style="font-family:monospace;font-size:11px;color:#555;border:1px solid #ccc;border-radius:8px;overflow:hidden;height:440px;display:flex;flex-direction:column;">
+        <!-- Top bar -->
+        <div style="background:#6c63ff;color:#fff;padding:8px 12px;font-size:10px;display:flex;align-items:center;gap:8px;flex-shrink:0;">
+          <span style="font-size:14px;">☰</span>
+          <span>第一性原理訓練器</span>
+          <span style="margin-left:auto;font-size:10px;opacity:0.8;">☀ | 登入</span>
+        </div>
+        <!-- Split: left = issue + steps, right = chat -->
+        <div style="flex:1;display:flex;overflow:hidden;">
+          <!-- Left panel -->
+          <div style="width:38%;border-right:1px solid #eee;display:flex;flex-direction:column;background:#fff;">
+            <div style="padding:8px;font-size:8px;font-weight:bold;color:#6c63ff;border-bottom:1px solid #eee;">抱怨內容</div>
+            <div style="padding:8px;font-size:8px;color:#333;flex:1;overflow-y:auto;line-height:1.4;">
+              <span style="font-size:7px;color:#888;text-transform:uppercase;">客服主管 · 進階</span><br><br>
+              「最近退貨率一直很高，客服被罵得很慘，希望你們 PM 想想辦法…」
+            </div>
+            <div style="padding:8px;border-top:1px solid #eee;">
+              <div style="font-size:7px;color:#888;margin-bottom:3px;">問題本質定義</div>
+              <div style="background:#f8f8f8;border:1px solid #ddd;border-radius:4px;padding:4px;font-size:7px;color:#555;min-height:40px;">用中性問句定義…</div>
+              <div style="font-size:7px;color:#aaa;margin-top:3px;">例：如何讓 X 在 Y 情境達成 Z？</div>
+            </div>
+            <!-- Steps -->
+            <div style="padding:6px 8px;border-top:1px solid #eee;font-size:7px;color:#888;">
+              <div style="color:#6c63ff;font-weight:bold;">→ 重構問題</div>
+              <div>深度追問</div>
+              <div>提交定義</div>
+              <div>完成</div>
+            </div>
+          </div>
+          <!-- Right panel = chat -->
+          <div style="flex:1;display:flex;flex-direction:column;background:#fafafa;">
+            <div style="flex:1;overflow-y:auto;padding:8px;display:flex;flex-direction:column;gap:6px;">
+              <div style="align-self:flex-end;background:#6c63ff;color:#fff;padding:5px 8px;border-radius:10px 10px 2px 10px;font-size:8px;max-width:80%;">退貨率高是什麼時間點開始的？</div>
+              <div style="align-self:flex-start;background:#fff;border:1px solid #eee;padding:6px 8px;border-radius:10px 10px 10px 2px;font-size:8px;max-width:90%;">
+                <span style="color:#888;font-size:7px;">【被訪談者】</span><br>大概上個季開始...<br>
+                <span style="color:#6c63ff;font-size:7px;">【教練】</span><br>問到時間軸，缺量化。
+              </div>
+            </div>
+            <!-- Chat input -->
+            <div style="border-top:1px solid #eee;background:#fff;padding:6px 8px;">
+              <div style="display:flex;gap:4px;margin-bottom:4px;">
+                <button style="background:#fffbe6;border:1px solid #e8d080;color:#7a6000;border-radius:4px;padding:2px 6px;font-size:7px;">提示</button>
+              </div>
+              <div style="display:flex;gap:4px;">
+                <textarea style="flex:1;border:1px solid #6c63ff;border-radius:4px;padding:4px;font-size:7px;resize:none;height:26px;" placeholder="輸入問題…"></textarea>
+                <button style="background:#6c63ff;color:#fff;border:none;border-radius:4px;padding:4px 8px;font-size:7px;">送</button>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+    <div class="card-body">
+      <h3>C — 雙欄 Panel</h3>
+      <p>左欄固定顯示問題內容 + 問題定義 + 進度條；右欄為對話區。桌機體驗最佳，但手機螢幕寬度不足，需要響應式折疊成單欄，複雜度較高。</p>
+    </div>
+  </div>
+
+</div>
+
+<div class="section" style="margin-top:24px;background:#f8f9ff;border-radius:8px;padding:16px;">
+  <h3 style="margin-bottom:8px;">各方案 RWD 適應性</h3>
+  <table style="width:100%;font-size:13px;border-collapse:collapse;">
+    <tr style="background:#eee;">
+      <th style="padding:6px 10px;text-align:left;border-radius:4px;">方案</th>
+      <th style="padding:6px 10px;text-align:center;">手機</th>
+      <th style="padding:6px 10px;text-align:center;">平板</th>
+      <th style="padding:6px 10px;text-align:center;">桌機</th>
+      <th style="padding:6px 10px;text-align:center;">實作難度</th>
+    </tr>
+    <tr>
+      <td style="padding:6px 10px;">A — 三層固定底欄</td>
+      <td style="padding:6px 10px;text-align:center;color:green;">✓ 佳</td>
+      <td style="padding:6px 10px;text-align:center;color:green;">✓ 佳</td>
+      <td style="padding:6px 10px;text-align:center;color:orange;">普通</td>
+      <td style="padding:6px 10px;text-align:center;">低</td>
+    </tr>
+    <tr style="background:#f5f3ff;">
+      <td style="padding:6px 10px;font-weight:bold;color:#5a52e0;">B — 工具列 + 折疊（推薦）</td>
+      <td style="padding:6px 10px;text-align:center;color:green;">✓ 優</td>
+      <td style="padding:6px 10px;text-align:center;color:green;">✓ 優</td>
+      <td style="padding:6px 10px;text-align:center;color:green;">✓ 佳</td>
+      <td style="padding:6px 10px;text-align:center;">中</td>
+    </tr>
+    <tr>
+      <td style="padding:6px 10px;">C — 雙欄 Panel</td>
+      <td style="padding:6px 10px;text-align:center;color:red;">✗ 差</td>
+      <td style="padding:6px 10px;text-align:center;color:orange;">普通</td>
+      <td style="padding:6px 10px;text-align:center;color:green;">✓ 優</td>
+      <td style="padding:6px 10px;text-align:center;">高</td>
+    </tr>
+  </table>
+</div>
