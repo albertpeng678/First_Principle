@@ -168,17 +168,26 @@ function attachOffcanvasDeleteListeners(listEl) {
 
       item.querySelector('.offcanvas-cancel-delete').addEventListener('click', () => {
         item.innerHTML = originalHTML;
-        attachOffcanvasDeleteListeners(item.closest('#offcanvas-list') || item.parentElement);
+        attachOffcanvasDeleteListeners(item);
       });
 
       item.querySelector('.offcanvas-confirm-delete').addEventListener('click', async () => {
-        const res = await fetch(sessionRoute(`/${id}`), { method: 'DELETE', headers: apiHeaders() });
-        if (!res.ok) return;
-        if (AppState.currentSession?.id === id) {
-          AppState.currentSession = null;
-          navigate('home');
-        } else {
-          item.remove();
+        try {
+          const res = await fetch(sessionRoute(`/${id}`), { method: 'DELETE', headers: apiHeaders() });
+          if (!res.ok) {
+            item.innerHTML = originalHTML;
+            attachOffcanvasDeleteListeners(item);
+            return;
+          }
+          if (AppState.currentSession?.id === id) {
+            AppState.currentSession = null;
+            navigate('home');
+          } else {
+            item.remove();
+          }
+        } catch (_) {
+          item.innerHTML = originalHTML;
+          attachOffcanvasDeleteListeners(item);
         }
       });
     });
@@ -203,7 +212,7 @@ async function loadOffcanvasSessions() {
         : `<span class="badge badge-green">${s.scores_json?.totalScore ?? '—'}分</span>`;
       return `<div class="offcanvas-item" data-id="${s.id}" data-status="${s.status}" style="position:relative">
         <div style="display:flex;align-items:center;justify-content:space-between">
-          ${badge}<span style="font-size:0.75rem;color:var(--text-secondary)">${s.difficulty || ''}</span>
+          ${badge}<span style="font-size:0.75rem;color:var(--text-secondary)">${escHtml(s.difficulty || '')}</span>
         </div>
         <div style="font-size:0.8rem;color:var(--text-secondary);margin-top:4px">${date}</div>
         <button class="btn-icon offcanvas-delete-btn" title="刪除" style="position:absolute;top:6px;right:4px;font-size:1rem;padding:2px 6px" data-id="${s.id}">
