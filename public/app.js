@@ -211,7 +211,7 @@ async function loadOffcanvasSessions() {
         ? `<span class="badge badge-blue">進行中</span>`
         : `<span class="badge badge-green">${s.scores_json?.totalScore ?? '—'}分</span>`;
       return `<div class="offcanvas-item" data-id="${s.id}" data-status="${s.status}" style="position:relative">
-        <div style="display:flex;align-items:center;justify-content:space-between">
+        <div style="display:flex;align-items:center;justify-content:space-between;padding-right:28px">
           ${badge}<span style="font-size:0.75rem;color:var(--text-secondary)">${escHtml(s.difficulty || '')}</span>
         </div>
         <div style="font-size:0.8rem;color:var(--text-secondary);margin-top:4px">${date}</div>
