@@ -630,9 +630,10 @@ async function submitDefinition() {
       headers: apiHeaders(),
       body: JSON.stringify({ finalDefinition: def }),
     });
-    const scores = await res.json();
-    if (!res.ok) throw new Error(scores.error);
-    AppState.currentSession.scores_json = scores;
+    const data = await res.json();
+    if (!res.ok) throw new Error(data.error);
+    AppState.currentSession.scores_json = data.scores;
+    AppState.currentSession.coach_demo_json = data.coachDemo || null;
     AppState.currentSession.final_definition = def;
     AppState.currentSession.current_phase = 'done';
     AppState.activeReportTab = 'overview';
