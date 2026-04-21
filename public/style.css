@@ -76,6 +76,8 @@ body[data-view="history"] #app { max-width: 860px; }
 .btn-ghost:hover { background: var(--bg-surface); }
 .btn-icon { background: transparent; border: none; cursor: pointer; font-size: 1.3rem; padding: 4px 8px; color: var(--text-secondary); display: flex; align-items: center; }
 .btn-icon:hover { color: var(--text-primary); }
+.btn-danger { background: var(--danger); color: #fff; border: none; border-radius: 6px; padding: 4px 10px; font-size: 0.8rem; cursor: pointer; }
+.btn-danger:hover { opacity: 0.85; }
 .btn:disabled { opacity: 0.5; cursor: not-allowed; }
 
 /* Cards */

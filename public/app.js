@@ -150,6 +150,41 @@ function closeOffcanvas() {
   document.body.style.overflow = '';
 }
 
+function attachOffcanvasDeleteListeners(listEl) {
+  listEl.querySelectorAll('.offcanvas-delete-btn').forEach(btn => {
+    btn.addEventListener('click', e => {
+      e.stopPropagation();
+      const id = btn.dataset.id;
+      const item = btn.closest('.offcanvas-item');
+      const originalHTML = item.innerHTML;
+
+      item.innerHTML = `
+        <span style="font-size:0.85rem">確定刪除嗎？</span>
+        <div style="display:flex;gap:6px;margin-top:6px">
+          <button class="btn btn-ghost offcanvas-cancel-delete" style="font-size:0.8rem;padding:4px 10px">取消</button>
+          <button class="btn-danger offcanvas-confirm-delete" style="font-size:0.8rem">刪除</button>
+        </div>
+      `;
+
+      item.querySelector('.offcanvas-cancel-delete').addEventListener('click', () => {
+        item.innerHTML = originalHTML;
+        attachOffcanvasDeleteListeners(item.closest('#offcanvas-list') || item.parentElement);
+      });
+
+      item.querySelector('.offcanvas-confirm-delete').addEventListener('click', async () => {
+        const res = await fetch(sessionRoute(`/${id}`), { method: 'DELETE', headers: apiHeaders() });
+        if (!res.ok) return;
+        if (AppState.currentSession?.id === id) {
+          AppState.currentSession = null;
+          navigate('home');
+        } else {
+          item.remove();
+        }
+      });
+    });
+  });
+}
+
 async function loadOffcanvasSessions() {
   const listEl = document.getElementById('offcanvas-list');
   listEl.innerHTML = '載入中…';
@@ -166,11 +201,14 @@ async function loadOffcanvasSessions() {
       const badge = s.status === 'in_progress'
         ? `<span class="badge badge-blue">進行中</span>`
         : `<span class="badge badge-green">${s.scores_json?.totalScore ?? '—'}分</span>`;
-      return `<div class="offcanvas-item" data-id="${s.id}" data-status="${s.status}">
+      return `<div class="offcanvas-item" data-id="${s.id}" data-status="${s.status}" style="position:relative">
         <div style="display:flex;align-items:center;justify-content:space-between">
           ${badge}<span style="font-size:0.75rem;color:var(--text-secondary)">${s.difficulty || ''}</span>
         </div>
         <div style="font-size:0.8rem;color:var(--text-secondary);margin-top:4px">${date}</div>
+        <button class="btn-icon offcanvas-delete-btn" title="刪除" style="position:absolute;top:6px;right:4px;font-size:1rem;padding:2px 6px" data-id="${s.id}">
+          <i class="ph ph-trash"></i>
+        </button>
       </div>`;
     }).join('');
 
@@ -190,6 +228,7 @@ async function loadOffcanvasSessions() {
         navigate(status === 'completed' ? 'report' : 'practice');
       });
     });
+    attachOffcanvasDeleteListeners(listEl);
   } catch (_) {
     listEl.innerHTML = '<p style="color:var(--text-secondary);padding:8px 0">載入失敗</p>';
   }
@@ -937,6 +976,7 @@ async function loadHistory() {
     renderHistoryChart(sessions);
     renderHistoryList(sessions);
   } catch (e) {
+    console.error('loadHistory error:', e);
     document.getElementById('history-list').textContent = '載入失敗';
   }
 }
