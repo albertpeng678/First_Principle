@@ -389,15 +389,34 @@ function bindAuthForm(isLogin) {
     const errEl = document.getElementById('auth-error');
     errEl.style.display = 'none';
 
-    const { error } = isLogin
-      ? await supabase.auth.signInWithPassword({ email, password })
-      : await supabase.auth.signUp({ email, password });
-
-    if (error) {
-      errEl.textContent = error.message;
-      errEl.style.display = 'block';
+    if (isLogin) {
+      const { error } = await supabase.auth.signInWithPassword({ email, password });
+      if (error) {
+        errEl.textContent = error.message;
+        errEl.style.display = 'block';
+      }
+      // 成功時 onAuthStateChange 觸發 render()
+    } else {
+      // 後端建立已確認使用者，再自動登入
+      const res = await fetch('/api/auth/register', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ email, password }),
+      });
+      const data = await res.json();
+      if (!res.ok) {
+        errEl.textContent = data.error || '註冊失敗';
+        errEl.style.display = 'block';
+        return;
+      }
+      // 註冊成功，自動登入
+      const { error: loginErr } = await supabase.auth.signInWithPassword({ email, password });
+      if (loginErr) {
+        errEl.textContent = loginErr.message;
+        errEl.style.display = 'block';
+      }
+      // 成功時 onAuthStateChange 觸發 render()
     }
-    // 成功時 onAuthStateChange 觸發 render()
   });
 }
 
