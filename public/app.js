@@ -569,14 +569,14 @@ function bindPractice() {
   document.getElementById('btn-hint')?.addEventListener('click', showHintCard);
   document.getElementById('btn-update-def')?.addEventListener('click', () => {
     const defEl = document.getElementById('final-def');
-    if (defEl?.disabled) {
+    if (!defEl || defEl.disabled) {
       const hint = document.getElementById('def-hint');
       if (hint) {
         hint.style.display = 'block';
         setTimeout(() => { hint.style.display = 'none'; }, 2500);
       }
     } else {
-      defEl?.focus();
+      defEl.focus();
     }
   });
 
