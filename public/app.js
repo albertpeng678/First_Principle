@@ -646,6 +646,14 @@ async function submitDefinition() {
 }
 
 // ── Task 18: Report View (雷達圖 + 練習回顧表) ────
+const DIM_STATIC = {
+  roleClarity:        '釐清抱怨者的實際角色、負責範圍與在流程中的位置',
+  taskBreakpoint:     '找出具體的行為斷點——他在哪個步驟卡住、無法繼續',
+  workaround:         '挖掘用戶現在怎麼繞過這個問題（暗示真正的痛點）',
+  lossQuantification: '了解損失的維度與量級（時間、金錢、頻率、影響範圍）',
+  definitionQuality:  '最終問句是否中性、不預設解法、聚焦在本質問題',
+};
+
 const DIM_LABELS = {
   roleClarity: '角色定位',
   taskBreakpoint: '任務卡點',
@@ -695,11 +703,13 @@ function renderReport() {
   if (!scores) return '<p style="padding:16px">沒有評分資料</p>';
   if (!scores.scores) return '<p style="padding:16px">評分資料不完整</p>';
 
+  const coach = s.coach_demo_json;
   const dims = Object.keys(DIM_LABELS);
   const totalScore = scores.totalScore || 0;
   const turnCount = s.conversation?.length || s.turn_count || 0;
   const source = s.issue_json?.source || '';
 
+  // ── Overview tab ──
   const scoreBars = dims.map(d => {
     const sc = scores.scores[d]?.score || 0;
     return `<div class="score-bar-row">
@@ -711,43 +721,82 @@ function renderReport() {
     </div>`;
   }).join('');
 
-  const scoreDetails = dims.map(d => `
+  const scoreDetails = dims.map(d => {
+    const dim = scores.scores[d] || {};
+    const exQ = dim.exampleQuestion ? `
+      <div class="score-detail-row" style="margin-top:10px;padding-top:10px;border-top:1px solid var(--border)">
+        <i class="ph ph-chat-circle-dots" style="color:var(--accent)"></i>
+        <span><strong style="color:var(--accent)">示範問句：</strong>${escHtml(dim.exampleQuestion)}</span>
+      </div>` : '';
+    return `
     <div class="score-detail-card">
-      <div style="font-weight:700;font-size:0.9rem;color:var(--accent)">${DIM_LABELS[d]}</div>
-      <div class="score-detail-row"><i class="ph ph-check-circle" style="color:var(--success)"></i><span>${escHtml(scores.scores[d]?.did || '')}</span></div>
-      <div class="score-detail-row"><i class="ph ph-x-circle" style="color:var(--danger)"></i><span>${escHtml(scores.scores[d]?.missed || '')}</span></div>
-      <div class="score-detail-row"><i class="ph ph-lightbulb" style="color:var(--accent)"></i><span>${escHtml(scores.scores[d]?.tip || '')}</span></div>
-    </div>
-  `).join('');
+      <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:4px">
+        <span style="font-weight:700;font-size:0.9rem;color:var(--accent)">${DIM_LABELS[d]}</span>
+        <span style="font-size:0.75rem;color:var(--text-secondary)">${DIM_STATIC[d]}</span>
+      </div>
+      <div class="score-detail-row"><i class="ph ph-check-circle" style="color:var(--success)"></i><span>${escHtml(dim.did || '')}</span></div>
+      <div class="score-detail-row"><i class="ph ph-x-circle" style="color:var(--danger)"></i><span>${escHtml(dim.missed || '')}</span></div>
+      <div class="score-detail-row"><i class="ph ph-lightbulb" style="color:var(--accent)"></i><span>${escHtml(dim.tip || '')}</span></div>
+      ${exQ}
+    </div>`;
+  }).join('');
 
-  const turnAnalysis = scores.turnAnalysis || [];
-  const reviewRows = (s.conversation || []).map((t, i) => `
-    <tr>
-      <td style="white-space:nowrap;color:var(--text-secondary)">第 ${i+1} 輪</td>
-      <td>${escHtml(t.userMessage)}</td>
-      <td style="color:var(--accent)">${escHtml(turnAnalysis[i]?.idealFocus || '—')}</td>
-      <td>${escHtml(t.coachReply?.interviewee || '')}</td>
-      <td style="color:var(--text-secondary)">${escHtml(t.coachReply?.coaching || '')}</td>
-    </tr>
-  `).join('');
-
-  const reviewCards = (s.conversation || []).map((t, i) => `
+  // ── Review tab ──
+  const studentRounds = (s.conversation || []).map((t, i) => `
     <div class="review-card">
-      <div class="review-card-round">第 ${i+1} 輪</div>
+      <div class="review-card-round">第 ${i + 1} 輪</div>
       <div class="review-card-section"><div class="review-card-section-label">學員提問</div>${escHtml(t.userMessage)}</div>
-      <div class="review-card-section"><div class="review-card-section-label">預期重點</div>${escHtml(turnAnalysis[i]?.idealFocus || '—')}</div>
       <div class="review-card-section"><div class="review-card-section-label">被訪談者</div>${escHtml(t.coachReply?.interviewee || '')}</div>
       <div class="review-card-section"><div class="review-card-section-label">教練點評</div>${escHtml(t.coachReply?.coaching || '')}</div>
-    </div>
-  `).join('');
+    </div>`).join('');
 
+  const coachRounds = coach ? coach.conversation.map((c, i) => `
+    <div class="coach-round">
+      <div class="coach-round-label">第 ${i + 1} 輪</div>
+      <div class="coach-question">${escHtml(c.coachQuestion)}</div>
+      <div class="coach-reply">${escHtml(c.intervieweeReply)}</div>
+    </div>`).join('') : '';
+
+  const reviewContent = `
+    <div class="review-two-col">
+      <div>
+        <div class="review-col-header">學員練習</div>
+        ${studentRounds}
+      </div>
+      <div>
+        <div class="review-col-header coach">教練示範</div>
+        ${coach ? coachRounds : '<p style="color:var(--text-secondary);font-size:0.875rem">（無示範資料）</p>'}
+      </div>
+    </div>`;
+
+  // ── Highlights tab ──
   const highlights = scores.highlights || {};
+
+  // ── Essence tab ──
+  const essenceTab = `
+    <div class="essence-section">
+      <div class="essence-section-label">你的定義</div>
+      <div class="essence-text">${escHtml(s.final_definition || '（未提交）')}</div>
+    </div>
+    <div class="essence-section">
+      <div class="essence-section-label">優質格式範例</div>
+      <div class="essence-format">如何讓 [具體角色] 在 [情境 / 流程節點] 降低 [可量化損失]？</div>
+      ${scores.essenceExample ? `<div class="essence-text" style="margin-top:12px">${escHtml(scores.essenceExample)}</div>` : ''}
+    </div>
+    ${coach ? `
+    <div class="essence-section" style="border-left:3px solid var(--accent)">
+      <div class="essence-section-label" style="color:var(--accent)">教練的定義</div>
+      <div class="essence-text essence-coach-text">${escHtml(coach.coachEssence || '')}</div>
+      <div class="essence-reasoning">${escHtml(coach.coachReasoning || '')}</div>
+    </div>` : ''}`;
+
   const tab = AppState.activeReportTab;
   const tabs = [
-    { id: 'overview',    label: '評分總覽', short: '總覽' },
-    { id: 'review',      label: '練習回顧', short: '回顧' },
-    { id: 'highlights',  label: '亮點摘要', short: '亮點' },
-    { id: 'export',      label: '匯出',     short: '匯出' },
+    { id: 'overview',   label: '評分總覽', short: '總覽' },
+    { id: 'review',     label: '練習回顧', short: '回顧' },
+    { id: 'highlights', label: '亮點摘要', short: '亮點' },
+    { id: 'essence',    label: '問題本質', short: '本質' },
+    { id: 'export',     label: '匯出',     short: '匯出' },
   ];
 
   return `
@@ -757,7 +806,7 @@ function renderReport() {
         <div class="score-meta">${escHtml(source)} · ${turnCount} 輪</div>
       </div>
       <div class="score-progress">
-        <div class="score-progress-fill" style="width:${totalScore}%"></div>
+        <div class="score-progress-fill" style="width:${Math.min(100, totalScore)}%"></div>
       </div>
     </div>
     <div class="tab-bar">
@@ -765,8 +814,7 @@ function renderReport() {
         <button class="tab-btn ${tab === t.id ? 'active' : ''}" data-tab="${t.id}">
           <span class="tab-label-full">${t.label}</span>
           <span class="tab-label-short">${t.short}</span>
-        </button>
-      `).join('')}
+        </button>`).join('')}
     </div>
     <div class="tab-content" id="report-content">
       <div class="tab-pane ${tab === 'overview' ? 'active' : ''}" id="tab-overview">
@@ -775,13 +823,7 @@ function renderReport() {
         ${scoreDetails}
       </div>
       <div class="tab-pane ${tab === 'review' ? 'active' : ''}" id="tab-review">
-        <div class="review-cards">${reviewCards}</div>
-        <div style="overflow-x:auto">
-          <table class="review-table">
-            <thead><tr><th>輪次</th><th>學員提問</th><th>本輪預期重點</th><th>被訪談者回答</th><th>教練點評</th></tr></thead>
-            <tbody>${reviewRows}</tbody>
-          </table>
-        </div>
+        ${reviewContent}
       </div>
       <div class="tab-pane ${tab === 'highlights' ? 'active' : ''}" id="tab-highlights">
         <div class="highlight-card">
@@ -793,6 +835,9 @@ function renderReport() {
           <div><div style="font-weight:700;margin-bottom:4px">主要陷阱</div>${escHtml(highlights.mainTrap || '')}</div>
         </div>
         <div class="highlight-summary">${escHtml(highlights.summary || '')}</div>
+      </div>
+      <div class="tab-pane ${tab === 'essence' ? 'active' : ''}" id="tab-essence">
+        ${essenceTab}
       </div>
       <div class="tab-pane ${tab === 'export' ? 'active' : ''}" id="tab-export">
         <div class="export-tab-actions">
