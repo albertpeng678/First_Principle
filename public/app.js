@@ -1050,13 +1050,17 @@ function attachHistoryDeleteListeners(el) {
         attachHistoryDeleteListeners(item);
       });
 
-      item.querySelector('.history-confirm-delete').addEventListener('click', async () => {
+      item.querySelector('.history-confirm-delete').addEventListener('click', async (e) => {
+        e.stopPropagation();
         try {
           const res = await fetch(`/api/sessions/${id}`, { method: 'DELETE', headers: apiHeaders() });
           if (!res.ok) {
             item.innerHTML = originalHTML;
             attachHistoryDeleteListeners(item);
             return;
+          }
+          if (localStorage.getItem('lastSessionId') === id) {
+            localStorage.removeItem('lastSessionId');
           }
           if (AppState.currentSession?.id === id) {
             AppState.currentSession = null;
