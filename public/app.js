@@ -303,7 +303,7 @@ function renderHome() {
     '困難': '表象與本質落差大',
   };
 
-  const issuePreview = AppState.currentSession
+  const issuePreview = (AppState.currentSession && AppState.currentSession.current_phase !== 'done')
     ? `<div class="card" style="margin-bottom:16px">
         <p style="color:var(--text-secondary);font-size:0.85rem">上次練習</p>
         <p style="margin-top:6px">${escHtml(AppState.currentSession.issue_json?.issueText?.slice(0, 80))}…</p>
