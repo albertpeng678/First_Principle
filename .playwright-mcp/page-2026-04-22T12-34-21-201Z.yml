@@ -1,0 +1,34 @@
+- generic [ref=e2]:
+  - navigation [ref=e3]:
+    - generic [ref=e4]:
+      - button "開啟選單" [ref=e5] [cursor=pointer]:
+        - generic [ref=e6]: 
+      - generic [ref=e7]: PM Drill
+    - generic [ref=e8]:
+      - generic "test@test.com" [ref=e83]
+      - button "登出" [ref=e84] [cursor=pointer]:
+        - generic [ref=e85]: 
+      - button "" [ref=e86] [cursor=pointer]:
+        - generic [ref=e87]: 
+  - dialog "練習記錄" [ref=e12]:
+    - generic [ref=e13]:
+      - generic [ref=e14]: 練習記錄
+      - button "關閉" [ref=e15] [cursor=pointer]:
+        - generic [ref=e16]: 
+    - generic [ref=e17]: 載入中…
+  - main [ref=e18]:
+    - generic [ref=e89]:
+      - generic [ref=e90]:
+        - button "登入" [ref=e91] [cursor=pointer]
+        - button "註冊" [ref=e92] [cursor=pointer]
+      - generic [ref=e93]:
+        - generic [ref=e94]:
+          - text: Email
+          - textbox [ref=e95]
+        - generic [ref=e96]:
+          - text: 密碼
+          - textbox [ref=e97]
+        - button "建立帳號" [ref=e98] [cursor=pointer]
+      - paragraph [ref=e99]:
+        - link "← 返回首頁" [ref=e100] [cursor=pointer]:
+          - /url: "#"

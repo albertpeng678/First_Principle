@@ -1,0 +1,13 @@
+- generic [ref=e2]:
+  - navigation [ref=e3]:
+    - generic [ref=e4]:
+      - button "開啟選單" [ref=e5] [cursor=pointer]:
+        - generic [ref=e6]: 
+      - generic [ref=e7]: PM Drill
+  - dialog "練習記錄" [ref=e8]:
+    - generic [ref=e9]:
+      - generic [ref=e10]: 練習記錄
+      - button "關閉" [ref=e11] [cursor=pointer]:
+        - generic [ref=e12]: 
+    - generic [ref=e13]: 載入中…
+  - main

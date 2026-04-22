@@ -1,0 +1,49 @@
+- generic [ref=e2]:
+  - navigation [ref=e3]:
+    - generic [ref=e4]:
+      - button "開啟選單" [ref=e5] [cursor=pointer]:
+        - generic [ref=e6]: 
+      - generic [ref=e7]: PM Drill
+    - generic [ref=e8]:
+      - generic "test@test.com" [ref=e101]
+      - button "登出" [ref=e102] [cursor=pointer]:
+        - generic [ref=e103]: 
+      - button "" [ref=e104] [cursor=pointer]:
+        - generic [ref=e105]: 
+  - dialog "練習記錄" [ref=e12]:
+    - generic [ref=e13]:
+      - generic [ref=e14]: 練習記錄
+      - button "關閉" [ref=e15] [cursor=pointer]:
+        - generic [ref=e16]: 
+    - generic [ref=e17]: 載入中…
+  - main [ref=e18]:
+    - generic [ref=e106]:
+      - heading "PM 思維訓練" [level=1] [ref=e107]
+      - paragraph [ref=e108]: 訪談拆解 · 北極星指標 · AI 教練點評
+    - generic [ref=e109]:
+      - button " PM 訪談" [ref=e110] [cursor=pointer]:
+        - generic [ref=e111]: 
+        - text: PM 訪談
+      - button " 北極星指標" [ref=e112] [cursor=pointer]:
+        - generic [ref=e113]: 
+        - text: 北極星指標
+    - generic [ref=e114]: 選擇難度
+    - generic [ref=e115]:
+      - generic [ref=e116] [cursor=pointer]:
+        - generic [ref=e118]: 
+        - generic [ref=e119]:
+          - heading "入門" [level=4] [ref=e120]
+          - paragraph [ref=e121]: 單一角色，問題明顯
+        - generic [ref=e122]: 
+      - generic [ref=e123] [cursor=pointer]:
+        - generic [ref=e125]: 
+        - generic [ref=e126]:
+          - heading "進階" [level=4] [ref=e127]
+          - paragraph [ref=e128]: 多角色交錯，需多層追問
+        - generic [ref=e129]: 
+      - generic [ref=e130] [cursor=pointer]:
+        - generic [ref=e132]: 
+        - generic [ref=e133]:
+          - heading "困難" [level=4] [ref=e134]
+          - paragraph [ref=e135]: 表象與本質落差大
+        - generic [ref=e136]: 
