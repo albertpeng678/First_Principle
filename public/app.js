@@ -2188,7 +2188,7 @@ function bindNSM() {
   }
 
   // If step 4 but no scores yet, load from server
-  if (AppState.nsmStep === 4 && AppState.nsmSession && AppState.nsmSession.id && !AppState.nsmSession.scores_json) {
+  if (AppState.nsmStep === 4 && AppState.nsmSession && AppState.nsmSession.id && !AppState.nsmSession.scores_json?.totalScore) {
     var headers = AppState.accessToken
       ? { 'Authorization': 'Bearer ' + AppState.accessToken }
       : { 'X-Guest-ID': AppState.guestId };
@@ -2199,7 +2199,7 @@ function bindNSM() {
         AppState.nsmSelectedQuestion = NSM_QUESTIONS.find(function(q) { return q.id === data.question_id; }) || data.question_json;
         AppState.nsmNsmDraft = data.user_nsm || '';
         AppState.nsmBreakdownDraft = data.user_breakdown || {};
-        if (!data.scores_json) AppState.nsmStep = 3;
+        if (!data.scores_json?.totalScore) AppState.nsmStep = 3;
         render();
       }).catch(function() {});
   }
