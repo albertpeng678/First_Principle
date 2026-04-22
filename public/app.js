@@ -612,9 +612,17 @@ function bindHome() {
   document.querySelectorAll('.diff-item[data-difficulty]').forEach(card => {
     card.addEventListener('click', async () => {
       const difficulty = card.dataset.difficulty;
+      const allCards = document.querySelectorAll('.diff-item[data-difficulty]');
+
+      // Lock all cards immediately — prevents duplicate session creation
+      allCards.forEach(c => {
+        c.style.pointerEvents = 'none';
+        if (c !== card) c.style.opacity = '0.45';
+      });
+
       card.style.position = 'relative';
       card.insertAdjacentHTML('beforeend', '<div class="card-overlay"><i class="ph ph-circle-notch" style="font-size:24px;animation:spin 0.7s linear infinite"></i></div>');
-      card.style.pointerEvents = 'none';
+
       try {
         const res = await fetch(sessionRoute(), {
           method: 'POST',
@@ -627,8 +635,12 @@ function bindHome() {
         localStorage.setItem('lastSessionId', data.sessionId);
         navigate('practice');
       } catch (e) {
+        // Restore all cards on failure
+        allCards.forEach(c => {
+          c.style.pointerEvents = '';
+          c.style.opacity = '';
+        });
         card.querySelector('.card-overlay')?.remove();
-        card.style.pointerEvents = '';
         alert('出題失敗：' + e.message);
       }
     });
