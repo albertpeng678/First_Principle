@@ -908,7 +908,7 @@ function bindPractice() {
     const bar = document.querySelector('.practice-bottom-bar');
     const chatArea = document.getElementById('chat-area');
     if (!bar) return;
-    const keyboardHeight = window.innerHeight - window.visualViewport.height;
+    const keyboardHeight = Math.max(0, window.innerHeight - window.visualViewport.offsetTop - window.visualViewport.height);
     bar.style.bottom = keyboardHeight + 'px';
     if (chatArea) chatArea.style.paddingBottom = (bar.offsetHeight + keyboardHeight) + 'px';
     if (keyboardHeight > 100) scrollChatToBottom();
@@ -2177,7 +2177,7 @@ function bindNSM() {
       if (body) body.style.paddingBottom = '';
       return;
     }
-    var keyboardHeight = Math.max(0, window.innerHeight - window.visualViewport.height);
+    var keyboardHeight = Math.max(0, window.innerHeight - window.visualViewport.offsetTop - window.visualViewport.height);
     bar.style.bottom = keyboardHeight + 'px';
     if (body) body.style.paddingBottom = (bar.offsetHeight + keyboardHeight) + 'px';
   };
