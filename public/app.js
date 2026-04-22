@@ -1109,6 +1109,44 @@ function renderRadar(scores) {
   return `<svg width="${size}" height="${size}" viewBox="0 0 ${size} ${size}">${circles}${axes}${polygon}${labels}</svg>`;
 }
 
+const NSM_DIM_LABELS = {
+  alignment:     '價值關聯',
+  leading:       '領先指標',
+  actionability: '操作性',
+  simplicity:    '可理解性',
+  sensitivity:   '週期敏感',
+};
+
+function renderNSMRadar(scores) {
+  const dims = Object.keys(NSM_DIM_LABELS);
+  const size = 260;
+  const cx = size / 2, cy = size / 2, r = 80;
+  const n = dims.length;
+  const toXY = (i, val) => {
+    const angle = (Math.PI * 2 * i / n) - Math.PI / 2;
+    const rv = (val / 5) * r;
+    return [cx + rv * Math.cos(angle), cy + rv * Math.sin(angle)];
+  };
+  const labelXY = (i) => {
+    const angle = (Math.PI * 2 * i / n) - Math.PI / 2;
+    return [cx + (r + 32) * Math.cos(angle), cy + (r + 32) * Math.sin(angle)];
+  };
+  const circles = [0.25, 0.5, 0.75, 1].map(f =>
+    `<circle cx="${cx}" cy="${cy}" r="${r*f}" fill="none" stroke="var(--border)" stroke-width="1"/>`
+  ).join('');
+  const axes = dims.map((_, i) => {
+    const [x, y] = toXY(i, 5);
+    return `<line x1="${cx}" y1="${cy}" x2="${x}" y2="${y}" stroke="var(--border)" stroke-width="1"/>`;
+  }).join('');
+  const points = dims.map((d, i) => toXY(i, scores[d] || 0).join(',')).join(' ');
+  const polygon = `<polygon points="${points}" fill="var(--accent)" fill-opacity="0.25" stroke="var(--accent)" stroke-width="2"/>`;
+  const labels = dims.map((d, i) => {
+    const [x, y] = labelXY(i);
+    return `<text x="${x}" y="${y}" text-anchor="middle" dominant-baseline="middle" font-size="10" fill="var(--text-secondary)">${NSM_DIM_LABELS[d]}</text>`;
+  }).join('');
+  return `<svg width="${size}" height="${size}" viewBox="0 0 ${size} ${size}">${circles}${axes}${polygon}${labels}</svg>`;
+}
+
 function renderReport() {
   const s = AppState.currentSession;
   const scores = s?.scores_json;
@@ -1717,7 +1755,7 @@ function renderNSMStep4() {
     { key: 'sensitivity',   label: '週期敏感', color: '#ef4444' },
   ];
 
-  const radarSvg = scores.scores ? renderRadar(scores.scores) : '';
+  const radarSvg = scores.scores ? renderNSMRadar(scores.scores) : '';
 
   const overviewTab = `
     <div class="nsm-report-overview">
