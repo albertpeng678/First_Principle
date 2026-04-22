@@ -902,16 +902,21 @@ function bindPractice() {
     if (bar && chatArea) chatArea.style.paddingBottom = bar.offsetHeight + 'px';
   });
 
-  // visualViewport keyboard adjustment
+  // visualViewport keyboard adjustment — transform only, no layout-triggering bottom changes
+  let _practiceKbRaf = null;
   function adjustForKeyboard() {
     if (!window.visualViewport) return;
-    const bar = document.querySelector('.practice-bottom-bar');
-    const chatArea = document.getElementById('chat-area');
-    if (!bar) return;
-    const keyboardHeight = Math.max(0, window.innerHeight - window.visualViewport.offsetTop - window.visualViewport.height);
-    bar.style.bottom = keyboardHeight + 'px';
-    if (chatArea) chatArea.style.paddingBottom = (bar.offsetHeight + keyboardHeight) + 'px';
-    if (keyboardHeight > 100) scrollChatToBottom();
+    if (_practiceKbRaf) return;
+    _practiceKbRaf = requestAnimationFrame(() => {
+      _practiceKbRaf = null;
+      const bar = document.querySelector('.practice-bottom-bar');
+      const chatArea = document.getElementById('chat-area');
+      if (!bar) return;
+      const keyboardHeight = Math.max(0, window.innerHeight - window.visualViewport.offsetTop - window.visualViewport.height);
+      bar.style.transform = `translateY(-${keyboardHeight}px)`;
+      if (chatArea) chatArea.style.paddingBottom = (bar.offsetHeight + keyboardHeight) + 'px';
+      if (keyboardHeight > 100) scrollChatToBottom();
+    });
   }
   if (window.visualViewport) {
     window.visualViewport.addEventListener('resize', adjustForKeyboard);
@@ -2169,18 +2174,25 @@ function bindNSM() {
     window.visualViewport.removeEventListener('resize', _adjustNsmKeyboardFn);
     window.visualViewport.removeEventListener('scroll', _adjustNsmKeyboardFn);
   }
-  _adjustNsmKeyboardFn = function() {
-    if (!window.visualViewport) return;
-    var bar = document.querySelector('.nsm-fixed-bottom');
-    var body = document.querySelector('.nsm-body');
-    if (!bar) {
-      if (body) body.style.paddingBottom = '';
-      return;
-    }
-    var keyboardHeight = Math.max(0, window.innerHeight - window.visualViewport.offsetTop - window.visualViewport.height);
-    bar.style.bottom = keyboardHeight + 'px';
-    if (body) body.style.paddingBottom = (bar.offsetHeight + keyboardHeight) + 'px';
-  };
+  _adjustNsmKeyboardFn = (function() {
+    var _nsmKbRaf = null;
+    return function() {
+      if (!window.visualViewport) return;
+      if (_nsmKbRaf) return;
+      _nsmKbRaf = requestAnimationFrame(function() {
+        _nsmKbRaf = null;
+        var bar = document.querySelector('.nsm-fixed-bottom');
+        var body = document.querySelector('.nsm-body');
+        if (!bar) {
+          if (body) body.style.paddingBottom = '';
+          return;
+        }
+        var keyboardHeight = Math.max(0, window.innerHeight - window.visualViewport.offsetTop - window.visualViewport.height);
+        bar.style.transform = 'translateY(-' + keyboardHeight + 'px)';
+        if (body) body.style.paddingBottom = (bar.offsetHeight + keyboardHeight) + 'px';
+      });
+    };
+  }());
   if (window.visualViewport) {
     window.visualViewport.addEventListener('resize', _adjustNsmKeyboardFn);
     window.visualViewport.addEventListener('scroll', _adjustNsmKeyboardFn);
