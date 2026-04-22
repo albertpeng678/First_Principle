@@ -1078,6 +1078,8 @@ a,
 .tab-btn,
 .btn-tool,
 .nsm-hint-btn,
+.nsm-progress-step,
+.difficulty-card,
 label[for] {
   touch-action: manipulation;
 }
@@ -1113,5 +1115,4 @@ body { -webkit-font-smoothing: antialiased; }
 
 .chat-scroll,
 .offcanvas-list,
-.nsm-body,
 .nsm-report-body    { overscroll-behavior: contain; }
