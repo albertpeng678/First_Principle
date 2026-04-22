@@ -2199,6 +2199,7 @@ function bindNSM() {
         AppState.nsmSelectedQuestion = NSM_QUESTIONS.find(function(q) { return q.id === data.question_id; }) || data.question_json;
         AppState.nsmNsmDraft = data.user_nsm || '';
         AppState.nsmBreakdownDraft = data.user_breakdown || {};
+        if (!data.scores_json) AppState.nsmStep = 3;
         render();
       }).catch(function() {});
   }
