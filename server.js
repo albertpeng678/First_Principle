@@ -13,6 +13,9 @@ app.use('/api/sessions', require('./routes/sessions'));
 app.use('/api/guest/sessions', require('./routes/guest-sessions'));
 app.use('/api/migrate-guest', require('./routes/migrate'));
 
+app.use('/api/nsm-sessions', require('./routes/nsm-sessions'));
+app.use('/api/guest/nsm-sessions', require('./routes/guest-nsm-sessions'));
+
 app.get('/health', (req, res) => res.json({ ok: true }));
 
 const PORT = process.env.PORT || 3000;
