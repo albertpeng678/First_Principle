@@ -538,7 +538,7 @@ body[data-view="practice"] .practice-bottom-bar {
 
 /* iOS Safari dvh */
 body[data-view="practice"] #app { height: 100dvh; }
-body[data-view="nsm"]      #app { height: 100dvh; }
+body[data-view="nsm"]      #app { height: 100dvh; padding: 0; overflow: hidden; }
 #app { min-height: 100dvh; }
 
 /* Tab bar horizontal scroll */
@@ -723,14 +723,14 @@ textarea::placeholder { white-space: nowrap; overflow: hidden; text-overflow: el
 .home-session-item:hover { border-color: var(--accent); }
 .session-badge { display: inline-block; padding: 2px 8px; border-radius: 20px; font-size: 0.75rem; font-weight: 600; flex-shrink: 0; }
 .badge-score  { background: rgba(76,175,125,0.15); color: var(--success); }
-.badge-nsm    { background: #ede9fe; color: #5b21b6; }
+.badge-nsm    { background: rgba(108,99,255,0.15); color: var(--accent); }
 .badge-progress { background: rgba(108,99,255,0.12); color: var(--accent); }
 
 /* ══════════════════════════════════════════════════
    Phase 4: NSM Wizard
    ══════════════════════════════════════════════════ */
 
-.nsm-view { display: flex; flex-direction: column; height: 100%; min-height: 100dvh; overflow: hidden; background: var(--bg-primary); }
+.nsm-view { display: flex; flex-direction: column; height: 100%; overflow: hidden; background: var(--bg-primary); }
 .nsm-navbar {
   display: flex; align-items: center; justify-content: space-between;
   padding: 12px 16px; border-bottom: 1px solid var(--border);
@@ -755,7 +755,10 @@ textarea::placeholder { white-space: nowrap; overflow: hidden; text-overflow: el
   display: flex; align-items: center; justify-content: center;
   font-size: 12px; font-weight: 700; flex-shrink: 0;
   background: var(--bg-surface); color: var(--text-secondary);
-  border: 2px solid var(--border);
+  border: 2px solid var(--border); position: relative;
+}
+.nsm-progress-step::before {
+  content: ''; position: absolute; inset: -8px;
 }
 .nsm-progress-step.active { background: var(--accent); color: #fff; border-color: var(--accent); }
 .nsm-progress-step.done   { background: var(--accent); color: #fff; border-color: var(--accent); }
@@ -800,6 +803,7 @@ textarea::placeholder { white-space: nowrap; overflow: hidden; text-overflow: el
 }
 .nsm-ctx-val {
   font-size: 12.5px; color: var(--text-primary); line-height: 1.5;
+  word-break: break-word; overflow-wrap: break-word;
 }
 .nsm-ctx-trap .nsm-ctx-label { color: var(--danger); }
 .nsm-ctx-trap .nsm-ctx-val { color: var(--danger); opacity: 0.85; }
@@ -860,10 +864,11 @@ textarea::placeholder { white-space: nowrap; overflow: hidden; text-overflow: el
 }
 .nsm-textarea:focus { outline: none; border-color: var(--accent); }
 .nsm-vanity-warning {
-  margin-top: 14px; background: rgba(245,158,11,0.08);
-  border: 1.5px solid rgba(245,158,11,0.4); border-radius: 12px; padding: 16px;
+  margin-top: 14px; background: var(--bg-surface);
+  border: 1.5px solid var(--warning); border-radius: 12px; padding: 16px;
 }
 .nsm-vanity-header { display: flex; align-items: center; gap: 8px; margin-bottom: 8px; }
+.nsm-warning-icon { color: var(--warning); font-size: 20px; }
 .nsm-vanity-header strong { font-size: 14px; color: var(--warning); }
 .nsm-vanity-body { font-size: 13px; color: var(--text-secondary); line-height: 1.6; margin-bottom: 10px; }
 .nsm-coach-hint {
@@ -874,12 +879,13 @@ textarea::placeholder { white-space: nowrap; overflow: hidden; text-overflow: el
 }
 .nsm-warning-actions { display: flex; gap: 8px; }
 .nsm-warning-actions button { flex: 1; min-height: 44px; }
-.btn-ghost {
+.nsm-btn-ghost {
   background: transparent; border: 1.5px solid var(--border);
   border-radius: 10px; padding: 10px 14px;
   font-size: 14px; font-weight: 600; color: var(--text-secondary);
-  cursor: pointer; min-height: 44px;
+  cursor: pointer; min-height: 44px; font-family: inherit;
 }
+.nsm-btn-ghost:hover { background: var(--bg-surface); }
 
 /* Step 3 */
 .nsm-sticky-nsm {
@@ -947,6 +953,7 @@ textarea::placeholder { white-space: nowrap; overflow: hidden; text-overflow: el
   border-radius: 10px; padding: 10px 12px; margin-bottom: 8px;
   font-size: 12px; color: var(--text-primary); line-height: 1.5;
   cursor: pointer; transition: all 0.15s;
+  min-height: 44px; word-break: break-word;
 }
 .nsm-tree-node:active { transform: scale(0.97); }
 .nsm-tree-root { font-weight: 700; border-color: var(--accent); }
@@ -988,7 +995,7 @@ textarea::placeholder { white-space: nowrap; overflow: hidden; text-overflow: el
 .nsm-highlight-trap .nsm-highlight-head { color: var(--danger); }
 .nsm-highlight-card p { font-size: 13px; color: var(--text-primary); line-height: 1.6; }
 .nsm-export { display: flex; flex-direction: column; gap: 10px; padding-top: 8px; }
-.nsm-export .btn, .nsm-export .btn-ghost { width: 100%; min-height: 44px; }
+.nsm-export .btn, .nsm-export .nsm-btn-ghost { width: 100%; min-height: 44px; }
 .nsm-inline-error {
   font-size: 13px; color: var(--danger); text-align: center;
   padding: 6px 4px 2px; line-height: 1.4;
@@ -999,6 +1006,11 @@ textarea::placeholder { white-space: nowrap; overflow: hidden; text-overflow: el
   color: var(--text-secondary);
 }
 .nsm-loading-state i { font-size: 36px; animation: spin 0.8s linear infinite; }
+
+/* ── NSM RWD narrow screen ── */
+@media (max-width: 480px) {
+  .nsm-comparison { grid-template-columns: 1fr; }
+}
 
 /* ── Print CSS ── */
 @media print {

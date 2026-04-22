@@ -1,4 +1,6 @@
 // ── 常數 ─────────────────────────────────────────
+var _adjustNsmKeyboardFn = null; // module-level to prevent listener leak
+
 const SUPABASE_URL = 'https://klvlizxmvzfpvfgswmfk.supabase.co';
 const SUPABASE_ANON_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImtsdmxpenhtdnpmcHZmZ3N3bWZrIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NzY2NjcyNDIsImV4cCI6MjA5MjI0MzI0Mn0.KOF72gPKbllpYq7t3ny21HBEScUlj2diSl47oNyhJTY';
 
@@ -1505,7 +1507,7 @@ function renderNSMStep1() {
     }
 
     return `
-    <div class="nsm-question-card ${isSelected ? 'selected' : ''}" data-qid="${q.id}">
+    <div class="nsm-question-card ${isSelected ? 'selected' : ''}" data-qid="${q.id}" role="button" tabindex="0" aria-pressed="${isSelected ? 'true' : 'false'}">
       <div class="nsm-q-header">
         <span class="nsm-company-badge">${escHtml(q.company)}</span>
         <span class="nsm-industry">${escHtml(q.industry)}</span>
@@ -1548,7 +1550,7 @@ function renderNSMStep2() {
   const warningHtml = warning ? `
     <div class="nsm-vanity-warning">
       <div class="nsm-vanity-header">
-        <i class="ph ph-warning" style="color:#f59e0b;font-size:20px"></i>
+        <i class="ph ph-warning nsm-warning-icon"></i>
         <strong>這可能是虛榮指標</strong>
       </div>
       <p class="nsm-vanity-body">虛榮指標特徵：數字好看，但翻倍後不代表公司賺更多錢或留住更多用戶。</p>
@@ -1558,7 +1560,7 @@ function renderNSMStep2() {
       </div>
       <div class="nsm-warning-actions">
         <button class="btn btn-primary" id="btn-nsm-redefine" style="min-height:44px">重新定義 NSM</button>
-        <button class="btn-ghost" id="btn-nsm-proceed-anyway">我知道風險，繼續</button>
+        <button class="nsm-btn-ghost" id="btn-nsm-proceed-anyway">我知道風險，繼續</button>
       </div>
     </div>` : '';
 
@@ -1613,6 +1615,7 @@ function renderNSMStep2() {
         <div style="height:80px"></div>
       </div>
       <div class="nsm-fixed-bottom">
+        <div id="nsm-step2-error" class="nsm-inline-error" role="alert" style="display:none"></div>
         <button class="btn btn-primary nsm-next-btn" id="btn-nsm-step2-next">
           確認，拆解輸入指標 <i class="ph ph-arrow-right"></i>
         </button>
@@ -1636,7 +1639,7 @@ function renderNSMStep3() {
         <div class="nsm-dim-desc">${escHtml(d.subtitle)}</div>
       </div>
       <div class="nsm-coach-q"><i class="ph ph-chat-dots" style="color:${d.color}"></i> ${escHtml(d.coachQ)}</div>
-      <button class="nsm-hint-btn" data-dim="${d.key}" type="button">
+      <button class="nsm-hint-btn" data-dim="${d.key}" type="button" aria-expanded="false" aria-controls="nsm-hint-${d.key}">
         <i class="ph ph-lightbulb"></i> 查看教練提示
       </button>
       <div class="nsm-hint-content" id="nsm-hint-${d.key}" style="display:none">
@@ -1742,13 +1745,13 @@ function renderNSMStep4() {
     <div class="nsm-comparison">
       <div class="nsm-tree-col">
         <div class="nsm-tree-title"><i class="ph ph-user"></i> 你的拆解</div>
-        <div class="nsm-tree-node nsm-tree-root" data-node="user-nsm" data-label="NSM">${escHtml(userNsm || '（未填寫）')}</div>
-        ${cmpDims.map(d => `<div class="nsm-tree-node" data-node="user-${d.key}" data-label="${escHtml(d.label)}">${escHtml(userBreakdown[d.key] || '（未填寫）')}</div>`).join('')}
+        <div class="nsm-tree-node nsm-tree-root" data-node="user-nsm" data-label="NSM" role="button" tabindex="0">${escHtml(userNsm || '（未填寫）')}</div>
+        ${cmpDims.map(d => `<div class="nsm-tree-node" data-node="user-${d.key}" data-label="${escHtml(d.label)}" role="button" tabindex="0">${escHtml(userBreakdown[d.key] || '（未填寫）')}</div>`).join('')}
       </div>
       <div class="nsm-tree-col">
         <div class="nsm-tree-title"><i class="ph ph-graduation-cap"></i> 教練版本 <span class="nsm-tree-hint-tip">點擊查看思路</span></div>
-        <div class="nsm-tree-node nsm-tree-root nsm-tree-coach" data-node="coach-nsm" data-label="NSM" data-is-coach="1">${escHtml(coachTree.nsm || '')}</div>
-        ${cmpDims.map(d => `<div class="nsm-tree-node nsm-tree-coach" data-node="coach-${d.key}" data-label="${escHtml(d.label)}" data-is-coach="1">${escHtml(coachTree[d.key] || '')}</div>`).join('')}
+        <div class="nsm-tree-node nsm-tree-root nsm-tree-coach" data-node="coach-nsm" data-label="NSM" data-is-coach="1" role="button" tabindex="0">${escHtml(coachTree.nsm || '')}</div>
+        ${cmpDims.map(d => `<div class="nsm-tree-node nsm-tree-coach" data-node="coach-${d.key}" data-label="${escHtml(d.label)}" data-is-coach="1" role="button" tabindex="0">${escHtml(coachTree[d.key] || '')}</div>`).join('')}
       </div>
     </div>
     <div class="nsm-node-detail" id="nsm-node-detail" style="display:none"></div>`;
@@ -1774,7 +1777,7 @@ function renderNSMStep4() {
       <button class="btn btn-primary" id="btn-nsm-again">
         <i class="ph ph-arrow-counter-clockwise"></i> 再練一次
       </button>
-      <button class="btn-ghost" id="btn-nsm-home">
+      <button class="nsm-btn-ghost" id="btn-nsm-home">
         <i class="ph ph-house"></i> 回首頁
       </button>
     </div>`;
@@ -1797,7 +1800,7 @@ function renderNSMStep4() {
         <button class="tab-btn ${activeTab === 'overview' ? 'active' : ''}" data-nsm-tab="overview">總覽</button>
         <button class="tab-btn ${activeTab === 'comparison' ? 'active' : ''}" data-nsm-tab="comparison">對比</button>
         <button class="tab-btn ${activeTab === 'highlights' ? 'active' : ''}" data-nsm-tab="highlights">亮點</button>
-        <button class="tab-btn ${activeTab === 'export' ? 'active' : ''}" data-nsm-tab="export">再練</button>
+        <button class="tab-btn ${activeTab === 'export' ? 'active' : ''}" data-nsm-tab="export">完成</button>
       </div>
       <div class="nsm-report-body">
         ${tabContent[activeTab] || overviewTab}
@@ -1852,6 +1855,13 @@ function bindNSM() {
     });
   });
 
+  // Step 1: keyboard support for question cards
+  document.querySelectorAll('.nsm-question-card[data-qid]').forEach(function(card) {
+    card.addEventListener('keydown', function(e) {
+      if (e.key === 'Enter' || e.key === ' ') { e.preventDefault(); card.click(); }
+    });
+  });
+
   // Step 1: next
   var btnStep1Next = document.getElementById('btn-nsm-step1-next');
   if (btnStep1Next) {
@@ -1899,7 +1909,12 @@ function bindNSM() {
   if (btnStep2Next) {
     btnStep2Next.addEventListener('click', function() {
       var val = (nsmInput ? nsmInput.value : AppState.nsmNsmDraft || '').trim();
-      if (!val) { if (nsmInput) nsmInput.focus(); return; }
+      if (!val) {
+        var step2Err = document.getElementById('nsm-step2-error');
+        if (step2Err) { step2Err.textContent = '請先輸入你認為的北極星指標'; step2Err.style.display = 'block'; }
+        if (nsmInput) nsmInput.focus();
+        return;
+      }
       AppState.nsmNsmDraft = val;
       var q = AppState.nsmSelectedQuestion;
       if (!AppState.nsmVanityWarning && isVanityMetric(val, q.anti_patterns)) {
@@ -1951,6 +1966,8 @@ function bindNSM() {
           contentEl.innerHTML = '<div class="nsm-hint-revealed">' + escHtml(hintText) + '</div>';
         }
         contentEl.style.display = isVisible ? 'none' : 'block';
+        btn.setAttribute('aria-expanded', isVisible ? 'false' : 'true');
+        btn.innerHTML = (isVisible ? '<i class="ph ph-lightbulb"></i> 查看教練提示' : '<i class="ph ph-caret-up"></i> 收起提示');
         return;
       }
 
@@ -1986,6 +2003,8 @@ function bindNSM() {
       if (AppState.nsmHints && AppState.nsmHints[dim]) {
         contentEl.innerHTML = '<div class="nsm-hint-revealed">' + escHtml(AppState.nsmHints[dim]) + '</div>';
         contentEl.style.display = 'block';
+        btn.setAttribute('aria-expanded', 'true');
+        btn.innerHTML = '<i class="ph ph-caret-up"></i> 收起提示';
       }
     });
   });
@@ -1996,7 +2015,11 @@ function bindNSM() {
     btnStep3Submit.addEventListener('click', async function() {
       var breakdown = AppState.nsmBreakdownDraft || {};
       var userNsm = AppState.nsmNsmDraft || '';
-      if (!userNsm) return;
+      if (!userNsm) {
+        var step3ErrEl = document.getElementById('nsm-step3-error');
+        if (step3ErrEl) { step3ErrEl.textContent = '請返回 Step 2 填寫 NSM 定義再送出'; step3ErrEl.style.display = 'block'; }
+        return;
+      }
       btnStep3Submit.classList.add('btn-loading');
       btnStep3Submit.disabled = true;
       var label = document.getElementById('nsm-submit-label');
@@ -2103,8 +2126,12 @@ function bindNSM() {
   });
   document.getElementById('btn-nsm-home')?.addEventListener('click', function() { navigate('home'); });
 
-  // visualViewport keyboard fix
-  function adjustNsmKeyboard() {
+  // visualViewport keyboard fix — use module-level ref to prevent listener accumulation
+  if (_adjustNsmKeyboardFn && window.visualViewport) {
+    window.visualViewport.removeEventListener('resize', _adjustNsmKeyboardFn);
+    window.visualViewport.removeEventListener('scroll', _adjustNsmKeyboardFn);
+  }
+  _adjustNsmKeyboardFn = function() {
     if (!window.visualViewport) return;
     var bar = document.querySelector('.nsm-fixed-bottom');
     var body = document.querySelector('.nsm-body');
@@ -2115,10 +2142,11 @@ function bindNSM() {
     var keyboardHeight = Math.max(0, window.innerHeight - window.visualViewport.height);
     bar.style.bottom = keyboardHeight + 'px';
     if (body) body.style.paddingBottom = (bar.offsetHeight + keyboardHeight) + 'px';
-  }
+  };
   if (window.visualViewport) {
-    window.visualViewport.addEventListener('resize', adjustNsmKeyboard);
-    adjustNsmKeyboard();
+    window.visualViewport.addEventListener('resize', _adjustNsmKeyboardFn);
+    window.visualViewport.addEventListener('scroll', _adjustNsmKeyboardFn);
+    _adjustNsmKeyboardFn();
   }
 
   // If step 4 but no scores yet, load from server
