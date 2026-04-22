@@ -60,8 +60,16 @@ body[data-view="history"] #app { max-width: 860px; }
   padding: 12px 0; margin-bottom: 24px;
   border-bottom: 1px solid var(--border);
 }
-.navbar-logo { font-size: 1.1rem; font-weight: 700; color: var(--accent); }
-.navbar-actions { display: flex; gap: 8px; align-items: center; }
+.navbar-logo { font-size: 1.1rem; font-weight: 700; color: var(--accent); flex-shrink: 0; }
+.navbar-actions { display: flex; gap: 8px; align-items: center; min-width: 0; }
+.navbar-email {
+  color: var(--text-secondary); font-size: 0.85rem;
+  max-width: 120px; overflow: hidden; text-overflow: ellipsis;
+  white-space: nowrap; flex-shrink: 1; min-width: 0;
+}
+@media (min-width: 480px) {
+  .navbar-email { max-width: 220px; }
+}
 
 /* Buttons */
 .btn {

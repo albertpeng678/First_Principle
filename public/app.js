@@ -308,7 +308,7 @@ function renderNavbar() {
   if (AppState.mode === 'auth') {
     el.innerHTML = `
       ${homeBtn}
-      <span style="color:var(--text-secondary);font-size:0.85rem">${AppState.user?.email}</span>
+      <span class="navbar-email" title="${AppState.user?.email || ''}">${AppState.user?.email || ''}</span>
       <button class="btn btn-ghost" id="btn-logout">登出</button>
       <button class="btn-icon" title="切換主題" onclick="applyTheme(AppState.theme==='dark'?'light':'dark')">${themeIcon}</button>
     `;
