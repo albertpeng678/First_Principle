@@ -1054,3 +1054,64 @@ textarea::placeholder { white-space: nowrap; overflow: hidden; text-overflow: el
   .score-summary-bar { padding: 12px 0; }
   .score-progress { display: none; }
 }
+
+/* ══════════════════════════════════════════════════
+   PERF — Task 1: Global tap optimisation
+   ══════════════════════════════════════════════════ */
+
+/* 消除 iOS/Android tap 時閃現的藍/灰高亮框 */
+* { -webkit-tap-highlight-color: transparent; }
+
+/* 消除所有互動元素的 300ms tap delay */
+button,
+a,
+[role="button"],
+.diff-item,
+.diff-card,
+.nsm-question-card,
+.offcanvas-item,
+.home-session-item,
+.history-item,
+.nsm-tree-node,
+.issue-banner,
+.home-tab-btn,
+.tab-btn,
+.btn-tool,
+.nsm-hint-btn,
+label[for] {
+  touch-action: manipulation;
+}
+
+/* iOS 字體平滑 */
+body { -webkit-font-smoothing: antialiased; }
+
+/* ══════════════════════════════════════════════════
+   PERF — Task 2: Fix transition:all → scoped transitions
+   ══════════════════════════════════════════════════ */
+
+.home-tab-btn {
+  transition: background 0.15s, color 0.15s, box-shadow 0.15s;
+}
+.diff-item {
+  transition: border-color 0.15s, transform 0.15s, opacity 0.15s;
+}
+.nsm-question-card {
+  transition: border-color 0.15s, background 0.15s, transform 0.15s;
+}
+.nsm-tree-node {
+  transition: border-color 0.15s, background 0.15s, transform 0.15s;
+}
+
+/* ══════════════════════════════════════════════════
+   PERF — Task 3: will-change + overscroll containment
+   ══════════════════════════════════════════════════ */
+
+.offcanvas          { will-change: transform; }
+.offcanvas-overlay  { will-change: opacity; }
+.practice-bottom-bar,
+.nsm-fixed-bottom   { will-change: transform; }
+
+.chat-scroll,
+.offcanvas-list,
+.nsm-body,
+.nsm-report-body    { overscroll-behavior: contain; }
