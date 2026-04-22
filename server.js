@@ -13,6 +13,7 @@ app.use('/api/sessions', require('./routes/sessions'));
 app.use('/api/guest/sessions', require('./routes/guest-sessions'));
 app.use('/api/migrate-guest', require('./routes/migrate'));
 
+app.use('/api/nsm-context', require('./routes/nsm-context'));
 app.use('/api/nsm-sessions', require('./routes/nsm-sessions'));
 app.use('/api/guest/nsm-sessions', require('./routes/guest-nsm-sessions'));
 
