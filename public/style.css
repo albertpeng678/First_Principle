@@ -779,6 +779,33 @@ textarea::placeholder { white-space: nowrap; overflow: hidden; text-overflow: el
 .nsm-industry { font-size: 12px; color: var(--text-secondary); }
 .nsm-check { color: var(--accent); font-size: 20px; margin-left: auto; }
 .nsm-scenario { font-size: 13px; color: var(--text-primary); line-height: 1.6; }
+
+/* Step 1 情境導讀卡 */
+.nsm-context-preview {
+  margin-top: 10px; padding: 12px; border-radius: 10px;
+  background: var(--bg-surface); border: 1px solid var(--border);
+  display: flex; flex-direction: column; gap: 8px;
+}
+.nsm-context-preview.loading {
+  display: flex; flex-direction: row; align-items: center;
+  gap: 8px; color: var(--text-secondary); font-size: 13px;
+}
+.nsm-ctx-row {
+  display: flex; flex-direction: column; gap: 2px;
+}
+.nsm-ctx-label {
+  font-size: 10.5px; font-weight: 700; color: var(--text-secondary);
+  text-transform: uppercase; letter-spacing: 0.05em;
+  display: flex; align-items: center; gap: 4px;
+}
+.nsm-ctx-val {
+  font-size: 12.5px; color: var(--text-primary); line-height: 1.5;
+}
+.nsm-ctx-trap .nsm-ctx-label { color: var(--danger); }
+.nsm-ctx-trap .nsm-ctx-val { color: var(--danger); opacity: 0.85; }
+.nsm-ctx-angle .nsm-ctx-label { color: var(--accent); }
+.nsm-ctx-angle .nsm-ctx-val { color: var(--accent); font-weight: 600; }
+
 .nsm-next-btn { width: 100%; }
 .nsm-next-btn:disabled { opacity: 0.45; pointer-events: none; }
 

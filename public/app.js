@@ -25,6 +25,9 @@ const AppState = {
   nsmVanityWarning: null,
   nsmReportTab: 'overview',
   nsmOpenNode: null,
+  nsmContext: null,
+  nsmContextLoading: false,
+  nsmContextQuestionId: null,
 };
 
 // ── NSM 題庫（100 題 database + 3 計畫獨有）────────
@@ -1468,15 +1471,42 @@ function renderNSMStep1() {
       <div class="nsm-progress-step">4</div>
     </div>`;
 
-  const cards = questions.map(q => `
-    <div class="nsm-question-card ${selected && selected.id === q.id ? 'selected' : ''}" data-qid="${q.id}">
+  const cards = questions.map(q => {
+    const isSelected = selected && selected.id === q.id;
+    const productType = detectProductType(q);
+    const typeMeta = NSM_TYPE_META[productType];
+
+    let contextHtml = '';
+    if (isSelected) {
+      if (AppState.nsmContextLoading) {
+        contextHtml = `
+          <div class="nsm-context-preview loading">
+            <i class="ph ph-circle-notch" style="animation:spin 0.8s linear infinite"></i>
+            <span>分析情境中…</span>
+          </div>`;
+      } else if (AppState.nsmContext && AppState.nsmContextQuestionId === q.id) {
+        const ctx = AppState.nsmContext;
+        contextHtml = `
+          <div class="nsm-context-preview">
+            <div class="nsm-ctx-row"><span class="nsm-ctx-label"><i class="ph ph-buildings"></i> 商業模式</span><span class="nsm-ctx-val">${escHtml(ctx.businessModel)}</span></div>
+            <div class="nsm-ctx-row"><span class="nsm-ctx-label"><i class="ph ph-users"></i> 使用者</span><span class="nsm-ctx-val">${escHtml(ctx.userTypes)}</span></div>
+            <div class="nsm-ctx-row nsm-ctx-trap"><span class="nsm-ctx-label"><i class="ph ph-warning"></i> 常見陷阱</span><span class="nsm-ctx-val">${escHtml(ctx.commonTrap)}</span></div>
+            <div class="nsm-ctx-row nsm-ctx-angle"><span class="nsm-ctx-label"><i class="ph ph-lightbulb"></i> 破題切入</span><span class="nsm-ctx-val">${escHtml(ctx.thinkingAngle)}</span></div>
+          </div>`;
+      }
+    }
+
+    return `
+    <div class="nsm-question-card ${isSelected ? 'selected' : ''}" data-qid="${q.id}">
       <div class="nsm-q-header">
         <span class="nsm-company-badge">${escHtml(q.company)}</span>
         <span class="nsm-industry">${escHtml(q.industry)}</span>
-        ${selected && selected.id === q.id ? '<i class="ph ph-check-circle nsm-check"></i>' : ''}
+        ${isSelected ? `<span class="nsm-type-badge" style="background:${typeMeta.color}18;color:${typeMeta.color};border:1px solid ${typeMeta.color}38"><i class="ph ${typeMeta.icon}"></i> ${typeMeta.label}</span>` : ''}
       </div>
       <p class="nsm-scenario">${escHtml(q.scenario)}</p>
-    </div>`).join('');
+      ${contextHtml}
+    </div>`;
+  }).join('');
 
   return `
     <div class="nsm-view">
@@ -1774,9 +1804,34 @@ function bindNSM() {
 
   // Step 1: question selection
   document.querySelectorAll('.nsm-question-card[data-qid]').forEach(function(card) {
-    card.addEventListener('click', function() {
-      AppState.nsmSelectedQuestion = NSM_QUESTIONS.find(function(q) { return q.id === card.dataset.qid; }) || null;
+    card.addEventListener('click', async function() {
+      var q = NSM_QUESTIONS.find(function(q) { return q.id === card.dataset.qid; }) || null;
+      AppState.nsmSelectedQuestion = q;
+
+      if (q && AppState.nsmContextQuestionId !== q.id) {
+        AppState.nsmContext = null;
+        AppState.nsmContextQuestionId = null;
+      }
+
       render();
+
+      if (q && !AppState.nsmContext && !AppState.nsmContextLoading) {
+        AppState.nsmContextLoading = true;
+        AppState.nsmContextQuestionId = q.id;
+        render();
+        try {
+          var res = await fetch('/api/nsm-context', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({ questionJson: q })
+          });
+          if (res.ok) AppState.nsmContext = await res.json();
+        } catch (_) {}
+        AppState.nsmContextLoading = false;
+        if (AppState.nsmSelectedQuestion && AppState.nsmSelectedQuestion.id === q.id) {
+          render();
+        }
+      }
     });
   });
 
