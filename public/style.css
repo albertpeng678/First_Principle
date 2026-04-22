@@ -72,6 +72,9 @@ body[data-view="history"] #app { max-width: 860px; }
   max-width: 120px; overflow: hidden; text-overflow: ellipsis;
   white-space: nowrap; min-width: 0;
 }
+@media (max-width: 479px) {
+  .navbar-email { display: none; }
+}
 @media (min-width: 480px) {
   .navbar-email { max-width: 220px; }
 }

@@ -309,7 +309,7 @@ function renderNavbar() {
     el.innerHTML = `
       ${homeBtn}
       <span class="navbar-email" title="${AppState.user?.email || ''}">${AppState.user?.email || ''}</span>
-      <button class="btn btn-ghost" id="btn-logout">登出</button>
+      <button class="btn-icon" id="btn-logout" title="登出"><i class="ph ph-sign-out"></i></button>
       <button class="btn-icon" title="切換主題" onclick="applyTheme(AppState.theme==='dark'?'light':'dark')">${themeIcon}</button>
     `;
     document.getElementById('btn-logout')?.addEventListener('click', () => supabase.auth.signOut());
