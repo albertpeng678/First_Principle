@@ -1740,9 +1740,9 @@ function renderNSMStep4() {
         ${cmpDims.map(d => `<div class="nsm-tree-node" data-node="user-${d.key}" data-label="${escHtml(d.label)}">${escHtml(userBreakdown[d.key] || '（未填寫）')}</div>`).join('')}
       </div>
       <div class="nsm-tree-col">
-        <div class="nsm-tree-title"><i class="ph ph-graduation-cap"></i> 教練版本</div>
-        <div class="nsm-tree-node nsm-tree-root nsm-tree-coach" data-node="coach-nsm" data-label="NSM">${escHtml(coachTree.nsm || '')}</div>
-        ${cmpDims.map(d => `<div class="nsm-tree-node nsm-tree-coach" data-node="coach-${d.key}" data-label="${escHtml(d.label)}">${escHtml(coachTree[d.key] || '')}</div>`).join('')}
+        <div class="nsm-tree-title"><i class="ph ph-graduation-cap"></i> 教練版本 <span class="nsm-tree-hint-tip">點擊查看思路</span></div>
+        <div class="nsm-tree-node nsm-tree-root nsm-tree-coach" data-node="coach-nsm" data-label="NSM" data-is-coach="1">${escHtml(coachTree.nsm || '')}</div>
+        ${cmpDims.map(d => `<div class="nsm-tree-node nsm-tree-coach" data-node="coach-${d.key}" data-label="${escHtml(d.label)}" data-is-coach="1">${escHtml(coachTree[d.key] || '')}</div>`).join('')}
       </div>
     </div>
     <div class="nsm-node-detail" id="nsm-node-detail" style="display:none"></div>`;
@@ -2018,22 +2018,38 @@ function bindNSM() {
       var detailEl = document.getElementById('nsm-node-detail');
       if (!detailEl) return;
       var key = node.dataset.node;
-      var isCoach = key.indexOf('coach-') === 0;
+      var isCoach = node.dataset.isCoach === '1';
       var dim = key.replace('coach-','').replace('user-','');
       var dimLabel = node.dataset.label || dim;
       var sc = AppState.nsmSession ? (AppState.nsmSession.scores_json || {}) : {};
       var ctree = sc.coachTree || {};
+      var rationale = sc.coachRationale || {};
       var bd = (AppState.nsmSession && AppState.nsmSession.user_breakdown) || AppState.nsmBreakdownDraft || {};
-      var detail = isCoach
-        ? '教練版 ' + dimLabel + '：' + (ctree[dim] || '')
-        : '你的 ' + dimLabel + '：' + (dim === 'nsm' ? (AppState.nsmNsmDraft || '') : (bd[dim] || '（未填寫）'));
+
+      var metricText = isCoach
+        ? (ctree[dim] || '—')
+        : (dim === 'nsm' ? (AppState.nsmNsmDraft || '（未填寫）') : (bd[dim] || '（未填寫）'));
+      var prefix = isCoach ? '教練版 ' : '你的 ';
+      var rationaleText = isCoach ? (rationale[dim] || '') : '';
+
       if (AppState.nsmOpenNode === key) {
         AppState.nsmOpenNode = null;
         detailEl.style.display = 'none';
+        detailEl.innerHTML = '';
       } else {
         AppState.nsmOpenNode = key;
         detailEl.style.display = 'block';
-        detailEl.textContent = detail;
+        detailEl.innerHTML =
+          '<div class="nsm-detail-metric">' +
+            '<span class="nsm-detail-prefix">' + escHtml(prefix + dimLabel) + '</span>' +
+            '<p class="nsm-detail-value">' + escHtml(metricText) + '</p>' +
+          '</div>' +
+          (rationaleText
+            ? '<div class="nsm-rationale">' +
+                '<div class="nsm-rationale-head"><i class="ph ph-lightbulb"></i> 教練設計思路</div>' +
+                '<p class="nsm-rationale-body">' + escHtml(rationaleText) + '</p>' +
+              '</div>'
+            : '');
       }
     });
   });
