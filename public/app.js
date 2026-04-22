@@ -281,11 +281,17 @@ function render() {
   }
 }
 
-function navigate(view) {
+async function navigate(view) {
   closeOffcanvas();
   AppState.view = view;
   document.body.dataset.view = view;
-  render();
+  if (view === 'home') {
+    render();
+    await loadRecentSessions();
+    if (AppState.view === 'home') render();
+  } else {
+    render();
+  }
 }
 
 function renderNavbar() {
@@ -1862,6 +1868,16 @@ function bindNSM() {
         var data = await res.json();
         if (!res.ok) throw new Error(data.error);
         AppState.nsmSession = { id: data.sessionId };
+        if (AppState.nsmSelectedQuestion) {
+          var newEntry = {
+            id: data.sessionId, type: 'nsm', status: 'in_progress',
+            scores_json: null, question_json: AppState.nsmSelectedQuestion,
+            created_at: new Date().toISOString()
+          };
+          AppState.recentSessions = [newEntry].concat(
+            AppState.recentSessions.filter(function(s) { return s.id !== data.sessionId; })
+          );
+        }
         AppState.nsmStep = 2;
         AppState.nsmVanityWarning = null;
         render();
@@ -1994,6 +2010,21 @@ function bindNSM() {
         var data = await res.json();
         if (!res.ok) throw new Error(data.error);
         AppState.nsmSession = Object.assign({}, AppState.nsmSession, { scores_json: data, user_nsm: userNsm, user_breakdown: breakdown });
+        var _sid = AppState.nsmSession ? AppState.nsmSession.id : null;
+        if (_sid) {
+          var _found = false;
+          AppState.recentSessions = AppState.recentSessions.map(function(s) {
+            if (s.id === _sid) { _found = true; return Object.assign({}, s, { status: 'completed', scores_json: data, type: 'nsm' }); }
+            return s;
+          });
+          if (!_found && AppState.nsmSelectedQuestion) {
+            AppState.recentSessions.unshift({
+              id: _sid, type: 'nsm', status: 'completed',
+              scores_json: data, question_json: AppState.nsmSelectedQuestion,
+              created_at: new Date().toISOString()
+            });
+          }
+        }
         AppState.nsmReportTab = 'overview';
         AppState.nsmStep = 4;
         render();
