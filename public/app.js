@@ -28,6 +28,8 @@ const AppState = {
   nsmContext: null,
   nsmContextLoading: false,
   nsmContextQuestionId: null,
+  nsmHints: null,
+  nsmHintsLoading: false,
 };
 
 // ── NSM 題庫（100 題 database + 3 計畫獨有）────────
@@ -1619,15 +1621,24 @@ function renderNSMStep3() {
   const typeMeta = NSM_TYPE_META[productType];
   const dimensions = NSM_DIMENSION_CONFIGS[productType];
 
-  const fields = dimensions.map(d => `
+  const fields = dimensions.map(d => {
+    const hint = (AppState.nsmHints || {})[d.key] || '';
+    return `
     <div class="nsm-dim-section">
       <div class="nsm-dim-header" style="border-left-color:${d.color}">
         <div class="nsm-dim-label">${escHtml(d.label)}</div>
         <div class="nsm-dim-desc">${escHtml(d.subtitle)}</div>
       </div>
       <div class="nsm-coach-q"><i class="ph ph-chat-dots" style="color:${d.color}"></i> ${escHtml(d.coachQ)}</div>
+      <button class="nsm-hint-btn" data-dim="${d.key}" type="button">
+        <i class="ph ph-lightbulb"></i> 查看教練提示
+      </button>
+      <div class="nsm-hint-content" id="nsm-hint-${d.key}" style="display:none">
+        ${hint ? `<div class="nsm-hint-revealed">${escHtml(hint)}</div>` : ''}
+      </div>
       <textarea class="nsm-textarea nsm-dim-input" id="nsm-dim-${d.key}" placeholder="${escHtml(d.placeholder)}" rows="2">${escHtml(breakdown[d.key] || '')}</textarea>
-    </div>`).join('');
+    </div>`;
+  }).join('');
 
   return `
     <div class="nsm-view">
@@ -1881,6 +1892,8 @@ function bindNSM() {
         return;
       }
       AppState.nsmVanityWarning = null;
+      AppState.nsmHints = null;
+      AppState.nsmHintsLoading = false;
       AppState.nsmStep = 3;
       render();
     });
@@ -1905,6 +1918,59 @@ function bindNSM() {
     if (inp) inp.addEventListener('input', function() {
       if (!AppState.nsmBreakdownDraft) AppState.nsmBreakdownDraft = {};
       AppState.nsmBreakdownDraft[d.key] = inp.value;
+    });
+  });
+
+  // Step 3: hint buttons — reveal on tap, AI-generated on first click
+  document.querySelectorAll('.nsm-hint-btn[data-dim]').forEach(function(btn) {
+    btn.addEventListener('click', async function() {
+      var dim = btn.dataset.dim;
+      var contentEl = document.getElementById('nsm-hint-' + dim);
+      if (!contentEl) return;
+
+      if (AppState.nsmHints) {
+        var isVisible = contentEl.style.display !== 'none';
+        if (!isVisible) {
+          var hintText = AppState.nsmHints[dim] || '暫無此維度提示';
+          contentEl.innerHTML = '<div class="nsm-hint-revealed">' + escHtml(hintText) + '</div>';
+        }
+        contentEl.style.display = isVisible ? 'none' : 'block';
+        return;
+      }
+
+      if (AppState.nsmHintsLoading) return;
+      AppState.nsmHintsLoading = true;
+
+      document.querySelectorAll('.nsm-hint-btn').forEach(function(b) {
+        b.innerHTML = '<i class="ph ph-circle-notch" style="animation:spin 0.8s linear infinite"></i> 生成提示中…';
+        b.disabled = true;
+      });
+
+      try {
+        var sessionId = AppState.nsmSession ? AppState.nsmSession.id : '';
+        var headers = { 'Content-Type': 'application/json' };
+        if (AppState.accessToken) headers['Authorization'] = 'Bearer ' + AppState.accessToken;
+        else headers['X-Guest-ID'] = AppState.guestId;
+        var hintBase = AppState.accessToken ? '/api/nsm-sessions' : '/api/guest/nsm-sessions';
+        var res = await fetch(hintBase + '/' + sessionId + '/hints', {
+          method: 'POST',
+          headers: headers,
+          body: JSON.stringify({ userNsm: AppState.nsmNsmDraft || '' })
+        });
+        if (res.ok) AppState.nsmHints = await res.json();
+      } catch (_) {}
+
+      AppState.nsmHintsLoading = false;
+
+      document.querySelectorAll('.nsm-hint-btn').forEach(function(b) {
+        b.innerHTML = '<i class="ph ph-lightbulb"></i> 查看教練提示';
+        b.disabled = false;
+      });
+
+      if (AppState.nsmHints && AppState.nsmHints[dim]) {
+        contentEl.innerHTML = '<div class="nsm-hint-revealed">' + escHtml(AppState.nsmHints[dim]) + '</div>';
+        contentEl.style.display = 'block';
+      }
     });
   });
 
