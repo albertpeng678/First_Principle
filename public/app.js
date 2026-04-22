@@ -920,6 +920,7 @@ function bindPractice() {
   }
   if (window.visualViewport) {
     window.visualViewport.addEventListener('resize', adjustForKeyboard);
+    window.visualViewport.addEventListener('scroll', adjustForKeyboard);
     adjustForKeyboard();
   }
 
