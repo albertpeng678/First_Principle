@@ -24,6 +24,7 @@ const AppState = {
   nsmBreakdownDraft: {},
   nsmVanityWarning: null,
   nsmReportTab: 'overview',
+  nsmOpenNode: null,
 };
 
 // ── NSM 題庫（100 題 database + 3 計畫獨有）────────
@@ -150,6 +151,48 @@ function getRandomNSMQuestions(count = 3) {
   const shuffled = [...NSM_QUESTIONS].sort(() => Math.random() - 0.5);
   return shuffled.slice(0, count);
 }
+
+function detectProductType(question) {
+  const text = ((question.industry || '') + ' ' + (question.scenario || '') + ' ' + (question.company || '')).toLowerCase();
+  if (/電商|marketplace|外賣|美食|租車|共享|打車|滴滴|uber|airbnb|預訂|booking|到家|配送|供需|撮合|叫車|跑腿/.test(text)) return 'transaction';
+  if (/saas|企業|b2b|crm|erp|協作|辦公|工具|管理系統|自動化|workflow|slack|notion|figma|jira/.test(text)) return 'saas';
+  if (/創作|creator|ugc|知識|課程|部落|newsletter|寫作|podcast|內容平台|直播|substack|medium|youtube|twitch|blogger/.test(text)) return 'creator';
+  return 'attention';
+}
+
+const NSM_TYPE_META = {
+  attention:   { label: '注意力型', color: '#8b5cf6', icon: 'ph-play-circle',    desc: '核心價值在於讓用戶在產品上花有意義的時間（社交、媒體、遊戲）' },
+  transaction: { label: '交易量型', color: '#10b981', icon: 'ph-shopping-cart',  desc: '核心價值在於撮合供需、促成高品質交易（電商、共享平台、O2O）' },
+  creator:     { label: '創造力型', color: '#f59e0b', icon: 'ph-pencil-simple',  desc: '核心價值在於讓用戶產出高品質成果並被廣泛消費（UGC、知識平台）' },
+  saas:        { label: 'SaaS 型',  color: '#3b82f6', icon: 'ph-buildings',      desc: '核心價值在於解決企業工作流程問題、讓團隊不可或缺地依賴產品（B2B）' },
+};
+
+const NSM_DIMENSION_CONFIGS = {
+  attention: [
+    { key: 'reach',     label: '觸及廣度', subtitle: '有多少用戶真正觸碰到核心功能（非僅登入）',  color: '#3b82f6', coachQ: 'AHA 時刻是什麼動作？做到這個動作的人有多少？', placeholder: '例：每月至少播放 1 首歌的月活用戶數（不是登入數）' },
+    { key: 'depth',     label: '互動深度', subtitle: '每位用戶每次使用的品質與投入程度',          color: '#8b5cf6', coachQ: '用戶停得夠深嗎？時長、完播率、互動次數哪個更能反映價值？', placeholder: '例：每個 session 平均聆聽時長（分鐘）' },
+    { key: 'frequency', label: '習慣頻率', subtitle: '用戶是否形成定期回訪的使用習慣',            color: '#10b981', coachQ: '每週/每月回來幾次？DAU/MAU 比越高代表黏性越強', placeholder: '例：每週平均使用天數 ≥ 3 的用戶佔比' },
+    { key: 'impact',    label: '留存驅力', subtitle: '什麼讓用戶持續回訪而非逐漸流失',            color: '#f59e0b', coachQ: '社交關係？個人化推薦？收藏習慣？找出最強的留存槓桿', placeholder: '例：擁有 ≥5 首收藏歌曲的用戶 30 日留存率' },
+  ],
+  transaction: [
+    { key: 'reach',     label: '供給廣度', subtitle: '供給端（賣家/司機/商家）的活躍參與度',       color: '#3b82f6', coachQ: '沒有供給，需求無法被滿足——有多少活躍供給方存在？', placeholder: '例：過去 7 天完成過交易的活躍商家數' },
+    { key: 'depth',     label: '需求深度', subtitle: '需求端用戶的活躍程度與使用品質',             color: '#8b5cf6', coachQ: '需求方有多活躍？每人每月下幾單？平均客單價？', placeholder: '例：每位活躍買家每月平均交易次數' },
+    { key: 'frequency', label: '匹配效率', subtitle: '供需成功撮合的漏斗轉化率',                   color: '#10b981', coachQ: '搜尋→瀏覽→下單的漏斗在哪裡漏最多？轉化率多高？', placeholder: '例：從搜尋到成交的整體轉化率' },
+    { key: 'impact',    label: '復購留存', subtitle: '用戶第二次以後繼續回來交易的比例',            color: '#f59e0b', coachQ: '獲取新用戶很貴——他有回來嗎？90 天復購率如何？', placeholder: '例：首單後 90 天內完成第二筆交易的用戶比例' },
+  ],
+  creator: [
+    { key: 'reach',     label: '創造廣度', subtitle: '每月有多少用戶在主動產出內容/成果',          color: '#3b82f6', coachQ: '創造者才是平台核心——每月有多少活躍創作者？', placeholder: '例：每月至少發布 1 篇內容的活躍創作者數' },
+    { key: 'depth',     label: '成果品質', subtitle: '創造物的品質、完整度與被消費程度',           color: '#8b5cf6', coachQ: '創造的東西被消費了嗎？閱讀完整度、互動次數？', placeholder: '例：每篇貼文平均獲得有效互動數（留言+收藏+分享）' },
+    { key: 'frequency', label: '採用廣度', subtitle: '創造物被消費者發現和深度閱讀的比例',         color: '#10b981', coachQ: '沒人看的創作平台沒有飛輪——有多少內容被廣泛閱讀？', placeholder: '例：被至少 3 人讀完的內容佔全部已發布內容比例' },
+    { key: 'impact',    label: '商業轉化', subtitle: '創造行為轉化為實際商業收益的效率',            color: '#f59e0b', coachQ: '創作者留下來的動力——他們能賺到錢或獲得真實影響力嗎？', placeholder: '例：創作者帳號的付費訂閱轉化率' },
+  ],
+  saas: [
+    { key: 'reach',     label: '啟用廣度', subtitle: '新客戶中有多少真正完成啟用（Activation）',  color: '#3b82f6', coachQ: '注意是 activation，不是 signup——誰真正跑完了核心工作流？', placeholder: '例：完成首次核心任務的新帳號比例' },
+    { key: 'depth',     label: '席次深度', subtitle: '每個帳號內有多少人在真正使用核心功能',       color: '#8b5cf6', coachQ: '企業付費，但有幾個人實際在用？席次利用率多高？', placeholder: '例：每個帳號每月平均活躍使用者數（席次利用率）' },
+    { key: 'frequency', label: '黏著頻率', subtitle: '使用頻率是否顯示產品已嵌入日常工作流',       color: '#10b981', coachQ: '每天都用 vs 偶爾用——是剛需工具嗎？DAU/MAU 比多高？', placeholder: '例：每週使用核心功能 ≥ 3 次的帳號佔比' },
+    { key: 'impact',    label: '擴張信號', subtitle: '現有客戶是否在增加使用（NRR 指標）',          color: '#f59e0b', coachQ: 'NRR > 100% 代表客戶在擴張——多少比例帳號在 90 天內擴展？', placeholder: '例：90 天內增加席次或升級方案的帳號比例' },
+  ],
+};
 
 // ── Supabase ──────────────────────────────────────
 let supabase;
@@ -1449,6 +1492,7 @@ function renderNSMStep1() {
         <div style="height:80px"></div>
       </div>
       <div class="nsm-fixed-bottom">
+        <div id="nsm-step1-error" class="nsm-inline-error" role="alert" style="display:none"></div>
         <button class="btn btn-primary nsm-next-btn" id="btn-nsm-step1-next" ${selected ? '' : 'disabled'}>
           確認，開始定義 <i class="ph ph-arrow-right"></i>
         </button>
@@ -1460,6 +1504,8 @@ function renderNSMStep2() {
   const q = AppState.nsmSelectedQuestion;
   const draft = AppState.nsmNsmDraft || '';
   const warning = AppState.nsmVanityWarning || null;
+  const productType = detectProductType(q);
+  const typeMeta = NSM_TYPE_META[productType];
 
   const warningHtml = warning ? `
     <div class="nsm-vanity-warning">
@@ -1467,13 +1513,13 @@ function renderNSMStep2() {
         <i class="ph ph-warning" style="color:#f59e0b;font-size:20px"></i>
         <strong>這可能是虛榮指標</strong>
       </div>
-      <p class="nsm-vanity-body">如果這個指標翻倍，公司一定更賺錢嗎？虛榮指標容易讓團隊努力方向錯誤。</p>
+      <p class="nsm-vanity-body">虛榮指標特徵：數字好看，但翻倍後不代表公司賺更多錢或留住更多用戶。</p>
       <div class="nsm-coach-hint">
         <i class="ph ph-lightbulb" style="color:var(--accent)"></i>
         <span>${escHtml(warning.coachHint)}</span>
       </div>
       <div class="nsm-warning-actions">
-        <button class="btn btn-primary" id="btn-nsm-redefine" style="min-height:44px">重新定義</button>
+        <button class="btn btn-primary" id="btn-nsm-redefine" style="min-height:44px">重新定義 NSM</button>
         <button class="btn-ghost" id="btn-nsm-proceed-anyway">我知道風險，繼續</button>
       </div>
     </div>` : '';
@@ -1496,17 +1542,41 @@ function renderNSMStep2() {
       </div>
       <div class="nsm-body">
         <div class="nsm-context-card">
-          <div class="nsm-context-company">${escHtml(q.company)}</div>
+          <div class="nsm-context-top">
+            <div class="nsm-context-company">${escHtml(q.company)}</div>
+            <span class="nsm-type-badge" style="background:${typeMeta.color}18;color:${typeMeta.color};border:1px solid ${typeMeta.color}38">
+              <i class="ph ${typeMeta.icon}"></i> ${typeMeta.label}
+            </span>
+          </div>
           <p class="nsm-context-scenario">${escHtml(q.scenario)}</p>
+          <div class="nsm-type-hint"><i class="ph ph-info"></i> ${escHtml(typeMeta.desc)}</div>
+        </div>
+        <div class="nsm-guide-steps">
+          <div class="nsm-guide-title"><i class="ph ph-path"></i> 3 步定義法</div>
+          <div class="nsm-guide-step">
+            <span class="nsm-guide-num">1</span>
+            <div><strong>找 AHA 時刻</strong><br>
+            <span class="nsm-guide-sub">用戶第一次真正感受到 ${escHtml(q.company)} 價值的那個動作是什麼？</span></div>
+          </div>
+          <div class="nsm-guide-step">
+            <span class="nsm-guide-num">2</span>
+            <div><strong>轉成可量化指標</strong><br>
+            <span class="nsm-guide-sub">把那個動作表達成「誰 × 做了什麼行為 × 多少量/頻率」的具體數字</span></div>
+          </div>
+          <div class="nsm-guide-step">
+            <span class="nsm-guide-num">3</span>
+            <div><strong>做虛榮指標檢驗</strong><br>
+            <span class="nsm-guide-sub">問自己：如果這個數字翻倍，${escHtml(q.company)} 的商業收益一定增加嗎？</span></div>
+          </div>
         </div>
         <label class="nsm-field-label">你認為 ${escHtml(q.company)} 的北極星指標是？</label>
-        <textarea id="nsm-nsm-input" class="nsm-textarea" placeholder="一句話描述核心指標，例如：每月付費用戶完整收聽時長" rows="4">${escHtml(draft)}</textarea>
+        <textarea id="nsm-nsm-input" class="nsm-textarea" placeholder="一句話描述核心指標，例如：每月付費用戶完整收聽時長（分鐘）" rows="4">${escHtml(draft)}</textarea>
         ${warningHtml}
         <div style="height:80px"></div>
       </div>
       <div class="nsm-fixed-bottom">
         <button class="btn btn-primary nsm-next-btn" id="btn-nsm-step2-next">
-          確認，拆解維度 <i class="ph ph-arrow-right"></i>
+          確認，拆解輸入指標 <i class="ph ph-arrow-right"></i>
         </button>
       </div>
     </div>`;
@@ -1514,19 +1584,18 @@ function renderNSMStep2() {
 
 function renderNSMStep3() {
   const breakdown = AppState.nsmBreakdownDraft || {};
-  const dimensions = [
-    { key: 'reach',      label: '觸及廣度 (Reach)',     color: '#3b82f6', desc: '衡量你的 NSM 觸及多少獨立用戶', placeholder: '例：月啟動播放的 MAU 數量' },
-    { key: 'depth',      label: '使用深度 (Depth)',     color: '#8b5cf6', desc: '衡量每次互動的品質',            placeholder: '例：每次 session 平均收聽時長' },
-    { key: 'frequency',  label: '使用頻率 (Frequency)', color: '#10b981', desc: '衡量使用習慣是否形成',          placeholder: '例：每週收聽天數' },
-    { key: 'efficiency', label: '轉換效率 (Efficiency)', color: '#f59e0b', desc: '衡量行為是否帶來商業價值',      placeholder: '例：試用轉付費率' },
-  ];
+  const q = AppState.nsmSelectedQuestion || {};
+  const productType = detectProductType(q);
+  const typeMeta = NSM_TYPE_META[productType];
+  const dimensions = NSM_DIMENSION_CONFIGS[productType];
 
   const fields = dimensions.map(d => `
     <div class="nsm-dim-section">
       <div class="nsm-dim-header" style="border-left-color:${d.color}">
         <div class="nsm-dim-label">${escHtml(d.label)}</div>
-        <div class="nsm-dim-desc">${escHtml(d.desc)}</div>
+        <div class="nsm-dim-desc">${escHtml(d.subtitle)}</div>
       </div>
+      <div class="nsm-coach-q"><i class="ph ph-chat-dots" style="color:${d.color}"></i> ${escHtml(d.coachQ)}</div>
       <textarea class="nsm-textarea nsm-dim-input" id="nsm-dim-${d.key}" placeholder="${escHtml(d.placeholder)}" rows="2">${escHtml(breakdown[d.key] || '')}</textarea>
     </div>`).join('');
 
@@ -1534,7 +1603,7 @@ function renderNSMStep3() {
     <div class="nsm-view">
       <div class="nsm-navbar">
         <button class="btn-icon" id="btn-nsm-back" aria-label="返回上一步"><i class="ph ph-arrow-left"></i></button>
-        <span class="nsm-title">拆解維度</span>
+        <span class="nsm-title">拆解輸入指標</span>
         <div style="width:44px"></div>
       </div>
       <div class="nsm-progress">
@@ -1551,12 +1620,19 @@ function renderNSMStep3() {
           <span class="nsm-sticky-label">你的 NSM：</span>
           <span class="nsm-sticky-value">${escHtml(AppState.nsmNsmDraft || '')}</span>
         </div>
+        <div class="nsm-step3-intro">
+          <span class="nsm-type-badge" style="background:${typeMeta.color}18;color:${typeMeta.color};border:1px solid ${typeMeta.color}38">
+            <i class="ph ${typeMeta.icon}"></i> ${typeMeta.label}
+          </span>
+          <p class="nsm-step3-tip">輸入指標是驅動 NSM 的<strong>領先訊號</strong>——這些指標翻倍，NSM 應該跟著成長。以下 4 個維度依 <strong>${typeMeta.label}</strong> 產品特性設計，你可根據情境調整詮釋角度。</p>
+        </div>
         ${fields}
         <div style="height:80px"></div>
       </div>
       <div class="nsm-fixed-bottom">
+        <div id="nsm-step3-error" class="nsm-inline-error" role="alert" style="display:none"></div>
         <button class="btn btn-primary nsm-next-btn" id="btn-nsm-step3-submit">
-          <span id="nsm-submit-label">送出，取得評分</span> <i class="ph ph-arrow-right"></i>
+          <span id="nsm-submit-label">送出，取得 AI 評分</span> <i class="ph ph-arrow-right"></i>
         </button>
       </div>
     </div>`;
@@ -1572,7 +1648,7 @@ function renderNSMStep4() {
   if (!scores.scores) {
     return `<div class="nsm-view">
       <div class="nsm-navbar">
-        <button class="btn-icon" id="btn-nsm-back"><i class="ph ph-house"></i></button>
+        <button class="btn-icon" id="btn-nsm-back" aria-label="回首頁"><i class="ph ph-house"></i></button>
         <span class="nsm-title">NSM 報告</span>
         <div style="width:44px"></div>
       </div>
@@ -1612,24 +1688,20 @@ function renderNSMStep4() {
   const coachTree = scores.coachTree || {};
   const userNsm = session.user_nsm || AppState.nsmNsmDraft || '';
   const userBreakdown = session.user_breakdown || AppState.nsmBreakdownDraft || {};
+  const cmpType = detectProductType(q);
+  const cmpDims = NSM_DIMENSION_CONFIGS[cmpType];
 
   const comparisonTab = `
     <div class="nsm-comparison">
       <div class="nsm-tree-col">
         <div class="nsm-tree-title"><i class="ph ph-user"></i> 你的拆解</div>
-        <div class="nsm-tree-node nsm-tree-root" data-node="user-nsm">${escHtml(userNsm || '（未填寫）')}</div>
-        <div class="nsm-tree-node" data-node="user-reach">${escHtml(userBreakdown.reach || '（未填寫）')}</div>
-        <div class="nsm-tree-node" data-node="user-depth">${escHtml(userBreakdown.depth || '（未填寫）')}</div>
-        <div class="nsm-tree-node" data-node="user-frequency">${escHtml(userBreakdown.frequency || '（未填寫）')}</div>
-        <div class="nsm-tree-node" data-node="user-efficiency">${escHtml(userBreakdown.efficiency || '（未填寫）')}</div>
+        <div class="nsm-tree-node nsm-tree-root" data-node="user-nsm" data-label="NSM">${escHtml(userNsm || '（未填寫）')}</div>
+        ${cmpDims.map(d => `<div class="nsm-tree-node" data-node="user-${d.key}" data-label="${escHtml(d.label)}">${escHtml(userBreakdown[d.key] || '（未填寫）')}</div>`).join('')}
       </div>
       <div class="nsm-tree-col">
         <div class="nsm-tree-title"><i class="ph ph-graduation-cap"></i> 教練版本</div>
-        <div class="nsm-tree-node nsm-tree-root nsm-tree-coach" data-node="coach-nsm">${escHtml(coachTree.nsm || '')}</div>
-        <div class="nsm-tree-node nsm-tree-coach" data-node="coach-reach">${escHtml(coachTree.reach || '')}</div>
-        <div class="nsm-tree-node nsm-tree-coach" data-node="coach-depth">${escHtml(coachTree.depth || '')}</div>
-        <div class="nsm-tree-node nsm-tree-coach" data-node="coach-frequency">${escHtml(coachTree.frequency || '')}</div>
-        <div class="nsm-tree-node nsm-tree-coach" data-node="coach-efficiency">${escHtml(coachTree.efficiency || '')}</div>
+        <div class="nsm-tree-node nsm-tree-root nsm-tree-coach" data-node="coach-nsm" data-label="NSM">${escHtml(coachTree.nsm || '')}</div>
+        ${cmpDims.map(d => `<div class="nsm-tree-node nsm-tree-coach" data-node="coach-${d.key}" data-label="${escHtml(d.label)}">${escHtml(coachTree[d.key] || '')}</div>`).join('')}
       </div>
     </div>
     <div class="nsm-node-detail" id="nsm-node-detail" style="display:none"></div>`;
@@ -1652,10 +1724,10 @@ function renderNSMStep4() {
 
   const exportTab = `
     <div class="nsm-export">
-      <button class="btn btn-primary" id="btn-nsm-again" style="width:100%;min-height:44px">
+      <button class="btn btn-primary" id="btn-nsm-again">
         <i class="ph ph-arrow-counter-clockwise"></i> 再練一次
       </button>
-      <button class="btn-ghost" id="btn-nsm-home" style="width:100%;margin-top:10px;min-height:44px">
+      <button class="btn-ghost" id="btn-nsm-home">
         <i class="ph ph-house"></i> 回首頁
       </button>
     </div>`;
@@ -1730,7 +1802,8 @@ function bindNSM() {
       } catch (e) {
         btnStep1Next.classList.remove('btn-loading');
         btnStep1Next.disabled = false;
-        alert('無法建立練習：' + e.message);
+        var errEl = document.getElementById('nsm-step1-error');
+        if (errEl) { errEl.textContent = '無法建立練習，請重試（' + e.message + '）'; errEl.style.display = 'block'; }
       }
     });
   }
@@ -1769,12 +1842,14 @@ function bindNSM() {
     render();
   });
 
-  // Step 3: dimension inputs
-  ['reach','depth','frequency','efficiency'].forEach(function(k) {
-    var inp = document.getElementById('nsm-dim-' + k);
+  // Step 3: dimension inputs — driven by detected product type, not hardcoded
+  var _step3Q = AppState.nsmSelectedQuestion || {};
+  var _step3Dims = NSM_DIMENSION_CONFIGS[detectProductType(_step3Q)] || [];
+  _step3Dims.forEach(function(d) {
+    var inp = document.getElementById('nsm-dim-' + d.key);
     if (inp) inp.addEventListener('input', function() {
       if (!AppState.nsmBreakdownDraft) AppState.nsmBreakdownDraft = {};
-      AppState.nsmBreakdownDraft[k] = inp.value;
+      AppState.nsmBreakdownDraft[d.key] = inp.value;
     });
   });
 
@@ -1804,8 +1879,9 @@ function bindNSM() {
       } catch (e) {
         btnStep3Submit.classList.remove('btn-loading');
         btnStep3Submit.disabled = false;
-        if (label) label.textContent = '送出，取得評分';
-        alert('評分失敗：' + e.message);
+        if (label) label.textContent = '送出，取得 AI 評分';
+        var errEl = document.getElementById('nsm-step3-error');
+        if (errEl) { errEl.textContent = '評分失敗，請重試（' + e.message + '）'; errEl.style.display = 'block'; }
       }
     });
   }
@@ -1823,23 +1899,28 @@ function bindNSM() {
       var key = node.dataset.node;
       var isCoach = key.indexOf('coach-') === 0;
       var dim = key.replace('coach-','').replace('user-','');
+      var dimLabel = node.dataset.label || dim;
       var sc = AppState.nsmSession ? (AppState.nsmSession.scores_json || {}) : {};
-      var dimLabel = { nsm:'NSM', reach:'觸及廣度', depth:'使用深度', frequency:'使用頻率', efficiency:'轉換效率' };
       var ctree = sc.coachTree || {};
-      var bd = AppState.nsmBreakdownDraft || {};
+      var bd = (AppState.nsmSession && AppState.nsmSession.user_breakdown) || AppState.nsmBreakdownDraft || {};
       var detail = isCoach
-        ? '教練版 ' + (dimLabel[dim] || dim) + '：' + (ctree[dim] || '')
-        : '你的 ' + (dimLabel[dim] || dim) + '：' + (dim === 'nsm' ? (AppState.nsmNsmDraft || '') : (bd[dim] || '（未填寫）'));
-      if (detailEl.style.display === 'none' || detailEl._lastKey !== key) {
+        ? '教練版 ' + dimLabel + '：' + (ctree[dim] || '')
+        : '你的 ' + dimLabel + '：' + (dim === 'nsm' ? (AppState.nsmNsmDraft || '') : (bd[dim] || '（未填寫）'));
+      if (AppState.nsmOpenNode === key) {
+        AppState.nsmOpenNode = null;
+        detailEl.style.display = 'none';
+      } else {
+        AppState.nsmOpenNode = key;
         detailEl.style.display = 'block';
         detailEl.textContent = detail;
-        detailEl._lastKey = key;
-      } else {
-        detailEl.style.display = 'none';
-        detailEl._lastKey = null;
       }
     });
   });
+  // Restore open node if any
+  if (AppState.nsmOpenNode) {
+    var openNode = document.querySelector('.nsm-tree-node[data-node="' + AppState.nsmOpenNode + '"]');
+    if (openNode) openNode.click();
+  }
 
   // Step 4: action buttons
   document.getElementById('btn-nsm-again')?.addEventListener('click', function() {
@@ -1859,8 +1940,11 @@ function bindNSM() {
     if (!window.visualViewport) return;
     var bar = document.querySelector('.nsm-fixed-bottom');
     var body = document.querySelector('.nsm-body');
-    if (!bar) return;
-    var keyboardHeight = window.innerHeight - window.visualViewport.height;
+    if (!bar) {
+      if (body) body.style.paddingBottom = '';
+      return;
+    }
+    var keyboardHeight = Math.max(0, window.innerHeight - window.visualViewport.height);
     bar.style.bottom = keyboardHeight + 'px';
     if (body) body.style.paddingBottom = (bar.offsetHeight + keyboardHeight) + 'px';
   }
