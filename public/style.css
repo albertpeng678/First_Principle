@@ -41,12 +41,17 @@
 
 * { box-sizing: border-box; margin: 0; padding: 0; }
 
+html {
+  overscroll-behavior: none;
+}
+
 body {
   font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
   background: var(--bg-primary);
   color: var(--text-primary);
   min-height: 100vh;
   transition: background 0.2s, color 0.2s;
+  overscroll-behavior: none;
 }
 
 /* Layout */
@@ -746,7 +751,7 @@ textarea::placeholder { white-space: nowrap; overflow: hidden; text-overflow: el
    Phase 4: NSM Wizard
    ══════════════════════════════════════════════════ */
 
-.nsm-view { display: flex; flex-direction: column; height: 100%; overflow: hidden; background: var(--bg-primary); }
+.nsm-view { display: flex; flex-direction: column; height: 100%; overflow: hidden; background: var(--bg-primary); overscroll-behavior: contain; }
 .nsm-navbar {
   display: flex; align-items: center; justify-content: space-between;
   padding: 12px 16px; border-bottom: 1px solid var(--border);
