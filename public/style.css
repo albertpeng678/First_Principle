@@ -157,6 +157,14 @@ body[data-view="practice"] .practice-bottom-bar {
 
 /* Report */
 .radar-container { display: flex; justify-content: center; margin: 24px 0; }
+.radar-container svg,
+.nsm-radar-wrap svg {
+  max-width: 260px;
+  width: 100%;
+  height: auto;
+  display: block;
+  margin: 0 auto;
+}
 .score-cards { display: grid; grid-template-columns: 1fr 1fr; gap: 12px; margin: 16px 0; }
 .score-card { background: var(--bg-surface-2); border-radius: 10px; padding: 14px; }
 .score-card-title { font-weight: 700; font-size: 0.85rem; color: var(--accent); margin-bottom: 6px; }

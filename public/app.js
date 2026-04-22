@@ -1076,7 +1076,7 @@ const DIM_LABELS = {
 
 function renderRadar(scores) {
   const dims = Object.keys(DIM_LABELS);
-  const size = 220;
+  const size = 260;
   const cx = size / 2, cy = size / 2, r = 80;
   const n = dims.length;
   const toXY = (i, val) => {
@@ -1086,7 +1086,7 @@ function renderRadar(scores) {
   };
   const labelXY = (i) => {
     const angle = (Math.PI * 2 * i / n) - Math.PI / 2;
-    return [cx + (r + 24) * Math.cos(angle), cy + (r + 24) * Math.sin(angle)];
+    return [cx + (r + 32) * Math.cos(angle), cy + (r + 32) * Math.sin(angle)];
   };
 
   const circles = [0.25, 0.5, 0.75, 1].map(f =>
