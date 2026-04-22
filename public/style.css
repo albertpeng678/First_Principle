@@ -158,6 +158,17 @@ body[data-view="practice"] .practice-bottom-bar {
   position: static;
 }
 
+body[data-view="nsm"] { overflow: hidden; }
+body[data-view="nsm"] #app {
+  width: 100%; height: 100dvh; display: flex; flex-direction: column;
+  overflow: hidden; padding: 0;
+}
+body[data-view="nsm"] main#main {
+  flex: 1; display: flex; flex-direction: column;
+  min-height: 0;
+}
+body[data-view="nsm"] .navbar { margin-bottom: 0; }
+
 /* Report */
 .radar-container { display: flex; justify-content: center; margin: 24px 0; }
 .radar-container svg,
@@ -557,7 +568,7 @@ body[data-view="practice"] .practice-bottom-bar {
 
 /* iOS Safari dvh */
 body[data-view="practice"] #app { height: 100dvh; }
-body[data-view="nsm"]      #app { height: 100dvh; padding: 0; overflow: hidden; }
+body[data-view="nsm"]      #app { height: 100dvh; }
 #app { min-height: 100dvh; }
 
 /* Tab bar horizontal scroll */
@@ -748,7 +759,7 @@ textarea::placeholder { white-space: nowrap; overflow: hidden; text-overflow: el
    Phase 4: NSM Wizard
    ══════════════════════════════════════════════════ */
 
-.nsm-view { display: flex; flex-direction: column; height: 100%; overflow: hidden; background: var(--bg-primary); overscroll-behavior: contain; }
+.nsm-view { display: flex; flex-direction: column; flex: 1; min-height: 0; overflow: hidden; background: var(--bg-primary); overscroll-behavior: contain; }
 .nsm-navbar {
   display: flex; align-items: center; justify-content: space-between;
   padding: 12px 16px; border-bottom: 1px solid var(--border);
