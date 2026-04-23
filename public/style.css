@@ -39,13 +39,22 @@
   --bubble-ai-text: #1a1d27;
 }
 
-* { box-sizing: border-box; margin: 0; padding: 0; }
+* { box-sizing: border-box; margin: 0; padding: 0; -webkit-tap-highlight-color: transparent; }
+
+html, body {
+  overscroll-behavior-y: none;
+}
+@media (min-width: 769px) {
+  html, body {
+    overscroll-behavior-y: auto;
+  }
+}
 
 body {
   font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
   background: var(--bg-primary);
   color: var(--text-primary);
-  min-height: 100vh;
+  min-height: 100dvh;
   transition: background 0.2s, color 0.2s;
 }
 
@@ -81,17 +90,19 @@ body[data-view="history"] #app { max-width: 860px; }
   transition: background 0.15s, opacity 0.15s;
 }
 .btn-primary { background: var(--accent); color: #fff; }
-.btn-primary:hover { background: var(--accent-hover); }
 .btn-ghost {
   background: transparent; color: var(--text-secondary);
   border: 1px solid var(--border);
 }
-.btn-ghost:hover { background: var(--bg-surface); }
 .btn-icon { background: transparent; border: none; cursor: pointer; font-size: 1.3rem; padding: 4px 8px; color: var(--text-secondary); display: flex; align-items: center; }
-.btn-icon:hover { color: var(--text-primary); }
 .btn-danger { background: var(--danger); color: #fff; border: none; border-radius: 6px; padding: 4px 10px; font-size: 0.8rem; cursor: pointer; transition: opacity 0.15s; }
-.btn-danger:hover { opacity: 0.85; }
 .btn:disabled { opacity: 0.5; cursor: not-allowed; }
+@media (hover: hover) and (pointer: fine) {
+  .btn-primary:hover { background: var(--accent-hover); }
+  .btn-ghost:hover { background: var(--bg-surface); }
+  .btn-icon:hover { color: var(--text-primary); }
+  .btn-danger:hover { opacity: 0.85; }
+}
 
 /* Cards */
 .card {
@@ -137,7 +148,9 @@ body[data-view="history"] #app { max-width: 860px; }
   color: var(--text-primary); font-size: 0.95rem; resize: none;
   min-height: 44px; max-height: 160px; overflow-y: auto;
   font-family: inherit; line-height: 1.5;
+  scrollbar-width: none; -ms-overflow-style: none; -webkit-overflow-scrolling: touch;
 }
+.chat-input::-webkit-scrollbar { display: none; }
 .chat-input:focus { outline: none; border-color: var(--accent); }
 
 /* ── Practice Full-Height Layout ── */
@@ -196,7 +209,9 @@ body[data-view="nsm"] .navbar { margin-bottom: 0; }
   background: var(--bg-surface); border: 1px solid var(--border);
   border-radius: 10px; padding: 14px; cursor: pointer;
 }
-.history-item:hover { border-color: var(--accent); }
+@media (hover: hover) and (pointer: fine) {
+  .history-item:hover { border-color: var(--accent); }
+}
 
 /* Difficulty Grid */
 .difficulty-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(200px, 1fr)); gap: 16px; margin-top: 24px; }
@@ -205,7 +220,9 @@ body[data-view="nsm"] .navbar { margin-bottom: 0; }
   border-radius: 14px; padding: 24px; cursor: pointer; text-align: center;
   transition: border-color 0.15s, transform 0.15s;
 }
-.difficulty-card:hover { border-color: var(--accent); transform: translateY(-2px); }
+@media (hover: hover) and (pointer: fine) {
+  .difficulty-card:hover { border-color: var(--accent); transform: translateY(-2px); }
+}
 
 /* Export Buttons */
 .export-actions { display: flex; gap: 12px; margin-top: 24px; justify-content: center; }
@@ -264,13 +281,16 @@ body[data-view="nsm"] .navbar { margin-bottom: 0; }
   display: flex; justify-content: space-between; align-items: center;
   padding: 16px; border-bottom: 1px solid var(--border); flex-shrink: 0;
 }
-.offcanvas-list { flex: 1; overflow-y: auto; padding: 12px; display: flex; flex-direction: column; gap: 8px; }
+.offcanvas-list { flex: 1; overflow-y: auto; padding: 12px; display: flex; flex-direction: column; gap: 8px; scrollbar-width: none; -ms-overflow-style: none; -webkit-overflow-scrolling: touch; }
+.offcanvas-list::-webkit-scrollbar { display: none; }
 .offcanvas-item {
   padding: 12px; border-radius: 10px;
   background: var(--bg-surface-2); cursor: pointer;
   border: 1px solid var(--border);
 }
-.offcanvas-item:hover { border-color: var(--accent); }
+@media (hover: hover) and (pointer: fine) {
+  .offcanvas-item:hover { border-color: var(--accent); }
+}
 
 /* ── Badges ── */
 .badge { display: inline-block; padding: 2px 8px; border-radius: 20px; font-size: 0.75rem; font-weight: 600; }
@@ -301,7 +321,8 @@ body[data-view="nsm"] .navbar { margin-bottom: 0; }
 .issue-banner.collapsed .issue-banner-summary { display: block; }
 .issue-banner-caret { flex-shrink: 0; font-size: 1rem; color: var(--text-secondary); }
 
-.chat-scroll { display: flex; flex-direction: column; gap: 12px; padding: 16px 0; min-height: 200px; }
+.chat-scroll { display: flex; flex-direction: column; gap: 12px; padding: 16px 0; min-height: 200px; overflow-y: auto; scrollbar-width: none; -ms-overflow-style: none; -webkit-overflow-scrolling: touch; }
+.chat-scroll::-webkit-scrollbar { display: none; }
 
 .hint-card {
   background: #fffbe6; border-left: 3px solid #f0a04b;
@@ -329,7 +350,9 @@ body[data-view="nsm"] .navbar { margin-bottom: 0; }
   transition: border-color 0.15s;
 }
 [data-theme="light"] .btn-tool { border-color: rgba(90,82,224,0.4); }
-.btn-tool:hover { border-color: var(--accent); }
+@media (hover: hover) and (pointer: fine) {
+  .btn-tool:hover { border-color: var(--accent); }
+}
 .essence-label { font-size: 0.78rem; color: var(--text-secondary); }
 .essence-textarea {
   width: 100%; padding: 8px 12px;
@@ -575,7 +598,9 @@ body[data-view="nsm"]      #app { height: 100dvh; }
 .tab-bar {
   display: flex;
   overflow-x: auto;
+  -webkit-overflow-scrolling: touch;
   scrollbar-width: none;
+  -ms-overflow-style: none;
 }
 .tab-bar::-webkit-scrollbar { display: none; }
 .tab-btn { min-width: 72px; white-space: nowrap; }
@@ -615,7 +640,6 @@ textarea::placeholder { white-space: nowrap; overflow: hidden; text-overflow: el
   border-top: 1px solid var(--border);
 }
 
-.chat-scroll { overflow-y: auto; }
 
 /* ══════════════════════════════════════════════════
    UX FIXES — Task 3: Def panel + empty state + issue banner
@@ -645,8 +669,10 @@ textarea::placeholder { white-space: nowrap; overflow: hidden; text-overflow: el
 .chat-empty-state p { font-size: 14px; line-height: 1.6; }
 
 .issue-banner { cursor: pointer; transition: background 0.15s; }
-.issue-banner:hover { background: var(--bg-surface-2); }
 .issue-banner:active { opacity: 0.85; }
+@media (hover: hover) and (pointer: fine) {
+  .issue-banner:hover { background: var(--bg-surface-2); }
+}
 .issue-banner-hint { font-size: 11px; color: var(--text-tertiary); margin-left: auto; }
 
 .btn-retry {
@@ -749,7 +775,9 @@ textarea::placeholder { white-space: nowrap; overflow: hidden; text-overflow: el
   display: flex; align-items: center; gap: 10px; margin-bottom: 8px;
   cursor: pointer; transition: border-color 0.15s;
 }
-.home-session-item:hover { border-color: var(--accent); }
+@media (hover: hover) and (pointer: fine) {
+  .home-session-item:hover { border-color: var(--accent); }
+}
 .session-badge { display: inline-block; padding: 2px 8px; border-radius: 20px; font-size: 0.75rem; font-weight: 600; flex-shrink: 0; }
 .badge-score  { background: rgba(76,175,125,0.15); color: var(--success); }
 .badge-nsm    { background: rgba(108,99,255,0.15); color: var(--accent); }
@@ -759,14 +787,18 @@ textarea::placeholder { white-space: nowrap; overflow: hidden; text-overflow: el
    Phase 4: NSM Wizard
    ══════════════════════════════════════════════════ */
 
-.nsm-view { display: flex; flex-direction: column; flex: 1; min-height: 0; overflow: hidden; background: var(--bg-primary); overscroll-behavior: contain; }
+.nsm-view { display: flex; flex-direction: column; flex: 1; min-height: 0; overflow: hidden; background: var(--bg-primary); }
+@media (max-width: 768px) {
+  .nsm-view { overscroll-behavior: contain; }
+}
 .nsm-navbar {
   display: flex; align-items: center; justify-content: space-between;
   padding: 12px 16px; border-bottom: 1px solid var(--border);
   background: var(--bg-primary); position: sticky; top: 0; z-index: 10;
 }
 .nsm-title { font-size: 16px; font-weight: 700; color: var(--text-primary); }
-.nsm-body { flex: 1; overflow-y: auto; padding: 16px; min-height: 0; }
+.nsm-body { flex: 1; overflow-y: auto; padding: 16px; min-height: 0; scrollbar-width: none; -ms-overflow-style: none; -webkit-overflow-scrolling: touch; }
+.nsm-body::-webkit-scrollbar { display: none; }
 .nsm-fixed-bottom {
   position: fixed; bottom: 0; left: 0; right: 0;
   padding: 12px 16px;
@@ -890,7 +922,9 @@ textarea::placeholder { white-space: nowrap; overflow: hidden; text-overflow: el
   background: var(--bg-surface); color: var(--text-primary);
   font-size: 15px; resize: none; line-height: 1.6; font-family: inherit;
   max-height: 160px; overflow-y: auto;
+  scrollbar-width: none; -ms-overflow-style: none; -webkit-overflow-scrolling: touch;
 }
+.nsm-textarea::-webkit-scrollbar { display: none; }
 .nsm-textarea:focus { outline: none; border-color: var(--accent); }
 .nsm-vanity-warning {
   margin-top: 14px; background: var(--bg-surface);
@@ -914,7 +948,9 @@ textarea::placeholder { white-space: nowrap; overflow: hidden; text-overflow: el
   font-size: 14px; font-weight: 600; color: var(--text-secondary);
   cursor: pointer; min-height: 44px; font-family: inherit;
 }
-.nsm-btn-ghost:hover { background: var(--bg-surface); }
+@media (hover: hover) and (pointer: fine) {
+  .nsm-btn-ghost:hover { background: var(--bg-surface); }
+}
 
 /* Step 3 */
 .nsm-sticky-nsm {
@@ -947,7 +983,9 @@ textarea::placeholder { white-space: nowrap; overflow: hidden; text-overflow: el
   cursor: pointer; min-height: 44px; transition: background 0.15s;
   font-family: inherit;
 }
-.nsm-hint-btn:hover { background: rgba(108,99,255,0.07); }
+@media (hover: hover) and (pointer: fine) {
+  .nsm-hint-btn:hover { background: rgba(108,99,255,0.07); }
+}
 .nsm-hint-btn:disabled { opacity: 0.6; cursor: not-allowed; }
 .nsm-hint-content { margin-bottom: 8px; }
 .nsm-hint-revealed {
@@ -965,7 +1003,8 @@ textarea::placeholder { white-space: nowrap; overflow: hidden; text-overflow: el
 .nsm-total-score { font-size: 36px; font-weight: 800; color: var(--accent); }
 .nsm-score-label-sm { font-size: 18px; color: var(--text-secondary); }
 .nsm-score-company { margin-left: auto; font-size: 14px; font-weight: 600; color: var(--text-primary); }
-.nsm-report-body { flex: 1; overflow-y: auto; padding: 16px; min-height: 0; }
+.nsm-report-body { flex: 1; overflow-y: auto; padding: 16px; min-height: 0; scrollbar-width: none; -ms-overflow-style: none; -webkit-overflow-scrolling: touch; }
+.nsm-report-body::-webkit-scrollbar { display: none; }
 .nsm-radar-wrap { display: flex; justify-content: center; margin-bottom: 16px; }
 
 .nsm-score-row { display: flex; align-items: center; gap: 8px; margin-bottom: 4px; }
@@ -1059,9 +1098,6 @@ textarea::placeholder { white-space: nowrap; overflow: hidden; text-overflow: el
    PERF — Task 1: Global tap optimisation
    ══════════════════════════════════════════════════ */
 
-/* 消除 iOS/Android tap 時閃現的藍/灰高亮框 */
-* { -webkit-tap-highlight-color: transparent; }
-
 /* 消除所有互動元素的 300ms tap delay */
 button,
 a,
@@ -1113,6 +1149,8 @@ body { -webkit-font-smoothing: antialiased; }
 .practice-bottom-bar,
 .nsm-fixed-bottom   { will-change: transform; }
 
-.chat-scroll,
-.offcanvas-list,
-.nsm-report-body    { overscroll-behavior: contain; }
+@media (max-width: 768px) {
+  .chat-scroll,
+  .offcanvas-list,
+  .nsm-report-body  { overscroll-behavior: contain; }
+}
