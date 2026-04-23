@@ -8,6 +8,14 @@
 
 **Tech Stack:** Vanilla JS (ES5-compatible, matches existing codebase), Node.js/Express, Supabase (postgres), OpenAI gpt-4o SSE streaming, Phosphor Icons, DM Sans + Instrument Serif via Google Fonts CDN.
 
+**Approved Visual Design (MUST READ before any CSS/UI work):**
+The approved design mockup is at:
+`.superpowers/brainstorm/57293-1776948350/content/mobile-light.html`
+Open it in a browser before implementing any UI. It shows three approved screens: Phase 1 framework form, Phase 1.5 gate review, Phase 2 chat — all in white background light theme with `#1A56DB` primary and `#F2F0EB` surface. All CSS and component HTML must match this reference exactly. Also reference:
+- `framework-gate.html` — Phase 1.5 gate card detail
+- `full-design-architecture.html` — system flow overview
+(both in the same directory as `mobile-light.html`)
+
 ---
 
 ## File Map
@@ -982,7 +990,15 @@ git commit -m "feat: add CIRCLES 100-question bank with generation script"
 **Files:**
 - Modify: `public/style.css`
 
-- [ ] **Step 1: Append CIRCLES styles to end of style.css**
+- [ ] **Step 1: Read the approved design mockup first**
+
+```bash
+open .superpowers/brainstorm/57293-1776948350/content/mobile-light.html
+```
+
+Inspect the rendered HTML/CSS in that file. Every color value, border-radius, font size, spacing, and component shape in the steps below is derived from this approved mockup. Do not invent styles — match the reference.
+
+- [ ] **Step 2: Append CIRCLES styles to end of style.css**
 
 Add the following block at the very end of `public/style.css`:
 
