@@ -37,7 +37,9 @@ Open it in a browser before implementing any UI. It shows three approved screens
 
 ---
 
-## Task 1: Supabase Table Schema
+## Task 1: Supabase Table Schema ✅ COMPLETED
+
+> **已完成（2026-04-24）：** `circles_sessions` 表已在 Supabase 建立完成，包含所有欄位（`current_phase`、`sim_step_index`、`updated_at` trigger、RLS policy、index）。執行 agent 跳過此 Task，直接從 Task 2 開始。
 
 **Files:**
 - Create: `circles_plan/schema.sql`
@@ -48,7 +50,7 @@ Open it in a browser before implementing any UI. It shows three approved screens
 > - Both columns are written on every phase transition so a reload can restore full AppState from one DB row.
 > - Guest sessions use the same table — RLS allows rows with `guest_id IS NOT NULL` and `user_id IS NULL`.
 
-- [ ] **Step 1: Write the SQL (new table)**
+- [x] **Step 1: Write the SQL (new table)**
 
 ```sql
 -- ─────────────────────────────────────────────────────
@@ -104,7 +106,7 @@ create policy "users own their circles sessions"
   );
 ```
 
-- [ ] **Step 2: Migration SQL (if table already exists without new columns)**
+- [x] **Step 2: Migration SQL (if table already exists without new columns)**
 
 If you already ran an earlier version of this schema without `current_phase`, `sim_step_index`, or `updated_at`, run this migration instead:
 
@@ -138,11 +140,11 @@ create index if not exists circles_sessions_user_id_idx  on circles_sessions (us
 create index if not exists circles_sessions_guest_id_idx on circles_sessions (guest_id, updated_at desc);
 ```
 
-- [ ] **Step 3: Execute in Supabase**
+- [x] **Step 3: Execute in Supabase**
 
 Go to Supabase Dashboard → SQL Editor → paste the appropriate block above → Run.
 
-- [ ] **Step 4: Verify columns exist**
+- [x] **Step 4: Verify columns exist**
 
 In Supabase Table Editor, confirm `circles_sessions` has: `current_phase`, `sim_step_index`, `updated_at` alongside all original columns.
 
