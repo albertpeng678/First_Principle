@@ -11,12 +11,13 @@ test.describe('History Journey', () => {
   test('offcanvas history panel accessible and no overflow', async ({ page }, testInfo) => {
     const device = testInfo.project.name;
     const issues = [];
-    collectConsoleErrors(page);
+    const consoleErrors = collectConsoleErrors(page);
 
     await page.goto('/');
 
-    // Wait for app to initialize
-    await page.waitForSelector('#btn-hamburger', { timeout: 10000 });
+    // Wait for app to initialize and renderNavbar() to run
+    // (#btn-hamburger exists in static HTML but onclick is only attached after renderNavbar)
+    await page.waitForSelector('#navbar-actions button', { timeout: 10000 });
 
     // Open offcanvas (练习记录 panel)
     const hamburger = page.locator('#btn-hamburger');
@@ -37,18 +38,15 @@ test.describe('History Journey', () => {
     await closeBtn.click();
     await page.waitForSelector('#offcanvas:not(.open)', { timeout: 3000 });
 
-    // No horizontal overflow
-    const hasOverflow = await page.evaluate(() =>
-      document.documentElement.scrollWidth > window.innerWidth
-    );
-    if (hasOverflow) {
-      issues.push(createIssue('history', device, 'home', 'overflow', 'horizontal scroll on home page'));
-    }
-
-    // Page health
+    // Page health (includes overflow + CLS check)
     const healthIssues = await checkPageHealth(page);
     for (const hi of healthIssues) {
       issues.push(createIssue('history', device, 'home', hi.type, hi.detail));
+    }
+
+    const critical = consoleErrors.filter(e => !e.includes('supabase') && !e.includes('net::ERR'));
+    if (critical.length > 0) {
+      issues.push(createIssue('history', device, 'console', 'js-error', critical.join(' | ')));
     }
 
     if (issues.length > 0) {

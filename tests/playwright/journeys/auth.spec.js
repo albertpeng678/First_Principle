@@ -9,7 +9,7 @@ test.describe('Auth Journey', () => {
   test('login form renders correctly with no overflow', async ({ page }, testInfo) => {
     const device = testInfo.project.name;
     const issues = [];
-    collectConsoleErrors(page);
+    const consoleErrors = collectConsoleErrors(page);
 
     await page.goto('/');
 
@@ -17,7 +17,7 @@ test.describe('Auth Journey', () => {
     await page.waitForSelector('.btn.btn-ghost', { timeout: 10000 });
 
     // Click the login button in the navbar (guest mode shows "登入" button)
-    const loginBtn = page.locator('.navbar-actions .btn.btn-ghost').first();
+    const loginBtn = page.locator('#navbar-actions .btn.btn-ghost').first();
     await expect(loginBtn).toBeVisible();
     await loginBtn.click();
 
@@ -38,18 +38,15 @@ test.describe('Auth Journey', () => {
     const submitBtn = page.locator('#auth-form button[type="submit"]');
     await expect(submitBtn).toBeVisible();
 
-    // Check no horizontal overflow at all viewport sizes
-    const hasOverflow = await page.evaluate(() =>
-      document.documentElement.scrollWidth > window.innerWidth
-    );
-    if (hasOverflow) {
-      issues.push(createIssue('auth', device, 'login-form', 'overflow', 'horizontal scroll detected on login page'));
-    }
-
-    // Page health
+    // Page health (includes overflow + CLS check)
     const healthIssues = await checkPageHealth(page);
     for (const hi of healthIssues) {
       issues.push(createIssue('auth', device, 'login-form', hi.type, hi.detail));
+    }
+
+    const critical = consoleErrors.filter(e => !e.includes('supabase') && !e.includes('net::ERR'));
+    if (critical.length > 0) {
+      issues.push(createIssue('auth', device, 'console', 'js-error', critical.join(' | ')));
     }
 
     if (issues.length > 0) {

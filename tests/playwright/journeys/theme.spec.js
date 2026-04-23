@@ -9,7 +9,7 @@ test.describe('Theme Toggle Journey', () => {
   test('theme toggle switches correctly with low CLS', async ({ page }, testInfo) => {
     const device = testInfo.project.name;
     const issues = [];
-    collectConsoleErrors(page);
+    const consoleErrors = collectConsoleErrors(page);
 
     await page.goto('/');
 
@@ -112,6 +112,11 @@ test.describe('Theme Toggle Journey', () => {
     const healthIssues = await checkPageHealth(page);
     for (const hi of healthIssues) {
       issues.push(createIssue('theme', device, 'final', hi.type, hi.detail));
+    }
+
+    const critical = consoleErrors.filter(e => !e.includes('supabase') && !e.includes('net::ERR'));
+    if (critical.length > 0) {
+      issues.push(createIssue('theme', device, 'console', 'js-error', critical.join(' | ')));
     }
 
     if (issues.length > 0) {

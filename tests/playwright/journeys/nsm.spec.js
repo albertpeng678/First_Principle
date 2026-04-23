@@ -9,7 +9,7 @@ test.describe('NSM Journey', () => {
   test('NSM tab shows question list and card selection works', async ({ page }, testInfo) => {
     const device = testInfo.project.name;
     const issues = [];
-    collectConsoleErrors(page);
+    const consoleErrors = collectConsoleErrors(page);
 
     await page.goto('/');
 
@@ -40,14 +40,13 @@ test.describe('NSM Journey', () => {
       const body = document.querySelector('.nsm-body');
       if (body) body.scrollTop = body.scrollHeight;
     });
-    await page.waitForTimeout(300);
+    await page.waitForFunction(() => document.querySelectorAll('.nsm-question-card').length > 0);
 
     // Scroll back to top and click first visible card
     await page.evaluate(() => {
       const body = document.querySelector('.nsm-body');
       if (body) body.scrollTop = 0;
     });
-    await page.waitForTimeout(200);
 
     const firstCard = page.locator('.nsm-question-card').first();
     await firstCard.click();
@@ -60,6 +59,11 @@ test.describe('NSM Journey', () => {
     const healthIssues = await checkPageHealth(page);
     for (const hi of healthIssues) {
       issues.push(createIssue('nsm', device, 'step1', hi.type, hi.detail));
+    }
+
+    const critical = consoleErrors.filter(e => !e.includes('supabase') && !e.includes('net::ERR'));
+    if (critical.length > 0) {
+      issues.push(createIssue('nsm', device, 'console', 'js-error', critical.join(' | ')));
     }
 
     if (issues.length > 0) {

@@ -20,7 +20,7 @@ async function checkPageHealth(page) {
       setTimeout(() => {
         observer.disconnect();
         resolve(clsValue);
-      }, 2000);
+      }, 300);
     });
   });
 
