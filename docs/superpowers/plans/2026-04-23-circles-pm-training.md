@@ -37,25 +37,15 @@ Open it in a browser before implementing any UI. It shows three approved screens
 
 ---
 
-## Task 1: Supabase Table Schema ✅ COMPLETED
+## Prerequisites（人工完成，非 Agent Task）
 
-> **已完成（2026-04-24）：** `circles_sessions` 表已在 Supabase 建立完成，包含所有欄位（`current_phase`、`sim_step_index`、`updated_at` trigger、RLS policy、index）。執行 agent 跳過此 Task，直接從 Task 2 開始。
+> 以下為需要人工操作的基礎建設，在交給 agent 執行前由開發者完成。**✅ 已全部完成（2026-04-24）。**
 
-**Files:**
-- Create: `circles_plan/schema.sql`
+### Supabase `circles_sessions` 表 ✅
 
-> **Session persistence design:**
-> - `current_phase` tracks exactly where the user is (1 / 1.5 / 2 / 3).
-> - `sim_step_index` tracks which of the 7 CIRCLES steps is active in Simulation mode (0 = C1 … 6 = S).
-> - Both columns are written on every phase transition so a reload can restore full AppState from one DB row.
-> - Guest sessions use the same table — RLS allows rows with `guest_id IS NOT NULL` and `user_id IS NULL`.
-
-- [x] **Step 1: Write the SQL (new table)**
+已在 Supabase Dashboard 建立，schema 如下（供日後參考）：
 
 ```sql
--- ─────────────────────────────────────────────────────
--- Run in Supabase SQL Editor (FIRST TIME SETUP)
--- ─────────────────────────────────────────────────────
 create table circles_sessions (
   id                uuid        primary key default gen_random_uuid(),
   user_id           uuid        references auth.users(id) on delete cascade,
@@ -63,9 +53,9 @@ create table circles_sessions (
   question_id       text        not null,
   question_json     jsonb       not null,
   mode              text        not null check (mode in ('drill', 'simulation')),
-  drill_step        text,           -- 'C1'|'I'|'R'|'C2'|'L'|'E'|'S'; null for simulation
-  current_phase     numeric     not null default 1,   -- 1 | 1.5 | 2 | 3
-  sim_step_index    integer     not null default 0,   -- 0-6; meaningful only in simulation mode
+  drill_step        text,
+  current_phase     numeric     not null default 1,
+  sim_step_index    integer     not null default 0,
   framework_draft   jsonb       not null default '{}',
   gate_result       jsonb,
   conversation      jsonb       not null default '[]',
@@ -74,83 +64,19 @@ create table circles_sessions (
                                   check (status in ('active', 'completed')),
   created_at        timestamptz not null default now(),
   updated_at        timestamptz not null default now(),
-  -- at least one of user_id / guest_id must be set
   constraint circles_sessions_owner check (user_id is not null or guest_id is not null)
 );
-
--- auto-update updated_at
-create or replace function update_updated_at()
-returns trigger language plpgsql as $$
-begin
-  new.updated_at = now();
-  return new;
-end;
-$$;
-
-create trigger circles_sessions_updated_at
-  before update on circles_sessions
-  for each row execute function update_updated_at();
-
--- index for fast "my recent sessions" queries
-create index circles_sessions_user_id_idx   on circles_sessions (user_id,   updated_at desc);
-create index circles_sessions_guest_id_idx  on circles_sessions (guest_id,  updated_at desc);
-
-alter table circles_sessions enable row level security;
-
-create policy "users own their circles sessions"
-  on circles_sessions for all
-  using (
-    (auth.uid() is not null and user_id = auth.uid())
-    or
-    (auth.uid() is null and guest_id is not null)
-  );
+-- + update_updated_at trigger, user_id/guest_id indexes, RLS policy
 ```
 
-- [x] **Step 2: Migration SQL (if table already exists without new columns)**
-
-If you already ran an earlier version of this schema without `current_phase`, `sim_step_index`, or `updated_at`, run this migration instead:
-
-```sql
--- ─────────────────────────────────────────────────────
--- MIGRATION — add persistence columns to existing table
--- ─────────────────────────────────────────────────────
-alter table circles_sessions
-  add column if not exists current_phase   numeric  not null default 1,
-  add column if not exists sim_step_index  integer  not null default 0,
-  add column if not exists updated_at      timestamptz not null default now();
-
--- backfill updated_at from created_at for existing rows
-update circles_sessions set updated_at = created_at where updated_at = now();
-
--- trigger (idempotent via create or replace)
-create or replace function update_updated_at()
-returns trigger language plpgsql as $$
-begin
-  new.updated_at = now();
-  return new;
-end;
-$$;
-
-drop trigger if exists circles_sessions_updated_at on circles_sessions;
-create trigger circles_sessions_updated_at
-  before update on circles_sessions
-  for each row execute function update_updated_at();
-
-create index if not exists circles_sessions_user_id_idx  on circles_sessions (user_id,  updated_at desc);
-create index if not exists circles_sessions_guest_id_idx on circles_sessions (guest_id, updated_at desc);
-```
-
-- [x] **Step 3: Execute in Supabase**
-
-Go to Supabase Dashboard → SQL Editor → paste the appropriate block above → Run.
-
-- [x] **Step 4: Verify columns exist**
-
-In Supabase Table Editor, confirm `circles_sessions` has: `current_phase`, `sim_step_index`, `updated_at` alongside all original columns.
+**欄位設計說明：**
+- `current_phase`：紀錄用戶停在哪個 Phase（1 / 1.5 / 2 / 3），每次 phase 轉換寫入
+- `sim_step_index`：Simulation 模式下第幾個 CIRCLES 步驟（0–6），每次進入下一步寫入
+- Auth 和 Guest 共用同一張表，RLS 依 `user_id` / `guest_id` 區分
 
 ---
 
-## Task 2: Phase 1.5 AI Gate Prompt
+## Task 1: Phase 1.5 AI Gate Prompt
 
 **Files:**
 - Create: `prompts/circles-gate.js`
@@ -240,7 +166,7 @@ Expected: `OK`
 
 ---
 
-## Task 3: Phase 2 Dialogue Coach Prompt
+## Task 2: Phase 2 Dialogue Coach Prompt
 
 **Files:**
 - Create: `prompts/circles-coach.js`
@@ -347,7 +273,7 @@ Expected: `OK`
 
 ---
 
-## Task 4: Per-Step Evaluator Prompt
+## Task 3: Per-Step Evaluator Prompt
 
 **Files:**
 - Create: `prompts/circles-evaluator.js`
@@ -451,7 +377,7 @@ Expected: `OK`
 
 ---
 
-## Task 5: Auth User Route
+## Task 4: Auth User Route
 
 **Files:**
 - Create: `routes/circles-sessions.js`
@@ -644,7 +570,7 @@ Expected: `OK`
 
 ---
 
-## Task 6: Guest Route
+## Task 5: Guest Route
 
 **Files:**
 - Create: `routes/guest-circles-sessions.js`
@@ -815,7 +741,7 @@ Expected: `OK`
 
 ---
 
-## Task 7: Register Routes in server.js
+## Task 6: Register Routes in server.js
 
 **Files:**
 - Modify: `server.js`
@@ -840,7 +766,7 @@ Expected: Server starts without errors. Kill it after confirming.
 
 ---
 
-## Task 8: Question Generation Script
+## Task 7: Question Generation Script
 
 **Files:**
 - Create: `scripts/generate-circles-questions.js`
@@ -954,7 +880,7 @@ Expected: `100 questions, first: <SomeCompany>`
 
 ---
 
-## Task 9: Build circles-db.js from JSON
+## Task 8: Build circles-db.js from JSON
 
 **Files:**
 - Create: `public/circles-db.js`
@@ -987,7 +913,7 @@ git commit -m "feat: add CIRCLES 100-question bank with generation script"
 
 ---
 
-## Task 10: CSS — CIRCLES Light Theme Styles
+## Task 9: CSS — CIRCLES Light Theme Styles
 
 **Files:**
 - Modify: `public/style.css`
@@ -1622,7 +1548,7 @@ Expected: prints line count with no error.
 
 ---
 
-## Task 11: Update index.html
+## Task 10: Update index.html
 
 **Files:**
 - Modify: `public/index.html`
@@ -1644,7 +1570,7 @@ Expected: shows the new line.
 
 ---
 
-## Task 12: AppState Extensions + Constants
+## Task 11: AppState Extensions + Constants
 
 **Files:**
 - Modify: `public/app.js`
@@ -1782,7 +1708,7 @@ git commit -m "feat(circles): add AppState, constants, navigate/render hooks, ho
 
 ---
 
-## Task 12b: Session Persistence Helpers
+## Task 12: Session Persistence Helpers
 
 **Files:**
 - Modify: `public/app.js`
@@ -1886,7 +1812,7 @@ git commit -m "feat(circles): add saveCirclesProgress, loadCirclesSession, phase
 
 ---
 
-## Task 12c: Resume Cards in CirclesHome
+## Task 13: Resume Cards in CirclesHome
 
 **Files:**
 - Modify: `public/app.js`
@@ -2062,7 +1988,7 @@ git commit -m "feat(circles): add session resume cards in home + loadCirclesSess
 
 ---
 
-## Task 13: renderCirclesHome()
+## Task 14: renderCirclesHome()
 
 **Files:**
 - Modify: `public/app.js`
@@ -2173,7 +2099,7 @@ git commit -m "feat(circles): add renderCirclesHome + bindCirclesHome"
 
 ---
 
-## Task 14: renderCirclesPhase1()
+## Task 15: renderCirclesPhase1()
 
 **Files:**
 - Modify: `public/app.js`
@@ -2324,7 +2250,7 @@ git commit -m "feat(circles): add renderCirclesPhase1 + bindCirclesPhase1 with k
 
 ---
 
-## Task 15: renderCirclesGate()
+## Task 16: renderCirclesGate()
 
 **Files:**
 - Modify: `public/app.js`
@@ -2419,7 +2345,7 @@ git commit -m "feat(circles): add renderCirclesGate + bindCirclesGate"
 
 ---
 
-## Task 16: renderCirclesPhase2() — Chat
+## Task 17: renderCirclesPhase2() — Chat
 
 **Files:**
 - Modify: `public/app.js`
@@ -2651,7 +2577,7 @@ git commit -m "feat(circles): add renderCirclesPhase2, bindCirclesPhase2, sendCi
 
 ---
 
-## Task 17: renderCirclesStepScore()
+## Task 18: renderCirclesStepScore()
 
 **Files:**
 - Modify: `public/app.js`
@@ -2774,7 +2700,7 @@ git commit -m "feat(circles): add renderCirclesStepScore + bindCirclesStepScore"
 
 ---
 
-## Task 18: End-to-End Manual QA
+## Task 19: End-to-End Manual QA
 
 - [ ] **Step 1: Start the dev server**
 
@@ -2834,7 +2760,7 @@ git commit -m "fix(circles): manual QA fixes"
 
 ---
 
-## Task 19: Playwright 飽和稽核（嚴苛模式）
+## Task 20: Playwright 飽和稽核（嚴苛模式）
 
 > **稽核員意見為聖旨。所有問題必須在此 Task 內修完，不得帶缺陷進 main。**
 > 稽核標準對齊 `docs/superpowers/plans/2026-04-22-mobile-smoothness.md` Task 7。
