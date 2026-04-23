@@ -11,3 +11,5 @@ build/
 coverage/
 .worktrees/
 .tmp-chrome-profile/
+test-results.json
+playwright-report/

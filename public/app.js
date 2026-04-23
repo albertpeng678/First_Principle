@@ -1,5 +1,7 @@
 // ── 常數 ─────────────────────────────────────────
 var _adjustNsmKeyboardFn = null; // module-level to prevent listener leak
+var _nsmScrollFn = null;         // module-level NSM scroll listener ref
+var _nsmScrollParent = null;     // module-level NSM scroll parent ref (for cleanup)
 
 const SUPABASE_URL = 'https://klvlizxmvzfpvfgswmfk.supabase.co';
 const SUPABASE_ANON_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImtsdmxpenhtdnpmcHZmZ3N3bWZrIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NzY2NjcyNDIsImV4cCI6MjA5MjI0MzI0Mn0.KOF72gPKbllpYq7t3ny21HBEScUlj2diSl47oNyhJTY';
@@ -21,7 +23,6 @@ const AppState = {
   nsmStep: 1,
   nsmSession: null,
   nsmSelectedQuestion: null,
-  nsmStep1Questions: null,
   nsmNsmDraft: '',
   nsmBreakdownDraft: {},
   nsmVanityWarning: null,
@@ -154,10 +155,6 @@ function nsmRoute(path) {
   return base + (path ? '/' + path : '');
 }
 
-function getRandomNSMQuestions(count = 3) {
-  const shuffled = [...NSM_QUESTIONS].sort(() => Math.random() - 0.5);
-  return shuffled.slice(0, count);
-}
 
 function detectProductType(question) {
   const text = ((question.industry || '') + ' ' + (question.scenario || '') + ' ' + (question.company || '')).toLowerCase();
@@ -328,18 +325,34 @@ function renderNavbar() {
 }
 
 function openOffcanvas() {
-  document.getElementById('offcanvas').classList.add('open');
-  document.getElementById('offcanvas-overlay').classList.add('open');
+  const offcanvas = document.getElementById('offcanvas');
+  const overlay = document.getElementById('offcanvas-overlay');
+  // Set will-change before triggering animation
+  offcanvas.style.willChange = 'transform';
+  overlay.style.willChange = 'opacity';
+  offcanvas.classList.add('open');
+  overlay.classList.add('open');
+  // Reset will-change after transition completes
+  offcanvas.addEventListener('transitionend', () => { offcanvas.style.willChange = 'auto'; }, { once: true });
+  overlay.addEventListener('transitionend', () => { overlay.style.willChange = 'auto'; }, { once: true });
   document.body.style.overflow = 'hidden';
   loadOffcanvasSessions();
   const closeBtn = document.getElementById('btn-offcanvas-close');
   if (closeBtn) closeBtn.onclick = closeOffcanvas;
-  document.getElementById('offcanvas-overlay')?.addEventListener('click', closeOffcanvas, { once: true });
+  overlay.addEventListener('click', closeOffcanvas, { once: true });
 }
 
 function closeOffcanvas() {
-  document.getElementById('offcanvas').classList.remove('open');
-  document.getElementById('offcanvas-overlay').classList.remove('open');
+  const offcanvas = document.getElementById('offcanvas');
+  const overlay = document.getElementById('offcanvas-overlay');
+  // Set will-change before triggering animation
+  offcanvas.style.willChange = 'transform';
+  overlay.style.willChange = 'opacity';
+  offcanvas.classList.remove('open');
+  overlay.classList.remove('open');
+  // Reset will-change after transition completes
+  offcanvas.addEventListener('transitionend', () => { offcanvas.style.willChange = 'auto'; }, { once: true });
+  overlay.addEventListener('transitionend', () => { overlay.style.willChange = 'auto'; }, { once: true });
   document.body.style.overflow = '';
 }
 
@@ -652,7 +665,6 @@ function bindHome() {
       AppState.nsmStep = 1;
       AppState.nsmSession = null;
       AppState.nsmSelectedQuestion = null;
-      AppState.nsmStep1Questions = null;
       AppState.nsmNsmDraft = '';
       AppState.nsmBreakdownDraft = {};
       AppState.nsmVanityWarning = null;
@@ -836,16 +848,18 @@ function renderPractice() {
       </div>
       <div id="def-hint" class="essence-label" style="display:none;">完成 3 輪對話後即可編輯定義</div>
       ${showSubmit ? `
-      <div class="def-panel" id="def-panel">
-        <div style="flex:1;display:flex;flex-direction:column;gap:4px">
-          <div class="def-panel-header">
-            <label class="essence-label" style="font-weight:600">問題本質定義</label>
-            <button class="btn-icon" id="btn-close-def" aria-label="關閉定義面板" style="min-width:32px;min-height:32px;padding:4px"><i class="ph ph-x"></i></button>
+      <div class="def-panel-wrapper" id="def-panel-wrapper">
+        <div class="def-panel">
+          <div style="flex:1;display:flex;flex-direction:column;gap:4px">
+            <div class="def-panel-header">
+              <label class="essence-label" style="font-weight:600">問題本質定義</label>
+              <button class="btn-icon" id="btn-close-def" aria-label="關閉定義面板" style="min-width:32px;min-height:32px;padding:4px"><i class="ph ph-x"></i></button>
+            </div>
+            <textarea id="final-def" class="essence-textarea" rows="2"
+              placeholder="用中性問句描述問題本質…&#10;例：如何讓 [角色] 在 [情境] 下更有效率達成 [目標]？"></textarea>
           </div>
-          <textarea id="final-def" class="essence-textarea" rows="2"
-            placeholder="用中性問句描述問題本質…&#10;例：如何讓 [角色] 在 [情境] 下更有效率達成 [目標]？"></textarea>
+          <button class="btn btn-primary" id="btn-submit" style="flex-shrink:0;align-self:flex-end;min-height:44px">提交定義</button>
         </div>
-        <button class="btn btn-primary" id="btn-submit" style="flex-shrink:0;align-self:flex-end;min-height:44px">提交定義</button>
       </div>` : ''}
       <div class="chat-send-row">
         <textarea id="chat-input" class="chat-input" style="flex:1" rows="2"
@@ -881,8 +895,8 @@ function bindPractice() {
 
   document.getElementById('btn-hint')?.addEventListener('click', showHintCard);
   document.getElementById('btn-update-def')?.addEventListener('click', () => {
-    const panel = document.getElementById('def-panel');
-    if (!panel) {
+    const wrapper = document.getElementById('def-panel-wrapper');
+    if (!wrapper) {
       const hint = document.getElementById('def-hint');
       if (hint) {
         hint.style.display = 'block';
@@ -890,7 +904,7 @@ function bindPractice() {
       }
       return;
     }
-    const isOpen = panel.classList.toggle('open');
+    const isOpen = wrapper.classList.toggle('open');
     const caret = document.getElementById('def-caret');
     const btn = document.getElementById('btn-update-def');
     if (caret) caret.className = isOpen ? 'ph ph-caret-down' : 'ph ph-caret-up';
@@ -900,9 +914,9 @@ function bindPractice() {
 
   // Close def panel button
   document.getElementById('btn-close-def')?.addEventListener('click', () => {
-    const defPanel = document.getElementById('def-panel');
-    if (defPanel) {
-      defPanel.classList.remove('open');
+    const defPanelWrapper = document.getElementById('def-panel-wrapper');
+    if (defPanelWrapper) {
+      defPanelWrapper.classList.remove('open');
       document.getElementById('btn-update-def')?.classList.remove('active');
     }
   });
@@ -912,6 +926,8 @@ function bindPractice() {
     const bar = document.querySelector('.practice-bottom-bar');
     const chatArea = document.getElementById('chat-area');
     if (bar && chatArea) chatArea.style.paddingBottom = bar.offsetHeight + 'px';
+    // will-change active for the duration of practice (keyboard transforms)
+    if (bar) bar.style.willChange = 'transform';
   });
 
   // visualViewport keyboard adjustment — transform only, no layout-triggering bottom changes
@@ -1185,7 +1201,7 @@ function renderReport() {
         <span>${DIM_LABELS[d]}</span>
         <span style="color:${sc >= 14 ? 'var(--success)' : 'var(--warning)'}">${sc}/20</span>
       </div>
-      <div class="score-bar-track"><div class="score-bar-fill" style="width:${sc / 20 * 100}%"></div></div>
+      <div class="score-bar-track"><div class="score-bar-fill" style="transform:scaleX(${sc / 20})"></div></div>
     </div>`;
   }).join('');
 
@@ -1521,12 +1537,48 @@ function renderNSM() {
   }
 }
 
-function renderNSMStep1() {
-  if (!AppState.nsmStep1Questions) AppState.nsmStep1Questions = getRandomNSMQuestions(3);
-  const questions = AppState.nsmStep1Questions;
-  const selected = AppState.nsmSelectedQuestion;
+// Virtual scroll helper — builds the innerHTML for a single NSM question card.
+function createNSMQuestionCardHtml(q) {
+  var isSelected = AppState.nsmSelectedQuestion && AppState.nsmSelectedQuestion.id === q.id;
+  var productType = detectProductType(q);
+  var typeMeta = NSM_TYPE_META[productType];
 
-  const progressBar = `
+  var contextHtml = '';
+  if (isSelected) {
+    if (AppState.nsmContextLoading) {
+      contextHtml = `
+        <div class="nsm-context-preview loading">
+          <i class="ph ph-circle-notch" style="animation:spin 0.8s linear infinite"></i>
+          <span>分析情境中…</span>
+        </div>`;
+    } else if (AppState.nsmContext && AppState.nsmContextQuestionId === q.id) {
+      var ctx = AppState.nsmContext;
+      contextHtml = `
+        <div class="nsm-context-preview">
+          <div class="nsm-ctx-row"><span class="nsm-ctx-label"><i class="ph ph-buildings"></i> 商業模式</span><span class="nsm-ctx-val">${escHtml(ctx.businessModel)}</span></div>
+          <div class="nsm-ctx-row"><span class="nsm-ctx-label"><i class="ph ph-users"></i> 使用者</span><span class="nsm-ctx-val">${escHtml(ctx.userTypes)}</span></div>
+          <div class="nsm-ctx-row nsm-ctx-trap"><span class="nsm-ctx-label"><i class="ph ph-warning"></i> 常見陷阱</span><span class="nsm-ctx-val">${escHtml(ctx.commonTrap)}</span></div>
+          <div class="nsm-ctx-row nsm-ctx-angle"><span class="nsm-ctx-label"><i class="ph ph-lightbulb"></i> 破題切入</span><span class="nsm-ctx-val">${escHtml(ctx.thinkingAngle)}</span></div>
+        </div>`;
+    }
+  }
+
+  return `
+  <div class="nsm-question-card ${isSelected ? 'selected' : ''}" data-qid="${escHtml(q.id)}" role="button" tabindex="0" aria-pressed="${isSelected ? 'true' : 'false'}">
+    <div class="nsm-q-header">
+      <span class="nsm-company-badge">${escHtml(q.company)}</span>
+      <span class="nsm-industry">${escHtml(q.industry)}</span>
+      ${isSelected ? `<span class="nsm-type-badge" style="background:${typeMeta.color}18;color:${typeMeta.color};border:1px solid ${typeMeta.color}38"><i class="ph ${typeMeta.icon}"></i> ${typeMeta.label}</span>` : ''}
+    </div>
+    <p class="nsm-scenario">${escHtml(q.scenario)}</p>
+    ${contextHtml}
+  </div>`;
+}
+
+function renderNSMStep1() {
+  var selected = AppState.nsmSelectedQuestion;
+
+  var progressBar = `
     <div class="nsm-progress">
       <div class="nsm-progress-step active">1</div>
       <div class="nsm-progress-line"></div>
@@ -1537,54 +1589,19 @@ function renderNSMStep1() {
       <div class="nsm-progress-step">4</div>
     </div>`;
 
-  const cards = questions.map(q => {
-    const isSelected = selected && selected.id === q.id;
-    const productType = detectProductType(q);
-    const typeMeta = NSM_TYPE_META[productType];
-
-    let contextHtml = '';
-    if (isSelected) {
-      if (AppState.nsmContextLoading) {
-        contextHtml = `
-          <div class="nsm-context-preview loading">
-            <i class="ph ph-circle-notch" style="animation:spin 0.8s linear infinite"></i>
-            <span>分析情境中…</span>
-          </div>`;
-      } else if (AppState.nsmContext && AppState.nsmContextQuestionId === q.id) {
-        const ctx = AppState.nsmContext;
-        contextHtml = `
-          <div class="nsm-context-preview">
-            <div class="nsm-ctx-row"><span class="nsm-ctx-label"><i class="ph ph-buildings"></i> 商業模式</span><span class="nsm-ctx-val">${escHtml(ctx.businessModel)}</span></div>
-            <div class="nsm-ctx-row"><span class="nsm-ctx-label"><i class="ph ph-users"></i> 使用者</span><span class="nsm-ctx-val">${escHtml(ctx.userTypes)}</span></div>
-            <div class="nsm-ctx-row nsm-ctx-trap"><span class="nsm-ctx-label"><i class="ph ph-warning"></i> 常見陷阱</span><span class="nsm-ctx-val">${escHtml(ctx.commonTrap)}</span></div>
-            <div class="nsm-ctx-row nsm-ctx-angle"><span class="nsm-ctx-label"><i class="ph ph-lightbulb"></i> 破題切入</span><span class="nsm-ctx-val">${escHtml(ctx.thinkingAngle)}</span></div>
-          </div>`;
-      }
-    }
-
-    return `
-    <div class="nsm-question-card ${isSelected ? 'selected' : ''}" data-qid="${q.id}" role="button" tabindex="0" aria-pressed="${isSelected ? 'true' : 'false'}">
-      <div class="nsm-q-header">
-        <span class="nsm-company-badge">${escHtml(q.company)}</span>
-        <span class="nsm-industry">${escHtml(q.industry)}</span>
-        ${isSelected ? `<span class="nsm-type-badge" style="background:${typeMeta.color}18;color:${typeMeta.color};border:1px solid ${typeMeta.color}38"><i class="ph ${typeMeta.icon}"></i> ${typeMeta.label}</span>` : ''}
-      </div>
-      <p class="nsm-scenario">${escHtml(q.scenario)}</p>
-      ${contextHtml}
-    </div>`;
-  }).join('');
-
+  // The question list is left empty here; virtual scrolling is set up
+  // imperatively in bindNSM() after this HTML is inserted into the DOM.
   return `
     <div class="nsm-view">
       <div class="nsm-navbar">
         <button class="btn-icon" id="btn-nsm-back" aria-label="返回"><i class="ph ph-arrow-left"></i></button>
         <span class="nsm-title">選擇情境</span>
-        <button class="btn-icon" id="btn-nsm-reshuffle" aria-label="重新抽題" title="換一批題目"><i class="ph ph-shuffle"></i></button>
+        <div class="nsm-navbar-spacer"></div>
       </div>
       ${progressBar}
       <div class="nsm-body">
         <p class="nsm-instruction">選擇一個企業情境，開始定義北極星指標</p>
-        <div class="nsm-question-list">${cards}</div>
+        <div class="nsm-question-list"></div>
         <div style="height:80px"></div>
       </div>
       <div class="nsm-fixed-bottom">
@@ -1594,6 +1611,137 @@ function renderNSMStep1() {
         </button>
       </div>
     </div>`;
+}
+
+// Sets up lightweight virtual scrolling on the Step 1 question list.
+// Called from bindNSM() after the Step 1 HTML is in the DOM.
+function initNSMStep1VirtualScroll() {
+  var BUFFER = 5;
+  var questions = NSM_QUESTIONS;
+
+  var scrollParent = document.querySelector('.nsm-body');
+  var containerEl = document.querySelector('.nsm-question-list');
+  if (!scrollParent || !containerEl) return;
+
+  // C2 (Method B): Measure actual card height from a dummy render.
+  // Avoids hardcoding a value that drifts from CSS. Only measures the
+  // unselected state; the selected/expanded card is acceptable as an outlier.
+  var ITEM_HEIGHT = 80; // fallback
+  var dummy = document.createElement('div');
+  dummy.innerHTML = createNSMQuestionCardHtml(questions[0]);
+  dummy.style.cssText = 'visibility:hidden;position:absolute;width:100%;pointer-events:none';
+  containerEl.appendChild(dummy);
+  var measured = dummy.firstElementChild ? dummy.firstElementChild.offsetHeight : 0;
+  if (measured > 0) ITEM_HEIGHT = measured;
+  containerEl.innerHTML = '';
+
+  // Make the container occupy the full virtual height so scrollbar is correct.
+  containerEl.style.position = 'relative';
+  containerEl.style.height = (questions.length * ITEM_HEIGHT) + 'px';
+
+  // I1: memoize last rendered range to skip redundant DOM rebuilds.
+  var _lastStart = -1, _lastEnd = -1;
+
+  function bindCardEvents(cardEl) {
+    cardEl.addEventListener('click', async function() {
+      var q = NSM_QUESTIONS.find(function(item) { return item.id === cardEl.dataset.qid; }) || null;
+      AppState.nsmSelectedQuestion = q;
+
+      if (q && AppState.nsmContextQuestionId !== q.id) {
+        AppState.nsmContext = null;
+        AppState.nsmContextQuestionId = null;
+      }
+
+      // Re-render the virtual scroll frame in place (avoids full page re-render).
+      // Force re-render by resetting memo (selected state changed card height).
+      _lastStart = -1; _lastEnd = -1;
+      renderVisible(scrollParent.scrollTop, scrollParent.clientHeight);
+
+      // Update next button state.
+      var btn = document.getElementById('btn-nsm-step1-next');
+      if (btn) btn.disabled = !AppState.nsmSelectedQuestion;
+
+      if (q && !AppState.nsmContext && !AppState.nsmContextLoading) {
+        AppState.nsmContextLoading = true;
+        AppState.nsmContextQuestionId = q.id;
+        _lastStart = -1; _lastEnd = -1;
+        renderVisible(scrollParent.scrollTop, scrollParent.clientHeight);
+        try {
+          var res = await fetch('/api/nsm-context', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({ questionJson: q })
+          });
+          if (res.ok) AppState.nsmContext = await res.json();
+        } catch (_) {}
+        AppState.nsmContextLoading = false;
+        // C1 async guard: abort if the container is no longer in the DOM.
+        if (!document.contains(containerEl)) return;
+        if (AppState.nsmSelectedQuestion && AppState.nsmSelectedQuestion.id === q.id) {
+          _lastStart = -1; _lastEnd = -1;
+          renderVisible(scrollParent.scrollTop, scrollParent.clientHeight);
+        }
+      }
+    });
+
+    cardEl.addEventListener('keydown', function(e) {
+      if (e.key === 'Enter' || e.key === ' ') { e.preventDefault(); cardEl.click(); }
+    });
+  }
+
+  function renderVisible(scrollTop, containerHeight) {
+    var start = Math.max(0, Math.floor(scrollTop / ITEM_HEIGHT) - BUFFER);
+    var end = Math.min(questions.length, Math.floor((scrollTop + containerHeight) / ITEM_HEIGHT) + 1 + BUFFER);
+
+    // I1: skip rebuild when the visible range hasn't changed.
+    if (start === _lastStart && end === _lastEnd) return;
+    _lastStart = start; _lastEnd = end;
+
+    // Build fragment: top spacer + visible cards + bottom spacer.
+    var frag = document.createDocumentFragment();
+
+    var topSpacer = document.createElement('div');
+    topSpacer.style.height = (start * ITEM_HEIGHT) + 'px';
+    frag.appendChild(topSpacer);
+
+    for (var i = start; i < end; i++) {
+      var q = questions[i];
+      var wrapper = document.createElement('div');
+      wrapper.innerHTML = createNSMQuestionCardHtml(q);
+      var cardEl = wrapper.firstElementChild;
+      bindCardEvents(cardEl);
+      frag.appendChild(cardEl);
+    }
+
+    var bottomSpacer = document.createElement('div');
+    bottomSpacer.style.height = ((questions.length - end) * ITEM_HEIGHT) + 'px';
+    frag.appendChild(bottomSpacer);
+
+    containerEl.innerHTML = '';
+    containerEl.appendChild(frag);
+  }
+
+  // Initial render.
+  renderVisible(scrollParent.scrollTop, scrollParent.clientHeight);
+
+  // C1: remove any stale scroll listener before registering a new one.
+  if (_nsmScrollFn && _nsmScrollParent) {
+    _nsmScrollParent.removeEventListener('scroll', _nsmScrollFn);
+    _nsmScrollFn = null;
+    _nsmScrollParent = null;
+  }
+  var currentScrollParent = scrollParent; // capture for async closure safety
+  _nsmScrollParent = scrollParent;        // store ref for future cleanup
+  _nsmScrollFn = function() {
+    // C1 guard: if scrollParent has been replaced by a full re-render, bail.
+    if (!document.contains(currentScrollParent)) {
+      _nsmScrollFn = null;
+      _nsmScrollParent = null;
+      return;
+    }
+    renderVisible(currentScrollParent.scrollTop, currentScrollParent.clientHeight);
+  };
+  scrollParent.addEventListener('scroll', _nsmScrollFn, { passive: true });
 }
 
 function renderNSMStep2() {
@@ -1625,7 +1773,7 @@ function renderNSMStep2() {
       <div class="nsm-navbar">
         <button class="btn-icon" id="btn-nsm-back" aria-label="返回上一步"><i class="ph ph-arrow-left"></i></button>
         <span class="nsm-title">定義 NSM</span>
-        <div style="width:44px"></div>
+        <div class="nsm-navbar-spacer"></div>
       </div>
       <div class="nsm-progress">
         <div class="nsm-progress-step done">1</div>
@@ -1710,7 +1858,7 @@ function renderNSMStep3() {
       <div class="nsm-navbar">
         <button class="btn-icon" id="btn-nsm-back" aria-label="返回上一步"><i class="ph ph-arrow-left"></i></button>
         <span class="nsm-title">拆解輸入指標</span>
-        <div style="width:44px"></div>
+        <div class="nsm-navbar-spacer"></div>
       </div>
       <div class="nsm-progress">
         <div class="nsm-progress-step done">1</div>
@@ -1756,7 +1904,7 @@ function renderNSMStep4() {
       <div class="nsm-navbar">
         <button class="btn-icon" id="btn-nsm-back" aria-label="回首頁"><i class="ph ph-house"></i></button>
         <span class="nsm-title">NSM 報告</span>
-        <div style="width:44px"></div>
+        <div class="nsm-navbar-spacer"></div>
       </div>
       <div class="nsm-loading-state">
         <i class="ph ph-circle-notch"></i>
@@ -1845,7 +1993,7 @@ function renderNSMStep4() {
       <div class="nsm-navbar">
         <button class="btn-icon" id="btn-nsm-back" aria-label="回首頁"><i class="ph ph-house"></i></button>
         <span class="nsm-title">NSM 報告</span>
-        <div style="width:44px"></div>
+        <div class="nsm-navbar-spacer"></div>
       </div>
       <div class="nsm-score-summary">
         <div class="nsm-total-score">${total}</div>
@@ -1871,52 +2019,11 @@ function bindNSM() {
     else { AppState.nsmStep--; render(); }
   });
 
-  // Step 1: reshuffle
-  document.getElementById('btn-nsm-reshuffle')?.addEventListener('click', () => {
-    AppState.nsmStep1Questions = getRandomNSMQuestions(3);
-    AppState.nsmSelectedQuestion = null;
-    render();
-  });
-
-  // Step 1: question selection
-  document.querySelectorAll('.nsm-question-card[data-qid]').forEach(function(card) {
-    card.addEventListener('click', async function() {
-      var q = NSM_QUESTIONS.find(function(q) { return q.id === card.dataset.qid; }) || null;
-      AppState.nsmSelectedQuestion = q;
-
-      if (q && AppState.nsmContextQuestionId !== q.id) {
-        AppState.nsmContext = null;
-        AppState.nsmContextQuestionId = null;
-      }
-
-      render();
-
-      if (q && !AppState.nsmContext && !AppState.nsmContextLoading) {
-        AppState.nsmContextLoading = true;
-        AppState.nsmContextQuestionId = q.id;
-        render();
-        try {
-          var res = await fetch('/api/nsm-context', {
-            method: 'POST',
-            headers: { 'Content-Type': 'application/json' },
-            body: JSON.stringify({ questionJson: q })
-          });
-          if (res.ok) AppState.nsmContext = await res.json();
-        } catch (_) {}
-        AppState.nsmContextLoading = false;
-        if (AppState.nsmSelectedQuestion && AppState.nsmSelectedQuestion.id === q.id) {
-          render();
-        }
-      }
-    });
-  });
-
-  // Step 1: keyboard support for question cards
-  document.querySelectorAll('.nsm-question-card[data-qid]').forEach(function(card) {
-    card.addEventListener('keydown', function(e) {
-      if (e.key === 'Enter' || e.key === ' ') { e.preventDefault(); card.click(); }
-    });
-  });
+  // Step 1: virtual scroll initialisation (card click/keyboard events are
+  // attached inside initNSMStep1VirtualScroll's bindCardEvents helper).
+  if (AppState.nsmStep === 1) {
+    initNSMStep1VirtualScroll();
+  }
 
   // Step 1: next
   var btnStep1Next = document.getElementById('btn-nsm-step1-next');
@@ -2174,7 +2281,6 @@ function bindNSM() {
     AppState.nsmStep = 1;
     AppState.nsmSession = null;
     AppState.nsmSelectedQuestion = null;
-    AppState.nsmStep1Questions = null;
     AppState.nsmNsmDraft = '';
     AppState.nsmBreakdownDraft = {};
     AppState.nsmVanityWarning = null;
@@ -2206,6 +2312,8 @@ function bindNSM() {
       });
     };
   }());
+  var nsmBar = document.querySelector('.nsm-fixed-bottom');
+  if (nsmBar) nsmBar.style.willChange = 'transform';
   if (window.visualViewport) {
     window.visualViewport.addEventListener('resize', _adjustNsmKeyboardFn);
     window.visualViewport.addEventListener('scroll', _adjustNsmKeyboardFn);
