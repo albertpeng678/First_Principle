@@ -9,3 +9,5 @@ yarn-debug.log*
 dist/
 build/
 coverage/
+.worktrees/
+.tmp-chrome-profile/
