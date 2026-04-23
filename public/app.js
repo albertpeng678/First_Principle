@@ -2226,6 +2226,8 @@ function bindNSM() {
       });
     };
   }());
+  var nsmBar = document.querySelector('.nsm-fixed-bottom');
+  if (nsmBar) nsmBar.style.willChange = 'transform';
   if (window.visualViewport) {
     window.visualViewport.addEventListener('resize', _adjustNsmKeyboardFn);
     window.visualViewport.addEventListener('scroll', _adjustNsmKeyboardFn);

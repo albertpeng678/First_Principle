@@ -398,7 +398,6 @@ body[data-view="nsm"] .navbar { margin-bottom: 0; }
 .score-bar-fill {
   height: 100%;
   background: var(--accent);
-  border-radius: 4px;
   width: 100%;
   transform-origin: left center;
   transform: scaleX(0);
