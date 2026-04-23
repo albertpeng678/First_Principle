@@ -1,0 +1,94 @@
+<h2>PM 訓練框架：重構方向</h2>
+<p class="subtitle">基於 50 篇英中主流文章分析，現有系統只訓練了「問題發現」半段。以下三個方向請選擇。</p>
+
+<div style="background: rgba(255,200,100,0.12); border: 1px solid rgba(255,200,100,0.4); border-radius: 10px; padding: 14px 18px; margin-bottom: 24px;">
+  <strong style="color: #f5a623;">⚠ 診斷出的核心缺陷</strong>
+  <p style="margin: 6px 0 0; font-size: 0.9rem; opacity: 0.85;">現有 PM 訪談練習只訓練「問題重新定義（Reframe）→ 多輪追問 → 本質定義」，等於只訓練了 CIRCLES 7 步中的前 2 步。學員練完一輪後仍不知道如何提出解決方案、排優先級、或推薦策略——最受面試官考察的能力都沒被涵蓋。</p>
+</div>
+
+<div class="options">
+
+  <div class="option" data-choice="A" onclick="toggleSelect(this)">
+    <div class="letter">A</div>
+    <div class="content">
+      <h3>全程 CIRCLES 結構化訓練</h3>
+      <p style="font-size:0.85rem; opacity:0.7; margin:4px 0 10px;">最主流｜覆蓋面試完整流程｜英中社群共識第一</p>
+      <div style="display:flex; flex-wrap:wrap; gap:6px; margin-bottom:10px;">
+        <span style="background:rgba(100,180,255,0.15);border:1px solid rgba(100,180,255,0.3);border-radius:20px;padding:2px 10px;font-size:0.8rem;">C 澄清情境</span>
+        <span style="background:rgba(100,180,255,0.15);border:1px solid rgba(100,180,255,0.3);border-radius:20px;padding:2px 10px;font-size:0.8rem;">I 定義用戶</span>
+        <span style="background:rgba(100,180,255,0.15);border:1px solid rgba(100,180,255,0.3);border-radius:20px;padding:2px 10px;font-size:0.8rem;">R 發掘需求</span>
+        <span style="background:rgba(100,180,255,0.15);border:1px solid rgba(100,180,255,0.3);border-radius:20px;padding:2px 10px;font-size:0.8rem;">C 優先排序</span>
+        <span style="background:rgba(100,180,255,0.15);border:1px solid rgba(100,180,255,0.3);border-radius:20px;padding:2px 10px;font-size:0.8rem;">L 提出方案</span>
+        <span style="background:rgba(100,180,255,0.15);border:1px solid rgba(100,180,255,0.3);border-radius:20px;padding:2px 10px;font-size:0.8rem;">E 評估取捨</span>
+        <span style="background:rgba(100,180,255,0.15);border:1px solid rgba(100,180,255,0.3);border-radius:20px;padding:2px 10px;font-size:0.8rem;">S 總結推薦</span>
+      </div>
+      <div class="pros-cons">
+        <div class="pros"><h4>優勢</h4><ul>
+          <li>與 Exponent、Product School 等頂尖平台完全一致</li>
+          <li>一個完整 session = 一場完整面試練習</li>
+          <li>每步驟有明確的「引導問題」和「AI 評分標準」</li>
+          <li>NSM 工作坊可整合為 Step S 的「成功指標」模組</li>
+        </ul></div>
+        <div class="cons"><h4>代價</h4><ul>
+          <li>每場訓練更長（預計 20–35 分鐘完整流程）</li>
+          <li>需要重寫 AI Prompt 和後端 session 邏輯</li>
+        </ul></div>
+      </div>
+    </div>
+  </div>
+
+  <div class="option" data-choice="B" onclick="toggleSelect(this)">
+    <div class="letter">B</div>
+    <div class="content">
+      <h3>雙鑽石分段訓練（Double Diamond）</h3>
+      <p style="font-size:0.85rem; opacity:0.7; margin:4px 0 10px;">英國設計委員會框架｜強調問題 vs 解法同樣嚴謹</p>
+      <div style="display:flex; flex-wrap:wrap; gap:6px; margin-bottom:10px;">
+        <span style="background:rgba(180,100,255,0.15);border:1px solid rgba(180,100,255,0.3);border-radius:20px;padding:2px 10px;font-size:0.8rem;">💎 鑽石一：問題探索</span>
+        <span style="background:rgba(180,100,255,0.15);border:1px solid rgba(180,100,255,0.3);border-radius:20px;padding:2px 10px;font-size:0.8rem;">→ 問題定義</span>
+        <span style="background:rgba(180,100,255,0.15);border:1px solid rgba(180,100,255,0.3);border-radius:20px;padding:2px 10px;font-size:0.8rem;">💎 鑽石二：方案探索</span>
+        <span style="background:rgba(180,100,255,0.15);border:1px solid rgba(180,100,255,0.3);border-radius:20px;padding:2px 10px;font-size:0.8rem;">→ 方案實施</span>
+      </div>
+      <div class="pros-cons">
+        <div class="pros"><h4>優勢</h4><ul>
+          <li>保留現有「問題深探」的強度（鑽石一 ≈ 現有訓練）</li>
+          <li>新增「方案設計」鑽石，視覺上對稱直觀</li>
+          <li>「發散→收斂」思維培養清晰</li>
+        </ul></div>
+        <div class="cons"><h4>代價</h4><ul>
+          <li>在 PM 面試訓練中比 CIRCLES 少見</li>
+          <li>4 個階段名稱不如 CIRCLES 的記憶點強</li>
+        </ul></div>
+      </div>
+    </div>
+  </div>
+
+  <div class="option" data-choice="C" onclick="toggleSelect(this)">
+    <div class="letter">C</div>
+    <div class="content">
+      <h3>JTBD 核心 × 5 能力維度模組</h3>
+      <p style="font-size:0.85rem; opacity:0.7; margin:4px 0 10px;">以 Jobs-to-Be-Done 為理論基礎，拆分 5 個獨立訓練模組</p>
+      <div style="display:flex; flex-wrap:wrap; gap:6px; margin-bottom:10px;">
+        <span style="background:rgba(100,220,150,0.15);border:1px solid rgba(100,220,150,0.3);border-radius:20px;padding:2px 10px;font-size:0.8rem;">用戶同理心</span>
+        <span style="background:rgba(100,220,150,0.15);border:1px solid rgba(100,220,150,0.3);border-radius:20px;padding:2px 10px;font-size:0.8rem;">問題定義</span>
+        <span style="background:rgba(100,220,150,0.15);border:1px solid rgba(100,220,150,0.3);border-radius:20px;padding:2px 10px;font-size:0.8rem;">結構化思考</span>
+        <span style="background:rgba(100,220,150,0.15);border:1px solid rgba(100,220,150,0.3);border-radius:20px;padding:2px 10px;font-size:0.8rem;">方案設計</span>
+        <span style="background:rgba(100,220,150,0.15);border:1px solid rgba(100,220,150,0.3);border-radius:20px;padding:2px 10px;font-size:0.8rem;">數據決策</span>
+      </div>
+      <div class="pros-cons">
+        <div class="pros"><h4>優勢</h4><ul>
+          <li>學員可針對弱項模組獨立練習</li>
+          <li>JTBD 理論深度最強，符合 Reforge/SVPG 路線</li>
+          <li>每個模組可設計自己的評分體系</li>
+        </ul></div>
+        <div class="cons"><h4>代價</h4><ul>
+          <li>模組獨立練習難以模擬「一場完整面試」的壓力</li>
+          <li>開發工作量最大（5 套 AI Prompt + 評分邏輯）</li>
+          <li>用戶需要更高的自主學習動力</li>
+        </ul></div>
+      </div>
+    </div>
+  </div>
+
+</div>
+
+<p style="margin-top: 20px; font-size: 0.85rem; opacity: 0.6; text-align: center;">我的推薦：<strong>Option A（CIRCLES）</strong>——英中 PM 社群一致認可，且可將現有 NSM 工作坊整合為最後一步的「成功指標定義」。請選擇後在 terminal 告訴我。</p>

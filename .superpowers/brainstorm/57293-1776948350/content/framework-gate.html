@@ -1,0 +1,88 @@
+<h2>解法：Phase 1.5 — AI 框架審核關卡</h2>
+<p class="subtitle">學員填完 Phase 1 定向框架後，AI 先審核方向正確性，才解鎖對話練習</p>
+
+<div class="mockup" style="max-width: 680px; margin: 0 auto;">
+  <div class="mockup-header">Step C：澄清情境 — AI 框架審核中</div>
+  <div class="mockup-body" style="padding: 0; overflow: hidden;">
+
+    <!-- 學員的 Phase 1 回答摘要 -->
+    <div style="padding: 14px 18px; border-bottom: 1px solid rgba(255,255,255,0.07); background: rgba(255,255,255,0.03);">
+      <div style="font-size: 0.72rem; opacity: 0.45; text-transform: uppercase; letter-spacing: 0.06em; margin-bottom: 8px;">你的框架定義（Phase 1）</div>
+      <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 8px;">
+        <div style="background:rgba(255,255,255,0.05);border-radius:6px;padding:8px;">
+          <div style="font-size:0.7rem;opacity:0.45;">📍 問題範圍</div>
+          <div style="font-size:0.84rem;margin-top:2px;">全平台（iOS + Android + Web）</div>
+        </div>
+        <div style="background:rgba(255,255,255,0.05);border-radius:6px;padding:8px;">
+          <div style="font-size:0.7rem;opacity:0.45;">📅 時間範圍</div>
+          <div style="font-size:0.84rem;margin-top:2px;">過去 30 天</div>
+        </div>
+        <div style="background:rgba(255,80,80,0.1);border:1px solid rgba(255,80,80,0.3);border-radius:6px;padding:8px;">
+          <div style="font-size:0.7rem;opacity:0.55;">🎯 業務影響</div>
+          <div style="font-size:0.84rem;margin-top:2px;">用戶數下降 <span style="color:#ff6b6b; font-size:0.72rem;">⚠</span></div>
+        </div>
+        <div style="background:rgba(255,200,80,0.1);border:1px solid rgba(255,200,80,0.3);border-radius:6px;padding:8px;">
+          <div style="font-size:0.7rem;opacity:0.55;">✅ 確認假設</div>
+          <div style="font-size:0.84rem;margin-top:2px;">排除節假日 <span style="color:#f5a623; font-size:0.72rem;">△</span></div>
+        </div>
+      </div>
+    </div>
+
+    <!-- AI 審核結果 -->
+    <div style="padding: 16px 18px;">
+      <div style="font-size: 0.72rem; opacity: 0.45; text-transform: uppercase; letter-spacing: 0.06em; margin-bottom: 12px;">🤖 教練框架審核</div>
+
+      <!-- 嚴重問題：方向錯誤 -->
+      <div style="background: rgba(255,80,80,0.08); border: 1px solid rgba(255,80,80,0.3); border-radius: 10px; padding: 12px 14px; margin-bottom: 10px;">
+        <div style="display:flex;align-items:center;gap:8px;margin-bottom:6px;">
+          <span style="background:rgba(255,80,80,0.2);border-radius:50%;width:20px;height:20px;display:inline-flex;align-items:center;justify-content:center;font-size:0.75rem;">✗</span>
+          <strong style="font-size:0.88rem;color:#ff8080;">業務影響方向需修正</strong>
+        </div>
+        <p style="font-size:0.82rem;margin:0 0 8px;opacity:0.85;">你填的「用戶數下降」是<strong>假設的因果</strong>，不是播放次數下滑直接造成的業務影響。播放次數下滑的直接影響應該是：<strong>廣告曝光收入減少</strong>（對免費用戶）和<strong>推薦演算法訓練訊號變弱</strong>（影響留存）。</p>
+        <div style="background:rgba(255,255,255,0.05);border-radius:6px;padding:8px;font-size:0.8rem;">
+          <div style="opacity:0.5;font-size:0.72rem;margin-bottom:3px;">建議改為：</div>
+          廣告曝光收入下滑 + 個性化推薦品質降低 → 留存率下降風險
+        </div>
+        <button class="mock-button" style="margin-top:10px;font-size:0.8rem;background:rgba(255,80,80,0.15);border-color:rgba(255,80,80,0.3);">套用建議修正</button>
+      </div>
+
+      <!-- 輕微問題：可繼續但建議補充 -->
+      <div style="background: rgba(255,200,80,0.08); border: 1px solid rgba(255,200,80,0.3); border-radius: 10px; padding: 12px 14px; margin-bottom: 10px;">
+        <div style="display:flex;align-items:center;gap:8px;margin-bottom:6px;">
+          <span style="background:rgba(255,200,80,0.2);border-radius:50%;width:20px;height:20px;display:inline-flex;align-items:center;justify-content:center;font-size:0.75rem;">△</span>
+          <strong style="font-size:0.88rem;color:#f5c542;">假設確認不完整（不影響方向）</strong>
+        </div>
+        <p style="font-size:0.82rem;margin:0;opacity:0.85;">節假日已排除，但還應確認：<strong>有沒有近期產品更新</strong>（如 UI 改版、推薦算法調整）或<strong>競品大促事件</strong>。可以在對話中補充探索。</p>
+      </div>
+
+      <!-- 正確的部分 -->
+      <div style="background: rgba(80,200,120,0.08); border: 1px solid rgba(80,200,120,0.3); border-radius: 10px; padding: 12px 14px; margin-bottom: 16px;">
+        <div style="display:flex;align-items:center;gap:8px;margin-bottom:4px;">
+          <span style="background:rgba(80,200,120,0.2);border-radius:50%;width:20px;height:20px;display:inline-flex;align-items:center;justify-content:center;font-size:0.75rem;">✓</span>
+          <strong style="font-size:0.88rem;color:#6ee09a;">問題範圍 + 時間範圍定義良好</strong>
+        </div>
+        <p style="font-size:0.82rem;margin:0;opacity:0.85;">全平台 + 30 天是合理的起始範圍，方向正確。</p>
+      </div>
+
+      <!-- 底部操作 -->
+      <div style="border-top: 1px solid rgba(255,255,255,0.07); padding-top: 14px; display:flex; gap:10px; flex-wrap:wrap;">
+        <button class="mock-button" style="flex:1;font-size:0.85rem;background:rgba(100,180,255,0.15);">套用所有修正 → 進入對話練習</button>
+        <button class="mock-button" style="font-size:0.85rem;background:transparent;opacity:0.5;border-color:rgba(255,255,255,0.2);">保留我的版本（自行承擔風險）</button>
+      </div>
+      <div style="font-size:0.72rem;opacity:0.4;margin-top:8px;text-align:center;">修正業務影響定向後，對話練習才能在正確軌道上深探</div>
+    </div>
+
+  </div>
+</div>
+
+<div style="max-width:680px;margin:18px auto 0;padding:14px 18px;background:rgba(255,255,255,0.04);border-radius:10px;font-size:0.84rem;">
+  <strong>這個機制解決的問題：</strong>
+  <ul style="margin:8px 0 0;opacity:0.8;line-height:1.9;">
+    <li>🔴 方向性錯誤 → <strong>強制修正</strong>（附教學說明），套用後才解鎖 Phase 2</li>
+    <li>🟡 不完整但不致命 → <strong>警告 + 建議</strong>，可帶著問題繼續在對話中補充</li>
+    <li>🟢 正確的部分 → <strong>正向確認</strong>，強化學員的信心</li>
+    <li>學員也可「保留自己版本 + 承擔風險」進入對話，但教練在對話中會針對性追問暴露問題</li>
+  </ul>
+</div>
+
+<p style="max-width:680px;margin:14px auto 0;font-size:0.83rem;opacity:0.5;text-align:center;">這個審核關卡 = 你擔心的問題的根本解法。請在 terminal 告訴我這樣可以嗎？</p>
