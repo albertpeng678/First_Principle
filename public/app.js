@@ -1,5 +1,6 @@
 // ── 常數 ─────────────────────────────────────────
 var _adjustNsmKeyboardFn = null; // module-level to prevent listener leak
+var _nsmScrollFn = null;         // module-level NSM scroll listener ref
 
 const SUPABASE_URL = 'https://klvlizxmvzfpvfgswmfk.supabase.co';
 const SUPABASE_ANON_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImtsdmxpenhtdnpmcHZmZ3N3bWZrIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NzY2NjcyNDIsImV4cCI6MjA5MjI0MzI0Mn0.KOF72gPKbllpYq7t3ny21HBEScUlj2diSl47oNyhJTY';
@@ -21,7 +22,6 @@ const AppState = {
   nsmStep: 1,
   nsmSession: null,
   nsmSelectedQuestion: null,
-  nsmStep1Questions: null,
   nsmNsmDraft: '',
   nsmBreakdownDraft: {},
   nsmVanityWarning: null,
@@ -154,10 +154,6 @@ function nsmRoute(path) {
   return base + (path ? '/' + path : '');
 }
 
-function getRandomNSMQuestions(count = 3) {
-  const shuffled = [...NSM_QUESTIONS].sort(() => Math.random() - 0.5);
-  return shuffled.slice(0, count);
-}
 
 function detectProductType(question) {
   const text = ((question.industry || '') + ' ' + (question.scenario || '') + ' ' + (question.company || '')).toLowerCase();
@@ -668,7 +664,6 @@ function bindHome() {
       AppState.nsmStep = 1;
       AppState.nsmSession = null;
       AppState.nsmSelectedQuestion = null;
-      AppState.nsmStep1Questions = null;
       AppState.nsmNsmDraft = '';
       AppState.nsmBreakdownDraft = {};
       AppState.nsmVanityWarning = null;
@@ -1542,7 +1537,6 @@ function renderNSM() {
 }
 
 // Virtual scroll helper — builds the innerHTML for a single NSM question card.
-// Used by both the legacy path and the virtual-scroll renderVisible loop.
 function createNSMQuestionCardHtml(q) {
   var isSelected = AppState.nsmSelectedQuestion && AppState.nsmSelectedQuestion.id === q.id;
   var productType = detectProductType(q);
@@ -1601,7 +1595,7 @@ function renderNSMStep1() {
       <div class="nsm-navbar">
         <button class="btn-icon" id="btn-nsm-back" aria-label="返回"><i class="ph ph-arrow-left"></i></button>
         <span class="nsm-title">選擇情境</span>
-        <div style="width:44px"></div>
+        <div class="nsm-navbar-spacer"></div>
       </div>
       ${progressBar}
       <div class="nsm-body">
@@ -1621,7 +1615,6 @@ function renderNSMStep1() {
 // Sets up lightweight virtual scrolling on the Step 1 question list.
 // Called from bindNSM() after the Step 1 HTML is in the DOM.
 function initNSMStep1VirtualScroll() {
-  var ITEM_HEIGHT = 80;
   var BUFFER = 5;
   var questions = NSM_QUESTIONS;
 
@@ -1629,9 +1622,24 @@ function initNSMStep1VirtualScroll() {
   var containerEl = document.querySelector('.nsm-question-list');
   if (!scrollParent || !containerEl) return;
 
+  // C2 (Method B): Measure actual card height from a dummy render.
+  // Avoids hardcoding a value that drifts from CSS. Only measures the
+  // unselected state; the selected/expanded card is acceptable as an outlier.
+  var ITEM_HEIGHT = 80; // fallback
+  var dummy = document.createElement('div');
+  dummy.innerHTML = createNSMQuestionCardHtml(questions[0]);
+  dummy.style.cssText = 'visibility:hidden;position:absolute;width:100%;pointer-events:none';
+  containerEl.appendChild(dummy);
+  var measured = dummy.firstElementChild ? dummy.firstElementChild.offsetHeight : 0;
+  if (measured > 0) ITEM_HEIGHT = measured;
+  containerEl.innerHTML = '';
+
   // Make the container occupy the full virtual height so scrollbar is correct.
   containerEl.style.position = 'relative';
   containerEl.style.height = (questions.length * ITEM_HEIGHT) + 'px';
+
+  // I1: memoize last rendered range to skip redundant DOM rebuilds.
+  var _lastStart = -1, _lastEnd = -1;
 
   function bindCardEvents(cardEl) {
     cardEl.addEventListener('click', async function() {
@@ -1644,6 +1652,8 @@ function initNSMStep1VirtualScroll() {
       }
 
       // Re-render the virtual scroll frame in place (avoids full page re-render).
+      // Force re-render by resetting memo (selected state changed card height).
+      _lastStart = -1; _lastEnd = -1;
       renderVisible(scrollParent.scrollTop, scrollParent.clientHeight);
 
       // Update next button state.
@@ -1653,6 +1663,7 @@ function initNSMStep1VirtualScroll() {
       if (q && !AppState.nsmContext && !AppState.nsmContextLoading) {
         AppState.nsmContextLoading = true;
         AppState.nsmContextQuestionId = q.id;
+        _lastStart = -1; _lastEnd = -1;
         renderVisible(scrollParent.scrollTop, scrollParent.clientHeight);
         try {
           var res = await fetch('/api/nsm-context', {
@@ -1663,7 +1674,10 @@ function initNSMStep1VirtualScroll() {
           if (res.ok) AppState.nsmContext = await res.json();
         } catch (_) {}
         AppState.nsmContextLoading = false;
+        // C1 async guard: abort if the container is no longer in the DOM.
+        if (!document.contains(containerEl)) return;
         if (AppState.nsmSelectedQuestion && AppState.nsmSelectedQuestion.id === q.id) {
+          _lastStart = -1; _lastEnd = -1;
           renderVisible(scrollParent.scrollTop, scrollParent.clientHeight);
         }
       }
@@ -1677,6 +1691,10 @@ function initNSMStep1VirtualScroll() {
   function renderVisible(scrollTop, containerHeight) {
     var start = Math.max(0, Math.floor(scrollTop / ITEM_HEIGHT) - BUFFER);
     var end = Math.min(questions.length, Math.floor((scrollTop + containerHeight) / ITEM_HEIGHT) + 1 + BUFFER);
+
+    // I1: skip rebuild when the visible range hasn't changed.
+    if (start === _lastStart && end === _lastEnd) return;
+    _lastStart = start; _lastEnd = end;
 
     // Build fragment: top spacer + visible cards + bottom spacer.
     var frag = document.createDocumentFragment();
@@ -1705,10 +1723,19 @@ function initNSMStep1VirtualScroll() {
   // Initial render.
   renderVisible(scrollParent.scrollTop, scrollParent.clientHeight);
 
-  // Scroll listener (passive for performance).
-  scrollParent.addEventListener('scroll', function() {
-    renderVisible(scrollParent.scrollTop, scrollParent.clientHeight);
-  }, { passive: true });
+  // C1: reset any stale module-level scroll listener reference, then register
+  // a new one that guards against operating on a detached DOM node.
+  _nsmScrollFn = null;
+  var currentScrollParent = scrollParent; // capture for async closure safety
+  _nsmScrollFn = function() {
+    // C1 guard: if scrollParent has been replaced by a full re-render, bail.
+    if (!document.contains(currentScrollParent)) {
+      _nsmScrollFn = null;
+      return;
+    }
+    renderVisible(currentScrollParent.scrollTop, currentScrollParent.clientHeight);
+  };
+  scrollParent.addEventListener('scroll', _nsmScrollFn, { passive: true });
 }
 
 function renderNSMStep2() {
@@ -2248,7 +2275,6 @@ function bindNSM() {
     AppState.nsmStep = 1;
     AppState.nsmSession = null;
     AppState.nsmSelectedQuestion = null;
-    AppState.nsmStep1Questions = null;
     AppState.nsmNsmDraft = '';
     AppState.nsmBreakdownDraft = {};
     AppState.nsmVanityWarning = null;

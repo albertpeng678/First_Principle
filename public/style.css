@@ -878,6 +878,7 @@ textarea::placeholder { white-space: nowrap; overflow: hidden; text-overflow: el
 .nsm-ctx-angle .nsm-ctx-label { color: var(--accent); }
 .nsm-ctx-angle .nsm-ctx-val { color: var(--accent); font-weight: 600; }
 
+.nsm-navbar-spacer { width: 44px; flex-shrink: 0; }
 .nsm-next-btn { width: 100%; }
 .nsm-next-btn:disabled { opacity: 0.45; pointer-events: none; }
 
