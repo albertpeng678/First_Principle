@@ -1,6 +1,7 @@
 // ── 常數 ─────────────────────────────────────────
 var _adjustNsmKeyboardFn = null; // module-level to prevent listener leak
 var _nsmScrollFn = null;         // module-level NSM scroll listener ref
+var _nsmScrollParent = null;     // module-level NSM scroll parent ref (for cleanup)
 
 const SUPABASE_URL = 'https://klvlizxmvzfpvfgswmfk.supabase.co';
 const SUPABASE_ANON_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImtsdmxpenhtdnpmcHZmZ3N3bWZrIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NzY2NjcyNDIsImV4cCI6MjA5MjI0MzI0Mn0.KOF72gPKbllpYq7t3ny21HBEScUlj2diSl47oNyhJTY';
@@ -1723,14 +1724,19 @@ function initNSMStep1VirtualScroll() {
   // Initial render.
   renderVisible(scrollParent.scrollTop, scrollParent.clientHeight);
 
-  // C1: reset any stale module-level scroll listener reference, then register
-  // a new one that guards against operating on a detached DOM node.
-  _nsmScrollFn = null;
+  // C1: remove any stale scroll listener before registering a new one.
+  if (_nsmScrollFn && _nsmScrollParent) {
+    _nsmScrollParent.removeEventListener('scroll', _nsmScrollFn);
+    _nsmScrollFn = null;
+    _nsmScrollParent = null;
+  }
   var currentScrollParent = scrollParent; // capture for async closure safety
+  _nsmScrollParent = scrollParent;        // store ref for future cleanup
   _nsmScrollFn = function() {
     // C1 guard: if scrollParent has been replaced by a full re-render, bail.
     if (!document.contains(currentScrollParent)) {
       _nsmScrollFn = null;
+      _nsmScrollParent = null;
       return;
     }
     renderVisible(currentScrollParent.scrollTop, currentScrollParent.clientHeight);
@@ -1767,7 +1773,7 @@ function renderNSMStep2() {
       <div class="nsm-navbar">
         <button class="btn-icon" id="btn-nsm-back" aria-label="返回上一步"><i class="ph ph-arrow-left"></i></button>
         <span class="nsm-title">定義 NSM</span>
-        <div style="width:44px"></div>
+        <div class="nsm-navbar-spacer"></div>
       </div>
       <div class="nsm-progress">
         <div class="nsm-progress-step done">1</div>
@@ -1852,7 +1858,7 @@ function renderNSMStep3() {
       <div class="nsm-navbar">
         <button class="btn-icon" id="btn-nsm-back" aria-label="返回上一步"><i class="ph ph-arrow-left"></i></button>
         <span class="nsm-title">拆解輸入指標</span>
-        <div style="width:44px"></div>
+        <div class="nsm-navbar-spacer"></div>
       </div>
       <div class="nsm-progress">
         <div class="nsm-progress-step done">1</div>
@@ -1898,7 +1904,7 @@ function renderNSMStep4() {
       <div class="nsm-navbar">
         <button class="btn-icon" id="btn-nsm-back" aria-label="回首頁"><i class="ph ph-house"></i></button>
         <span class="nsm-title">NSM 報告</span>
-        <div style="width:44px"></div>
+        <div class="nsm-navbar-spacer"></div>
       </div>
       <div class="nsm-loading-state">
         <i class="ph ph-circle-notch"></i>
@@ -1987,7 +1993,7 @@ function renderNSMStep4() {
       <div class="nsm-navbar">
         <button class="btn-icon" id="btn-nsm-back" aria-label="回首頁"><i class="ph ph-house"></i></button>
         <span class="nsm-title">NSM 報告</span>
-        <div style="width:44px"></div>
+        <div class="nsm-navbar-spacer"></div>
       </div>
       <div class="nsm-score-summary">
         <div class="nsm-total-score">${total}</div>
