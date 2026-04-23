@@ -1541,12 +1541,49 @@ function renderNSM() {
   }
 }
 
-function renderNSMStep1() {
-  if (!AppState.nsmStep1Questions) AppState.nsmStep1Questions = getRandomNSMQuestions(3);
-  const questions = AppState.nsmStep1Questions;
-  const selected = AppState.nsmSelectedQuestion;
+// Virtual scroll helper — builds the innerHTML for a single NSM question card.
+// Used by both the legacy path and the virtual-scroll renderVisible loop.
+function createNSMQuestionCardHtml(q) {
+  var isSelected = AppState.nsmSelectedQuestion && AppState.nsmSelectedQuestion.id === q.id;
+  var productType = detectProductType(q);
+  var typeMeta = NSM_TYPE_META[productType];
 
-  const progressBar = `
+  var contextHtml = '';
+  if (isSelected) {
+    if (AppState.nsmContextLoading) {
+      contextHtml = `
+        <div class="nsm-context-preview loading">
+          <i class="ph ph-circle-notch" style="animation:spin 0.8s linear infinite"></i>
+          <span>分析情境中…</span>
+        </div>`;
+    } else if (AppState.nsmContext && AppState.nsmContextQuestionId === q.id) {
+      var ctx = AppState.nsmContext;
+      contextHtml = `
+        <div class="nsm-context-preview">
+          <div class="nsm-ctx-row"><span class="nsm-ctx-label"><i class="ph ph-buildings"></i> 商業模式</span><span class="nsm-ctx-val">${escHtml(ctx.businessModel)}</span></div>
+          <div class="nsm-ctx-row"><span class="nsm-ctx-label"><i class="ph ph-users"></i> 使用者</span><span class="nsm-ctx-val">${escHtml(ctx.userTypes)}</span></div>
+          <div class="nsm-ctx-row nsm-ctx-trap"><span class="nsm-ctx-label"><i class="ph ph-warning"></i> 常見陷阱</span><span class="nsm-ctx-val">${escHtml(ctx.commonTrap)}</span></div>
+          <div class="nsm-ctx-row nsm-ctx-angle"><span class="nsm-ctx-label"><i class="ph ph-lightbulb"></i> 破題切入</span><span class="nsm-ctx-val">${escHtml(ctx.thinkingAngle)}</span></div>
+        </div>`;
+    }
+  }
+
+  return `
+  <div class="nsm-question-card ${isSelected ? 'selected' : ''}" data-qid="${escHtml(q.id)}" role="button" tabindex="0" aria-pressed="${isSelected ? 'true' : 'false'}">
+    <div class="nsm-q-header">
+      <span class="nsm-company-badge">${escHtml(q.company)}</span>
+      <span class="nsm-industry">${escHtml(q.industry)}</span>
+      ${isSelected ? `<span class="nsm-type-badge" style="background:${typeMeta.color}18;color:${typeMeta.color};border:1px solid ${typeMeta.color}38"><i class="ph ${typeMeta.icon}"></i> ${typeMeta.label}</span>` : ''}
+    </div>
+    <p class="nsm-scenario">${escHtml(q.scenario)}</p>
+    ${contextHtml}
+  </div>`;
+}
+
+function renderNSMStep1() {
+  var selected = AppState.nsmSelectedQuestion;
+
+  var progressBar = `
     <div class="nsm-progress">
       <div class="nsm-progress-step active">1</div>
       <div class="nsm-progress-line"></div>
@@ -1557,54 +1594,19 @@ function renderNSMStep1() {
       <div class="nsm-progress-step">4</div>
     </div>`;
 
-  const cards = questions.map(q => {
-    const isSelected = selected && selected.id === q.id;
-    const productType = detectProductType(q);
-    const typeMeta = NSM_TYPE_META[productType];
-
-    let contextHtml = '';
-    if (isSelected) {
-      if (AppState.nsmContextLoading) {
-        contextHtml = `
-          <div class="nsm-context-preview loading">
-            <i class="ph ph-circle-notch" style="animation:spin 0.8s linear infinite"></i>
-            <span>分析情境中…</span>
-          </div>`;
-      } else if (AppState.nsmContext && AppState.nsmContextQuestionId === q.id) {
-        const ctx = AppState.nsmContext;
-        contextHtml = `
-          <div class="nsm-context-preview">
-            <div class="nsm-ctx-row"><span class="nsm-ctx-label"><i class="ph ph-buildings"></i> 商業模式</span><span class="nsm-ctx-val">${escHtml(ctx.businessModel)}</span></div>
-            <div class="nsm-ctx-row"><span class="nsm-ctx-label"><i class="ph ph-users"></i> 使用者</span><span class="nsm-ctx-val">${escHtml(ctx.userTypes)}</span></div>
-            <div class="nsm-ctx-row nsm-ctx-trap"><span class="nsm-ctx-label"><i class="ph ph-warning"></i> 常見陷阱</span><span class="nsm-ctx-val">${escHtml(ctx.commonTrap)}</span></div>
-            <div class="nsm-ctx-row nsm-ctx-angle"><span class="nsm-ctx-label"><i class="ph ph-lightbulb"></i> 破題切入</span><span class="nsm-ctx-val">${escHtml(ctx.thinkingAngle)}</span></div>
-          </div>`;
-      }
-    }
-
-    return `
-    <div class="nsm-question-card ${isSelected ? 'selected' : ''}" data-qid="${q.id}" role="button" tabindex="0" aria-pressed="${isSelected ? 'true' : 'false'}">
-      <div class="nsm-q-header">
-        <span class="nsm-company-badge">${escHtml(q.company)}</span>
-        <span class="nsm-industry">${escHtml(q.industry)}</span>
-        ${isSelected ? `<span class="nsm-type-badge" style="background:${typeMeta.color}18;color:${typeMeta.color};border:1px solid ${typeMeta.color}38"><i class="ph ${typeMeta.icon}"></i> ${typeMeta.label}</span>` : ''}
-      </div>
-      <p class="nsm-scenario">${escHtml(q.scenario)}</p>
-      ${contextHtml}
-    </div>`;
-  }).join('');
-
+  // The question list is left empty here; virtual scrolling is set up
+  // imperatively in bindNSM() after this HTML is inserted into the DOM.
   return `
     <div class="nsm-view">
       <div class="nsm-navbar">
         <button class="btn-icon" id="btn-nsm-back" aria-label="返回"><i class="ph ph-arrow-left"></i></button>
         <span class="nsm-title">選擇情境</span>
-        <button class="btn-icon" id="btn-nsm-reshuffle" aria-label="重新抽題" title="換一批題目"><i class="ph ph-shuffle"></i></button>
+        <div style="width:44px"></div>
       </div>
       ${progressBar}
       <div class="nsm-body">
         <p class="nsm-instruction">選擇一個企業情境，開始定義北極星指標</p>
-        <div class="nsm-question-list">${cards}</div>
+        <div class="nsm-question-list"></div>
         <div style="height:80px"></div>
       </div>
       <div class="nsm-fixed-bottom">
@@ -1614,6 +1616,99 @@ function renderNSMStep1() {
         </button>
       </div>
     </div>`;
+}
+
+// Sets up lightweight virtual scrolling on the Step 1 question list.
+// Called from bindNSM() after the Step 1 HTML is in the DOM.
+function initNSMStep1VirtualScroll() {
+  var ITEM_HEIGHT = 80;
+  var BUFFER = 5;
+  var questions = NSM_QUESTIONS;
+
+  var scrollParent = document.querySelector('.nsm-body');
+  var containerEl = document.querySelector('.nsm-question-list');
+  if (!scrollParent || !containerEl) return;
+
+  // Make the container occupy the full virtual height so scrollbar is correct.
+  containerEl.style.position = 'relative';
+  containerEl.style.height = (questions.length * ITEM_HEIGHT) + 'px';
+
+  function bindCardEvents(cardEl) {
+    cardEl.addEventListener('click', async function() {
+      var q = NSM_QUESTIONS.find(function(item) { return item.id === cardEl.dataset.qid; }) || null;
+      AppState.nsmSelectedQuestion = q;
+
+      if (q && AppState.nsmContextQuestionId !== q.id) {
+        AppState.nsmContext = null;
+        AppState.nsmContextQuestionId = null;
+      }
+
+      // Re-render the virtual scroll frame in place (avoids full page re-render).
+      renderVisible(scrollParent.scrollTop, scrollParent.clientHeight);
+
+      // Update next button state.
+      var btn = document.getElementById('btn-nsm-step1-next');
+      if (btn) btn.disabled = !AppState.nsmSelectedQuestion;
+
+      if (q && !AppState.nsmContext && !AppState.nsmContextLoading) {
+        AppState.nsmContextLoading = true;
+        AppState.nsmContextQuestionId = q.id;
+        renderVisible(scrollParent.scrollTop, scrollParent.clientHeight);
+        try {
+          var res = await fetch('/api/nsm-context', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({ questionJson: q })
+          });
+          if (res.ok) AppState.nsmContext = await res.json();
+        } catch (_) {}
+        AppState.nsmContextLoading = false;
+        if (AppState.nsmSelectedQuestion && AppState.nsmSelectedQuestion.id === q.id) {
+          renderVisible(scrollParent.scrollTop, scrollParent.clientHeight);
+        }
+      }
+    });
+
+    cardEl.addEventListener('keydown', function(e) {
+      if (e.key === 'Enter' || e.key === ' ') { e.preventDefault(); cardEl.click(); }
+    });
+  }
+
+  function renderVisible(scrollTop, containerHeight) {
+    var start = Math.max(0, Math.floor(scrollTop / ITEM_HEIGHT) - BUFFER);
+    var end = Math.min(questions.length, Math.floor((scrollTop + containerHeight) / ITEM_HEIGHT) + 1 + BUFFER);
+
+    // Build fragment: top spacer + visible cards + bottom spacer.
+    var frag = document.createDocumentFragment();
+
+    var topSpacer = document.createElement('div');
+    topSpacer.style.height = (start * ITEM_HEIGHT) + 'px';
+    frag.appendChild(topSpacer);
+
+    for (var i = start; i < end; i++) {
+      var q = questions[i];
+      var wrapper = document.createElement('div');
+      wrapper.innerHTML = createNSMQuestionCardHtml(q);
+      var cardEl = wrapper.firstElementChild;
+      bindCardEvents(cardEl);
+      frag.appendChild(cardEl);
+    }
+
+    var bottomSpacer = document.createElement('div');
+    bottomSpacer.style.height = ((questions.length - end) * ITEM_HEIGHT) + 'px';
+    frag.appendChild(bottomSpacer);
+
+    containerEl.innerHTML = '';
+    containerEl.appendChild(frag);
+  }
+
+  // Initial render.
+  renderVisible(scrollParent.scrollTop, scrollParent.clientHeight);
+
+  // Scroll listener (passive for performance).
+  scrollParent.addEventListener('scroll', function() {
+    renderVisible(scrollParent.scrollTop, scrollParent.clientHeight);
+  }, { passive: true });
 }
 
 function renderNSMStep2() {
@@ -1891,52 +1986,11 @@ function bindNSM() {
     else { AppState.nsmStep--; render(); }
   });
 
-  // Step 1: reshuffle
-  document.getElementById('btn-nsm-reshuffle')?.addEventListener('click', () => {
-    AppState.nsmStep1Questions = getRandomNSMQuestions(3);
-    AppState.nsmSelectedQuestion = null;
-    render();
-  });
-
-  // Step 1: question selection
-  document.querySelectorAll('.nsm-question-card[data-qid]').forEach(function(card) {
-    card.addEventListener('click', async function() {
-      var q = NSM_QUESTIONS.find(function(q) { return q.id === card.dataset.qid; }) || null;
-      AppState.nsmSelectedQuestion = q;
-
-      if (q && AppState.nsmContextQuestionId !== q.id) {
-        AppState.nsmContext = null;
-        AppState.nsmContextQuestionId = null;
-      }
-
-      render();
-
-      if (q && !AppState.nsmContext && !AppState.nsmContextLoading) {
-        AppState.nsmContextLoading = true;
-        AppState.nsmContextQuestionId = q.id;
-        render();
-        try {
-          var res = await fetch('/api/nsm-context', {
-            method: 'POST',
-            headers: { 'Content-Type': 'application/json' },
-            body: JSON.stringify({ questionJson: q })
-          });
-          if (res.ok) AppState.nsmContext = await res.json();
-        } catch (_) {}
-        AppState.nsmContextLoading = false;
-        if (AppState.nsmSelectedQuestion && AppState.nsmSelectedQuestion.id === q.id) {
-          render();
-        }
-      }
-    });
-  });
-
-  // Step 1: keyboard support for question cards
-  document.querySelectorAll('.nsm-question-card[data-qid]').forEach(function(card) {
-    card.addEventListener('keydown', function(e) {
-      if (e.key === 'Enter' || e.key === ' ') { e.preventDefault(); card.click(); }
-    });
-  });
+  // Step 1: virtual scroll initialisation (card click/keyboard events are
+  // attached inside initNSMStep1VirtualScroll's bindCardEvents helper).
+  if (AppState.nsmStep === 1) {
+    initNSMStep1VirtualScroll();
+  }
 
   // Step 1: next
   var btnStep1Next = document.getElementById('btn-nsm-step1-next');
