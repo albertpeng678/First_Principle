@@ -363,12 +363,7 @@ body[data-view="nsm"] .navbar { margin-bottom: 0; }
 .essence-textarea:focus { outline: none; border-color: var(--accent); }
 .essence-textarea:disabled { opacity: 0.5; cursor: not-allowed; }
 .chat-send-row { display: flex; gap: 8px; }
-.def-panel {
-  display: none;
-  gap: 8px;
-  align-items: flex-start;
-}
-.def-panel.open { display: flex; }
+/* .def-panel open/close is now controlled by .def-panel-wrapper grid-template-rows (see Task 3 section) */
 .def-panel .essence-textarea { flex: 1; margin: 0; }
 .btn-tool.active { background: rgba(108,99,255,0.12); border-color: var(--accent); }
 [data-theme="light"] .btn-tool.active { background: rgba(90,82,224,0.1); }
@@ -400,7 +395,15 @@ body[data-view="nsm"] .navbar { margin-bottom: 0; }
 .score-bar-row { margin-bottom: 14px; }
 .score-bar-label { display: flex; justify-content: space-between; font-size: 0.85rem; margin-bottom: 5px; }
 .score-bar-track { height: 8px; background: var(--bg-surface-2); border-radius: 4px; overflow: hidden; }
-.score-bar-fill { height: 100%; background: var(--accent); border-radius: 4px; transition: width 0.6s ease; }
+.score-bar-fill {
+  height: 100%;
+  background: var(--accent);
+  border-radius: 4px;
+  width: 100%;
+  transform-origin: left center;
+  transform: scaleX(0);
+  transition: transform 0.6s ease;
+}
 
 /* Score Detail Cards */
 .score-detail-card { background: var(--bg-surface-2); border-radius: 10px; padding: 12px 14px; margin-bottom: 10px; }
@@ -645,15 +648,20 @@ textarea::placeholder { white-space: nowrap; overflow: hidden; text-overflow: el
    UX FIXES — Task 3: Def panel + empty state + issue banner
    ══════════════════════════════════════════════════ */
 
+.def-panel-wrapper {
+  display: grid;
+  grid-template-rows: 0fr;
+  transition: grid-template-rows 0.2s ease;
+}
+.def-panel-wrapper.open {
+  grid-template-rows: 1fr;
+}
 .def-panel {
-  max-height: 0;
   overflow: hidden;
-  transition: max-height 0.2s ease;
-  display: flex !important;
+  display: flex;
   gap: 8px;
   align-items: flex-start;
 }
-.def-panel.open { max-height: 300px; }
 .def-panel-header {
   display: flex;
   align-items: center;
@@ -1144,10 +1152,7 @@ body { -webkit-font-smoothing: antialiased; }
    PERF — Task 3: will-change + overscroll containment
    ══════════════════════════════════════════════════ */
 
-.offcanvas          { will-change: transform; }
-.offcanvas-overlay  { will-change: opacity; }
-.practice-bottom-bar,
-.nsm-fixed-bottom   { will-change: transform; }
+/* will-change is managed dynamically in JS (lifecycle: set before animation, reset to auto on transitionend) */
 
 @media (max-width: 768px) {
   .chat-scroll,

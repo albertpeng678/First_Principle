@@ -328,18 +328,34 @@ function renderNavbar() {
 }
 
 function openOffcanvas() {
-  document.getElementById('offcanvas').classList.add('open');
-  document.getElementById('offcanvas-overlay').classList.add('open');
+  const offcanvas = document.getElementById('offcanvas');
+  const overlay = document.getElementById('offcanvas-overlay');
+  // Set will-change before triggering animation
+  offcanvas.style.willChange = 'transform';
+  overlay.style.willChange = 'opacity';
+  offcanvas.classList.add('open');
+  overlay.classList.add('open');
+  // Reset will-change after transition completes
+  offcanvas.addEventListener('transitionend', () => { offcanvas.style.willChange = 'auto'; }, { once: true });
+  overlay.addEventListener('transitionend', () => { overlay.style.willChange = 'auto'; }, { once: true });
   document.body.style.overflow = 'hidden';
   loadOffcanvasSessions();
   const closeBtn = document.getElementById('btn-offcanvas-close');
   if (closeBtn) closeBtn.onclick = closeOffcanvas;
-  document.getElementById('offcanvas-overlay')?.addEventListener('click', closeOffcanvas, { once: true });
+  overlay.addEventListener('click', closeOffcanvas, { once: true });
 }
 
 function closeOffcanvas() {
-  document.getElementById('offcanvas').classList.remove('open');
-  document.getElementById('offcanvas-overlay').classList.remove('open');
+  const offcanvas = document.getElementById('offcanvas');
+  const overlay = document.getElementById('offcanvas-overlay');
+  // Set will-change before triggering animation
+  offcanvas.style.willChange = 'transform';
+  overlay.style.willChange = 'opacity';
+  offcanvas.classList.remove('open');
+  overlay.classList.remove('open');
+  // Reset will-change after transition completes
+  offcanvas.addEventListener('transitionend', () => { offcanvas.style.willChange = 'auto'; }, { once: true });
+  overlay.addEventListener('transitionend', () => { overlay.style.willChange = 'auto'; }, { once: true });
   document.body.style.overflow = '';
 }
 
@@ -836,16 +852,18 @@ function renderPractice() {
       </div>
       <div id="def-hint" class="essence-label" style="display:none;">完成 3 輪對話後即可編輯定義</div>
       ${showSubmit ? `
-      <div class="def-panel" id="def-panel">
-        <div style="flex:1;display:flex;flex-direction:column;gap:4px">
-          <div class="def-panel-header">
-            <label class="essence-label" style="font-weight:600">問題本質定義</label>
-            <button class="btn-icon" id="btn-close-def" aria-label="關閉定義面板" style="min-width:32px;min-height:32px;padding:4px"><i class="ph ph-x"></i></button>
+      <div class="def-panel-wrapper" id="def-panel-wrapper">
+        <div class="def-panel">
+          <div style="flex:1;display:flex;flex-direction:column;gap:4px">
+            <div class="def-panel-header">
+              <label class="essence-label" style="font-weight:600">問題本質定義</label>
+              <button class="btn-icon" id="btn-close-def" aria-label="關閉定義面板" style="min-width:32px;min-height:32px;padding:4px"><i class="ph ph-x"></i></button>
+            </div>
+            <textarea id="final-def" class="essence-textarea" rows="2"
+              placeholder="用中性問句描述問題本質…&#10;例：如何讓 [角色] 在 [情境] 下更有效率達成 [目標]？"></textarea>
           </div>
-          <textarea id="final-def" class="essence-textarea" rows="2"
-            placeholder="用中性問句描述問題本質…&#10;例：如何讓 [角色] 在 [情境] 下更有效率達成 [目標]？"></textarea>
+          <button class="btn btn-primary" id="btn-submit" style="flex-shrink:0;align-self:flex-end;min-height:44px">提交定義</button>
         </div>
-        <button class="btn btn-primary" id="btn-submit" style="flex-shrink:0;align-self:flex-end;min-height:44px">提交定義</button>
       </div>` : ''}
       <div class="chat-send-row">
         <textarea id="chat-input" class="chat-input" style="flex:1" rows="2"
@@ -881,8 +899,8 @@ function bindPractice() {
 
   document.getElementById('btn-hint')?.addEventListener('click', showHintCard);
   document.getElementById('btn-update-def')?.addEventListener('click', () => {
-    const panel = document.getElementById('def-panel');
-    if (!panel) {
+    const wrapper = document.getElementById('def-panel-wrapper');
+    if (!wrapper) {
       const hint = document.getElementById('def-hint');
       if (hint) {
         hint.style.display = 'block';
@@ -890,7 +908,7 @@ function bindPractice() {
       }
       return;
     }
-    const isOpen = panel.classList.toggle('open');
+    const isOpen = wrapper.classList.toggle('open');
     const caret = document.getElementById('def-caret');
     const btn = document.getElementById('btn-update-def');
     if (caret) caret.className = isOpen ? 'ph ph-caret-down' : 'ph ph-caret-up';
@@ -900,9 +918,9 @@ function bindPractice() {
 
   // Close def panel button
   document.getElementById('btn-close-def')?.addEventListener('click', () => {
-    const defPanel = document.getElementById('def-panel');
-    if (defPanel) {
-      defPanel.classList.remove('open');
+    const defPanelWrapper = document.getElementById('def-panel-wrapper');
+    if (defPanelWrapper) {
+      defPanelWrapper.classList.remove('open');
       document.getElementById('btn-update-def')?.classList.remove('active');
     }
   });
@@ -912,6 +930,8 @@ function bindPractice() {
     const bar = document.querySelector('.practice-bottom-bar');
     const chatArea = document.getElementById('chat-area');
     if (bar && chatArea) chatArea.style.paddingBottom = bar.offsetHeight + 'px';
+    // will-change active for the duration of practice (keyboard transforms)
+    if (bar) bar.style.willChange = 'transform';
   });
 
   // visualViewport keyboard adjustment — transform only, no layout-triggering bottom changes
@@ -1185,7 +1205,7 @@ function renderReport() {
         <span>${DIM_LABELS[d]}</span>
         <span style="color:${sc >= 14 ? 'var(--success)' : 'var(--warning)'}">${sc}/20</span>
       </div>
-      <div class="score-bar-track"><div class="score-bar-fill" style="width:${sc / 20 * 100}%"></div></div>
+      <div class="score-bar-track"><div class="score-bar-fill" style="transform:scaleX(${sc / 20})"></div></div>
     </div>`;
   }).join('');
 
