@@ -33,7 +33,7 @@ const AppState = {
   circlesSelectedType: 'design',   // 'design' | 'improve' | 'strategy'
   circlesDrillStep: 'C1',          // which step to drill
   circlesSelectedQuestion: null,   // { id, company, ... }
-  circlesSession: null,            // { id, mode, drill_step, framework_draft, gate_result, conversation, ... }
+  circlesSession: null,            // { id, mode, drill_step } — other fields live in top-level AppState keys
   circlesPhase: 1,                 // 1 | 1.5 | 2 | 3 (score) | 4 (report)
   circlesFrameworkDraft: {},       // { fieldName: value }
   circlesGateResult: null,         // { items, canProceed, overallStatus }
@@ -191,7 +191,7 @@ function nsmRoute(path) {
 }
 
 function circlesRoute(id) {
-  var base = AppState.accessToken ? '/api/circles-sessions' : '/api/guest-circles-sessions';
+  const base = AppState.accessToken ? '/api/circles-sessions' : '/api/guest-circles-sessions';
   return id ? base + '/' + id : base;
 }
 
