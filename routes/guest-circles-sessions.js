@@ -62,7 +62,7 @@ router.post('/:id/gate', requireGuestId, async (req, res) => {
       questionJson: session.question_json,
       mode: session.mode,
     });
-    await db.from('circles_sessions').update({ framework_draft: frameworkDraft, gate_result: gateResult }).eq('id', req.params.id);
+    await db.from('circles_sessions').update({ framework_draft: frameworkDraft, gate_result: gateResult }).eq('id', req.params.id).eq('guest_id', req.guestId);
     res.json(gateResult);
   } catch (e) { res.status(500).json({ error: e.message }); }
 });
