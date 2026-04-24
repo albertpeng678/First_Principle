@@ -2,18 +2,20 @@ const OpenAI = require('openai');
 const openai = new OpenAI({ apiKey: process.env.OPENAI_API_KEY });
 
 const STEP_META = {
-  C1: { name: '澄清情境', fields: ['問題範圍', '時間範圍', '業務影響', '假設確認'] },
-  I:  { name: '定義用戶', fields: ['目標用戶分群', '選定焦點', '用戶動機假設', '排除對象'] },
-  R:  { name: '發掘需求', fields: ['功能性需求', '情感性需求', '社交性需求', '核心痛點'] },
-  C2: { name: '優先排序', fields: ['取捨標準', '最優先項目', '暫緩項目', '排序理由'] },
-  L:  { name: '提出方案', fields: ['方案一', '方案二', '方案三（可選）', '各方案特性'] },
-  E:  { name: '評估取捨', fields: ['方案優點', '方案缺點', '風險與依賴', '成功指標'] },
-  S:  { name: '總結推薦', fields: ['推薦方案', '選擇理由', '北極星指標', '追蹤指標'] },
+  // fields are for documentation only, not used in code
+  C1: { name: '澄清情境' },
+  I:  { name: '定義用戶' },
+  R:  { name: '發掘需求' },
+  C2: { name: '優先排序' },
+  L:  { name: '提出方案' },
+  E:  { name: '評估取捨' },
+  S:  { name: '總結推薦' },
 };
 
 async function reviewFramework({ step, frameworkDraft, questionJson, mode }) {
   const meta = STEP_META[step];
-  const wrongDirs = (questionJson.common_wrong_directions || []).join('\n- ');
+  if (!meta) throw new Error(`Unknown CIRCLES step: "${step}"`);
+  const wrongDirs = (questionJson.common_wrong_directions || []).join('\n- ') || '（無特別注意事項）';
   const isSimulation = mode === 'simulation';
 
   const systemPrompt = `你是 PM 面試教練，正在審核學員在「${meta.name}」步驟填寫的框架定向。
@@ -54,18 +56,24 @@ JSON 格式：
     .map(([k, v]) => `${k}：${v || '（未填）'}`)
     .join('\n');
 
-  const resp = await openai.chat.completions.create({
-    model: 'gpt-4o',
-    messages: [
-      { role: 'system', content: systemPrompt },
-      { role: 'user', content: userMsg },
-    ],
-    temperature: 0.3,
-    max_tokens: 800,
-    response_format: { type: 'json_object' },
-  });
+  for (let attempt = 0; attempt < 3; attempt++) {
+    try {
+      const resp = await openai.chat.completions.create({
+        model: 'gpt-4o',
+        messages: [
+          { role: 'system', content: systemPrompt },
+          { role: 'user', content: userMsg },
+        ],
+        temperature: 0.3,
+        max_tokens: 800,
+        response_format: { type: 'json_object' },
+      });
 
-  return JSON.parse(resp.choices[0].message.content);
+      return JSON.parse(resp.choices[0].message.content);
+    } catch (e) {
+      if (attempt === 2) throw new Error('框架審核暫時失敗，請重試');
+    }
+  }
 }
 
 module.exports = { reviewFramework };
