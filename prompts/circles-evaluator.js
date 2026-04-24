@@ -70,6 +70,7 @@ ${coachAnswer}
 
   const userMsg = `框架填寫：\n${Object.entries(frameworkDraft).map(([k,v])=>`${k}: ${v||'未填'}`).join('\n')}\n\n對話記錄：\n${convText}`;
 
+  // No retry — callers (route handlers) own retry/error boundary decisions.
   const resp = await openai.chat.completions.create({
     model: 'gpt-4o',
     messages: [
