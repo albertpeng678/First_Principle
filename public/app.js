@@ -644,6 +644,7 @@ init();
 
 // 暴露至全域，讓 HTML inline onclick 可使用
 window.navigate = navigate;
+window.render = render;
 window.applyTheme = applyTheme;
 window.AppState = AppState;
 window.submitDefinition = submitDefinition;
@@ -1150,9 +1151,13 @@ async function sendCirclesMessage() {
   var userBubble = document.createElement('div');
   userBubble.className = 'circles-bubble-user';
   userBubble.textContent = msg;
-  if (chatBody) { chatBody.appendChild(userBubble); chatBody.scrollTop = chatBody.scrollHeight; }
-
   var streamingBubble = document.getElementById('circles-streaming-bubble');
+  if (chatBody) {
+    chatBody.appendChild(userBubble);
+    // Move streaming bubble after user bubble so AI response follows user message
+    if (streamingBubble) chatBody.appendChild(streamingBubble);
+    chatBody.scrollTop = chatBody.scrollHeight;
+  }
   if (streamingBubble) { streamingBubble.innerHTML = '<div class="circles-bubble-ai"><i class="ph ph-circle-notch" style="animation:spin 0.8s linear infinite"></i></div>'; }
 
   var session = AppState.circlesSession;
@@ -1202,10 +1207,7 @@ async function sendCirclesMessage() {
           }
           if (parsed.done && parsed.turn) {
             AppState.circlesConversation.push(parsed.turn);
-            // Show submit button after 2+ turns
-            if (submitBtn && AppState.circlesConversation.length >= 2) {
-              submitBtn.style.display = '';
-            }
+            render();
           }
         } catch (_) {}
       }
