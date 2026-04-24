@@ -1011,8 +1011,212 @@ function bindCirclesGate() {
     render();
   });
 }
-function renderCirclesPhase2() { return '<div class="circles-input-bar"><button class="circles-send-btn"></button><input id="circles-msg-input"/></div>'; }
-function bindCirclesPhase2() {}
+function renderCirclesPhase2() {
+  var q = AppState.circlesSelectedQuestion;
+  var mode = AppState.circlesMode;
+  var stepKey = mode === 'drill' ? AppState.circlesDrillStep : 'C1';
+  var stepIdx = CIRCLES_STEPS.findIndex(function(s) { return s.key === stepKey; });
+  var step = CIRCLES_STEPS[stepIdx];
+  var conv = AppState.circlesConversation;
+  var turnCount = conv.length;
+
+  var progressSegs = CIRCLES_STEPS.map(function(s, i) {
+    var cls = i < stepIdx ? 'done' : i === stepIdx ? 'active' : '';
+    return '<div class="circles-progress-seg ' + cls + '"></div>';
+  }).join('');
+
+  var bubbles = conv.map(function(t) {
+    return '<div class="circles-bubble-user">' + escHtml(t.userMessage) + '</div>' +
+      (t.interviewee ? '<div class="circles-bubble-ai"><div class="circles-bubble-section">被訪談者</div>' + t.interviewee + '</div>' : '') +
+      (t.coaching ? '<div class="circles-bubble-ai"><div class="circles-bubble-section">教練點評</div>' + t.coaching + '</div>' : '') +
+      (t.hint ? '<div class="circles-bubble-ai"><div class="circles-bubble-section">教練提示</div>' + t.hint + '</div>' : '');
+  }).join('');
+
+  if (!bubbles) {
+    bubbles = '<div class="circles-bubble-ai"><div class="circles-bubble-section">教練提示</div>' +
+      (mode === 'drill' ? '準備好了嗎？針對「' + step.label + '」步驟，請開始探索題目。你可以從問問看情境的背景開始。' : '面試開始。請用「' + step.label + '」步驟的思路展開你的分析。') +
+      '</div>';
+  }
+
+  return '<div data-view="circles" class="circles-chat-wrap">' +
+    '<div class="circles-nav">' +
+      '<button class="circles-nav-back" id="circles-p2-back"><i class="ph ph-arrow-left"></i></button>' +
+      '<div>' +
+        '<div class="circles-nav-title">' + step.label + ' — 對話練習</div>' +
+        '<div class="circles-nav-sub">' + (q ? q.company : '') + '</div>' +
+      '</div>' +
+      (turnCount > 0 ? '<div class="circles-nav-right">' + turnCount + ' 輪</div>' : '') +
+    '</div>' +
+    '<div class="circles-progress">' + progressSegs + '<div class="circles-progress-label">' + step.short + ' · ' + (stepIdx + 1) + ' of 7</div></div>' +
+    '<div class="circles-chat-body" id="circles-chat-body">' + bubbles + '<div id="circles-streaming-bubble"></div></div>' +
+    '<div class="circles-input-bar" id="circles-input-bar">' +
+      '<textarea class="circles-input" id="circles-msg-input" placeholder="輸入追問或回應..." rows="1"></textarea>' +
+      '<button class="circles-phase2-submit" id="circles-submit-step" style="' + (turnCount < 2 ? 'display:none' : '') + '">提交步驟</button>' +
+      '<button class="circles-send-btn" id="circles-send-btn"><i class="ph ph-paper-plane-tilt"></i></button>' +
+    '</div>' +
+  '</div>';
+}
+
+function bindCirclesPhase2() {
+  document.getElementById('circles-p2-back')?.addEventListener('click', function() {
+    AppState.circlesPhase = 1.5;
+    render();
+  });
+
+  // Auto-scroll to bottom
+  var chatBody = document.getElementById('circles-chat-body');
+  if (chatBody) chatBody.scrollTop = chatBody.scrollHeight;
+
+  // Keyboard handler
+  if (_adjustCirclesKbFn && window.visualViewport) {
+    window.visualViewport.removeEventListener('resize', _adjustCirclesKbFn);
+    window.visualViewport.removeEventListener('scroll', _adjustCirclesKbFn);
+  }
+  _adjustCirclesKbFn = (function() {
+    var _raf = null;
+    return function() {
+      if (!window.visualViewport) return;
+      if (_raf) return;
+      _raf = requestAnimationFrame(function() {
+        _raf = null;
+        var bar = document.getElementById('circles-input-bar');
+        var body = document.getElementById('circles-chat-body');
+        if (!bar) return;
+        var kbH = Math.max(0, window.innerHeight - window.visualViewport.offsetTop - window.visualViewport.height);
+        bar.style.transform = 'translateY(-' + kbH + 'px)';
+        if (body) body.style.paddingBottom = (bar.offsetHeight + kbH) + 'px';
+      });
+    };
+  }());
+  var inputBar = document.getElementById('circles-input-bar');
+  if (inputBar) inputBar.style.willChange = 'transform';
+  if (window.visualViewport) {
+    window.visualViewport.addEventListener('resize', _adjustCirclesKbFn);
+    window.visualViewport.addEventListener('scroll', _adjustCirclesKbFn);
+    _adjustCirclesKbFn();
+  }
+
+  // Submit step
+  document.getElementById('circles-submit-step')?.addEventListener('click', async function() {
+    var btn = this;
+    btn.disabled = true;
+    btn.textContent = '評分中...';
+
+    var session = AppState.circlesSession;
+    if (!session || !session.id) { render(); return; }
+
+    var headers = AppState.accessToken
+      ? { 'Content-Type': 'application/json', 'Authorization': 'Bearer ' + AppState.accessToken }
+      : { 'Content-Type': 'application/json', 'X-Guest-ID': AppState.guestId };
+
+    var route = (AppState.accessToken ? '/api/circles-sessions/' : '/api/guest-circles-sessions/') + session.id + '/evaluate-step';
+    try {
+      var res = await fetch(route, { method: 'POST', headers: headers });
+      var scoreData = await res.json();
+      if (!res.ok) throw new Error(scoreData.error || res.status);
+      AppState.circlesScoreResult = scoreData;
+      AppState.circlesPhase = 3;
+      render();
+    } catch (e) {
+      btn.disabled = false;
+      btn.textContent = '提交步驟';
+    }
+  });
+
+  // Send message
+  document.getElementById('circles-send-btn')?.addEventListener('click', sendCirclesMessage);
+  document.getElementById('circles-msg-input')?.addEventListener('keydown', function(e) {
+    if (e.key === 'Enter' && !e.shiftKey) {
+      e.preventDefault();
+      sendCirclesMessage();
+    }
+  });
+}
+
+async function sendCirclesMessage() {
+  var input = document.getElementById('circles-msg-input');
+  var sendBtn = document.getElementById('circles-send-btn');
+  var submitBtn = document.getElementById('circles-submit-step');
+  if (!input || AppState.isStreaming) return;
+  var msg = input.value.trim();
+  if (!msg) return;
+
+  input.value = '';
+  AppState.isStreaming = true;
+  if (sendBtn) sendBtn.disabled = true;
+
+  // Show user bubble immediately
+  var chatBody = document.getElementById('circles-chat-body');
+  var userBubble = document.createElement('div');
+  userBubble.className = 'circles-bubble-user';
+  userBubble.textContent = msg;
+  if (chatBody) { chatBody.appendChild(userBubble); chatBody.scrollTop = chatBody.scrollHeight; }
+
+  var streamingBubble = document.getElementById('circles-streaming-bubble');
+  if (streamingBubble) { streamingBubble.innerHTML = '<div class="circles-bubble-ai"><i class="ph ph-circle-notch" style="animation:spin 0.8s linear infinite"></i></div>'; }
+
+  var session = AppState.circlesSession;
+  if (!session || !session.id) { AppState.isStreaming = false; return; }
+
+  var headers = AppState.accessToken
+    ? { 'Content-Type': 'application/json', 'Authorization': 'Bearer ' + AppState.accessToken }
+    : { 'Content-Type': 'application/json', 'X-Guest-ID': AppState.guestId };
+
+  var route = (AppState.accessToken ? '/api/circles-sessions/' : '/api/guest-circles-sessions/') + session.id + '/message';
+
+  try {
+    var res = await fetch(route, {
+      method: 'POST',
+      headers: headers,
+      body: JSON.stringify({ userMessage: msg }),
+    });
+
+    var reader = res.body.getReader();
+    var decoder = new TextDecoder();
+    var buffer = '';
+    var fullText = '';
+
+    while (true) {
+      var readResult = await reader.read();
+      if (readResult.done) break;
+      buffer += decoder.decode(readResult.value, { stream: true });
+      var lines = buffer.split('\n');
+      buffer = lines.pop();
+      for (var i = 0; i < lines.length; i++) {
+        var line = lines[i];
+        if (!line.startsWith('data: ')) continue;
+        try {
+          var parsed = JSON.parse(line.slice(6));
+          if (parsed.delta) {
+            fullText += parsed.delta;
+            var interviewee = fullText.match(/【被訪談者】\n([\s\S]*?)(?=【教練點評】|$)/)?.[1]?.trim() || '';
+            var coaching = fullText.match(/【教練點評】\n([\s\S]*?)(?=【教練提示】|$)/)?.[1]?.trim() || '';
+            var hint = fullText.match(/【教練提示】\n([\s\S]*?)$/)?.[1]?.trim() || '';
+            if (streamingBubble) {
+              streamingBubble.innerHTML =
+                (interviewee ? '<div class="circles-bubble-ai"><div class="circles-bubble-section">被訪談者</div>' + interviewee + '</div>' : '') +
+                (coaching ? '<div class="circles-bubble-ai"><div class="circles-bubble-section">教練點評</div>' + coaching + '</div>' : '') +
+                (hint ? '<div class="circles-bubble-ai"><div class="circles-bubble-section">教練提示</div>' + hint + '</div>' : '');
+              chatBody.scrollTop = chatBody.scrollHeight;
+            }
+          }
+          if (parsed.done && parsed.turn) {
+            AppState.circlesConversation.push(parsed.turn);
+            // Show submit button after 2+ turns
+            if (submitBtn && AppState.circlesConversation.length >= 2) {
+              submitBtn.style.display = '';
+            }
+          }
+        } catch (_) {}
+      }
+    }
+  } catch (e) {
+    if (streamingBubble) streamingBubble.innerHTML = '<div class="circles-bubble-ai">連線錯誤，請重試。</div>';
+  }
+
+  AppState.isStreaming = false;
+  if (sendBtn) sendBtn.disabled = false;
+}
 function renderCirclesStepScore() { return '<div>Score</div>'; }
 function bindCirclesStepScore() {}
 
