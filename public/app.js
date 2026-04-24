@@ -1217,8 +1217,113 @@ async function sendCirclesMessage() {
   AppState.isStreaming = false;
   if (sendBtn) sendBtn.disabled = false;
 }
-function renderCirclesStepScore() { return '<div>Score</div>'; }
-function bindCirclesStepScore() {}
+function renderCirclesStepScore() {
+  var result = AppState.circlesScoreResult;
+  var mode = AppState.circlesMode;
+  var stepKey = AppState.circlesDrillStep;
+  var stepIdx = CIRCLES_STEPS.findIndex(function(s) { return s.key === stepKey; });
+  var step = CIRCLES_STEPS[stepIdx];
+  var q = AppState.circlesSelectedQuestion;
+
+  if (!result) {
+    return '<div data-view="circles"><div style="text-align:center;padding:48px 16px;font-family:DM Sans,sans-serif">評分結果載入中...</div></div>';
+  }
+
+  var progressSegs = CIRCLES_STEPS.map(function(s, i) {
+    var cls = i <= stepIdx ? 'done' : '';
+    return '<div class="circles-progress-seg ' + cls + '"></div>';
+  }).join('');
+
+  var dims = (result.dimensions || []).map(function(d) {
+    return '<div class="circles-dim-row">' +
+      '<div><div class="circles-dim-name">' + d.name + '</div><div class="circles-dim-comment">' + d.comment + '</div></div>' +
+      '<div class="circles-dim-score">' + d.score + '<span style="font-size:10px;color:var(--c-text-3,#8a8a8a)">/5</span></div>' +
+    '</div>';
+  }).join('');
+
+  var coachContent = result.coachVersion || '';
+  var isLastStep = stepIdx === 6;
+
+  return '<div data-view="circles">' +
+    '<div class="circles-nav">' +
+      '<button class="circles-nav-back" id="circles-score-back"><i class="ph ph-arrow-left"></i></button>' +
+      '<div>' +
+        '<div class="circles-nav-title">步驟評分 — ' + step.label + '</div>' +
+        '<div class="circles-nav-sub">' + (q ? q.company : '') + '</div>' +
+      '</div>' +
+    '</div>' +
+    '<div class="circles-progress">' + progressSegs + '<div class="circles-progress-label">' + step.short + ' · ' + (stepIdx + 1) + ' of 7</div></div>' +
+    '<div class="circles-score-wrap">' +
+      '<div class="circles-score-total">' +
+        '<div class="circles-score-number">' + Math.round(result.totalScore || 0) + '</div>' +
+        '<div class="circles-score-label">/ 100 分</div>' +
+      '</div>' +
+      dims +
+      '<div class="circles-highlight-card good"><div class="circles-highlight-card-label">最強表現</div><div class="circles-highlight-card-text">' + (result.highlight || '—') + '</div></div>' +
+      '<div class="circles-highlight-card improve"><div class="circles-highlight-card-label">最需改進</div><div class="circles-highlight-card-text">' + (result.improvement || '—') + '</div></div>' +
+      '<div class="circles-coach-toggle" id="circles-coach-toggle">' +
+        '<div class="circles-coach-toggle-label">教練示範答案 <i class="ph ph-caret-down"></i></div>' +
+        '<div class="circles-coach-content" id="circles-coach-content">' + coachContent + '</div>' +
+      '</div>' +
+      '<div class="circles-submit-bar">' +
+        (isLastStep || mode === 'drill'
+          ? '<button class="circles-btn-primary" id="circles-score-again">重練這道題</button><button class="circles-btn-ghost" id="circles-score-home">回首頁</button>'
+          : '<button class="circles-btn-primary" id="circles-score-next">繼續下一步：' + CIRCLES_STEPS[stepIdx + 1].label + ' →</button><button class="circles-btn-ghost" id="circles-score-home">回首頁</button>') +
+      '</div>' +
+    '</div>' +
+  '</div>';
+}
+
+function bindCirclesStepScore() {
+  document.getElementById('circles-score-back')?.addEventListener('click', function() {
+    AppState.circlesPhase = 2;
+    render();
+  });
+
+  document.getElementById('circles-coach-toggle')?.addEventListener('click', function() {
+    var content = document.getElementById('circles-coach-content');
+    if (content) content.classList.toggle('open');
+  });
+
+  document.getElementById('circles-score-home')?.addEventListener('click', function() {
+    AppState.circlesSelectedQuestion = null;
+    AppState.circlesSession = null;
+    AppState.circlesPhase = 1;
+    AppState.circlesScoreResult = null;
+    navigate('home');
+  });
+
+  document.getElementById('circles-score-again')?.addEventListener('click', function() {
+    AppState.circlesSession = null;
+    AppState.circlesPhase = 1;
+    AppState.circlesFrameworkDraft = {};
+    AppState.circlesGateResult = null;
+    AppState.circlesConversation = [];
+    AppState.circlesScoreResult = null;
+    render();
+  });
+
+  document.getElementById('circles-score-next')?.addEventListener('click', function() {
+    var mode = AppState.circlesMode;
+    var stepIdx = CIRCLES_STEPS.findIndex(function(s) { return s.key === AppState.circlesDrillStep; });
+    if (stepIdx < 6) {
+      var nextStep = CIRCLES_STEPS[stepIdx + 1];
+      AppState.circlesDrillStep = nextStep.key;
+      AppState.circlesPhase = 1;
+      AppState.circlesFrameworkDraft = {};
+      AppState.circlesGateResult = null;
+      AppState.circlesConversation = [];
+      AppState.circlesScoreResult = null;
+      if (mode === 'simulation') {
+        AppState.circlesSimStep = stepIdx + 1;
+        saveCirclesProgress({ currentPhase: 1, simStepIndex: stepIdx + 1 });
+      } else {
+        AppState.circlesSession = null;
+      }
+      render();
+    }
+  });
+}
 
 // ── Home View ────────────────────────────────────
 function renderHome() {
