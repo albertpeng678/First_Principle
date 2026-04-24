@@ -1,6 +1,6 @@
 // ── 常數 ─────────────────────────────────────────
 var _adjustNsmKeyboardFn = null; // module-level to prevent listener leak
-var _adjustCirclesKbFn = null;
+var _adjustCirclesKbFn = null; // module-level to prevent listener leak (used by bindCirclesPhase2)
 var _nsmScrollFn = null;         // module-level NSM scroll listener ref
 var _nsmScrollParent = null;     // module-level NSM scroll parent ref (for cleanup)
 
@@ -671,11 +671,16 @@ function renderCirclesHome() {
     '</div>';
   }).join('');
 
-  var PHASE_LABELS = { 1: '填寫框架', 1.5: '等待審核', 2: '對話進行中', 3: '查看評分' };
-  var STEP_MAP = {};
-  CIRCLES_STEPS.forEach(function(s) { STEP_MAP[s.key] = s.label; });
+  var allQs = (typeof CIRCLES_QUESTIONS !== 'undefined' ? CIRCLES_QUESTIONS : []);
+  var designCount = allQs.filter(function(q) { return q.question_type === 'design'; }).length;
+  var improveCount = allQs.filter(function(q) { return q.question_type === 'improve'; }).length;
+  var strategyCount = allQs.filter(function(q) { return q.question_type === 'strategy'; }).length;
+
   var recentHtml = '';
   if (AppState.circlesRecentSessions.length > 0) {
+    var PHASE_LABELS = { 1: '填寫框架', 1.5: '等待審核', 2: '對話進行中', 3: '查看評分' };
+    var STEP_MAP = {};
+    CIRCLES_STEPS.forEach(function(s) { STEP_MAP[s.key] = s.label; });
     var resumeCards = AppState.circlesRecentSessions.map(function(s) {
       var stepLabel = s.mode === 'simulation'
         ? 'Step ' + (s.sim_step_index + 1) + '/7'
@@ -724,9 +729,9 @@ function renderCirclesHome() {
       (mode === 'drill' ? '<div class="circles-step-select-label">練習步驟</div><div class="circles-step-pills">' + stepPills + '</div>' : '') +
 
       '<div class="circles-type-tabs">' +
-        '<button class="circles-type-tab ' + (type === 'design' ? 'active' : '') + '" data-type="design">產品設計 ×40</button>' +
-        '<button class="circles-type-tab ' + (type === 'improve' ? 'active' : '') + '" data-type="improve">產品改進 ×35</button>' +
-        '<button class="circles-type-tab ' + (type === 'strategy' ? 'active' : '') + '" data-type="strategy">產品策略 ×25</button>' +
+        '<button class="circles-type-tab ' + (type === 'design' ? 'active' : '') + '" data-type="design">產品設計 ×' + designCount + '</button>' +
+        '<button class="circles-type-tab ' + (type === 'improve' ? 'active' : '') + '" data-type="improve">產品改進 ×' + improveCount + '</button>' +
+        '<button class="circles-type-tab ' + (type === 'strategy' ? 'active' : '') + '" data-type="strategy">產品策略 ×' + strategyCount + '</button>' +
       '</div>' +
 
       '<div class="circles-q-list">' + (qCards || '<div style="color:var(--c-text-3);font-size:13px;text-align:center;padding:24px 0">暫無題目，請先執行題庫生成腳本</div>') + '</div>' +
@@ -791,6 +796,7 @@ function bindCirclesHome() {
       AppState.circlesGateResult = null;
       AppState.circlesConversation = [];
       AppState.circlesScoreResult = null;
+      AppState.circlesSimStep = 0;
       render();
     });
   });
