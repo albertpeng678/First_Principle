@@ -73,15 +73,15 @@ function buildMessages(session, newMessage) {
 }
 
 async function* streamCirclesReply(session, userMessage) {
+  const systemPrompt = buildSystemPrompt(session);
+  const messages = buildMessages(session, userMessage);
+
   let stream;
   try {
     stream = await openai.chat.completions.create({
       model: 'gpt-4o',
       stream: true,
-      messages: [
-        { role: 'system', content: buildSystemPrompt(session) },
-        ...buildMessages(session, userMessage),
-      ],
+      messages: [{ role: 'system', content: systemPrompt }, ...messages],
       temperature: 0.7,
       max_tokens: 600,
     });

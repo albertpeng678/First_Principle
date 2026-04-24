@@ -161,6 +161,12 @@ describe('streamCirclesReply', () => {
     jest.clearAllMocks();
   });
 
+  test('invalid mode propagates directly (not wrapped in streaming error)', async () => {
+    const session = makeSession({ mode: 'invalid' });
+    const gen = streamCirclesReply(session, 'test');
+    await expect(gen.next()).rejects.toThrow('Invalid mode: invalid');
+  });
+
   test('throws user-friendly error when openai create fails', async () => {
     const mockCreate = new OpenAI().chat.completions.create;
     mockCreate.mockRejectedValue(new Error('network error'));
