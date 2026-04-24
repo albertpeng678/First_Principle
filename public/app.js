@@ -190,6 +190,51 @@ function nsmRoute(path) {
   return base + (path ? '/' + path : '');
 }
 
+function circlesRoute(id) {
+  var base = AppState.accessToken ? '/api/circles-sessions' : '/api/guest-circles-sessions';
+  return id ? base + '/' + id : base;
+}
+
+function saveCirclesProgress(patch) {
+  var session = AppState.circlesSession;
+  if (!session || !session.id) return;
+  var headers = AppState.accessToken
+    ? { 'Content-Type': 'application/json', 'Authorization': 'Bearer ' + AppState.accessToken }
+    : { 'Content-Type': 'application/json', 'X-Guest-ID': AppState.guestId };
+  fetch(circlesRoute(session.id) + '/progress', {
+    method: 'PATCH',
+    headers: headers,
+    body: JSON.stringify(patch),
+  }).catch(function() {}); // fire-and-forget — UI never waits on this
+}
+
+async function loadCirclesSession(sessionId) {
+  var headers = AppState.accessToken
+    ? { 'Authorization': 'Bearer ' + AppState.accessToken }
+    : { 'X-Guest-ID': AppState.guestId };
+  try {
+    var res = await fetch(circlesRoute(sessionId), { headers: headers });
+    if (!res.ok) return false;
+    var s = await res.json();
+
+    // Restore question from local bank (fast), fallback to stored question_json
+    var q = (typeof CIRCLES_QUESTIONS !== 'undefined' ? CIRCLES_QUESTIONS : [])
+              .find(function(x) { return x.id === s.question_id; }) || s.question_json;
+
+    AppState.circlesSelectedQuestion  = q;
+    AppState.circlesSession           = { id: s.id, mode: s.mode, drill_step: s.drill_step };
+    AppState.circlesMode              = s.mode;
+    AppState.circlesDrillStep         = s.drill_step || 'C1';
+    AppState.circlesPhase             = s.current_phase || 1;
+    AppState.circlesSimStep           = s.sim_step_index || 0;
+    AppState.circlesFrameworkDraft    = s.framework_draft || {};
+    AppState.circlesGateResult        = s.gate_result || null;
+    AppState.circlesConversation      = s.conversation || [];
+    AppState.circlesScoreResult       = null; // loaded separately when needed
+    return true;
+  } catch (e) { return false; }
+}
+
 
 function detectProductType(question) {
   const text = ((question.industry || '') + ' ' + (question.scenario || '') + ' ' + (question.company || '')).toLowerCase();
