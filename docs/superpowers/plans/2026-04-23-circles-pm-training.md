@@ -76,6 +76,37 @@ create table circles_sessions (
 
 ---
 
+## 執行進度（最後更新：2026-04-24）
+
+| Task | 狀態 | 說明 | Commit |
+|------|------|------|--------|
+| Task 1: Phase 1.5 AI Gate Prompt | ✅ 完成 | `prompts/circles-gate.js` | — |
+| Task 2: Phase 2 Dialogue Coach Prompt | ✅ 完成 | `prompts/circles-coach.js` | — |
+| Task 3: Per-Step Evaluator Prompt | ✅ 完成 | `prompts/circles-evaluator.js` | — |
+| Task 4: Auth User Route | ✅ 完成 | `routes/circles-sessions.js` | — |
+| Task 5: Guest Route | ✅ 完成 | `routes/guest-circles-sessions.js` | — |
+| Task 6: Register Routes in server.js | ✅ 完成 | `server.js` 修改 | — |
+| Task 7: Question Generation Script | ✅ 完成 | `scripts/generate-circles-questions.js` + `circles_plan/circles_database.json`（3 題 stub） | `9987ca4` |
+| Task 8: Build circles-db.js from JSON | ✅ 完成 | `public/circles-db.js`（`var CIRCLES_QUESTIONS`，3 題 stub） | `c3413f7` |
+| Task 9: CSS — CIRCLES Light Theme Styles | ✅ 完成 | `public/style.css` 末尾附加 CIRCLES CSS block；Google Fonts 移至 `index.html <link>` | `866ab98` |
+| Task 10: Update index.html | ⏳ 待執行 | | |
+| Task 11: AppState Extensions + Constants | ⏳ 待執行 | | |
+| Task 12: Session Persistence Helpers | ⏳ 待執行 | | |
+| Task 13: Resume Cards in CirclesHome | ⏳ 待執行 | | |
+| Task 14: renderCirclesHome() | ⏳ 待執行 | | |
+| Task 15: renderCirclesPhase1() | ⏳ 待執行 | | |
+| Task 16: renderCirclesGate() | ⏳ 待執行 | | |
+| Task 17: renderCirclesPhase2() — Chat | ⏳ 待執行 | | |
+| Task 18: renderCirclesStepScore() | ⏳ 待執行 | | |
+| Task 19: End-to-End Manual QA | ⏳ 待執行 | | |
+| Task 20: Playwright 飽和稽核 | ⏳ 待執行 | | |
+
+**目前分支：** `feature/circles-pm-training`（worktree at `.worktrees/circles-feature`）
+
+**下一步：** Task 10 — Update index.html（加 `circles-db.js` script tag；Google Fonts 已在 Task 9 完成，本 task 只需確認 script tag）
+
+---
+
 ## Task 1: Phase 1.5 AI Gate Prompt
 
 **Files:**
