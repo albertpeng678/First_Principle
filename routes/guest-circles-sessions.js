@@ -6,6 +6,8 @@ const { reviewFramework } = require('../prompts/circles-gate');
 const { streamCirclesReply } = require('../prompts/circles-coach');
 const { evaluateCirclesStep } = require('../prompts/circles-evaluator');
 
+// No GET / list endpoint — guest sessions are accessed by explicit session ID stored client-side
+
 // POST /api/guest-circles-sessions
 router.post('/', requireGuestId, async (req, res) => {
   const { questionId, questionJson, mode, drillStep } = req.body;
@@ -21,6 +23,7 @@ router.post('/', requireGuestId, async (req, res) => {
   } catch (e) { res.status(500).json({ error: e.message }); }
 });
 
+// GET /api/guest-circles-sessions/:id
 router.get('/:id', requireGuestId, async (req, res) => {
   const { data, error } = await db
     .from('circles_sessions')
@@ -32,6 +35,7 @@ router.get('/:id', requireGuestId, async (req, res) => {
   res.json(data);
 });
 
+// DELETE /api/guest-circles-sessions/:id
 router.delete('/:id', requireGuestId, async (req, res) => {
   const { data, error } = await db
     .from('circles_sessions')
@@ -45,6 +49,7 @@ router.delete('/:id', requireGuestId, async (req, res) => {
   res.json({ ok: true });
 });
 
+// POST /api/guest-circles-sessions/:id/gate — Phase 1.5 AI review
 router.post('/:id/gate', requireGuestId, async (req, res) => {
   const { frameworkDraft } = req.body;
   if (!frameworkDraft) return res.status(400).json({ error: 'missing frameworkDraft' });
@@ -67,6 +72,7 @@ router.post('/:id/gate', requireGuestId, async (req, res) => {
   } catch (e) { res.status(500).json({ error: e.message }); }
 });
 
+// POST /api/guest-circles-sessions/:id/message — Phase 2 SSE streaming
 router.post('/:id/message', requireGuestId, async (req, res) => {
   const { userMessage } = req.body;
   if (!userMessage) return res.status(400).json({ error: 'missing userMessage' });
@@ -102,6 +108,7 @@ router.post('/:id/message', requireGuestId, async (req, res) => {
   }
 });
 
+// POST /api/guest-circles-sessions/:id/evaluate-step
 router.post('/:id/evaluate-step', requireGuestId, async (req, res) => {
   const { data: session, error } = await db
     .from('circles_sessions')

@@ -77,7 +77,7 @@ router.post('/:id/gate', requireAuth, async (req, res) => {
       questionJson: session.question_json,
       mode: session.mode,
     });
-    await db.from('circles_sessions').update({ framework_draft: frameworkDraft, gate_result: gateResult }).eq('id', req.params.id);
+    await db.from('circles_sessions').update({ framework_draft: frameworkDraft, gate_result: gateResult }).eq('id', req.params.id).eq('user_id', req.user.id);
     res.json(gateResult);
   } catch (e) { res.status(500).json({ error: e.message }); }
 });
@@ -112,7 +112,7 @@ router.post('/:id/message', requireAuth, async (req, res) => {
 
     const newTurn = { userMessage, interviewee, coaching, hint };
     const updated = [...(session.conversation || []), newTurn];
-    await db.from('circles_sessions').update({ conversation: updated }).eq('id', req.params.id);
+    await db.from('circles_sessions').update({ conversation: updated }).eq('id', req.params.id).eq('user_id', req.user.id);
 
     res.write(`data: ${JSON.stringify({ done: true, turn: newTurn })}\n\n`);
     res.end();
@@ -146,7 +146,7 @@ router.post('/:id/evaluate-step', requireAuth, async (req, res) => {
       step_scores: updatedScores,
       current_phase: 3,
       status: (session.mode === 'drill' || isLastStep) ? 'completed' : 'active',
-    }).eq('id', req.params.id);
+    }).eq('id', req.params.id).eq('user_id', req.user.id);
     res.json(result);
   } catch (e) { res.status(500).json({ error: e.message }); }
 });
