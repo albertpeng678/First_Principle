@@ -1,5 +1,6 @@
 // ── 常數 ─────────────────────────────────────────
 var _adjustNsmKeyboardFn = null; // module-level to prevent listener leak
+var _adjustCirclesKbFn = null;
 var _nsmScrollFn = null;         // module-level NSM scroll listener ref
 var _nsmScrollParent = null;     // module-level NSM scroll parent ref (for cleanup)
 
@@ -653,12 +654,28 @@ window.showHintCard = showHintCard;
 // ── View stubs（後續 Task 填入）────────────────────
 // CIRCLES stubs — replaced by Tasks 14-18
 function renderCirclesHome() {
+  var mode = AppState.circlesMode;
+  var type = AppState.circlesSelectedType;
+  var drillStep = AppState.circlesDrillStep;
+  var questions = (typeof CIRCLES_QUESTIONS !== 'undefined' ? CIRCLES_QUESTIONS : [])
+    .filter(function(q) { return q.question_type === type; });
+
+  var stepPills = CIRCLES_STEPS.map(function(s) {
+    return '<button class="circles-step-pill ' + (drillStep === s.key ? 'active' : '') + '" data-step="' + s.key + '">' + s.short + ' ' + s.label + '</button>';
+  }).join('');
+
+  var qCards = questions.slice(0, 20).map(function(q) {
+    return '<div class="circles-q-card" data-qid="' + q.id + '">' +
+      '<div class="circles-q-card-company">' + q.company + ' — ' + (q.product || '') + '</div>' +
+      '<div class="circles-q-card-stmt">' + q.problem_statement + '</div>' +
+    '</div>';
+  }).join('');
+
+  var PHASE_LABELS = { 1: '填寫框架', 1.5: '等待審核', 2: '對話進行中', 3: '查看評分' };
+  var STEP_MAP = {};
+  CIRCLES_STEPS.forEach(function(s) { STEP_MAP[s.key] = s.label; });
   var recentHtml = '';
   if (AppState.circlesRecentSessions.length > 0) {
-    var PHASE_LABELS = { 1: '填寫框架', 1.5: '等待審核', 2: '對話進行中', 3: '查看評分' };
-    var STEP_MAP = {};
-    CIRCLES_STEPS.forEach(function(s) { STEP_MAP[s.key] = s.label; });
-
     var resumeCards = AppState.circlesRecentSessions.map(function(s) {
       var stepLabel = s.mode === 'simulation'
         ? 'Step ' + (s.sim_step_index + 1) + '/7'
@@ -676,18 +693,53 @@ function renderCirclesHome() {
         '</div>' +
       '</div>';
     }).join('');
-
     recentHtml = '<div style="margin-bottom:20px">' +
       '<div class="circles-step-select-label">繼續上次練習</div>' +
       resumeCards +
     '</div>';
   }
-  return recentHtml + '<div class="circles-home-title">CIRCLES 載入中…</div>';
+
+  return '<div data-view="circles">' +
+    '<div class="circles-nav">' +
+      '<button class="circles-nav-back" id="circles-home-back"><i class="ph ph-arrow-left"></i></button>' +
+      '<div><div class="circles-nav-title">CIRCLES 訓練</div></div>' +
+    '</div>' +
+    '<div class="circles-home-wrap">' +
+      recentHtml +
+      '<div class="circles-home-title">選題開始練習</div>' +
+      '<div class="circles-home-sub">選擇模式 → 題型 → 題目</div>' +
+
+      '<div class="circles-step-select-label">練習模式</div>' +
+      '<div class="circles-mode-row">' +
+        '<div class="circles-mode-card ' + (mode === 'drill' ? 'selected' : '') + '" data-mode="drill">' +
+          '<div class="circles-mode-card-title"><i class="ph ph-target"></i> 步驟加練</div>' +
+          '<div class="circles-mode-card-desc">5-10 分鐘 · 針對單一步驟 · 全引導</div>' +
+        '</div>' +
+        '<div class="circles-mode-card ' + (mode === 'simulation' ? 'selected' : '') + '" data-mode="simulation">' +
+          '<div class="circles-mode-card-title"><i class="ph ph-video-camera"></i> 完整模擬</div>' +
+          '<div class="circles-mode-card-desc">25-35 分鐘 · 全 7 步 · 無提示</div>' +
+        '</div>' +
+      '</div>' +
+
+      (mode === 'drill' ? '<div class="circles-step-select-label">練習步驟</div><div class="circles-step-pills">' + stepPills + '</div>' : '') +
+
+      '<div class="circles-type-tabs">' +
+        '<button class="circles-type-tab ' + (type === 'design' ? 'active' : '') + '" data-type="design">產品設計 ×40</button>' +
+        '<button class="circles-type-tab ' + (type === 'improve' ? 'active' : '') + '" data-type="improve">產品改進 ×35</button>' +
+        '<button class="circles-type-tab ' + (type === 'strategy' ? 'active' : '') + '" data-type="strategy">產品策略 ×25</button>' +
+      '</div>' +
+
+      '<div class="circles-q-list">' + (qCards || '<div style="color:var(--c-text-3);font-size:13px;text-align:center;padding:24px 0">暫無題目，請先執行題庫生成腳本</div>') + '</div>' +
+    '</div>' +
+  '</div>';
 }
 function bindCirclesHome() {
   if (AppState.circlesRecentSessions.length === 0 && !AppState.circlesRecentLoading) {
     fetchCirclesRecentSessions();
   }
+
+  document.getElementById('circles-home-back')?.addEventListener('click', function() { navigate('home'); });
+
   document.querySelectorAll('.circles-resume-card').forEach(function(el) {
     el.addEventListener('click', async function() {
       var id = el.dataset.resumeId;
@@ -703,6 +755,43 @@ function bindCirclesHome() {
         el.style.opacity = '';
         el.style.pointerEvents = '';
       }
+    });
+  });
+
+  document.querySelectorAll('.circles-mode-card').forEach(function(el) {
+    el.addEventListener('click', function() {
+      AppState.circlesMode = el.dataset.mode;
+      render();
+    });
+  });
+
+  document.querySelectorAll('.circles-type-tab').forEach(function(el) {
+    el.addEventListener('click', function() {
+      AppState.circlesSelectedType = el.dataset.type;
+      render();
+    });
+  });
+
+  document.querySelectorAll('.circles-step-pill').forEach(function(el) {
+    el.addEventListener('click', function() {
+      AppState.circlesDrillStep = el.dataset.step;
+      render();
+    });
+  });
+
+  document.querySelectorAll('.circles-q-card').forEach(function(el) {
+    el.addEventListener('click', function() {
+      var qid = el.dataset.qid;
+      var q = (typeof CIRCLES_QUESTIONS !== 'undefined' ? CIRCLES_QUESTIONS : []).find(function(x) { return x.id === qid; });
+      if (!q) return;
+      AppState.circlesSelectedQuestion = q;
+      AppState.circlesSession = null;
+      AppState.circlesPhase = 1;
+      AppState.circlesFrameworkDraft = {};
+      AppState.circlesGateResult = null;
+      AppState.circlesConversation = [];
+      AppState.circlesScoreResult = null;
+      render();
     });
   });
 }
