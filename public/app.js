@@ -28,6 +28,20 @@ const AppState = {
   nsmVanityWarning: null,
   nsmReportTab: 'overview',
   nsmOpenNode: null,
+  // CIRCLES
+  circlesMode: 'drill',            // 'drill' | 'simulation'
+  circlesSelectedType: 'design',   // 'design' | 'improve' | 'strategy'
+  circlesDrillStep: 'C1',          // which step to drill
+  circlesSelectedQuestion: null,   // { id, company, ... }
+  circlesSession: null,            // { id, mode, drill_step, framework_draft, gate_result, conversation, ... }
+  circlesPhase: 1,                 // 1 | 1.5 | 2 | 3 (score) | 4 (report)
+  circlesFrameworkDraft: {},       // { fieldName: value }
+  circlesGateResult: null,         // { items, canProceed, overallStatus }
+  circlesConversation: [],         // [{ userMessage, interviewee, coaching, hint }]
+  circlesGateLoading: false,
+  circlesScoreResult: null,        // current step score from evaluator
+  circlesCoachOpen: false,
+  circlesSimStep: 0,               // for simulation: which of 7 steps is active (0-6)
   nsmContext: null,
   nsmContextLoading: false,
   nsmContextQuestionId: null,
@@ -142,6 +156,27 @@ const NSM_QUESTIONS = [
   { id:'klook',   company:'Klook',  industry:'旅遊體驗預訂', scenario:'Klook 的口碑和留存依賴旅客真正完成體驗，而非只是瀏覽或加入心願清單。', coach_nsm:'每月成功完成體驗訂單並提交評分的用戶數', anti_patterns:['搜尋次數','心願清單數','頁面瀏覽','app下載'] },
   { id:'waze',    company:'Waze',   industry:'社群導航', scenario:'Waze 的護城河在於社群回報路況數據，沒有活躍回報的用戶等同只是普通地圖軟體。', coach_nsm:'每月主動回報路況且完成導航的活躍用戶數', anti_patterns:['導航啟動次數','app下載','帳號數','總導航里程'] },
 ];
+
+// CIRCLES Method — 7 steps
+var CIRCLES_STEPS = [
+  { key: 'C1', label: '澄清情境',   short: 'C', fields: ['問題範圍', '時間範圍', '業務影響', '假設確認'] },
+  { key: 'I',  label: '定義用戶',   short: 'I', fields: ['目標用戶分群', '選定焦點對象', '用戶動機假設', '排除對象'] },
+  { key: 'R',  label: '發掘需求',   short: 'R', fields: ['功能性需求', '情感性需求', '社交性需求', '核心痛點'] },
+  { key: 'C2', label: '優先排序',   short: 'C', fields: ['取捨標準', '最優先項目', '暫緩項目', '排序理由'] },
+  { key: 'L',  label: '提出方案',   short: 'L', fields: ['方案一', '方案二', '方案三（可選）', '各方案特性'] },
+  { key: 'E',  label: '評估取捨',   short: 'E', fields: ['方案優點', '方案缺點', '風險與依賴', '成功指標'] },
+  { key: 'S',  label: '總結推薦',   short: 'S', fields: ['推薦方案', '選擇理由', '北極星指標', '追蹤指標'] },
+];
+
+var CIRCLES_STEP_HINTS = {
+  C1: ['平台 / 地區 / 功能範圍', '過去 7 天 / 30 天 / 90 天', '直接影響哪個業務指標', '已排除哪些干擾因素'],
+  I:  ['功能型用戶 / 習慣型用戶 / 新用戶', '最有代表性且體量最大的群體', '他們想完成什麼「任務」', '不服務哪類用戶及原因'],
+  R:  ['需要做到什麼功能', '使用這個產品時的感受期待', '在社群中想達到的目標', '最讓用戶沮喪的一件事'],
+  C2: ['以影響力 × 可行性 × 緊迫性排序', '選定最優先的一個需求', '哪些需求先放後期', '說明取捨的核心邏輯'],
+  L:  ['漸進式改進方案', '重新設計方案', '生態系整合方案', '各方案的核心差異'],
+  E:  ['用戶價值提升點', '實作難度 / 時間成本', '技術或商業依賴', '用什麼指標衡量成功'],
+  S:  ['選擇哪個方案並推薦', '因為它在 X 情況下最優', '北極星指標是...', '追蹤：每週 / 每月 X 指標'],
+};
 
 // ── NSM 輔助函式 ─────────────────────────────────
 function isVanityMetric(input, antiPatterns) {
@@ -277,11 +312,32 @@ function render() {
     case 'report':   main.innerHTML = renderReport(); bindReport(); break;
     case 'history':  main.innerHTML = renderHistory(); bindHistory(); break;
     case 'nsm':      main.innerHTML = renderNSM(); bindNSM(); break;
+    case 'circles':
+      if (!AppState.circlesSelectedQuestion) {
+        main.innerHTML = renderCirclesHome(); bindCirclesHome();
+      } else if (AppState.circlesPhase === 1) {
+        main.innerHTML = renderCirclesPhase1(); bindCirclesPhase1();
+      } else if (AppState.circlesPhase === 1.5) {
+        main.innerHTML = renderCirclesGate(); bindCirclesGate();
+      } else if (AppState.circlesPhase === 2) {
+        main.innerHTML = renderCirclesPhase2(); bindCirclesPhase2();
+      } else if (AppState.circlesPhase === 3) {
+        main.innerHTML = renderCirclesStepScore(); bindCirclesStepScore();
+      }
+      break;
   }
 }
 
 async function navigate(view) {
   closeOffcanvas();
+  if (view === 'circles' && !AppState.circlesSession) {
+    AppState.circlesPhase = 1;
+    AppState.circlesFrameworkDraft = {};
+    AppState.circlesGateResult = null;
+    AppState.circlesConversation = [];
+    AppState.circlesScoreResult = null;
+    AppState.circlesSimStep = 0;
+  }
   AppState.view = view;
   document.body.dataset.view = view;
   if (view === 'home') {
@@ -529,6 +585,17 @@ window.closeOffcanvas = closeOffcanvas;
 window.showHintCard = showHintCard;
 
 // ── View stubs（後續 Task 填入）────────────────────
+// CIRCLES stubs — replaced by Tasks 14-18
+function renderCirclesHome() { return '<div class="circles-home-title">CIRCLES 載入中…</div>'; }
+function bindCirclesHome() {}
+function renderCirclesPhase1() { return '<div>Phase 1</div>'; }
+function bindCirclesPhase1() {}
+function renderCirclesGate() { return '<div>Gate</div>'; }
+function bindCirclesGate() {}
+function renderCirclesPhase2() { return '<div class="circles-input-bar"><button class="circles-send-btn"></button><input id="circles-msg-input"/></div>'; }
+function bindCirclesPhase2() {}
+function renderCirclesStepScore() { return '<div>Score</div>'; }
+function bindCirclesStepScore() {}
 
 // ── Home View ────────────────────────────────────
 function renderHome() {
@@ -572,6 +639,22 @@ function renderHome() {
     </button>
   ` : '';
 
+  const circlesTab = activeTab === 'circles' ? `
+    <div class="nsm-intro-card">
+      <p style="font-size:13px;color:var(--accent);line-height:1.6">
+        <strong>CIRCLES 訓練系統</strong> — 完整 7 步 PM 面試框架練習。Step Drill 針對弱項，Full Simulation 模擬真實面試壓力。
+      </p>
+    </div>
+    <div class="nsm-stats-row">
+      <div class="nsm-stat"><div class="num">100</div><div class="lbl">題庫</div></div>
+      <div class="nsm-stat"><div class="num">7</div><div class="lbl">步驟</div></div>
+      <div class="nsm-stat"><div class="num">2</div><div class="lbl">模式</div></div>
+    </div>
+    <button class="btn btn-primary" id="btn-circles-start" style="width:100%;margin-bottom:12px;min-height:44px">
+      <i class="ph ph-play"></i> 開始練習
+    </button>
+  ` : '';
+
   const recentHtml = recentSessions.length > 0 ? `
     <div class="home-recent-label">最近練習</div>
     ${recentSessions.slice(0, 3).map(s => {
@@ -607,9 +690,13 @@ function renderHome() {
       <button class="home-tab-btn ${activeTab === 'nsm' ? 'active' : ''}" data-tab="nsm">
         <i class="ph ph-star"></i> 北極星指標
       </button>
+      <button class="home-tab-btn ${activeTab === 'circles' ? 'active' : ''}" data-tab="circles">
+        <i class="ph ph-circle-dashed"></i> CIRCLES
+      </button>
     </div>
     ${pmTab}
     ${nsmTab}
+    ${circlesTab}
     ${recentHtml}
   `;
 }
@@ -671,6 +758,12 @@ function bindHome() {
       navigate('nsm');
     });
   }
+
+  document.getElementById('btn-circles-start')?.addEventListener('click', function() {
+    AppState.circlesSession = null;
+    AppState.circlesSelectedQuestion = null;
+    navigate('circles');
+  });
 
   document.querySelectorAll('.home-session-item[data-session-id]').forEach(item => {
     item.addEventListener('click', () => {
