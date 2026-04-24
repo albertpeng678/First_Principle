@@ -93,7 +93,7 @@ router.post('/:id/message', requireGuestId, async (req, res) => {
     const hint       = fullText.match(/【教練提示】\n([\s\S]*?)$/)?.[1]?.trim() || '';
     const newTurn = { userMessage, interviewee, coaching, hint };
     const updated = [...(session.conversation || []), newTurn];
-    await db.from('circles_sessions').update({ conversation: updated }).eq('id', req.params.id);
+    await db.from('circles_sessions').update({ conversation: updated }).eq('id', req.params.id).eq('guest_id', req.guestId);
     res.write(`data: ${JSON.stringify({ done: true, turn: newTurn })}\n\n`);
     res.end();
   } catch (e) {
@@ -125,7 +125,7 @@ router.post('/:id/evaluate-step', requireGuestId, async (req, res) => {
       step_scores: updatedScores,
       current_phase: 3,
       status: (session.mode === 'drill' || isLastStep) ? 'completed' : 'active',
-    }).eq('id', req.params.id);
+    }).eq('id', req.params.id).eq('guest_id', req.guestId);
     res.json(result);
   } catch (e) { res.status(500).json({ error: e.message }); }
 });
