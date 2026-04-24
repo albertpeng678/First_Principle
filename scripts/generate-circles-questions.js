@@ -56,8 +56,14 @@ async function generateBatch(type, startId, count) {
     response_format: { type: 'json_object' },
   });
 
-  const parsed = JSON.parse(resp.choices[0].message.content);
-  return Array.isArray(parsed) ? parsed : parsed.questions || parsed.data || [];
+  const raw = resp.choices[0].message.content;
+  if (!raw) {
+    throw new Error(`Empty response for type=${type} startId=${startId} (finish_reason: ${resp.choices[0].finish_reason})`);
+  }
+  const parsed = JSON.parse(raw);
+  return Array.isArray(parsed)
+    ? parsed
+    : Object.values(parsed).find(v => Array.isArray(v)) ?? [];
 }
 
 async function main() {
@@ -75,6 +81,9 @@ async function main() {
       const batchCount = Math.min(chunkSize, count - i);
       const questions = await generateBatch(type, currentId, batchCount);
       allQuestions = allQuestions.concat(questions);
+      if (questions.length !== batchCount) {
+        console.warn(`  WARNING: requested ${batchCount}, got ${questions.length}`);
+      }
       currentId += questions.length;
       console.log(`  Generated ${questions.length} (total: ${allQuestions.length})`);
     }
