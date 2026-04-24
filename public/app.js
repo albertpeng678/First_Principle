@@ -846,6 +846,7 @@ function renderCirclesPhase1() {
 function bindCirclesPhase1() {
   document.getElementById('circles-p1-back')?.addEventListener('click', function() {
     AppState.circlesSelectedQuestion = null;
+    AppState.circlesPhase = 1;
     render();
   });
 
@@ -909,6 +910,7 @@ function bindCirclesPhase1() {
             drillStep: AppState.circlesMode === 'drill' ? AppState.circlesDrillStep : null,
           }),
         });
+        if (!createRes.ok) throw new Error('create_failed_' + createRes.status);
         var createData = await createRes.json();
         AppState.circlesSession = { id: createData.sessionId };
       }
@@ -919,11 +921,13 @@ function bindCirclesPhase1() {
         headers: headers,
         body: JSON.stringify({ frameworkDraft: AppState.circlesFrameworkDraft }),
       });
+      if (!gateRes.ok) throw new Error('gate_failed_' + gateRes.status);
       var gateData = await gateRes.json();
       AppState.circlesGateResult = gateData;
       AppState.circlesGateLoading = false;
       render();
     } catch (e) {
+      if (AppState.circlesSession && !AppState.circlesSession.id) AppState.circlesSession = null;
       AppState.circlesGateLoading = false;
       AppState.circlesPhase = 1;
       render();
