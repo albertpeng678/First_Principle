@@ -934,8 +934,83 @@ function bindCirclesPhase1() {
     }
   });
 }
-function renderCirclesGate() { return '<div>Gate</div>'; }
-function bindCirclesGate() {}
+function renderCirclesGate() {
+  var loading = AppState.circlesGateLoading;
+  var result = AppState.circlesGateResult;
+  var mode = AppState.circlesMode;
+  var stepKey = mode === 'drill' ? AppState.circlesDrillStep : 'C1';
+  var stepIdx = CIRCLES_STEPS.findIndex(function(s) { return s.key === stepKey; });
+  var step = CIRCLES_STEPS[stepIdx];
+  var q = AppState.circlesSelectedQuestion;
+
+  var progressSegs = CIRCLES_STEPS.map(function(s, i) {
+    var cls = i < stepIdx ? 'done' : i === stepIdx ? 'done' : '';
+    return '<div class="circles-progress-seg ' + cls + '"></div>';
+  }).join('');
+
+  if (loading || !result) {
+    return '<div data-view="circles">' +
+      '<div class="circles-nav">' +
+        '<div><div class="circles-nav-title">框架審核中</div><div class="circles-nav-sub">' + (q ? q.company : '') + '</div></div>' +
+      '</div>' +
+      '<div class="circles-progress">' + progressSegs + '<div class="circles-progress-label">' + step.short + '</div></div>' +
+      '<div class="circles-gate-loading"><i class="ph ph-circle-notch" style="font-size:28px;animation:spin 0.8s linear infinite;display:block;margin-bottom:12px"></i>AI 正在審核你的框架...</div>' +
+    '</div>';
+  }
+
+  var STATUS_LABEL = { error: '× 需修正', warn: '△ 建議補充', ok: '✓ 正確' };
+  var items = (result.items || []).map(function(item) {
+    var safeStatus = (item.status || '').replace(/[^a-z]/g, '');
+    return '<div class="circles-gate-card ' + safeStatus + '">' +
+      '<div class="circles-gate-card-status">' + (STATUS_LABEL[safeStatus] || safeStatus) + ' · ' + item.field + '</div>' +
+      '<div class="circles-gate-card-title">' + item.title + '</div>' +
+      '<div class="circles-gate-card-reason">' + item.reason + '</div>' +
+      (item.suggestion ? '<div class="circles-gate-card-suggestion"><i class="ph ph-arrow-right"></i> ' + item.suggestion + '</div>' : '') +
+    '</div>';
+  }).join('');
+
+  var canProceed = result.canProceed !== false;
+  var hasError = result.overallStatus === 'error';
+
+  return '<div data-view="circles">' +
+    '<div class="circles-nav">' +
+      '<button class="circles-nav-back" id="circles-gate-back"><i class="ph ph-arrow-left"></i></button>' +
+      '<div>' +
+        '<div class="circles-nav-title">框架審核結果</div>' +
+        '<div class="circles-nav-sub">' + step.label + ' · ' + (q ? q.company : '') + '</div>' +
+      '</div>' +
+    '</div>' +
+    '<div class="circles-progress">' + progressSegs + '<div class="circles-progress-label">' + step.short + '</div></div>' +
+    '<div class="circles-gate-wrap">' +
+      items +
+      '<div class="circles-submit-bar">' +
+        (canProceed || !hasError
+          ? '<button class="circles-btn-primary" id="circles-gate-proceed">' + (hasError ? '帶著問題進入對話（風險自負）' : '套用並進入對話 →') + '</button>'
+          : '<button class="circles-btn-primary" id="circles-gate-fix">修正框架後重試</button>') +
+        (!canProceed && hasError ? '' : '<button class="circles-btn-ghost" id="circles-gate-back-edit">重新編輯框架</button>') +
+      '</div>' +
+    '</div>' +
+  '</div>';
+}
+
+function bindCirclesGate() {
+  document.getElementById('circles-gate-back')?.addEventListener('click', function() {
+    AppState.circlesPhase = 1;
+    render();
+  });
+  document.getElementById('circles-gate-back-edit')?.addEventListener('click', function() {
+    AppState.circlesPhase = 1;
+    render();
+  });
+  document.getElementById('circles-gate-fix')?.addEventListener('click', function() {
+    AppState.circlesPhase = 1;
+    render();
+  });
+  document.getElementById('circles-gate-proceed')?.addEventListener('click', function() {
+    AppState.circlesPhase = 2;
+    render();
+  });
+}
 function renderCirclesPhase2() { return '<div class="circles-input-bar"><button class="circles-send-btn"></button><input id="circles-msg-input"/></div>'; }
 function bindCirclesPhase2() {}
 function renderCirclesStepScore() { return '<div>Score</div>'; }
