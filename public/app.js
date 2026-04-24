@@ -332,6 +332,7 @@ async function navigate(view) {
   closeOffcanvas();
   if (view === 'circles' && !AppState.circlesSession) {
     AppState.circlesPhase = 1;
+    AppState.circlesSelectedQuestion = null;
     AppState.circlesFrameworkDraft = {};
     AppState.circlesGateResult = null;
     AppState.circlesConversation = [];
