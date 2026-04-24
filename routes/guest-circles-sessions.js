@@ -6,7 +6,19 @@ const { reviewFramework } = require('../prompts/circles-gate');
 const { streamCirclesReply } = require('../prompts/circles-coach');
 const { evaluateCirclesStep } = require('../prompts/circles-evaluator');
 
-// No GET / list endpoint — guest sessions are accessed by explicit session ID stored client-side
+// GET /api/guest-circles-sessions
+router.get('/', requireGuestId, async (req, res) => {
+  let query = db
+    .from('circles_sessions')
+    .select('id, question_id, question_json, mode, drill_step, current_phase, sim_step_index, status, step_scores, updated_at')
+    .eq('guest_id', req.guestId)
+    .order('updated_at', { ascending: false })
+    .limit(parseInt(req.query.limit) || 20);
+  if (req.query.status) query = query.eq('status', req.query.status);
+  const { data, error } = await query;
+  if (error) return res.status(500).json({ error: error.message });
+  res.json(data || []);
+});
 
 // POST /api/guest-circles-sessions
 router.post('/', requireGuestId, async (req, res) => {

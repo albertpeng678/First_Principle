@@ -1746,3 +1746,15 @@ body { -webkit-font-smoothing: antialiased; }
   font-family: 'DM Sans', sans-serif;
   font-size: 13px;
 }
+[data-view="circles"] .circles-resume-card {
+  padding: 13px 16px;
+  border-radius: 12px;
+  background: var(--c-card);
+  border: 1.5px solid rgba(26,86,219,0.2);
+  cursor: pointer;
+  touch-action: manipulation;
+  -webkit-tap-highlight-color: transparent;
+  margin-bottom: 8px;
+  transition: border-color 0.2s;
+}
+[data-view="circles"] .circles-resume-card:active { border-color: var(--c-primary); }

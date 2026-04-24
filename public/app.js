@@ -42,6 +42,8 @@ const AppState = {
   circlesScoreResult: null,        // current step score from evaluator
   circlesCoachOpen: false,
   circlesSimStep: 0,               // for simulation: which of 7 steps is active (0-6)
+  circlesRecentSessions: [],       // [{ id, question_json, mode, drill_step, current_phase, sim_step_index, updated_at }]
+  circlesRecentLoading: false,
   nsmContext: null,
   nsmContextLoading: false,
   nsmContextQuestionId: null,
@@ -235,6 +237,22 @@ async function loadCirclesSession(sessionId) {
   } catch (e) { return false; }
 }
 
+async function fetchCirclesRecentSessions() {
+  if (AppState.circlesRecentLoading) return;
+  AppState.circlesRecentLoading = true;
+  var headers = AppState.accessToken
+    ? { 'Authorization': 'Bearer ' + AppState.accessToken }
+    : { 'X-Guest-ID': AppState.guestId };
+  try {
+    var res = await fetch(circlesRoute() + '?status=active&limit=3', { headers: headers });
+    if (res.ok) {
+      var data = await res.json();
+      AppState.circlesRecentSessions = data || [];
+    }
+  } catch (e) {}
+  AppState.circlesRecentLoading = false;
+  render();
+}
 
 function detectProductType(question) {
   const text = ((question.industry || '') + ' ' + (question.scenario || '') + ' ' + (question.company || '')).toLowerCase();
@@ -632,8 +650,59 @@ window.showHintCard = showHintCard;
 
 // ── View stubs（後續 Task 填入）────────────────────
 // CIRCLES stubs — replaced by Tasks 14-18
-function renderCirclesHome() { return '<div class="circles-home-title">CIRCLES 載入中…</div>'; }
-function bindCirclesHome() {}
+function renderCirclesHome() {
+  var recentHtml = '';
+  if (AppState.circlesRecentSessions.length > 0) {
+    var PHASE_LABELS = { 1: '填寫框架', 1.5: '等待審核', 2: '對話進行中', 3: '查看評分' };
+    var STEP_MAP = {};
+    CIRCLES_STEPS.forEach(function(s) { STEP_MAP[s.key] = s.label; });
+
+    var resumeCards = AppState.circlesRecentSessions.map(function(s) {
+      var stepLabel = s.mode === 'simulation'
+        ? 'Step ' + (s.sim_step_index + 1) + '/7'
+        : (STEP_MAP[s.drill_step] || s.drill_step);
+      var phaseLabel = PHASE_LABELS[s.current_phase] || 'Phase ' + s.current_phase;
+      var company = (s.question_json || {}).company || '—';
+      var modeLabel = s.mode === 'drill' ? '步驟加練' : '完整模擬';
+      return '<div class="circles-resume-card" data-resume-id="' + s.id + '">' +
+        '<div style="display:flex;align-items:center;justify-content:space-between">' +
+          '<div>' +
+            '<div class="circles-q-card-company">' + company + ' — ' + modeLabel + '</div>' +
+            '<div style="font-size:12px;color:var(--c-text-2,#5a5a5a);margin-top:2px;font-family:DM Sans,sans-serif">' + stepLabel + ' · ' + phaseLabel + '</div>' +
+          '</div>' +
+          '<div style="font-size:12px;font-weight:600;color:var(--c-primary,#1A56DB);font-family:DM Sans,sans-serif;white-space:nowrap">繼續練習 →</div>' +
+        '</div>' +
+      '</div>';
+    }).join('');
+
+    recentHtml = '<div style="margin-bottom:20px">' +
+      '<div class="circles-step-select-label">繼續上次練習</div>' +
+      resumeCards +
+    '</div>';
+  }
+  return '<div class="circles-home-title">CIRCLES 載入中…</div>' + recentHtml;
+}
+function bindCirclesHome() {
+  if (AppState.circlesRecentSessions.length === 0 && !AppState.circlesRecentLoading) {
+    fetchCirclesRecentSessions();
+  }
+  document.querySelectorAll('.circles-resume-card').forEach(function(el) {
+    el.addEventListener('click', async function() {
+      var id = el.dataset.resumeId;
+      el.style.opacity = '0.6';
+      el.style.pointerEvents = 'none';
+      var ok = await loadCirclesSession(id);
+      if (ok) {
+        AppState.view = 'circles';
+        document.body.dataset.view = 'circles';
+        render();
+      } else {
+        el.style.opacity = '';
+        el.style.pointerEvents = '';
+      }
+    });
+  });
+}
 function renderCirclesPhase1() { return '<div>Phase 1</div>'; }
 function bindCirclesPhase1() {}
 function renderCirclesGate() { return '<div>Gate</div>'; }

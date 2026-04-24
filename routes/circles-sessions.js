@@ -23,12 +23,14 @@ router.post('/', requireAuth, async (req, res) => {
 
 // GET /api/circles-sessions
 router.get('/', requireAuth, async (req, res) => {
-  const { data, error } = await db
+  let query = db
     .from('circles_sessions')
-    .select('id, question_id, question_json, mode, drill_step, status, step_scores, created_at')
+    .select('id, question_id, question_json, mode, drill_step, current_phase, sim_step_index, status, step_scores, updated_at')
     .eq('user_id', req.user.id)
-    .order('created_at', { ascending: false })
-    .limit(20);
+    .order('updated_at', { ascending: false })
+    .limit(parseInt(req.query.limit) || 20);
+  if (req.query.status) query = query.eq('status', req.query.status);
+  const { data, error } = await query;
   if (error) return res.status(500).json({ error: error.message });
   res.json(data || []);
 });
