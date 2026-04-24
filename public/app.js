@@ -695,6 +695,7 @@ function bindCirclesHome() {
       el.style.pointerEvents = 'none';
       var ok = await loadCirclesSession(id);
       if (ok) {
+        AppState.circlesRecentSessions = [];
         AppState.view = 'circles';
         document.body.dataset.view = 'circles';
         render();
