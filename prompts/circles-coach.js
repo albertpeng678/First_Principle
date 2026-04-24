@@ -14,6 +14,11 @@ const STEP_FOCUS = {
 function buildSystemPrompt(session) {
   const step = session.drill_step || 'C1';
   const mode = session.mode;
+
+  if (mode !== 'drill' && mode !== 'simulation') {
+    throw new Error('Invalid mode: ' + mode);
+  }
+
   const q = session.question_json;
   const isSimulation = mode === 'simulation';
   const focus = STEP_FOCUS[step] || '';
@@ -35,7 +40,7 @@ function buildSystemPrompt(session) {
 
 題目：${q.problem_statement}
 公司：${q.company}
-步驟：${step}（${STEP_FOCUS[step]}）
+步驟：${step}（${focus}）
 
 角色 A（被訪談者）：
 - 你是 ${q.company} 的產品負責人，被學員訪談
@@ -68,16 +73,21 @@ function buildMessages(session, newMessage) {
 }
 
 async function* streamCirclesReply(session, userMessage) {
-  const stream = await openai.chat.completions.create({
-    model: 'gpt-4o',
-    stream: true,
-    messages: [
-      { role: 'system', content: buildSystemPrompt(session) },
-      ...buildMessages(session, userMessage),
-    ],
-    temperature: 0.7,
-    max_tokens: 600,
-  });
+  let stream;
+  try {
+    stream = await openai.chat.completions.create({
+      model: 'gpt-4o',
+      stream: true,
+      messages: [
+        { role: 'system', content: buildSystemPrompt(session) },
+        ...buildMessages(session, userMessage),
+      ],
+      temperature: 0.7,
+      max_tokens: 600,
+    });
+  } catch (e) {
+    throw new Error('AI 回覆串流失敗，請重試');
+  }
 
   for await (const chunk of stream) {
     const text = chunk.choices[0]?.delta?.content || '';
@@ -85,4 +95,4 @@ async function* streamCirclesReply(session, userMessage) {
   }
 }
 
-module.exports = { streamCirclesReply };
+module.exports = { streamCirclesReply, buildSystemPrompt, buildMessages };
