@@ -13,7 +13,7 @@ router.get('/', requireGuestId, async (req, res) => {
     .select('id, question_id, question_json, mode, drill_step, current_phase, sim_step_index, status, step_scores, updated_at')
     .eq('guest_id', req.guestId)
     .order('updated_at', { ascending: false })
-    .limit(parseInt(req.query.limit) || 20);
+    .limit(Math.min(Math.max(parseInt(req.query.limit) || 20, 1), 50));
   if (req.query.status) query = query.eq('status', req.query.status);
   const { data, error } = await query;
   if (error) return res.status(500).json({ error: error.message });

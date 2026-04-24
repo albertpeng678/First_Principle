@@ -401,6 +401,8 @@ async function navigate(view) {
     AppState.circlesConversation = [];
     AppState.circlesScoreResult = null;
     AppState.circlesSimStep = 0;
+    AppState.circlesRecentSessions = [];
+    AppState.circlesRecentLoading = false;
   }
   AppState.view = view;
   document.body.dataset.view = view;
@@ -680,7 +682,7 @@ function renderCirclesHome() {
       resumeCards +
     '</div>';
   }
-  return '<div class="circles-home-title">CIRCLES 載入中…</div>' + recentHtml;
+  return recentHtml + '<div class="circles-home-title">CIRCLES 載入中…</div>';
 }
 function bindCirclesHome() {
   if (AppState.circlesRecentSessions.length === 0 && !AppState.circlesRecentLoading) {
