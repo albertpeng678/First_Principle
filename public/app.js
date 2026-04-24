@@ -801,8 +801,135 @@ function bindCirclesHome() {
     });
   });
 }
-function renderCirclesPhase1() { return '<div>Phase 1</div>'; }
-function bindCirclesPhase1() {}
+function renderCirclesPhase1() {
+  var q = AppState.circlesSelectedQuestion;
+  var mode = AppState.circlesMode;
+  var stepKey = mode === 'drill' ? AppState.circlesDrillStep : 'C1';
+  var stepIdx = CIRCLES_STEPS.findIndex(function(s) { return s.key === stepKey; });
+  var step = CIRCLES_STEPS[stepIdx];
+  var draft = AppState.circlesFrameworkDraft;
+  var isSimulation = mode === 'simulation';
+
+  var progressSegs = CIRCLES_STEPS.map(function(s, i) {
+    var cls = i < stepIdx ? 'done' : i === stepIdx ? 'active' : '';
+    return '<div class="circles-progress-seg ' + cls + '"></div>';
+  }).join('');
+
+  var fields = step.fields.map(function(field, i) {
+    var hint = (!isSimulation && CIRCLES_STEP_HINTS[stepKey]) ? CIRCLES_STEP_HINTS[stepKey][i] : '';
+    return '<div class="circles-field-group">' +
+      '<div class="circles-field-label">' + field + '</div>' +
+      (hint ? '<div class="circles-field-hint">例：' + hint + '</div>' : '') +
+      '<textarea class="circles-field-input" data-field="' + field + '" rows="2" placeholder="' + (isSimulation ? '' : '填寫你的分析...') + '">' + (draft[field] || '') + '</textarea>' +
+    '</div>';
+  }).join('');
+
+  return '<div data-view="circles">' +
+    '<div class="circles-nav">' +
+      '<button class="circles-nav-back" id="circles-p1-back"><i class="ph ph-arrow-left"></i></button>' +
+      '<div>' +
+        '<div class="circles-nav-title">' + step.label + '</div>' +
+        '<div class="circles-nav-sub">' + q.company + ' · ' + (q.product || '') + '</div>' +
+      '</div>' +
+    '</div>' +
+    '<div class="circles-progress">' + progressSegs + '<div class="circles-progress-label">' + step.short + ' · ' + (stepIdx + 1) + ' of 7</div></div>' +
+    '<div class="circles-phase1-wrap">' +
+      '<div style="font-size:13px;color:var(--c-text-2,#5a5a5a);line-height:1.6;margin-bottom:16px;font-family:DM Sans,sans-serif;padding:12px 14px;background:#fff;border-radius:10px;border:1px solid rgba(0,0,0,0.08)">' + q.problem_statement + '</div>' +
+      fields +
+    '</div>' +
+    '<div class="circles-submit-bar">' +
+      '<button class="circles-btn-primary" id="circles-p1-submit">提交框架 → AI 審核</button>' +
+    '</div>' +
+  '</div>';
+}
+
+function bindCirclesPhase1() {
+  document.getElementById('circles-p1-back')?.addEventListener('click', function() {
+    AppState.circlesSelectedQuestion = null;
+    render();
+  });
+
+  document.querySelectorAll('.circles-field-input').forEach(function(el) {
+    el.addEventListener('input', function() {
+      AppState.circlesFrameworkDraft[el.dataset.field] = el.value;
+    });
+  });
+
+  // keyboard handler — same pattern as NSM
+  if (_adjustCirclesKbFn && window.visualViewport) {
+    window.visualViewport.removeEventListener('resize', _adjustCirclesKbFn);
+    window.visualViewport.removeEventListener('scroll', _adjustCirclesKbFn);
+  }
+  _adjustCirclesKbFn = (function() {
+    var _raf = null;
+    return function() {
+      if (!window.visualViewport) return;
+      if (_raf) return;
+      _raf = requestAnimationFrame(function() {
+        _raf = null;
+        var bar = document.querySelector('.circles-submit-bar');
+        if (!bar) return;
+        var kbH = Math.max(0, window.innerHeight - window.visualViewport.offsetTop - window.visualViewport.height);
+        bar.style.transform = 'translateY(-' + kbH + 'px)';
+      });
+    };
+  }());
+  var bar = document.querySelector('.circles-submit-bar');
+  if (bar) bar.style.willChange = 'transform';
+  if (window.visualViewport) {
+    window.visualViewport.addEventListener('resize', _adjustCirclesKbFn);
+    window.visualViewport.addEventListener('scroll', _adjustCirclesKbFn);
+    _adjustCirclesKbFn(); // run once on bind
+  }
+
+  document.getElementById('circles-p1-submit')?.addEventListener('click', async function() {
+    var btn = this;
+    btn.disabled = true;
+    btn.textContent = 'AI 審核中...';
+    AppState.circlesGateLoading = true;
+    AppState.circlesPhase = 1.5;
+    render();
+
+    var q = AppState.circlesSelectedQuestion;
+    var route = AppState.accessToken ? '/api/circles-sessions' : '/api/guest-circles-sessions';
+    var headers = AppState.accessToken
+      ? { 'Content-Type': 'application/json', 'Authorization': 'Bearer ' + AppState.accessToken }
+      : { 'Content-Type': 'application/json', 'X-Guest-ID': AppState.guestId };
+
+    try {
+      // Create session if not yet created
+      if (!AppState.circlesSession) {
+        var createRes = await fetch(route, {
+          method: 'POST',
+          headers: headers,
+          body: JSON.stringify({
+            questionId: q.id,
+            questionJson: q,
+            mode: AppState.circlesMode,
+            drillStep: AppState.circlesMode === 'drill' ? AppState.circlesDrillStep : null,
+          }),
+        });
+        var createData = await createRes.json();
+        AppState.circlesSession = { id: createData.sessionId };
+      }
+
+      var gateRoute = (AppState.accessToken ? '/api/circles-sessions/' : '/api/guest-circles-sessions/') + AppState.circlesSession.id + '/gate';
+      var gateRes = await fetch(gateRoute, {
+        method: 'POST',
+        headers: headers,
+        body: JSON.stringify({ frameworkDraft: AppState.circlesFrameworkDraft }),
+      });
+      var gateData = await gateRes.json();
+      AppState.circlesGateResult = gateData;
+      AppState.circlesGateLoading = false;
+      render();
+    } catch (e) {
+      AppState.circlesGateLoading = false;
+      AppState.circlesPhase = 1;
+      render();
+    }
+  });
+}
 function renderCirclesGate() { return '<div>Gate</div>'; }
 function bindCirclesGate() {}
 function renderCirclesPhase2() { return '<div class="circles-input-bar"><button class="circles-send-btn"></button><input id="circles-msg-input"/></div>'; }
