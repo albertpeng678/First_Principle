@@ -93,6 +93,7 @@ body[data-view="history"] #app { max-width: 860px; }
 .btn-ghost {
   background: transparent; color: var(--text-secondary);
   border: 1px solid var(--border);
+  min-height: 44px;
 }
 .btn-icon { background: transparent; border: none; cursor: pointer; font-size: 1.3rem; padding: 4px 8px; color: var(--text-secondary); display: flex; align-items: center; }
 .btn-danger { background: var(--danger); color: #fff; border: none; border-radius: 6px; padding: 4px 10px; font-size: 0.8rem; cursor: pointer; transition: opacity 0.15s; }
@@ -1228,7 +1229,7 @@ body { -webkit-font-smoothing: antialiased; }
   z-index: 10;
 }
 [data-view="circles"] .circles-nav-back {
-  width: 36px; height: 36px;
+  min-width: 44px; min-height: 44px;
   border-radius: 50%;
   background: var(--c-surface);
   border: none;
@@ -1320,6 +1321,7 @@ body { -webkit-font-smoothing: antialiased; }
   margin-bottom: 14px;
 }
 [data-view="circles"] .circles-type-tab {
+  min-height: 44px; display: flex; align-items: center;
   padding: 6px 14px;
   border-radius: 20px;
   border: 1px solid var(--c-border);
@@ -1354,6 +1356,7 @@ body { -webkit-font-smoothing: antialiased; }
   margin-bottom: 18px;
 }
 [data-view="circles"] .circles-step-pill {
+  min-height: 44px; display: flex; align-items: center;
   padding: 6px 12px;
   border-radius: 8px;
   border: 1px solid var(--c-border);
@@ -1516,9 +1519,10 @@ body { -webkit-font-smoothing: antialiased; }
 [data-view="circles"] .circles-chat-wrap {
   display: flex;
   flex-direction: column;
-  height: 100dvh;
+  position: fixed;
+  inset: 0;
+  z-index: 50;
   overflow: hidden;
-  position: relative;
 }
 [data-view="circles"] .circles-chat-body {
   flex: 1;

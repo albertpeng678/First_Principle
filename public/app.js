@@ -252,7 +252,9 @@ async function fetchCirclesRecentSessions() {
     }
   } catch (e) {}
   AppState.circlesRecentLoading = false;
-  render();
+  if (AppState.view === 'circles' && !AppState.circlesSelectedQuestion) {
+    render();
+  }
 }
 
 function detectProductType(question) {
@@ -1354,19 +1356,21 @@ function renderHome() {
   ` : '';
 
   const nsmTab = activeTab === 'nsm' ? `
-    <div class="nsm-intro-card">
-      <p style="font-size:13px;color:var(--accent);line-height:1.6">
-        <strong>北極星指標工作坊</strong> — 選一個真實企業情境，定義 NSM、拆解 4 個維度，獲得 AI 教練點評。
-      </p>
+    <div class="nsm-tab-panel">
+      <div class="nsm-intro-card">
+        <p style="font-size:13px;color:var(--accent);line-height:1.6">
+          <strong>北極星指標工作坊</strong> — 選一個真實企業情境，定義 NSM、拆解 4 個維度，獲得 AI 教練點評。
+        </p>
+      </div>
+      <div class="nsm-stats-row">
+        <div class="nsm-stat"><div class="num">${NSM_QUESTIONS.length}</div><div class="lbl">題庫</div></div>
+        <div class="nsm-stat"><div class="num">5</div><div class="lbl">評分維度</div></div>
+        <div class="nsm-stat"><div class="num">4</div><div class="lbl">步驟</div></div>
+      </div>
+      <button class="btn btn-primary" id="btn-nsm-start" style="width:100%;margin-bottom:12px;min-height:44px">
+        <i class="ph ph-shuffle"></i> 隨機抽題開始
+      </button>
     </div>
-    <div class="nsm-stats-row">
-      <div class="nsm-stat"><div class="num">${NSM_QUESTIONS.length}</div><div class="lbl">題庫</div></div>
-      <div class="nsm-stat"><div class="num">5</div><div class="lbl">評分維度</div></div>
-      <div class="nsm-stat"><div class="num">4</div><div class="lbl">步驟</div></div>
-    </div>
-    <button class="btn btn-primary" id="btn-nsm-start" style="width:100%;margin-bottom:12px;min-height:44px">
-      <i class="ph ph-shuffle"></i> 隨機抽題開始
-    </button>
   ` : '';
 
   const circlesTab = activeTab === 'circles' ? `

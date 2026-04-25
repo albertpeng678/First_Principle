@@ -1,6 +1,6 @@
 const { test, expect } = require('@playwright/test');
 
-const BASE = 'http://localhost:3000';
+const BASE = 'http://localhost:4000';
 
 const BREAKPOINTS = [
   { name: '320-mobile',   width: 320,  height: 568  },
@@ -147,7 +147,7 @@ for (const bp of BREAKPOINTS) {
 
       // Bottom bar must not overflow viewport
       const barBox = await page.locator('.circles-submit-bar').boundingBox();
-      expect(barBox.bottom, 'Submit bar overflows below viewport').toBeLessThanOrEqual(bp.height + 1);
+      expect(barBox.y + barBox.height, 'Submit bar overflows below viewport').toBeLessThanOrEqual(bp.height + 1);
     });
 
     // ── Journey 5: Phase 2 Chat 畫面結構 ───────────────────────
@@ -179,7 +179,7 @@ for (const bp of BREAKPOINTS) {
 
       // Input bar bottom must not be hidden below viewport
       const barBox = await page.locator('.circles-input-bar').boundingBox();
-      expect(barBox.bottom, 'Input bar overflows below viewport').toBeLessThanOrEqual(bp.height + 2);
+      expect(barBox.y + barBox.height, 'Input bar overflows below viewport').toBeLessThanOrEqual(bp.height + 2);
 
       // Send button touch target
       const sendBox = await page.locator('.circles-send-btn').boundingBox();
