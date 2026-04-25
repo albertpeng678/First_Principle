@@ -1026,49 +1026,188 @@ git commit -m "feat: add 💡 per-field AI hint system with overlay to CIRCLES P
 ## Task 10: Playwright UIUX Audit
 
 **Files:**
-- Read: `docs/superpowers/plans/2026-04-22-mobile-smoothness.md` before writing tests
+- Read: `docs/superpowers/plans/2026-04-22-mobile-smoothness.md` before starting — all criteria in that doc apply here
+- Modify: `tests/` — add or update Playwright test files
+
+All verification in this task MUST use Playwright browser automation (via Playwright MCP tools). No manual-only checks.
 
 - [ ] **Step 1: Run existing Playwright test suite and fix any regressions**
+
 ```bash
-npx playwright test --reporter=list 2>&1 | tail -30
-```
-Fix any failing tests caused by the IA changes (views renamed, PM routes gone).
-
-- [ ] **Step 2: Check RWD at all breakpoints**
-
-Using Playwright MCP or browser:
-```bash
-npx playwright test --project=chromium --headed
-```
-Manually verify at 375px, 430px, 768px, 1280px:
-- No text overflow or layout breaks
-- Tap targets ≥ 44×44px on all buttons
-- 回首頁 button visible and tappable on mobile
-
-- [ ] **Step 3: Validate all 7 user journeys from the spec**
-
-Open http://localhost:3000 and walk through each journey:
-
-1. Guest → CIRCLES selection (default) → select step drill → select question → Phase 1 → fill fields → submit → Phase 1.5 → proceed → Phase 2 → submit step → Phase 3 score → 回首頁 → back at CIRCLES selection ✓
-2. Guest → click 北極星指標 in header → NSM selection screen ✓
-3. Guest → NSM → complete → 回首頁 → back at NSM step 1 ✓
-4. Guest → CIRCLES selection → click 前往 NSM banner → NSM selection ✓
-5. CIRCLES Phase 2 → click 回首頁 in nav → CIRCLES selection ✓
-6. Guest → click 登入 → login page → back link → CIRCLES selection ✓
-7. CIRCLES Phase 1 → click 💡 on a field → overlay appears with hint → close → form intact ✓
-
-- [ ] **Step 4: Verify PM routes return 404**
-```bash
-curl -s http://localhost:3000/api/sessions | head -c 100
-# Expected: 404 or "Cannot GET /api/sessions"
-curl -s http://localhost:3000/api/guest/sessions | head -c 100
-# Expected: 404
+npx playwright test --reporter=list 2>&1 | tail -50
 ```
 
-- [ ] **Step 5: Final commit**
+Fix any failing tests caused by the IA changes (views renamed, PM routes gone, `navigate('home')` → `navigate('circles')`).
+
+- [ ] **Step 2: Verify PM routes return 404 via Playwright**
+
+Write a Playwright test that confirms:
+```typescript
+// tests/pm-routes-removed.spec.ts
+import { test, expect } from '@playwright/test';
+test('PM routes return 404', async ({ request }) => {
+  const r1 = await request.get('/api/sessions');
+  expect(r1.status()).toBe(404);
+  const r2 = await request.get('/api/guest/sessions');
+  expect(r2.status()).toBe(404);
+});
+```
+
+Run: `npx playwright test tests/pm-routes-removed.spec.ts`
+
+- [ ] **Step 3: RWD audit at all 5 breakpoints via Playwright**
+
+For each breakpoint — 320px, 375px, 430px, 768px, 1280px — use Playwright to navigate to the app and take a screenshot, then assert no horizontal scrollbar and no element overflow:
+
+```typescript
+// tests/rwd-audit.spec.ts
+import { test, expect } from '@playwright/test';
+const BREAKPOINTS = [320, 375, 430, 768, 1280];
+for (const width of BREAKPOINTS) {
+  test(`RWD: no overflow at ${width}px`, async ({ page }) => {
+    await page.setViewportSize({ width, height: 812 });
+    await page.goto('http://localhost:3000');
+    // Check no horizontal scrollbar
+    const scrollWidth = await page.evaluate(() => document.documentElement.scrollWidth);
+    expect(scrollWidth).toBeLessThanOrEqual(width + 1);
+    // Check no console errors
+    const errors: string[] = [];
+    page.on('console', msg => { if (msg.type() === 'error') errors.push(msg.text()); });
+    await page.waitForTimeout(500);
+    expect(errors).toHaveLength(0);
+    await page.screenshot({ path: `test-results/rwd-${width}.png` });
+  });
+}
+```
+
+Run: `npx playwright test tests/rwd-audit.spec.ts`
+
+- [ ] **Step 4: User journey tests via Playwright**
+
+Write and run Playwright tests for all 9 journeys:
+
+```typescript
+// tests/user-journeys.spec.ts
+import { test, expect } from '@playwright/test';
+
+test('J1: Guest → CIRCLES → Phase 1 → Phase 2 → Score → 回首頁', async ({ page }) => {
+  await page.goto('http://localhost:3000');
+  // App lands on CIRCLES selection (not a tabbed homepage)
+  await expect(page.locator('[data-view="circles"]')).toBeVisible();
+  // Select mode, step, question, fill Phase 1, submit, navigate through phases, click 回首頁
+  // ... (fill in each interaction step)
+  await expect(page.locator('[data-view="circles"]')).toBeVisible();
+});
+
+test('J2: Guest → click 北極星指標 → NSM selection screen', async ({ page }) => {
+  await page.goto('http://localhost:3000');
+  await page.click('button:has-text("北極星指標")');
+  await expect(page.locator('[data-view="nsm"]')).toBeVisible();
+});
+
+test('J3: NSM complete → 回首頁 → back at NSM step 1', async ({ page }) => {
+  await page.goto('http://localhost:3000');
+  await page.click('button:has-text("北極星指標")');
+  // Complete NSM session, click 回首頁, confirm NSM step 1 shown
+});
+
+test('J4: CIRCLES NSM banner → navigate to NSM', async ({ page }) => {
+  await page.goto('http://localhost:3000');
+  await page.click('button:has-text("前往 NSM")');
+  await expect(page.locator('[data-view="nsm"]')).toBeVisible();
+});
+
+test('J5: CIRCLES Phase 2 → 回首頁 → CIRCLES selection', async ({ page }) => {
+  // Navigate to Phase 2, click 回首頁
+});
+
+test('J6: Guest → 登入 → back link → CIRCLES selection', async ({ page }) => {
+  await page.goto('http://localhost:3000');
+  await page.click('button:has-text("登入")');
+  await page.click('a[onclick*="circles"], button[onclick*="circles"]');
+  await expect(page.locator('[data-view="circles"]')).toBeVisible();
+});
+
+test('J7: 💡 hint overlay opens and closes', async ({ page }) => {
+  // Navigate to Phase 1, click 💡, confirm overlay, close, confirm form intact
+});
+
+test('J8: History page renders, back returns to CIRCLES', async ({ page }) => {
+  await page.goto('http://localhost:3000');
+  // Open offcanvas or navigate to history, verify items render, back → circles
+});
+
+test('J9: Offcanvas open/close', async ({ page }) => {
+  await page.goto('http://localhost:3000');
+  await page.click('#btn-hamburger');
+  await expect(page.locator('.offcanvas')).toBeVisible();
+  await page.click('.offcanvas-overlay');
+  await expect(page.locator('.offcanvas')).not.toBeVisible();
+});
+```
+
+Run: `npx playwright test tests/user-journeys.spec.ts --reporter=list`
+
+Fix any failures before proceeding.
+
+- [ ] **Step 5: Tap target size audit via Playwright**
+
+```typescript
+// tests/tap-targets.spec.ts
+import { test, expect } from '@playwright/test';
+test('All buttons meet 44×44px tap target', async ({ page }) => {
+  await page.setViewportSize({ width: 375, height: 812 });
+  await page.goto('http://localhost:3000');
+  const violations = await page.evaluate(() => {
+    return Array.from(document.querySelectorAll('button, a, [role="button"]'))
+      .filter(el => {
+        const r = el.getBoundingClientRect();
+        return r.width > 0 && r.height > 0 && (r.width < 44 || r.height < 44);
+      })
+      .map(el => ({ text: el.textContent?.trim().slice(0, 40), w: Math.round(el.getBoundingClientRect().width), h: Math.round(el.getBoundingClientRect().height) }));
+  });
+  if (violations.length) console.log('Tap target violations:', JSON.stringify(violations, null, 2));
+  expect(violations).toHaveLength(0);
+});
+```
+
+Run: `npx playwright test tests/tap-targets.spec.ts`
+
+For any violation found: fix the element's CSS min-width/min-height/padding, then re-run until clean.
+
+- [ ] **Step 6: Console error audit via Playwright across all views**
+
+```typescript
+// tests/console-errors.spec.ts
+import { test, expect } from '@playwright/test';
+const VIEWS = ['/', '/?view=nsm', '/?view=login', '/?view=history'];
+for (const path of VIEWS) {
+  test(`No console errors on ${path}`, async ({ page }) => {
+    const errors: string[] = [];
+    page.on('console', msg => { if (msg.type() === 'error') errors.push(msg.text()); });
+    page.on('pageerror', err => errors.push(err.message));
+    await page.goto(`http://localhost:3000${path}`);
+    await page.waitForTimeout(1000);
+    expect(errors).toHaveLength(0);
+  });
+}
+```
+
+Run: `npx playwright test tests/console-errors.spec.ts`
+
+- [ ] **Step 7: Run full Playwright suite — all tests must be green**
+
 ```bash
-git add .
-git commit -m "test: UIUX audit complete — all user journeys verified at all breakpoints"
+npx playwright test --reporter=list
+```
+
+Expected: 0 failures. Fix any remaining failures before marking this task done.
+
+- [ ] **Step 8: Final commit**
+
+```bash
+git add tests/ test-results/
+git commit -m "test: Playwright UIUX audit — all journeys, RWD, tap targets, console errors green"
 ```
 
 ---
