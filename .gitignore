@@ -15,3 +15,4 @@ test-results.json
 playwright-report/
 .playwright-mcp/
 test-results/
+.worktrees/
