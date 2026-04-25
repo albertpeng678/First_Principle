@@ -1,5 +1,6 @@
 // ── 常數 ─────────────────────────────────────────
 var _adjustNsmKeyboardFn = null; // module-level to prevent listener leak
+var _adjustCirclesKbFn = null; // module-level to prevent listener leak (used by bindCirclesPhase2)
 var _nsmScrollFn = null;         // module-level NSM scroll listener ref
 var _nsmScrollParent = null;     // module-level NSM scroll parent ref (for cleanup)
 
@@ -28,6 +29,22 @@ const AppState = {
   nsmVanityWarning: null,
   nsmReportTab: 'overview',
   nsmOpenNode: null,
+  // CIRCLES
+  circlesMode: 'drill',            // 'drill' | 'simulation'
+  circlesSelectedType: 'design',   // 'design' | 'improve' | 'strategy'
+  circlesDrillStep: 'C1',          // which step to drill
+  circlesSelectedQuestion: null,   // { id, company, ... }
+  circlesSession: null,            // { id, mode, drill_step } — other fields live in top-level AppState keys
+  circlesPhase: 1,                 // 1 | 1.5 | 2 | 3 (score) | 4 (report)
+  circlesFrameworkDraft: {},       // { fieldName: value }
+  circlesGateResult: null,         // { items, canProceed, overallStatus }
+  circlesConversation: [],         // [{ userMessage, interviewee, coaching, hint }]
+  circlesGateLoading: false,
+  circlesScoreResult: null,        // current step score from evaluator
+  circlesCoachOpen: false,
+  circlesSimStep: 0,               // for simulation: which of 7 steps is active (0-6)
+  circlesRecentSessions: [],       // [{ id, question_json, mode, drill_step, current_phase, sim_step_index, updated_at }]
+  circlesRecentLoading: false,
   nsmContext: null,
   nsmContextLoading: false,
   nsmContextQuestionId: null,
@@ -143,6 +160,27 @@ const NSM_QUESTIONS = [
   { id:'waze',    company:'Waze',   industry:'社群導航', scenario:'Waze 的護城河在於社群回報路況數據，沒有活躍回報的用戶等同只是普通地圖軟體。', coach_nsm:'每月主動回報路況且完成導航的活躍用戶數', anti_patterns:['導航啟動次數','app下載','帳號數','總導航里程'] },
 ];
 
+// CIRCLES Method — 7 steps
+var CIRCLES_STEPS = [
+  { key: 'C1', label: '澄清情境',   short: 'C', fields: ['問題範圍', '時間範圍', '業務影響', '假設確認'] },
+  { key: 'I',  label: '定義用戶',   short: 'I', fields: ['目標用戶分群', '選定焦點對象', '用戶動機假設', '排除對象'] },
+  { key: 'R',  label: '發掘需求',   short: 'R', fields: ['功能性需求', '情感性需求', '社交性需求', '核心痛點'] },
+  { key: 'C2', label: '優先排序',   short: 'C', fields: ['取捨標準', '最優先項目', '暫緩項目', '排序理由'] },
+  { key: 'L',  label: '提出方案',   short: 'L', fields: ['方案一', '方案二', '方案三（可選）', '各方案特性'] },
+  { key: 'E',  label: '評估取捨',   short: 'E', fields: ['方案優點', '方案缺點', '風險與依賴', '成功指標'] },
+  { key: 'S',  label: '總結推薦',   short: 'S', fields: ['推薦方案', '選擇理由', '北極星指標', '追蹤指標'] },
+];
+
+var CIRCLES_STEP_HINTS = {
+  C1: ['平台 / 地區 / 功能範圍', '過去 7 天 / 30 天 / 90 天', '直接影響哪個業務指標', '已排除哪些干擾因素'],
+  I:  ['功能型用戶 / 習慣型用戶 / 新用戶', '最有代表性且體量最大的群體', '他們想完成什麼「任務」', '不服務哪類用戶及原因'],
+  R:  ['需要做到什麼功能', '使用這個產品時的感受期待', '在社群中想達到的目標', '最讓用戶沮喪的一件事'],
+  C2: ['以影響力 × 可行性 × 緊迫性排序', '選定最優先的一個需求', '哪些需求先放後期', '說明取捨的核心邏輯'],
+  L:  ['漸進式改進方案', '重新設計方案', '生態系整合方案', '各方案的核心差異'],
+  E:  ['用戶價值提升點', '實作難度 / 時間成本', '技術或商業依賴', '用什麼指標衡量成功'],
+  S:  ['選擇哪個方案並推薦', '因為它在 X 情況下最優', '北極星指標是...', '追蹤：每週 / 每月 X 指標'],
+};
+
 // ── NSM 輔助函式 ─────────────────────────────────
 function isVanityMetric(input, antiPatterns) {
   if (!input || !antiPatterns) return false;
@@ -155,6 +193,69 @@ function nsmRoute(path) {
   return base + (path ? '/' + path : '');
 }
 
+function circlesRoute(id) {
+  const base = AppState.accessToken ? '/api/circles-sessions' : '/api/guest-circles-sessions';
+  return id ? base + '/' + id : base;
+}
+
+function saveCirclesProgress(patch) {
+  var session = AppState.circlesSession;
+  if (!session || !session.id) return;
+  var headers = AppState.accessToken
+    ? { 'Content-Type': 'application/json', 'Authorization': 'Bearer ' + AppState.accessToken }
+    : { 'Content-Type': 'application/json', 'X-Guest-ID': AppState.guestId };
+  fetch(circlesRoute(session.id) + '/progress', {
+    method: 'PATCH',
+    headers: headers,
+    body: JSON.stringify(patch),
+  }).catch(function() {}); // fire-and-forget — UI never waits on this
+}
+
+async function loadCirclesSession(sessionId) {
+  var headers = AppState.accessToken
+    ? { 'Authorization': 'Bearer ' + AppState.accessToken }
+    : { 'X-Guest-ID': AppState.guestId };
+  try {
+    var res = await fetch(circlesRoute(sessionId), { headers: headers });
+    if (!res.ok) return false;
+    var s = await res.json();
+
+    // Restore question from local bank (fast), fallback to stored question_json
+    var q = (typeof CIRCLES_QUESTIONS !== 'undefined' ? CIRCLES_QUESTIONS : [])
+              .find(function(x) { return x.id === s.question_id; }) || s.question_json;
+
+    AppState.circlesSelectedQuestion  = q;
+    AppState.circlesSession           = { id: s.id, mode: s.mode, drill_step: s.drill_step };
+    AppState.circlesMode              = s.mode;
+    AppState.circlesDrillStep         = s.drill_step || 'C1';
+    AppState.circlesPhase             = s.current_phase || 1;
+    AppState.circlesSimStep           = s.sim_step_index || 0;
+    AppState.circlesFrameworkDraft    = s.framework_draft || {};
+    AppState.circlesGateResult        = s.gate_result || null;
+    AppState.circlesConversation      = s.conversation || [];
+    AppState.circlesScoreResult       = null; // loaded separately when needed
+    return true;
+  } catch (e) { return false; }
+}
+
+async function fetchCirclesRecentSessions() {
+  if (AppState.circlesRecentLoading) return;
+  AppState.circlesRecentLoading = true;
+  var headers = AppState.accessToken
+    ? { 'Authorization': 'Bearer ' + AppState.accessToken }
+    : { 'X-Guest-ID': AppState.guestId };
+  try {
+    var res = await fetch(circlesRoute() + '?status=active&limit=3', { headers: headers });
+    if (res.ok) {
+      var data = await res.json();
+      AppState.circlesRecentSessions = data || [];
+    }
+  } catch (e) {}
+  AppState.circlesRecentLoading = false;
+  if (AppState.view === 'circles' && !AppState.circlesSelectedQuestion) {
+    render();
+  }
+}
 
 function detectProductType(question) {
   const text = ((question.industry || '') + ' ' + (question.scenario || '') + ' ' + (question.company || '')).toLowerCase();
@@ -277,11 +378,35 @@ function render() {
     case 'report':   main.innerHTML = renderReport(); bindReport(); break;
     case 'history':  main.innerHTML = renderHistory(); bindHistory(); break;
     case 'nsm':      main.innerHTML = renderNSM(); bindNSM(); break;
+    case 'circles':
+      if (!AppState.circlesSelectedQuestion) {
+        main.innerHTML = renderCirclesHome(); bindCirclesHome();
+      } else if (AppState.circlesPhase === 1) {
+        main.innerHTML = renderCirclesPhase1(); bindCirclesPhase1();
+      } else if (AppState.circlesPhase === 1.5) {
+        main.innerHTML = renderCirclesGate(); bindCirclesGate();
+      } else if (AppState.circlesPhase === 2) {
+        main.innerHTML = renderCirclesPhase2(); bindCirclesPhase2();
+      } else if (AppState.circlesPhase === 3) {
+        main.innerHTML = renderCirclesStepScore(); bindCirclesStepScore();
+      }
+      break;
   }
 }
 
 async function navigate(view) {
   closeOffcanvas();
+  if (view === 'circles' && !AppState.circlesSession) {
+    AppState.circlesPhase = 1;
+    AppState.circlesSelectedQuestion = null;
+    AppState.circlesFrameworkDraft = {};
+    AppState.circlesGateResult = null;
+    AppState.circlesConversation = [];
+    AppState.circlesScoreResult = null;
+    AppState.circlesSimStep = 0;
+    AppState.circlesRecentSessions = [];
+    AppState.circlesRecentLoading = false;
+  }
   AppState.view = view;
   document.body.dataset.view = view;
   if (view === 'home') {
@@ -521,6 +646,7 @@ init();
 
 // 暴露至全域，讓 HTML inline onclick 可使用
 window.navigate = navigate;
+window.render = render;
 window.applyTheme = applyTheme;
 window.AppState = AppState;
 window.submitDefinition = submitDefinition;
@@ -529,6 +655,679 @@ window.closeOffcanvas = closeOffcanvas;
 window.showHintCard = showHintCard;
 
 // ── View stubs（後續 Task 填入）────────────────────
+// CIRCLES stubs — replaced by Tasks 14-18
+function renderCirclesHome() {
+  var mode = AppState.circlesMode;
+  var type = AppState.circlesSelectedType;
+  var drillStep = AppState.circlesDrillStep;
+  var questions = (typeof CIRCLES_QUESTIONS !== 'undefined' ? CIRCLES_QUESTIONS : [])
+    .filter(function(q) { return q.question_type === type; });
+
+  var stepPills = CIRCLES_STEPS.map(function(s) {
+    return '<button class="circles-step-pill ' + (drillStep === s.key ? 'active' : '') + '" data-step="' + s.key + '">' + s.short + ' ' + s.label + '</button>';
+  }).join('');
+
+  var qCards = questions.slice(0, 20).map(function(q) {
+    return '<div class="circles-q-card" data-qid="' + q.id + '">' +
+      '<div class="circles-q-card-company">' + q.company + ' — ' + (q.product || '') + '</div>' +
+      '<div class="circles-q-card-stmt">' + q.problem_statement + '</div>' +
+    '</div>';
+  }).join('');
+
+  var allQs = (typeof CIRCLES_QUESTIONS !== 'undefined' ? CIRCLES_QUESTIONS : []);
+  var designCount = allQs.filter(function(q) { return q.question_type === 'design'; }).length;
+  var improveCount = allQs.filter(function(q) { return q.question_type === 'improve'; }).length;
+  var strategyCount = allQs.filter(function(q) { return q.question_type === 'strategy'; }).length;
+
+  var recentHtml = '';
+  if (AppState.circlesRecentSessions.length > 0) {
+    var PHASE_LABELS = { 1: '填寫框架', 1.5: '等待審核', 2: '對話進行中', 3: '查看評分' };
+    var STEP_MAP = {};
+    CIRCLES_STEPS.forEach(function(s) { STEP_MAP[s.key] = s.label; });
+    var resumeCards = AppState.circlesRecentSessions.map(function(s) {
+      var stepLabel = s.mode === 'simulation'
+        ? 'Step ' + (s.sim_step_index + 1) + '/7'
+        : (STEP_MAP[s.drill_step] || s.drill_step);
+      var phaseLabel = PHASE_LABELS[s.current_phase] || 'Phase ' + s.current_phase;
+      var company = (s.question_json || {}).company || '—';
+      var modeLabel = s.mode === 'drill' ? '步驟加練' : '完整模擬';
+      return '<div class="circles-resume-card" data-resume-id="' + s.id + '">' +
+        '<div style="display:flex;align-items:center;justify-content:space-between">' +
+          '<div>' +
+            '<div class="circles-q-card-company">' + company + ' — ' + modeLabel + '</div>' +
+            '<div style="font-size:12px;color:var(--c-text-2,#5a5a5a);margin-top:2px;font-family:DM Sans,sans-serif">' + stepLabel + ' · ' + phaseLabel + '</div>' +
+          '</div>' +
+          '<div style="font-size:12px;font-weight:600;color:var(--c-primary,#1A56DB);font-family:DM Sans,sans-serif;white-space:nowrap">繼續練習 →</div>' +
+        '</div>' +
+      '</div>';
+    }).join('');
+    recentHtml = '<div style="margin-bottom:20px">' +
+      '<div class="circles-step-select-label">繼續上次練習</div>' +
+      resumeCards +
+    '</div>';
+  }
+
+  return '<div data-view="circles">' +
+    '<div class="circles-nav">' +
+      '<button class="circles-nav-back" id="circles-home-back"><i class="ph ph-arrow-left"></i></button>' +
+      '<div><div class="circles-nav-title">CIRCLES 訓練</div></div>' +
+    '</div>' +
+    '<div class="circles-home-wrap">' +
+      recentHtml +
+      '<div class="circles-home-title">選題開始練習</div>' +
+      '<div class="circles-home-sub">選擇模式 → 題型 → 題目</div>' +
+
+      '<div class="circles-step-select-label">練習模式</div>' +
+      '<div class="circles-mode-row">' +
+        '<div class="circles-mode-card ' + (mode === 'drill' ? 'selected' : '') + '" data-mode="drill">' +
+          '<div class="circles-mode-card-title"><i class="ph ph-target"></i> 步驟加練</div>' +
+          '<div class="circles-mode-card-desc">5-10 分鐘 · 針對單一步驟 · 全引導</div>' +
+        '</div>' +
+        '<div class="circles-mode-card ' + (mode === 'simulation' ? 'selected' : '') + '" data-mode="simulation">' +
+          '<div class="circles-mode-card-title"><i class="ph ph-video-camera"></i> 完整模擬</div>' +
+          '<div class="circles-mode-card-desc">25-35 分鐘 · 全 7 步 · 無提示</div>' +
+        '</div>' +
+      '</div>' +
+
+      (mode === 'drill' ? '<div class="circles-step-select-label">練習步驟</div><div class="circles-step-pills">' + stepPills + '</div>' : '') +
+
+      '<div class="circles-type-tabs">' +
+        '<button class="circles-type-tab ' + (type === 'design' ? 'active' : '') + '" data-type="design">產品設計 ×' + designCount + '</button>' +
+        '<button class="circles-type-tab ' + (type === 'improve' ? 'active' : '') + '" data-type="improve">產品改進 ×' + improveCount + '</button>' +
+        '<button class="circles-type-tab ' + (type === 'strategy' ? 'active' : '') + '" data-type="strategy">產品策略 ×' + strategyCount + '</button>' +
+      '</div>' +
+
+      '<div class="circles-q-list">' + (qCards || '<div style="color:var(--c-text-3);font-size:13px;text-align:center;padding:24px 0">暫無題目，請先執行題庫生成腳本</div>') + '</div>' +
+    '</div>' +
+  '</div>';
+}
+function bindCirclesHome() {
+  if (AppState.circlesRecentSessions.length === 0 && !AppState.circlesRecentLoading) {
+    fetchCirclesRecentSessions();
+  }
+
+  document.getElementById('circles-home-back')?.addEventListener('click', function() { navigate('home'); });
+
+  document.querySelectorAll('.circles-resume-card').forEach(function(el) {
+    el.addEventListener('click', async function() {
+      var id = el.dataset.resumeId;
+      el.style.opacity = '0.6';
+      el.style.pointerEvents = 'none';
+      var ok = await loadCirclesSession(id);
+      if (ok) {
+        AppState.circlesRecentSessions = [];
+        AppState.view = 'circles';
+        document.body.dataset.view = 'circles';
+        render();
+      } else {
+        el.style.opacity = '';
+        el.style.pointerEvents = '';
+      }
+    });
+  });
+
+  document.querySelectorAll('.circles-mode-card').forEach(function(el) {
+    el.addEventListener('click', function() {
+      AppState.circlesMode = el.dataset.mode;
+      render();
+    });
+  });
+
+  document.querySelectorAll('.circles-type-tab').forEach(function(el) {
+    el.addEventListener('click', function() {
+      AppState.circlesSelectedType = el.dataset.type;
+      render();
+    });
+  });
+
+  document.querySelectorAll('.circles-step-pill').forEach(function(el) {
+    el.addEventListener('click', function() {
+      AppState.circlesDrillStep = el.dataset.step;
+      render();
+    });
+  });
+
+  document.querySelectorAll('.circles-q-card').forEach(function(el) {
+    el.addEventListener('click', function() {
+      var qid = el.dataset.qid;
+      var q = (typeof CIRCLES_QUESTIONS !== 'undefined' ? CIRCLES_QUESTIONS : []).find(function(x) { return x.id === qid; });
+      if (!q) return;
+      AppState.circlesSelectedQuestion = q;
+      AppState.circlesSession = null;
+      AppState.circlesPhase = 1;
+      AppState.circlesFrameworkDraft = {};
+      AppState.circlesGateResult = null;
+      AppState.circlesConversation = [];
+      AppState.circlesScoreResult = null;
+      AppState.circlesSimStep = 0;
+      render();
+    });
+  });
+}
+function renderCirclesPhase1() {
+  var q = AppState.circlesSelectedQuestion;
+  var mode = AppState.circlesMode;
+  var stepKey = mode === 'drill' ? AppState.circlesDrillStep : 'C1';
+  var stepIdx = CIRCLES_STEPS.findIndex(function(s) { return s.key === stepKey; });
+  var step = CIRCLES_STEPS[stepIdx];
+  var draft = AppState.circlesFrameworkDraft;
+  var isSimulation = mode === 'simulation';
+
+  var progressSegs = CIRCLES_STEPS.map(function(s, i) {
+    var cls = i < stepIdx ? 'done' : i === stepIdx ? 'active' : '';
+    return '<div class="circles-progress-seg ' + cls + '"></div>';
+  }).join('');
+
+  var fields = step.fields.map(function(field, i) {
+    var hint = (!isSimulation && CIRCLES_STEP_HINTS[stepKey]) ? CIRCLES_STEP_HINTS[stepKey][i] : '';
+    return '<div class="circles-field-group">' +
+      '<div class="circles-field-label">' + field + '</div>' +
+      (hint ? '<div class="circles-field-hint">例：' + hint + '</div>' : '') +
+      '<textarea class="circles-field-input" data-field="' + field + '" rows="2" placeholder="' + (isSimulation ? '' : '填寫你的分析...') + '">' + (draft[field] || '') + '</textarea>' +
+    '</div>';
+  }).join('');
+
+  return '<div data-view="circles">' +
+    '<div class="circles-nav">' +
+      '<button class="circles-nav-back" id="circles-p1-back"><i class="ph ph-arrow-left"></i></button>' +
+      '<div>' +
+        '<div class="circles-nav-title">' + step.label + '</div>' +
+        '<div class="circles-nav-sub">' + q.company + ' · ' + (q.product || '') + '</div>' +
+      '</div>' +
+    '</div>' +
+    '<div class="circles-progress">' + progressSegs + '<div class="circles-progress-label">' + step.short + ' · ' + (stepIdx + 1) + ' of 7</div></div>' +
+    '<div class="circles-phase1-wrap">' +
+      '<div style="font-size:13px;color:var(--c-text-2,#5a5a5a);line-height:1.6;margin-bottom:16px;font-family:DM Sans,sans-serif;padding:12px 14px;background:#fff;border-radius:10px;border:1px solid rgba(0,0,0,0.08)">' + q.problem_statement + '</div>' +
+      fields +
+    '</div>' +
+    '<div class="circles-submit-bar">' +
+      '<button class="circles-btn-primary" id="circles-p1-submit">提交框架 → AI 審核</button>' +
+    '</div>' +
+  '</div>';
+}
+
+function bindCirclesPhase1() {
+  document.getElementById('circles-p1-back')?.addEventListener('click', function() {
+    AppState.circlesSelectedQuestion = null;
+    AppState.circlesPhase = 1;
+    render();
+  });
+
+  document.querySelectorAll('.circles-field-input').forEach(function(el) {
+    el.addEventListener('input', function() {
+      AppState.circlesFrameworkDraft[el.dataset.field] = el.value;
+    });
+  });
+
+  // keyboard handler — same pattern as NSM
+  if (_adjustCirclesKbFn && window.visualViewport) {
+    window.visualViewport.removeEventListener('resize', _adjustCirclesKbFn);
+    window.visualViewport.removeEventListener('scroll', _adjustCirclesKbFn);
+  }
+  _adjustCirclesKbFn = (function() {
+    var _raf = null;
+    return function() {
+      if (!window.visualViewport) return;
+      if (_raf) return;
+      _raf = requestAnimationFrame(function() {
+        _raf = null;
+        var bar = document.querySelector('.circles-submit-bar');
+        if (!bar) return;
+        var kbH = Math.max(0, window.innerHeight - window.visualViewport.offsetTop - window.visualViewport.height);
+        bar.style.transform = 'translateY(-' + kbH + 'px)';
+      });
+    };
+  }());
+  var bar = document.querySelector('.circles-submit-bar');
+  if (bar) bar.style.willChange = 'transform';
+  if (window.visualViewport) {
+    window.visualViewport.addEventListener('resize', _adjustCirclesKbFn);
+    window.visualViewport.addEventListener('scroll', _adjustCirclesKbFn);
+    _adjustCirclesKbFn(); // run once on bind
+  }
+
+  document.getElementById('circles-p1-submit')?.addEventListener('click', async function() {
+    var btn = this;
+    btn.disabled = true;
+    btn.textContent = 'AI 審核中...';
+    AppState.circlesGateLoading = true;
+    AppState.circlesPhase = 1.5;
+    render();
+
+    var q = AppState.circlesSelectedQuestion;
+    var route = AppState.accessToken ? '/api/circles-sessions' : '/api/guest-circles-sessions';
+    var headers = AppState.accessToken
+      ? { 'Content-Type': 'application/json', 'Authorization': 'Bearer ' + AppState.accessToken }
+      : { 'Content-Type': 'application/json', 'X-Guest-ID': AppState.guestId };
+
+    try {
+      // Create session if not yet created
+      if (!AppState.circlesSession) {
+        var createRes = await fetch(route, {
+          method: 'POST',
+          headers: headers,
+          body: JSON.stringify({
+            questionId: q.id,
+            questionJson: q,
+            mode: AppState.circlesMode,
+            drillStep: AppState.circlesMode === 'drill' ? AppState.circlesDrillStep : null,
+          }),
+        });
+        if (!createRes.ok) throw new Error('create_failed_' + createRes.status);
+        var createData = await createRes.json();
+        AppState.circlesSession = { id: createData.sessionId };
+      }
+
+      var gateRoute = (AppState.accessToken ? '/api/circles-sessions/' : '/api/guest-circles-sessions/') + AppState.circlesSession.id + '/gate';
+      var gateRes = await fetch(gateRoute, {
+        method: 'POST',
+        headers: headers,
+        body: JSON.stringify({ frameworkDraft: AppState.circlesFrameworkDraft }),
+      });
+      if (!gateRes.ok) throw new Error('gate_failed_' + gateRes.status);
+      var gateData = await gateRes.json();
+      AppState.circlesGateResult = gateData;
+      AppState.circlesGateLoading = false;
+      render();
+    } catch (e) {
+      if (AppState.circlesSession && !AppState.circlesSession.id) AppState.circlesSession = null;
+      AppState.circlesGateLoading = false;
+      AppState.circlesPhase = 1;
+      render();
+    }
+  });
+}
+function renderCirclesGate() {
+  var loading = AppState.circlesGateLoading;
+  var result = AppState.circlesGateResult;
+  var mode = AppState.circlesMode;
+  var stepKey = mode === 'drill' ? AppState.circlesDrillStep : 'C1';
+  var stepIdx = CIRCLES_STEPS.findIndex(function(s) { return s.key === stepKey; });
+  var step = CIRCLES_STEPS[stepIdx];
+  var q = AppState.circlesSelectedQuestion;
+
+  var progressSegs = CIRCLES_STEPS.map(function(s, i) {
+    var cls = i < stepIdx ? 'done' : i === stepIdx ? 'done' : '';
+    return '<div class="circles-progress-seg ' + cls + '"></div>';
+  }).join('');
+
+  if (loading || !result) {
+    return '<div data-view="circles">' +
+      '<div class="circles-nav">' +
+        '<div><div class="circles-nav-title">框架審核中</div><div class="circles-nav-sub">' + (q ? q.company : '') + '</div></div>' +
+      '</div>' +
+      '<div class="circles-progress">' + progressSegs + '<div class="circles-progress-label">' + step.short + '</div></div>' +
+      '<div class="circles-gate-loading"><i class="ph ph-circle-notch" style="font-size:28px;animation:spin 0.8s linear infinite;display:block;margin-bottom:12px"></i>AI 正在審核你的框架...</div>' +
+    '</div>';
+  }
+
+  var STATUS_LABEL = { error: '× 需修正', warn: '△ 建議補充', ok: '✓ 正確' };
+  var items = (result.items || []).map(function(item) {
+    var safeStatus = (item.status || '').replace(/[^a-z]/g, '');
+    return '<div class="circles-gate-card ' + safeStatus + '">' +
+      '<div class="circles-gate-card-status">' + (STATUS_LABEL[safeStatus] || safeStatus) + ' · ' + item.field + '</div>' +
+      '<div class="circles-gate-card-title">' + item.title + '</div>' +
+      '<div class="circles-gate-card-reason">' + item.reason + '</div>' +
+      (item.suggestion ? '<div class="circles-gate-card-suggestion"><i class="ph ph-arrow-right"></i> ' + item.suggestion + '</div>' : '') +
+    '</div>';
+  }).join('');
+
+  var canProceed = result.canProceed !== false;
+  var hasError = result.overallStatus === 'error';
+
+  return '<div data-view="circles">' +
+    '<div class="circles-nav">' +
+      '<button class="circles-nav-back" id="circles-gate-back"><i class="ph ph-arrow-left"></i></button>' +
+      '<div>' +
+        '<div class="circles-nav-title">框架審核結果</div>' +
+        '<div class="circles-nav-sub">' + step.label + ' · ' + (q ? q.company : '') + '</div>' +
+      '</div>' +
+    '</div>' +
+    '<div class="circles-progress">' + progressSegs + '<div class="circles-progress-label">' + step.short + '</div></div>' +
+    '<div class="circles-gate-wrap">' +
+      items +
+      '<div class="circles-submit-bar">' +
+        (canProceed || !hasError
+          ? '<button class="circles-btn-primary" id="circles-gate-proceed">' + (hasError ? '帶著問題進入對話（風險自負）' : '套用並進入對話 →') + '</button>'
+          : '<button class="circles-btn-primary" id="circles-gate-fix">修正框架後重試</button>') +
+        (!canProceed && hasError ? '' : '<button class="circles-btn-ghost" id="circles-gate-back-edit">重新編輯框架</button>') +
+      '</div>' +
+    '</div>' +
+  '</div>';
+}
+
+function bindCirclesGate() {
+  document.getElementById('circles-gate-back')?.addEventListener('click', function() {
+    AppState.circlesPhase = 1;
+    render();
+  });
+  document.getElementById('circles-gate-back-edit')?.addEventListener('click', function() {
+    AppState.circlesPhase = 1;
+    render();
+  });
+  document.getElementById('circles-gate-fix')?.addEventListener('click', function() {
+    AppState.circlesPhase = 1;
+    render();
+  });
+  document.getElementById('circles-gate-proceed')?.addEventListener('click', function() {
+    AppState.circlesPhase = 2;
+    render();
+  });
+}
+function renderCirclesPhase2() {
+  var q = AppState.circlesSelectedQuestion;
+  var mode = AppState.circlesMode;
+  var stepKey = mode === 'drill' ? AppState.circlesDrillStep : 'C1';
+  var stepIdx = CIRCLES_STEPS.findIndex(function(s) { return s.key === stepKey; });
+  var step = CIRCLES_STEPS[stepIdx];
+  var conv = AppState.circlesConversation;
+  var turnCount = conv.length;
+
+  var progressSegs = CIRCLES_STEPS.map(function(s, i) {
+    var cls = i < stepIdx ? 'done' : i === stepIdx ? 'active' : '';
+    return '<div class="circles-progress-seg ' + cls + '"></div>';
+  }).join('');
+
+  var bubbles = conv.map(function(t) {
+    return '<div class="circles-bubble-user">' + escHtml(t.userMessage) + '</div>' +
+      (t.interviewee ? '<div class="circles-bubble-ai"><div class="circles-bubble-section">被訪談者</div>' + t.interviewee + '</div>' : '') +
+      (t.coaching ? '<div class="circles-bubble-ai"><div class="circles-bubble-section">教練點評</div>' + t.coaching + '</div>' : '') +
+      (t.hint ? '<div class="circles-bubble-ai"><div class="circles-bubble-section">教練提示</div>' + t.hint + '</div>' : '');
+  }).join('');
+
+  if (!bubbles) {
+    bubbles = '<div class="circles-bubble-ai"><div class="circles-bubble-section">教練提示</div>' +
+      (mode === 'drill' ? '準備好了嗎？針對「' + step.label + '」步驟，請開始探索題目。你可以從問問看情境的背景開始。' : '面試開始。請用「' + step.label + '」步驟的思路展開你的分析。') +
+      '</div>';
+  }
+
+  return '<div data-view="circles" class="circles-chat-wrap">' +
+    '<div class="circles-nav">' +
+      '<button class="circles-nav-back" id="circles-p2-back"><i class="ph ph-arrow-left"></i></button>' +
+      '<div>' +
+        '<div class="circles-nav-title">' + step.label + ' — 對話練習</div>' +
+        '<div class="circles-nav-sub">' + (q ? q.company : '') + '</div>' +
+      '</div>' +
+      (turnCount > 0 ? '<div class="circles-nav-right">' + turnCount + ' 輪</div>' : '') +
+    '</div>' +
+    '<div class="circles-progress">' + progressSegs + '<div class="circles-progress-label">' + step.short + ' · ' + (stepIdx + 1) + ' of 7</div></div>' +
+    '<div class="circles-chat-body" id="circles-chat-body">' + bubbles + '<div id="circles-streaming-bubble"></div></div>' +
+    '<div class="circles-input-bar" id="circles-input-bar">' +
+      '<textarea class="circles-input" id="circles-msg-input" placeholder="輸入追問或回應..." rows="1"></textarea>' +
+      '<button class="circles-phase2-submit" id="circles-submit-step" style="' + (turnCount < 2 ? 'display:none' : '') + '">提交步驟</button>' +
+      '<button class="circles-send-btn" id="circles-send-btn"><i class="ph ph-paper-plane-tilt"></i></button>' +
+    '</div>' +
+  '</div>';
+}
+
+function bindCirclesPhase2() {
+  document.getElementById('circles-p2-back')?.addEventListener('click', function() {
+    AppState.circlesPhase = 1.5;
+    render();
+  });
+
+  // Auto-scroll to bottom
+  var chatBody = document.getElementById('circles-chat-body');
+  if (chatBody) chatBody.scrollTop = chatBody.scrollHeight;
+
+  // Keyboard handler
+  if (_adjustCirclesKbFn && window.visualViewport) {
+    window.visualViewport.removeEventListener('resize', _adjustCirclesKbFn);
+    window.visualViewport.removeEventListener('scroll', _adjustCirclesKbFn);
+  }
+  _adjustCirclesKbFn = (function() {
+    var _raf = null;
+    return function() {
+      if (!window.visualViewport) return;
+      if (_raf) return;
+      _raf = requestAnimationFrame(function() {
+        _raf = null;
+        var bar = document.getElementById('circles-input-bar');
+        var body = document.getElementById('circles-chat-body');
+        if (!bar) return;
+        var kbH = Math.max(0, window.innerHeight - window.visualViewport.offsetTop - window.visualViewport.height);
+        bar.style.transform = 'translateY(-' + kbH + 'px)';
+        if (body) body.style.paddingBottom = (bar.offsetHeight + kbH) + 'px';
+      });
+    };
+  }());
+  var inputBar = document.getElementById('circles-input-bar');
+  if (inputBar) inputBar.style.willChange = 'transform';
+  if (window.visualViewport) {
+    window.visualViewport.addEventListener('resize', _adjustCirclesKbFn);
+    window.visualViewport.addEventListener('scroll', _adjustCirclesKbFn);
+    _adjustCirclesKbFn();
+  }
+
+  // Submit step
+  document.getElementById('circles-submit-step')?.addEventListener('click', async function() {
+    var btn = this;
+    btn.disabled = true;
+    btn.textContent = '評分中...';
+
+    var session = AppState.circlesSession;
+    if (!session || !session.id) { render(); return; }
+
+    var headers = AppState.accessToken
+      ? { 'Content-Type': 'application/json', 'Authorization': 'Bearer ' + AppState.accessToken }
+      : { 'Content-Type': 'application/json', 'X-Guest-ID': AppState.guestId };
+
+    var route = (AppState.accessToken ? '/api/circles-sessions/' : '/api/guest-circles-sessions/') + session.id + '/evaluate-step';
+    try {
+      var res = await fetch(route, { method: 'POST', headers: headers });
+      var scoreData = await res.json();
+      if (!res.ok) throw new Error(scoreData.error || res.status);
+      AppState.circlesScoreResult = scoreData;
+      AppState.circlesPhase = 3;
+      render();
+    } catch (e) {
+      btn.disabled = false;
+      btn.textContent = '提交步驟';
+    }
+  });
+
+  // Send message
+  document.getElementById('circles-send-btn')?.addEventListener('click', sendCirclesMessage);
+  document.getElementById('circles-msg-input')?.addEventListener('keydown', function(e) {
+    if (e.key === 'Enter' && !e.shiftKey) {
+      e.preventDefault();
+      sendCirclesMessage();
+    }
+  });
+}
+
+async function sendCirclesMessage() {
+  var input = document.getElementById('circles-msg-input');
+  var sendBtn = document.getElementById('circles-send-btn');
+  var submitBtn = document.getElementById('circles-submit-step');
+  if (!input || AppState.isStreaming) return;
+  var msg = input.value.trim();
+  if (!msg) return;
+
+  input.value = '';
+  AppState.isStreaming = true;
+  if (sendBtn) sendBtn.disabled = true;
+
+  // Show user bubble immediately
+  var chatBody = document.getElementById('circles-chat-body');
+  var userBubble = document.createElement('div');
+  userBubble.className = 'circles-bubble-user';
+  userBubble.textContent = msg;
+  var streamingBubble = document.getElementById('circles-streaming-bubble');
+  if (chatBody) {
+    chatBody.appendChild(userBubble);
+    // Move streaming bubble after user bubble so AI response follows user message
+    if (streamingBubble) chatBody.appendChild(streamingBubble);
+    chatBody.scrollTop = chatBody.scrollHeight;
+  }
+  if (streamingBubble) { streamingBubble.innerHTML = '<div class="circles-bubble-ai"><i class="ph ph-circle-notch" style="animation:spin 0.8s linear infinite"></i></div>'; }
+
+  var session = AppState.circlesSession;
+  if (!session || !session.id) { AppState.isStreaming = false; return; }
+
+  var headers = AppState.accessToken
+    ? { 'Content-Type': 'application/json', 'Authorization': 'Bearer ' + AppState.accessToken }
+    : { 'Content-Type': 'application/json', 'X-Guest-ID': AppState.guestId };
+
+  var route = (AppState.accessToken ? '/api/circles-sessions/' : '/api/guest-circles-sessions/') + session.id + '/message';
+
+  try {
+    var res = await fetch(route, {
+      method: 'POST',
+      headers: headers,
+      body: JSON.stringify({ userMessage: msg }),
+    });
+
+    var reader = res.body.getReader();
+    var decoder = new TextDecoder();
+    var buffer = '';
+    var fullText = '';
+
+    while (true) {
+      var readResult = await reader.read();
+      if (readResult.done) break;
+      buffer += decoder.decode(readResult.value, { stream: true });
+      var lines = buffer.split('\n');
+      buffer = lines.pop();
+      for (var i = 0; i < lines.length; i++) {
+        var line = lines[i];
+        if (!line.startsWith('data: ')) continue;
+        try {
+          var parsed = JSON.parse(line.slice(6));
+          if (parsed.delta) {
+            fullText += parsed.delta;
+            var interviewee = fullText.match(/【被訪談者】\n([\s\S]*?)(?=【教練點評】|$)/)?.[1]?.trim() || '';
+            var coaching = fullText.match(/【教練點評】\n([\s\S]*?)(?=【教練提示】|$)/)?.[1]?.trim() || '';
+            var hint = fullText.match(/【教練提示】\n([\s\S]*?)$/)?.[1]?.trim() || '';
+            if (streamingBubble) {
+              streamingBubble.innerHTML =
+                (interviewee ? '<div class="circles-bubble-ai"><div class="circles-bubble-section">被訪談者</div>' + interviewee + '</div>' : '') +
+                (coaching ? '<div class="circles-bubble-ai"><div class="circles-bubble-section">教練點評</div>' + coaching + '</div>' : '') +
+                (hint ? '<div class="circles-bubble-ai"><div class="circles-bubble-section">教練提示</div>' + hint + '</div>' : '');
+              chatBody.scrollTop = chatBody.scrollHeight;
+            }
+          }
+          if (parsed.done && parsed.turn) {
+            AppState.circlesConversation.push(parsed.turn);
+            render();
+          }
+        } catch (_) {}
+      }
+    }
+  } catch (e) {
+    if (streamingBubble) streamingBubble.innerHTML = '<div class="circles-bubble-ai">連線錯誤，請重試。</div>';
+  }
+
+  AppState.isStreaming = false;
+  if (sendBtn) sendBtn.disabled = false;
+}
+function renderCirclesStepScore() {
+  var result = AppState.circlesScoreResult;
+  var mode = AppState.circlesMode;
+  var stepKey = AppState.circlesDrillStep;
+  var stepIdx = CIRCLES_STEPS.findIndex(function(s) { return s.key === stepKey; });
+  var step = CIRCLES_STEPS[stepIdx];
+  var q = AppState.circlesSelectedQuestion;
+
+  if (!result) {
+    return '<div data-view="circles"><div style="text-align:center;padding:48px 16px;font-family:DM Sans,sans-serif">評分結果載入中...</div></div>';
+  }
+
+  var progressSegs = CIRCLES_STEPS.map(function(s, i) {
+    var cls = i <= stepIdx ? 'done' : '';
+    return '<div class="circles-progress-seg ' + cls + '"></div>';
+  }).join('');
+
+  var dims = (result.dimensions || []).map(function(d) {
+    return '<div class="circles-dim-row">' +
+      '<div><div class="circles-dim-name">' + d.name + '</div><div class="circles-dim-comment">' + d.comment + '</div></div>' +
+      '<div class="circles-dim-score">' + d.score + '<span style="font-size:10px;color:var(--c-text-3,#8a8a8a)">/5</span></div>' +
+    '</div>';
+  }).join('');
+
+  var coachContent = result.coachVersion || '';
+  var isLastStep = stepIdx === 6;
+
+  return '<div data-view="circles">' +
+    '<div class="circles-nav">' +
+      '<button class="circles-nav-back" id="circles-score-back"><i class="ph ph-arrow-left"></i></button>' +
+      '<div>' +
+        '<div class="circles-nav-title">步驟評分 — ' + step.label + '</div>' +
+        '<div class="circles-nav-sub">' + (q ? q.company : '') + '</div>' +
+      '</div>' +
+    '</div>' +
+    '<div class="circles-progress">' + progressSegs + '<div class="circles-progress-label">' + step.short + ' · ' + (stepIdx + 1) + ' of 7</div></div>' +
+    '<div class="circles-score-wrap">' +
+      '<div class="circles-score-total">' +
+        '<div class="circles-score-number">' + Math.round(result.totalScore || 0) + '</div>' +
+        '<div class="circles-score-label">/ 100 分</div>' +
+      '</div>' +
+      dims +
+      '<div class="circles-highlight-card good"><div class="circles-highlight-card-label">最強表現</div><div class="circles-highlight-card-text">' + (result.highlight || '—') + '</div></div>' +
+      '<div class="circles-highlight-card improve"><div class="circles-highlight-card-label">最需改進</div><div class="circles-highlight-card-text">' + (result.improvement || '—') + '</div></div>' +
+      '<div class="circles-coach-toggle" id="circles-coach-toggle">' +
+        '<div class="circles-coach-toggle-label">教練示範答案 <i class="ph ph-caret-down"></i></div>' +
+        '<div class="circles-coach-content" id="circles-coach-content">' + coachContent + '</div>' +
+      '</div>' +
+      '<div class="circles-submit-bar">' +
+        (isLastStep || mode === 'drill'
+          ? '<button class="circles-btn-primary" id="circles-score-again">重練這道題</button><button class="circles-btn-ghost" id="circles-score-home">回首頁</button>'
+          : '<button class="circles-btn-primary" id="circles-score-next">繼續下一步：' + CIRCLES_STEPS[stepIdx + 1].label + ' →</button><button class="circles-btn-ghost" id="circles-score-home">回首頁</button>') +
+      '</div>' +
+    '</div>' +
+  '</div>';
+}
+
+function bindCirclesStepScore() {
+  document.getElementById('circles-score-back')?.addEventListener('click', function() {
+    AppState.circlesPhase = 2;
+    render();
+  });
+
+  document.getElementById('circles-coach-toggle')?.addEventListener('click', function() {
+    var content = document.getElementById('circles-coach-content');
+    if (content) content.classList.toggle('open');
+  });
+
+  document.getElementById('circles-score-home')?.addEventListener('click', function() {
+    AppState.circlesSelectedQuestion = null;
+    AppState.circlesSession = null;
+    AppState.circlesPhase = 1;
+    AppState.circlesScoreResult = null;
+    navigate('home');
+  });
+
+  document.getElementById('circles-score-again')?.addEventListener('click', function() {
+    AppState.circlesSession = null;
+    AppState.circlesPhase = 1;
+    AppState.circlesFrameworkDraft = {};
+    AppState.circlesGateResult = null;
+    AppState.circlesConversation = [];
+    AppState.circlesScoreResult = null;
+    render();
+  });
+
+  document.getElementById('circles-score-next')?.addEventListener('click', function() {
+    var mode = AppState.circlesMode;
+    var stepIdx = CIRCLES_STEPS.findIndex(function(s) { return s.key === AppState.circlesDrillStep; });
+    if (stepIdx < 6) {
+      var nextStep = CIRCLES_STEPS[stepIdx + 1];
+      AppState.circlesDrillStep = nextStep.key;
+      AppState.circlesPhase = 1;
+      AppState.circlesFrameworkDraft = {};
+      AppState.circlesGateResult = null;
+      AppState.circlesConversation = [];
+      AppState.circlesScoreResult = null;
+      if (mode === 'simulation') {
+        AppState.circlesSimStep = stepIdx + 1;
+        saveCirclesProgress({ currentPhase: 1, simStepIndex: stepIdx + 1 });
+      } else {
+        AppState.circlesSession = null;
+      }
+      render();
+    }
+  });
+}
 
 // ── Home View ────────────────────────────────────
 function renderHome() {
@@ -557,18 +1356,36 @@ function renderHome() {
   ` : '';
 
   const nsmTab = activeTab === 'nsm' ? `
+    <div class="nsm-tab-panel">
+      <div class="nsm-intro-card">
+        <p style="font-size:13px;color:var(--accent);line-height:1.6">
+          <strong>北極星指標工作坊</strong> — 選一個真實企業情境，定義 NSM、拆解 4 個維度，獲得 AI 教練點評。
+        </p>
+      </div>
+      <div class="nsm-stats-row">
+        <div class="nsm-stat"><div class="num">${NSM_QUESTIONS.length}</div><div class="lbl">題庫</div></div>
+        <div class="nsm-stat"><div class="num">5</div><div class="lbl">評分維度</div></div>
+        <div class="nsm-stat"><div class="num">4</div><div class="lbl">步驟</div></div>
+      </div>
+      <button class="btn btn-primary" id="btn-nsm-start" style="width:100%;margin-bottom:12px;min-height:44px">
+        <i class="ph ph-shuffle"></i> 隨機抽題開始
+      </button>
+    </div>
+  ` : '';
+
+  const circlesTab = activeTab === 'circles' ? `
     <div class="nsm-intro-card">
       <p style="font-size:13px;color:var(--accent);line-height:1.6">
-        <strong>北極星指標工作坊</strong> — 選一個真實企業情境，定義 NSM、拆解 4 個維度，獲得 AI 教練點評。
+        <strong>CIRCLES 訓練系統</strong> — 完整 7 步 PM 面試框架練習。Step Drill 針對弱項，Full Simulation 模擬真實面試壓力。
       </p>
     </div>
     <div class="nsm-stats-row">
-      <div class="nsm-stat"><div class="num">${NSM_QUESTIONS.length}</div><div class="lbl">題庫</div></div>
-      <div class="nsm-stat"><div class="num">5</div><div class="lbl">評分維度</div></div>
-      <div class="nsm-stat"><div class="num">4</div><div class="lbl">步驟</div></div>
+      <div class="nsm-stat"><div class="num">100</div><div class="lbl">題庫</div></div>
+      <div class="nsm-stat"><div class="num">7</div><div class="lbl">步驟</div></div>
+      <div class="nsm-stat"><div class="num">2</div><div class="lbl">模式</div></div>
     </div>
-    <button class="btn btn-primary" id="btn-nsm-start" style="width:100%;margin-bottom:12px;min-height:44px">
-      <i class="ph ph-shuffle"></i> 隨機抽題開始
+    <button class="btn btn-primary" id="btn-circles-start" style="width:100%;margin-bottom:12px;min-height:44px">
+      <i class="ph ph-play"></i> 開始練習
     </button>
   ` : '';
 
@@ -607,9 +1424,13 @@ function renderHome() {
       <button class="home-tab-btn ${activeTab === 'nsm' ? 'active' : ''}" data-tab="nsm">
         <i class="ph ph-star"></i> 北極星指標
       </button>
+      <button class="home-tab-btn ${activeTab === 'circles' ? 'active' : ''}" data-tab="circles">
+        <i class="ph ph-circle-dashed"></i> CIRCLES
+      </button>
     </div>
     ${pmTab}
     ${nsmTab}
+    ${circlesTab}
     ${recentHtml}
   `;
 }
@@ -671,6 +1492,12 @@ function bindHome() {
       navigate('nsm');
     });
   }
+
+  document.getElementById('btn-circles-start')?.addEventListener('click', function() {
+    AppState.circlesSession = null;
+    AppState.circlesSelectedQuestion = null;
+    navigate('circles');
+  });
 
   document.querySelectorAll('.home-session-item[data-session-id]').forEach(item => {
     item.addEventListener('click', () => {

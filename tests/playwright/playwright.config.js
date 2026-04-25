@@ -16,6 +16,7 @@ module.exports = defineConfig({
   use: {
     baseURL: 'http://localhost:4000',
     headless: true,
+    channel: 'chrome',
   },
   projects: DEVICES.map(device => ({
     name: device.name,
