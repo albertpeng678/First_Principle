@@ -1203,11 +1203,405 @@ npx playwright test --reporter=list
 
 Expected: 0 failures. Fix any remaining failures before marking this task done.
 
+- [ ] **Step 7b: Task 11–13 Playwright checks**
+
+Add to `tests/user-journeys.spec.ts`:
+
+```typescript
+test('T11: CIRCLES default mode is 完整模擬 on fresh load', async ({ page }) => {
+  await page.goto('http://localhost:3000');
+  // 完整模擬 card should have .selected class by default
+  const simCard = page.locator('.circles-mode-card[data-mode="simulation"]');
+  await expect(simCard).toHaveClass(/selected/);
+  const drillCard = page.locator('.circles-mode-card[data-mode="drill"]');
+  await expect(drillCard).not.toHaveClass(/selected/);
+});
+
+test('T11: CIRCLES mode persists across page reload', async ({ page }) => {
+  await page.goto('http://localhost:3000');
+  await page.click('.circles-mode-card[data-mode="drill"]');
+  await page.reload();
+  await expect(page.locator('.circles-mode-card[data-mode="drill"]')).toHaveClass(/selected/);
+});
+
+test('T12: CIRCLES sessions appear in offcanvas history', async ({ page }) => {
+  await page.goto('http://localhost:3000');
+  await page.click('#btn-hamburger');
+  // After loading, offcanvas should show at least an empty state or records
+  const list = page.locator('#offcanvas-list');
+  await expect(list).toBeVisible();
+  // Should NOT show 載入失敗
+  await expect(list).not.toContainText('載入失敗');
+});
+
+test('T13: Offcanvas second open is instant (no skeleton flicker)', async ({ page }) => {
+  await page.goto('http://localhost:3000');
+  // First open — wait for list to render
+  await page.click('#btn-hamburger');
+  await page.waitForSelector('#offcanvas-list .offcanvas-item, #offcanvas-list div');
+  await page.click('.offcanvas-overlay');
+  // Second open — skeleton should NOT appear (cached)
+  const start = Date.now();
+  await page.click('#btn-hamburger');
+  const skeleton = page.locator('.offcanvas-skeleton');
+  await expect(skeleton).not.toBeVisible();
+  const elapsed = Date.now() - start;
+  expect(elapsed).toBeLessThan(200); // instant render
+});
+
+test('T13: Delete record is optimistic (item disappears immediately)', async ({ page }) => {
+  await page.goto('http://localhost:3000');
+  await page.click('#btn-hamburger');
+  await page.waitForSelector('#offcanvas-list .offcanvas-item');
+  const deleteBtn = page.locator('.offcanvas-delete-btn').first();
+  const item = page.locator('.offcanvas-item').first();
+  await deleteBtn.click();
+  // Item should be gone immediately (no wait for API)
+  await expect(item).not.toBeAttached({ timeout: 300 });
+});
+```
+
+Run: `npx playwright test tests/user-journeys.spec.ts --reporter=list`
+
 - [ ] **Step 8: Final commit**
 
 ```bash
 git add tests/ test-results/
 git commit -m "test: Playwright UIUX audit — all journeys, RWD, tap targets, console errors green"
+```
+
+---
+
+## Task 11: CIRCLES Default Mode → 完整模擬 + localStorage Persistence
+
+**Files:**
+- Modify: `public/app.js`
+
+- [ ] **Step 1: Change AppState default circlesMode from 'drill' to 'simulation'**
+
+In `public/app.js` line 33, change:
+```javascript
+  circlesMode: 'drill',
+```
+to:
+```javascript
+  circlesMode: localStorage.getItem('circlesMode') || 'simulation',
+```
+
+- [ ] **Step 2: Persist mode selection to localStorage in bindCirclesHome()**
+
+In `bindCirclesHome()`, inside the `.circles-mode-card` click handler (where `AppState.circlesMode = el.dataset.mode` is set), add immediately after:
+```javascript
+    AppState.circlesMode = el.dataset.mode;
+    localStorage.setItem('circlesMode', el.dataset.mode);
+    render();
+```
+
+- [ ] **Step 3: Verify default is 完整模擬**
+
+Open http://localhost:3000 in an incognito window (no localStorage). Confirm the "完整模擬" card is selected by default, not "步驟加練".
+
+- [ ] **Step 4: Commit**
+```bash
+git add public/app.js
+git commit -m "feat: default CIRCLES mode to 完整模擬, persist selection to localStorage"
+```
+
+---
+
+## Task 12: CIRCLES Sessions in Offcanvas History
+
+**Files:**
+- Modify: `public/app.js` — `loadOffcanvasSessions()`
+
+- [ ] **Step 1: Add CIRCLES sessions to loadOffcanvasSessions()**
+
+In `loadOffcanvasSessions()`, replace the current fetch logic (fetches PM + NSM) with:
+```javascript
+async function loadOffcanvasSessions() {
+  const listEl = document.getElementById('offcanvas-list');
+  if (!listEl) return;
+  listEl.innerHTML = '<div style="padding:16px;color:var(--text-secondary);font-size:14px">載入中…</div>';
+  try {
+    const headers = AppState.accessToken
+      ? { 'Authorization': `Bearer ${AppState.accessToken}` }
+      : { 'X-Guest-ID': AppState.guestId };
+    const nsmUrl = AppState.accessToken ? '/api/nsm-sessions' : '/api/guest/nsm-sessions';
+    const circlesUrl = AppState.accessToken ? '/api/circles-sessions' : '/api/guest-circles-sessions';
+
+    const [nsmRes, circlesRes] = await Promise.all([
+      fetch(nsmUrl, { headers }),
+      fetch(circlesUrl, { headers })
+    ]);
+    const nsmSessions = nsmRes.ok ? await nsmRes.json() : [];
+    const circlesSessions = circlesRes.ok ? await circlesRes.json() : [];
+
+    const all = [
+      ...nsmSessions.map(s => ({ ...s, _type: 'nsm' })),
+      ...circlesSessions.map(s => ({ ...s, _type: 'circles' }))
+    ].sort((a, b) => new Date(b.created_at) - new Date(a.created_at));
+
+    AppState.offcanvasCache = all;
+
+    if (!all.length) {
+      listEl.innerHTML = '<div style="padding:16px;color:var(--text-secondary);font-size:14px">尚無練習記錄</div>';
+      return;
+    }
+    renderOffcanvasList(listEl, all);
+  } catch (_) {
+    listEl.innerHTML = '<div style="padding:16px;color:var(--text-secondary)">載入失敗</div>';
+  }
+}
+```
+
+- [ ] **Step 2: Extract renderOffcanvasList() helper**
+
+Add this function before `loadOffcanvasSessions()`:
+```javascript
+function renderOffcanvasList(listEl, all) {
+  listEl.innerHTML = all.map(s => {
+    const isNSM = s._type === 'nsm';
+    const isCircles = s._type === 'circles';
+    let label;
+    if (isNSM) {
+      label = 'NSM · ' + (s.question_json?.company || '');
+    } else if (isCircles) {
+      const company = s.question_json?.company || '';
+      label = s.mode === 'drill'
+        ? (s.drill_step || 'C') + ' · 步驟加練 · ' + company
+        : 'CIRCLES · ' + company;
+    } else {
+      label = s.difficulty || '';
+    }
+    const date = new Date(s.created_at).toLocaleString('zh-TW', { month: 'numeric', day: 'numeric', hour: '2-digit', minute: '2-digit' });
+    const score = s.scores_json
+      ? Math.round(s.scores_json.totalScore ?? s.scores_json.total ?? 0) + ' 分'
+      : null;
+    const badge = s.status === 'completed' ? (score || '完成') : '進行中';
+    const badgeClass = s.status === 'completed'
+      ? (isNSM ? 'badge-nsm' : isCircles ? 'badge-circles' : 'badge-green')
+      : 'badge-blue';
+    return `<div class="offcanvas-item" data-id="${s.id}" data-status="${s.status}" data-type="${s._type}" style="position:relative">
+      <div style="display:flex;align-items:center;gap:6px;padding-right:28px">
+        <span class="badge ${badgeClass}">${badge}</span>
+        <span style="font-size:0.8rem;color:var(--text-secondary);overflow:hidden;text-overflow:ellipsis;white-space:nowrap">${escHtml(label)}</span>
+      </div>
+      <div style="font-size:0.75rem;color:var(--text-secondary);margin-top:4px">${date}</div>
+      <button class="btn-icon offcanvas-delete-btn" title="刪除" style="position:absolute;top:6px;right:4px;font-size:1rem;padding:2px 6px" data-id="${s.id}" data-type="${s._type}">
+        <i class="ph ph-trash"></i>
+      </button>
+    </div>`;
+  }).join('');
+
+  listEl.querySelectorAll('.offcanvas-item').forEach(item => {
+    item.addEventListener('click', async (e) => {
+      if (e.target.closest('.offcanvas-delete-btn')) return;
+      closeOffcanvas();
+      const id = item.dataset.id;
+      const status = item.dataset.status;
+      const type = item.dataset.type;
+      if (type === 'nsm') {
+        AppState.nsmSession = { id };
+        AppState.nsmStep = 4;
+        navigate('nsm');
+        return;
+      }
+      if (type === 'circles') {
+        await loadCirclesSession(id);
+        navigate('circles');
+        return;
+      }
+    });
+  });
+  attachOffcanvasDeleteListeners(listEl);
+}
+```
+
+- [ ] **Step 3: Add .badge-circles CSS**
+
+In `public/style.css`, find where `.badge-nsm` is defined and add:
+```css
+.badge-circles {
+  background: #EEF3FF;
+  color: #1A56DB;
+  border: 1px solid #C5D5FF;
+}
+```
+
+- [ ] **Step 4: Verify CIRCLES sessions appear in offcanvas**
+
+Start server, do a CIRCLES drill or simulation session, open the hamburger menu. Confirm the session appears with the correct label and badge.
+
+- [ ] **Step 5: Commit**
+```bash
+git add public/app.js public/style.css
+git commit -m "feat: show CIRCLES sessions in offcanvas history with drill/simulation labels"
+```
+
+---
+
+## Task 13: Records Performance — Cache + Optimistic Updates
+
+**Files:**
+- Modify: `public/app.js`
+
+- [ ] **Step 1: Add offcanvasCache to AppState**
+
+In `public/app.js`, in the `AppState` object, add:
+```javascript
+  offcanvasCache: null,  // cached offcanvas session list for instant render
+```
+
+- [ ] **Step 2: Rewrite loadOffcanvasSessions() for instant cache render**
+
+Replace the opening of `loadOffcanvasSessions()` — show cached data immediately if available, then refresh in background:
+```javascript
+async function loadOffcanvasSessions() {
+  const listEl = document.getElementById('offcanvas-list');
+  if (!listEl) return;
+
+  // Show cached data instantly if available (no spinner)
+  if (AppState.offcanvasCache && AppState.offcanvasCache.length) {
+    renderOffcanvasList(listEl, AppState.offcanvasCache);
+  } else {
+    listEl.innerHTML = '<div class="offcanvas-skeleton">' +
+      ['80%','60%','70%'].map(w =>
+        '<div style="height:48px;background:var(--bg-surface-2);border-radius:8px;margin-bottom:8px;opacity:0.6;animation:pulse 1.2s ease-in-out infinite"></div>'
+      ).join('') +
+    '</div>';
+  }
+
+  // Background fetch — silently update
+  try {
+    const headers = AppState.accessToken
+      ? { 'Authorization': `Bearer ${AppState.accessToken}` }
+      : { 'X-Guest-ID': AppState.guestId };
+    const nsmUrl = AppState.accessToken ? '/api/nsm-sessions' : '/api/guest/nsm-sessions';
+    const circlesUrl = AppState.accessToken ? '/api/circles-sessions' : '/api/guest-circles-sessions';
+
+    const [nsmRes, circlesRes] = await Promise.all([
+      fetch(nsmUrl, { headers }),
+      fetch(circlesUrl, { headers })
+    ]);
+    const nsmSessions = nsmRes.ok ? await nsmRes.json() : [];
+    const circlesSessions = circlesRes.ok ? await circlesRes.json() : [];
+
+    const all = [
+      ...nsmSessions.map(s => ({ ...s, _type: 'nsm' })),
+      ...circlesSessions.map(s => ({ ...s, _type: 'circles' }))
+    ].sort((a, b) => new Date(b.created_at) - new Date(a.created_at));
+
+    AppState.offcanvasCache = all;
+
+    // Only re-render if list is still open
+    if (!document.getElementById('offcanvas-list')) return;
+    if (!all.length) {
+      listEl.innerHTML = '<div style="padding:16px;color:var(--text-secondary);font-size:14px">尚無練習記錄</div>';
+      return;
+    }
+    renderOffcanvasList(listEl, all);
+  } catch (_) {
+    if (!AppState.offcanvasCache) {
+      listEl.innerHTML = '<div style="padding:16px;color:var(--text-secondary)">載入失敗</div>';
+    }
+  }
+}
+```
+
+- [ ] **Step 3: Add skeleton pulse animation to style.css**
+
+In `public/style.css`, add:
+```css
+@keyframes pulse {
+  0%, 100% { opacity: 0.6; }
+  50% { opacity: 0.3; }
+}
+```
+
+- [ ] **Step 4: Optimistic deletion in attachOffcanvasDeleteListeners()**
+
+Find `attachOffcanvasDeleteListeners()` and replace its delete handler with optimistic logic:
+```javascript
+function attachOffcanvasDeleteListeners(listEl) {
+  listEl.querySelectorAll('.offcanvas-delete-btn').forEach(btn => {
+    btn.addEventListener('click', async (e) => {
+      e.stopPropagation();
+      const id = btn.dataset.id;
+      const type = btn.dataset.type;
+
+      // Optimistic: remove from cache and UI immediately
+      const itemEl = btn.closest('.offcanvas-item');
+      const prevCache = AppState.offcanvasCache ? [...AppState.offcanvasCache] : null;
+      if (AppState.offcanvasCache) {
+        AppState.offcanvasCache = AppState.offcanvasCache.filter(s => s.id !== id);
+      }
+      itemEl?.remove();
+      if (listEl.children.length === 0) {
+        listEl.innerHTML = '<div style="padding:16px;color:var(--text-secondary);font-size:14px">尚無練習記錄</div>';
+      }
+
+      // Background DELETE
+      try {
+        const headers = AppState.accessToken
+          ? { 'Authorization': `Bearer ${AppState.accessToken}`, 'Content-Type': 'application/json' }
+          : { 'X-Guest-ID': AppState.guestId, 'Content-Type': 'application/json' };
+        let deleteUrl;
+        if (type === 'nsm') deleteUrl = (AppState.accessToken ? '/api/nsm-sessions/' : '/api/guest/nsm-sessions/') + id;
+        else if (type === 'circles') deleteUrl = (AppState.accessToken ? '/api/circles-sessions/' : '/api/guest-circles-sessions/') + id;
+        const res = await fetch(deleteUrl, { method: 'DELETE', headers });
+        if (!res.ok) throw new Error('delete failed');
+      } catch (_) {
+        // Restore on failure
+        if (prevCache) AppState.offcanvasCache = prevCache;
+        loadOffcanvasSessions();
+      }
+    });
+  });
+}
+```
+
+- [ ] **Step 5: Optimistic CIRCLES record entry — navigate first, load in background**
+
+In `renderOffcanvasList()`, for the `type === 'circles'` click handler, replace the `await loadCirclesSession(id)` with optimistic navigation using cached data:
+```javascript
+      if (type === 'circles') {
+        // Try to use cached session data for instant navigation
+        const cached = AppState.offcanvasCache?.find(s => s.id === id);
+        if (cached) {
+          AppState.circlesSelectedQuestion = cached.question_json;
+          AppState.circlesSession = { id: cached.id, mode: cached.mode, drill_step: cached.drill_step };
+          AppState.circlesMode = cached.mode || 'simulation';
+          AppState.circlesDrillStep = cached.drill_step || 'C1';
+          AppState.circlesPhase = cached.current_phase || 1;
+          AppState.circlesSimStep = cached.sim_step_index || 0;
+          navigate('circles');
+        } else {
+          await loadCirclesSession(id);
+          navigate('circles');
+        }
+        return;
+      }
+```
+
+- [ ] **Step 6: Invalidate cache after creating a new session**
+
+After any new CIRCLES or NSM session is created (in the respective `bindCircles*` and `bindNSM*` handlers where `AppState.circlesSession` or `AppState.nsmSession` is set), add:
+```javascript
+AppState.offcanvasCache = null; // force fresh fetch on next offcanvas open
+```
+
+- [ ] **Step 7: Verify performance feel**
+
+Open the app, do a session, open offcanvas:
+- First open: skeleton animation appears briefly → list renders
+- Close and re-open immediately: list renders instantly (no spinner at all)
+- Delete a record: item disappears instantly, no wait
+- Click a CIRCLES record: navigates immediately to correct phase, no wait
+
+- [ ] **Step 8: Commit**
+```bash
+git add public/app.js public/style.css
+git commit -m "perf: instant offcanvas render from cache, optimistic delete, optimistic CIRCLES resume"
 ```
 
 ---
@@ -1224,4 +1618,8 @@ git commit -m "test: Playwright UIUX audit — all journeys, RWD, tap targets, c
 8. S step shows NSM annotation above fields
 9. 💡 button on each Phase 1 field → overlay with contextual hint
 10. `GET /api/sessions` returns 404
-11. Playwright tests all pass
+11. Default CIRCLES mode is 完整模擬; mode selection persists via localStorage
+12. CIRCLES sessions (both drill and simulation) appear in offcanvas history with correct labels
+13. Offcanvas opens instantly from cache on second open; skeleton on first open
+14. Delete is instant (optimistic); CIRCLES record entry navigates immediately
+15. Playwright tests all pass
