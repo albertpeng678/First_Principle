@@ -1606,6 +1606,1341 @@ git commit -m "perf: instant offcanvas render from cache, optimistic delete, opt
 
 ---
 
+---
+
+## Task 14: 題庫生成 — 執行 generate-circles-questions.js
+
+**Spec:** `docs/superpowers/specs/2026-04-26-circles-ux-polish-design.md` §7
+
+**Files:**
+- Run: `scripts/generate-circles-questions.js`
+- Verify: `public/circles-db.js`
+
+- [ ] **Step 1: Check current question count**
+
+```bash
+node -e "const q = require('./public/circles-db.js'); console.log(q.CIRCLES_QUESTIONS.length, 'questions');"
+```
+Expected: 3 questions (only seed data)
+
+- [ ] **Step 2: Run the generation script**
+
+```bash
+node scripts/generate-circles-questions.js
+```
+Expected: script runs and overwrites or appends to `public/circles-db.js` with ~100 questions.
+If the script requires env vars, ensure `.env` is loaded: `node -r dotenv/config scripts/generate-circles-questions.js`
+
+- [ ] **Step 3: Verify question counts by type**
+
+```bash
+node -e "
+const q = require('./public/circles-db.js');
+const qs = q.CIRCLES_QUESTIONS;
+const d = qs.filter(x => x.question_type === 'design').length;
+const i = qs.filter(x => x.question_type === 'improve').length;
+const s = qs.filter(x => x.question_type === 'strategy').length;
+console.log('design:', d, '| improve:', i, '| strategy:', s, '| total:', qs.length);
+"
+```
+Expected: design ≥ 30, improve ≥ 25, strategy ≥ 20, total ≥ 75.
+
+- [ ] **Step 4: Spot-check a question has all required fields**
+
+```bash
+node -e "
+const q = require('./public/circles-db.js');
+const first = q.CIRCLES_QUESTIONS[0];
+['id','company','product','question_type','problem_statement','hidden_context'].forEach(f => {
+  if (!first[f]) console.error('MISSING:', f);
+  else console.log('ok:', f);
+});
+"
+```
+Expected: all 6 fields print `ok`.
+
+- [ ] **Step 5: Commit**
+
+```bash
+git add public/circles-db.js
+git commit -m "feat: generate CIRCLES question bank (100 questions)"
+```
+
+---
+
+## Task 15: CIRCLES 首頁重設計 — 說明區塊 + 隨機選題 + 看更多
+
+**Spec:** `docs/superpowers/specs/2026-04-26-circles-ux-polish-design.md` §1
+
+**Files:**
+- Modify: `public/app.js` — `renderCirclesHome()` (line 659), `bindCirclesHome()` (line 744)
+
+- [ ] **Step 1: Add explainer block and random button to `renderCirclesHome()`**
+
+In `renderCirclesHome()`, replace the current `return` statement (starting at line 710) with:
+
+```javascript
+  return '<div data-view="circles">' +
+    '<div class="circles-nav">' +
+      '<button class="circles-nav-back" id="circles-home-back"><i class="ph ph-arrow-left"></i></button>' +
+      '<div><div class="circles-nav-title">CIRCLES 訓練</div></div>' +
+    '</div>' +
+    '<div class="circles-home-wrap">' +
+      recentHtml +
+
+      // Explainer block
+      '<div style="background:#fff;border:1px solid #e8e5de;border-radius:10px;padding:12px 14px;margin-bottom:16px;font-family:DM Sans,sans-serif">' +
+        '<div style="font-size:12px;font-weight:700;color:#1a1a1a;margin-bottom:6px">什麼是 CIRCLES 實戰訓練？</div>' +
+        '<div style="font-size:11px;color:#5a5a5a;line-height:1.7;margin-bottom:8px">用結構化框架拆解 PM 設計面試題，模擬真實利害關係人訪談，並在每個步驟收到 AI 教練評分與回饋。</div>' +
+        '<div style="display:flex;gap:4px;flex-wrap:wrap">' +
+          CIRCLES_STEPS.map(function(s) {
+            return '<span style="background:#EEF3FF;color:#1A56DB;border-radius:4px;padding:2px 7px;font-size:10px;font-weight:600">' + s.short + ' ' + s.label + '</span>';
+          }).join('') +
+        '</div>' +
+      '</div>' +
+
+      '<div class="circles-step-select-label">練習模式</div>' +
+      '<div class="circles-mode-row">' +
+        '<div class="circles-mode-card ' + (mode === 'drill' ? 'selected' : '') + '" data-mode="drill">' +
+          '<div class="circles-mode-card-title"><i class="ph ph-target"></i> 步驟加練</div>' +
+          '<div class="circles-mode-card-desc">5-10 分鐘 · 針對單一步驟 · 全引導</div>' +
+        '</div>' +
+        '<div class="circles-mode-card ' + (mode === 'simulation' ? 'selected' : '') + '" data-mode="simulation">' +
+          '<div class="circles-mode-card-title"><i class="ph ph-video-camera"></i> 完整模擬</div>' +
+          '<div class="circles-mode-card-desc">25-35 分鐘 · 全 7 步 · 無提示</div>' +
+        '</div>' +
+      '</div>' +
+
+      (mode === 'drill' ? '<div class="circles-step-select-label">練習步驟</div><div class="circles-step-pills">' + stepPills + '</div>' : '') +
+
+      '<div class="circles-type-tabs">' +
+        '<button class="circles-type-tab ' + (type === 'design' ? 'active' : '') + '" data-type="design">產品設計 ×' + designCount + '</button>' +
+        '<button class="circles-type-tab ' + (type === 'improve' ? 'active' : '') + '" data-type="improve">產品改進 ×' + improveCount + '</button>' +
+        '<button class="circles-type-tab ' + (type === 'strategy' ? 'active' : '') + '" data-type="strategy">產品策略 ×' + strategyCount + '</button>' +
+      '</div>' +
+
+      // Random button + question list header
+      '<div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:8px">' +
+        '<div style="font-size:11px;font-weight:600;color:#5a5a5a;font-family:DM Sans,sans-serif">選擇題目</div>' +
+        '<button id="circles-random-btn" style="font-size:11px;color:#1A56DB;background:none;border:none;cursor:pointer;font-family:DM Sans,sans-serif;padding:0">隨機選題</button>' +
+      '</div>' +
+
+      '<div class="circles-q-list">' + (qCards || '<div style="color:var(--c-text-3);font-size:13px;text-align:center;padding:24px 0">暫無題目，請先執行題庫生成腳本</div>') + '</div>' +
+    '</div>' +
+  '</div>';
+```
+
+- [ ] **Step 2: Update `qCards` to support "看更多" expand**
+
+In `renderCirclesHome()`, replace the `qCards` variable (~line 670–675):
+
+```javascript
+  var qCards = questions.slice(0, 20).map(function(q) {
+    var shortStmt = q.problem_statement.length > 60
+      ? q.problem_statement.slice(0, 60) + '…'
+      : q.problem_statement;
+    return '<div class="circles-q-card" data-qid="' + q.id + '">' +
+      '<div class="circles-q-card-company">' + q.company + ' — ' + (q.product || '') + '</div>' +
+      '<div class="circles-q-card-stmt" data-full="' + escHtml(q.problem_statement) + '" data-short="' + escHtml(shortStmt) + '">' + escHtml(shortStmt) + '</div>' +
+      (q.problem_statement.length > 60 ? '<div class="circles-q-card-more" data-expanded="false">看更多 ▾</div>' : '') +
+    '</div>';
+  }).join('');
+```
+
+- [ ] **Step 3: Bind random button and "看更多" in `bindCirclesHome()`**
+
+In `bindCirclesHome()`, add after the existing mode-card click listener block:
+
+```javascript
+  // Random question
+  document.getElementById('circles-random-btn')?.addEventListener('click', function() {
+    var questions = (typeof CIRCLES_QUESTIONS !== 'undefined' ? CIRCLES_QUESTIONS : [])
+      .filter(function(q) { return q.question_type === AppState.circlesSelectedType; });
+    if (!questions.length) return;
+    var picked = questions[Math.floor(Math.random() * questions.length)];
+    AppState.circlesSelectedQuestion = picked;
+    AppState.circlesPhase = 1;
+    AppState.circlesFrameworkDraft = {};
+    AppState.circlesGateResult = null;
+    AppState.circlesConversation = [];
+    AppState.circlesSession = null;
+    AppState.circlesSimStep = 0;
+    AppState.circlesDrillStep = CIRCLES_STEPS[0].key;
+    render();
+  });
+
+  // "看更多" expand/collapse
+  document.querySelectorAll('.circles-q-card-more').forEach(function(btn) {
+    btn.addEventListener('click', function(e) {
+      e.stopPropagation();
+      var stmtEl = btn.previousElementSibling;
+      var expanded = btn.dataset.expanded === 'true';
+      if (expanded) {
+        stmtEl.textContent = stmtEl.dataset.short;
+        btn.textContent = '看更多 ▾';
+        btn.dataset.expanded = 'false';
+      } else {
+        stmtEl.textContent = stmtEl.dataset.full;
+        btn.textContent = '收起 ▴';
+        btn.dataset.expanded = 'true';
+      }
+    });
+  });
+```
+
+- [ ] **Step 4: Add `.circles-q-card-more` CSS to `public/style.css`**
+
+Find the `.circles-q-card-stmt` rule in `public/style.css` and add below it:
+
+```css
+.circles-q-card-more {
+  font-size: 11px;
+  color: var(--c-primary, #1A56DB);
+  cursor: pointer;
+  margin-top: 4px;
+  font-family: 'DM Sans', sans-serif;
+  display: block;
+}
+```
+
+- [ ] **Step 5: Smoke-test in browser**
+
+Start server and open app:
+```bash
+node server.js &
+```
+Open http://localhost:3000:
+- Explainer block visible with 7 step badges
+- "隨機選題" button in question area header
+- Click 隨機選題 → goes directly to Phase 1 with a random question
+- Click 看更多 on a card → full problem_statement shown → click 收起 → truncated again
+
+- [ ] **Step 6: Commit**
+
+```bash
+git add public/app.js public/style.css
+git commit -m "feat: CIRCLES home — explainer block, random question, 看更多 expand"
+```
+
+---
+
+## Task 16: Phase 1 步驟 pill 加中文
+
+**Spec:** `docs/superpowers/specs/2026-04-26-circles-ux-polish-design.md` §2.1
+
+**Files:**
+- Modify: `public/app.js` — `renderCirclesPhase1()` (~line 838), `renderCirclesGate()` (~line 986), `renderCirclesPhase2()` (~line 1053), `renderCirclesStepScore()` (~line 1259)
+
+The progress label currently shows `step.short + ' · ' + (stepIdx + 1) + ' of 7'`. Update it to show the full Chinese step name.
+
+- [ ] **Step 1: Update progress label in `renderCirclesPhase1()`**
+
+At line ~838, replace:
+```javascript
+    '<div class="circles-progress">' + progressSegs + '<div class="circles-progress-label">' + step.short + ' · ' + (stepIdx + 1) + ' of 7</div></div>' +
+```
+with:
+```javascript
+    '<div class="circles-progress">' + progressSegs + '<div class="circles-progress-label">' + step.short + ' · ' + step.label + ' · ' + (stepIdx + 1) + '/7</div></div>' +
+```
+
+- [ ] **Step 2: Update progress label in `renderCirclesGate()`**
+
+At line ~959 (loading state) and ~986 (result state), replace:
+```javascript
+'<div class="circles-progress-label">' + step.short + '</div>'
+```
+with:
+```javascript
+'<div class="circles-progress-label">' + step.short + ' · ' + step.label + '</div>'
+```
+(There are two occurrences — both in renderCirclesGate.)
+
+- [ ] **Step 3: Update progress label in `renderCirclesPhase2()`**
+
+At line ~1053, replace:
+```javascript
+    '<div class="circles-progress">' + progressSegs + '<div class="circles-progress-label">' + step.short + ' · ' + (stepIdx + 1) + ' of 7</div></div>' +
+```
+with:
+```javascript
+    '<div class="circles-progress">' + progressSegs + '<div class="circles-progress-label">' + step.short + ' · ' + step.label + ' · ' + (stepIdx + 1) + '/7</div></div>' +
+```
+
+- [ ] **Step 4: Update progress label in `renderCirclesStepScore()`**
+
+At line ~1259, replace:
+```javascript
+    '<div class="circles-progress">' + progressSegs + '<div class="circles-progress-label">' + step.short + ' · ' + (stepIdx + 1) + ' of 7</div></div>' +
+```
+with:
+```javascript
+    '<div class="circles-progress">' + progressSegs + '<div class="circles-progress-label">' + step.short + ' · ' + step.label + ' · ' + (stepIdx + 1) + '/7</div></div>' +
+```
+
+- [ ] **Step 5: Verify in browser**
+
+Navigate to any CIRCLES step → confirm progress label shows e.g. `C · 澄清情境 · 1/7`.
+
+- [ ] **Step 6: Commit**
+
+```bash
+git add public/app.js
+git commit -m "feat: phase progress label shows full Chinese step name"
+```
+
+---
+
+## Task 17: Phase 1.5 過渡通知條
+
+**Spec:** `docs/superpowers/specs/2026-04-26-circles-ux-polish-design.md` §3
+
+**Files:**
+- Modify: `public/app.js` — `renderCirclesGate()` (~line 978)
+
+When gate passes (`canProceed === true` and no errors), add a blue inline notification banner above the proceed button.
+
+- [ ] **Step 1: Add passage banner to `renderCirclesGate()`**
+
+In `renderCirclesGate()`, replace the submit bar section (lines ~988–994):
+
+```javascript
+      '<div class="circles-submit-bar">' +
+        (canProceed || !hasError
+          ? '<button class="circles-btn-primary" id="circles-gate-proceed">' + (hasError ? '帶著問題進入對話（風險自負）' : '套用並進入對話 →') + '</button>'
+          : '<button class="circles-btn-primary" id="circles-gate-fix">修正框架後重試</button>') +
+        (!canProceed && hasError ? '' : '<button class="circles-btn-ghost" id="circles-gate-back-edit">重新編輯框架</button>') +
+      '</div>' +
+```
+
+with:
+
+```javascript
+      (canProceed && !hasError
+        ? '<div style="background:#EEF3FF;border:1px solid #C5D5FF;border-radius:10px;padding:12px 14px;margin-bottom:12px;font-family:DM Sans,sans-serif">' +
+            '<div style="font-size:12px;font-weight:600;color:#1A56DB;margin-bottom:2px">框架審核通過</div>' +
+            '<div style="font-size:11px;color:#5a7ab5">框架方向正確，進入對話練習階段繼續探索。</div>' +
+          '</div>'
+        : '') +
+      '<div class="circles-submit-bar">' +
+        (canProceed || !hasError
+          ? '<button class="circles-btn-primary" id="circles-gate-proceed">' + (hasError ? '帶著問題進入對話（風險自負）' : '進入對話練習 →') + '</button>'
+          : '<button class="circles-btn-primary" id="circles-gate-fix">修正框架後重試</button>') +
+        (!canProceed && hasError ? '' : '<button class="circles-btn-ghost" id="circles-gate-back-edit">重新編輯框架</button>') +
+      '</div>' +
+```
+
+- [ ] **Step 2: Verify in browser**
+
+Submit a Phase 1 framework → gate passes → confirm blue banner "框架審核通過" appears above the button.
+
+- [ ] **Step 3: Commit**
+
+```bash
+git add public/app.js
+git commit -m "feat: Phase 1.5 gate shows passage notification banner"
+```
+
+---
+
+## Task 18: Phase 2 對話練習 — 釘選題目卡 + 提交結論流程重設計
+
+**Spec:** `docs/superpowers/specs/2026-04-26-circles-ux-polish-design.md` §4.1, §4.4, §4.5
+
+**Files:**
+- Modify: `public/app.js` — `renderCirclesPhase2()` (line 1017), `bindCirclesPhase2()` (line 1063)
+- Modify: `public/style.css` — add `.circles-pinned-card`, `.circles-submit-strip`, `.circles-conclusion-box` CSS
+- Create: `prompts/circles-conclusion-check.js`
+- Modify: `routes/circles-sessions.js` — add `/conclusion-check` endpoint
+- Modify: `routes/guest-circles-sessions.js` — add `/conclusion-check` endpoint
+
+### Step 1–4: Add new AppState keys
+
+- [ ] **Step 1: Add `circlesSubmitState` and `circlesConclusionText` to AppState**
+
+In `public/app.js`, find the AppState definition and add after `circlesCoachOpen: false,` (~line 44):
+
+```javascript
+  circlesSubmitState: null,        // null | 'collapsed' | 'expanded'
+  circlesConclusionText: '',       // user's conclusion textarea value
+  circlesStepConclusions: {},      // { stepKey: 'conclusion text' } accumulated across steps
+```
+
+### Step 2–4: Rewrite renderCirclesPhase2
+
+- [ ] **Step 2: Rewrite `renderCirclesPhase2()` to include pinned card + new submit strip**
+
+Replace the entire `renderCirclesPhase2()` function (lines 1017–1061) with:
+
+```javascript
+function renderCirclesPhase2() {
+  var q = AppState.circlesSelectedQuestion;
+  var mode = AppState.circlesMode;
+  var stepKey = AppState.circlesDrillStep;
+  var stepIdx = CIRCLES_STEPS.findIndex(function(s) { return s.key === stepKey; });
+  var step = CIRCLES_STEPS[stepIdx];
+  var conv = AppState.circlesConversation;
+  var turnCount = conv.length;
+  var submitState = AppState.circlesSubmitState; // null | 'collapsed' | 'expanded'
+  var conclusionText = AppState.circlesConclusionText || '';
+
+  var progressSegs = CIRCLES_STEPS.map(function(s, i) {
+    var cls = i < stepIdx ? 'done' : i === stepIdx ? 'active' : '';
+    return '<div class="circles-progress-seg ' + cls + '"></div>';
+  }).join('');
+
+  var bubbles = conv.map(function(t) {
+    return '<div class="circles-bubble-user">' + escHtml(t.userMessage) + '</div>' +
+      (t.interviewee ? '<div class="circles-bubble-ai"><div class="circles-bubble-section">被訪談者</div>' + t.interviewee + '</div>' : '') +
+      (t.coaching ? '<div class="circles-bubble-ai"><div class="circles-bubble-section">教練點評</div>' + t.coaching + '</div>' : '') +
+      (t.hint ? '<div class="circles-bubble-ai"><div class="circles-bubble-section">教練提示</div>' + t.hint + '</div>' : '');
+  }).join('');
+
+  if (!bubbles) {
+    bubbles = '<div class="circles-bubble-ai"><div class="circles-bubble-section">教練提示</div>' +
+      (mode === 'drill' ? '準備好了嗎？針對「' + step.label + '」步驟，請開始探索題目。你可以從問問看情境的背景開始。' : '面試開始。請用「' + step.label + '」步驟的思路展開你的分析。') +
+      '</div>';
+  }
+
+  // Pinned question card
+  var pinnedCard = q ? (
+    '<div class="circles-pinned-card" id="circles-pinned-card">' +
+      '<div style="display:flex;align-items:center;gap:6px;margin-bottom:4px">' +
+        '<span style="background:#EEF3FF;color:#1A56DB;border-radius:4px;padding:1px 6px;font-size:9px;font-weight:700">' + q.company + '</span>' +
+      '</div>' +
+      '<div style="font-size:11px;color:#1a1a1a;font-weight:600;line-height:1.4" id="circles-pinned-stmt">' + escHtml(q.problem_statement.slice(0, 80)) + (q.problem_statement.length > 80 ? '…' : '') + '</div>' +
+      (q.problem_statement.length > 80 ? '<div id="circles-pinned-toggle" style="font-size:10px;color:#1A56DB;cursor:pointer;margin-top:2px">展開 ▾</div>' : '') +
+    '</div>'
+  ) : '';
+
+  // Bottom section: input bar OR collapsed strip OR conclusion box
+  var bottomSection;
+  if (submitState === 'expanded') {
+    // Conclusion box
+    var detectionHtml = '<div id="circles-conclusion-hint" style="min-height:16px;font-size:10px;color:#8a8a8a;margin-top:6px"></div>';
+    bottomSection = '<div class="circles-conclusion-box" id="circles-conclusion-box">' +
+      '<div style="font-size:11px;font-weight:700;color:#1a1a1a;margin-bottom:2px">整理你這個步驟確認了什麼</div>' +
+      '<div style="font-size:10px;color:#8a8a8a;margin-bottom:8px">1-2 句話說明範圍、時間、影響</div>' +
+      '<div id="circles-example-block" style="border:1px solid #e8e5de;border-radius:8px;margin-bottom:8px;overflow:hidden">' +
+        '<div id="circles-example-header" style="background:#f0ede6;padding:5px 9px;display:flex;justify-content:space-between;cursor:pointer">' +
+          '<div style="font-size:9px;font-weight:700;color:#8a8a8a;text-transform:uppercase;letter-spacing:.4px">範例（不同題目）</div>' +
+          '<div id="circles-example-toggle-label" style="font-size:10px;color:#8a8a8a">展開 ▾</div>' +
+        '</div>' +
+        '<div id="circles-example-content" style="display:none;padding:8px 10px;font-size:11px;color:#5a5a5a;line-height:1.6">問題集中在移動端搜尋功能，過去 90 天內轉換率下降 12%，主要影響首次訂房用戶，與近期過濾器 UI 改動時間吻合。</div>' +
+      '</div>' +
+      '<textarea id="circles-conclusion-input" style="width:100%;border:1px solid #ddd;border-radius:8px;padding:9px;font-size:11px;line-height:1.6;resize:none;height:60px;box-sizing:border-box;font-family:DM Sans,sans-serif" placeholder="針對這題，整理你確認的關鍵資訊...">' + escHtml(conclusionText) + '</textarea>' +
+      detectionHtml +
+      '<div style="margin-top:8px;display:flex;align-items:center;justify-content:space-between">' +
+        '<button id="circles-conclusion-back" style="font-size:10px;color:#8a8a8a;background:none;border:none;cursor:pointer;font-family:DM Sans,sans-serif;padding:0">← 繼續對話</button>' +
+        '<button id="circles-conclusion-submit" class="circles-btn-primary" disabled style="opacity:.45;cursor:not-allowed">確認提交</button>' +
+      '</div>' +
+    '</div>';
+  } else if (submitState === 'collapsed') {
+    // Collapsed strip
+    bottomSection = '<div class="circles-submit-strip" id="circles-submit-strip">' +
+      '<div>' +
+        '<div style="font-size:11px;font-weight:600;color:#1A56DB;font-family:DM Sans,sans-serif">整理結論</div>' +
+        '<div style="font-size:10px;color:#8a8a8a;font-family:DM Sans,sans-serif">翻閱完對話後，點右側展開填寫</div>' +
+      '</div>' +
+      '<button id="circles-strip-expand" style="background:#1A56DB;color:#fff;border:none;border-radius:8px;padding:7px 12px;font-size:11px;font-weight:600;cursor:pointer;font-family:DM Sans,sans-serif;white-space:nowrap">展開填寫 ▲</button>' +
+    '</div>';
+  } else {
+    // Normal input bar
+    bottomSection = '<div class="circles-input-bar" id="circles-input-bar">' +
+      '<textarea class="circles-input" id="circles-msg-input" placeholder="輸入追問或回應..." rows="1"></textarea>' +
+      '<button class="circles-send-btn" id="circles-send-btn"><i class="ph ph-paper-plane-tilt"></i></button>' +
+    '</div>' +
+    (turnCount >= 2
+      ? '<div id="circles-submit-row" style="padding:6px 12px 10px;display:flex;justify-content:center">' +
+          '<button id="circles-submit-step" style="font-size:11px;color:#5a5a5a;border:1px solid #e8e5de;border-radius:8px;padding:6px 16px;cursor:pointer;background:#fff;font-family:DM Sans,sans-serif">對話足夠了，提交這個步驟</button>' +
+        '</div>'
+      : '');
+  }
+
+  return '<div data-view="circles" class="circles-chat-wrap">' +
+    '<div class="circles-nav">' +
+      '<button class="circles-nav-back" id="circles-p2-back"><i class="ph ph-arrow-left"></i></button>' +
+      '<div>' +
+        '<div class="circles-nav-title">' + step.label + ' — 對話練習</div>' +
+        '<div class="circles-nav-sub">' + (q ? q.company : '') + '</div>' +
+      '</div>' +
+      (turnCount > 0 && !submitState ? '<div class="circles-nav-right">' + turnCount + ' 輪</div>' : '') +
+    '</div>' +
+    '<div class="circles-progress">' + progressSegs + '<div class="circles-progress-label">' + step.short + ' · ' + step.label + ' · ' + (stepIdx + 1) + '/7</div></div>' +
+    pinnedCard +
+    '<div class="circles-chat-body" id="circles-chat-body">' + bubbles + '<div id="circles-streaming-bubble"></div></div>' +
+    bottomSection +
+  '</div>';
+}
+```
+
+- [ ] **Step 3: Add CSS for new Phase 2 elements to `public/style.css`**
+
+Find the `.circles-input-bar` rule block in `public/style.css` and add after it:
+
+```css
+.circles-pinned-card {
+  background: #fff;
+  border-bottom: 1px solid #e8e5de;
+  padding: 8px 14px;
+  flex-shrink: 0;
+}
+
+.circles-submit-strip {
+  border-top: 1px solid #e8e5de;
+  background: #fff;
+  padding: 10px 14px;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  flex-shrink: 0;
+}
+
+.circles-conclusion-box {
+  border-top: 2px solid #1A56DB;
+  background: #fff;
+  padding: 14px;
+  flex-shrink: 0;
+  overflow-y: auto;
+  max-height: 65vh;
+}
+```
+
+- [ ] **Step 4: Create `prompts/circles-conclusion-check.js`**
+
+```javascript
+// prompts/circles-conclusion-check.js
+const OpenAI = require('openai');
+const openai = new OpenAI({ apiKey: process.env.OPENAI_API_KEY });
+
+const STEP_DIMENSIONS = {
+  C1: ['問題範圍（地理/平台/功能）', '時間脈絡（何時開始）', '業務影響（量化）'],
+  I:  ['目標用戶分群', '選定焦點對象的理由', '排除對象'],
+  R:  ['功能性需求', '情感/社交需求', '核心痛點'],
+  C2: ['取捨標準', '優先項目與理由', '暫緩項目'],
+  L:  ['方案一', '方案二', '各方案核心差異'],
+  E:  ['方案優缺點', '風險與依賴', '成功指標'],
+  S:  ['推薦方案', '選擇理由', '北極星指標'],
+};
+
+async function checkConclusion(step, conclusionText, questionJson) {
+  const dims = (STEP_DIMENSIONS[step] || []).join('、');
+  const prompt = `你是 PM 面試教練，評估學員的步驟結論是否涵蓋關鍵維度。
+
+題目：${questionJson.problem_statement}
+步驟：${step}
+應涵蓋維度：${dims}
+
+學員結論：
+${conclusionText}
+
+請判斷結論是否已涵蓋主要維度。
+- 若已涵蓋：只回覆一行 JSON：{"ok": true, "message": "範圍、時間脈絡、業務影響都涵蓋了。"}
+- 若有缺漏：只回覆一行 JSON：{"ok": false, "message": "尚未提到[最重要的缺漏維度]——例如[一個具體例子]。"}
+只輸出 JSON，不要其他文字。`;
+
+  const res = await openai.chat.completions.create({
+    model: 'gpt-4o',
+    messages: [{ role: 'user', content: prompt }],
+    max_tokens: 100,
+    temperature: 0.3,
+  });
+  try {
+    return JSON.parse(res.choices[0].message.content.trim());
+  } catch (_) {
+    return { ok: true, message: '' };
+  }
+}
+
+module.exports = { checkConclusion };
+```
+
+- [ ] **Step 5: Add `/conclusion-check` to `routes/circles-sessions.js`**
+
+At the top of `routes/circles-sessions.js`, add after the existing requires:
+```javascript
+const { checkConclusion } = require('../prompts/circles-conclusion-check');
+```
+
+Before `module.exports = router;`, add:
+```javascript
+// POST /api/circles-sessions/:id/conclusion-check
+router.post('/:id/conclusion-check', requireAuth, async (req, res) => {
+  const { conclusionText } = req.body;
+  if (!conclusionText || !conclusionText.trim()) return res.status(400).json({ error: 'missing_conclusion' });
+  const { data: session, error } = await db
+    .from('circles_sessions')
+    .select('question_json, drill_step')
+    .eq('id', req.params.id)
+    .eq('user_id', req.user.id)
+    .single();
+  if (error || !session) return res.status(404).json({ error: 'not_found' });
+  try {
+    const result = await checkConclusion(session.drill_step || 'C1', conclusionText, session.question_json);
+    res.json(result);
+  } catch (e) { res.status(500).json({ error: e.message }); }
+});
+```
+
+- [ ] **Step 6: Add `/conclusion-check` to `routes/guest-circles-sessions.js`**
+
+At the top of `routes/guest-circles-sessions.js`, add:
+```javascript
+const { checkConclusion } = require('../prompts/circles-conclusion-check');
+```
+
+Before `module.exports = router;`, add:
+```javascript
+// POST /api/guest-circles-sessions/:id/conclusion-check
+router.post('/:id/conclusion-check', requireGuestId, async (req, res) => {
+  const { conclusionText } = req.body;
+  if (!conclusionText || !conclusionText.trim()) return res.status(400).json({ error: 'missing_conclusion' });
+  const { data: session, error } = await db
+    .from('circles_sessions')
+    .select('question_json, drill_step')
+    .eq('id', req.params.id)
+    .eq('guest_id', req.guestId)
+    .single();
+  if (error || !session) return res.status(404).json({ error: 'not_found' });
+  try {
+    const result = await checkConclusion(session.drill_step || 'C1', conclusionText, session.question_json);
+    res.json(result);
+  } catch (e) { res.status(500).json({ error: e.message }); }
+});
+```
+
+- [ ] **Step 7: Rewrite `bindCirclesPhase2()` to handle all three states**
+
+Replace the entire `bindCirclesPhase2()` function (lines 1063–1137) with:
+
+```javascript
+function bindCirclesPhase2() {
+  // Keyboard avoidance (unchanged)
+  if (_adjustCirclesKbFn && window.visualViewport) {
+    window.visualViewport.removeEventListener('resize', _adjustCirclesKbFn);
+    window.visualViewport.removeEventListener('scroll', _adjustCirclesKbFn);
+  }
+  _adjustCirclesKbFn = (function() {
+    var _raf = null;
+    return function() {
+      if (!window.visualViewport) return;
+      if (_raf) return;
+      _raf = requestAnimationFrame(function() {
+        _raf = null;
+        var bar = document.getElementById('circles-input-bar') || document.getElementById('circles-submit-strip') || document.getElementById('circles-conclusion-box');
+        var body = document.getElementById('circles-chat-body');
+        if (!bar) return;
+        var kbH = Math.max(0, window.innerHeight - window.visualViewport.offsetTop - window.visualViewport.height);
+        bar.style.transform = 'translateY(-' + kbH + 'px)';
+        if (body) body.style.paddingBottom = (bar.offsetHeight + kbH) + 'px';
+      });
+    };
+  }());
+  if (window.visualViewport) {
+    window.visualViewport.addEventListener('resize', _adjustCirclesKbFn);
+    window.visualViewport.addEventListener('scroll', _adjustCirclesKbFn);
+    _adjustCirclesKbFn();
+  }
+
+  // Back button
+  document.getElementById('circles-p2-back')?.addEventListener('click', function() {
+    AppState.circlesPhase = 1.5;
+    AppState.circlesSubmitState = null;
+    render();
+  });
+
+  // Auto-scroll chat
+  var chatBody = document.getElementById('circles-chat-body');
+  if (chatBody) chatBody.scrollTop = chatBody.scrollHeight;
+
+  // Pinned card expand
+  document.getElementById('circles-pinned-toggle')?.addEventListener('click', function() {
+    var stmtEl = document.getElementById('circles-pinned-stmt');
+    var q = AppState.circlesSelectedQuestion;
+    if (!q) return;
+    var expanded = this.dataset.expanded === 'true';
+    if (expanded) {
+      stmtEl.textContent = q.problem_statement.slice(0, 80) + '…';
+      this.textContent = '展開 ▾';
+      this.dataset.expanded = 'false';
+    } else {
+      stmtEl.textContent = q.problem_statement;
+      this.textContent = '收起 ▴';
+      this.dataset.expanded = 'true';
+    }
+  });
+
+  // Submit step button (normal state → collapsed strip)
+  document.getElementById('circles-submit-step')?.addEventListener('click', function() {
+    AppState.circlesSubmitState = 'collapsed';
+    render();
+  });
+
+  // Strip expand button (collapsed → expanded conclusion box)
+  document.getElementById('circles-strip-expand')?.addEventListener('click', function() {
+    AppState.circlesSubmitState = 'expanded';
+    render();
+  });
+
+  // Back to chat (conclusion box → collapsed)
+  document.getElementById('circles-conclusion-back')?.addEventListener('click', function() {
+    AppState.circlesSubmitState = 'collapsed';
+    render();
+  });
+
+  // Example block toggle
+  document.getElementById('circles-example-header')?.addEventListener('click', function() {
+    var content = document.getElementById('circles-example-content');
+    var label = document.getElementById('circles-example-toggle-label');
+    if (!content) return;
+    var hidden = content.style.display === 'none';
+    content.style.display = hidden ? 'block' : 'none';
+    if (label) label.textContent = hidden ? '收起 ▴' : '展開 ▾';
+  });
+
+  // Conclusion textarea — 8 second debounce → AI detection
+  var _conclusionTimer = null;
+  var _lastChecked = '';
+  document.getElementById('circles-conclusion-input')?.addEventListener('input', function() {
+    var text = this.value;
+    AppState.circlesConclusionText = text;
+    var hintEl = document.getElementById('circles-conclusion-hint');
+    var submitBtn = document.getElementById('circles-conclusion-submit');
+    if (hintEl) hintEl.textContent = '';
+    if (submitBtn) { submitBtn.disabled = true; submitBtn.style.opacity = '.45'; submitBtn.style.cursor = 'not-allowed'; }
+    if (_conclusionTimer) clearTimeout(_conclusionTimer);
+    if (!text.trim() || text.trim().length < 10) return;
+    if (text === _lastChecked) return;
+    _conclusionTimer = setTimeout(async function() {
+      _lastChecked = text;
+      var session = AppState.circlesSession;
+      if (!session) return;
+      if (hintEl) hintEl.textContent = '分析中…';
+      try {
+        var headers = { 'Content-Type': 'application/json' };
+        if (AppState.accessToken) headers['Authorization'] = 'Bearer ' + AppState.accessToken;
+        else headers['X-Guest-ID'] = AppState.guestId;
+        var baseUrl = (AppState.accessToken ? '/api/circles-sessions/' : '/api/guest-circles-sessions/') + session.id + '/conclusion-check';
+        var res = await fetch(baseUrl, { method: 'POST', headers: headers, body: JSON.stringify({ conclusionText: text }) });
+        var data = await res.json();
+        if (!document.getElementById('circles-conclusion-hint')) return; // user navigated away
+        var hintEl2 = document.getElementById('circles-conclusion-hint');
+        var submitBtn2 = document.getElementById('circles-conclusion-submit');
+        if (data.ok) {
+          if (hintEl2) { hintEl2.textContent = data.message || ''; hintEl2.style.color = '#137A3D'; }
+          if (submitBtn2) { submitBtn2.disabled = false; submitBtn2.style.opacity = '1'; submitBtn2.style.cursor = 'pointer'; }
+        } else {
+          if (hintEl2) { hintEl2.textContent = data.message || ''; hintEl2.style.color = '#B85C00'; }
+        }
+      } catch (_) {
+        var hintEl3 = document.getElementById('circles-conclusion-hint');
+        if (hintEl3) hintEl3.textContent = '';
+      }
+    }, 8000);
+  });
+
+  // Confirm submit — save conclusion, trigger evaluation
+  document.getElementById('circles-conclusion-submit')?.addEventListener('click', async function() {
+    var btn = this;
+    btn.disabled = true;
+    btn.textContent = '評分中...';
+    btn.style.opacity = '.65';
+
+    var session = AppState.circlesSession;
+    var conclusionText = AppState.circlesConclusionText;
+    var stepKey = AppState.circlesDrillStep;
+    if (!session || !session.id) { render(); return; }
+
+    // Store conclusion locally for report page
+    AppState.circlesStepConclusions[stepKey] = conclusionText;
+
+    var headers = AppState.accessToken
+      ? { 'Content-Type': 'application/json', 'Authorization': 'Bearer ' + AppState.accessToken }
+      : { 'Content-Type': 'application/json', 'X-Guest-ID': AppState.guestId };
+
+    var route = (AppState.accessToken ? '/api/circles-sessions/' : '/api/guest-circles-sessions/') + session.id + '/evaluate-step';
+    try {
+      var res = await fetch(route, { method: 'POST', headers: headers });
+      var scoreData = await res.json();
+      if (!res.ok) throw new Error(scoreData.error || res.status);
+      AppState.circlesScoreResult = scoreData;
+      AppState.circlesSubmitState = null;
+      AppState.circlesConclusionText = '';
+      AppState.circlesPhase = 3;
+      render();
+    } catch (e) {
+      btn.disabled = false;
+      btn.textContent = '確認提交';
+      btn.style.opacity = '1';
+    }
+  });
+
+  // Normal send message
+  document.getElementById('circles-send-btn')?.addEventListener('click', sendCirclesMessage);
+  document.getElementById('circles-msg-input')?.addEventListener('keydown', function(e) {
+    if (e.key === 'Enter' && !e.shiftKey) { e.preventDefault(); sendCirclesMessage(); }
+  });
+}
+```
+
+- [ ] **Step 8: Smoke-test in browser**
+
+```bash
+node server.js &
+```
+Go to Phase 2:
+- After 2 turns, "對話足夠了，提交這個步驟" text row appears below input bar
+- Click it → collapsed strip replaces input bar, chat is scrollable
+- Click "展開填寫" → conclusion box appears
+- Type <10 chars → no detection triggered
+- Type 20+ chars, wait 8 seconds → "分析中…" → hint appears
+- Click "← 繼續對話" → returns to collapsed strip
+- Complete conclusion that passes detection → "確認提交" button activates → click → Phase 3 score page
+
+- [ ] **Step 9: Commit**
+
+```bash
+git add public/app.js public/style.css prompts/circles-conclusion-check.js routes/circles-sessions.js routes/guest-circles-sessions.js
+git commit -m "feat: Phase 2 — pinned question card, conclusion submit flow with 8s AI detection"
+```
+
+---
+
+## Task 19: 被訪談者 Prompt 修正 — 拒答過度直接的提問
+
+**Spec:** `docs/superpowers/specs/2026-04-26-circles-ux-polish-design.md` §4.3
+
+**Files:**
+- Modify: `prompts/circles-coach.js` — `buildSystemPrompt()` (line 14)
+
+- [ ] **Step 1: Add vague-response instruction to 角色 A in `buildSystemPrompt()`**
+
+In `prompts/circles-coach.js`, replace lines 45–50:
+
+```javascript
+角色 A（被訪談者）：
+- 你是 ${q.company} 的產品負責人，被學員訪談
+- 隱藏資訊（被訪談者知道但不主動說）：${hiddenCtx}
+- 學員問得模糊 → 你給模糊答案
+- 學員預設解法 → 你說「我說不清楚怎麼解，只知道遇到什麼問題」
+- 回答口語、2-4 句
+```
+
+with:
+
+```javascript
+角色 A（被訪談者）：
+- 你是 ${q.company} 的產品負責人，被學員訪談
+- 隱藏資訊（被訪談者知道但不主動說）：${hiddenCtx}
+- 學員問得模糊 → 你給模糊答案
+- 學員預設解法 → 你說「我說不清楚怎麼解，只知道遇到什麼問題」
+- 學員直接問核心業務指標、量化影響、或策略結論 → 給模糊的真實回應，例如「這個我們內部有一些數據，但你覺得應該先確認哪個面向？」或「我說不太準，你想從哪裡切入？」不要直接說出數字或答案
+- 回答口語、2-4 句
+```
+
+- [ ] **Step 2: Verify behavior in browser**
+
+Go to Phase 2 and type: "這個問題對公司的核心業務指標有什麼影響？請直接告訴我數字。"
+
+Expected: 被訪談者 gives a vague, deflecting response rather than quoting exact numbers.
+
+- [ ] **Step 3: Commit**
+
+```bash
+git add prompts/circles-coach.js
+git commit -m "fix: 被訪談者 deflects overly direct questions with vague stakeholder responses"
+```
+
+---
+
+## Task 20: Phase 3 評分頁 — 上下步導覽 + 完整模擬串連
+
+**Spec:** `docs/superpowers/specs/2026-04-26-circles-ux-polish-design.md` §5
+
+**Files:**
+- Modify: `public/app.js` — `renderCirclesStepScore()` (~line 1251), `bindCirclesStepScore()` (~line 1281)
+
+Currently the score page's submit bar only has "重練" and "回首頁" OR "繼續下一步". Add: explicit "上一步" back to Phase 2, and for the last step in simulation mode, show "查看總結報告" instead of "重練".
+
+- [ ] **Step 1: Update submit bar in `renderCirclesStepScore()`**
+
+Replace lines ~1272–1276:
+
+```javascript
+      '<div class="circles-submit-bar">' +
+        (isLastStep || mode === 'drill'
+          ? '<button class="circles-btn-primary" id="circles-score-again">重練這道題</button><button class="circles-btn-ghost" id="circles-score-home">回首頁</button>'
+          : '<button class="circles-btn-primary" id="circles-score-next">繼續下一步：' + CIRCLES_STEPS[stepIdx + 1].label + ' →</button><button class="circles-btn-ghost" id="circles-score-home">回首頁</button>') +
+      '</div>' +
+```
+
+with:
+
+```javascript
+      '<div class="circles-submit-bar">' +
+        (isLastStep && mode === 'simulation'
+          ? '<button class="circles-btn-primary" id="circles-score-report">查看總結報告 →</button>'
+          : (mode === 'simulation'
+            ? '<button class="circles-btn-primary" id="circles-score-next">繼續下一步：' + CIRCLES_STEPS[stepIdx + 1].label + ' →</button>'
+            : '<button class="circles-btn-primary" id="circles-score-again">重練這道題</button>')) +
+        '<button class="circles-btn-ghost" id="circles-score-home">回首頁</button>' +
+      '</div>' +
+```
+
+- [ ] **Step 2: Add `circles-score-report` handler to `bindCirclesStepScore()`**
+
+In `bindCirclesStepScore()`, after the existing `circles-score-next` handler (after line ~1329), add:
+
+```javascript
+  document.getElementById('circles-score-report')?.addEventListener('click', function() {
+    AppState.circlesPhase = 4;
+    AppState.circlesFinalReport = null;
+    render();
+  });
+```
+
+Also add `circlesFinalReport: null` to the AppState definition (~line 44) if not already there:
+```javascript
+  circlesFinalReport: null,          // { overallScore, overallCoach, stepScores } from /final-report endpoint
+```
+
+- [ ] **Step 3: Add `circlesPhase === 4` case to `render()`**
+
+In `render()` (~line 381), replace:
+
+```javascript
+    case 'circles':
+      if (!AppState.circlesSelectedQuestion) {
+        main.innerHTML = renderCirclesHome(); bindCirclesHome();
+      } else if (AppState.circlesPhase === 1) {
+        main.innerHTML = renderCirclesPhase1(); bindCirclesPhase1();
+      } else if (AppState.circlesPhase === 1.5) {
+        main.innerHTML = renderCirclesGate(); bindCirclesGate();
+      } else if (AppState.circlesPhase === 2) {
+        main.innerHTML = renderCirclesPhase2(); bindCirclesPhase2();
+      } else if (AppState.circlesPhase === 3) {
+        main.innerHTML = renderCirclesStepScore(); bindCirclesStepScore();
+      }
+      break;
+```
+
+with:
+
+```javascript
+    case 'circles':
+      if (!AppState.circlesSelectedQuestion) {
+        main.innerHTML = renderCirclesHome(); bindCirclesHome();
+      } else if (AppState.circlesPhase === 1) {
+        main.innerHTML = renderCirclesPhase1(); bindCirclesPhase1();
+      } else if (AppState.circlesPhase === 1.5) {
+        main.innerHTML = renderCirclesGate(); bindCirclesGate();
+      } else if (AppState.circlesPhase === 2) {
+        main.innerHTML = renderCirclesPhase2(); bindCirclesPhase2();
+      } else if (AppState.circlesPhase === 3) {
+        main.innerHTML = renderCirclesStepScore(); bindCirclesStepScore();
+      } else if (AppState.circlesPhase === 4) {
+        main.innerHTML = renderCirclesFinalReport(); bindCirclesFinalReport();
+      }
+      break;
+```
+
+- [ ] **Step 4: Verify navigation**
+
+In simulation mode, step through to the last (S) step and confirm "查看總結報告 →" button appears. In drill mode, confirm "重練這道題" appears as before.
+
+- [ ] **Step 5: Commit**
+
+```bash
+git add public/app.js
+git commit -m "feat: Phase 3 score page — simulation last step shows 查看總結報告 button"
+```
+
+---
+
+## Task 21: 完整模擬總結報告頁
+
+**Spec:** `docs/superpowers/specs/2026-04-26-circles-ux-polish-design.md` §6
+
+**Files:**
+- Modify: `public/app.js` — add `renderCirclesFinalReport()` and `bindCirclesFinalReport()`
+- Create: `prompts/circles-final-report.js`
+- Modify: `routes/circles-sessions.js` — add `/final-report` endpoint
+- Modify: `routes/guest-circles-sessions.js` — add `/final-report` endpoint
+
+- [ ] **Step 1: Create `prompts/circles-final-report.js`**
+
+```javascript
+// prompts/circles-final-report.js
+const OpenAI = require('openai');
+const openai = new OpenAI({ apiKey: process.env.OPENAI_API_KEY });
+
+const STEP_LABELS = {
+  C1: '澄清情境', I: '定義用戶', R: '發掘需求',
+  C2: '優先排序', L: '提出方案', E: '評估取捨', S: '總結推薦',
+};
+
+async function generateFinalReport(questionJson, stepScores) {
+  const scoreLines = Object.entries(stepScores).map(([k, v]) =>
+    `${STEP_LABELS[k] || k}（${k}）：${Math.round(v.totalScore || 0)} 分 — ${v.improvement || ''}`
+  ).join('\n');
+
+  const overallScore = Math.round(
+    Object.values(stepScores).reduce(function(sum, v) { return sum + (v.totalScore || 0); }, 0) /
+    Math.max(Object.keys(stepScores).length, 1)
+  );
+
+  const prompt = `你是 PM 面試教練，為學員的完整模擬練習寫總結評語。
+
+題目公司：${questionJson.company}
+題目：${questionJson.problem_statement}
+
+各步驟分數與主要改進點：
+${scoreLines}
+
+平均分：${overallScore}
+
+請用 2-3 句話寫出整體教練評語：
+1. 指出最強的 1-2 個步驟（以具體步驟名稱說明）
+2. 指出最需要加強的 1 個面向（以具體行動建議說明）
+3. 一句鼓勵性結語
+
+純中文，不使用 Markdown，直接輸出評語文字。`;
+
+  const res = await openai.chat.completions.create({
+    model: 'gpt-4o',
+    messages: [{ role: 'user', content: prompt }],
+    max_tokens: 200,
+    temperature: 0.7,
+  });
+
+  return {
+    overallScore,
+    overallCoach: res.choices[0].message.content.trim(),
+    stepScores,
+  };
+}
+
+module.exports = { generateFinalReport };
+```
+
+- [ ] **Step 2: Add `/final-report` endpoint to `routes/circles-sessions.js`**
+
+At the top, add:
+```javascript
+const { generateFinalReport } = require('../prompts/circles-final-report');
+```
+
+Before `module.exports = router;`, add:
+```javascript
+// POST /api/circles-sessions/:id/final-report
+router.post('/:id/final-report', requireAuth, async (req, res) => {
+  const { data: session, error } = await db
+    .from('circles_sessions')
+    .select('question_json, step_scores, mode')
+    .eq('id', req.params.id)
+    .eq('user_id', req.user.id)
+    .single();
+  if (error || !session) return res.status(404).json({ error: 'not_found' });
+  if (session.mode !== 'simulation') return res.status(400).json({ error: 'drill_mode_no_report' });
+  const stepScores = session.step_scores || {};
+  if (Object.keys(stepScores).length === 0) return res.status(400).json({ error: 'no_scores' });
+  try {
+    const report = await generateFinalReport(session.question_json, stepScores);
+    res.json(report);
+  } catch (e) { res.status(500).json({ error: e.message }); }
+});
+```
+
+- [ ] **Step 3: Add `/final-report` endpoint to `routes/guest-circles-sessions.js`**
+
+At the top, add:
+```javascript
+const { generateFinalReport } = require('../prompts/circles-final-report');
+```
+
+Before `module.exports = router;`, add:
+```javascript
+// POST /api/guest-circles-sessions/:id/final-report
+router.post('/:id/final-report', requireGuestId, async (req, res) => {
+  const { data: session, error } = await db
+    .from('circles_sessions')
+    .select('question_json, step_scores, mode')
+    .eq('id', req.params.id)
+    .eq('guest_id', req.guestId)
+    .single();
+  if (error || !session) return res.status(404).json({ error: 'not_found' });
+  if (session.mode !== 'simulation') return res.status(400).json({ error: 'drill_mode_no_report' });
+  const stepScores = session.step_scores || {};
+  if (Object.keys(stepScores).length === 0) return res.status(400).json({ error: 'no_scores' });
+  try {
+    const report = await generateFinalReport(session.question_json, stepScores);
+    res.json(report);
+  } catch (e) { res.status(500).json({ error: e.message }); }
+});
+```
+
+- [ ] **Step 4: Add `renderCirclesFinalReport()` to `public/app.js`**
+
+Add this function after `bindCirclesStepScore()` (~line 1330):
+
+```javascript
+function renderCirclesFinalReport() {
+  var report = AppState.circlesFinalReport;
+  var q = AppState.circlesSelectedQuestion;
+  var session = AppState.circlesSession;
+
+  // Loading state — trigger fetch if report not yet loaded
+  if (!report) {
+    // Fetch will be triggered in bindCirclesFinalReport
+    return '<div data-view="circles">' +
+      '<div class="circles-nav">' +
+        '<div><div class="circles-nav-title">CIRCLES 完整模擬 — 總結</div></div>' +
+        '<button class="circles-nav-home-btn" id="circles-report-home">回首頁</button>' +
+      '</div>' +
+      '<div style="text-align:center;padding:60px 16px;font-family:DM Sans,sans-serif">' +
+        '<i class="ph ph-circle-notch" style="font-size:28px;animation:spin 0.8s linear infinite;display:block;margin-bottom:12px;color:#1A56DB"></i>' +
+        '<div style="font-size:13px;color:#5a5a5a">生成總結報告中…</div>' +
+      '</div>' +
+    '</div>';
+  }
+
+  var overallScore = report.overallScore || 0;
+  var stepScores = report.stepScores || {};
+
+  var pills = CIRCLES_STEPS.map(function(s) {
+    var scoreData = stepScores[s.key];
+    var score = scoreData ? Math.round(scoreData.totalScore || 0) : '—';
+    var hasDot = typeof score === 'number' && score < 70;
+    return '<div class="circles-report-pill" data-step="' + s.key + '" style="position:relative">' +
+      (hasDot ? '<div style="position:absolute;top:4px;right:4px;width:5px;height:5px;border-radius:50%;background:#1A56DB;opacity:.5"></div>' : '') +
+      '<div style="font-size:9px;font-weight:700;color:#1A56DB">' + s.short + '</div>' +
+      '<div style="font-size:12px;font-weight:600;color:#1a1a1a">' + score + '</div>' +
+      '<div style="font-size:8px;color:#5a5a5a;margin-top:1px">' + s.label.slice(0, 2) + '</div>' +
+    '</div>';
+  }).join('');
+
+  var expandedStep = AppState.circlesReportExpandedStep || null;
+  var expandedHtml = '';
+  if (expandedStep) {
+    var expandedStepDef = CIRCLES_STEPS.find(function(s) { return s.key === expandedStep; });
+    var expandedScore = stepScores[expandedStep];
+    var userConclusion = (AppState.circlesStepConclusions || {})[expandedStep] || '（未記錄）';
+    expandedHtml = '<div class="circles-report-expand-card" id="circles-report-expand-card">' +
+      '<div style="background:#EEF3FF;padding:10px 12px;display:flex;align-items:center;justify-content:space-between;border-bottom:1px solid #C5D5FF">' +
+        '<div style="display:flex;align-items:center;gap:8px">' +
+          '<div style="width:26px;height:26px;border-radius:50%;background:#1A56DB;color:#fff;display:flex;align-items:center;justify-content:center;font-size:11px;font-weight:700">' + (expandedStepDef ? expandedStepDef.short : expandedStep) + '</div>' +
+          '<div>' +
+            '<div style="font-size:12px;font-weight:700;color:#1a1a1a">' + (expandedStepDef ? expandedStepDef.label : expandedStep) + '</div>' +
+            '<div style="font-size:10px;color:#5a5a5a">' + (expandedScore ? Math.round(expandedScore.totalScore || 0) + ' 分' : '') + '</div>' +
+          '</div>' +
+        '</div>' +
+        '<button id="circles-report-collapse" style="font-size:11px;color:#5a7ab5;background:none;border:none;cursor:pointer;font-family:DM Sans,sans-serif;padding:0">收起 ▲</button>' +
+      '</div>' +
+      '<div style="padding:12px;display:flex;flex-direction:column;gap:10px">' +
+        '<div>' +
+          '<div style="font-size:10px;font-weight:700;color:#5a5a5a;text-transform:uppercase;letter-spacing:.4px;margin-bottom:4px">你的步驟結論</div>' +
+          '<div style="background:#f0ede6;border-radius:8px;padding:9px;font-size:11px;color:#5a5a5a;line-height:1.6">' + escHtml(userConclusion) + '</div>' +
+        '</div>' +
+        (expandedScore ? (
+          '<div>' +
+            '<div style="font-size:10px;font-weight:700;color:#5a5a5a;text-transform:uppercase;letter-spacing:.4px;margin-bottom:6px">教練點評</div>' +
+            '<div style="font-size:11px;color:#1a1a1a;line-height:1.8">' +
+              '<div style="margin-bottom:6px"><span style="font-weight:700">做得好：</span>' + escHtml(expandedScore.highlight || '—') + '</div>' +
+              '<div><span style="font-weight:700">待加強：</span>' + escHtml(expandedScore.improvement || '—') + '</div>' +
+            '</div>' +
+          '</div>'
+        ) : '') +
+      '</div>' +
+    '</div>';
+  }
+
+  return '<div data-view="circles">' +
+    '<div class="circles-nav">' +
+      '<div><div class="circles-nav-title">CIRCLES 完整模擬 — 總結</div></div>' +
+      '<button class="circles-nav-home-btn" id="circles-report-home">回首頁</button>' +
+    '</div>' +
+    '<div class="circles-score-wrap">' +
+      '<div style="font-size:11px;color:#5a5a5a;margin-bottom:10px;font-family:DM Sans,sans-serif">' + (q ? q.company + ' · ' + q.problem_statement.slice(0, 50) + (q.problem_statement.length > 50 ? '…' : '') : '') + '</div>' +
+
+      '<div style="display:flex;align-items:flex-start;gap:10px;margin-bottom:16px">' +
+        '<div style="text-align:center;flex-shrink:0">' +
+          '<div style="display:inline-flex;align-items:center;justify-content:center;width:64px;height:64px;border-radius:50%;background:#fff;border:3px solid #1A56DB;flex-direction:column">' +
+            '<div style="font-size:20px;font-weight:700;color:#1A56DB;line-height:1">' + overallScore + '</div>' +
+            '<div style="font-size:9px;color:#5a5a5a">總分</div>' +
+          '</div>' +
+        '</div>' +
+        '<div style="background:#fff;border-radius:10px;border:1px solid #e8e5de;padding:10px;flex:1">' +
+          '<div style="font-size:10px;font-weight:700;color:#5a5a5a;text-transform:uppercase;letter-spacing:.4px;margin-bottom:4px">AI 教練總評</div>' +
+          '<div style="font-size:11px;color:#1a1a1a;line-height:1.6">' + escHtml(report.overallCoach || '') + '</div>' +
+        '</div>' +
+      '</div>' +
+
+      '<div style="font-size:10px;color:#5a5a5a;margin-bottom:8px;font-family:DM Sans,sans-serif">點任一步驟查看詳細回饋</div>' +
+      '<div style="display:flex;gap:6px;flex-wrap:wrap;margin-bottom:14px" id="circles-report-pills">' + pills + '</div>' +
+
+      expandedHtml +
+
+      '<div style="display:flex;gap:8px;margin-top:8px">' +
+        '<button class="circles-btn-primary" id="circles-report-again">換題再練</button>' +
+        '<button class="circles-btn-ghost" id="circles-report-weak">針對弱項加練</button>' +
+      '</div>' +
+    '</div>' +
+  '</div>';
+}
+```
+
+- [ ] **Step 5: Add `.circles-report-pill` and `.circles-report-expand-card` CSS to `public/style.css`**
+
+Add after the `.circles-score-wrap` rule block:
+
+```css
+.circles-report-pill {
+  background: #fff;
+  border-radius: 8px;
+  padding: 6px 8px;
+  border: 1px solid #e8e5de;
+  text-align: center;
+  min-width: 44px;
+  cursor: pointer;
+  transition: opacity 0.15s;
+  font-family: 'DM Sans', sans-serif;
+}
+.circles-report-pill.dimmed { opacity: 0.4; }
+.circles-report-pill.active { background: #1A56DB; border-color: #1A56DB; }
+.circles-report-pill.active div { color: #fff !important; }
+.circles-report-expand-card {
+  background: #fff;
+  border-radius: 10px;
+  border: 1px solid #e8e5de;
+  overflow: hidden;
+  margin-bottom: 12px;
+}
+```
+
+- [ ] **Step 6: Add `bindCirclesFinalReport()` to `public/app.js`**
+
+Add after `renderCirclesFinalReport()`:
+
+```javascript
+function bindCirclesFinalReport() {
+  // Home button
+  document.getElementById('circles-report-home')?.addEventListener('click', function() {
+    AppState.circlesSelectedQuestion = null;
+    AppState.circlesSession = null;
+    AppState.circlesPhase = 1;
+    AppState.circlesScoreResult = null;
+    AppState.circlesFinalReport = null;
+    AppState.circlesReportExpandedStep = null;
+    AppState.circlesStepConclusions = {};
+    AppState.circlesSimStep = 0;
+    navigate('circles');
+  });
+
+  // Fetch final report if not loaded
+  if (!AppState.circlesFinalReport) {
+    var session = AppState.circlesSession;
+    if (!session || !session.id) return;
+    var headers = AppState.accessToken
+      ? { 'Content-Type': 'application/json', 'Authorization': 'Bearer ' + AppState.accessToken }
+      : { 'Content-Type': 'application/json', 'X-Guest-ID': AppState.guestId };
+    var url = (AppState.accessToken ? '/api/circles-sessions/' : '/api/guest-circles-sessions/') + session.id + '/final-report';
+    fetch(url, { method: 'POST', headers: headers })
+      .then(function(r) { return r.json(); })
+      .then(function(data) {
+        AppState.circlesFinalReport = data;
+        if (AppState.circlesPhase === 4) render();
+      })
+      .catch(function() {});
+    return;
+  }
+
+  // Pill click → expand/collapse
+  document.querySelectorAll('.circles-report-pill').forEach(function(pill) {
+    pill.addEventListener('click', function() {
+      var stepKey = pill.dataset.step;
+      var allPills = document.querySelectorAll('.circles-report-pill');
+      if (AppState.circlesReportExpandedStep === stepKey) {
+        // Collapse
+        AppState.circlesReportExpandedStep = null;
+        allPills.forEach(function(p) { p.classList.remove('dimmed', 'active'); });
+      } else {
+        // Expand
+        AppState.circlesReportExpandedStep = stepKey;
+        allPills.forEach(function(p) {
+          p.classList.toggle('active', p.dataset.step === stepKey);
+          p.classList.toggle('dimmed', p.dataset.step !== stepKey);
+        });
+      }
+      // Re-render to update expanded card
+      var main = document.getElementById('main');
+      if (main) { main.innerHTML = renderCirclesFinalReport(); bindCirclesFinalReport(); }
+    });
+  });
+
+  // Collapse button
+  document.getElementById('circles-report-collapse')?.addEventListener('click', function() {
+    AppState.circlesReportExpandedStep = null;
+    var main = document.getElementById('main');
+    if (main) { main.innerHTML = renderCirclesFinalReport(); bindCirclesFinalReport(); }
+  });
+
+  // CTA buttons
+  document.getElementById('circles-report-again')?.addEventListener('click', function() {
+    AppState.circlesSession = null;
+    AppState.circlesPhase = 1;
+    AppState.circlesScoreResult = null;
+    AppState.circlesFinalReport = null;
+    AppState.circlesReportExpandedStep = null;
+    AppState.circlesStepConclusions = {};
+    AppState.circlesFrameworkDraft = {};
+    AppState.circlesGateResult = null;
+    AppState.circlesConversation = [];
+    AppState.circlesSimStep = 0;
+    AppState.circlesSelectedQuestion = null;
+    navigate('circles');
+  });
+
+  document.getElementById('circles-report-weak')?.addEventListener('click', function() {
+    // Switch to drill mode and navigate home so user can pick a step
+    AppState.circlesMode = 'drill';
+    localStorage.setItem('circlesMode', 'drill');
+    AppState.circlesSession = null;
+    AppState.circlesPhase = 1;
+    AppState.circlesFinalReport = null;
+    AppState.circlesReportExpandedStep = null;
+    AppState.circlesStepConclusions = {};
+    AppState.circlesSelectedQuestion = null;
+    navigate('circles');
+  });
+}
+```
+
+- [ ] **Step 7: Add `circlesReportExpandedStep` to AppState**
+
+In `public/app.js` AppState definition, add after `circlesFinalReport: null`:
+```javascript
+  circlesReportExpandedStep: null,   // step key currently expanded in final report
+```
+
+- [ ] **Step 8: Smoke-test in browser**
+
+Complete a full simulation (7 steps) → click "查看總結報告 →":
+- Loading spinner appears while AI generates
+- Report loads: total score ring, AI 總評 text, 7 pills
+- Click a low-score pill → expands below with 你的步驟結論 + 教練點評
+- Click same pill again → collapses
+- Click 換題再練 → returns to CIRCLES home (mode stays simulation)
+- Click 針對弱項加練 → returns to CIRCLES home in drill mode
+
+- [ ] **Step 9: Commit**
+
+```bash
+git add public/app.js public/style.css prompts/circles-final-report.js routes/circles-sessions.js routes/guest-circles-sessions.js
+git commit -m "feat: CIRCLES完整模擬總結報告頁 — AI總評、步驟分數pill、回溯教練點評"
+```
+
+---
+
 ## Verification Summary
 
 1. `node server.js` starts without errors
@@ -1622,4 +2957,19 @@ git commit -m "perf: instant offcanvas render from cache, optimistic delete, opt
 12. CIRCLES sessions (both drill and simulation) appear in offcanvas history with correct labels
 13. Offcanvas opens instantly from cache on second open; skeleton on first open
 14. Delete is instant (optimistic); CIRCLES record entry navigates immediately
+15. CIRCLES home shows explainer block with 7 step badges
+16. 隨機選題 button picks a random question and starts Phase 1
+17. Question card 看更多 expands full problem_statement, 收起 truncates
+18. Progress label shows `C · 澄清情境 · 1/7` format
+19. Phase 1.5 gate pass shows blue "框架審核通過" inline banner
+20. Phase 2 shows pinned question card above chat
+21. After 2 turns, "對話足夠了，提交這個步驟" row appears below input bar
+22. Clicking submit row → collapsed strip; clicking 展開填寫 → conclusion box
+23. ← 繼續對話 returns to collapsed strip (textarea value preserved)
+24. 8 seconds after stop typing → AI detection result appears; submit activates on pass
+25. 被訪談者 gives vague deflecting answers to overly direct questions
+26. In simulation mode, last step score page shows "查看總結報告 →"
+27. Final report loads with total score, AI 總評, 7 step pills
+28. Clicking a pill expands step detail (結論 + 教練點評); clicking again collapses
+29. 換題再練 → CIRCLES home (simulation mode); 針對弱項加練 → CIRCLES home (drill mode)
 15. Playwright tests all pass
