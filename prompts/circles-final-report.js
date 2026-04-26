@@ -32,7 +32,7 @@ async function generateFinalReport({ stepScores, questionJson }) {
     '  "nextSteps": "建議下一步練習方向（40字內）",\n' +
     '  "coachVerdict": "教練總評（60-80字，具體針對這道題）"\n' +
     '}\n\n' +
-    '評分標準：A=85+分, B=70-84分, C=55-69分, D=54分以下';
+    '評分標準：A=85+分, B=70-84分, C=55-69分, D=54分（含）以下';
 
   var resp = await openai.chat.completions.create({
     model: 'gpt-4o',
