@@ -46,6 +46,7 @@ const AppState = {
   circlesConclusionText: '',       // user's conclusion textarea value
   circlesStepConclusions: {},      // { stepKey: 'conclusion text' } accumulated across steps
   circlesStepScores: {},           // { stepKey: scoreData } accumulated across steps
+  circlesFinalReport: null,        // final report from /final-report endpoint
   circlesSimStep: 0,               // for simulation: which of 7 steps is active (0-6)
   circlesRecentSessions: [],       // [{ id, question_json, mode, drill_step, current_phase, sim_step_index, updated_at }]
   circlesRecentLoading: false,
@@ -1617,10 +1618,121 @@ function bindCirclesStepScore() {
 }
 
 function renderCirclesFinalReport() {
-  return '<div data-view="circles"><div style="text-align:center;padding:48px 16px;font-family:DM Sans,sans-serif;color:#5a5a5a">總結報告載入中…</div></div>';
+  var report = AppState.circlesFinalReport;
+  var q = AppState.circlesSelectedQuestion;
+  var stepScores = AppState.circlesStepScores || {};
+
+  var navBar = '<div class="circles-nav">' +
+    '<div><div class="circles-nav-title">模擬面試總結報告</div>' +
+    '<div class="circles-nav-sub">' + (q ? escHtml(q.company) + ' · ' + escHtml(q.product || '') : '') + '</div></div>' +
+    '</div>';
+
+  if (!report) {
+    return '<div data-view="circles">' + navBar +
+      '<div style="text-align:center;padding:48px 16px;font-family:DM Sans,sans-serif">' +
+        '<div style="font-size:32px;margin-bottom:12px">⏳</div>' +
+        '<div style="color:#5a5a5a;font-size:14px">生成總結報告中…</div>' +
+      '</div></div>';
+  }
+
+  var gradeColor = ({ A: '#137A3D', B: '#1A56DB', C: '#B85C00', D: '#D92020' })[report.grade] || '#1a1a1a';
+
+  var stepLabels = { C1:'澄清', I:'用戶', R:'需求', C2:'排序', L:'方案', E:'取捨', S:'總結' };
+  var stepRows = ['C1','I','R','C2','L','E','S'].filter(function(k) { return stepScores[k]; }).map(function(k) {
+    var s = stepScores[k];
+    var scoreNum = Math.round(s.totalScore || 0);
+    var color = scoreNum >= 70 ? '#137A3D' : scoreNum >= 50 ? '#B85C00' : '#D92020';
+    return '<div style="display:flex;justify-content:space-between;align-items:center;padding:8px 0;border-bottom:1px solid #eee;font-family:DM Sans,sans-serif">' +
+      '<span style="font-size:13px;color:#1a1a1a">' + escHtml(stepLabels[k] || k) + '</span>' +
+      '<span style="font-size:13px;font-weight:600;color:' + color + '">' + scoreNum + '</span>' +
+    '</div>';
+  }).join('');
+
+  var strengths = (report.strengths || []).map(function(s) {
+    return '<li style="margin-bottom:6px;font-size:13px;font-family:DM Sans,sans-serif;color:#1a1a1a">' + escHtml(s) + '</li>';
+  }).join('');
+
+  var improvements = (report.improvements || []).map(function(s) {
+    return '<li style="margin-bottom:6px;font-size:13px;font-family:DM Sans,sans-serif;color:#1a1a1a">' + escHtml(s) + '</li>';
+  }).join('');
+
+  return '<div data-view="circles">' +
+    navBar +
+    '<div style="padding:16px 0 80px">' +
+      '<div style="background:#fff;border-radius:16px;padding:20px;text-align:center;margin-bottom:16px;border:1px solid rgba(0,0,0,0.08)">' +
+        '<div style="font-size:56px;font-weight:800;color:' + gradeColor + ';font-family:Instrument Serif,serif;line-height:1">' + escHtml(report.grade || '') + '</div>' +
+        '<div style="font-size:18px;color:#1a1a1a;margin:8px 0 4px;font-family:DM Sans,sans-serif;font-weight:600">' + Math.round(report.overallScore || 0) + ' 分</div>' +
+        '<div style="font-size:14px;color:#5a5a5a;font-family:DM Sans,sans-serif">' + escHtml(report.headline || '') + '</div>' +
+      '</div>' +
+      '<div style="background:#fff;border-radius:16px;padding:16px;margin-bottom:16px;border:1px solid rgba(0,0,0,0.08)">' +
+        '<div style="font-size:12px;font-weight:600;color:#8a8a8a;text-transform:uppercase;letter-spacing:.6px;margin-bottom:8px;font-family:DM Sans,sans-serif">各步驟分數</div>' +
+        stepRows +
+      '</div>' +
+      '<div style="background:#F0FFF4;border-radius:16px;padding:16px;margin-bottom:12px;border:1px solid #BBF7D0">' +
+        '<div style="font-size:12px;font-weight:600;color:#137A3D;margin-bottom:8px;font-family:DM Sans,sans-serif">✓ 表現優秀</div>' +
+        '<ul style="padding-left:18px;margin:0">' + strengths + '</ul>' +
+      '</div>' +
+      '<div style="background:#FFF7ED;border-radius:16px;padding:16px;margin-bottom:12px;border:1px solid #FED7AA">' +
+        '<div style="font-size:12px;font-weight:600;color:#B85C00;margin-bottom:8px;font-family:DM Sans,sans-serif">△ 需要改進</div>' +
+        '<ul style="padding-left:18px;margin:0">' + improvements + '</ul>' +
+      '</div>' +
+      '<div style="background:#EEF3FF;border-radius:16px;padding:16px;margin-bottom:12px;border:1px solid #C5D5FF">' +
+        '<div style="font-size:12px;font-weight:600;color:#1A56DB;margin-bottom:8px;font-family:DM Sans,sans-serif">教練總評</div>' +
+        '<div style="font-size:13px;color:#1a1a1a;line-height:1.7;font-family:DM Sans,sans-serif">' + escHtml(report.coachVerdict || '') + '</div>' +
+      '</div>' +
+      (report.nextSteps ? '<div style="background:#fff;border-radius:12px;padding:14px;margin-bottom:16px;border:1px solid rgba(0,0,0,0.08);font-size:13px;color:#5a5a5a;font-family:DM Sans,sans-serif;line-height:1.6"><span style="font-weight:600;color:#1a1a1a">建議下一步：</span>' + escHtml(report.nextSteps) + '</div>' : '') +
+      '<div class="circles-submit-bar">' +
+        '<button class="circles-btn-primary" id="circles-final-again">重練這道題</button>' +
+        '<button class="circles-btn-ghost" id="circles-final-home">回首頁</button>' +
+      '</div>' +
+    '</div>' +
+  '</div>';
 }
+
 function bindCirclesFinalReport() {
-  // bound in Task 21
+  if (!AppState.circlesFinalReport) {
+    var session = AppState.circlesSession;
+    if (session && session.id) {
+      var headers = AppState.accessToken
+        ? { 'Content-Type': 'application/json', 'Authorization': 'Bearer ' + AppState.accessToken }
+        : { 'Content-Type': 'application/json', 'X-Guest-ID': AppState.guestId };
+      var route = (AppState.accessToken ? '/api/circles-sessions/' : '/api/guest-circles-sessions/') + session.id + '/final-report';
+      fetch(route, { method: 'POST', headers: headers })
+        .then(function(res) { return res.json(); })
+        .then(function(data) {
+          if (data && !data.error) {
+            AppState.circlesFinalReport = data;
+            if (AppState.circlesPhase === 4) render();
+          }
+        })
+        .catch(function() {});
+    }
+  }
+
+  document.getElementById('circles-final-again')?.addEventListener('click', function() {
+    AppState.circlesSession = null;
+    AppState.circlesPhase = 1;
+    AppState.circlesFrameworkDraft = {};
+    AppState.circlesGateResult = null;
+    AppState.circlesConversation = [];
+    AppState.circlesScoreResult = null;
+    AppState.circlesFinalReport = null;
+    AppState.circlesStepConclusions = {};
+    AppState.circlesStepScores = {};
+    AppState.circlesSimStep = 0;
+    render();
+  });
+
+  document.getElementById('circles-final-home')?.addEventListener('click', function() {
+    AppState.circlesSelectedQuestion = null;
+    AppState.circlesSession = null;
+    AppState.circlesPhase = 1;
+    AppState.circlesScoreResult = null;
+    AppState.circlesFinalReport = null;
+    AppState.circlesStepConclusions = {};
+    AppState.circlesStepScores = {};
+    navigate('circles');
+  });
 }
 
 // ── Home View ────────────────────────────────────

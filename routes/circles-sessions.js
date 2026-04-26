@@ -6,6 +6,7 @@ const { reviewFramework } = require('../prompts/circles-gate');
 const { streamCirclesReply } = require('../prompts/circles-coach');
 const { evaluateCirclesStep } = require('../prompts/circles-evaluator');
 const { checkConclusion } = require('../prompts/circles-conclusion-check');
+const { generateFinalReport } = require('../prompts/circles-final-report');
 
 // POST /api/circles-sessions
 router.post('/', requireAuth, async (req, res) => {
@@ -189,6 +190,31 @@ router.patch('/:id/progress', requireAuth, async (req, res) => {
     .eq('user_id', req.user.id);
   if (error) return res.status(500).json({ error: error.message });
   res.json({ ok: true });
+});
+
+// POST /api/circles-sessions/:id/final-report
+router.post('/:id/final-report', requireAuth, async (req, res) => {
+  const { data: session, error } = await db
+    .from('circles_sessions')
+    .select('question_json, step_scores')
+    .eq('id', req.params.id)
+    .eq('user_id', req.user.id)
+    .single();
+  if (error || !session) return res.status(404).json({ error: 'not_found' });
+  if (!session.step_scores || Object.keys(session.step_scores).length < 7) {
+    return res.status(400).json({ error: 'incomplete_steps' });
+  }
+  try {
+    const report = await generateFinalReport({
+      stepScores: session.step_scores,
+      questionJson: session.question_json,
+    });
+    await db.from('circles_sessions').update({
+      final_report: report,
+      status: 'completed',
+    }).eq('id', req.params.id).eq('user_id', req.user.id);
+    res.json(report);
+  } catch (e) { res.status(500).json({ error: e.message }); }
 });
 
 module.exports = router;
