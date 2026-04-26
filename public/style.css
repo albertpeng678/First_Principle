@@ -1412,6 +1412,14 @@ body { -webkit-font-smoothing: antialiased; }
   line-height: 1.5;
   font-family: 'DM Sans', sans-serif;
 }
+.circles-q-card-more {
+  font-size: 11px;
+  color: var(--c-primary, #1A56DB);
+  cursor: pointer;
+  margin-top: 4px;
+  font-family: 'DM Sans', sans-serif;
+  display: block;
+}
 
 /* Phase 1 — Framework form */
 [data-view="circles"] .circles-phase1-wrap {

@@ -704,9 +704,13 @@ function renderCirclesHome() {
   }).join('');
 
   var qCards = questions.slice(0, 20).map(function(q) {
+    var shortStmt = q.problem_statement.length > 60
+      ? q.problem_statement.slice(0, 60) + '…'
+      : q.problem_statement;
     return '<div class="circles-q-card" data-qid="' + q.id + '">' +
       '<div class="circles-q-card-company">' + q.company + ' — ' + (q.product || '') + '</div>' +
-      '<div class="circles-q-card-stmt">' + q.problem_statement + '</div>' +
+      '<div class="circles-q-card-stmt" data-full="' + escHtml(q.problem_statement) + '" data-short="' + escHtml(shortStmt) + '">' + escHtml(shortStmt) + '</div>' +
+      (q.problem_statement.length > 60 ? '<div class="circles-q-card-more" data-expanded="false">看更多 ▾</div>' : '') +
     '</div>';
   }).join('');
 
@@ -753,6 +757,17 @@ function renderCirclesHome() {
       '<div class="circles-home-title">選題開始練習</div>' +
       '<div class="circles-home-sub">選擇模式 → 題型 → 題目</div>' +
 
+      // Explainer block
+      '<div style="background:#fff;border:1px solid #e8e5de;border-radius:10px;padding:12px 14px;margin-bottom:16px;font-family:DM Sans,sans-serif">' +
+        '<div style="font-size:12px;font-weight:700;color:#1a1a1a;margin-bottom:6px">什麼是 CIRCLES 實戰訓練？</div>' +
+        '<div style="font-size:11px;color:#5a5a5a;line-height:1.7;margin-bottom:8px">用結構化框架拆解 PM 設計面試題，模擬真實利害關係人訪談，並在每個步驟收到 AI 教練評分與回饋。</div>' +
+        '<div style="display:flex;gap:4px;flex-wrap:wrap">' +
+          CIRCLES_STEPS.map(function(s) {
+            return '<span style="background:#EEF3FF;color:#1A56DB;border-radius:4px;padding:2px 7px;font-size:10px;font-weight:600">' + s.short + ' ' + s.label + '</span>';
+          }).join('') +
+        '</div>' +
+      '</div>' +
+
       '<div class="circles-step-select-label">練習模式</div>' +
       '<div class="circles-mode-row">' +
         '<div class="circles-mode-card ' + (mode === 'drill' ? 'selected' : '') + '" data-mode="drill">' +
@@ -771,6 +786,12 @@ function renderCirclesHome() {
         '<button class="circles-type-tab ' + (type === 'design' ? 'active' : '') + '" data-type="design">產品設計 ×' + designCount + '</button>' +
         '<button class="circles-type-tab ' + (type === 'improve' ? 'active' : '') + '" data-type="improve">產品改進 ×' + improveCount + '</button>' +
         '<button class="circles-type-tab ' + (type === 'strategy' ? 'active' : '') + '" data-type="strategy">產品策略 ×' + strategyCount + '</button>' +
+      '</div>' +
+
+      // Random button + question list header
+      '<div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:8px">' +
+        '<div style="font-size:11px;font-weight:600;color:#5a5a5a;font-family:DM Sans,sans-serif">選擇題目</div>' +
+        '<button id="circles-random-btn" style="font-size:11px;color:#1A56DB;background:none;border:none;cursor:pointer;font-family:DM Sans,sans-serif;padding:0">隨機選題</button>' +
       '</div>' +
 
       '<div class="circles-q-list">' + (qCards || '<div style="color:var(--c-text-3);font-size:13px;text-align:center;padding:24px 0">暫無題目，請先執行題庫生成腳本</div>') + '</div>' +
@@ -837,6 +858,41 @@ function bindCirclesHome() {
       AppState.circlesScoreResult = null;
       AppState.circlesSimStep = 0;
       render();
+    });
+  });
+
+  // Random question
+  document.getElementById('circles-random-btn')?.addEventListener('click', function() {
+    var questions = (typeof CIRCLES_QUESTIONS !== 'undefined' ? CIRCLES_QUESTIONS : [])
+      .filter(function(q) { return q.question_type === AppState.circlesSelectedType; });
+    if (!questions.length) return;
+    var picked = questions[Math.floor(Math.random() * questions.length)];
+    AppState.circlesSelectedQuestion = picked;
+    AppState.circlesPhase = 1;
+    AppState.circlesFrameworkDraft = {};
+    AppState.circlesGateResult = null;
+    AppState.circlesConversation = [];
+    AppState.circlesSession = null;
+    AppState.circlesSimStep = 0;
+    AppState.circlesDrillStep = CIRCLES_STEPS[0].key;
+    render();
+  });
+
+  // "看更多" expand/collapse
+  document.querySelectorAll('.circles-q-card-more').forEach(function(btn) {
+    btn.addEventListener('click', function(e) {
+      e.stopPropagation();
+      var stmtEl = btn.previousElementSibling;
+      var expanded = btn.dataset.expanded === 'true';
+      if (expanded) {
+        stmtEl.textContent = stmtEl.dataset.short;
+        btn.textContent = '看更多 ▾';
+        btn.dataset.expanded = 'false';
+      } else {
+        stmtEl.textContent = stmtEl.dataset.full;
+        btn.textContent = '收起 ▴';
+        btn.dataset.expanded = 'true';
+      }
     });
   });
 }
