@@ -45,6 +45,7 @@ const AppState = {
   circlesSubmitState: null,        // null | 'collapsed' | 'expanded'
   circlesConclusionText: '',       // user's conclusion textarea value
   circlesStepConclusions: {},      // { stepKey: 'conclusion text' } accumulated across steps
+  circlesStepScores: {},           // { stepKey: scoreData } accumulated across steps
   circlesSimStep: 0,               // for simulation: which of 7 steps is active (0-6)
   circlesRecentSessions: [],       // [{ id, question_json, mode, drill_step, current_phase, sim_step_index, updated_at }]
   circlesRecentLoading: false,
@@ -1359,6 +1360,7 @@ function bindCirclesPhase2() {
     // Store conclusion locally for report page
     if (!AppState.circlesStepConclusions) AppState.circlesStepConclusions = {};
     AppState.circlesStepConclusions[stepKey] = conclusionText;
+    if (!AppState.circlesStepScores) AppState.circlesStepScores = {};
 
     var headers = AppState.accessToken
       ? { 'Content-Type': 'application/json', 'Authorization': 'Bearer ' + AppState.accessToken }
@@ -1370,6 +1372,8 @@ function bindCirclesPhase2() {
       var scoreData = await res.json();
       if (!res.ok) throw new Error(scoreData.error || res.status);
       AppState.circlesScoreResult = scoreData;
+      if (!AppState.circlesStepScores) AppState.circlesStepScores = {};
+      AppState.circlesStepScores[stepKey] = scoreData;
       AppState.circlesSubmitState = null;
       AppState.circlesConclusionText = '';
       AppState.circlesPhase = 3;
@@ -1492,12 +1496,12 @@ function renderCirclesStepScore() {
 
   var dims = (result.dimensions || []).map(function(d) {
     return '<div class="circles-dim-row">' +
-      '<div><div class="circles-dim-name">' + d.name + '</div><div class="circles-dim-comment">' + d.comment + '</div></div>' +
+      '<div><div class="circles-dim-name">' + escHtml(d.name) + '</div><div class="circles-dim-comment">' + escHtml(d.comment) + '</div></div>' +
       '<div class="circles-dim-score">' + d.score + '<span style="font-size:10px;color:var(--c-text-3,#8a8a8a)">/5</span></div>' +
     '</div>';
   }).join('');
 
-  var coachContent = result.coachVersion || '';
+  var coachContent = escHtml(result.coachVersion || '');
   var isLastStep = stepIdx === 6;
 
   return '<div data-view="circles">' +
@@ -1521,8 +1525,8 @@ function renderCirclesStepScore() {
         '<div class="circles-score-label">/ 100 分</div>' +
       '</div>' +
       dims +
-      '<div class="circles-highlight-card good"><div class="circles-highlight-card-label">最強表現</div><div class="circles-highlight-card-text">' + (result.highlight || '—') + '</div></div>' +
-      '<div class="circles-highlight-card improve"><div class="circles-highlight-card-label">最需改進</div><div class="circles-highlight-card-text">' + (result.improvement || '—') + '</div></div>' +
+      '<div class="circles-highlight-card good"><div class="circles-highlight-card-label">最強表現</div><div class="circles-highlight-card-text">' + escHtml(result.highlight || '—') + '</div></div>' +
+      '<div class="circles-highlight-card improve"><div class="circles-highlight-card-label">最需改進</div><div class="circles-highlight-card-text">' + escHtml(result.improvement || '—') + '</div></div>' +
       '<div class="circles-coach-toggle" id="circles-coach-toggle">' +
         '<div class="circles-coach-toggle-label">教練示範答案 <i class="ph ph-caret-down"></i></div>' +
         '<div class="circles-coach-content" id="circles-coach-content">' + coachContent + '</div>' +
@@ -1597,7 +1601,7 @@ function bindCirclesStepScore() {
     var idx = CIRCLES_STEPS.findIndex(function(s) { return s.key === AppState.circlesDrillStep; });
     if (idx > 0) {
       AppState.circlesDrillStep = CIRCLES_STEPS[idx - 1].key;
-      AppState.circlesScoreResult = (AppState.circlesSession?.step_scores || {})[CIRCLES_STEPS[idx - 1].key] || null;
+      AppState.circlesScoreResult = (AppState.circlesStepScores || {})[CIRCLES_STEPS[idx - 1].key] || null;
       render();
     }
   });
@@ -1606,7 +1610,7 @@ function bindCirclesStepScore() {
     var idx = CIRCLES_STEPS.findIndex(function(s) { return s.key === AppState.circlesDrillStep; });
     if (idx < AppState.circlesSimStep && idx < 6) {
       AppState.circlesDrillStep = CIRCLES_STEPS[idx + 1].key;
-      AppState.circlesScoreResult = (AppState.circlesSession?.step_scores || {})[CIRCLES_STEPS[idx + 1].key] || null;
+      AppState.circlesScoreResult = (AppState.circlesStepScores || {})[CIRCLES_STEPS[idx + 1].key] || null;
       render();
     }
   });
