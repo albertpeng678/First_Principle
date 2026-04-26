@@ -873,6 +873,7 @@ function bindCirclesHome() {
     AppState.circlesGateResult = null;
     AppState.circlesConversation = [];
     AppState.circlesSession = null;
+    AppState.circlesScoreResult = null;
     AppState.circlesSimStep = 0;
     AppState.circlesDrillStep = CIRCLES_STEPS[0].key;
     render();
@@ -1898,7 +1899,7 @@ function formatCoachReply(coachReply) {
 }
 
 function escHtml(str) {
-  return (str || '').replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/\n/g,'<br>');
+  return (str || '').replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;').replace(/\n/g,'<br>');
 }
 
 function scrollChatToBottom() {
