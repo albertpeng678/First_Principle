@@ -1080,9 +1080,15 @@ function renderCirclesGate() {
     '<div class="circles-progress">' + progressSegs + '<div class="circles-progress-label">' + step.short + ' · ' + step.label + '</div></div>' +
     '<div class="circles-gate-wrap">' +
       items +
+      (canProceed && !hasError
+        ? '<div style="background:#EEF3FF;border:1px solid #C5D5FF;border-radius:10px;padding:12px 14px;margin-bottom:12px;font-family:DM Sans,sans-serif">' +
+            '<div style="font-size:12px;font-weight:600;color:#1A56DB;margin-bottom:2px">框架審核通過</div>' +
+            '<div style="font-size:11px;color:#5a7ab5">框架方向正確，進入對話練習階段繼續探索。</div>' +
+          '</div>'
+        : '') +
       '<div class="circles-submit-bar">' +
         (canProceed || !hasError
-          ? '<button class="circles-btn-primary" id="circles-gate-proceed">' + (hasError ? '帶著問題進入對話（風險自負）' : '套用並進入對話 →') + '</button>'
+          ? '<button class="circles-btn-primary" id="circles-gate-proceed">' + (hasError ? '帶著問題進入對話（風險自負）' : '進入對話練習 →') + '</button>'
           : '<button class="circles-btn-primary" id="circles-gate-fix">修正框架後重試</button>') +
         (!canProceed && hasError ? '' : '<button class="circles-btn-ghost" id="circles-gate-back-edit">重新編輯框架</button>') +
       '</div>' +
