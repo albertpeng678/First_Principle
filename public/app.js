@@ -50,6 +50,7 @@ const AppState = {
   nsmContextQuestionId: null,
   nsmHints: null,
   nsmHintsLoading: false,
+  offcanvasCache: null,  // cached offcanvas session list for instant render
 };
 
 // ── NSM 題庫（100 題 database + 3 計畫獨有）────────
@@ -483,127 +484,158 @@ function closeOffcanvas() {
 
 function attachOffcanvasDeleteListeners(listEl) {
   listEl.querySelectorAll('.offcanvas-delete-btn').forEach(btn => {
-    btn.addEventListener('click', e => {
+    btn.addEventListener('click', async (e) => {
       e.stopPropagation();
       const id = btn.dataset.id;
-      const item = btn.closest('.offcanvas-item');
-      const originalHTML = item.innerHTML;
+      const type = btn.dataset.type;
 
-      item.innerHTML = `
-        <span style="font-size:0.85rem">確定刪除嗎？</span>
-        <div style="display:flex;gap:6px;margin-top:6px">
-          <button class="btn btn-ghost offcanvas-cancel-delete" style="font-size:0.8rem;padding:4px 10px">取消</button>
-          <button class="btn-danger offcanvas-confirm-delete" style="font-size:0.8rem">刪除</button>
-        </div>
-      `;
+      // Optimistic: remove from cache and UI immediately
+      const itemEl = btn.closest('.offcanvas-item');
+      const prevCache = AppState.offcanvasCache ? [...AppState.offcanvasCache] : null;
+      if (AppState.offcanvasCache) {
+        AppState.offcanvasCache = AppState.offcanvasCache.filter(s => s.id !== id);
+      }
+      itemEl?.remove();
+      if (listEl.children.length === 0) {
+        listEl.innerHTML = '<div style="padding:16px;color:var(--text-secondary);font-size:14px">尚無練習記錄</div>';
+      }
 
-      item.querySelector('.offcanvas-cancel-delete').addEventListener('click', () => {
-        item.innerHTML = originalHTML;
-        attachOffcanvasDeleteListeners(item);
-      });
-
-      item.querySelector('.offcanvas-confirm-delete').addEventListener('click', async (e) => {
-        e.stopPropagation();
-        try {
-          const res = await fetch(sessionRoute(`/${id}`), { method: 'DELETE', headers: apiHeaders() });
-          if (!res.ok) {
-            item.innerHTML = originalHTML;
-            attachOffcanvasDeleteListeners(item);
-            return;
-          }
-          if (localStorage.getItem('lastSessionId') === id) {
-            localStorage.removeItem('lastSessionId');
-          }
-          if (AppState.currentSession?.id === id) {
-            AppState.currentSession = null;
-            navigate('home');
-          } else {
-            item.remove();
-          }
-        } catch (_) {
-          item.innerHTML = originalHTML;
-          attachOffcanvasDeleteListeners(item);
-        }
-      });
+      // Background DELETE
+      try {
+        const headers = AppState.accessToken
+          ? { 'Authorization': `Bearer ${AppState.accessToken}`, 'Content-Type': 'application/json' }
+          : { 'X-Guest-ID': AppState.guestId, 'Content-Type': 'application/json' };
+        let deleteUrl;
+        if (type === 'nsm') deleteUrl = (AppState.accessToken ? '/api/nsm-sessions/' : '/api/guest/nsm-sessions/') + id;
+        else if (type === 'circles') deleteUrl = (AppState.accessToken ? '/api/circles-sessions/' : '/api/guest-circles-sessions/') + id;
+        const res = await fetch(deleteUrl, { method: 'DELETE', headers });
+        if (!res.ok) throw new Error('delete failed');
+      } catch (_) {
+        // Restore on failure
+        if (prevCache) AppState.offcanvasCache = prevCache;
+        loadOffcanvasSessions();
+      }
     });
   });
+}
+
+function renderOffcanvasList(listEl, sessions) {
+  listEl.innerHTML = sessions.map(s => {
+    const isNSM = s._type === 'nsm';
+    const isCircles = s._type === 'circles';
+    const label = isNSM
+      ? `NSM · ${s.question_json?.company || ''}`
+      : isCircles
+        ? `CIRCLES · ${s.question_json?.company || ''}`
+        : `${s.difficulty || ''}`;
+    const date = new Date(s.created_at).toLocaleString('zh-TW', { month: 'numeric', day: 'numeric', hour: '2-digit', minute: '2-digit' });
+    let badge, badgeClass;
+    if (s.status === 'completed') {
+      if (isCircles) {
+        badge = s.scores_json ? Math.round(s.scores_json.totalScore ?? s.scores_json.total ?? 0) + ' 分' : '完成';
+        badgeClass = 'badge-circles';
+      } else {
+        badge = s.scores_json ? Math.round(s.scores_json.totalScore ?? s.scores_json.total ?? 0) + ' 分' : '完成';
+        badgeClass = 'badge-nsm';
+      }
+    } else {
+      badge = '進行中';
+      badgeClass = 'badge-blue';
+    }
+    return `<div class="offcanvas-item" data-id="${s.id}" data-status="${s.status}" data-type="${s._type}" style="position:relative">
+      <div style="display:flex;align-items:center;gap:6px;padding-right:28px">
+        <span class="badge ${badgeClass}">${badge}</span>
+        <span style="font-size:0.8rem;color:var(--text-secondary);overflow:hidden;text-overflow:ellipsis;white-space:nowrap">${escHtml(label)}</span>
+      </div>
+      <div style="font-size:0.75rem;color:var(--text-secondary);margin-top:4px">${date}</div>
+      <button class="btn-icon offcanvas-delete-btn" title="刪除" style="position:absolute;top:6px;right:4px;font-size:1rem;padding:2px 6px" data-id="${s.id}" data-type="${s._type}">
+        <i class="ph ph-trash"></i>
+      </button>
+    </div>`;
+  }).join('');
+
+  listEl.querySelectorAll('.offcanvas-item').forEach(item => {
+    item.addEventListener('click', async () => {
+      const id = item.dataset.id;
+      const type = item.dataset.type;
+      if (type === 'circles') {
+        closeOffcanvas();
+        // Try to use cached session data for instant navigation
+        const cached = AppState.offcanvasCache?.find(s => s.id === id);
+        if (cached) {
+          AppState.circlesSelectedQuestion = cached.question_json;
+          AppState.circlesSession = { id: cached.id, mode: cached.mode, drill_step: cached.drill_step };
+          AppState.circlesMode = cached.mode || 'simulation';
+          AppState.circlesDrillStep = cached.drill_step || 'C1';
+          AppState.circlesPhase = cached.current_phase || 1;
+          AppState.circlesSimStep = cached.sim_step_index || 0;
+          navigate('circles');
+        } else {
+          await loadCirclesSession(id);
+          navigate('circles');
+        }
+        return;
+      }
+      if (type === 'nsm') {
+        closeOffcanvas();
+        AppState.nsmSession = { id };
+        AppState.nsmStep = 4;
+        navigate('nsm');
+        return;
+      }
+    });
+  });
+  attachOffcanvasDeleteListeners(listEl);
 }
 
 async function loadOffcanvasSessions() {
   const listEl = document.getElementById('offcanvas-list');
   if (!listEl) return;
-  listEl.innerHTML = '<div style="padding:16px;color:var(--text-secondary);font-size:14px">載入中…</div>';
+
+  // Show cached data instantly if available (no spinner)
+  if (AppState.offcanvasCache && AppState.offcanvasCache.length) {
+    renderOffcanvasList(listEl, AppState.offcanvasCache);
+  } else {
+    listEl.innerHTML = '<div class="offcanvas-skeleton">' +
+      ['80%','60%','70%'].map(w =>
+        '<div style="height:48px;background:var(--bg-surface-2);border-radius:8px;margin-bottom:8px;opacity:0.6;animation:pulse 1.2s ease-in-out infinite"></div>'
+      ).join('') +
+    '</div>';
+  }
+
+  // Background fetch — silently update
   try {
     const headers = AppState.accessToken
       ? { 'Authorization': `Bearer ${AppState.accessToken}` }
       : { 'X-Guest-ID': AppState.guestId };
-    const pmUrl = AppState.accessToken ? '/api/sessions' : '/api/guest/sessions';
     const nsmUrl = AppState.accessToken ? '/api/nsm-sessions' : '/api/guest/nsm-sessions';
+    const circlesUrl = AppState.accessToken ? '/api/circles-sessions' : '/api/guest-circles-sessions';
 
-    const [pmRes, nsmRes] = await Promise.all([
-      fetch(pmUrl, { headers }),
-      fetch(nsmUrl, { headers })
+    const [nsmRes, circlesRes] = await Promise.all([
+      fetch(nsmUrl, { headers }),
+      fetch(circlesUrl, { headers })
     ]);
-    const pmSessions = pmRes.ok ? await pmRes.json() : [];
     const nsmSessions = nsmRes.ok ? await nsmRes.json() : [];
+    const circlesSessions = circlesRes.ok ? await circlesRes.json() : [];
 
     const all = [
-      ...pmSessions.map(s => ({ ...s, _type: 'pm' })),
-      ...nsmSessions.map(s => ({ ...s, _type: 'nsm' }))
+      ...nsmSessions.map(s => ({ ...s, _type: 'nsm' })),
+      ...circlesSessions.map(s => ({ ...s, _type: 'circles' }))
     ].sort((a, b) => new Date(b.created_at) - new Date(a.created_at));
 
-    AppState.recentSessions = all.slice(0, 3).map(s => ({ ...s, type: s._type }));
+    AppState.offcanvasCache = all;
 
+    // Only re-render if list is still open
+    if (!document.getElementById('offcanvas-list')) return;
     if (!all.length) {
       listEl.innerHTML = '<div style="padding:16px;color:var(--text-secondary);font-size:14px">尚無練習記錄</div>';
       return;
     }
-    listEl.innerHTML = all.map(s => {
-      const isNSM = s._type === 'nsm';
-      const label = isNSM ? `NSM · ${s.question_json?.company || ''}` : `${s.difficulty || ''}`;
-      const date = new Date(s.created_at).toLocaleString('zh-TW', { month: 'numeric', day: 'numeric', hour: '2-digit', minute: '2-digit' });
-      const badge = s.status === 'completed'
-        ? (s.scores_json ? Math.round(s.scores_json.totalScore ?? s.scores_json.total ?? 0) + ' 分' : '完成')
-        : '進行中';
-      const badgeClass = s.status === 'completed' ? (isNSM ? 'badge-nsm' : 'badge-green') : 'badge-blue';
-      return `<div class="offcanvas-item" data-id="${s.id}" data-status="${s.status}" data-type="${s._type}" style="position:relative">
-        <div style="display:flex;align-items:center;gap:6px;padding-right:28px">
-          <span class="badge ${badgeClass}">${badge}</span>
-          <span style="font-size:0.8rem;color:var(--text-secondary);overflow:hidden;text-overflow:ellipsis;white-space:nowrap">${escHtml(label)}</span>
-        </div>
-        <div style="font-size:0.75rem;color:var(--text-secondary);margin-top:4px">${date}</div>
-        <button class="btn-icon offcanvas-delete-btn" title="刪除" style="position:absolute;top:6px;right:4px;font-size:1rem;padding:2px 6px" data-id="${s.id}" data-type="${s._type}">
-          <i class="ph ph-trash"></i>
-        </button>
-      </div>`;
-    }).join('');
-
-    listEl.querySelectorAll('.offcanvas-item').forEach(item => {
-      item.addEventListener('click', async () => {
-        closeOffcanvas();
-        const id = item.dataset.id;
-        const status = item.dataset.status;
-        const type = item.dataset.type;
-        if (type === 'nsm') {
-          AppState.nsmSession = { id };
-          AppState.nsmStep = 4;
-          navigate('nsm');
-          return;
-        }
-        if (AppState.currentSession?.id === id) {
-          navigate(status === 'completed' ? 'report' : 'practice');
-          return;
-        }
-        const r = await fetch(sessionRoute(`/${id}`), { headers: apiHeaders() });
-        if (!r.ok) return;
-        const session = await r.json();
-        AppState.currentSession = session;
-        navigate(status === 'completed' ? 'report' : 'practice');
-      });
-    });
-    attachOffcanvasDeleteListeners(listEl);
+    renderOffcanvasList(listEl, all);
   } catch (_) {
-    listEl.innerHTML = '<div style="padding:16px;color:var(--text-secondary)">載入失敗</div>';
+    if (!AppState.offcanvasCache) {
+      listEl.innerHTML = '<div style="padding:16px;color:var(--text-secondary)">載入失敗</div>';
+    }
   }
 }
 
@@ -916,6 +948,7 @@ function bindCirclesPhase1() {
         if (!createRes.ok) throw new Error('create_failed_' + createRes.status);
         var createData = await createRes.json();
         AppState.circlesSession = { id: createData.sessionId };
+        AppState.offcanvasCache = null; // force fresh fetch on next offcanvas open
       }
 
       var gateRoute = (AppState.accessToken ? '/api/circles-sessions/' : '/api/guest-circles-sessions/') + AppState.circlesSession.id + '/gate';
@@ -2868,6 +2901,7 @@ function bindNSM() {
         var data = await res.json();
         if (!res.ok) throw new Error(data.error);
         AppState.nsmSession = { id: data.sessionId };
+        AppState.offcanvasCache = null; // force fresh fetch on next offcanvas open
         if (AppState.nsmSelectedQuestion) {
           var newEntry = {
             id: data.sessionId, type: 'nsm', status: 'in_progress',

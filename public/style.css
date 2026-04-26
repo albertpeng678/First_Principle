@@ -707,6 +707,10 @@ textarea::placeholder { white-space: nowrap; overflow: hidden; text-overflow: el
   vertical-align: middle;
 }
 @keyframes spin { to { transform: rotate(360deg); } }
+@keyframes pulse {
+  0%, 100% { opacity: 0.6; }
+  50% { opacity: 0.3; }
+}
 
 .card-overlay {
   position: absolute; inset: 0;
@@ -789,7 +793,8 @@ textarea::placeholder { white-space: nowrap; overflow: hidden; text-overflow: el
 }
 .session-badge { display: inline-block; padding: 2px 8px; border-radius: 20px; font-size: 0.75rem; font-weight: 600; flex-shrink: 0; }
 .badge-score  { background: rgba(76,175,125,0.15); color: var(--success); }
-.badge-nsm    { background: rgba(108,99,255,0.15); color: var(--accent); }
+.badge-nsm     { background: rgba(108,99,255,0.15); color: var(--accent); }
+.badge-circles { background: rgba(76,175,125,0.15); color: var(--success); }
 .badge-progress { background: rgba(108,99,255,0.12); color: var(--accent); }
 
 /* ══════════════════════════════════════════════════
