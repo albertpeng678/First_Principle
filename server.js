@@ -9,8 +9,6 @@ app.use(express.json());
 app.use(express.static(path.join(__dirname, 'public')));
 
 app.use('/api/auth', require('./routes/auth'));
-app.use('/api/sessions', require('./routes/sessions'));
-app.use('/api/guest/sessions', require('./routes/guest-sessions'));
 app.use('/api/migrate-guest', require('./routes/migrate'));
 
 app.use('/api/nsm-context', require('./routes/nsm-context'));

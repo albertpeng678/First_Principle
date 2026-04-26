@@ -1,82 +1,72 @@
 // tests/playwright/journeys/guest-pm.spec.js
-// Journey: Guest user → select difficulty → practice view → validate UI
+// Journey: Guest user → CIRCLES home renders immediately (PM removed)
+// Verifies: no .diff-item or .home-tab-btn (PM UI is gone),
+//           CIRCLES home loads as the default view, no overflow.
 
 const { test, expect } = require('@playwright/test');
 const { checkPageHealth, collectConsoleErrors } = require('../helpers/metrics');
 const { formatIssues, createIssue } = require('../helpers/issue-reporter');
 
-test.describe('Guest PM Journey', () => {
-  test('home page shows difficulty cards and practice view loads', async ({ page }, testInfo) => {
+test.describe('Guest Default View Journey', () => {
+  test('default view is CIRCLES (no PM tabs or difficulty cards)', async ({ page }, testInfo) => {
     const device = testInfo.project.name;
     const issues = [];
     const consoleErrors = collectConsoleErrors(page);
 
-    // Navigate to home
     await page.goto('/');
 
-    // Wait for app to initialize (Supabase auth state settles)
-    await page.waitForSelector('.diff-item[data-difficulty]', { timeout: 10000 });
+    // CIRCLES mode cards must load — this is now the default home
+    await page.waitForSelector('.circles-mode-card', { timeout: 10000 });
 
-    // Confirm PM tab is active and difficulty items exist
+    // PM UI must not exist
     const diffItems = page.locator('.diff-item[data-difficulty]');
-    const count = await diffItems.count();
-    expect(count).toBeGreaterThan(0);
+    expect(await diffItems.count()).toBe(0);
 
-    // Click first difficulty card (入門)
-    const firstCard = diffItems.first();
-    await firstCard.click();
+    const homeTabs = page.locator('.home-tab-btn');
+    expect(await homeTabs.count()).toBe(0);
 
-    // Wait for practice view — API call happens, so use generous timeout
-    await page.waitForSelector('.practice-bottom-bar', { timeout: 20000 });
+    // CIRCLES question cards loaded
+    await page.waitForSelector('.circles-q-card', { timeout: 5000 });
+    const qCards = page.locator('.circles-q-card');
+    expect(await qCards.count()).toBeGreaterThan(0);
 
-    // Confirm chat input exists and is usable
-    const chatInput = page.locator('#chat-input');
-    await expect(chatInput).toBeVisible();
-    await expect(chatInput).toBeEnabled();
-
-    // Confirm send button exists
-    const sendBtn = page.locator('#btn-send');
-    await expect(sendBtn).toBeVisible();
-
-    // 375px extra check: horizontal overflow on practice-bottom-bar
+    // 375px extra check: no horizontal overflow on circles-home-wrap
     if (device === 'iPhone-SE') {
-      const barOverflow = await page.evaluate(() => {
-        const bar = document.querySelector('.practice-bottom-bar');
-        if (!bar) return false;
-        return bar.scrollWidth > window.innerWidth;
+      const homeOverflow = await page.evaluate(() => {
+        const wrap = document.querySelector('.circles-home-wrap');
+        if (!wrap) return false;
+        return wrap.scrollWidth > window.innerWidth;
       });
-      if (barOverflow) {
-        issues.push(createIssue('guest-pm', device, 'practice-bottom-bar', 'overflow', '.practice-bottom-bar wider than viewport'));
+      if (homeOverflow) {
+        issues.push(createIssue('guest-default', device, 'circles-home-wrap', 'overflow',
+          '.circles-home-wrap wider than viewport'));
       }
     }
 
     // Page health check
     const healthIssues = await checkPageHealth(page);
     for (const hi of healthIssues) {
-      issues.push(createIssue('guest-pm', device, 'practice-view', hi.type, hi.detail));
+      issues.push(createIssue('guest-default', device, 'circles-view', hi.type, hi.detail));
     }
 
-    // Console errors
-    if (consoleErrors.length > 0) {
-      // Filter out known non-critical Supabase / network warnings
-      const critical = consoleErrors.filter(e =>
-        !e.includes('supabase') && !e.includes('net::ERR')
-      );
-      if (critical.length > 0) {
-        issues.push(createIssue('guest-pm', device, 'console', 'js-error', critical.join(' | ')));
-      }
+    const critical = consoleErrors.filter(e =>
+      !e.includes('supabase') && !e.includes('net::ERR')
+    );
+    if (critical.length > 0) {
+      issues.push(createIssue('guest-default', device, 'console', 'js-error', critical.join(' | ')));
     }
 
-    if (issues.length > 0) {
-      console.warn('\n' + formatIssues(issues));
-    }
-    // Hard-fail on layout overflow — layout bugs must be fixed
+    if (issues.length > 0) console.warn('\n' + formatIssues(issues));
     expect(issues.filter(i => i.type === 'overflow')).toHaveLength(0);
-    // CLS in practice view is a known audit finding (streaming content causes shift);
-    // log as warning but don't block CI until resolved
-    const clsIssues = issues.filter(i => i.type === 'cls');
-    if (clsIssues.length > 0) {
-      console.warn('[AUDIT FINDING] ' + clsIssues.map(i => `${i.detail}`).join(', ') + ' — practice view needs CLS fix');
-    }
+    expect(issues.filter(i => i.type === 'cls')).toHaveLength(0);
+  });
+
+  test('PM API routes are gone (404)', async ({ page }) => {
+    // /api/sessions should return 404
+    const res = await page.request.get('/api/sessions');
+    expect(res.status()).toBe(404);
+
+    const res2 = await page.request.get('/api/guest/sessions');
+    expect(res2.status()).toBe(404);
   });
 });

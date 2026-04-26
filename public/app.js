@@ -16,7 +16,7 @@ const AppState = {
   currentSession: null,
   isStreaming: false,
   theme: localStorage.getItem('theme') || 'light',
-  view: 'home',
+  view: 'circles',
   essenceDraft: '',
   activeReportTab: 'overview',
   homeTab: 'pm',
@@ -30,7 +30,7 @@ const AppState = {
   nsmReportTab: 'overview',
   nsmOpenNode: null,
   // CIRCLES
-  circlesMode: 'drill',            // 'drill' | 'simulation'
+  circlesMode: localStorage.getItem('circlesMode') || 'simulation', // 'drill' | 'simulation'
   circlesSelectedType: 'design',   // 'design' | 'improve' | 'strategy'
   circlesDrillStep: 'C1',          // which step to drill
   circlesSelectedQuestion: null,   // { id, company, ... }
@@ -430,26 +430,19 @@ async function navigate(view) {
 
 function renderNavbar() {
   const el = document.getElementById('navbar-actions');
-  const themeIcon = AppState.theme === 'dark'
-    ? '<i class="ph ph-sun"></i>'
-    : '<i class="ph ph-moon"></i>';
-  const homeBtn = AppState.view === 'report'
-    ? `<button class="btn-icon" title="返回首頁" onclick="navigate('home')"><i class="ph ph-house"></i></button>`
-    : '';
+  const nsmLink = `<button class="btn btn-ghost" onclick="navigate('nsm')" style="font-size:13px;font-weight:500">北極星指標</button>`;
 
   if (AppState.mode === 'auth') {
     el.innerHTML = `
-      ${homeBtn}
+      ${nsmLink}
       <span class="navbar-email" title="${AppState.user?.email || ''}">${AppState.user?.email || ''}</span>
       <button class="btn-icon" id="btn-logout" aria-label="登出" title="登出"><i class="ph ph-sign-out"></i></button>
-      <button class="btn-icon" title="切換主題" onclick="applyTheme(AppState.theme==='dark'?'light':'dark')">${themeIcon}</button>
     `;
     document.getElementById('btn-logout')?.addEventListener('click', () => supabase.auth.signOut());
   } else if (AppState.mode === 'guest') {
     el.innerHTML = `
-      ${homeBtn}
+      ${nsmLink}
       <button class="btn btn-ghost" onclick="navigate('login')">登入</button>
-      <button class="btn-icon" title="切換主題" onclick="applyTheme(AppState.theme==='dark'?'light':'dark')">${themeIcon}</button>
     `;
   } else {
     el.innerHTML = '';
@@ -806,6 +799,13 @@ function renderCirclesHome() {
       '</div>' +
 
       '<div class="circles-q-list">' + (qCards || '<div style="color:var(--c-text-3);font-size:13px;text-align:center;padding:24px 0">暫無題目，請先執行題庫生成腳本</div>') + '</div>' +
+      '<div style="background:#EEF3FF;border:1px solid #C5D5FF;border-radius:10px;padding:14px 16px;display:flex;align-items:center;justify-content:space-between;margin-top:16px">' +
+        '<div>' +
+          '<div style="font-size:12px;color:#1A56DB;font-weight:600;margin-bottom:2px;font-family:DM Sans,sans-serif">S 步驟含北極星指標練習</div>' +
+          '<div style="font-size:12px;color:#5a7ab5;font-family:DM Sans,sans-serif">想做最完整的 NSM 定義訓練？</div>' +
+        '</div>' +
+        '<button id="circles-nsm-banner-btn" style="background:#1A56DB;color:#fff;border:none;padding:7px 12px;border-radius:8px;font-size:12px;font-weight:600;white-space:nowrap;cursor:pointer;font-family:DM Sans,sans-serif">前往 NSM →</button>' +
+      '</div>' +
     '</div>' +
   '</div>';
 }
@@ -814,7 +814,8 @@ function bindCirclesHome() {
     fetchCirclesRecentSessions();
   }
 
-  document.getElementById('circles-home-back')?.addEventListener('click', function() { navigate('home'); });
+  document.getElementById('circles-home-back')?.addEventListener('click', function() { navigate('circles'); });
+  document.getElementById('circles-nsm-banner-btn')?.addEventListener('click', function() { navigate('nsm'); });
 
   document.querySelectorAll('.circles-resume-card').forEach(function(el) {
     el.addEventListener('click', async function() {
@@ -837,6 +838,7 @@ function bindCirclesHome() {
   document.querySelectorAll('.circles-mode-card').forEach(function(el) {
     el.addEventListener('click', function() {
       AppState.circlesMode = el.dataset.mode;
+      localStorage.setItem('circlesMode', AppState.circlesMode);
       render();
     });
   });
@@ -938,6 +940,7 @@ function renderCirclesPhase1() {
         '<div class="circles-nav-title">' + step.label + '</div>' +
         '<div class="circles-nav-sub">' + q.company + ' · ' + (q.product || '') + '</div>' +
       '</div>' +
+      '<button style="font-size:12px;color:#1A56DB;border-bottom:1px solid #1A56DB;background:none;border-top:none;border-left:none;border-right:none;padding:2px 0;cursor:pointer;font-family:DM Sans,sans-serif;white-space:nowrap;flex-shrink:0" id="circles-p1-home">回首頁</button>' +
     '</div>' +
     '<div class="circles-progress">' + progressSegs + '<div class="circles-progress-label">' + step.short + ' · ' + step.label + ' · ' + (stepIdx + 1) + '/7</div></div>' +
     '<div class="circles-phase1-wrap">' +
@@ -955,6 +958,11 @@ function bindCirclesPhase1() {
     AppState.circlesSelectedQuestion = null;
     AppState.circlesPhase = 1;
     render();
+  });
+  document.getElementById('circles-p1-home')?.addEventListener('click', function() {
+    AppState.circlesSelectedQuestion = null;
+    AppState.circlesPhase = 1;
+    navigate('circles');
   });
 
   document.querySelectorAll('.circles-field-input').forEach(function(el) {
@@ -3276,7 +3284,8 @@ function renderNSMStep4() {
 function bindNSM() {
   // Back button
   document.getElementById('btn-nsm-back')?.addEventListener('click', () => {
-    if (AppState.nsmStep === 1 || AppState.nsmStep === 4) navigate('home');
+    if (AppState.nsmStep === 1) navigate('circles');
+    else if (AppState.nsmStep === 4) { AppState.nsmStep = 1; AppState.nsmSession = null; AppState.nsmSelectedQuestion = null; navigate('nsm'); }
     else { AppState.nsmStep--; render(); }
   });
 
@@ -3548,7 +3557,11 @@ function bindNSM() {
     AppState.nsmVanityWarning = null;
     render();
   });
-  document.getElementById('btn-nsm-home')?.addEventListener('click', function() { navigate('home'); });
+  document.getElementById('btn-nsm-home')?.addEventListener('click', function() {
+    AppState.nsmStep = 1; AppState.nsmSession = null; AppState.nsmSelectedQuestion = null;
+    AppState.nsmNsmDraft = ''; AppState.nsmBreakdownDraft = {}; AppState.nsmVanityWarning = null;
+    navigate('nsm');
+  });
 
   // visualViewport keyboard fix — use module-level ref to prevent listener accumulation
   if (_adjustNsmKeyboardFn && window.visualViewport) {
