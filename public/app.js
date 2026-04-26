@@ -598,7 +598,7 @@ async function loadOffcanvasSessions() {
   } else {
     listEl.innerHTML = '<div class="offcanvas-skeleton">' +
       ['80%','60%','70%'].map(w =>
-        '<div style="height:48px;background:var(--bg-surface-2);border-radius:8px;margin-bottom:8px;opacity:0.6;animation:pulse 1.2s ease-in-out infinite"></div>'
+        `<div style="height:48px;width:${w};background:var(--bg-surface-2);border-radius:8px;margin-bottom:8px;opacity:0.6;animation:pulse 1.2s ease-in-out infinite"></div>`
       ).join('') +
     '</div>';
   }
