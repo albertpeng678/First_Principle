@@ -393,6 +393,8 @@ function render() {
         main.innerHTML = renderCirclesPhase2(); bindCirclesPhase2();
       } else if (AppState.circlesPhase === 3) {
         main.innerHTML = renderCirclesStepScore(); bindCirclesStepScore();
+      } else if (AppState.circlesPhase === 4) {
+        main.innerHTML = renderCirclesFinalReport(); bindCirclesFinalReport();
       }
       break;
   }
@@ -1505,6 +1507,12 @@ function renderCirclesStepScore() {
         '<div class="circles-nav-title">步驟評分 — ' + step.label + '</div>' +
         '<div class="circles-nav-sub">' + (q ? q.company : '') + '</div>' +
       '</div>' +
+      (mode === 'simulation'
+        ? '<div style="display:flex;gap:4px">' +
+            '<button class="circles-nav-back" id="circles-score-prev" ' + (stepIdx === 0 ? 'disabled style="opacity:.35"' : '') + '><i class="ph ph-caret-left"></i></button>' +
+            '<button class="circles-nav-back" id="circles-score-nav-next" ' + (stepIdx >= AppState.circlesSimStep ? 'disabled style="opacity:.35"' : '') + '><i class="ph ph-caret-right"></i></button>' +
+          '</div>'
+        : '') +
     '</div>' +
     '<div class="circles-progress">' + progressSegs + '<div class="circles-progress-label">' + step.short + ' · ' + step.label + ' · ' + (stepIdx + 1) + '/7</div></div>' +
     '<div class="circles-score-wrap">' +
@@ -1520,9 +1528,11 @@ function renderCirclesStepScore() {
         '<div class="circles-coach-content" id="circles-coach-content">' + coachContent + '</div>' +
       '</div>' +
       '<div class="circles-submit-bar">' +
-        (isLastStep || mode === 'drill'
-          ? '<button class="circles-btn-primary" id="circles-score-again">重練這道題</button><button class="circles-btn-ghost" id="circles-score-home">回首頁</button>'
-          : '<button class="circles-btn-primary" id="circles-score-next">繼續下一步：' + CIRCLES_STEPS[stepIdx + 1].label + ' →</button><button class="circles-btn-ghost" id="circles-score-home">回首頁</button>') +
+        (isLastStep && mode === 'simulation'
+          ? '<button class="circles-btn-primary" id="circles-score-final">查看總結報告</button><button class="circles-btn-ghost" id="circles-score-home">回首頁</button>'
+          : (mode === 'drill' || isLastStep
+              ? '<button class="circles-btn-primary" id="circles-score-again">重練這道題</button><button class="circles-btn-ghost" id="circles-score-home">回首頁</button>'
+              : '<button class="circles-btn-primary" id="circles-score-next">繼續下一步：' + CIRCLES_STEPS[stepIdx + 1].label + ' →</button><button class="circles-btn-ghost" id="circles-score-home">回首頁</button>')) +
       '</div>' +
     '</div>' +
   '</div>';
@@ -1544,7 +1554,12 @@ function bindCirclesStepScore() {
     AppState.circlesSession = null;
     AppState.circlesPhase = 1;
     AppState.circlesScoreResult = null;
-    navigate('home');
+    navigate('circles');
+  });
+
+  document.getElementById('circles-score-final')?.addEventListener('click', function() {
+    AppState.circlesPhase = 4;
+    render();
   });
 
   document.getElementById('circles-score-again')?.addEventListener('click', function() {
@@ -1577,6 +1592,31 @@ function bindCirclesStepScore() {
       render();
     }
   });
+
+  document.getElementById('circles-score-prev')?.addEventListener('click', function() {
+    var idx = CIRCLES_STEPS.findIndex(function(s) { return s.key === AppState.circlesDrillStep; });
+    if (idx > 0) {
+      AppState.circlesDrillStep = CIRCLES_STEPS[idx - 1].key;
+      AppState.circlesScoreResult = (AppState.circlesSession?.step_scores || {})[CIRCLES_STEPS[idx - 1].key] || null;
+      render();
+    }
+  });
+
+  document.getElementById('circles-score-nav-next')?.addEventListener('click', function() {
+    var idx = CIRCLES_STEPS.findIndex(function(s) { return s.key === AppState.circlesDrillStep; });
+    if (idx < AppState.circlesSimStep && idx < 6) {
+      AppState.circlesDrillStep = CIRCLES_STEPS[idx + 1].key;
+      AppState.circlesScoreResult = (AppState.circlesSession?.step_scores || {})[CIRCLES_STEPS[idx + 1].key] || null;
+      render();
+    }
+  });
+}
+
+function renderCirclesFinalReport() {
+  return '<div data-view="circles"><div style="text-align:center;padding:48px 16px;font-family:DM Sans,sans-serif;color:#5a5a5a">總結報告載入中…</div></div>';
+}
+function bindCirclesFinalReport() {
+  // bound in Task 21
 }
 
 // ── Home View ────────────────────────────────────
