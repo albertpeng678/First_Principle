@@ -500,6 +500,10 @@ function attachOffcanvasDeleteListeners(listEl) {
         listEl.innerHTML = '<div style="padding:16px;color:var(--text-secondary);font-size:14px">尚無練習記錄</div>';
       }
 
+      if (localStorage.getItem('lastSessionId') === id) {
+        localStorage.removeItem('lastSessionId');
+      }
+
       // Background DELETE
       try {
         const headers = AppState.accessToken
@@ -508,6 +512,7 @@ function attachOffcanvasDeleteListeners(listEl) {
         let deleteUrl;
         if (type === 'nsm') deleteUrl = (AppState.accessToken ? '/api/nsm-sessions/' : '/api/guest/nsm-sessions/') + id;
         else if (type === 'circles') deleteUrl = (AppState.accessToken ? '/api/circles-sessions/' : '/api/guest-circles-sessions/') + id;
+        if (!deleteUrl) return;
         const res = await fetch(deleteUrl, { method: 'DELETE', headers });
         if (!res.ok) throw new Error('delete failed');
       } catch (_) {
@@ -531,13 +536,8 @@ function renderOffcanvasList(listEl, sessions) {
     const date = new Date(s.created_at).toLocaleString('zh-TW', { month: 'numeric', day: 'numeric', hour: '2-digit', minute: '2-digit' });
     let badge, badgeClass;
     if (s.status === 'completed') {
-      if (isCircles) {
-        badge = s.scores_json ? Math.round(s.scores_json.totalScore ?? s.scores_json.total ?? 0) + ' 分' : '完成';
-        badgeClass = 'badge-circles';
-      } else {
-        badge = s.scores_json ? Math.round(s.scores_json.totalScore ?? s.scores_json.total ?? 0) + ' 分' : '完成';
-        badgeClass = 'badge-nsm';
-      }
+      badge = s.scores_json ? Math.round(s.scores_json.totalScore ?? s.scores_json.total ?? 0) + ' 分' : '完成';
+      badgeClass = isCircles ? 'badge-circles' : 'badge-nsm';
     } else {
       badge = '進行中';
       badgeClass = 'badge-blue';
@@ -569,6 +569,10 @@ function renderOffcanvasList(listEl, sessions) {
           AppState.circlesDrillStep = cached.drill_step || 'C1';
           AppState.circlesPhase = cached.current_phase || 1;
           AppState.circlesSimStep = cached.sim_step_index || 0;
+          AppState.circlesFrameworkDraft = {};
+          AppState.circlesGateResult = null;
+          AppState.circlesConversation = [];
+          AppState.circlesScoreResult = null;
           navigate('circles');
         } else {
           await loadCirclesSession(id);
