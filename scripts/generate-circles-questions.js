@@ -10,7 +10,7 @@ const BATCHES = [
   { type: 'strategy', count: 25, label: '產品策略題' },
 ];
 
-const SYSTEM_PROMPT = `你是 PM 面試題庫生成器。生成嚴格符合格式的 JSON 陣列，不加任何說明或 markdown。
+const SYSTEM_PROMPT = `你是 PM 面試題庫生成器。回傳格式必須是 {"questions": [...]}，不加任何說明或 markdown。
 
 每道題的格式：
 {
@@ -61,9 +61,10 @@ async function generateBatch(type, startId, count) {
     throw new Error(`Empty response for type=${type} startId=${startId} (finish_reason: ${resp.choices[0].finish_reason})`);
   }
   const parsed = JSON.parse(raw);
-  return Array.isArray(parsed)
-    ? parsed
-    : Object.values(parsed).find(v => Array.isArray(v)) ?? [];
+  if (Array.isArray(parsed)) return parsed;
+  // Find the key whose value is an array of objects (not strings)
+  const arr = Object.values(parsed).find(v => Array.isArray(v) && v.length > 0 && typeof v[0] === 'object');
+  return arr ?? [];
 }
 
 async function main() {
@@ -91,7 +92,15 @@ async function main() {
 
   const outPath = path.join(outDir, 'circles_database.json');
   fs.writeFileSync(outPath, JSON.stringify(allQuestions, null, 2), 'utf8');
-  console.log(`\nDone! ${allQuestions.length} questions saved to ${outPath}`);
+
+  // Also write public/circles-db.js in the var format expected by the SPA
+  const jsPath = path.join(__dirname, '..', 'public', 'circles-db.js');
+  const jsContent = '// Auto-generated — do not edit manually\n' +
+    '// Run: node scripts/generate-circles-questions.js to regenerate\n' +
+    'var CIRCLES_QUESTIONS = ' + JSON.stringify(allQuestions, null, 2) + ';\n';
+  fs.writeFileSync(jsPath, jsContent, 'utf8');
+
+  console.log(`\nDone! ${allQuestions.length} questions saved to ${outPath} and ${jsPath}`);
 }
 
 main().catch(console.error);
