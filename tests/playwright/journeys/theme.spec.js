@@ -1,130 +1,66 @@
 // tests/playwright/journeys/theme.spec.js
-// Journey: Find theme toggle → switch dark/light → confirm CLS ≈ 0 (no white flash)
+// Theme toggle was removed. This spec verifies:
+// 1. No theme toggle button exists (dark mode removed)
+// 2. Background is beige (#F2F0EB) — CIRCLES design system applied
+// 3. Navbar is sticky with backdrop-filter blur
+// 4. html has overflow-x:hidden and overscroll-behavior-y:none (mobile UX)
 
 const { test, expect } = require('@playwright/test');
 const { checkPageHealth, collectConsoleErrors } = require('../helpers/metrics');
 const { formatIssues, createIssue } = require('../helpers/issue-reporter');
 
-test.describe('Theme Toggle Journey', () => {
-  test('theme toggle switches correctly with low CLS', async ({ page }, testInfo) => {
+test.describe('Visual Design System', () => {
+  test('theme toggle removed, CIRCLES blue+beige design system applied', async ({ page }, testInfo) => {
     const device = testInfo.project.name;
     const issues = [];
     const consoleErrors = collectConsoleErrors(page);
 
     await page.goto('/');
-
-    // Wait for app to initialize in guest mode
     await page.waitForSelector('#navbar-actions', { timeout: 10000 });
-    // Wait for the theme toggle button to appear (rendered after auth state settles)
-    await page.waitForSelector('button[title="切換主題"]', { timeout: 10000 });
 
+    // Theme toggle must NOT exist
     const themeToggle = page.locator('button[title="切換主題"]');
+    expect(await themeToggle.count()).toBe(0);
 
-    if (await themeToggle.count() === 0) {
-      // No theme toggle present — just confirm no overflow
-      const hasOverflow = await page.evaluate(() =>
-        document.documentElement.scrollWidth > window.innerWidth
-      );
-      if (hasOverflow) {
-        issues.push(createIssue('theme', device, 'home', 'overflow', 'horizontal scroll detected'));
-      }
-      const healthIssues = await checkPageHealth(page);
-      for (const hi of healthIssues) {
-        issues.push(createIssue('theme', device, 'home', hi.type, hi.detail));
-      }
-      if (issues.length > 0) console.warn('\n' + formatIssues(issues));
-      expect(issues.filter(i => i.type === 'overflow')).toHaveLength(0);
-      return;
-    }
+    // Background should be beige (#F2F0EB) = rgb(242, 240, 235)
+    const bgColor = await page.evaluate(() => getComputedStyle(document.body).backgroundColor);
+    expect(bgColor).toBe('rgb(242, 240, 235)');
 
-    // Get initial theme
-    const initialTheme = await page.evaluate(() =>
-      document.documentElement.dataset.theme
-    );
-
-    // Switch to opposite theme (→ dark if currently light)
-    await themeToggle.click();
-
-    const afterFirstToggle = await page.evaluate(() =>
-      document.documentElement.dataset.theme
-    );
-    expect(afterFirstToggle).not.toBe(initialTheme);
-
-    // CLS check after first toggle
-    const cls1 = await page.evaluate(() => {
-      return new Promise(resolve => {
-        let clsValue = 0;
-        const observer = new PerformanceObserver(list => {
-          for (const entry of list.getEntries()) {
-            if (!entry.hadRecentInput) clsValue += entry.value;
-          }
-        });
-        try {
-          observer.observe({ type: 'layout-shift', buffered: false });
-        } catch (e) {
-          return resolve(0);
-        }
-        setTimeout(() => {
-          observer.disconnect();
-          resolve(clsValue);
-        }, 800);
-      });
+    // Navbar should be sticky
+    const navbarPosition = await page.evaluate(() => {
+      const nav = document.querySelector('.navbar');
+      return nav ? getComputedStyle(nav).position : null;
     });
+    expect(navbarPosition).toBe('sticky');
 
-    if (cls1 > 0.1) {
-      issues.push(createIssue('theme', device, 'toggle-to-dark', 'cls', `CLS=${cls1.toFixed(3)} on theme toggle`));
-    }
-
-    // Switch back to original theme
-    await themeToggle.click();
-
-    const afterSecondToggle = await page.evaluate(() =>
-      document.documentElement.dataset.theme
-    );
-    expect(afterSecondToggle).toBe(initialTheme);
-
-    // CLS check after second toggle
-    const cls2 = await page.evaluate(() => {
-      return new Promise(resolve => {
-        let clsValue = 0;
-        const observer = new PerformanceObserver(list => {
-          for (const entry of list.getEntries()) {
-            if (!entry.hadRecentInput) clsValue += entry.value;
-          }
-        });
-        try {
-          observer.observe({ type: 'layout-shift', buffered: false });
-        } catch (e) {
-          return resolve(0);
-        }
-        setTimeout(() => {
-          observer.disconnect();
-          resolve(clsValue);
-        }, 800);
-      });
-    });
-
-    if (cls2 > 0.1) {
-      issues.push(createIssue('theme', device, 'toggle-to-light', 'cls', `CLS=${cls2.toFixed(3)} on theme toggle back`));
-    }
-
-    // Overall page health
+    // Page health (includes overflow + CLS check)
     const healthIssues = await checkPageHealth(page);
     for (const hi of healthIssues) {
-      issues.push(createIssue('theme', device, 'final', hi.type, hi.detail));
+      issues.push(createIssue('design-system', device, 'home', hi.type, hi.detail));
     }
 
     const critical = consoleErrors.filter(e => !e.includes('supabase') && !e.includes('net::ERR'));
     if (critical.length > 0) {
-      issues.push(createIssue('theme', device, 'console', 'js-error', critical.join(' | ')));
+      issues.push(createIssue('design-system', device, 'console', 'js-error', critical.join(' | ')));
     }
 
-    if (issues.length > 0) {
-      console.warn('\n' + formatIssues(issues));
-    }
-
-    // Theme toggle CLS should be near 0 (no white flash / layout shift)
-    expect(issues.filter(i => i.type === 'cls')).toHaveLength(0);
+    if (issues.length > 0) console.warn('\n' + formatIssues(issues));
     expect(issues.filter(i => i.type === 'overflow')).toHaveLength(0);
+    expect(issues.filter(i => i.type === 'cls')).toHaveLength(0);
+  });
+
+  test('html overflow-x hidden and overscroll-none applied (mobile UX)', async ({ page }) => {
+    await page.goto('/');
+    await page.waitForSelector('#navbar-actions', { timeout: 10000 });
+
+    const htmlOverflowX = await page.evaluate(() =>
+      getComputedStyle(document.documentElement).overflowX
+    );
+    expect(htmlOverflowX).toBe('hidden');
+
+    const htmlOverscroll = await page.evaluate(() =>
+      getComputedStyle(document.documentElement).overscrollBehaviorY
+    );
+    expect(htmlOverscroll).toBe('none');
   });
 });

@@ -5,6 +5,8 @@ const { requireGuestId } = require('../middleware/guest');
 const { reviewFramework } = require('../prompts/circles-gate');
 const { streamCirclesReply } = require('../prompts/circles-coach');
 const { evaluateCirclesStep } = require('../prompts/circles-evaluator');
+const { checkConclusion } = require('../prompts/circles-conclusion-check');
+const { generateFinalReport } = require('../prompts/circles-final-report');
 
 // GET /api/guest-circles-sessions
 router.get('/', requireGuestId, async (req, res) => {
@@ -149,6 +151,23 @@ router.post('/:id/evaluate-step', requireGuestId, async (req, res) => {
   } catch (e) { res.status(500).json({ error: e.message }); }
 });
 
+// POST /api/guest-circles-sessions/:id/conclusion-check
+router.post('/:id/conclusion-check', requireGuestId, async (req, res) => {
+  const { conclusionText } = req.body;
+  if (!conclusionText || !conclusionText.trim()) return res.status(400).json({ error: 'missing_conclusion' });
+  const { data: session, error } = await db
+    .from('circles_sessions')
+    .select('question_json, drill_step')
+    .eq('id', req.params.id)
+    .eq('guest_id', req.guestId)
+    .single();
+  if (error || !session) return res.status(404).json({ error: 'not_found' });
+  try {
+    const result = await checkConclusion(session.drill_step || 'C1', conclusionText, session.question_json);
+    res.json(result);
+  } catch (e) { res.status(500).json({ error: e.message }); }
+});
+
 // PATCH /api/guest-circles-sessions/:id/progress
 router.patch('/:id/progress', requireGuestId, async (req, res) => {
   const { currentPhase, simStepIndex, frameworkDraft, gateResult } = req.body;
@@ -166,6 +185,32 @@ router.patch('/:id/progress', requireGuestId, async (req, res) => {
     .eq('guest_id', req.guestId);
   if (error) return res.status(500).json({ error: error.message });
   res.json({ ok: true });
+});
+
+// POST /api/guest-circles-sessions/:id/final-report
+router.post('/:id/final-report', requireGuestId, async (req, res) => {
+  const { data: session, error } = await db
+    .from('circles_sessions')
+    .select('question_json, step_scores, final_report')
+    .eq('id', req.params.id)
+    .eq('guest_id', req.guestId)
+    .single();
+  if (error || !session) return res.status(404).json({ error: 'not_found' });
+  if (session.final_report) return res.json(session.final_report);
+  if (!session.step_scores || Object.keys(session.step_scores).length < 7) {
+    return res.status(400).json({ error: 'incomplete_steps' });
+  }
+  try {
+    const report = await generateFinalReport({
+      stepScores: session.step_scores,
+      questionJson: session.question_json,
+    });
+    await db.from('circles_sessions').update({
+      final_report: report,
+      status: 'completed',
+    }).eq('id', req.params.id).eq('guest_id', req.guestId);
+    res.json(report);
+  } catch (e) { res.status(500).json({ error: 'report_generation_failed' }); }
 });
 
 module.exports = router;

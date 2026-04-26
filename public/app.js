@@ -16,7 +16,7 @@ const AppState = {
   currentSession: null,
   isStreaming: false,
   theme: localStorage.getItem('theme') || 'light',
-  view: 'home',
+  view: 'circles',
   essenceDraft: '',
   activeReportTab: 'overview',
   homeTab: 'pm',
@@ -30,7 +30,7 @@ const AppState = {
   nsmReportTab: 'overview',
   nsmOpenNode: null,
   // CIRCLES
-  circlesMode: 'drill',            // 'drill' | 'simulation'
+  circlesMode: localStorage.getItem('circlesMode') || 'simulation', // 'drill' | 'simulation'
   circlesSelectedType: 'design',   // 'design' | 'improve' | 'strategy'
   circlesDrillStep: 'C1',          // which step to drill
   circlesSelectedQuestion: null,   // { id, company, ... }
@@ -42,6 +42,11 @@ const AppState = {
   circlesGateLoading: false,
   circlesScoreResult: null,        // current step score from evaluator
   circlesCoachOpen: false,
+  circlesSubmitState: null,        // null | 'collapsed' | 'expanded'
+  circlesConclusionText: '',       // user's conclusion textarea value
+  circlesStepConclusions: {},      // { stepKey: 'conclusion text' } accumulated across steps
+  circlesStepScores: {},           // { stepKey: scoreData } accumulated across steps
+  circlesFinalReport: null,        // final report from /final-report endpoint
   circlesSimStep: 0,               // for simulation: which of 7 steps is active (0-6)
   circlesRecentSessions: [],       // [{ id, question_json, mode, drill_step, current_phase, sim_step_index, updated_at }]
   circlesRecentLoading: false,
@@ -50,6 +55,7 @@ const AppState = {
   nsmContextQuestionId: null,
   nsmHints: null,
   nsmHintsLoading: false,
+  offcanvasCache: null,  // cached offcanvas session list for instant render
 };
 
 // ── NSM 題庫（100 題 database + 3 計畫獨有）────────
@@ -233,7 +239,9 @@ async function loadCirclesSession(sessionId) {
     AppState.circlesFrameworkDraft    = s.framework_draft || {};
     AppState.circlesGateResult        = s.gate_result || null;
     AppState.circlesConversation      = s.conversation || [];
-    AppState.circlesScoreResult       = null; // loaded separately when needed
+    AppState.circlesScoreResult       = null;
+    AppState.circlesStepScores        = s.step_scores || {};
+    AppState.circlesFinalReport       = null;
     return true;
   } catch (e) { return false; }
 }
@@ -389,6 +397,8 @@ function render() {
         main.innerHTML = renderCirclesPhase2(); bindCirclesPhase2();
       } else if (AppState.circlesPhase === 3) {
         main.innerHTML = renderCirclesStepScore(); bindCirclesStepScore();
+      } else if (AppState.circlesPhase === 4) {
+        main.innerHTML = renderCirclesFinalReport(); bindCirclesFinalReport();
       }
       break;
   }
@@ -420,26 +430,19 @@ async function navigate(view) {
 
 function renderNavbar() {
   const el = document.getElementById('navbar-actions');
-  const themeIcon = AppState.theme === 'dark'
-    ? '<i class="ph ph-sun"></i>'
-    : '<i class="ph ph-moon"></i>';
-  const homeBtn = AppState.view === 'report'
-    ? `<button class="btn-icon" title="返回首頁" onclick="navigate('home')"><i class="ph ph-house"></i></button>`
-    : '';
+  const nsmLink = `<button class="btn btn-ghost" onclick="navigate('nsm')" style="font-size:13px;font-weight:500">北極星指標</button>`;
 
   if (AppState.mode === 'auth') {
     el.innerHTML = `
-      ${homeBtn}
+      ${nsmLink}
       <span class="navbar-email" title="${AppState.user?.email || ''}">${AppState.user?.email || ''}</span>
       <button class="btn-icon" id="btn-logout" aria-label="登出" title="登出"><i class="ph ph-sign-out"></i></button>
-      <button class="btn-icon" title="切換主題" onclick="applyTheme(AppState.theme==='dark'?'light':'dark')">${themeIcon}</button>
     `;
     document.getElementById('btn-logout')?.addEventListener('click', () => supabase.auth.signOut());
   } else if (AppState.mode === 'guest') {
     el.innerHTML = `
-      ${homeBtn}
+      ${nsmLink}
       <button class="btn btn-ghost" onclick="navigate('login')">登入</button>
-      <button class="btn-icon" title="切換主題" onclick="applyTheme(AppState.theme==='dark'?'light':'dark')">${themeIcon}</button>
     `;
   } else {
     el.innerHTML = '';
@@ -483,127 +486,164 @@ function closeOffcanvas() {
 
 function attachOffcanvasDeleteListeners(listEl) {
   listEl.querySelectorAll('.offcanvas-delete-btn').forEach(btn => {
-    btn.addEventListener('click', e => {
+    btn.addEventListener('click', async (e) => {
       e.stopPropagation();
       const id = btn.dataset.id;
-      const item = btn.closest('.offcanvas-item');
-      const originalHTML = item.innerHTML;
+      const type = btn.dataset.type;
 
-      item.innerHTML = `
-        <span style="font-size:0.85rem">確定刪除嗎？</span>
-        <div style="display:flex;gap:6px;margin-top:6px">
-          <button class="btn btn-ghost offcanvas-cancel-delete" style="font-size:0.8rem;padding:4px 10px">取消</button>
-          <button class="btn-danger offcanvas-confirm-delete" style="font-size:0.8rem">刪除</button>
-        </div>
-      `;
+      // Optimistic: remove from cache and UI immediately
+      const itemEl = btn.closest('.offcanvas-item');
+      const prevCache = AppState.offcanvasCache ? [...AppState.offcanvasCache] : null;
+      if (AppState.offcanvasCache) {
+        AppState.offcanvasCache = AppState.offcanvasCache.filter(s => s.id !== id);
+      }
+      itemEl?.remove();
+      if (listEl.children.length === 0) {
+        listEl.innerHTML = '<div style="padding:16px;color:var(--text-secondary);font-size:14px">尚無練習記錄</div>';
+      }
 
-      item.querySelector('.offcanvas-cancel-delete').addEventListener('click', () => {
-        item.innerHTML = originalHTML;
-        attachOffcanvasDeleteListeners(item);
-      });
+      if (localStorage.getItem('lastSessionId') === id) {
+        localStorage.removeItem('lastSessionId');
+      }
 
-      item.querySelector('.offcanvas-confirm-delete').addEventListener('click', async (e) => {
-        e.stopPropagation();
-        try {
-          const res = await fetch(sessionRoute(`/${id}`), { method: 'DELETE', headers: apiHeaders() });
-          if (!res.ok) {
-            item.innerHTML = originalHTML;
-            attachOffcanvasDeleteListeners(item);
-            return;
-          }
-          if (localStorage.getItem('lastSessionId') === id) {
-            localStorage.removeItem('lastSessionId');
-          }
-          if (AppState.currentSession?.id === id) {
-            AppState.currentSession = null;
-            navigate('home');
-          } else {
-            item.remove();
-          }
-        } catch (_) {
-          item.innerHTML = originalHTML;
-          attachOffcanvasDeleteListeners(item);
-        }
-      });
+      // Background DELETE
+      try {
+        const headers = AppState.accessToken
+          ? { 'Authorization': `Bearer ${AppState.accessToken}`, 'Content-Type': 'application/json' }
+          : { 'X-Guest-ID': AppState.guestId, 'Content-Type': 'application/json' };
+        let deleteUrl;
+        if (type === 'nsm') deleteUrl = (AppState.accessToken ? '/api/nsm-sessions/' : '/api/guest/nsm-sessions/') + id;
+        else if (type === 'circles') deleteUrl = (AppState.accessToken ? '/api/circles-sessions/' : '/api/guest-circles-sessions/') + id;
+        if (!deleteUrl) return;
+        const res = await fetch(deleteUrl, { method: 'DELETE', headers });
+        if (!res.ok) throw new Error('delete failed');
+      } catch (_) {
+        // Restore on failure
+        if (prevCache) AppState.offcanvasCache = prevCache;
+        loadOffcanvasSessions();
+      }
     });
   });
+}
+
+function renderOffcanvasList(listEl, sessions) {
+  listEl.innerHTML = sessions.map(s => {
+    const isNSM = s._type === 'nsm';
+    const isCircles = s._type === 'circles';
+    const label = isNSM
+      ? `NSM · ${s.question_json?.company || ''}`
+      : isCircles
+        ? `CIRCLES · ${s.question_json?.company || ''}`
+        : `${s.difficulty || ''}`;
+    const date = new Date(s.created_at).toLocaleString('zh-TW', { month: 'numeric', day: 'numeric', hour: '2-digit', minute: '2-digit' });
+    let badge, badgeClass;
+    if (s.status === 'completed') {
+      badge = s.scores_json ? Math.round(s.scores_json.totalScore ?? s.scores_json.total ?? 0) + ' 分' : '完成';
+      badgeClass = isCircles ? 'badge-circles' : 'badge-nsm';
+    } else {
+      badge = '進行中';
+      badgeClass = 'badge-blue';
+    }
+    return `<div class="offcanvas-item" data-id="${s.id}" data-status="${s.status}" data-type="${s._type}" style="position:relative">
+      <div style="display:flex;align-items:center;gap:6px;padding-right:28px">
+        <span class="badge ${badgeClass}">${badge}</span>
+        <span style="font-size:0.8rem;color:var(--text-secondary);overflow:hidden;text-overflow:ellipsis;white-space:nowrap">${escHtml(label)}</span>
+      </div>
+      <div style="font-size:0.75rem;color:var(--text-secondary);margin-top:4px">${date}</div>
+      <button class="btn-icon offcanvas-delete-btn" title="刪除" style="position:absolute;top:6px;right:4px;font-size:1rem;padding:2px 6px" data-id="${s.id}" data-type="${s._type}">
+        <i class="ph ph-trash"></i>
+      </button>
+    </div>`;
+  }).join('');
+
+  listEl.querySelectorAll('.offcanvas-item').forEach(item => {
+    item.addEventListener('click', async () => {
+      const id = item.dataset.id;
+      const type = item.dataset.type;
+      if (type === 'circles') {
+        closeOffcanvas();
+        // Try to use cached session data for instant navigation
+        const cached = AppState.offcanvasCache?.find(s => s.id === id);
+        if (cached) {
+          AppState.circlesSelectedQuestion = cached.question_json;
+          AppState.circlesSession = { id: cached.id, mode: cached.mode, drill_step: cached.drill_step };
+          AppState.circlesMode = cached.mode || 'simulation';
+          AppState.circlesDrillStep = cached.drill_step || 'C1';
+          AppState.circlesPhase = cached.current_phase || 1;
+          AppState.circlesSimStep = cached.sim_step_index || 0;
+          AppState.circlesFrameworkDraft = {};
+          AppState.circlesGateResult = null;
+          AppState.circlesConversation = [];
+          AppState.circlesScoreResult = null;
+          AppState.circlesStepScores = {};
+          AppState.circlesFinalReport = null;
+          navigate('circles');
+        } else {
+          await loadCirclesSession(id);
+          navigate('circles');
+        }
+        return;
+      }
+      if (type === 'nsm') {
+        closeOffcanvas();
+        AppState.nsmSession = { id };
+        AppState.nsmStep = 4;
+        navigate('nsm');
+        return;
+      }
+    });
+  });
+  attachOffcanvasDeleteListeners(listEl);
 }
 
 async function loadOffcanvasSessions() {
   const listEl = document.getElementById('offcanvas-list');
   if (!listEl) return;
-  listEl.innerHTML = '<div style="padding:16px;color:var(--text-secondary);font-size:14px">載入中…</div>';
+
+  // Show cached data instantly if available (no spinner)
+  if (AppState.offcanvasCache && AppState.offcanvasCache.length) {
+    renderOffcanvasList(listEl, AppState.offcanvasCache);
+  } else {
+    listEl.innerHTML = '<div class="offcanvas-skeleton">' +
+      ['80%','60%','70%'].map(w =>
+        `<div style="height:48px;width:${w};background:var(--bg-surface-2);border-radius:8px;margin-bottom:8px;opacity:0.6;animation:pulse 1.2s ease-in-out infinite"></div>`
+      ).join('') +
+    '</div>';
+  }
+
+  // Background fetch — silently update
   try {
     const headers = AppState.accessToken
       ? { 'Authorization': `Bearer ${AppState.accessToken}` }
       : { 'X-Guest-ID': AppState.guestId };
-    const pmUrl = AppState.accessToken ? '/api/sessions' : '/api/guest/sessions';
     const nsmUrl = AppState.accessToken ? '/api/nsm-sessions' : '/api/guest/nsm-sessions';
+    const circlesUrl = AppState.accessToken ? '/api/circles-sessions' : '/api/guest-circles-sessions';
 
-    const [pmRes, nsmRes] = await Promise.all([
-      fetch(pmUrl, { headers }),
-      fetch(nsmUrl, { headers })
+    const [nsmRes, circlesRes] = await Promise.all([
+      fetch(nsmUrl, { headers }),
+      fetch(circlesUrl, { headers })
     ]);
-    const pmSessions = pmRes.ok ? await pmRes.json() : [];
     const nsmSessions = nsmRes.ok ? await nsmRes.json() : [];
+    const circlesSessions = circlesRes.ok ? await circlesRes.json() : [];
 
     const all = [
-      ...pmSessions.map(s => ({ ...s, _type: 'pm' })),
-      ...nsmSessions.map(s => ({ ...s, _type: 'nsm' }))
+      ...nsmSessions.map(s => ({ ...s, _type: 'nsm' })),
+      ...circlesSessions.map(s => ({ ...s, _type: 'circles' }))
     ].sort((a, b) => new Date(b.created_at) - new Date(a.created_at));
 
-    AppState.recentSessions = all.slice(0, 3).map(s => ({ ...s, type: s._type }));
+    AppState.offcanvasCache = all;
 
+    // Only re-render if list is still open
+    if (!document.getElementById('offcanvas-list')) return;
     if (!all.length) {
       listEl.innerHTML = '<div style="padding:16px;color:var(--text-secondary);font-size:14px">尚無練習記錄</div>';
       return;
     }
-    listEl.innerHTML = all.map(s => {
-      const isNSM = s._type === 'nsm';
-      const label = isNSM ? `NSM · ${s.question_json?.company || ''}` : `${s.difficulty || ''}`;
-      const date = new Date(s.created_at).toLocaleString('zh-TW', { month: 'numeric', day: 'numeric', hour: '2-digit', minute: '2-digit' });
-      const badge = s.status === 'completed'
-        ? (s.scores_json ? Math.round(s.scores_json.totalScore ?? s.scores_json.total ?? 0) + ' 分' : '完成')
-        : '進行中';
-      const badgeClass = s.status === 'completed' ? (isNSM ? 'badge-nsm' : 'badge-green') : 'badge-blue';
-      return `<div class="offcanvas-item" data-id="${s.id}" data-status="${s.status}" data-type="${s._type}" style="position:relative">
-        <div style="display:flex;align-items:center;gap:6px;padding-right:28px">
-          <span class="badge ${badgeClass}">${badge}</span>
-          <span style="font-size:0.8rem;color:var(--text-secondary);overflow:hidden;text-overflow:ellipsis;white-space:nowrap">${escHtml(label)}</span>
-        </div>
-        <div style="font-size:0.75rem;color:var(--text-secondary);margin-top:4px">${date}</div>
-        <button class="btn-icon offcanvas-delete-btn" title="刪除" style="position:absolute;top:6px;right:4px;font-size:1rem;padding:2px 6px" data-id="${s.id}" data-type="${s._type}">
-          <i class="ph ph-trash"></i>
-        </button>
-      </div>`;
-    }).join('');
-
-    listEl.querySelectorAll('.offcanvas-item').forEach(item => {
-      item.addEventListener('click', async () => {
-        closeOffcanvas();
-        const id = item.dataset.id;
-        const status = item.dataset.status;
-        const type = item.dataset.type;
-        if (type === 'nsm') {
-          AppState.nsmSession = { id };
-          AppState.nsmStep = 4;
-          navigate('nsm');
-          return;
-        }
-        if (AppState.currentSession?.id === id) {
-          navigate(status === 'completed' ? 'report' : 'practice');
-          return;
-        }
-        const r = await fetch(sessionRoute(`/${id}`), { headers: apiHeaders() });
-        if (!r.ok) return;
-        const session = await r.json();
-        AppState.currentSession = session;
-        navigate(status === 'completed' ? 'report' : 'practice');
-      });
-    });
-    attachOffcanvasDeleteListeners(listEl);
+    renderOffcanvasList(listEl, all);
   } catch (_) {
-    listEl.innerHTML = '<div style="padding:16px;color:var(--text-secondary)">載入失敗</div>';
+    if (!AppState.offcanvasCache) {
+      listEl.innerHTML = '<div style="padding:16px;color:var(--text-secondary)">載入失敗</div>';
+    }
   }
 }
 
@@ -668,9 +708,13 @@ function renderCirclesHome() {
   }).join('');
 
   var qCards = questions.slice(0, 20).map(function(q) {
+    var shortStmt = q.problem_statement.length > 60
+      ? q.problem_statement.slice(0, 60) + '…'
+      : q.problem_statement;
     return '<div class="circles-q-card" data-qid="' + q.id + '">' +
       '<div class="circles-q-card-company">' + q.company + ' — ' + (q.product || '') + '</div>' +
-      '<div class="circles-q-card-stmt">' + q.problem_statement + '</div>' +
+      '<div class="circles-q-card-stmt" data-full="' + escHtml(q.problem_statement) + '" data-short="' + escHtml(shortStmt) + '">' + escHtml(shortStmt) + '</div>' +
+      (q.problem_statement.length > 60 ? '<div class="circles-q-card-more" data-expanded="false">看更多 ▾</div>' : '') +
     '</div>';
   }).join('');
 
@@ -717,6 +761,17 @@ function renderCirclesHome() {
       '<div class="circles-home-title">選題開始練習</div>' +
       '<div class="circles-home-sub">選擇模式 → 題型 → 題目</div>' +
 
+      // Explainer block
+      '<div style="background:#fff;border:1px solid #e8e5de;border-radius:10px;padding:12px 14px;margin-bottom:16px;font-family:DM Sans,sans-serif">' +
+        '<div style="font-size:12px;font-weight:700;color:#1a1a1a;margin-bottom:6px">什麼是 CIRCLES 實戰訓練？</div>' +
+        '<div style="font-size:11px;color:#5a5a5a;line-height:1.7;margin-bottom:8px">用結構化框架拆解 PM 設計面試題，模擬真實利害關係人訪談，並在每個步驟收到 AI 教練評分與回饋。</div>' +
+        '<div style="display:flex;gap:4px;flex-wrap:wrap">' +
+          CIRCLES_STEPS.map(function(s) {
+            return '<span style="background:#EEF3FF;color:#1A56DB;border-radius:4px;padding:2px 7px;font-size:10px;font-weight:600">' + s.short + ' ' + s.label + '</span>';
+          }).join('') +
+        '</div>' +
+      '</div>' +
+
       '<div class="circles-step-select-label">練習模式</div>' +
       '<div class="circles-mode-row">' +
         '<div class="circles-mode-card ' + (mode === 'drill' ? 'selected' : '') + '" data-mode="drill">' +
@@ -737,7 +792,20 @@ function renderCirclesHome() {
         '<button class="circles-type-tab ' + (type === 'strategy' ? 'active' : '') + '" data-type="strategy">產品策略 ×' + strategyCount + '</button>' +
       '</div>' +
 
+      // Random button + question list header
+      '<div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:8px">' +
+        '<div style="font-size:11px;font-weight:600;color:#5a5a5a;font-family:DM Sans,sans-serif">選擇題目</div>' +
+        '<button id="circles-random-btn" style="font-size:11px;color:#1A56DB;background:none;border:none;cursor:pointer;font-family:DM Sans,sans-serif;padding:0">隨機選題</button>' +
+      '</div>' +
+
       '<div class="circles-q-list">' + (qCards || '<div style="color:var(--c-text-3);font-size:13px;text-align:center;padding:24px 0">暫無題目，請先執行題庫生成腳本</div>') + '</div>' +
+      '<div style="background:#EEF3FF;border:1px solid #C5D5FF;border-radius:10px;padding:14px 16px;display:flex;align-items:center;justify-content:space-between;margin-top:16px">' +
+        '<div>' +
+          '<div style="font-size:12px;color:#1A56DB;font-weight:600;margin-bottom:2px;font-family:DM Sans,sans-serif">S 步驟含北極星指標練習</div>' +
+          '<div style="font-size:12px;color:#5a7ab5;font-family:DM Sans,sans-serif">想做最完整的 NSM 定義訓練？</div>' +
+        '</div>' +
+        '<button id="circles-nsm-banner-btn" style="background:#1A56DB;color:#fff;border:none;padding:7px 12px;border-radius:8px;font-size:12px;font-weight:600;white-space:nowrap;cursor:pointer;font-family:DM Sans,sans-serif">前往 NSM →</button>' +
+      '</div>' +
     '</div>' +
   '</div>';
 }
@@ -746,7 +814,8 @@ function bindCirclesHome() {
     fetchCirclesRecentSessions();
   }
 
-  document.getElementById('circles-home-back')?.addEventListener('click', function() { navigate('home'); });
+  document.getElementById('circles-home-back')?.addEventListener('click', function() { navigate('circles'); });
+  document.getElementById('circles-nsm-banner-btn')?.addEventListener('click', function() { navigate('nsm'); });
 
   document.querySelectorAll('.circles-resume-card').forEach(function(el) {
     el.addEventListener('click', async function() {
@@ -769,6 +838,7 @@ function bindCirclesHome() {
   document.querySelectorAll('.circles-mode-card').forEach(function(el) {
     el.addEventListener('click', function() {
       AppState.circlesMode = el.dataset.mode;
+      localStorage.setItem('circlesMode', AppState.circlesMode);
       render();
     });
   });
@@ -803,6 +873,42 @@ function bindCirclesHome() {
       render();
     });
   });
+
+  // Random question
+  document.getElementById('circles-random-btn')?.addEventListener('click', function() {
+    var questions = (typeof CIRCLES_QUESTIONS !== 'undefined' ? CIRCLES_QUESTIONS : [])
+      .filter(function(q) { return q.question_type === AppState.circlesSelectedType; });
+    if (!questions.length) return;
+    var picked = questions[Math.floor(Math.random() * questions.length)];
+    AppState.circlesSelectedQuestion = picked;
+    AppState.circlesPhase = 1;
+    AppState.circlesFrameworkDraft = {};
+    AppState.circlesGateResult = null;
+    AppState.circlesConversation = [];
+    AppState.circlesSession = null;
+    AppState.circlesScoreResult = null;
+    AppState.circlesSimStep = 0;
+    AppState.circlesDrillStep = CIRCLES_STEPS[0].key;
+    render();
+  });
+
+  // "看更多" expand/collapse
+  document.querySelectorAll('.circles-q-card-more').forEach(function(btn) {
+    btn.addEventListener('click', function(e) {
+      e.stopPropagation();
+      var stmtEl = btn.previousElementSibling;
+      var expanded = btn.dataset.expanded === 'true';
+      if (expanded) {
+        stmtEl.textContent = stmtEl.dataset.short;
+        btn.textContent = '看更多 ▾';
+        btn.dataset.expanded = 'false';
+      } else {
+        stmtEl.textContent = stmtEl.dataset.full;
+        btn.textContent = '收起 ▴';
+        btn.dataset.expanded = 'true';
+      }
+    });
+  });
 }
 function renderCirclesPhase1() {
   var q = AppState.circlesSelectedQuestion;
@@ -834,8 +940,9 @@ function renderCirclesPhase1() {
         '<div class="circles-nav-title">' + step.label + '</div>' +
         '<div class="circles-nav-sub">' + q.company + ' · ' + (q.product || '') + '</div>' +
       '</div>' +
+      '<button style="font-size:12px;color:#1A56DB;border-bottom:1px solid #1A56DB;background:none;border-top:none;border-left:none;border-right:none;padding:2px 0;cursor:pointer;font-family:DM Sans,sans-serif;white-space:nowrap;flex-shrink:0" id="circles-p1-home">回首頁</button>' +
     '</div>' +
-    '<div class="circles-progress">' + progressSegs + '<div class="circles-progress-label">' + step.short + ' · ' + (stepIdx + 1) + ' of 7</div></div>' +
+    '<div class="circles-progress">' + progressSegs + '<div class="circles-progress-label">' + step.short + ' · ' + step.label + ' · ' + (stepIdx + 1) + '/7</div></div>' +
     '<div class="circles-phase1-wrap">' +
       '<div style="font-size:13px;color:var(--c-text-2,#5a5a5a);line-height:1.6;margin-bottom:16px;font-family:DM Sans,sans-serif;padding:12px 14px;background:#fff;border-radius:10px;border:1px solid rgba(0,0,0,0.08)">' + q.problem_statement + '</div>' +
       fields +
@@ -851,6 +958,11 @@ function bindCirclesPhase1() {
     AppState.circlesSelectedQuestion = null;
     AppState.circlesPhase = 1;
     render();
+  });
+  document.getElementById('circles-p1-home')?.addEventListener('click', function() {
+    AppState.circlesSelectedQuestion = null;
+    AppState.circlesPhase = 1;
+    navigate('circles');
   });
 
   document.querySelectorAll('.circles-field-input').forEach(function(el) {
@@ -916,6 +1028,7 @@ function bindCirclesPhase1() {
         if (!createRes.ok) throw new Error('create_failed_' + createRes.status);
         var createData = await createRes.json();
         AppState.circlesSession = { id: createData.sessionId };
+        AppState.offcanvasCache = null; // force fresh fetch on next offcanvas open
       }
 
       var gateRoute = (AppState.accessToken ? '/api/circles-sessions/' : '/api/guest-circles-sessions/') + AppState.circlesSession.id + '/gate';
@@ -956,7 +1069,7 @@ function renderCirclesGate() {
       '<div class="circles-nav">' +
         '<div><div class="circles-nav-title">框架審核中</div><div class="circles-nav-sub">' + (q ? q.company : '') + '</div></div>' +
       '</div>' +
-      '<div class="circles-progress">' + progressSegs + '<div class="circles-progress-label">' + step.short + '</div></div>' +
+      '<div class="circles-progress">' + progressSegs + '<div class="circles-progress-label">' + step.short + ' · ' + step.label + '</div></div>' +
       '<div class="circles-gate-loading"><i class="ph ph-circle-notch" style="font-size:28px;animation:spin 0.8s linear infinite;display:block;margin-bottom:12px"></i>AI 正在審核你的框架...</div>' +
     '</div>';
   }
@@ -983,12 +1096,18 @@ function renderCirclesGate() {
         '<div class="circles-nav-sub">' + step.label + ' · ' + (q ? q.company : '') + '</div>' +
       '</div>' +
     '</div>' +
-    '<div class="circles-progress">' + progressSegs + '<div class="circles-progress-label">' + step.short + '</div></div>' +
+    '<div class="circles-progress">' + progressSegs + '<div class="circles-progress-label">' + step.short + ' · ' + step.label + '</div></div>' +
     '<div class="circles-gate-wrap">' +
       items +
+      (canProceed && !hasError
+        ? '<div style="background:#EEF3FF;border:1px solid #C5D5FF;border-radius:10px;padding:12px 14px;margin-bottom:12px;font-family:DM Sans,sans-serif">' +
+            '<div style="font-size:12px;font-weight:600;color:#1A56DB;margin-bottom:2px">框架審核通過</div>' +
+            '<div style="font-size:11px;color:#5a7ab5">框架方向正確，進入對話練習階段繼續探索。</div>' +
+          '</div>'
+        : '') +
       '<div class="circles-submit-bar">' +
         (canProceed || !hasError
-          ? '<button class="circles-btn-primary" id="circles-gate-proceed">' + (hasError ? '帶著問題進入對話（風險自負）' : '套用並進入對話 →') + '</button>'
+          ? '<button class="circles-btn-primary" id="circles-gate-proceed">' + (hasError ? '帶著問題進入對話（風險自負）' : '進入對話練習 →') + '</button>'
           : '<button class="circles-btn-primary" id="circles-gate-fix">修正框架後重試</button>') +
         (!canProceed && hasError ? '' : '<button class="circles-btn-ghost" id="circles-gate-back-edit">重新編輯框架</button>') +
       '</div>' +
@@ -1017,11 +1136,13 @@ function bindCirclesGate() {
 function renderCirclesPhase2() {
   var q = AppState.circlesSelectedQuestion;
   var mode = AppState.circlesMode;
-  var stepKey = mode === 'drill' ? AppState.circlesDrillStep : 'C1';
+  var stepKey = AppState.circlesDrillStep;
   var stepIdx = CIRCLES_STEPS.findIndex(function(s) { return s.key === stepKey; });
   var step = CIRCLES_STEPS[stepIdx];
   var conv = AppState.circlesConversation;
   var turnCount = conv.length;
+  var submitState = AppState.circlesSubmitState; // null | 'collapsed' | 'expanded'
+  var conclusionText = AppState.circlesConclusionText || '';
 
   var progressSegs = CIRCLES_STEPS.map(function(s, i) {
     var cls = i < stepIdx ? 'done' : i === stepIdx ? 'active' : '';
@@ -1041,36 +1162,79 @@ function renderCirclesPhase2() {
       '</div>';
   }
 
+  // Pinned question card
+  var pinnedCard = q ? (
+    '<div class="circles-pinned-card" id="circles-pinned-card">' +
+      '<div style="display:flex;align-items:center;gap:6px;margin-bottom:4px">' +
+        '<span style="background:#EEF3FF;color:#1A56DB;border-radius:4px;padding:1px 6px;font-size:9px;font-weight:700">' + escHtml(q.company) + '</span>' +
+      '</div>' +
+      '<div style="font-size:11px;color:#1a1a1a;font-weight:600;line-height:1.4" id="circles-pinned-stmt">' + escHtml(q.problem_statement.slice(0, 80)) + (q.problem_statement.length > 80 ? '…' : '') + '</div>' +
+      (q.problem_statement.length > 80 ? '<div id="circles-pinned-toggle" style="font-size:10px;color:#1A56DB;cursor:pointer;margin-top:2px">展開 ▾</div>' : '') +
+    '</div>'
+  ) : '';
+
+  // Bottom section: input bar OR collapsed strip OR conclusion box
+  var bottomSection;
+  if (submitState === 'expanded') {
+    // Conclusion box
+    var detectionHtml = '<div id="circles-conclusion-hint" style="min-height:16px;font-size:10px;color:#8a8a8a;margin-top:6px"></div>';
+    bottomSection = '<div class="circles-conclusion-box" id="circles-conclusion-box">' +
+      '<div style="font-size:11px;font-weight:700;color:#1a1a1a;margin-bottom:2px">整理你這個步驟確認了什麼</div>' +
+      '<div style="font-size:10px;color:#8a8a8a;margin-bottom:8px">1-2 句話說明範圍、時間、影響</div>' +
+      '<div id="circles-example-block" style="border:1px solid #e8e5de;border-radius:8px;margin-bottom:8px;overflow:hidden">' +
+        '<div id="circles-example-header" style="background:#f0ede6;padding:5px 9px;display:flex;justify-content:space-between;cursor:pointer">' +
+          '<div style="font-size:9px;font-weight:700;color:#8a8a8a;text-transform:uppercase;letter-spacing:.4px">範例（不同題目）</div>' +
+          '<div id="circles-example-toggle-label" style="font-size:10px;color:#8a8a8a">展開 ▾</div>' +
+        '</div>' +
+        '<div id="circles-example-content" style="display:none;padding:8px 10px;font-size:11px;color:#5a5a5a;line-height:1.6">問題集中在移動端搜尋功能，過去 90 天內轉換率下降 12%，主要影響首次訂房用戶，與近期過濾器 UI 改動時間吻合。</div>' +
+      '</div>' +
+      '<textarea id="circles-conclusion-input" style="width:100%;border:1px solid #ddd;border-radius:8px;padding:9px;font-size:11px;line-height:1.6;resize:none;height:60px;box-sizing:border-box;font-family:DM Sans,sans-serif" placeholder="針對這題，整理你確認的關鍵資訊...">' + escHtml(conclusionText) + '</textarea>' +
+      detectionHtml +
+      '<div style="margin-top:8px;display:flex;align-items:center;justify-content:space-between">' +
+        '<button id="circles-conclusion-back" style="font-size:10px;color:#8a8a8a;background:none;border:none;cursor:pointer;font-family:DM Sans,sans-serif;padding:0">← 繼續對話</button>' +
+        '<button id="circles-conclusion-submit" class="circles-btn-primary" disabled style="opacity:.45;cursor:not-allowed">確認提交</button>' +
+      '</div>' +
+    '</div>';
+  } else if (submitState === 'collapsed') {
+    // Collapsed strip
+    bottomSection = '<div class="circles-submit-strip" id="circles-submit-strip">' +
+      '<div>' +
+        '<div style="font-size:11px;font-weight:600;color:#1A56DB;font-family:DM Sans,sans-serif">整理結論</div>' +
+        '<div style="font-size:10px;color:#8a8a8a;font-family:DM Sans,sans-serif">翻閱完對話後，點右側展開填寫</div>' +
+      '</div>' +
+      '<button id="circles-strip-expand" style="background:#1A56DB;color:#fff;border:none;border-radius:8px;padding:7px 12px;font-size:11px;font-weight:600;cursor:pointer;font-family:DM Sans,sans-serif;white-space:nowrap">展開填寫 ▲</button>' +
+    '</div>';
+  } else {
+    // Normal input bar
+    bottomSection = '<div class="circles-input-bar" id="circles-input-bar">' +
+      '<textarea class="circles-input" id="circles-msg-input" placeholder="輸入追問或回應..." rows="1"></textarea>' +
+      '<button class="circles-send-btn" id="circles-send-btn"><i class="ph ph-paper-plane-tilt"></i></button>' +
+    '</div>' +
+    (turnCount >= 2
+      ? '<div id="circles-submit-row" style="padding:6px 12px 10px;display:flex;justify-content:center">' +
+          '<button id="circles-submit-step" style="font-size:11px;color:#5a5a5a;border:1px solid #e8e5de;border-radius:8px;padding:6px 16px;cursor:pointer;background:#fff;font-family:DM Sans,sans-serif">對話足夠了，提交這個步驟</button>' +
+        '</div>'
+      : '');
+  }
+
   return '<div data-view="circles" class="circles-chat-wrap">' +
     '<div class="circles-nav">' +
       '<button class="circles-nav-back" id="circles-p2-back"><i class="ph ph-arrow-left"></i></button>' +
       '<div>' +
         '<div class="circles-nav-title">' + step.label + ' — 對話練習</div>' +
-        '<div class="circles-nav-sub">' + (q ? q.company : '') + '</div>' +
+        '<div class="circles-nav-sub">' + (q ? escHtml(q.company) : '') + '</div>' +
       '</div>' +
-      (turnCount > 0 ? '<div class="circles-nav-right">' + turnCount + ' 輪</div>' : '') +
+      (turnCount > 0 && !submitState ? '<div class="circles-nav-right">' + turnCount + ' 輪</div>' : '') +
     '</div>' +
-    '<div class="circles-progress">' + progressSegs + '<div class="circles-progress-label">' + step.short + ' · ' + (stepIdx + 1) + ' of 7</div></div>' +
+    '<div class="circles-progress">' + progressSegs + '<div class="circles-progress-label">' + step.short + ' · ' + step.label + ' · ' + (stepIdx + 1) + '/7</div></div>' +
+    pinnedCard +
     '<div class="circles-chat-body" id="circles-chat-body">' + bubbles + '<div id="circles-streaming-bubble"></div></div>' +
-    '<div class="circles-input-bar" id="circles-input-bar">' +
-      '<textarea class="circles-input" id="circles-msg-input" placeholder="輸入追問或回應..." rows="1"></textarea>' +
-      '<button class="circles-phase2-submit" id="circles-submit-step" style="' + (turnCount < 2 ? 'display:none' : '') + '">提交步驟</button>' +
-      '<button class="circles-send-btn" id="circles-send-btn"><i class="ph ph-paper-plane-tilt"></i></button>' +
-    '</div>' +
+    bottomSection +
   '</div>';
 }
 
 function bindCirclesPhase2() {
-  document.getElementById('circles-p2-back')?.addEventListener('click', function() {
-    AppState.circlesPhase = 1.5;
-    render();
-  });
-
-  // Auto-scroll to bottom
-  var chatBody = document.getElementById('circles-chat-body');
-  if (chatBody) chatBody.scrollTop = chatBody.scrollHeight;
-
-  // Keyboard handler
+  // Keyboard avoidance (unchanged)
   if (_adjustCirclesKbFn && window.visualViewport) {
     window.visualViewport.removeEventListener('resize', _adjustCirclesKbFn);
     window.visualViewport.removeEventListener('scroll', _adjustCirclesKbFn);
@@ -1082,7 +1246,7 @@ function bindCirclesPhase2() {
       if (_raf) return;
       _raf = requestAnimationFrame(function() {
         _raf = null;
-        var bar = document.getElementById('circles-input-bar');
+        var bar = document.getElementById('circles-input-bar') || document.getElementById('circles-submit-strip') || document.getElementById('circles-conclusion-box');
         var body = document.getElementById('circles-chat-body');
         if (!bar) return;
         var kbH = Math.max(0, window.innerHeight - window.visualViewport.offsetTop - window.visualViewport.height);
@@ -1091,22 +1255,125 @@ function bindCirclesPhase2() {
       });
     };
   }());
-  var inputBar = document.getElementById('circles-input-bar');
-  if (inputBar) inputBar.style.willChange = 'transform';
   if (window.visualViewport) {
     window.visualViewport.addEventListener('resize', _adjustCirclesKbFn);
     window.visualViewport.addEventListener('scroll', _adjustCirclesKbFn);
     _adjustCirclesKbFn();
   }
 
-  // Submit step
-  document.getElementById('circles-submit-step')?.addEventListener('click', async function() {
+  // Back button
+  document.getElementById('circles-p2-back')?.addEventListener('click', function() {
+    AppState.circlesPhase = 1.5;
+    AppState.circlesSubmitState = null;
+    render();
+  });
+
+  // Auto-scroll chat
+  var chatBody = document.getElementById('circles-chat-body');
+  if (chatBody) chatBody.scrollTop = chatBody.scrollHeight;
+
+  // Pinned card expand
+  document.getElementById('circles-pinned-toggle')?.addEventListener('click', function() {
+    var stmtEl = document.getElementById('circles-pinned-stmt');
+    var q = AppState.circlesSelectedQuestion;
+    if (!q) return;
+    var expanded = this.dataset.expanded === 'true';
+    if (expanded) {
+      stmtEl.textContent = q.problem_statement.slice(0, 80) + '…';
+      this.textContent = '展開 ▾';
+      this.dataset.expanded = 'false';
+    } else {
+      stmtEl.textContent = q.problem_statement;
+      this.textContent = '收起 ▴';
+      this.dataset.expanded = 'true';
+    }
+  });
+
+  // Submit step button (normal state → collapsed strip)
+  document.getElementById('circles-submit-step')?.addEventListener('click', function() {
+    AppState.circlesSubmitState = 'collapsed';
+    render();
+  });
+
+  // Strip expand button (collapsed → expanded conclusion box)
+  document.getElementById('circles-strip-expand')?.addEventListener('click', function() {
+    AppState.circlesSubmitState = 'expanded';
+    render();
+  });
+
+  // Back to chat (conclusion box → collapsed)
+  document.getElementById('circles-conclusion-back')?.addEventListener('click', function() {
+    AppState.circlesSubmitState = 'collapsed';
+    render();
+  });
+
+  // Example block toggle
+  document.getElementById('circles-example-header')?.addEventListener('click', function() {
+    var content = document.getElementById('circles-example-content');
+    var label = document.getElementById('circles-example-toggle-label');
+    if (!content) return;
+    var hidden = content.style.display === 'none';
+    content.style.display = hidden ? 'block' : 'none';
+    if (label) label.textContent = hidden ? '收起 ▴' : '展開 ▾';
+  });
+
+  // Conclusion textarea — 8 second debounce → AI detection
+  var _conclusionTimer = null;
+  var _lastChecked = '';
+  document.getElementById('circles-conclusion-input')?.addEventListener('input', function() {
+    var text = this.value;
+    AppState.circlesConclusionText = text;
+    var hintEl = document.getElementById('circles-conclusion-hint');
+    var submitBtn = document.getElementById('circles-conclusion-submit');
+    if (hintEl) hintEl.textContent = '';
+    if (submitBtn) { submitBtn.disabled = true; submitBtn.style.opacity = '.45'; submitBtn.style.cursor = 'not-allowed'; }
+    if (_conclusionTimer) clearTimeout(_conclusionTimer);
+    if (!text.trim() || text.trim().length < 10) return;
+    if (text === _lastChecked) return;
+    _conclusionTimer = setTimeout(async function() {
+      _lastChecked = text;
+      var session = AppState.circlesSession;
+      if (!session) return;
+      if (hintEl) hintEl.textContent = '分析中…';
+      try {
+        var headers = { 'Content-Type': 'application/json' };
+        if (AppState.accessToken) headers['Authorization'] = 'Bearer ' + AppState.accessToken;
+        else headers['X-Guest-ID'] = AppState.guestId;
+        var baseUrl = (AppState.accessToken ? '/api/circles-sessions/' : '/api/guest-circles-sessions/') + session.id + '/conclusion-check';
+        var res = await fetch(baseUrl, { method: 'POST', headers: headers, body: JSON.stringify({ conclusionText: text }) });
+        var data = await res.json();
+        if (!document.getElementById('circles-conclusion-hint')) return;
+        var hintEl2 = document.getElementById('circles-conclusion-hint');
+        var submitBtn2 = document.getElementById('circles-conclusion-submit');
+        if (data.ok) {
+          if (hintEl2) { hintEl2.textContent = data.message || ''; hintEl2.style.color = '#137A3D'; }
+          if (submitBtn2) { submitBtn2.disabled = false; submitBtn2.style.opacity = '1'; submitBtn2.style.cursor = 'pointer'; }
+        } else {
+          if (hintEl2) { hintEl2.textContent = data.message || ''; hintEl2.style.color = '#B85C00'; }
+        }
+      } catch (_) {
+        var hintEl3 = document.getElementById('circles-conclusion-hint');
+        if (hintEl3) hintEl3.textContent = '';
+      }
+    }, 8000);
+  });
+
+  // Confirm submit — save conclusion, trigger evaluation
+  document.getElementById('circles-conclusion-submit')?.addEventListener('click', async function() {
     var btn = this;
     btn.disabled = true;
     btn.textContent = '評分中...';
+    btn.style.opacity = '.65';
 
     var session = AppState.circlesSession;
+    var conclusionText = AppState.circlesConclusionText;
+    var stepKey = AppState.circlesDrillStep;
     if (!session || !session.id) { render(); return; }
+
+    // Store conclusion locally for report page
+    if (!AppState.circlesStepConclusions) AppState.circlesStepConclusions = {};
+    AppState.circlesStepConclusions[stepKey] = conclusionText;
+    if (!AppState.circlesStepScores) AppState.circlesStepScores = {};
 
     var headers = AppState.accessToken
       ? { 'Content-Type': 'application/json', 'Authorization': 'Bearer ' + AppState.accessToken }
@@ -1118,21 +1385,23 @@ function bindCirclesPhase2() {
       var scoreData = await res.json();
       if (!res.ok) throw new Error(scoreData.error || res.status);
       AppState.circlesScoreResult = scoreData;
+      if (!AppState.circlesStepScores) AppState.circlesStepScores = {};
+      AppState.circlesStepScores[stepKey] = scoreData;
+      AppState.circlesSubmitState = null;
+      AppState.circlesConclusionText = '';
       AppState.circlesPhase = 3;
       render();
     } catch (e) {
       btn.disabled = false;
-      btn.textContent = '提交步驟';
+      btn.textContent = '確認提交';
+      btn.style.opacity = '1';
     }
   });
 
-  // Send message
+  // Normal send message
   document.getElementById('circles-send-btn')?.addEventListener('click', sendCirclesMessage);
   document.getElementById('circles-msg-input')?.addEventListener('keydown', function(e) {
-    if (e.key === 'Enter' && !e.shiftKey) {
-      e.preventDefault();
-      sendCirclesMessage();
-    }
+    if (e.key === 'Enter' && !e.shiftKey) { e.preventDefault(); sendCirclesMessage(); }
   });
 }
 
@@ -1240,12 +1509,12 @@ function renderCirclesStepScore() {
 
   var dims = (result.dimensions || []).map(function(d) {
     return '<div class="circles-dim-row">' +
-      '<div><div class="circles-dim-name">' + d.name + '</div><div class="circles-dim-comment">' + d.comment + '</div></div>' +
+      '<div><div class="circles-dim-name">' + escHtml(d.name) + '</div><div class="circles-dim-comment">' + escHtml(d.comment) + '</div></div>' +
       '<div class="circles-dim-score">' + d.score + '<span style="font-size:10px;color:var(--c-text-3,#8a8a8a)">/5</span></div>' +
     '</div>';
   }).join('');
 
-  var coachContent = result.coachVersion || '';
+  var coachContent = escHtml(result.coachVersion || '');
   var isLastStep = stepIdx === 6;
 
   return '<div data-view="circles">' +
@@ -1255,24 +1524,32 @@ function renderCirclesStepScore() {
         '<div class="circles-nav-title">步驟評分 — ' + step.label + '</div>' +
         '<div class="circles-nav-sub">' + (q ? q.company : '') + '</div>' +
       '</div>' +
+      (mode === 'simulation'
+        ? '<div style="display:flex;gap:4px">' +
+            '<button class="circles-nav-back" id="circles-score-prev" ' + (stepIdx === 0 ? 'disabled style="opacity:.35"' : '') + '><i class="ph ph-caret-left"></i></button>' +
+            '<button class="circles-nav-back" id="circles-score-nav-next" ' + (stepIdx >= AppState.circlesSimStep ? 'disabled style="opacity:.35"' : '') + '><i class="ph ph-caret-right"></i></button>' +
+          '</div>'
+        : '') +
     '</div>' +
-    '<div class="circles-progress">' + progressSegs + '<div class="circles-progress-label">' + step.short + ' · ' + (stepIdx + 1) + ' of 7</div></div>' +
+    '<div class="circles-progress">' + progressSegs + '<div class="circles-progress-label">' + step.short + ' · ' + step.label + ' · ' + (stepIdx + 1) + '/7</div></div>' +
     '<div class="circles-score-wrap">' +
       '<div class="circles-score-total">' +
         '<div class="circles-score-number">' + Math.round(result.totalScore || 0) + '</div>' +
         '<div class="circles-score-label">/ 100 分</div>' +
       '</div>' +
       dims +
-      '<div class="circles-highlight-card good"><div class="circles-highlight-card-label">最強表現</div><div class="circles-highlight-card-text">' + (result.highlight || '—') + '</div></div>' +
-      '<div class="circles-highlight-card improve"><div class="circles-highlight-card-label">最需改進</div><div class="circles-highlight-card-text">' + (result.improvement || '—') + '</div></div>' +
+      '<div class="circles-highlight-card good"><div class="circles-highlight-card-label">最強表現</div><div class="circles-highlight-card-text">' + escHtml(result.highlight || '—') + '</div></div>' +
+      '<div class="circles-highlight-card improve"><div class="circles-highlight-card-label">最需改進</div><div class="circles-highlight-card-text">' + escHtml(result.improvement || '—') + '</div></div>' +
       '<div class="circles-coach-toggle" id="circles-coach-toggle">' +
         '<div class="circles-coach-toggle-label">教練示範答案 <i class="ph ph-caret-down"></i></div>' +
         '<div class="circles-coach-content" id="circles-coach-content">' + coachContent + '</div>' +
       '</div>' +
       '<div class="circles-submit-bar">' +
-        (isLastStep || mode === 'drill'
-          ? '<button class="circles-btn-primary" id="circles-score-again">重練這道題</button><button class="circles-btn-ghost" id="circles-score-home">回首頁</button>'
-          : '<button class="circles-btn-primary" id="circles-score-next">繼續下一步：' + CIRCLES_STEPS[stepIdx + 1].label + ' →</button><button class="circles-btn-ghost" id="circles-score-home">回首頁</button>') +
+        (isLastStep && mode === 'simulation'
+          ? '<button class="circles-btn-primary" id="circles-score-final">查看總結報告</button><button class="circles-btn-ghost" id="circles-score-home">回首頁</button>'
+          : (mode === 'drill' || isLastStep
+              ? '<button class="circles-btn-primary" id="circles-score-again">重練這道題</button><button class="circles-btn-ghost" id="circles-score-home">回首頁</button>'
+              : '<button class="circles-btn-primary" id="circles-score-next">繼續下一步：' + CIRCLES_STEPS[stepIdx + 1].label + ' →</button><button class="circles-btn-ghost" id="circles-score-home">回首頁</button>')) +
       '</div>' +
     '</div>' +
   '</div>';
@@ -1294,7 +1571,14 @@ function bindCirclesStepScore() {
     AppState.circlesSession = null;
     AppState.circlesPhase = 1;
     AppState.circlesScoreResult = null;
-    navigate('home');
+    AppState.circlesFinalReport = null;
+    AppState.circlesStepScores = {};
+    navigate('circles');
+  });
+
+  document.getElementById('circles-score-final')?.addEventListener('click', function() {
+    AppState.circlesPhase = 4;
+    render();
   });
 
   document.getElementById('circles-score-again')?.addEventListener('click', function() {
@@ -1304,6 +1588,8 @@ function bindCirclesStepScore() {
     AppState.circlesGateResult = null;
     AppState.circlesConversation = [];
     AppState.circlesScoreResult = null;
+    AppState.circlesFinalReport = null;
+    AppState.circlesStepScores = {};
     render();
   });
 
@@ -1326,6 +1612,162 @@ function bindCirclesStepScore() {
       }
       render();
     }
+  });
+
+  document.getElementById('circles-score-prev')?.addEventListener('click', function() {
+    var idx = CIRCLES_STEPS.findIndex(function(s) { return s.key === AppState.circlesDrillStep; });
+    if (idx > 0) {
+      AppState.circlesDrillStep = CIRCLES_STEPS[idx - 1].key;
+      AppState.circlesScoreResult = (AppState.circlesStepScores || {})[CIRCLES_STEPS[idx - 1].key] || null;
+      render();
+    }
+  });
+
+  document.getElementById('circles-score-nav-next')?.addEventListener('click', function() {
+    var idx = CIRCLES_STEPS.findIndex(function(s) { return s.key === AppState.circlesDrillStep; });
+    if (idx < AppState.circlesSimStep && idx < 6) {
+      AppState.circlesDrillStep = CIRCLES_STEPS[idx + 1].key;
+      AppState.circlesScoreResult = (AppState.circlesStepScores || {})[CIRCLES_STEPS[idx + 1].key] || null;
+      render();
+    }
+  });
+}
+
+function renderCirclesFinalReport() {
+  var report = AppState.circlesFinalReport;
+  var q = AppState.circlesSelectedQuestion;
+  var stepScores = AppState.circlesStepScores || {};
+
+  var navBar = '<div class="circles-nav">' +
+    '<div><div class="circles-nav-title">模擬面試總結報告</div>' +
+    '<div class="circles-nav-sub">' + (q ? escHtml(q.company) + ' · ' + escHtml(q.product || '') : '') + '</div></div>' +
+    '</div>';
+
+  if (!report) {
+    return '<div data-view="circles">' + navBar +
+      '<div style="text-align:center;padding:48px 16px;font-family:DM Sans,sans-serif">' +
+        '<div style="font-size:32px;margin-bottom:12px">⏳</div>' +
+        '<div style="color:#5a5a5a;font-size:14px">生成總結報告中…</div>' +
+      '</div></div>';
+  }
+
+  if (report._error) {
+    return '<div data-view="circles">' + navBar +
+      '<div style="text-align:center;padding:48px 16px;font-family:DM Sans,sans-serif">' +
+        '<div style="font-size:32px;margin-bottom:12px">⚠️</div>' +
+        '<div style="color:#D92020;font-size:14px;margin-bottom:16px">報告生成失敗，請稍後重試</div>' +
+        '<button class="circles-btn-ghost" id="circles-final-retry">重試</button>' +
+      '</div></div>';
+  }
+
+  var gradeColor = ({ A: '#137A3D', B: '#1A56DB', C: '#B85C00', D: '#D92020' })[report.grade] || '#1a1a1a';
+
+  var stepLabels = { C1:'澄清', I:'用戶', R:'需求', C2:'排序', L:'方案', E:'取捨', S:'總結' };
+  var stepRows = ['C1','I','R','C2','L','E','S'].filter(function(k) { return stepScores[k]; }).map(function(k) {
+    var s = stepScores[k];
+    var scoreNum = Math.round(s.totalScore || 0);
+    var color = scoreNum >= 70 ? '#137A3D' : scoreNum >= 50 ? '#B85C00' : '#D92020';
+    return '<div style="display:flex;justify-content:space-between;align-items:center;padding:8px 0;border-bottom:1px solid #eee;font-family:DM Sans,sans-serif">' +
+      '<span style="font-size:13px;color:#1a1a1a">' + escHtml(stepLabels[k] || k) + '</span>' +
+      '<span style="font-size:13px;font-weight:600;color:' + color + '">' + scoreNum + '</span>' +
+    '</div>';
+  }).join('');
+
+  var strengths = (report.strengths || []).map(function(s) {
+    return '<li style="margin-bottom:6px;font-size:13px;font-family:DM Sans,sans-serif;color:#1a1a1a">' + escHtml(s) + '</li>';
+  }).join('');
+
+  var improvements = (report.improvements || []).map(function(s) {
+    return '<li style="margin-bottom:6px;font-size:13px;font-family:DM Sans,sans-serif;color:#1a1a1a">' + escHtml(s) + '</li>';
+  }).join('');
+
+  return '<div data-view="circles">' +
+    navBar +
+    '<div style="padding:16px 0 80px">' +
+      '<div style="background:#fff;border-radius:16px;padding:20px;text-align:center;margin-bottom:16px;border:1px solid rgba(0,0,0,0.08)">' +
+        '<div style="font-size:56px;font-weight:800;color:' + gradeColor + ';font-family:Instrument Serif,serif;line-height:1">' + escHtml(report.grade || '') + '</div>' +
+        '<div style="font-size:18px;color:#1a1a1a;margin:8px 0 4px;font-family:DM Sans,sans-serif;font-weight:600">' + Math.round(report.overallScore || 0) + ' 分</div>' +
+        '<div style="font-size:14px;color:#5a5a5a;font-family:DM Sans,sans-serif">' + escHtml(report.headline || '') + '</div>' +
+      '</div>' +
+      '<div style="background:#fff;border-radius:16px;padding:16px;margin-bottom:16px;border:1px solid rgba(0,0,0,0.08)">' +
+        '<div style="font-size:12px;font-weight:600;color:#8a8a8a;text-transform:uppercase;letter-spacing:.6px;margin-bottom:8px;font-family:DM Sans,sans-serif">各步驟分數</div>' +
+        stepRows +
+      '</div>' +
+      '<div style="background:#F0FFF4;border-radius:16px;padding:16px;margin-bottom:12px;border:1px solid #BBF7D0">' +
+        '<div style="font-size:12px;font-weight:600;color:#137A3D;margin-bottom:8px;font-family:DM Sans,sans-serif">✓ 表現優秀</div>' +
+        '<ul style="padding-left:18px;margin:0">' + strengths + '</ul>' +
+      '</div>' +
+      '<div style="background:#FFF7ED;border-radius:16px;padding:16px;margin-bottom:12px;border:1px solid #FED7AA">' +
+        '<div style="font-size:12px;font-weight:600;color:#B85C00;margin-bottom:8px;font-family:DM Sans,sans-serif">△ 需要改進</div>' +
+        '<ul style="padding-left:18px;margin:0">' + improvements + '</ul>' +
+      '</div>' +
+      '<div style="background:#EEF3FF;border-radius:16px;padding:16px;margin-bottom:12px;border:1px solid #C5D5FF">' +
+        '<div style="font-size:12px;font-weight:600;color:#1A56DB;margin-bottom:8px;font-family:DM Sans,sans-serif">教練總評</div>' +
+        '<div style="font-size:13px;color:#1a1a1a;line-height:1.7;font-family:DM Sans,sans-serif">' + escHtml(report.coachVerdict || '') + '</div>' +
+      '</div>' +
+      (report.nextSteps ? '<div style="background:#fff;border-radius:12px;padding:14px;margin-bottom:16px;border:1px solid rgba(0,0,0,0.08);font-size:13px;color:#5a5a5a;font-family:DM Sans,sans-serif;line-height:1.6"><span style="font-weight:600;color:#1a1a1a">建議下一步：</span>' + escHtml(report.nextSteps) + '</div>' : '') +
+      '<div class="circles-submit-bar">' +
+        '<button class="circles-btn-primary" id="circles-final-again">重練這道題</button>' +
+        '<button class="circles-btn-ghost" id="circles-final-home">回首頁</button>' +
+      '</div>' +
+    '</div>' +
+  '</div>';
+}
+
+function bindCirclesFinalReport() {
+  if (!AppState.circlesFinalReport) {
+    var session = AppState.circlesSession;
+    if (session && session.id) {
+      var headers = AppState.accessToken
+        ? { 'Content-Type': 'application/json', 'Authorization': 'Bearer ' + AppState.accessToken }
+        : { 'Content-Type': 'application/json', 'X-Guest-ID': AppState.guestId };
+      var route = (AppState.accessToken ? '/api/circles-sessions/' : '/api/guest-circles-sessions/') + session.id + '/final-report';
+      fetch(route, { method: 'POST', headers: headers })
+        .then(function(res) { return res.json(); })
+        .then(function(data) {
+          if (data && !data.error) {
+            AppState.circlesFinalReport = data;
+          } else {
+            AppState.circlesFinalReport = { _error: true };
+          }
+          if (AppState.circlesPhase === 4) render();
+        })
+        .catch(function() {
+          AppState.circlesFinalReport = { _error: true };
+          if (AppState.circlesPhase === 4) render();
+        });
+    }
+  }
+
+  document.getElementById('circles-final-retry')?.addEventListener('click', function() {
+    AppState.circlesFinalReport = null;
+    render();
+    setTimeout(bindCirclesFinalReport, 0);
+  });
+
+  document.getElementById('circles-final-again')?.addEventListener('click', function() {
+    AppState.circlesSession = null;
+    AppState.circlesPhase = 1;
+    AppState.circlesFrameworkDraft = {};
+    AppState.circlesGateResult = null;
+    AppState.circlesConversation = [];
+    AppState.circlesScoreResult = null;
+    AppState.circlesFinalReport = null;
+    AppState.circlesStepConclusions = {};
+    AppState.circlesStepScores = {};
+    AppState.circlesSimStep = 0;
+    render();
+  });
+
+  document.getElementById('circles-final-home')?.addEventListener('click', function() {
+    AppState.circlesSelectedQuestion = null;
+    AppState.circlesSession = null;
+    AppState.circlesPhase = 1;
+    AppState.circlesScoreResult = null;
+    AppState.circlesFinalReport = null;
+    AppState.circlesStepConclusions = {};
+    AppState.circlesStepScores = {};
+    navigate('circles');
   });
 }
 
@@ -1805,7 +2247,7 @@ function formatCoachReply(coachReply) {
 }
 
 function escHtml(str) {
-  return (str || '').replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/\n/g,'<br>');
+  return (str || '').replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;').replace(/\n/g,'<br>');
 }
 
 function scrollChatToBottom() {
@@ -2842,7 +3284,8 @@ function renderNSMStep4() {
 function bindNSM() {
   // Back button
   document.getElementById('btn-nsm-back')?.addEventListener('click', () => {
-    if (AppState.nsmStep === 1 || AppState.nsmStep === 4) navigate('home');
+    if (AppState.nsmStep === 1) navigate('circles');
+    else if (AppState.nsmStep === 4) { AppState.nsmStep = 1; AppState.nsmSession = null; AppState.nsmSelectedQuestion = null; navigate('nsm'); }
     else { AppState.nsmStep--; render(); }
   });
 
@@ -2868,6 +3311,7 @@ function bindNSM() {
         var data = await res.json();
         if (!res.ok) throw new Error(data.error);
         AppState.nsmSession = { id: data.sessionId };
+        AppState.offcanvasCache = null; // force fresh fetch on next offcanvas open
         if (AppState.nsmSelectedQuestion) {
           var newEntry = {
             id: data.sessionId, type: 'nsm', status: 'in_progress',
@@ -3113,7 +3557,11 @@ function bindNSM() {
     AppState.nsmVanityWarning = null;
     render();
   });
-  document.getElementById('btn-nsm-home')?.addEventListener('click', function() { navigate('home'); });
+  document.getElementById('btn-nsm-home')?.addEventListener('click', function() {
+    AppState.nsmStep = 1; AppState.nsmSession = null; AppState.nsmSelectedQuestion = null;
+    AppState.nsmNsmDraft = ''; AppState.nsmBreakdownDraft = {}; AppState.nsmVanityWarning = null;
+    navigate('nsm');
+  });
 
   // visualViewport keyboard fix — use module-level ref to prevent listener accumulation
   if (_adjustNsmKeyboardFn && window.visualViewport) {

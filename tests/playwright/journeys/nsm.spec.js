@@ -1,41 +1,36 @@
 // tests/playwright/journeys/nsm.spec.js
-// Journey: Home → NSM tab → question list → select card → step 2
+// Journey: CIRCLES home → click NSM (navbar or banner) → question list → select card → step 2
 
 const { test, expect } = require('@playwright/test');
 const { checkPageHealth, collectConsoleErrors } = require('../helpers/metrics');
 const { formatIssues, createIssue } = require('../helpers/issue-reporter');
 
 test.describe('NSM Journey', () => {
-  test('NSM tab shows question list and card selection works', async ({ page }, testInfo) => {
+  test('NSM question list loads and card selection works', async ({ page }, testInfo) => {
     const device = testInfo.project.name;
     const issues = [];
     const consoleErrors = collectConsoleErrors(page);
 
     await page.goto('/');
 
-    // Wait for app to init (guest mode)
-    await page.waitForSelector('.home-tab-btn', { timeout: 10000 });
+    // Wait for CIRCLES home (new default)
+    await page.waitForSelector('#navbar-actions button', { timeout: 10000 });
 
-    // Click NSM tab
-    const nsmTabBtn = page.locator('.home-tab-btn[data-tab="nsm"]');
-    await expect(nsmTabBtn).toBeVisible();
-    await nsmTabBtn.click();
-
-    // NSM start button should appear
-    const startBtn = page.locator('#btn-nsm-start');
-    await expect(startBtn).toBeVisible();
-    await startBtn.click();
+    // Click NSM in navbar (no more .home-tab-btn)
+    const nsmNavBtn = page.locator('#navbar-actions').getByText('北極星指標', { exact: true });
+    await expect(nsmNavBtn).toBeVisible();
+    await nsmNavBtn.click();
 
     // NSM step 1: question list container must exist
     await page.waitForSelector('.nsm-question-list', { timeout: 10000 });
     await page.waitForSelector('.nsm-question-card', { timeout: 5000 });
 
-    // Confirm more than 0 cards rendered (virtual scroll renders visible subset)
+    // Confirm more than 0 cards rendered
     const cards = page.locator('.nsm-question-card');
     const cardCount = await cards.count();
     expect(cardCount).toBeGreaterThan(0);
 
-    // Scroll the nsm-body to load more cards (virtual scroll)
+    // Scroll the nsm-body to load more cards
     await page.evaluate(() => {
       const body = document.querySelector('.nsm-body');
       if (body) body.scrollTop = body.scrollHeight;
@@ -66,10 +61,31 @@ test.describe('NSM Journey', () => {
       issues.push(createIssue('nsm', device, 'console', 'js-error', critical.join(' | ')));
     }
 
-    if (issues.length > 0) {
-      console.warn('\n' + formatIssues(issues));
-    }
+    if (issues.length > 0) console.warn('\n' + formatIssues(issues));
     expect(issues.filter(i => i.type === 'overflow')).toHaveLength(0);
     expect(issues.filter(i => i.type === 'cls')).toHaveLength(0);
+  });
+
+  test('NSM back from step 1 returns to CIRCLES home', async ({ page }) => {
+    await page.goto('/');
+    await page.waitForSelector('#navbar-actions button', { timeout: 10000 });
+
+    await page.locator('#navbar-actions').getByText('北極星指標', { exact: true }).click();
+    await page.waitForSelector('.nsm-question-list', { timeout: 10000 });
+
+    // Back button from step 1 should go to circles
+    const backBtn = page.locator('#btn-nsm-back');
+    await expect(backBtn).toBeVisible();
+    await backBtn.click();
+
+    await page.waitForSelector('.circles-mode-card', { timeout: 5000 });
+  });
+
+  test('NSM banner on CIRCLES home links to NSM', async ({ page }) => {
+    await page.goto('/');
+    await page.waitForSelector('#circles-nsm-banner-btn', { timeout: 10000 });
+
+    await page.click('#circles-nsm-banner-btn');
+    await page.waitForSelector('.nsm-question-list', { timeout: 10000 });
   });
 });
