@@ -928,7 +928,7 @@ function renderCirclesPhase1() {
         '<div class="circles-nav-sub">' + q.company + ' · ' + (q.product || '') + '</div>' +
       '</div>' +
     '</div>' +
-    '<div class="circles-progress">' + progressSegs + '<div class="circles-progress-label">' + step.short + ' · ' + (stepIdx + 1) + ' of 7</div></div>' +
+    '<div class="circles-progress">' + progressSegs + '<div class="circles-progress-label">' + step.short + ' · ' + step.label + ' · ' + (stepIdx + 1) + '/7</div></div>' +
     '<div class="circles-phase1-wrap">' +
       '<div style="font-size:13px;color:var(--c-text-2,#5a5a5a);line-height:1.6;margin-bottom:16px;font-family:DM Sans,sans-serif;padding:12px 14px;background:#fff;border-radius:10px;border:1px solid rgba(0,0,0,0.08)">' + q.problem_statement + '</div>' +
       fields +
@@ -1050,7 +1050,7 @@ function renderCirclesGate() {
       '<div class="circles-nav">' +
         '<div><div class="circles-nav-title">框架審核中</div><div class="circles-nav-sub">' + (q ? q.company : '') + '</div></div>' +
       '</div>' +
-      '<div class="circles-progress">' + progressSegs + '<div class="circles-progress-label">' + step.short + '</div></div>' +
+      '<div class="circles-progress">' + progressSegs + '<div class="circles-progress-label">' + step.short + ' · ' + step.label + '</div></div>' +
       '<div class="circles-gate-loading"><i class="ph ph-circle-notch" style="font-size:28px;animation:spin 0.8s linear infinite;display:block;margin-bottom:12px"></i>AI 正在審核你的框架...</div>' +
     '</div>';
   }
@@ -1077,7 +1077,7 @@ function renderCirclesGate() {
         '<div class="circles-nav-sub">' + step.label + ' · ' + (q ? q.company : '') + '</div>' +
       '</div>' +
     '</div>' +
-    '<div class="circles-progress">' + progressSegs + '<div class="circles-progress-label">' + step.short + '</div></div>' +
+    '<div class="circles-progress">' + progressSegs + '<div class="circles-progress-label">' + step.short + ' · ' + step.label + '</div></div>' +
     '<div class="circles-gate-wrap">' +
       items +
       '<div class="circles-submit-bar">' +
@@ -1144,7 +1144,7 @@ function renderCirclesPhase2() {
       '</div>' +
       (turnCount > 0 ? '<div class="circles-nav-right">' + turnCount + ' 輪</div>' : '') +
     '</div>' +
-    '<div class="circles-progress">' + progressSegs + '<div class="circles-progress-label">' + step.short + ' · ' + (stepIdx + 1) + ' of 7</div></div>' +
+    '<div class="circles-progress">' + progressSegs + '<div class="circles-progress-label">' + step.short + ' · ' + step.label + ' · ' + (stepIdx + 1) + '/7</div></div>' +
     '<div class="circles-chat-body" id="circles-chat-body">' + bubbles + '<div id="circles-streaming-bubble"></div></div>' +
     '<div class="circles-input-bar" id="circles-input-bar">' +
       '<textarea class="circles-input" id="circles-msg-input" placeholder="輸入追問或回應..." rows="1"></textarea>' +
@@ -1350,7 +1350,7 @@ function renderCirclesStepScore() {
         '<div class="circles-nav-sub">' + (q ? q.company : '') + '</div>' +
       '</div>' +
     '</div>' +
-    '<div class="circles-progress">' + progressSegs + '<div class="circles-progress-label">' + step.short + ' · ' + (stepIdx + 1) + ' of 7</div></div>' +
+    '<div class="circles-progress">' + progressSegs + '<div class="circles-progress-label">' + step.short + ' · ' + step.label + ' · ' + (stepIdx + 1) + '/7</div></div>' +
     '<div class="circles-score-wrap">' +
       '<div class="circles-score-total">' +
         '<div class="circles-score-number">' + Math.round(result.totalScore || 0) + '</div>' +
