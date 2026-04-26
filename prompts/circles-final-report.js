@@ -38,7 +38,7 @@ async function generateFinalReport({ stepScores, questionJson }) {
     model: 'gpt-4o',
     messages: [{ role: 'user', content: prompt }],
     temperature: 0.4,
-    max_tokens: 600,
+    max_tokens: 800,
     response_format: { type: 'json_object' },
   });
 

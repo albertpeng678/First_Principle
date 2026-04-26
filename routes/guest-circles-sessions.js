@@ -191,11 +191,12 @@ router.patch('/:id/progress', requireGuestId, async (req, res) => {
 router.post('/:id/final-report', requireGuestId, async (req, res) => {
   const { data: session, error } = await db
     .from('circles_sessions')
-    .select('question_json, step_scores')
+    .select('question_json, step_scores, final_report')
     .eq('id', req.params.id)
     .eq('guest_id', req.guestId)
     .single();
   if (error || !session) return res.status(404).json({ error: 'not_found' });
+  if (session.final_report) return res.json(session.final_report);
   if (!session.step_scores || Object.keys(session.step_scores).length < 7) {
     return res.status(400).json({ error: 'incomplete_steps' });
   }
@@ -209,7 +210,7 @@ router.post('/:id/final-report', requireGuestId, async (req, res) => {
       status: 'completed',
     }).eq('id', req.params.id).eq('guest_id', req.guestId);
     res.json(report);
-  } catch (e) { res.status(500).json({ error: e.message }); }
+  } catch (e) { res.status(500).json({ error: 'report_generation_failed' }); }
 });
 
 module.exports = router;

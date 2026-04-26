@@ -239,7 +239,9 @@ async function loadCirclesSession(sessionId) {
     AppState.circlesFrameworkDraft    = s.framework_draft || {};
     AppState.circlesGateResult        = s.gate_result || null;
     AppState.circlesConversation      = s.conversation || [];
-    AppState.circlesScoreResult       = null; // loaded separately when needed
+    AppState.circlesScoreResult       = null;
+    AppState.circlesStepScores        = s.step_scores || {};
+    AppState.circlesFinalReport       = null;
     return true;
   } catch (e) { return false; }
 }
@@ -580,6 +582,8 @@ function renderOffcanvasList(listEl, sessions) {
           AppState.circlesGateResult = null;
           AppState.circlesConversation = [];
           AppState.circlesScoreResult = null;
+          AppState.circlesStepScores = {};
+          AppState.circlesFinalReport = null;
           navigate('circles');
         } else {
           await loadCirclesSession(id);
@@ -1559,6 +1563,8 @@ function bindCirclesStepScore() {
     AppState.circlesSession = null;
     AppState.circlesPhase = 1;
     AppState.circlesScoreResult = null;
+    AppState.circlesFinalReport = null;
+    AppState.circlesStepScores = {};
     navigate('circles');
   });
 
@@ -1574,6 +1580,8 @@ function bindCirclesStepScore() {
     AppState.circlesGateResult = null;
     AppState.circlesConversation = [];
     AppState.circlesScoreResult = null;
+    AppState.circlesFinalReport = null;
+    AppState.circlesStepScores = {};
     render();
   });
 
@@ -1632,6 +1640,15 @@ function renderCirclesFinalReport() {
       '<div style="text-align:center;padding:48px 16px;font-family:DM Sans,sans-serif">' +
         '<div style="font-size:32px;margin-bottom:12px">⏳</div>' +
         '<div style="color:#5a5a5a;font-size:14px">生成總結報告中…</div>' +
+      '</div></div>';
+  }
+
+  if (report._error) {
+    return '<div data-view="circles">' + navBar +
+      '<div style="text-align:center;padding:48px 16px;font-family:DM Sans,sans-serif">' +
+        '<div style="font-size:32px;margin-bottom:12px">⚠️</div>' +
+        '<div style="color:#D92020;font-size:14px;margin-bottom:16px">報告生成失敗，請稍後重試</div>' +
+        '<button class="circles-btn-ghost" id="circles-final-retry">重試</button>' +
       '</div></div>';
   }
 
@@ -1702,12 +1719,23 @@ function bindCirclesFinalReport() {
         .then(function(data) {
           if (data && !data.error) {
             AppState.circlesFinalReport = data;
-            if (AppState.circlesPhase === 4) render();
+          } else {
+            AppState.circlesFinalReport = { _error: true };
           }
+          if (AppState.circlesPhase === 4) render();
         })
-        .catch(function() {});
+        .catch(function() {
+          AppState.circlesFinalReport = { _error: true };
+          if (AppState.circlesPhase === 4) render();
+        });
     }
   }
+
+  document.getElementById('circles-final-retry')?.addEventListener('click', function() {
+    AppState.circlesFinalReport = null;
+    render();
+    setTimeout(bindCirclesFinalReport, 0);
+  });
 
   document.getElementById('circles-final-again')?.addEventListener('click', function() {
     AppState.circlesSession = null;
