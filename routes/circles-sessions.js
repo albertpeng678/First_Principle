@@ -5,6 +5,7 @@ const { requireAuth } = require('../middleware/auth');
 const { reviewFramework } = require('../prompts/circles-gate');
 const { streamCirclesReply } = require('../prompts/circles-coach');
 const { evaluateCirclesStep } = require('../prompts/circles-evaluator');
+const { checkConclusion } = require('../prompts/circles-conclusion-check');
 
 // POST /api/circles-sessions
 router.post('/', requireAuth, async (req, res) => {
@@ -149,6 +150,23 @@ router.post('/:id/evaluate-step', requireAuth, async (req, res) => {
       current_phase: 3,
       status: (session.mode === 'drill' || isLastStep) ? 'completed' : 'active',
     }).eq('id', req.params.id).eq('user_id', req.user.id);
+    res.json(result);
+  } catch (e) { res.status(500).json({ error: e.message }); }
+});
+
+// POST /api/circles-sessions/:id/conclusion-check
+router.post('/:id/conclusion-check', requireAuth, async (req, res) => {
+  const { conclusionText } = req.body;
+  if (!conclusionText || !conclusionText.trim()) return res.status(400).json({ error: 'missing_conclusion' });
+  const { data: session, error } = await db
+    .from('circles_sessions')
+    .select('question_json, drill_step')
+    .eq('id', req.params.id)
+    .eq('user_id', req.user.id)
+    .single();
+  if (error || !session) return res.status(404).json({ error: 'not_found' });
+  try {
+    const result = await checkConclusion(session.drill_step || 'C1', conclusionText, session.question_json);
     res.json(result);
   } catch (e) { res.status(500).json({ error: e.message }); }
 });

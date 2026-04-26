@@ -42,6 +42,9 @@ const AppState = {
   circlesGateLoading: false,
   circlesScoreResult: null,        // current step score from evaluator
   circlesCoachOpen: false,
+  circlesSubmitState: null,        // null | 'collapsed' | 'expanded'
+  circlesConclusionText: '',       // user's conclusion textarea value
+  circlesStepConclusions: {},      // { stepKey: 'conclusion text' } accumulated across steps
   circlesSimStep: 0,               // for simulation: which of 7 steps is active (0-6)
   circlesRecentSessions: [],       // [{ id, question_json, mode, drill_step, current_phase, sim_step_index, updated_at }]
   circlesRecentLoading: false,
@@ -1117,11 +1120,13 @@ function bindCirclesGate() {
 function renderCirclesPhase2() {
   var q = AppState.circlesSelectedQuestion;
   var mode = AppState.circlesMode;
-  var stepKey = mode === 'drill' ? AppState.circlesDrillStep : 'C1';
+  var stepKey = AppState.circlesDrillStep;
   var stepIdx = CIRCLES_STEPS.findIndex(function(s) { return s.key === stepKey; });
   var step = CIRCLES_STEPS[stepIdx];
   var conv = AppState.circlesConversation;
   var turnCount = conv.length;
+  var submitState = AppState.circlesSubmitState; // null | 'collapsed' | 'expanded'
+  var conclusionText = AppState.circlesConclusionText || '';
 
   var progressSegs = CIRCLES_STEPS.map(function(s, i) {
     var cls = i < stepIdx ? 'done' : i === stepIdx ? 'active' : '';
@@ -1141,36 +1146,79 @@ function renderCirclesPhase2() {
       '</div>';
   }
 
+  // Pinned question card
+  var pinnedCard = q ? (
+    '<div class="circles-pinned-card" id="circles-pinned-card">' +
+      '<div style="display:flex;align-items:center;gap:6px;margin-bottom:4px">' +
+        '<span style="background:#EEF3FF;color:#1A56DB;border-radius:4px;padding:1px 6px;font-size:9px;font-weight:700">' + escHtml(q.company) + '</span>' +
+      '</div>' +
+      '<div style="font-size:11px;color:#1a1a1a;font-weight:600;line-height:1.4" id="circles-pinned-stmt">' + escHtml(q.problem_statement.slice(0, 80)) + (q.problem_statement.length > 80 ? '…' : '') + '</div>' +
+      (q.problem_statement.length > 80 ? '<div id="circles-pinned-toggle" style="font-size:10px;color:#1A56DB;cursor:pointer;margin-top:2px">展開 ▾</div>' : '') +
+    '</div>'
+  ) : '';
+
+  // Bottom section: input bar OR collapsed strip OR conclusion box
+  var bottomSection;
+  if (submitState === 'expanded') {
+    // Conclusion box
+    var detectionHtml = '<div id="circles-conclusion-hint" style="min-height:16px;font-size:10px;color:#8a8a8a;margin-top:6px"></div>';
+    bottomSection = '<div class="circles-conclusion-box" id="circles-conclusion-box">' +
+      '<div style="font-size:11px;font-weight:700;color:#1a1a1a;margin-bottom:2px">整理你這個步驟確認了什麼</div>' +
+      '<div style="font-size:10px;color:#8a8a8a;margin-bottom:8px">1-2 句話說明範圍、時間、影響</div>' +
+      '<div id="circles-example-block" style="border:1px solid #e8e5de;border-radius:8px;margin-bottom:8px;overflow:hidden">' +
+        '<div id="circles-example-header" style="background:#f0ede6;padding:5px 9px;display:flex;justify-content:space-between;cursor:pointer">' +
+          '<div style="font-size:9px;font-weight:700;color:#8a8a8a;text-transform:uppercase;letter-spacing:.4px">範例（不同題目）</div>' +
+          '<div id="circles-example-toggle-label" style="font-size:10px;color:#8a8a8a">展開 ▾</div>' +
+        '</div>' +
+        '<div id="circles-example-content" style="display:none;padding:8px 10px;font-size:11px;color:#5a5a5a;line-height:1.6">問題集中在移動端搜尋功能，過去 90 天內轉換率下降 12%，主要影響首次訂房用戶，與近期過濾器 UI 改動時間吻合。</div>' +
+      '</div>' +
+      '<textarea id="circles-conclusion-input" style="width:100%;border:1px solid #ddd;border-radius:8px;padding:9px;font-size:11px;line-height:1.6;resize:none;height:60px;box-sizing:border-box;font-family:DM Sans,sans-serif" placeholder="針對這題，整理你確認的關鍵資訊...">' + escHtml(conclusionText) + '</textarea>' +
+      detectionHtml +
+      '<div style="margin-top:8px;display:flex;align-items:center;justify-content:space-between">' +
+        '<button id="circles-conclusion-back" style="font-size:10px;color:#8a8a8a;background:none;border:none;cursor:pointer;font-family:DM Sans,sans-serif;padding:0">← 繼續對話</button>' +
+        '<button id="circles-conclusion-submit" class="circles-btn-primary" disabled style="opacity:.45;cursor:not-allowed">確認提交</button>' +
+      '</div>' +
+    '</div>';
+  } else if (submitState === 'collapsed') {
+    // Collapsed strip
+    bottomSection = '<div class="circles-submit-strip" id="circles-submit-strip">' +
+      '<div>' +
+        '<div style="font-size:11px;font-weight:600;color:#1A56DB;font-family:DM Sans,sans-serif">整理結論</div>' +
+        '<div style="font-size:10px;color:#8a8a8a;font-family:DM Sans,sans-serif">翻閱完對話後，點右側展開填寫</div>' +
+      '</div>' +
+      '<button id="circles-strip-expand" style="background:#1A56DB;color:#fff;border:none;border-radius:8px;padding:7px 12px;font-size:11px;font-weight:600;cursor:pointer;font-family:DM Sans,sans-serif;white-space:nowrap">展開填寫 ▲</button>' +
+    '</div>';
+  } else {
+    // Normal input bar
+    bottomSection = '<div class="circles-input-bar" id="circles-input-bar">' +
+      '<textarea class="circles-input" id="circles-msg-input" placeholder="輸入追問或回應..." rows="1"></textarea>' +
+      '<button class="circles-send-btn" id="circles-send-btn"><i class="ph ph-paper-plane-tilt"></i></button>' +
+    '</div>' +
+    (turnCount >= 2
+      ? '<div id="circles-submit-row" style="padding:6px 12px 10px;display:flex;justify-content:center">' +
+          '<button id="circles-submit-step" style="font-size:11px;color:#5a5a5a;border:1px solid #e8e5de;border-radius:8px;padding:6px 16px;cursor:pointer;background:#fff;font-family:DM Sans,sans-serif">對話足夠了，提交這個步驟</button>' +
+        '</div>'
+      : '');
+  }
+
   return '<div data-view="circles" class="circles-chat-wrap">' +
     '<div class="circles-nav">' +
       '<button class="circles-nav-back" id="circles-p2-back"><i class="ph ph-arrow-left"></i></button>' +
       '<div>' +
         '<div class="circles-nav-title">' + step.label + ' — 對話練習</div>' +
-        '<div class="circles-nav-sub">' + (q ? q.company : '') + '</div>' +
+        '<div class="circles-nav-sub">' + (q ? escHtml(q.company) : '') + '</div>' +
       '</div>' +
-      (turnCount > 0 ? '<div class="circles-nav-right">' + turnCount + ' 輪</div>' : '') +
+      (turnCount > 0 && !submitState ? '<div class="circles-nav-right">' + turnCount + ' 輪</div>' : '') +
     '</div>' +
     '<div class="circles-progress">' + progressSegs + '<div class="circles-progress-label">' + step.short + ' · ' + step.label + ' · ' + (stepIdx + 1) + '/7</div></div>' +
+    pinnedCard +
     '<div class="circles-chat-body" id="circles-chat-body">' + bubbles + '<div id="circles-streaming-bubble"></div></div>' +
-    '<div class="circles-input-bar" id="circles-input-bar">' +
-      '<textarea class="circles-input" id="circles-msg-input" placeholder="輸入追問或回應..." rows="1"></textarea>' +
-      '<button class="circles-phase2-submit" id="circles-submit-step" style="' + (turnCount < 2 ? 'display:none' : '') + '">提交步驟</button>' +
-      '<button class="circles-send-btn" id="circles-send-btn"><i class="ph ph-paper-plane-tilt"></i></button>' +
-    '</div>' +
+    bottomSection +
   '</div>';
 }
 
 function bindCirclesPhase2() {
-  document.getElementById('circles-p2-back')?.addEventListener('click', function() {
-    AppState.circlesPhase = 1.5;
-    render();
-  });
-
-  // Auto-scroll to bottom
-  var chatBody = document.getElementById('circles-chat-body');
-  if (chatBody) chatBody.scrollTop = chatBody.scrollHeight;
-
-  // Keyboard handler
+  // Keyboard avoidance (unchanged)
   if (_adjustCirclesKbFn && window.visualViewport) {
     window.visualViewport.removeEventListener('resize', _adjustCirclesKbFn);
     window.visualViewport.removeEventListener('scroll', _adjustCirclesKbFn);
@@ -1182,7 +1230,7 @@ function bindCirclesPhase2() {
       if (_raf) return;
       _raf = requestAnimationFrame(function() {
         _raf = null;
-        var bar = document.getElementById('circles-input-bar');
+        var bar = document.getElementById('circles-input-bar') || document.getElementById('circles-submit-strip') || document.getElementById('circles-conclusion-box');
         var body = document.getElementById('circles-chat-body');
         if (!bar) return;
         var kbH = Math.max(0, window.innerHeight - window.visualViewport.offsetTop - window.visualViewport.height);
@@ -1191,22 +1239,124 @@ function bindCirclesPhase2() {
       });
     };
   }());
-  var inputBar = document.getElementById('circles-input-bar');
-  if (inputBar) inputBar.style.willChange = 'transform';
   if (window.visualViewport) {
     window.visualViewport.addEventListener('resize', _adjustCirclesKbFn);
     window.visualViewport.addEventListener('scroll', _adjustCirclesKbFn);
     _adjustCirclesKbFn();
   }
 
-  // Submit step
-  document.getElementById('circles-submit-step')?.addEventListener('click', async function() {
+  // Back button
+  document.getElementById('circles-p2-back')?.addEventListener('click', function() {
+    AppState.circlesPhase = 1.5;
+    AppState.circlesSubmitState = null;
+    render();
+  });
+
+  // Auto-scroll chat
+  var chatBody = document.getElementById('circles-chat-body');
+  if (chatBody) chatBody.scrollTop = chatBody.scrollHeight;
+
+  // Pinned card expand
+  document.getElementById('circles-pinned-toggle')?.addEventListener('click', function() {
+    var stmtEl = document.getElementById('circles-pinned-stmt');
+    var q = AppState.circlesSelectedQuestion;
+    if (!q) return;
+    var expanded = this.dataset.expanded === 'true';
+    if (expanded) {
+      stmtEl.textContent = q.problem_statement.slice(0, 80) + '…';
+      this.textContent = '展開 ▾';
+      this.dataset.expanded = 'false';
+    } else {
+      stmtEl.textContent = q.problem_statement;
+      this.textContent = '收起 ▴';
+      this.dataset.expanded = 'true';
+    }
+  });
+
+  // Submit step button (normal state → collapsed strip)
+  document.getElementById('circles-submit-step')?.addEventListener('click', function() {
+    AppState.circlesSubmitState = 'collapsed';
+    render();
+  });
+
+  // Strip expand button (collapsed → expanded conclusion box)
+  document.getElementById('circles-strip-expand')?.addEventListener('click', function() {
+    AppState.circlesSubmitState = 'expanded';
+    render();
+  });
+
+  // Back to chat (conclusion box → collapsed)
+  document.getElementById('circles-conclusion-back')?.addEventListener('click', function() {
+    AppState.circlesSubmitState = 'collapsed';
+    render();
+  });
+
+  // Example block toggle
+  document.getElementById('circles-example-header')?.addEventListener('click', function() {
+    var content = document.getElementById('circles-example-content');
+    var label = document.getElementById('circles-example-toggle-label');
+    if (!content) return;
+    var hidden = content.style.display === 'none';
+    content.style.display = hidden ? 'block' : 'none';
+    if (label) label.textContent = hidden ? '收起 ▴' : '展開 ▾';
+  });
+
+  // Conclusion textarea — 8 second debounce → AI detection
+  var _conclusionTimer = null;
+  var _lastChecked = '';
+  document.getElementById('circles-conclusion-input')?.addEventListener('input', function() {
+    var text = this.value;
+    AppState.circlesConclusionText = text;
+    var hintEl = document.getElementById('circles-conclusion-hint');
+    var submitBtn = document.getElementById('circles-conclusion-submit');
+    if (hintEl) hintEl.textContent = '';
+    if (submitBtn) { submitBtn.disabled = true; submitBtn.style.opacity = '.45'; submitBtn.style.cursor = 'not-allowed'; }
+    if (_conclusionTimer) clearTimeout(_conclusionTimer);
+    if (!text.trim() || text.trim().length < 10) return;
+    if (text === _lastChecked) return;
+    _conclusionTimer = setTimeout(async function() {
+      _lastChecked = text;
+      var session = AppState.circlesSession;
+      if (!session) return;
+      if (hintEl) hintEl.textContent = '分析中…';
+      try {
+        var headers = { 'Content-Type': 'application/json' };
+        if (AppState.accessToken) headers['Authorization'] = 'Bearer ' + AppState.accessToken;
+        else headers['X-Guest-ID'] = AppState.guestId;
+        var baseUrl = (AppState.accessToken ? '/api/circles-sessions/' : '/api/guest-circles-sessions/') + session.id + '/conclusion-check';
+        var res = await fetch(baseUrl, { method: 'POST', headers: headers, body: JSON.stringify({ conclusionText: text }) });
+        var data = await res.json();
+        if (!document.getElementById('circles-conclusion-hint')) return;
+        var hintEl2 = document.getElementById('circles-conclusion-hint');
+        var submitBtn2 = document.getElementById('circles-conclusion-submit');
+        if (data.ok) {
+          if (hintEl2) { hintEl2.textContent = data.message || ''; hintEl2.style.color = '#137A3D'; }
+          if (submitBtn2) { submitBtn2.disabled = false; submitBtn2.style.opacity = '1'; submitBtn2.style.cursor = 'pointer'; }
+        } else {
+          if (hintEl2) { hintEl2.textContent = data.message || ''; hintEl2.style.color = '#B85C00'; }
+        }
+      } catch (_) {
+        var hintEl3 = document.getElementById('circles-conclusion-hint');
+        if (hintEl3) hintEl3.textContent = '';
+      }
+    }, 8000);
+  });
+
+  // Confirm submit — save conclusion, trigger evaluation
+  document.getElementById('circles-conclusion-submit')?.addEventListener('click', async function() {
     var btn = this;
     btn.disabled = true;
     btn.textContent = '評分中...';
+    btn.style.opacity = '.65';
 
     var session = AppState.circlesSession;
+    var conclusionText = AppState.circlesConclusionText;
+    var stepKey = AppState.circlesDrillStep;
     if (!session || !session.id) { render(); return; }
+
+    // Store conclusion locally for report page
+    if (!AppState.circlesStepConclusions) AppState.circlesStepConclusions = {};
+    AppState.circlesStepConclusions[stepKey] = conclusionText;
 
     var headers = AppState.accessToken
       ? { 'Content-Type': 'application/json', 'Authorization': 'Bearer ' + AppState.accessToken }
@@ -1218,21 +1368,21 @@ function bindCirclesPhase2() {
       var scoreData = await res.json();
       if (!res.ok) throw new Error(scoreData.error || res.status);
       AppState.circlesScoreResult = scoreData;
+      AppState.circlesSubmitState = null;
+      AppState.circlesConclusionText = '';
       AppState.circlesPhase = 3;
       render();
     } catch (e) {
       btn.disabled = false;
-      btn.textContent = '提交步驟';
+      btn.textContent = '確認提交';
+      btn.style.opacity = '1';
     }
   });
 
-  // Send message
+  // Normal send message
   document.getElementById('circles-send-btn')?.addEventListener('click', sendCirclesMessage);
   document.getElementById('circles-msg-input')?.addEventListener('keydown', function(e) {
-    if (e.key === 'Enter' && !e.shiftKey) {
-      e.preventDefault();
-      sendCirclesMessage();
-    }
+    if (e.key === 'Enter' && !e.shiftKey) { e.preventDefault(); sendCirclesMessage(); }
   });
 }
 

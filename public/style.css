@@ -1589,6 +1589,33 @@ body { -webkit-font-smoothing: antialiased; }
   flex-shrink: 0;
   will-change: transform;
 }
+
+.circles-pinned-card {
+  background: #fff;
+  border-bottom: 1px solid #e8e5de;
+  padding: 8px 14px;
+  flex-shrink: 0;
+}
+
+.circles-submit-strip {
+  border-top: 1px solid #e8e5de;
+  background: #fff;
+  padding: 10px 14px;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  flex-shrink: 0;
+}
+
+.circles-conclusion-box {
+  border-top: 2px solid #1A56DB;
+  background: #fff;
+  padding: 14px;
+  flex-shrink: 0;
+  overflow-y: auto;
+  max-height: 65vh;
+}
+
 [data-view="circles"] .circles-input {
   flex: 1;
   background: var(--c-surface);
