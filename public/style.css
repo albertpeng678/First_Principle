@@ -1569,6 +1569,107 @@ body { -webkit-font-smoothing: antialiased; }
   line-height: 1.5;
 }
 
+/* Phase 1.5 Gate — new transition bar + per-item layout (Screen 4 spec) */
+[data-view="circles"] .gate-transition-bar {
+  border-radius: 10px;
+  padding: 12px 14px;
+  margin-bottom: 16px;
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  font-family: 'DM Sans', sans-serif;
+}
+[data-view="circles"] .gate-transition-bar.gate-pass {
+  background: #EEF6EE;
+  border: 1px solid #B8DBBF;
+}
+[data-view="circles"] .gate-transition-bar.gate-fail {
+  background: #FFF3F3;
+  border: 1px solid #FFCDD2;
+}
+[data-view="circles"] .gate-transition-icon {
+  font-size: 18px;
+  flex-shrink: 0;
+  display: flex;
+  align-items: center;
+}
+[data-view="circles"] .gate-transition-bar.gate-pass .gate-transition-icon { color: #137A3D; }
+[data-view="circles"] .gate-transition-bar.gate-fail .gate-transition-icon { color: #D92020; }
+[data-view="circles"] .gate-transition-text {
+  flex: 1;
+  font-size: 12px;
+  font-weight: 600;
+  font-family: 'DM Sans', sans-serif;
+}
+[data-view="circles"] .gate-transition-bar.gate-pass .gate-transition-text { color: #137A3D; }
+[data-view="circles"] .gate-transition-bar.gate-fail .gate-transition-text { color: #D92020; }
+[data-view="circles"] .gate-continue-btn {
+  background: var(--c-primary);
+  color: #fff;
+  border: none;
+  border-radius: 8px;
+  padding: 7px 14px;
+  font-size: 12px;
+  font-weight: 600;
+  cursor: pointer;
+  font-family: 'DM Sans', sans-serif;
+  white-space: nowrap;
+  flex-shrink: 0;
+  touch-action: manipulation;
+  -webkit-tap-highlight-color: transparent;
+}
+[data-view="circles"] .gate-continue-btn:active { opacity: 0.85; }
+
+[data-view="circles"] .gate-item {
+  background: var(--c-card);
+  border-radius: 10px;
+  border: 1.5px solid var(--c-border);
+  padding: 12px 14px;
+  margin-bottom: 10px;
+  display: flex;
+  gap: 10px;
+  align-items: flex-start;
+}
+[data-view="circles"] .gate-item.status-ok    { border-color: #b8dbbf; }
+[data-view="circles"] .gate-item.status-warn  { border-color: #FFD54F; }
+[data-view="circles"] .gate-item.status-error { border-color: #f5c6c6; }
+[data-view="circles"] .gate-item-icon {
+  font-size: 18px;
+  flex-shrink: 0;
+  margin-top: 1px;
+  display: flex;
+  align-items: center;
+}
+[data-view="circles"] .gate-item-content { flex: 1; min-width: 0; }
+[data-view="circles"] .gate-item-field {
+  font-size: 10px;
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
+  color: var(--c-text-3);
+  font-family: 'DM Sans', sans-serif;
+  margin-bottom: 2px;
+}
+[data-view="circles"] .gate-item-title {
+  font-size: 13px;
+  font-weight: 700;
+  color: var(--c-text);
+  margin-bottom: 3px;
+  font-family: 'DM Sans', sans-serif;
+}
+[data-view="circles"] .gate-item-reason {
+  font-size: 12px;
+  color: var(--c-text-2);
+  line-height: 1.5;
+  font-family: 'DM Sans', sans-serif;
+}
+[data-view="circles"] .gate-item-suggestion {
+  font-size: 11px;
+  color: #B85C00;
+  margin-top: 4px;
+  font-family: 'DM Sans', sans-serif;
+  line-height: 1.5;
+}
+
 /* Phase 2 — Chat */
 [data-view="circles"] .circles-chat-wrap {
   display: flex;

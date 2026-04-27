@@ -1779,29 +1779,76 @@ function renderCirclesGate() {
     return '<div class="circles-progress-seg ' + cls + '"></div>';
   }).join('');
 
+  var homeBtn = '<button style="font-size:12px;color:#1A56DB;border-bottom:1px solid #1A56DB;background:none;border-top:none;border-left:none;border-right:none;padding:2px 0;cursor:pointer;font-family:DM Sans,sans-serif;white-space:nowrap;flex-shrink:0" id="circles-gate-home">回首頁</button>';
+
   if (loading || !result) {
     return '<div data-view="circles">' +
       '<div class="circles-nav">' +
         '<div><div class="circles-nav-title">框架審核中</div><div class="circles-nav-sub">' + (q ? q.company : '') + '</div></div>' +
+        homeBtn +
       '</div>' +
       '<div class="circles-progress">' + progressSegs + '<div class="circles-progress-label">' + step.short + ' · ' + step.label + '</div></div>' +
       '<div class="circles-gate-loading"><i class="ph ph-circle-notch" style="font-size:28px;animation:spin 0.8s linear infinite;display:block;margin-bottom:12px"></i>AI 正在審核你的框架...</div>' +
     '</div>';
   }
 
-  var STATUS_LABEL = { error: '× 需修正', warn: '△ 建議補充', ok: '✓ 正確' };
+  // New schema render: gate-item with icon + title + reason + suggestion
+  var STATUS_ICON = { ok: 'ph-check-circle', warn: 'ph-warning', error: 'ph-x-circle' };
+  var STATUS_COLOR = { ok: '#137A3D', warn: '#B85C00', error: '#D92020' };
   var items = (result.items || []).map(function(item) {
     var safeStatus = (item.status || '').replace(/[^a-z]/g, '');
-    return '<div class="circles-gate-card ' + safeStatus + '">' +
-      '<div class="circles-gate-card-status">' + (STATUS_LABEL[safeStatus] || safeStatus) + ' · ' + item.field + '</div>' +
-      '<div class="circles-gate-card-title">' + item.title + '</div>' +
-      '<div class="circles-gate-card-reason">' + item.reason + '</div>' +
-      (item.suggestion ? '<div class="circles-gate-card-suggestion"><i class="ph ph-arrow-right"></i> ' + item.suggestion + '</div>' : '') +
+    var icon = STATUS_ICON[safeStatus] || 'ph-circle';
+    var color = STATUS_COLOR[safeStatus] || '#8a8a8a';
+    var showSuggestion = (safeStatus === 'error' || safeStatus === 'warn') && item.suggestion;
+    return '<div class="gate-item status-' + safeStatus + '">' +
+      '<div class="gate-item-icon" style="color:' + color + '"><i class="ph ' + icon + '"></i></div>' +
+      '<div class="gate-item-content">' +
+        '<div class="gate-item-field">' + escHtml(item.field || '') + '</div>' +
+        '<div class="gate-item-title">' + escHtml(item.title || '') + '</div>' +
+        '<div class="gate-item-reason">' + escHtml(item.reason || '') + '</div>' +
+        (showSuggestion ? '<div class="gate-item-suggestion">建議：' + escHtml(item.suggestion) + '</div>' : '') +
+      '</div>' +
     '</div>';
   }).join('');
 
-  var canProceed = result.canProceed !== false;
   var hasError = result.overallStatus === 'error';
+  var isSimulation = mode === 'simulation';
+
+  // Drill mode + error → canProceed=false from server → only 返回修改
+  // Simulation mode → always show 繼續 button (even with errors)
+  // Pass state: green transition bar with check + 繼續 button inline
+  // Fail state: red bar (no inline button) + bottom bar with 返回修改 (and 繼續 if simulation)
+  var transitionBar;
+  if (hasError) {
+    transitionBar = '<div class="gate-transition-bar gate-fail">' +
+      '<div class="gate-transition-icon"><i class="ph-fill ph-x-circle"></i></div>' +
+      '<div class="gate-transition-text">需要修正方向</div>' +
+    '</div>';
+  } else {
+    // No error → pass (warn-only is still pass per spec)
+    transitionBar = '<div class="gate-transition-bar gate-pass">' +
+      '<div class="gate-transition-icon"><i class="ph-fill ph-check-circle"></i></div>' +
+      '<div class="gate-transition-text">可以進入 Phase 2</div>' +
+      '<button class="gate-continue-btn" id="circles-gate-continue">繼續</button>' +
+    '</div>';
+  }
+
+  // Bottom bar: only needed for fail state (or simulation with error to allow override)
+  var bottomBar = '';
+  if (hasError) {
+    if (isSimulation) {
+      // Simulation mode + error: still allow continue but with warning text + 返回修改
+      bottomBar = '<div class="circles-submit-bar">' +
+        '<button class="circles-btn-primary" id="circles-gate-continue">帶著風險繼續 →</button>' +
+        '<button class="circles-btn-ghost" id="circles-gate-fix">返回修改</button>' +
+      '</div>';
+    } else {
+      // Drill mode + error: only 返回修改
+      bottomBar = '<div class="circles-submit-bar">' +
+        '<button class="circles-btn-primary" id="circles-gate-fix">返回修改</button>' +
+      '</div>';
+    }
+  }
 
   return '<div data-view="circles">' +
     '<div class="circles-nav">' +
@@ -1810,23 +1857,14 @@ function renderCirclesGate() {
         '<div class="circles-nav-title">框架審核結果</div>' +
         '<div class="circles-nav-sub">' + step.label + ' · ' + (q ? q.company : '') + '</div>' +
       '</div>' +
+      homeBtn +
     '</div>' +
     '<div class="circles-progress">' + progressSegs + '<div class="circles-progress-label">' + step.short + ' · ' + step.label + '</div></div>' +
     '<div class="circles-gate-wrap">' +
+      transitionBar +
       items +
-      (canProceed && !hasError
-        ? '<div style="background:#EEF3FF;border:1px solid #C5D5FF;border-radius:10px;padding:12px 14px;margin-bottom:12px;font-family:DM Sans,sans-serif">' +
-            '<div style="font-size:12px;font-weight:600;color:#1A56DB;margin-bottom:2px">框架審核通過</div>' +
-            '<div style="font-size:11px;color:#5a7ab5">框架方向正確，進入對話練習階段繼續探索。</div>' +
-          '</div>'
-        : '') +
-      '<div class="circles-submit-bar">' +
-        (canProceed || !hasError
-          ? '<button class="circles-btn-primary" id="circles-gate-proceed">' + (hasError ? '帶著問題進入對話（風險自負）' : '進入對話練習 →') + '</button>'
-          : '<button class="circles-btn-primary" id="circles-gate-fix">修正框架後重試</button>') +
-        (!canProceed && hasError ? '' : '<button class="circles-btn-ghost" id="circles-gate-back-edit">重新編輯框架</button>') +
-      '</div>' +
     '</div>' +
+    bottomBar +
   '</div>';
 }
 
@@ -1835,15 +1873,15 @@ function bindCirclesGate() {
     AppState.circlesPhase = 1;
     render();
   });
-  document.getElementById('circles-gate-back-edit')?.addEventListener('click', function() {
-    AppState.circlesPhase = 1;
-    render();
+  document.getElementById('circles-gate-home')?.addEventListener('click', function() {
+    navigate('circles');
   });
   document.getElementById('circles-gate-fix')?.addEventListener('click', function() {
     AppState.circlesPhase = 1;
     render();
   });
-  document.getElementById('circles-gate-proceed')?.addEventListener('click', function() {
+  // Both inline (pass state) and bottom-bar (simulation override) use #circles-gate-continue
+  document.getElementById('circles-gate-continue')?.addEventListener('click', function() {
     AppState.circlesPhase = 2;
     render();
   });
