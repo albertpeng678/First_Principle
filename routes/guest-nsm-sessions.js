@@ -4,6 +4,8 @@ const db = require('../db/client');
 const { requireGuestId } = require('../middleware/guest');
 const { evaluateNSM } = require('../prompts/nsm-evaluator');
 const { generateNSMHints } = require('../prompts/nsm-hints');
+const { reviewNSMGate } = require('../prompts/nsm-gate');
+const { generateNSMContext } = require('../prompts/nsm-context');
 
 function guessProductType(question_json) {
   const t = ((question_json.industry || '') + ' ' + (question_json.scenario || '') + ' ' + (question_json.company || '')).toLowerCase();
@@ -90,6 +92,26 @@ router.post('/:id/evaluate', requireGuestId, async (req, res) => {
       updated_at: new Date().toISOString()
     }).eq('id', req.params.id);
     if (upErr) throw upErr;
+    res.json(result);
+  } catch (e) { res.status(500).json({ error: e.message }); }
+});
+
+// POST /api/guest/nsm-sessions/:id/gate
+router.post('/:id/gate', requireGuestId, async (req, res) => {
+  const { nsm, rationale } = req.body;
+  const { data: session, error } = await db
+    .from('nsm_sessions')
+    .select('question_json')
+    .eq('id', req.params.id)
+    .eq('guest_id', req.guestId)
+    .single();
+  if (error || !session) return res.status(404).json({ error: 'not_found' });
+  try {
+    const result = await reviewNSMGate({
+      question: session.question_json,
+      nsm: nsm || '',
+      rationale: rationale || '',
+    });
     res.json(result);
   } catch (e) { res.status(500).json({ error: e.message }); }
 });
