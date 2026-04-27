@@ -5496,13 +5496,32 @@ Turn 4:
 
 ## Per-Step Content Reference — E 評估取捨
 
+**Mockup HTML（已完成）：** `.superpowers/brainstorm/E-step-2026-04-27/content/circles-E-step-mockup.html`
+（直接用瀏覽器開啟，或 `python -m http.server 8991` 後訪問 `http://localhost:8991/circles-E-step-mockup.html`）
+
+**Mockup 9 screens：**
+
+| Screen | nav-label | 說明 |
+|--------|-----------|------|
+| 1 | `P1 加練` | Phase 1 drill mode，前步驟摘要卡展開，方案一部分填寫，方案二空白，方案三隱藏（有展開按鈕） |
+| 2 | `P1+提示` | hint overlay 展開（成功指標），前步驟摘要卡折疊示意 |
+| 3 | `Gate ✓` | canProceed=true；方案一 ok，方案二成功指標 warn，方案三 ok |
+| 4 | `Gate ✗` | drill mode canProceed=false；方案一缺點 error，方案二成功指標 warn，底部固定「返回修改」 |
+| 5 | `P2 早期` | Turn 1，icebreaker 可見，無 submit row |
+| 6 | `P2 收斂` | Turn 4 完成，底部出現「整理結論 →」 |
+| 7 | `P2 結論` | 結論框展開，example strip 可折疊，pass hint 綠色 |
+| 8 | `P3 E評分` | 分數 81，4 維度，教練示範答案，score-nav ◀L / ▶disabled |
+| 9 | `P3 L評分` | L 步驟評分，score-nav ◀disabled / ▶E，展示跨步驟 nav |
+
+---
+
 ### Step Key: `E` | Label: E — 評估取捨 | Position: 6/7
 
-**Fields（Phase 1，per-solution 結構）：** 每個方案各自獨立一個區塊，包含：優點、缺點、風險與依賴、成功指標。欄位標題使用用戶在 L 步驟輸入的方案名稱（從 `circlesStepDrafts['L']` 讀取），若 sol3 為 null 則方案三區塊隱藏。
+**Fields（Phase 1，per-solution 結構）：** 每個方案各自獨立一個 `.e-solution-block` 區塊，包含：優點、缺點、風險與依賴、成功指標。欄位標題使用用戶在 L 步驟輸入的方案名稱（從 `circlesStepDrafts['L']` 讀取），若 sol3 為 null 則方案三區塊隱藏。
 
-> **Phase 1 UI 方向（Option B — per-solution matrix）：** 每個方案各自一個 `field-group`，標題列顯示方案編號 ＋ 用戶自訂名稱（e.g. 「方案一・演算法重排」），內部包含 4 個 textarea 欄位。相比「4 綜合欄位」的 Option A，此設計引導力更強——用戶被迫逐一評估每個方案，避免跳過薄弱方案。
+> **Phase 1 UI 方向（Option B — per-solution matrix）：** 每個方案各自一個 block，標題列顯示方案編號 badge ＋ 用戶自訂名稱，內部包含 4 個 textarea 欄位。相比「4 綜合欄位」的 Option A，此設計引導力更強——用戶被迫逐一評估每個方案，避免跳過薄弱方案。
 
-> **跨步驟資料依賴：** E 步驟在進入時讀取 `circlesStepDrafts['L']`（`{ sol1, sol2, sol3 }`）以顯示方案名稱標籤。若 `circlesStepDrafts['L']` 不存在（drill 模式或 L 未完成），則回退到預設標籤「方案一／二／三」，sol3 區塊預設隱藏。
+> **跨步驟資料依賴：** E 步驟在進入時讀取 `circlesStepDrafts['L']`（`{ sol1, sol2, sol3 }`）顯示方案名稱標籤，讀取 `circlesStepDrafts['C1']`（業務約束）與 `circlesStepDrafts['R']`（核心痛點 Phase 2 結論）填入前步驟摘要卡。若對應 draft 不存在，回退為預設標籤／空字串。
 
 **Rubric (4 dimensions, total /20 → normalized to /100):**
 | Dimension | Max | Description |
@@ -5512,7 +5531,25 @@ Turn 4:
 | 成功指標具體性 | 5 | 成功指標可量化，與用戶痛點直接掛鉤 |
 | 取捨判斷清晰 | 5 | 能說明方案之間的關鍵取捨，為最終推薦做鋪墊 |
 
+---
+
+### Phase 1 Layout（完整結構順序）
+
+```
+circles-nav (← | E — 評估取捨 · Company | 回首頁)
+circles-progress (7 segments, position 6/7)
+[Scrollable: scroll-body, padding-bottom:120px]
+  circles-step-pills (7 pills, E active)
+  problem-card (題目全文)
+  prev-step-card (前步驟重點參考，預設展開，可折疊)  ← NEW
+  e-solution-block × 2（方案一、方案二，各含 4 fields）
+  e-solution-block × 1（方案三，id="e-sol3-block"，條件顯示）
+  e-sol3-add-btn（dashed 按鈕，有 sol3 時出現；點擊展開 sol3 block）
+[Fixed: submit-bar (返回選題 | 提交審核)]
+```
+
 **Phase 1 欄位 per-solution 結構（每個方案各含以下 4 個 textarea）：**
+
 ```
 方案一・[sol1 name]
   ├── 優點          placeholder: 這個方案的核心優勢是什麼？
@@ -5527,28 +5564,214 @@ Turn 4:
   └── （同上 4 欄）
 ```
 
-**Phase 1 hint overlay texts (lightbulb buttons，每個方案共用同一組 hint）：**
-- 優點：「優點要具體——不是「用戶喜歡」，而是「直接解決 Feed 相關性問題，系統主動，用戶無感」。說出這個方案「為什麼比其他方案更適合解決這個問題」。」
-- 缺點：「缺點不是說「這個方案不好」，而是誠實說「這個方向的侷限在哪裡」。面試官希望看到你能清楚識別方案的邊界，而不是只看到優點。」
-- 風險與依賴：「風險是「如果 X 沒有達成，這個方案就會失敗」。常見的有：資料依賴（需要哪些 ML 訓練資料）、用戶行為假設（用戶願意主動設定）、業務約束（廣告收入不能下降超過 N%）。」
-- 成功指標：「成功指標要和你在 R 步驟確認的核心痛點掛鉤。如果核心痛點是「Feed 相關性不足」，成功指標應該是「用戶在 Feed 上的停留時間提升 X%」或「廣告點擊率維持在 Y% 以上」。」
+---
 
-**`CIRCLES_STEP_HINTS['E']` array (drill mode field example text，對應欄位順序):**
-```javascript
-// 方案一 優點:
-'演算法方案優點：系統主動過濾，用戶無需改變行為；ML 端優化，開發週期最短（單季）',
-// 方案一 缺點:
-'演算法方案缺點：黑盒決策，用戶感知不透明；廣告相關性可能連帶下降，影響廣告主收益',
-// 方案一 風險與依賴:
-'依賴足夠的用戶社交圖譜資料；廣告收入影響需事先 A/B test 量化上限',
-// 方案一 成功指標:
-'Feed 停留時間提升 ≥ 15%；朋友動態互動率（like/comment）提升 ≥ 20%；廣告 CTR 下降 ≤ 5%'
+### 前步驟重點參考卡（`.prev-step-card`）
+
+**位置：** `problem-card` 下方、第一個 `.e-solution-block` 上方。  
+**預設狀態：** 展開（body 可見）。點擊標題列切換折疊／展開，caret icon 同步切換。  
+**資料來源：** 從 `circlesStepDrafts` 讀取；若 draft 不存在顯示「—」。
+
+| 列 | 欄位 label | 資料來源 |
+|----|-----------|---------|
+| C1 業務約束 | `C1 業務約束` | `circlesStepDrafts['C1']['業務影響']`（Phase 1 填寫值） |
+| R 核心痛點 | `R 核心痛點` | `circlesStepDrafts['R']['conclusion']`（Phase 2 結論文字） |
+| L 方案 | `L 方案` | `circlesStepDrafts['L'].sol1 + sol2 + sol3`，格式：`① sol1name ② sol2name [③ sol3name]` |
+
+**HTML：**
+
+```html
+<div class="prev-step-card">
+  <button class="prev-step-toggle" onclick="togglePrevCard(this)">
+    <span class="prev-step-toggle-title">
+      <i class="ph ph-clock-counter-clockwise"></i> 前步驟重點參考
+    </span>
+    <i class="ph ph-caret-down toggle-caret"></i>
+  </button>
+  <div class="prev-step-body">
+    <div class="prev-step-row">
+      <span class="prev-step-label">C1 業務約束</span>
+      <span class="prev-step-val">（circlesStepDrafts['C1']['業務影響'] 的值，或「—」）</span>
+    </div>
+    <div class="prev-step-row">
+      <span class="prev-step-label">R 核心痛點</span>
+      <span class="prev-step-val">（circlesStepDrafts['R']['conclusion'] 的值，或「—」）</span>
+    </div>
+    <div class="prev-step-row">
+      <span class="prev-step-label">L 方案</span>
+      <span class="prev-step-val">① sol1name ② sol2name（③ sol3name，有時顯示）</span>
+    </div>
+  </div>
+</div>
 ```
 
-**Phase 2 icebreaker text:**
+**JS `togglePrevCard`：**
+
+```javascript
+function togglePrevCard(btn) {
+  var body = btn.nextElementSibling;
+  if (!body) return;
+  var open = body.style.display !== 'none';
+  body.style.display = open ? 'none' : 'block';
+  var caret = btn.querySelector('.toggle-caret');
+  if (caret) caret.className = open ? 'ph ph-caret-right toggle-caret' : 'ph ph-caret-down toggle-caret';
+}
+```
+
+**CSS（全部使用既有 token，不新增 token）：**
+
+```css
+.prev-step-card {
+  background: var(--c-card);
+  border: 1px solid var(--c-border);
+  border-radius: 10px;
+  margin-bottom: 14px;
+  overflow: hidden;
+}
+.prev-step-toggle {
+  width: 100%;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  background: none;
+  border: none;
+  cursor: pointer;
+  padding: 10px 14px;
+  text-align: left;
+  font-family: 'DM Sans', sans-serif;
+}
+.prev-step-toggle-title {
+  font-size: 11px;
+  font-weight: 700;
+  color: var(--c-text-2);
+  display: flex;
+  align-items: center;
+  gap: 5px;
+}
+.toggle-caret {
+  font-size: 11px;
+  color: var(--c-text-3);
+  flex-shrink: 0;
+}
+.prev-step-body {
+  padding: 0 14px 12px;
+}
+.prev-step-row {
+  display: flex;
+  gap: 10px;
+  align-items: flex-start;
+  padding: 7px 0;
+  border-top: 1px solid var(--c-border);
+}
+.prev-step-row:first-child {
+  border-top: none;
+}
+.prev-step-label {
+  font-size: 9px;
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: .07em;
+  color: var(--c-text-3);
+  white-space: nowrap;
+  padding-top: 2px;
+  min-width: 60px;
+  font-family: 'DM Sans', sans-serif;
+}
+.prev-step-val {
+  font-size: 12px;
+  color: var(--c-text-2);
+  line-height: 1.55;
+  font-family: 'DM Sans', sans-serif;
+}
+```
+
+---
+
+### Per-Solution Block CSS
+
+```css
+.e-solution-block {
+  background: var(--c-card);
+  border-radius: 12px;
+  border: 1.5px solid var(--c-border);
+  margin-bottom: 14px;
+  overflow: hidden;
+}
+.e-sol-header {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  padding: 12px 14px 10px;
+  border-bottom: 1px solid var(--c-border);
+  background: #fafaf9;
+}
+.e-sol-badge {
+  font-size: 11px;
+  font-weight: 700;
+  color: var(--c-primary);
+  background: var(--c-primary-lt);
+  border-radius: 99px;
+  padding: 2px 9px;
+  white-space: nowrap;
+  font-family: 'DM Sans', sans-serif;
+  flex-shrink: 0;
+}
+.e-sol-name {
+  font-size: 13px;
+  font-weight: 600;
+  color: var(--c-text);
+  font-family: 'DM Sans', sans-serif;
+  min-width: 0;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+.e-sol-fields {
+  padding: 12px 14px 6px;
+}
+```
+
+方案三（sol3 可選）的 badge 與 sol-name 用灰色降調（參考 mockup）：
+
+```html
+<!-- sol3 badge（選填狀態） -->
+<span class="e-sol-badge" style="background:rgba(0,0,0,0.05);color:var(--c-text-3)">方案三</span>
+<span class="e-sol-name" style="color:var(--c-text-3)">分類 Feed 頁籤</span>
+```
+
+---
+
+### Phase 1 hint overlay texts（每個方案共用同一組）
+
+- **優點：**「優點要具體——不是「用戶喜歡」，而是「直接解決 Feed 相關性問題，系統主動，用戶無感」。說出這個方案「為什麼比其他方案更適合解決這個問題」。」
+- **缺點：**「缺點不是說「這個方案不好」，而是誠實說「這個方向的侷限在哪裡」。面試官希望看到你能清楚識別方案的邊界，而不是只看到優點。」
+- **風險與依賴：**「風險是「如果 X 沒有達成，這個方案就會失敗」。常見的有：資料依賴（需要哪些 ML 訓練資料）、用戶行為假設（用戶願意主動設定）、業務約束（廣告收入不能下降超過 N%）。」
+- **成功指標：**「成功指標要和你在 R 步驟確認的核心痛點掛鉤。如果核心痛點是「Feed 相關性不足」，成功指標應該是「用戶在 Feed 上的停留時間提升 X%」或「廣告點擊率維持在 Y% 以上」。」
+
+---
+
+### `CIRCLES_STEP_HINTS['E']` array（drill mode field example text，對應欄位順序）
+
+```javascript
+CIRCLES_STEP_HINTS['E'] = [
+  // 方案一 優點
+  '演算法方案優點：系統主動過濾，用戶無需改變行為；ML 端優化，開發週期最短（單季）',
+  // 方案一 缺點
+  '演算法方案缺點：黑盒決策，用戶感知不透明；廣告相關性可能連帶下降，影響廣告主收益',
+  // 方案一 風險與依賴
+  '依賴足夠的用戶社交圖譜資料；廣告收入影響需事先 A/B test 量化上限',
+  // 方案一 成功指標
+  'Feed 停留時間提升 ≥ 15%；朋友動態互動率（like/comment）提升 ≥ 20%；廣告 CTR 下降 ≤ 5%',
+];
+```
+
+---
+
+### Phase 2 icebreaker text
+
 「問被訪談者：「這幾個方案你們在評估時，最擔心的風險是什麼？」——不是問哪個最好，而是問顧慮。這樣能讓你確認自己的風險識別有沒有遺漏關鍵的業務約束。」
 
-**Phase 2 dialogue (4 turns):**
+### Phase 2 dialogue（4 turns，Meta News Feed 題）
 
 Turn 1:
 - 用戶問：「這幾個方案在評估時，你們最擔心哪個風險？」
@@ -5573,63 +5796,75 @@ Turn 4:
 - 被訪談者：「演算法方案看 Feed 停留時間和廣告 CTR；摯友列表看採用率和重複使用率；分類頁籤看頁籤切換行為和各分類的留存。三個方案衡量的指標本質上完全不同。」
 - 教練點評：「每個方案的成功指標各自清晰，且都和原始用戶痛點掛鉤。評估完整性和成功指標具體性兩個維度已達標，可以提交。」
 
-**Phase 2 conclusion box spec:**
+### Phase 2 conclusion box spec
+
 - title：「整理你這個步驟評估了什麼」
 - sub-text：「用 2-3 句話說明：各方案最關鍵的優缺點，以及你認為哪個方向最值得推薦」
 - Placeholder：「整理各方案的優缺點與風險，說明哪個方案最值得推薦及理由…」
 - Example strip（collapsed，不同題目）：「Spotify 免費版廣告體驗三個方案評估：廣告後推薦（優：系統主動，缺：可能推錯）；時段兌換（優：用戶主動，缺：採用率低）；分層訂閱（優：商業模式清晰，缺：開發週期長）。推薦廣告後推薦，短期可行且用戶無感。」
-- AI detection pass hint（length > 30 chars）：「結論涵蓋多方案比較並說明推薦方向，可以提交」
+- AI detection pass hint（length > 30 chars）：「✓ 結論涵蓋多方案比較並說明推薦方向，可以提交」
 
-**Phase 1.5 Gate — E 審核邏輯：**
+---
 
-`canProceed = false` 條件：方案一或方案二有任何一個必填欄位（優點、缺點、風險與依賴、成功指標）出現 `error`。方案三若整個 sol3 區塊存在，至少需要填寫優點與缺點；sol3 整體缺失（L 未填方案三）時不影響 canProceed。
+### Phase 1.5 Gate — E 審核邏輯
 
-**教練示範答案（完整，用於 coach-content HTML）：**
+`canProceed = false` 條件（drill mode 限定）：方案一或方案二有任何一個必填欄位（優點、缺點、風險與依賴、成功指標）出現 `error`。
+
+方案三：若整個 sol3 區塊存在且用戶已填寫，至少需要填寫優點與缺點；sol3 整體缺失（L 未填方案三）時不影響 canProceed。
+
+Simulation mode：即使有 error，`canProceed = true`（行為與所有其他步驟一致）。
+
+---
+
+### 教練示範答案（完整，用於 `.coach-content` HTML）
+
 ```html
-<div style="margin-bottom:12px"><strong>方案一・演算法重排</strong><br>
-優點：系統主動，用戶無感，開發集中在 ML 端，單季可見效。<br>
-缺點：黑盒決策，廣告相關性可能連帶下降。<br>
-風險：依賴社交圖譜資料；廣告 CTR 需 A/B test 設底線。<br>
-成功指標：Feed 停留時間 ↑15%；朋友動態互動率 ↑20%；廣告 CTR 降幅 ≤5%。</div>
-
-<div style="margin-bottom:12px"><strong>方案二・摯友列表</strong><br>
-優點：廣告衝擊最小，用戶主動控制，無演算法爭議。<br>
-缺點：歷史採用率低，用戶教育成本高。<br>
-風險：行為假設失效（用戶不願主動設定）。<br>
-成功指標：摯友列表採用率 ≥20%；設定後 30 天留存率 ↑10%。</div>
-
-<div style="margin-bottom:12px"><strong>方案三・分類頁籤</strong><br>
-優點：最徹底的結構性解法，用戶自主選擇瀏覽情境。<br>
-缺點：開發週期最長（逾一年）；廣告歸類方式需重新談。<br>
-風險：廣告主配合度不確定；用戶習慣遷移成本高。<br>
-成功指標：頁籤切換率 ≥30%；各分類 7 日留存率持平或提升。</div>
+<div style="margin-bottom:12px">
+  <strong>方案一・演算法重排</strong><br>
+  優點：系統主動，用戶無感，開發集中在 ML 端，單季可見效。<br>
+  缺點：黑盒決策，廣告相關性可能連帶下降。<br>
+  風險：依賴社交圖譜資料；廣告 CTR 需 A/B test 設底線。<br>
+  成功指標：Feed 停留時間 ↑15%；朋友動態互動率 ↑20%；廣告 CTR 降幅 ≤5%。
+</div>
+<div style="margin-bottom:12px">
+  <strong>方案二・摯友列表</strong><br>
+  優點：廣告衝擊最小，用戶主動控制，無演算法爭議。<br>
+  缺點：歷史採用率低，用戶教育成本高。<br>
+  風險：行為假設失效（用戶不願主動設定）。<br>
+  成功指標：摯友列表採用率 ≥20%；設定後 30 天留存率 ↑10%。
+</div>
+<div style="margin-bottom:12px">
+  <strong>方案三・分類頁籤</strong><br>
+  優點：最徹底的結構性解法，用戶自主選擇瀏覽情境。<br>
+  缺點：開發週期最長（逾一年）；廣告歸類方式需重新談。<br>
+  風險：廣告主配合度不確定；用戶習慣遷移成本高。<br>
+  成功指標：頁籤切換率 ≥30%；各分類 7 日留存率持平或提升。
+</div>
 ```
 
-**Score nav in circles-nav (simulation mode):**
-- ◀ (onclick → show L step score) — `score-nav-btn`
-- ▶ disabled (E is current/latest step) — `score-nav-btn` with `disabled`
+---
 
-**Simulation 模式 submit-bar（E 是第 6/7 步）：** 回首頁 ｜ 繼續下一步：S 總結推薦 →
+### Score nav（simulation mode）
 
-**Mockup screens 規劃（待製作）：**
-1. `P1 加練` — Phase 1 drill mode，3 個方案區塊各展開 4 個欄位（方案三預設隱藏），方案名稱由 circlesStepDrafts['L'] 帶入；drill 模式回退為預設標籤
-2. `P1+提示` — 所有欄位的 lightbulb 按鈕可點，觸發 hint overlay
-3. `Gate 通過` — canProceed=true，各欄位評估完整
-4. `Gate 失敗` — 方案一缺點欄位空白（error），方案二成功指標過於模糊（warn）
-5. `P2 早期` — Turn 1：拿到廣告收益業務約束
-6. `P2 收斂` — Turn 2-4：確認各方案風險，收斂至可提交
-7. `P2 結論` — 結論框顯示最後一輪，含 example strip
-8. `P3 E評分` — 分數 + 4 維度分解 + 教練示範答案 + score-nav ◀L / ▶disabled
-9. `P3 L評分` — 展示 ◀disabled / ▶點擊切回 E 評分的 score-nav
+- ◀ `onclick → show L step score` — `.score-nav-btn`
+- ▶ disabled（E 是目前最新完成步驟） — `.score-nav-btn[disabled]`
 
-**New patterns introduced in E step:**
+### Simulation 模式 submit-bar（E 是第 6/7 步）
+
+回首頁 ｜ 繼續下一步：S 總結推薦 →
+
+---
+
+### New patterns introduced in E step
+
 | Pattern | Class / ID | Description |
 |---------|-----------|-------------|
-| Per-solution 區塊 | `.e-solution-block` | 每個方案一個 block，標題列顯示「方案N・[名稱]」，內含 4 個 `.circles-field-group` |
-| 方案名稱標題列 | `.e-sol-header` | `font-weight: 700`；左側方案編號 badge + 右側 sol-name；從 `circlesStepDrafts['L']` 注入 |
-| Sol3 條件渲染 | `#e-sol3-block` | `display:none` 當 `circlesStepDrafts['L'].sol3` 為 null；drill 模式回退時亦隱藏 |
-
-**Mockup HTML 路徑（待建立）：** `.superpowers/brainstorm/E-step-2026-04-27/content/circles-E-step-mockup.html`
+| 前步驟摘要卡 | `.prev-step-card` | problem-card 下方，預設展開，可折疊；讀取 C1/R/L drafts |
+| 摘要卡 toggle | `.prev-step-toggle` + `.toggle-caret` | 點擊標題列切換；caret 隨展開狀態切換 `ph-caret-down` / `ph-caret-right` |
+| 摘要卡列 | `.prev-step-row` + `.prev-step-label` + `.prev-step-val` | 每列一條跨步驟資訊；label uppercase + letter-spacing，與 `.circles-field-label` 同規格 |
+| Per-solution 區塊 | `.e-solution-block` | 每個方案一個 block，標題列 + 4 個 `.circles-field-group` |
+| 方案名稱標題列 | `.e-sol-header` + `.e-sol-badge` + `.e-sol-name` | 左側 badge（圓角，primary-lt 底）+ 右側 sol-name；從 `circlesStepDrafts['L']` 注入 |
+| Sol3 條件渲染 | `#e-sol3-block` + `#e-sol3-add-btn` | block 預設 `display:none`；add-btn（dashed border）點擊後顯示 block、隱藏自身 |
 
 ---
 
@@ -6578,6 +6813,10 @@ circlesFrameworkDraft: {},      // current step's field values
 circlesGateResult: null,
 circlesConversation: [],        // current step's messages
 circlesStepScores: {},          // { C1: {...}, I: {...}, ... }
+circlesStepDrafts: {},          // per-step persistent drafts; keyed by step; saved on Phase 1 submit
+                                // L: { sol1: string, sol2: string, sol3: string|null }  — L step solution names
+                                // C1: { '業務影響': string, ... }  — C1 Phase 1 field values
+                                // R: { conclusion: string }  — R step Phase 2 conclusion text
 
 // NSM (most already exist, adding gate state):
 nsmGateResult: null,            // NEW: stores NSM gate result
