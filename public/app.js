@@ -57,6 +57,7 @@ const AppState = {
   circlesFinalReport: null,        // final report from /final-report endpoint
   circlesSimStep: 0,               // for simulation: which of 7 steps is active (0-6)
   circlesRecentSessions: [],       // [{ id, question_json, mode, drill_step, current_phase, sim_step_index, updated_at }]
+  circlesExamplesCache: {},        // { 'sessionId|step|field': aiGeneratedExample } — lazy-cached per click
   circlesRecentLoading: false,
   circlesDisplayedQuestions: [],   // up to 5 randomly picked questions for current type tab
   nsmContext: null,
@@ -1354,14 +1355,17 @@ function buildPrevStepCardHtml(stepKey) {
 // ──────────────────────────────────────────────────
 // Helper: build a standard textarea field group
 // ──────────────────────────────────────────────────
-// Collapsible field example: button + body. Default state collapsed (per spec line 3682,
-// "Replaces always-visible .circles-field-hint"). Returns empty string when no hint.
-function buildFieldExampleHtml(hintText) {
-  if (!hintText) return '';
-  return '<button class="field-example-toggle" type="button">' +
+// Collapsible field example: button + body. Default state collapsed (per spec line 3682).
+// Body content is lazily fetched from AI on first expand (question-specific), with the
+// static fallback shown immediately as a placeholder while AI loads.
+// stepKey and field are stamped on the toggle so the click handler can fetch the right content.
+function buildFieldExampleHtml(stepKey, field, fallbackHint) {
+  // Suppress entirely when there's no fallback hint AND no step (defensive)
+  if (!stepKey || !field) return '';
+  return '<button class="field-example-toggle" type="button" data-example-step="' + stepKey + '" data-example-field="' + escHtml(field) + '">' +
       '<i class="ph ph-caret-right"></i> 查看範例' +
     '</button>' +
-    '<div class="field-example-body">例：' + escHtml(hintText) + '</div>';
+    '<div class="field-example-body" data-fallback="' + escHtml(fallbackHint || '') + '"></div>';
 }
 
 function buildFieldGroupHtml(stepKey, field, draft, isSimulation, fieldIdx) {
@@ -1380,7 +1384,7 @@ function buildFieldGroupHtml(stepKey, field, draft, isSimulation, fieldIdx) {
         '<i class="ph ph-lightbulb"></i> 提示' +
       '</button>' +
     '</div>' +
-    buildFieldExampleHtml(hint) +
+    buildFieldExampleHtml(stepKey, key, hint) +
     '<textarea class="circles-field-input" data-field="' + escHtml(key) + '" rows="' + rows + '" placeholder="' + escHtml(field.placeholder || '填寫你的分析…') + '">' + escHtml(val) + '</textarea>' +
   '</div>';
 }
@@ -1410,7 +1414,7 @@ function buildSolutionFieldHtml(stepKey, field, draft, lDraft, isSimulation, fie
       '<i class="ph ph-tag"></i>' +
       '<input class="sol-name-input" type="text" maxlength="10" data-sol-name="' + solKey + '" placeholder="' + escHtml(field.namePlaceholder || '方案名稱（10 字內）') + '" value="' + escHtml(nameVal) + '">' +
     '</div>' +
-    buildFieldExampleHtml(hint) +
+    buildFieldExampleHtml(stepKey, key, hint) +
     '<textarea class="circles-field-input" data-field="' + escHtml(key) + '" rows="' + (field.rows || 2) + '" placeholder="' + escHtml(field.placeholder || '') + '">' + escHtml(bodyVal) + '</textarea>' +
   '</div>';
 }
@@ -1464,7 +1468,7 @@ function buildESolutionBlockHtml(solKey, solIdx, solName, perSolDraft, eFieldsCo
           '<i class="ph ph-lightbulb"></i> 提示' +
         '</button>' +
       '</div>' +
-      (solIdx === 0 ? buildFieldExampleHtml(hint) : '') +
+      (solIdx === 0 ? buildFieldExampleHtml('E', f.key, hint) : '') +
       '<textarea class="e-sol-input" data-sol="' + solKey + '" data-field="' + escHtml(f.key) + '" rows="2" placeholder="' + escHtml(f.placeholder) + '">' + escHtml(v) + '</textarea>' +
     '</div>';
   }).join('');
@@ -1675,15 +1679,75 @@ function bindCirclesPhase1() {
     });
   });
 
-  // ── Collapsible field example toggle (查看範例 / 收起範例) per spec line 3682
+  // ── Collapsible field example toggle: 查看範例 / 收起範例
+  // First open: fetch question-specific example via AI, cache, then show
+  // Subsequent toggles: instant from cache (no refetch)
   document.querySelectorAll('.field-example-toggle').forEach(function(btn) {
-    btn.addEventListener('click', function() {
+    btn.addEventListener('click', async function() {
       var body = btn.nextElementSibling;
       if (!body || !body.classList.contains('field-example-body')) return;
+      var stepKey = btn.dataset.exampleStep;
+      var fieldKey = btn.dataset.exampleField;
+      var session = AppState.circlesSession;
       var isOpen = body.classList.toggle('open');
       btn.innerHTML = isOpen
         ? '<i class="ph ph-caret-down"></i> 收起範例'
         : '<i class="ph ph-caret-right"></i> 查看範例';
+      if (!isOpen) return; // closing — no fetch needed
+
+      // Already populated this open cycle? skip
+      if (body.dataset.loaded === '1') return;
+
+      // Init cache
+      if (!AppState.circlesExamplesCache) AppState.circlesExamplesCache = {};
+      var cacheKey = (session && session.id ? session.id : 'nosession') + '|' + stepKey + '|' + fieldKey;
+
+      // Show fallback static text (if any) immediately while AI loads
+      var fallback = body.dataset.fallback || '';
+      var cached = AppState.circlesExamplesCache[cacheKey];
+      if (cached) {
+        body.innerHTML = '例：' + escHtml(cached);
+        body.dataset.loaded = '1';
+        return;
+      }
+      body.innerHTML = '<span style="color:var(--c-text-3);font-size:11px">'
+        + (fallback ? '例（通用）：' + escHtml(fallback) + '<br>' : '')
+        + '<i class="ph ph-circle-notch" style="display:inline-block;animation:spin 0.8s linear infinite;font-size:10px;margin-right:4px"></i>正在生成此題範例…</span>';
+
+      // Fetch from AI
+      if (!session || !session.id) {
+        // No session yet — show only fallback
+        body.innerHTML = fallback ? '例：' + escHtml(fallback) : '<span style="color:var(--c-text-3);font-size:11px">需建立 session 後才能生成範例</span>';
+        body.dataset.loaded = '1';
+        return;
+      }
+      try {
+        var headers = { 'Content-Type': 'application/json' };
+        if (AppState.accessToken) headers['Authorization'] = 'Bearer ' + AppState.accessToken;
+        else headers['X-Guest-ID'] = AppState.guestId;
+        var url = (AppState.accessToken ? '/api/circles-sessions/' : '/api/guest-circles-sessions/')
+          + session.id + '/example';
+        var resp = await fetch(url, {
+          method: 'POST',
+          headers: headers,
+          body: JSON.stringify({ step: stepKey, field: fieldKey }),
+        });
+        var data = await resp.json();
+        if (!resp.ok || !data.example) throw new Error(data.error || 'failed');
+        AppState.circlesExamplesCache[cacheKey] = data.example;
+        // User may have closed the panel during fetch — only update if still open
+        if (body.classList.contains('open')) {
+          body.innerHTML = '例：' + escHtml(data.example);
+          body.dataset.loaded = '1';
+        }
+      } catch (e) {
+        if (body.classList.contains('open')) {
+          body.innerHTML = fallback
+            ? '例：' + escHtml(fallback) + '<br><span style="color:var(--c-text-3);font-size:10px">（AI 範例生成失敗，顯示通用範例）</span>'
+            : '<span style="color:var(--c-text-3);font-size:11px">範例生成失敗，請重試</span>';
+          body.dataset.loaded = '1';
+        }
+      }
     });
   });
 

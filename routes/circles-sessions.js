@@ -8,6 +8,7 @@ const { evaluateCirclesStep } = require('../prompts/circles-evaluator');
 const { checkConclusion } = require('../prompts/circles-conclusion-check');
 const { generateFinalReport } = require('../prompts/circles-final-report');
 const { generateCirclesHint } = require('../prompts/circles-hint');
+const { generateCirclesExample } = require('../prompts/circles-example');
 
 // POST /api/circles-sessions
 router.post('/', requireAuth, async (req, res) => {
@@ -237,6 +238,25 @@ router.post('/:id/hint', requireAuth, async (req, res) => {
   try {
     const hint = await generateCirclesHint({ step, field, questionJson: session.question_json });
     res.json({ hint });
+  } catch (e) { res.status(500).json({ error: e.message }); }
+});
+
+// POST /api/circles-sessions/:id/example
+router.post('/:id/example', requireAuth, async (req, res) => {
+  const { step, field } = req.body;
+  if (!step || !field) return res.status(400).json({ error: 'missing_step_or_field' });
+  if (!ALLOWED_STEPS.includes(step)) return res.status(400).json({ error: 'invalid_step' });
+  if (typeof field !== 'string' || field.length > FIELD_MAX_LEN) return res.status(400).json({ error: 'invalid_field' });
+  const { data: session, error } = await db
+    .from('circles_sessions')
+    .select('question_json')
+    .eq('id', req.params.id)
+    .eq('user_id', req.user.id)
+    .single();
+  if (error || !session) return res.status(404).json({ error: 'not_found' });
+  try {
+    const example = await generateCirclesExample({ step, field, questionJson: session.question_json });
+    res.json({ example });
   } catch (e) { res.status(500).json({ error: e.message }); }
 });
 
