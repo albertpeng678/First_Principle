@@ -179,9 +179,27 @@ CSS:
 
 ## Screen 1: CIRCLES Home (`renderCirclesHome`)
 
-**Mockup 來源路徑：** `.superpowers/brainstorm/home-2026-04-27/content/circles-home-mockup.html`（直接用瀏覽器開啟即可預覽，含 5 個互動狀態）。**此 HTML 是實作的視覺真相來源（canonical visual truth）——若 spec 文字與此畫面有出入，以此 HTML 為準。**
+**Mockup 來源路徑：** `.superpowers/brainstorm/home-2026-04-27/content/circles-home-mockup.html`（直接用瀏覽器開啟即可預覽，含 **7 個互動狀態**）。**此 HTML 是實作的視覺真相來源（canonical visual truth）——若 spec 文字與此畫面有出入，以此 HTML 為準。**
+
+**Mockup 7 screens 對應：**
+| Screen | 說明 |
+|--------|------|
+| 1 | 首頁預設（完整模擬已選，info 折疊，產品設計 tab active，5 卡折疊） |
+| 2 | Info Card 展開（caret-down，說明文字 + 7 步驟色塊可見） |
+| 3 | 步驟加練 mode 選中（step pills 即時出現） |
+| 4 | step pill 已選（R 發掘需求 active） |
+| 5 | 題型 tab 篩選（產品改進 active，題目列表重新抽取） |
+| 6 | 題目展開—完整模擬（border primary，完整題幹，確認/取消） |
+| 7 | 題目展開—步驟加練（pill 已選 + 題目展開，最終確認狀態） |
 
 **Route/view:** `view: 'circles'` (this is the default view — app opens here)
+
+**AppState defaults:**
+```javascript
+circlesMode: localStorage.getItem('circlesMode') || 'simulation', // 'drill' | 'simulation'
+circlesSelectedType: 'design',   // 'design' | 'improve' | 'strategy'
+circlesDrillStep: 'C1',          // which step to drill; default 'C1'
+```
 
 ### Layout
 
@@ -189,31 +207,41 @@ CSS:
 Navbar (PM Drill | 北極星指標 | 登入 | ☰)
 ─────────────────────────────────────
 [Scrollable content: circles-home-wrap]
-  Title: "CIRCLES 訓練" (DM Sans 22px bold)
-  Sub:   "選題，按步驟填寫框架、訪談、拿到評分" (13px c-text-2)
-  [Info card — COLLAPSED by default]
-  [Mode selector — 2 cards]
-  [Type tabs + 隨機選題 button]
-  [5 question cards — expand-on-click]
+  Title:       "CIRCLES 訓練" (DM Sans 22px bold)
+  Sub:         "選題，按步驟填寫框架、訪談、拿到評分" (13px c-text-2)
+  [Info card — COLLAPSED by default, toggleable]
+  section label: "練習模式"
+  [Mode selector — 2 cards side-by-side]
+  [Step Pills — 只在 drill mode 顯示，位於 mode cards 與 type tabs 之間]
+  [Type Tabs — 3 tabs: 產品設計 / 產品改進 / 產品策略]
+  [Question list header: "選擇題目" + 隨機選題 button]
+  [Up to 20 question cards — expand-on-click accordion]
   [NSM Banner]
 ```
 
+---
+
 ### Info Card (collapsed by default)
 
-The "什麼是 CIRCLES 實戰訓練？" card is **collapsed by default**. Only the header button is visible. Clicking it expands the body.
+"什麼是 CIRCLES 實戰訓練？" card is **collapsed by default**. Only the header button is visible; clicking it expands the body. Clicking again collapses.
 
 ```html
 <div class="circles-info-card" style="padding:0;overflow:hidden">
-  <button onclick="toggleInfoCard(this)" style="width:100%;display:flex;align-items:center;justify-content:space-between;background:none;border:none;cursor:pointer;padding:12px 14px;text-align:left">
+  <button onclick="toggleInfoCard(this)"
+    style="width:100%;display:flex;align-items:center;justify-content:space-between;background:none;border:none;cursor:pointer;padding:12px 14px;text-align:left">
     <div class="circles-info-card-title" style="margin:0;font-size:13px">什麼是 CIRCLES 實戰訓練？</div>
     <i class="ph ph-caret-right" id="info-card-icon" style="font-size:13px;color:var(--c-text-3);flex-shrink:0"></i>
   </button>
   <div id="info-card-body" style="display:none;padding:0 14px 14px">
-    <div class="circles-info-card-sub">用結構化框架拆解 PM 面試題，模擬訪談並逐步評分。...</div>
+    <div class="circles-info-card-sub">用結構化框架拆解 PM 設計面試題，模擬真實利害關係人訪談，並在每個步驟收到 AI 教練評分與回饋。</div>
     <div class="circles-info-steps">
       <span class="circles-info-step">C 澄清情境</span>
       <span class="circles-info-step">I 定義用戶</span>
-      <!-- ... all 7 -->
+      <span class="circles-info-step">R 發掘需求</span>
+      <span class="circles-info-step">C 優先排序</span>
+      <span class="circles-info-step">L 提出方案</span>
+      <span class="circles-info-step">E 評估取捨</span>
+      <span class="circles-info-step">S 總結推薦</span>
     </div>
   </div>
 </div>
@@ -233,120 +261,296 @@ function toggleInfoCard(btn) {
 
 CSS:
 ```css
-.circles-info-card { background: var(--c-card); border: 1px solid #e8e5de; border-radius: 10px; padding: 14px 16px; margin-bottom: 20px; }
-.circles-info-card-title { font-size: 13px; font-weight: 700; color: var(--c-text); margin-bottom: 6px; font-family: 'DM Sans', sans-serif; }
+.circles-info-card { background: var(--c-card); border: 1px solid #e8e5de; border-radius: 10px; margin-bottom: 20px; overflow: hidden; }
+.circles-info-card-title { font-size: 13px; font-weight: 700; color: var(--c-text); font-family: 'DM Sans', sans-serif; }
 .circles-info-card-sub { font-size: 12px; color: var(--c-text-2); line-height: 1.6; margin-bottom: 10px; font-family: 'DM Sans', sans-serif; }
 .circles-info-steps { display: flex; flex-wrap: wrap; gap: 6px; }
 .circles-info-step { font-size: 11px; color: var(--c-primary); font-weight: 600; background: var(--c-primary-lt); border-radius: 4px; padding: 2px 7px; font-family: 'DM Sans', sans-serif; }
 ```
 
+---
+
 ### Mode Selector
 
-Two cards side-by-side. "完整模擬" is selected by default (stored in `AppState.circlesMode`). Clicking a card sets the mode.
+Section label `"練習模式"` appears above the two cards. **完整模擬 is on the LEFT; 步驟加練 is on the RIGHT.** Default selected is `AppState.circlesMode` (persisted to `localStorage`; falls back to `'simulation'`).
+
+Clicking a card: sets `AppState.circlesMode`, saves to localStorage, re-renders the step pills area (show if drill, hide if simulation).
 
 ```html
+<div class="circles-step-select-label">練習模式</div>
 <div class="circles-mode-row">
-  <div class="circles-mode-card selected" id="mode-simulation">
-    <div class="circles-mode-card-title">完整模擬</div>
-    <div class="circles-mode-card-desc">走完 7 個步驟，最後產出總結報告</div>
+  <div class="circles-mode-card selected" data-mode="simulation">
+    <div class="circles-mode-card-title"><i class="ph ph-video-camera"></i> 完整模擬</div>
+    <div class="circles-mode-card-desc">25-35 分鐘 · 全 7 步 · 無提示</div>
   </div>
-  <div class="circles-mode-card" id="mode-drill">
-    <div class="circles-mode-card-title">步驟加練</div>
-    <div class="circles-mode-card-desc">選定單一步驟深度練習</div>
+  <div class="circles-mode-card" data-mode="drill">
+    <div class="circles-mode-card-title"><i class="ph ph-target"></i> 步驟加練</div>
+    <div class="circles-mode-card-desc">5-10 分鐘 · 單一步驟 · 全引導</div>
   </div>
 </div>
 ```
 
 CSS:
 ```css
+.circles-step-select-label { font-size: 11px; color: var(--c-text-3); margin-bottom: 8px; font-family: 'DM Sans', sans-serif; text-transform: uppercase; letter-spacing: 0.06em; }
 .circles-mode-row { display: flex; gap: 10px; margin-bottom: 20px; }
-.circles-mode-card { flex: 1; padding: 14px; border-radius: 12px; border: 1.5px solid var(--c-border); background: var(--c-card); cursor: pointer; }
+.circles-mode-card { flex: 1; padding: 14px; border-radius: 12px; border: 1.5px solid var(--c-border); background: var(--c-card); cursor: pointer; touch-action: manipulation; }
 .circles-mode-card.selected { border-color: var(--c-primary); background: var(--c-primary-lt); }
-.circles-mode-card-title { font-size: 13px; font-weight: 600; color: var(--c-text); margin-bottom: 3px; font-family: 'DM Sans', sans-serif; }
+.circles-mode-card-title { font-size: 13px; font-weight: 600; color: var(--c-text); margin-bottom: 3px; font-family: 'DM Sans', sans-serif; display: flex; align-items: center; gap: 5px; }
 .circles-mode-card-desc { font-size: 11px; color: var(--c-text-3); line-height: 1.5; font-family: 'DM Sans', sans-serif; }
 ```
 
-### Type Tabs + 隨機選題
+JS click binding:
+```javascript
+document.querySelectorAll('.circles-mode-card').forEach(function(el) {
+  el.addEventListener('click', function() {
+    AppState.circlesMode = el.dataset.mode;
+    localStorage.setItem('circlesMode', AppState.circlesMode);
+    // re-render or toggle step pills visibility
+    renderCirclesHome();
+  });
+});
+```
+
+---
+
+### Step Pills（drill mode 專屬，條件渲染）
+
+**只在 `AppState.circlesMode === 'drill'` 時渲染，位於 mode cards 下方、type tabs 上方。** 完整模擬 mode 時此區塊完全不渲染（不佔空間）。
+
+Section label `"練習步驟"`。共 7 個 pill，對應 CIRCLES_STEPS 的 7 個步驟。預設 `AppState.circlesDrillStep = 'C1'`，即 C1 pill 為 active。
+
+點擊 pill → 更新 `AppState.circlesDrillStep`，重新渲染 pills（active class 移動）。
+
+```html
+<!-- 只在 drill mode 時輸出 -->
+<div class="circles-step-select-label">練習步驟</div>
+<div class="circles-step-pills">
+  <button class="circles-step-pill active" data-step="C1">C 澄清情境</button>
+  <button class="circles-step-pill" data-step="I">I 定義用戶</button>
+  <button class="circles-step-pill" data-step="R">R 發掘需求</button>
+  <button class="circles-step-pill" data-step="C2">C 優先排序</button>
+  <button class="circles-step-pill" data-step="L">L 提出方案</button>
+  <button class="circles-step-pill" data-step="E">E 評估取捨</button>
+  <button class="circles-step-pill" data-step="S">S 總結推薦</button>
+</div>
+```
+
+JS click binding:
+```javascript
+document.querySelectorAll('.circles-step-pill').forEach(function(el) {
+  el.addEventListener('click', function() {
+    AppState.circlesDrillStep = el.dataset.step;
+    document.querySelectorAll('.circles-step-pill').forEach(function(p) {
+      p.classList.toggle('active', p.dataset.step === AppState.circlesDrillStep);
+    });
+  });
+});
+```
+
+CSS:
+```css
+.circles-step-pills { display: flex; flex-wrap: wrap; gap: 6px; margin-bottom: 18px; }
+.circles-step-pill { min-height: 44px; display: flex; align-items: center; padding: 6px 12px; border-radius: 8px; border: 1px solid var(--c-border); background: var(--c-card); font-size: 12px; color: var(--c-text-2); cursor: pointer; touch-action: manipulation; -webkit-tap-highlight-color: transparent; font-family: 'DM Sans', sans-serif; }
+.circles-step-pill.active { background: var(--c-primary-lt); color: var(--c-primary); border-color: var(--c-primary); font-weight: 600; }
+```
+
+#### Step Pill Hover Tooltip
+
+Desktop（hover）時，每個 pill 上方出現黑底白字 tooltip，顯示該步驟的 1-2 句說明。Tooltip 位置：pill 正上方居中，`translateY(-100%)`。80ms delay 後消失。
+
+**7 個步驟 tooltip 文案：**
+| Step | data-step | tooltip 文案 |
+|------|-----------|-------------|
+| C 澄清情境 | C1 | 確認題目邊界與假設，練習用精準問題縮小解題範圍。 |
+| I 定義用戶 | I  | 識別核心用戶群，練習描述用戶特徵、使用情境與動機。 |
+| R 發掘需求 | R  | 挖掘用戶真正的痛點，練習區分表面訴求與根本需求。 |
+| C 優先排序 | C2 | 從多個需求中選出最重要的，練習說明排序邏輯與依據。 |
+| L 提出方案 | L  | 針對核心需求提出 2–3 個解決方案，練習方案描述與差異化。 |
+| E 評估取捨 | E  | 分析各方案的利弊與風險，練習在限制條件下做決策。 |
+| S 總結推薦 | S  | 給出最終推薦與成功指標，練習完整呈現 PM 決策思路。 |
+
+HTML（tooltip DOM，全域一個，fixed position）：
+```html
+<div class="circles-pill-tooltip" id="circles-pill-tooltip"></div>
+```
+
+JS（mouseover / mouseout on `.circles-step-pill[data-tip]`）：
+```javascript
+var pillTooltip = document.getElementById('circles-pill-tooltip');
+var pillTipTimer = null;
+document.addEventListener('mouseover', function(e) {
+  var pill = e.target.closest('.circles-step-pill[data-tip]');
+  if (!pill) return;
+  clearTimeout(pillTipTimer);
+  pillTooltip.textContent = pill.getAttribute('data-tip');
+  var rect = pill.getBoundingClientRect();
+  var tipW = 200;
+  var left = Math.max(8, Math.min(rect.left + rect.width / 2 - tipW / 2, window.innerWidth - tipW - 8));
+  pillTooltip.style.cssText = 'left:' + left + 'px;top:' + rect.top + 'px;width:' + tipW + 'px;transform:translateY(-100%) translateY(-8px)';
+  pillTooltip.classList.add('visible');
+});
+document.addEventListener('mouseout', function(e) {
+  if (!e.target.closest('.circles-step-pill[data-tip]')) return;
+  pillTipTimer = setTimeout(function() { pillTooltip.classList.remove('visible'); }, 80);
+});
+```
+
+CSS：
+```css
+.circles-pill-tooltip { position: fixed; background: #1A1A1A; color: #F0EDE6; font-size: 11px; line-height: 1.55; padding: 8px 11px; border-radius: 8px; max-width: 200px; pointer-events: none; opacity: 0; transition: opacity 0.15s; z-index: 9999; font-family: 'DM Sans', sans-serif; box-shadow: 0 4px 16px rgba(0,0,0,0.3); }
+.circles-pill-tooltip.visible { opacity: 1; }
+```
+
+Note: `data-tip` 屬性需在 renderCirclesHome 生成每個 pill 時帶入，對應上表文案。
+
+---
+
+### Type Tabs（題型篩選）
+
+三個 tab，對應 `CIRCLES_QUESTIONS` 的 `question_type` 欄位。預設 `AppState.circlesSelectedType = 'design'`。
+
+Tab 旁顯示該 type 的題目總數（`×N`），數字從 `CIRCLES_QUESTIONS` 動態計算，不是寫死的。
 
 ```html
 <div class="circles-type-tabs">
-  <button class="circles-type-tab active">全部</button>
-  <button class="circles-type-tab">B2C</button>
-  <button class="circles-type-tab">B2B</button>
-  <button class="circles-type-tab-random"><i class="ph ph-shuffle" style="font-size:11px"></i> 隨機選題</button>
+  <button class="circles-type-tab active" data-type="design">產品設計 ×12</button>
+  <button class="circles-type-tab" data-type="improve">產品改進 ×8</button>
+  <button class="circles-type-tab" data-type="strategy">產品策略 ×6</button>
 </div>
 ```
 
 **Behavior:**
-- Tab click → re-filter questions, re-draw 5 random from filtered set, store in `AppState.circlesDisplayedQuestions`
-- 隨機選題 click → re-pick 5 random from current filter, re-render question list (does NOT navigate anywhere)
-- On initial render → pick 5 random from `CIRCLES_QUESTIONS` (or filtered subset), store in `AppState.circlesDisplayedQuestions`
+- Tab click → `AppState.circlesSelectedType = el.dataset.type`，重新從該 type 題庫隨機抽取最多 20 題渲染
+- Tab counts 在每次 `renderCirclesHome` 時動態計算：`CIRCLES_QUESTIONS.filter(q => q.question_type === type).length`
+- 初始渲染 → 預設 `design` tab active，顯示最多 20 題
+
+JS click binding:
+```javascript
+document.querySelectorAll('.circles-type-tab').forEach(function(el) {
+  el.addEventListener('click', function() {
+    AppState.circlesSelectedType = el.dataset.type;
+    // re-render question list only (not full page)
+    renderQList();
+  });
+});
+```
 
 CSS:
 ```css
 .circles-type-tabs { display: flex; gap: 6px; margin-bottom: 14px; }
-.circles-type-tab { min-height: 36px; display: flex; align-items: center; padding: 6px 14px; border-radius: 20px; border: 1px solid var(--c-border); background: var(--c-card); font-size: 12px; color: var(--c-text-2); cursor: pointer; font-family: 'DM Sans', sans-serif; }
+.circles-type-tab { min-height: 34px; display: flex; align-items: center; padding: 5px 14px; border-radius: 20px; border: 1px solid var(--c-border); background: var(--c-card); font-size: 12px; color: var(--c-text-2); cursor: pointer; font-family: 'DM Sans', sans-serif; touch-action: manipulation; }
 .circles-type-tab.active { background: var(--c-primary); color: #fff; border-color: var(--c-primary); }
-.circles-type-tab-random { margin-left: auto; font-size: 11px; color: var(--c-primary); background: none; border: none; cursor: pointer; font-family: 'DM Sans', sans-serif; padding: 6px 4px; display: flex; align-items: center; gap: 4px; }
 ```
 
-### Question Cards (5 shown, expand-confirm flow)
+---
 
-**States per card:**
-- **Collapsed** (default): company badge + short statement + "看更多 ▾" text
-- **Expanded** (user clicked card): shows full `problem_statement` + "確認，開始練習" button + "取消" button. Card border turns primary color. All other cards collapse.
+### Question List Header
+
+題目列表上方有一行 header，左側 label `"選擇題目"`，右側 `隨機選題` 純文字按鈕（無邊框）。
 
 ```html
-<!-- Collapsed state -->
-<div class="circles-q-card" id="qcard-0" onclick="expandQCard(0)">
-  <div class="circles-q-card-company">Meta — B2C</div>
-  <div class="circles-q-card-stmt">用戶反映 News Feed 廣告過多，如何改善廣告體驗並維持收入</div>
-  <div id="qcard-0-collapsed"><span class="circles-q-card-more">看更多 ▾</span></div>
-  <div id="qcard-0-expanded" style="display:none" onclick="event.stopPropagation()">
-    <div class="circles-q-card-expanded">（full problem_statement text）</div>
+<div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:8px">
+  <div style="font-size:11px;font-weight:600;color:var(--c-text-2);font-family:DM Sans,sans-serif">選擇題目</div>
+  <button id="circles-random-btn" style="font-size:11px;color:var(--c-primary);background:none;border:none;cursor:pointer;font-family:DM Sans,sans-serif;padding:0">隨機選題</button>
+</div>
+```
+
+**隨機選題** button 行為：從 `AppState.circlesSelectedType` 對應的題庫重新隨機排列，重新渲染題目列表。**不切換頁面，不更改 tab/mode。**
+
+---
+
+### Question Cards（展開確認流程）
+
+題庫最多顯示 20 題（`questions.slice(0, 20)`）。每張 card 有兩個狀態：
+
+**Collapsed（預設）：** company badge + 截斷題幹（前 60 字）+ "看更多 ▾" 連結
+
+**Expanded（點擊後）：** 完整題幹 + "確認，開始練習" 主按鈕 + "取消" 次要連結。Card border 變 primary。同時所有其他卡片自動折疊（accordion 行為）。
+
+```html
+<div class="circles-q-card" data-qid="q001">
+  <!-- company badge -->
+  <div class="circles-q-card-company">Meta — Facebook</div>
+  <!-- truncated statement (≤60 chars) -->
+  <div class="circles-q-card-stmt"
+    data-full="完整題幹文字（全部）"
+    data-short="截斷題幹文字（前60字）…">
+    截斷題幹文字（前60字）…
+  </div>
+  <!-- "看更多" — hidden when card is expanded -->
+  <div class="circles-q-card-more-wrap">
+    <span class="circles-q-card-more">看更多 ▾</span>
+  </div>
+  <!-- expanded area — hidden by default -->
+  <div class="circles-q-card-expand-area" style="display:none">
+    <div class="circles-q-card-expanded">完整題幹文字（全部）</div>
     <div style="display:flex;align-items:center;gap:8px;margin-top:10px">
-      <button class="circles-btn-primary" style="flex:1;padding:9px 0;font-size:13px">確認，開始練習</button>
-      <button onclick="collapseQCard(0)" style="background:none;border:none;font-size:13px;color:var(--c-text-2);cursor:pointer;padding:9px 4px;white-space:nowrap">取消</button>
+      <button class="circles-q-confirm-btn">確認，開始練習</button>
+      <button class="circles-q-cancel-btn">取消</button>
     </div>
   </div>
 </div>
 ```
 
-JS:
+JS（event delegation on `.circles-q-list`）：
 ```javascript
-function expandQCard(idx) {
-  for (var i = 0; i < 5; i++) {
-    if (i !== idx) collapseQCard(i);
+document.querySelector('.circles-q-list').addEventListener('click', function(e) {
+  var card = e.target.closest('.circles-q-card');
+  if (!card) return;
+  // cancel button
+  if (e.target.closest('.circles-q-cancel-btn')) {
+    collapseQCard(card);
+    return;
   }
-  var collapsed = document.getElementById('qcard-' + idx + '-collapsed');
-  var expanded = document.getElementById('qcard-' + idx + '-expanded');
-  if (!collapsed || !expanded) return;
-  collapsed.style.display = 'none';
-  expanded.style.display = 'block';
-  document.getElementById('qcard-' + idx).style.borderColor = 'var(--c-primary)';
+  // confirm button
+  if (e.target.closest('.circles-q-confirm-btn')) {
+    var qid = card.dataset.qid;
+    var question = CIRCLES_QUESTIONS.find(function(q) { return q.id === qid; });
+    AppState.circlesSelectedQuestion = question;
+    createCirclesSession(question, AppState.circlesMode, AppState.circlesDrillStep);
+    return;
+  }
+  // card body click → expand (accordion)
+  var allCards = document.querySelectorAll('.circles-q-card');
+  allCards.forEach(function(c) { if (c !== card) collapseQCard(c); });
+  expandQCard(card);
+});
+
+function expandQCard(card) {
+  var stmt = card.querySelector('.circles-q-card-stmt');
+  stmt.textContent = stmt.dataset.full;
+  card.querySelector('.circles-q-card-more-wrap').style.display = 'none';
+  card.querySelector('.circles-q-card-expand-area').style.display = 'block';
+  card.style.borderColor = 'var(--c-primary)';
 }
-function collapseQCard(idx) {
-  var collapsed = document.getElementById('qcard-' + idx + '-collapsed');
-  var expanded = document.getElementById('qcard-' + idx + '-expanded');
-  if (!collapsed || !expanded) return;
-  collapsed.style.display = 'block';
-  expanded.style.display = 'none';
-  document.getElementById('qcard-' + idx).style.borderColor = '';
+function collapseQCard(card) {
+  var stmt = card.querySelector('.circles-q-card-stmt');
+  stmt.textContent = stmt.dataset.short;
+  card.querySelector('.circles-q-card-more-wrap').style.display = 'block';
+  card.querySelector('.circles-q-card-expand-area').style.display = 'none';
+  card.style.borderColor = '';
 }
 ```
 
-**"確認，開始練習" button action:** Sets `AppState.circlesSelectedQuestion = question`, creates new circles session, navigates to Phase 1.
+**"確認，開始練習" action:**
+- simulation mode：`createCirclesSession(question, 'simulation', null)` → navigate to C1 Phase 1
+- drill mode：`createCirclesSession(question, 'drill', AppState.circlesDrillStep)` → navigate to `{drillStep}` Phase 1
 
 CSS:
 ```css
-.circles-q-card { padding: 14px 16px; border-radius: 12px; background: var(--c-card); border: 1.5px solid var(--c-border); cursor: pointer; margin-bottom: 10px; }
+.circles-q-card { padding: 14px 16px; border-radius: 12px; background: var(--c-card); border: 1.5px solid var(--c-border); cursor: pointer; margin-bottom: 10px; touch-action: manipulation; }
 .circles-q-card-company { font-size: 11px; color: var(--c-primary); font-weight: 600; margin-bottom: 4px; font-family: 'DM Sans', sans-serif; }
 .circles-q-card-stmt { font-size: 13px; color: var(--c-text); line-height: 1.5; font-family: 'DM Sans', sans-serif; }
 .circles-q-card-more { font-size: 11px; color: var(--c-primary); cursor: pointer; margin-top: 4px; font-family: 'DM Sans', sans-serif; display: block; }
 .circles-q-card-expanded { font-size: 12px; color: var(--c-text-2); line-height: 1.6; margin-top: 8px; padding-top: 8px; border-top: 1px solid var(--c-border); font-family: 'DM Sans', sans-serif; }
+.circles-q-confirm-btn { flex: 1; padding: 9px 0; font-size: 13px; background: var(--c-primary); color: #fff; border: none; border-radius: 8px; cursor: pointer; font-family: 'DM Sans', sans-serif; font-weight: 600; }
+.circles-q-cancel-btn { background: none; border: none; font-size: 13px; color: var(--c-text-2); cursor: pointer; padding: 9px 4px; white-space: nowrap; font-family: 'DM Sans', sans-serif; }
 ```
 
-### NSM Banner (bottom of home)
+---
+
+### NSM Banner（首頁底部）
 
 ```html
 <div class="nsm-banner">
