@@ -1274,9 +1274,9 @@ body { -webkit-font-smoothing: antialiased; }
   margin: 0 auto;
 }
 [data-view="circles"] .circles-home-title {
-  font-family: 'Instrument Serif', serif;
-  font-size: 26px;
-  font-weight: 400;
+  font-family: 'DM Sans', sans-serif;
+  font-size: 22px;
+  font-weight: 700;
   color: var(--c-text);
   margin-bottom: 4px;
 }
@@ -1805,3 +1805,148 @@ body { -webkit-font-smoothing: antialiased; }
   transition: border-color 0.2s;
 }
 [data-view="circles"] .circles-resume-card:active { border-color: var(--c-primary); }
+
+/* ── CIRCLES Home — Info Card ── */
+[data-view="circles"] .circles-info-card {
+  background: var(--c-card);
+  border: 1px solid #e8e5de;
+  border-radius: 10px;
+  overflow: hidden;
+}
+[data-view="circles"] .circles-info-card-title {
+  font-size: 13px;
+  font-weight: 700;
+  color: var(--c-text);
+  font-family: 'DM Sans', sans-serif;
+}
+[data-view="circles"] .circles-info-card-sub {
+  font-size: 12px;
+  color: var(--c-text-2);
+  line-height: 1.6;
+  margin-bottom: 10px;
+  font-family: 'DM Sans', sans-serif;
+}
+[data-view="circles"] .circles-info-steps {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 6px;
+}
+[data-view="circles"] .circles-info-step {
+  font-size: 11px;
+  color: var(--c-primary);
+  font-weight: 600;
+  background: var(--c-primary-lt);
+  border-radius: 4px;
+  padding: 2px 7px;
+  font-family: 'DM Sans', sans-serif;
+}
+
+/* ── CIRCLES Home — Drill sim note ── */
+[data-view="circles"] .circles-drill-sim-note {
+  font-size: 11px;
+  color: var(--c-text-3);
+  display: flex;
+  align-items: center;
+  gap: 5px;
+  margin-bottom: 18px;
+}
+[data-view="circles"] .circles-drill-sim-note i { font-size: 12px; }
+
+/* ── CIRCLES Home — Question Card expand/confirm ── */
+[data-view="circles"] .circles-q-card-more-wrap { margin-top: 2px; }
+[data-view="circles"] .circles-q-card-more {
+  font-size: 11px;
+  color: var(--c-primary);
+  cursor: pointer;
+  font-family: 'DM Sans', sans-serif;
+  display: inline-block;
+}
+[data-view="circles"] .circles-q-card-expanded {
+  font-size: 12px;
+  color: var(--c-text-2);
+  line-height: 1.6;
+  margin-top: 8px;
+  padding-top: 8px;
+  border-top: 1px solid var(--c-border);
+  font-family: 'DM Sans', sans-serif;
+}
+[data-view="circles"] .circles-q-confirm-btn {
+  flex: 1;
+  padding: 9px 0;
+  font-size: 13px;
+  background: var(--c-primary);
+  color: #fff;
+  border: none;
+  border-radius: 8px;
+  cursor: pointer;
+  font-family: 'DM Sans', sans-serif;
+  font-weight: 600;
+  touch-action: manipulation;
+}
+[data-view="circles"] .circles-q-cancel-btn {
+  background: none;
+  border: none;
+  font-size: 13px;
+  color: var(--c-text-2);
+  cursor: pointer;
+  padding: 9px 4px;
+  white-space: nowrap;
+  font-family: 'DM Sans', sans-serif;
+  touch-action: manipulation;
+}
+
+/* ── CIRCLES Home — NSM Banner ── */
+[data-view="circles"] .nsm-banner {
+  background: #EEF3FF;
+  border: 1px solid #C5D5FF;
+  border-radius: 10px;
+  padding: 14px 16px;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  margin-top: 16px;
+}
+[data-view="circles"] .nsm-banner-label {
+  font-size: 12px;
+  color: var(--c-primary);
+  font-weight: 600;
+  margin-bottom: 2px;
+  font-family: 'DM Sans', sans-serif;
+}
+[data-view="circles"] .nsm-banner-sub {
+  font-size: 12px;
+  color: #5a7ab5;
+  font-family: 'DM Sans', sans-serif;
+}
+[data-view="circles"] .nsm-banner-btn {
+  background: var(--c-primary);
+  color: #fff;
+  border: none;
+  padding: 7px 12px;
+  border-radius: 8px;
+  font-size: 12px;
+  font-weight: 600;
+  cursor: pointer;
+  white-space: nowrap;
+  font-family: 'DM Sans', sans-serif;
+  touch-action: manipulation;
+}
+
+/* ── CIRCLES Home — Step pill tooltip ── */
+[data-view="circles"] .circles-pill-tooltip {
+  position: fixed;
+  background: #1A1A1A;
+  color: #F0EDE6;
+  font-size: 11px;
+  line-height: 1.55;
+  padding: 8px 11px;
+  border-radius: 8px;
+  max-width: 200px;
+  pointer-events: none;
+  opacity: 0;
+  transition: opacity 0.15s;
+  z-index: 9999;
+  font-family: 'DM Sans', sans-serif;
+  box-shadow: 0 4px 16px rgba(0,0,0,0.3);
+}
+[data-view="circles"] .circles-pill-tooltip.visible { opacity: 1; }

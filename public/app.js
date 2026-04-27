@@ -719,33 +719,85 @@ window.toggleInfoCard = toggleInfoCard;
 
 // ── View stubs（後續 Task 填入）────────────────────
 // CIRCLES stubs — replaced by Tasks 14-18
+function renderQCardHtml(q) {
+  var shortStmt = q.problem_statement.length > 60
+    ? q.problem_statement.slice(0, 60) + '…'
+    : q.problem_statement;
+  var drillPracticeHtml = (AppState.circlesMode === 'drill')
+    ? '<div style="font-size:11px;color:var(--c-primary);font-weight:600;margin-top:6px;font-family:DM Sans,sans-serif">練習步驟：' + (AppState.circlesDrillStep || 'C1') + '</div>'
+    : '';
+  return '<div class="circles-q-card" data-qid="' + q.id + '">' +
+    '<div class="circles-q-card-company">' + escHtml(q.company) + (q.product ? ' — ' + escHtml(q.product) : '') + '</div>' +
+    '<div class="circles-q-card-stmt" data-full="' + escHtml(q.problem_statement) + '" data-short="' + escHtml(shortStmt) + '">' + escHtml(shortStmt) + '</div>' +
+    '<div class="circles-q-card-more-wrap">' +
+      (q.problem_statement.length > 60 ? '<span class="circles-q-card-more">看更多 ▾</span>' : '') +
+    '</div>' +
+    '<div class="circles-q-card-expand-area" style="display:none">' +
+      '<div class="circles-q-card-expanded">' + escHtml(q.problem_statement) + '</div>' +
+      drillPracticeHtml +
+      '<div style="display:flex;align-items:center;gap:8px;margin-top:10px">' +
+        '<button class="circles-q-confirm-btn">確認，開始練習</button>' +
+        '<button class="circles-q-cancel-btn">取消</button>' +
+      '</div>' +
+    '</div>' +
+  '</div>';
+}
+
+function expandQCard(card) {
+  var stmt = card.querySelector('.circles-q-card-stmt');
+  if (stmt) stmt.textContent = stmt.dataset.full;
+  var moreWrap = card.querySelector('.circles-q-card-more-wrap');
+  if (moreWrap) moreWrap.style.display = 'none';
+  var expandArea = card.querySelector('.circles-q-card-expand-area');
+  if (expandArea) expandArea.style.display = 'block';
+  card.style.borderColor = 'var(--c-primary)';
+}
+
+function collapseQCard(card) {
+  var stmt = card.querySelector('.circles-q-card-stmt');
+  if (stmt) stmt.textContent = stmt.dataset.short;
+  var moreWrap = card.querySelector('.circles-q-card-more-wrap');
+  if (moreWrap) moreWrap.style.display = 'block';
+  var expandArea = card.querySelector('.circles-q-card-expand-area');
+  if (expandArea) expandArea.style.display = 'none';
+  card.style.borderColor = '';
+}
+
 function renderCirclesHome() {
   var mode = AppState.circlesMode;
   var type = AppState.circlesSelectedType;
   var drillStep = AppState.circlesDrillStep;
-  var questions = (typeof CIRCLES_QUESTIONS !== 'undefined' ? CIRCLES_QUESTIONS : [])
-    .filter(function(q) { return q.question_type === type; });
-
-  var stepPills = CIRCLES_STEPS.map(function(s) {
-    return '<button class="circles-step-pill ' + (drillStep === s.key ? 'active' : '') + '" data-step="' + s.key + '">' + s.short + ' ' + s.label + '</button>';
-  }).join('');
-
-  var qCards = questions.slice(0, 20).map(function(q) {
-    var shortStmt = q.problem_statement.length > 60
-      ? q.problem_statement.slice(0, 60) + '…'
-      : q.problem_statement;
-    return '<div class="circles-q-card" data-qid="' + q.id + '">' +
-      '<div class="circles-q-card-company">' + q.company + ' — ' + (q.product || '') + '</div>' +
-      '<div class="circles-q-card-stmt" data-full="' + escHtml(q.problem_statement) + '" data-short="' + escHtml(shortStmt) + '">' + escHtml(shortStmt) + '</div>' +
-      (q.problem_statement.length > 60 ? '<div class="circles-q-card-more" data-expanded="false">看更多 ▾</div>' : '') +
-    '</div>';
-  }).join('');
-
   var allQs = (typeof CIRCLES_QUESTIONS !== 'undefined' ? CIRCLES_QUESTIONS : []);
+  var filteredQs = allQs.filter(function(q) { return q.question_type === type; });
+
+  // Pick 5 random questions if not yet picked (or if re-entry)
+  if (!AppState.circlesDisplayedQuestions || AppState.circlesDisplayedQuestions.length === 0 ||
+      (AppState.circlesDisplayedQuestions[0] && AppState.circlesDisplayedQuestions[0].question_type !== type)) {
+    AppState.circlesDisplayedQuestions = pickRandom5(filteredQs);
+  }
+
+  var displayedQs = AppState.circlesDisplayedQuestions;
   var designCount = allQs.filter(function(q) { return q.question_type === 'design'; }).length;
   var improveCount = allQs.filter(function(q) { return q.question_type === 'improve'; }).length;
   var strategyCount = allQs.filter(function(q) { return q.question_type === 'strategy'; }).length;
 
+  // Drill step pills — only C1, I, R
+  var drillSteps = [
+    { key: 'C1', label: 'C 澄清情境', tip: '確認題目邊界與假設，練習用精準問題縮小解題範圍。' },
+    { key: 'I',  label: 'I 定義用戶', tip: '識別核心用戶群，練習描述用戶特徵、使用情境與動機。' },
+    { key: 'R',  label: 'R 發掘需求', tip: '挖掘用戶真正的痛點，練習區分表面訴求與根本需求。' },
+  ];
+  var drillPillsHtml = mode === 'drill'
+    ? '<div class="circles-step-select-label">練習步驟</div>' +
+      '<div class="circles-step-pills" id="circles-drill-pills">' +
+        drillSteps.map(function(s) {
+          return '<button class="circles-step-pill ' + (drillStep === s.key ? 'active' : '') + '" data-step="' + s.key + '" data-tip="' + escHtml(s.tip) + '">' + s.label + '</button>';
+        }).join('') +
+      '</div>' +
+      '<div class="circles-drill-sim-note"><i class="ph ph-lock-simple"></i> C2、L、E、S 需在完整模擬中練習</div>'
+    : '';
+
+  // Recent sessions
   var recentHtml = '';
   if (AppState.circlesRecentSessions.length > 0) {
     var PHASE_LABELS = { 1: '填寫框架', 1.5: '等待審核', 2: '對話進行中', 3: '查看評分' };
@@ -761,7 +813,7 @@ function renderCirclesHome() {
       return '<div class="circles-resume-card" data-resume-id="' + s.id + '">' +
         '<div style="display:flex;align-items:center;justify-content:space-between">' +
           '<div>' +
-            '<div class="circles-q-card-company">' + company + ' — ' + modeLabel + '</div>' +
+            '<div class="circles-q-card-company">' + escHtml(company) + ' — ' + modeLabel + '</div>' +
             '<div style="font-size:12px;color:var(--c-text-2,#5a5a5a);margin-top:2px;font-family:DM Sans,sans-serif">' + stepLabel + ' · ' + phaseLabel + '</div>' +
           '</div>' +
           '<div style="font-size:12px;font-weight:600;color:var(--c-primary,#1A56DB);font-family:DM Sans,sans-serif;white-space:nowrap">繼續練習 →</div>' +
@@ -774,70 +826,100 @@ function renderCirclesHome() {
     '</div>';
   }
 
+  var qCardsHtml = displayedQs.length > 0
+    ? displayedQs.map(function(q) { return renderQCardHtml(q); }).join('')
+    : '<div style="color:var(--c-text-3);font-size:13px;text-align:center;padding:24px 0">暫無題目，請先執行題庫生成腳本</div>';
+
   return '<div data-view="circles">' +
-    '<div class="circles-nav">' +
-      '<button class="circles-nav-back" id="circles-home-back"><i class="ph ph-arrow-left"></i></button>' +
-      '<div><div class="circles-nav-title">CIRCLES 訓練</div></div>' +
-    '</div>' +
     '<div class="circles-home-wrap">' +
       recentHtml +
-      '<div class="circles-home-title">選題開始練習</div>' +
-      '<div class="circles-home-sub">選擇模式 → 題型 → 題目</div>' +
+      '<div class="circles-home-title">CIRCLES 訓練</div>' +
+      '<div class="circles-home-sub">選題，按步驟填寫框架、訪談、拿到評分</div>' +
 
-      // Explainer block
-      '<div style="background:#fff;border:1px solid #e8e5de;border-radius:10px;padding:12px 14px;margin-bottom:16px;font-family:DM Sans,sans-serif">' +
-        '<div style="font-size:12px;font-weight:700;color:#1a1a1a;margin-bottom:6px">什麼是 CIRCLES 實戰訓練？</div>' +
-        '<div style="font-size:11px;color:#5a5a5a;line-height:1.7;margin-bottom:8px">用結構化框架拆解 PM 設計面試題，模擬真實利害關係人訪談，並在每個步驟收到 AI 教練評分與回饋。</div>' +
-        '<div style="display:flex;gap:4px;flex-wrap:wrap">' +
-          CIRCLES_STEPS.map(function(s) {
-            return '<span style="background:#EEF3FF;color:#1A56DB;border-radius:4px;padding:2px 7px;font-size:10px;font-weight:600">' + s.short + ' ' + s.label + '</span>';
-          }).join('') +
+      // Info card — collapsed by default
+      '<div class="circles-info-card" style="padding:0;overflow:hidden;margin-bottom:20px">' +
+        '<button onclick="toggleInfoCard(this)" style="width:100%;display:flex;align-items:center;justify-content:space-between;background:none;border:none;cursor:pointer;padding:12px 14px;text-align:left">' +
+          '<div class="circles-info-card-title" style="margin:0;font-size:13px">什麼是 CIRCLES 實戰訓練？</div>' +
+          '<i class="ph ph-caret-right" id="info-card-icon" style="font-size:13px;color:var(--c-text-3);flex-shrink:0"></i>' +
+        '</button>' +
+        '<div id="info-card-body" style="display:none;padding:0 14px 14px">' +
+          '<div class="circles-info-card-sub">用結構化框架拆解 PM 設計面試題，模擬真實利害關係人訪談，並在每個步驟收到 AI 教練評分與回饋。</div>' +
+          '<div class="circles-info-steps">' +
+            '<span class="circles-info-step">C 澄清情境</span>' +
+            '<span class="circles-info-step">I 定義用戶</span>' +
+            '<span class="circles-info-step">R 發掘需求</span>' +
+            '<span class="circles-info-step">C 優先排序</span>' +
+            '<span class="circles-info-step">L 提出方案</span>' +
+            '<span class="circles-info-step">E 評估取捨</span>' +
+            '<span class="circles-info-step">S 總結推薦</span>' +
+          '</div>' +
         '</div>' +
       '</div>' +
 
+      // Mode selector
       '<div class="circles-step-select-label">練習模式</div>' +
       '<div class="circles-mode-row">' +
-        '<div class="circles-mode-card ' + (mode === 'drill' ? 'selected' : '') + '" data-mode="drill">' +
-          '<div class="circles-mode-card-title"><i class="ph ph-target"></i> 步驟加練</div>' +
-          '<div class="circles-mode-card-desc">5-10 分鐘 · 針對單一步驟 · 全引導</div>' +
-        '</div>' +
         '<div class="circles-mode-card ' + (mode === 'simulation' ? 'selected' : '') + '" data-mode="simulation">' +
           '<div class="circles-mode-card-title"><i class="ph ph-video-camera"></i> 完整模擬</div>' +
           '<div class="circles-mode-card-desc">25-35 分鐘 · 全 7 步 · 無提示</div>' +
         '</div>' +
+        '<div class="circles-mode-card ' + (mode === 'drill' ? 'selected' : '') + '" data-mode="drill">' +
+          '<div class="circles-mode-card-title"><i class="ph ph-target"></i> 步驟加練</div>' +
+          '<div class="circles-mode-card-desc">5-10 分鐘 · 單一步驟 · 全引導</div>' +
+        '</div>' +
       '</div>' +
 
-      (mode === 'drill' ? '<div class="circles-step-select-label">練習步驟</div><div class="circles-step-pills">' + stepPills + '</div>' : '') +
+      // Step pills (drill mode only)
+      drillPillsHtml +
 
+      // Type tabs
       '<div class="circles-type-tabs">' +
         '<button class="circles-type-tab ' + (type === 'design' ? 'active' : '') + '" data-type="design">產品設計 ×' + designCount + '</button>' +
         '<button class="circles-type-tab ' + (type === 'improve' ? 'active' : '') + '" data-type="improve">產品改進 ×' + improveCount + '</button>' +
         '<button class="circles-type-tab ' + (type === 'strategy' ? 'active' : '') + '" data-type="strategy">產品策略 ×' + strategyCount + '</button>' +
       '</div>' +
 
-      // Random button + question list header
+      // Question list header
       '<div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:8px">' +
-        '<div style="font-size:11px;font-weight:600;color:#5a5a5a;font-family:DM Sans,sans-serif">選擇題目</div>' +
-        '<button id="circles-random-btn" style="font-size:11px;color:#1A56DB;background:none;border:none;cursor:pointer;font-family:DM Sans,sans-serif;padding:0">隨機選題</button>' +
+        '<div style="font-size:11px;font-weight:600;color:var(--c-text-2);font-family:DM Sans,sans-serif">選擇題目</div>' +
+        '<button id="circles-random-btn" style="font-size:11px;color:var(--c-primary);background:none;border:none;cursor:pointer;font-family:DM Sans,sans-serif;padding:0">隨機選題</button>' +
       '</div>' +
 
-      '<div class="circles-q-list">' + (qCards || '<div style="color:var(--c-text-3);font-size:13px;text-align:center;padding:24px 0">暫無題目，請先執行題庫生成腳本</div>') + '</div>' +
-      '<div style="background:#EEF3FF;border:1px solid #C5D5FF;border-radius:10px;padding:14px 16px;display:flex;align-items:center;justify-content:space-between;margin-top:16px">' +
+      '<div class="circles-q-list" id="circles-q-list">' + qCardsHtml + '</div>' +
+
+      // NSM Banner
+      '<div class="nsm-banner">' +
         '<div>' +
-          '<div style="font-size:12px;color:#1A56DB;font-weight:600;margin-bottom:2px;font-family:DM Sans,sans-serif">S 步驟含北極星指標練習</div>' +
-          '<div style="font-size:12px;color:#5a7ab5;font-family:DM Sans,sans-serif">想做最完整的 NSM 定義訓練？</div>' +
+          '<div class="nsm-banner-label">S 步驟含北極星指標練習</div>' +
+          '<div class="nsm-banner-sub">想做最完整的 NSM 定義訓練？</div>' +
         '</div>' +
-        '<button id="circles-nsm-banner-btn" style="background:#1A56DB;color:#fff;border:none;padding:7px 12px;border-radius:8px;font-size:12px;font-weight:600;white-space:nowrap;cursor:pointer;font-family:DM Sans,sans-serif">前往 NSM →</button>' +
+        '<button class="nsm-banner-btn" id="circles-nsm-banner-btn">前往 NSM →</button>' +
       '</div>' +
     '</div>' +
+
+    // Tooltip for step pills
+    '<div class="circles-pill-tooltip" id="circles-pill-tooltip"></div>' +
   '</div>';
 }
+
+function renderQList() {
+  var type = AppState.circlesSelectedType;
+  var allQs = (typeof CIRCLES_QUESTIONS !== 'undefined' ? CIRCLES_QUESTIONS : []);
+  var filteredQs = allQs.filter(function(q) { return q.question_type === type; });
+  AppState.circlesDisplayedQuestions = pickRandom5(filteredQs);
+  var qListEl = document.getElementById('circles-q-list');
+  if (!qListEl) return;
+  var html = AppState.circlesDisplayedQuestions.length > 0
+    ? AppState.circlesDisplayedQuestions.map(function(q) { return renderQCardHtml(q); }).join('')
+    : '<div style="color:var(--c-text-3);font-size:13px;text-align:center;padding:24px 0">暫無題目</div>';
+  qListEl.innerHTML = html;
+}
+
 function bindCirclesHome() {
   if (AppState.circlesRecentSessions.length === 0 && !AppState.circlesRecentLoading) {
     fetchCirclesRecentSessions();
   }
 
-  document.getElementById('circles-home-back')?.addEventListener('click', function() { navigate('circles'); });
   document.getElementById('circles-nsm-banner-btn')?.addEventListener('click', function() { navigate('nsm'); });
 
   document.querySelectorAll('.circles-resume-card').forEach(function(el) {
@@ -858,6 +940,7 @@ function bindCirclesHome() {
     });
   });
 
+  // Mode selector
   document.querySelectorAll('.circles-mode-card').forEach(function(el) {
     el.addEventListener('click', function() {
       AppState.circlesMode = el.dataset.mode;
@@ -866,72 +949,98 @@ function bindCirclesHome() {
     });
   });
 
+  // Type tabs — re-pick 5 questions, only re-render the list
   document.querySelectorAll('.circles-type-tab').forEach(function(el) {
     el.addEventListener('click', function() {
+      if (AppState.circlesSelectedType === el.dataset.type) return;
       AppState.circlesSelectedType = el.dataset.type;
-      render();
+      AppState.circlesDisplayedQuestions = [];
+      // Update active tab visually
+      document.querySelectorAll('.circles-type-tab').forEach(function(t) {
+        t.classList.toggle('active', t.dataset.type === AppState.circlesSelectedType);
+      });
+      renderQList();
     });
   });
 
+  // Drill step pills — update active, no full re-render
   document.querySelectorAll('.circles-step-pill').forEach(function(el) {
     el.addEventListener('click', function() {
       AppState.circlesDrillStep = el.dataset.step;
-      render();
+      document.querySelectorAll('.circles-step-pill').forEach(function(p) {
+        p.classList.toggle('active', p.dataset.step === AppState.circlesDrillStep);
+      });
     });
   });
 
-  document.querySelectorAll('.circles-q-card').forEach(function(el) {
-    el.addEventListener('click', function() {
-      var qid = el.dataset.qid;
-      var q = (typeof CIRCLES_QUESTIONS !== 'undefined' ? CIRCLES_QUESTIONS : []).find(function(x) { return x.id === qid; });
-      if (!q) return;
-      AppState.circlesSelectedQuestion = q;
-      AppState.circlesSession = null;
-      AppState.circlesPhase = 1;
-      AppState.circlesFrameworkDraft = {};
-      AppState.circlesGateResult = null;
-      AppState.circlesConversation = [];
-      AppState.circlesScoreResult = null;
-      AppState.circlesSimStep = 0;
-      render();
-    });
-  });
+  // Question card accordion (event delegation)
+  var qListEl = document.getElementById('circles-q-list');
+  if (qListEl) {
+    qListEl.addEventListener('click', function(e) {
+      var card = e.target.closest('.circles-q-card');
+      if (!card) return;
 
-  // Random question
-  document.getElementById('circles-random-btn')?.addEventListener('click', function() {
-    var questions = (typeof CIRCLES_QUESTIONS !== 'undefined' ? CIRCLES_QUESTIONS : [])
-      .filter(function(q) { return q.question_type === AppState.circlesSelectedType; });
-    if (!questions.length) return;
-    var picked = questions[Math.floor(Math.random() * questions.length)];
-    AppState.circlesSelectedQuestion = picked;
-    AppState.circlesPhase = 1;
-    AppState.circlesFrameworkDraft = {};
-    AppState.circlesGateResult = null;
-    AppState.circlesConversation = [];
-    AppState.circlesSession = null;
-    AppState.circlesScoreResult = null;
-    AppState.circlesSimStep = 0;
-    AppState.circlesDrillStep = CIRCLES_STEPS[0].key;
-    render();
-  });
+      // Cancel button
+      if (e.target.closest('.circles-q-cancel-btn')) {
+        collapseQCard(card);
+        return;
+      }
 
-  // "看更多" expand/collapse
-  document.querySelectorAll('.circles-q-card-more').forEach(function(btn) {
-    btn.addEventListener('click', function(e) {
-      e.stopPropagation();
-      var stmtEl = btn.previousElementSibling;
-      var expanded = btn.dataset.expanded === 'true';
-      if (expanded) {
-        stmtEl.textContent = stmtEl.dataset.short;
-        btn.textContent = '看更多 ▾';
-        btn.dataset.expanded = 'false';
+      // Confirm button
+      if (e.target.closest('.circles-q-confirm-btn')) {
+        var qid = card.dataset.qid;
+        var question = (typeof CIRCLES_QUESTIONS !== 'undefined' ? CIRCLES_QUESTIONS : []).find(function(q) { return q.id === qid; });
+        if (!question) return;
+        AppState.circlesSelectedQuestion = question;
+        AppState.circlesSession = null;
+        AppState.circlesPhase = 1;
+        AppState.circlesFrameworkDraft = {};
+        AppState.circlesGateResult = null;
+        AppState.circlesConversation = [];
+        AppState.circlesScoreResult = null;
+        AppState.circlesSimStep = 0;
+        render();
+        return;
+      }
+
+      // Card body click — accordion expand
+      var allCards = document.querySelectorAll('.circles-q-card');
+      allCards.forEach(function(c) { if (c !== card) collapseQCard(c); });
+      var expandArea = card.querySelector('.circles-q-card-expand-area');
+      if (expandArea && expandArea.style.display !== 'none') {
+        collapseQCard(card);
       } else {
-        stmtEl.textContent = stmtEl.dataset.full;
-        btn.textContent = '收起 ▴';
-        btn.dataset.expanded = 'true';
+        expandQCard(card);
       }
     });
+  }
+
+  // Random question — re-pick 5, re-render list only
+  document.getElementById('circles-random-btn')?.addEventListener('click', function() {
+    AppState.circlesDisplayedQuestions = [];
+    renderQList();
   });
+
+  // Step pill tooltip
+  var pillTooltip = document.getElementById('circles-pill-tooltip');
+  var pillTipTimer = null;
+  if (pillTooltip) {
+    document.addEventListener('mouseover', function(e) {
+      var pill = e.target.closest('.circles-step-pill[data-tip]');
+      if (!pill) return;
+      clearTimeout(pillTipTimer);
+      pillTooltip.textContent = pill.getAttribute('data-tip');
+      var rect = pill.getBoundingClientRect();
+      var tipW = 200;
+      var left = Math.max(8, Math.min(rect.left + rect.width / 2 - tipW / 2, window.innerWidth - tipW - 8));
+      pillTooltip.style.cssText = 'left:' + left + 'px;top:' + rect.top + 'px;width:' + tipW + 'px;transform:translateY(-100%) translateY(-8px)';
+      pillTooltip.classList.add('visible');
+    });
+    document.addEventListener('mouseout', function(e) {
+      if (!e.target.closest('.circles-step-pill[data-tip]')) return;
+      pillTipTimer = setTimeout(function() { pillTooltip.classList.remove('visible'); }, 80);
+    });
+  }
 }
 function renderCirclesPhase1() {
   var q = AppState.circlesSelectedQuestion;
