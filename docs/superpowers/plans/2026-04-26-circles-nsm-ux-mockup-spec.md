@@ -62,6 +62,251 @@
 
 ---
 
+## ★ UX 品質標準（對標 internx.me — 必讀，每個 Screen 皆適用）
+
+> **目標：** PM Drill App 的每個環節（RWD、動畫、touch、scroll）必須達到 https://internx.me/zh-tw 的流暢程度。以下規定從其 CSS 逆向工程提取，為不可妥協的強制規範。
+
+### 全域 CSS 強制規定（style.css 頂層）
+
+```css
+/* ── 1. 全域過渡 — 所有元素統一 .15s 過渡，這是流暢感的根本 ── */
+* {
+  box-sizing: border-box;
+  transition: .15s ease-in-out;
+  -webkit-appearance: none;
+  -webkit-tap-highlight-color: rgba(0, 0, 0, 0); /* 消除手機點擊藍光 */
+  scroll-behavior: smooth;
+}
+
+/* ── 2. 字體渲染優化 ── */
+body {
+  -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
+}
+
+/* ── 3. Scrollbar 穩定 — 防止 scrollbar 出現/消失造成 layout shift ── */
+html {
+  scrollbar-gutter: stable;
+  overflow-y: scroll;
+  overflow-x: hidden;
+}
+body {
+  overflow-x: hidden;
+}
+
+/* ── 4. Reduced motion — 無障礙合規 ── */
+@media (prefers-reduced-motion: reduce) {
+  * {
+    transition: none !important;
+    animation: none !important;
+  }
+}
+```
+
+### 每個捲動區域的強制規定
+
+所有 `overflow-y: auto` 或 `overflow-y: scroll` 的容器必須加：
+
+```css
+.any-scrollable-area {
+  -webkit-overflow-scrolling: touch; /* iOS 慣性滾動 */
+  scrollbar-width: none;             /* Firefox 隱藏 scrollbar */
+  -ms-overflow-style: none;          /* IE/Edge 隱藏 */
+}
+.any-scrollable-area::-webkit-scrollbar {
+  display: none;                     /* Chrome/Safari 隱藏 */
+}
+```
+
+### Modal / Bottom Sheet 強制規定
+
+```css
+.any-modal-or-sheet {
+  overscroll-behavior: contain; /* 防止捲動穿透底層頁面 */
+}
+```
+
+### 視口高度強制規定（iOS Safari 安全）
+
+凡需要 `100vh` 的地方必須同時提供 `dvh` fallback：
+
+```css
+.full-height-element {
+  height: 100vh;      /* fallback */
+  height: 100dvh;     /* iOS 15+ / modern browsers — 排除底部工具列 */
+}
+.max-height-element {
+  max-height: 95vh;
+  max-height: 95dvh;
+}
+```
+
+### 字型載入強制規定
+
+```html
+<!-- 所有字型預連接，防止 FOUT -->
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<!-- 字型 CSS 用 preload 提前載入 -->
+<link rel="preload" href="[font-css-url]" as="style">
+```
+
+### RWD 斷點強制規定
+
+與 internx.me 對齊的斷點體系（不得使用其他斷點）：
+
+| 斷點 | 目標裝置 | 說明 |
+|------|---------|------|
+| `max-width: 380px` | 舊款小螢幕 iPhone SE | 最小字體、最緊緻間距 |
+| `max-width: 480px` | 標準手機 | 主要 mobile 調整 |
+| `max-width: 600px` | 大手機 / 折疊機 | 字型基準調降 |
+| `max-width: 768px` | 平板直向 | 雙欄 → 單欄切換點 |
+| `max-width: 850px` | 平板橫向 | sidebar 收合點 |
+| `min-width: 851px` | 桌面 | 雙欄展開 |
+
+### 互動回饋強制規定
+
+| 情境 | 規定 |
+|------|------|
+| 按鈕 hover | `background-color` 深化 + `transition: .15s`（已由全域 `*` 涵蓋） |
+| 按鈕 active/tap | `transform: scale(0.97)` — 給予實體按壓感 |
+| 連結 hover | `color` 變化，不使用 `text-decoration` 閃爍 |
+| 圖片/卡片 hover | `box-shadow` 加深 + 可選 `transform: translateY(-1px)` |
+| 輸入框 focus | `border-color: var(--c-primary)` + `box-shadow: 0 0 0 3px rgba(26,86,219,.1)` |
+| 禁用元素 | `opacity: .45; cursor: not-allowed` — 不得移除 transition |
+
+### AppShell 架構強制規定
+
+```
+AppShell
+├── TopBar (position: sticky; top: 0; z-index: 100) — 永遠可見，不隨頁面捲動消失
+├── MainContent (overflow-y: auto; -webkit-overflow-scrolling: touch) — 唯一捲動區域
+└── BottomBar (position: fixed; bottom: 0; z-index: 100) — 永遠固定，不推移內容
+```
+
+MainContent 的 `padding-bottom` 必須等於 BottomBar 高度 + 安全區高度：
+```css
+.main-content {
+  padding-bottom: calc(var(--bottom-bar-height) + env(safe-area-inset-bottom));
+}
+```
+
+---
+
+## ★ UX 稽核元憲章（所有 Screen 上線前必過關）
+
+> **這是不可妥協的品質門禁。** 每個 screen 實作完成後，必須由稽核元全面審查。稽核元的意見是聖旨——沒有稽核元的 ✓ 放行，任何 screen 不得進入下一步驟。稽核元不接受「差不多」、「應該可以」、「看起來還好」。
+
+### 稽核元職責與觸發時機
+
+| 觸發條件 | 稽核範圍 |
+|---------|---------|
+| 每個 Screen 實作完成 | 該 Screen 的全部狀態 × 全部 RWD 斷點 |
+| PR merge 前 | 整個 App 所有 Screen 回歸測試 |
+| 任何 CSS 全域修改後 | 所有 Screen 重新全量稽核 |
+
+### 稽核範圍：所有 Screen × 所有 RWD 斷點
+
+**Screens（共 11 個主 Screen + 所有子狀態）：**
+
+| Screen | 說明 |
+|--------|------|
+| Screen 1 | CIRCLES Home（含 5 題卡、重新抽題、選題狀態） |
+| Screen 2 | Phase 1 Form（含 NSM annotation、追蹤指標 block、hint overlay 3 狀態） |
+| Screen 3 | Hint Overlay（loading / ready / expanded） |
+| Screen 4 | Phase 1.5 Gate（pass / fail / drill vs simulation 差異） |
+| Screen 5 | Phase 2 Dialogue（早期 / 收斂 / 結論框 / 結論審核 pass+warn） |
+| Screen 6 | Step Score（含 score nav、coach toggle、highlight cards） |
+| Screen 7 | NSM Step 1（unselected / loading / loaded 3 狀態） |
+| Screen 8 | NSM Steps 2-3（gate / dialogue / conclusion） |
+| Screen 9 | NSM Step 4 Result（score + breakdown） |
+| Screen 10 | Auth（login / register） |
+| Screen 11 | Offcanvas History（open / 含 session list） |
+
+**RWD 斷點：**
+
+| 斷點 | 代表裝置 |
+|------|---------|
+| 320px | iPhone SE 1st gen |
+| 390px | iPhone 14 Pro（主開發目標） |
+| 480px | 大螢幕手機 |
+| 600px | 折疊機 / 小平板 |
+| 768px | iPad 直向 |
+
+### 稽核 Checklist（34 項，全部必須 ✓）
+
+#### A. RWD 完整性（8 項）
+- [ ] A1：所有文字在 320px 不換行溢出、不截斷
+- [ ] A2：所有按鈕在 320px 可點擊（最小 44×44px touch target）
+- [ ] A3：所有 card/input 在 480px 不超出容器寬度（`max-width: 100%`）
+- [ ] A4：雙欄佈局在 768px 以下正確切換為單欄
+- [ ] A5：固定元素（TopBar/BottomBar）在所有斷點不遮蓋內容
+- [ ] A6：所有 modal/overlay 在 320px 不超出視口
+- [ ] A7：橫向無 overflow（`html/body overflow-x: hidden` 生效驗證）
+- [ ] A8：字型在所有斷點清晰可讀（最小 11px，行高 ≥ 1.4）
+
+#### B. 流暢度（6 項，對標 internx.me）
+- [ ] B1：所有互動元素有 hover/active 視覺回饋（transition ≤ .2s）
+- [ ] B2：手機點擊無藍色/灰色 highlight 閃光（`-webkit-tap-highlight-color: transparent`）
+- [ ] B3：iOS 所有捲動區有慣性滾動感（`-webkit-overflow-scrolling: touch`）
+- [ ] B4：所有捲動區 scrollbar 隱藏（不顯示系統 scrollbar）
+- [ ] B5：Modal 打開/關閉有動畫（不超過 .25s），無突兀跳變
+- [ ] B6：頁面導航切換有過渡（不得硬切換）
+
+#### C. Touch / Mobile 體驗（6 項）
+- [ ] C1：所有捲動區 `overscroll-behavior: contain`（不穿透底層）
+- [ ] C2：Textarea 在 iOS 不自動縮放（`font-size ≥ 16px` 或 meta viewport 鎖定）
+- [ ] C3：Keyboard 彈出時頁面不爆版（fixed 元素正確處理 `visualViewport`）
+- [ ] C4：Bottom bar 使用 `env(safe-area-inset-bottom)` 處理 Home Indicator
+- [ ] C5：所有按鈕/連結 touch target ≥ 44×44px
+- [ ] C6：捲動時 TopBar/BottomBar 不抖動
+
+#### D. 視口安全（4 項）
+- [ ] D1：全高元素使用 `dvh` fallback（`height: 100vh; height: 100dvh`）
+- [ ] D2：iOS Safari 底部工具列收起/展開時 UI 不爆版
+- [ ] D3：`scrollbar-gutter: stable` 防止 scrollbar 出現時的 layout shift
+- [ ] D4：橫向旋轉後 UI 不崩潰（適度測試 landscape）
+
+#### E. 字體與排版（4 項）
+- [ ] E1：字型已預連接（`rel="preconnect"` to Google Fonts）
+- [ ] E2：字型 CSS 已 preload（`rel="preload" as="style"`）
+- [ ] E3：`font-display: swap` 防止字型載入時 invisible text
+- [ ] E4：所有文字 `font-family: 'DM Sans', sans-serif`（無例外，Instrument Serif 僅限 `.score-number`）
+
+#### F. 使用者旅程完整性（6 項）
+- [ ] F1：每個 Screen 的所有入口路徑可正常進入（包含 drill / simulation 兩種 mode）
+- [ ] F2：所有返回路徑正確（Back button、回首頁、跨步驟導航）
+- [ ] F3：所有 Loading 狀態有 spinner/skeleton（不得空白等待）
+- [ ] F4：所有 Error 狀態有友善提示（不得顯示原始 error 訊息）
+- [ ] F5：所有 Empty 狀態有說明（不得空白頁）
+- [ ] F6：所有提交操作有防重複點擊保護（按鈕 disabled + loading）
+
+### 稽核元評判標準
+
+| 評定 | 條件 | 後果 |
+|------|------|------|
+| ✓ **放行** | 34 項全部通過 | 可進入下一步驟 |
+| ⚠ **有條件放行** | ≤ 2 項 warn（非 A/B/C 類）且已記錄 issue | 可繼續但必須在下一 PR 修正 |
+| ✗ **退回** | 任何 1 項 A/B/C/D 類未通過，或 E/F 類 ≥ 2 項未通過 | 必須修正後重新稽核，不得跳過 |
+
+### 稽核元執行方式
+
+```
+實作完成一個 Screen 後，執行：
+  /ultrareview（或手動 invoke superpowers:requesting-code-review）
+
+稽核元檢查項目：
+  1. 開啟 Playwright 在 320 / 390 / 480 / 768px 各截圖
+  2. 逐一對照以上 34 項 checklist
+  3. 對照 https://internx.me/zh-tw 主觀感受流暢度差距
+  4. 輸出：通過清單 + 問題清單（含截圖座標）+ 最終判定
+  5. 判定 ✗ 時列出具體修改指令（class + property + value）
+
+沒有稽核元的 ✓，不准 merge。
+```
+
+---
+
 ## CSS Tokens (Canonical)
 
 All UI uses these exact variables. Never hardcode hex colors except where noted.
