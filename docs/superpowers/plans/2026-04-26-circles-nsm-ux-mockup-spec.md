@@ -186,11 +186,11 @@ CSS:
 |--------|------|
 | 1 | 首頁預設（完整模擬已選，info 折疊，產品設計 tab active，5 卡折疊） |
 | 2 | Info Card 展開（caret-down，說明文字 + 7 步驟色塊可見） |
-| 3 | 步驟加練 mode 選中（step pills 即時出現） |
-| 4 | step pill 已選（R 發掘需求 active） |
+| 3 | 步驟加練 mode 選中（3 個 step pills 出現：C1/I/R，下方顯示「C2、L、E、S 需在完整模擬中練習」提示） |
+| 4 | step pill 已選（R 發掘需求 active，其餘 2 pills 未選） |
 | 5 | 題型 tab 篩選（產品改進 active，題目列表重新抽取） |
 | 6 | 題目展開—完整模擬（border primary，完整題幹，確認/取消） |
-| 7 | 題目展開—步驟加練（pill 已選 + 題目展開，最終確認狀態） |
+| 7 | 題目展開—步驟加練（R pill active + 題目展開，最終確認狀態） |
 
 **Route/view:** `view: 'circles'` (this is the default view — app opens here)
 
@@ -318,7 +318,9 @@ document.querySelectorAll('.circles-mode-card').forEach(function(el) {
 
 **只在 `AppState.circlesMode === 'drill'` 時渲染，位於 mode cards 下方、type tabs 上方。** 完整模擬 mode 時此區塊完全不渲染（不佔空間）。
 
-Section label `"練習步驟"`。共 7 個 pill，對應 CIRCLES_STEPS 的 7 個步驟。預設 `AppState.circlesDrillStep = 'C1'`，即 C1 pill 為 active。
+**⚠️ 重要設計決策：步驟加練只開放 C1、I、R 三步。** C2/L/E/S 有強烈跨步驟依賴（需要前步驟的具體答案），無法在孤立情境下有意義地練習。這三步驟只能在完整模擬中訓練。
+
+Section label `"練習步驟"`。**共 3 個 pill**（C1、I、R），pills 下方固定顯示 sim-only note。預設 `AppState.circlesDrillStep = 'C1'`，即 C1 pill 為 active。
 
 點擊 pill → 更新 `AppState.circlesDrillStep`，重新渲染 pills（active class 移動）。
 
@@ -326,13 +328,12 @@ Section label `"練習步驟"`。共 7 個 pill，對應 CIRCLES_STEPS 的 7 個
 <!-- 只在 drill mode 時輸出 -->
 <div class="circles-step-select-label">練習步驟</div>
 <div class="circles-step-pills">
-  <button class="circles-step-pill active" data-step="C1">C 澄清情境</button>
-  <button class="circles-step-pill" data-step="I">I 定義用戶</button>
-  <button class="circles-step-pill" data-step="R">R 發掘需求</button>
-  <button class="circles-step-pill" data-step="C2">C 優先排序</button>
-  <button class="circles-step-pill" data-step="L">L 提出方案</button>
-  <button class="circles-step-pill" data-step="E">E 評估取捨</button>
-  <button class="circles-step-pill" data-step="S">S 總結推薦</button>
+  <button class="circles-step-pill active" data-step="C1" data-tip="確認題目邊界與假設，練習用精準問題縮小解題範圍。">C 澄清情境</button>
+  <button class="circles-step-pill" data-step="I" data-tip="識別核心用戶群，練習描述用戶特徵、使用情境與動機。">I 定義用戶</button>
+  <button class="circles-step-pill" data-step="R" data-tip="挖掘用戶真正的痛點，練習區分表面訴求與根本需求。">R 發掘需求</button>
+</div>
+<div class="circles-drill-sim-note">
+  <i class="ph ph-lock-simple"></i> C2、L、E、S 需在完整模擬中練習
 </div>
 ```
 
@@ -350,25 +351,25 @@ document.querySelectorAll('.circles-step-pill').forEach(function(el) {
 
 CSS:
 ```css
-.circles-step-pills { display: flex; flex-wrap: wrap; gap: 6px; margin-bottom: 18px; }
-.circles-step-pill { min-height: 44px; display: flex; align-items: center; padding: 6px 12px; border-radius: 8px; border: 1px solid var(--c-border); background: var(--c-card); font-size: 12px; color: var(--c-text-2); cursor: pointer; touch-action: manipulation; -webkit-tap-highlight-color: transparent; font-family: 'DM Sans', sans-serif; }
+.circles-step-pills { display: flex; flex-wrap: wrap; gap: 6px; margin-bottom: 8px; }
+.circles-step-pill { min-height: 44px; display: flex; align-items: center; padding: 6px 12px; border-radius: 8px; border: 1px solid var(--c-border); background: var(--c-card); font-size: 12px; color: var(--c-text-2); cursor: pointer; touch-action: manipulation; -webkit-tap-highlight-color: transparent; font-family: 'DM Sans', sans-serif; position: relative; }
 .circles-step-pill.active { background: var(--c-primary-lt); color: var(--c-primary); border-color: var(--c-primary); font-weight: 600; }
+.circles-drill-sim-note { font-size: 11px; color: var(--c-text-3); display: flex; align-items: center; gap: 5px; margin-bottom: 18px; }
+.circles-drill-sim-note i { font-size: 12px; }
 ```
 
 #### Step Pill Hover Tooltip
 
 Desktop（hover）時，每個 pill 上方出現黑底白字 tooltip，顯示該步驟的 1-2 句說明。Tooltip 位置：pill 正上方居中，`translateY(-100%)`。80ms delay 後消失。
 
-**7 個步驟 tooltip 文案：**
+**3 個可加練步驟 tooltip 文案：**
 | Step | data-step | tooltip 文案 |
 |------|-----------|-------------|
 | C 澄清情境 | C1 | 確認題目邊界與假設，練習用精準問題縮小解題範圍。 |
 | I 定義用戶 | I  | 識別核心用戶群，練習描述用戶特徵、使用情境與動機。 |
 | R 發掘需求 | R  | 挖掘用戶真正的痛點，練習區分表面訴求與根本需求。 |
-| C 優先排序 | C2 | 從多個需求中選出最重要的，練習說明排序邏輯與依據。 |
-| L 提出方案 | L  | 針對核心需求提出 2–3 個解決方案，練習方案描述與差異化。 |
-| E 評估取捨 | E  | 分析各方案的利弊與風險，練習在限制條件下做決策。 |
-| S 總結推薦 | S  | 給出最終推薦與成功指標，練習完整呈現 PM 決策思路。 |
+
+> C2/L/E/S 不在 drill pills 中，無需 tooltip 文案。
 
 HTML（tooltip DOM，全域一個，fixed position）：
 ```html
@@ -402,7 +403,7 @@ CSS：
 .circles-pill-tooltip.visible { opacity: 1; }
 ```
 
-Note: `data-tip` 屬性需在 renderCirclesHome 生成每個 pill 時帶入，對應上表文案。
+Note: `data-tip` 屬性在 renderCirclesHome 生成每個 pill 時帶入，對應上表文案。
 
 ---
 

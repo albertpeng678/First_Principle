@@ -95,6 +95,15 @@ body { font-family: 'DM Sans', -apple-system, sans-serif; background: #F2F0EB; d
 .circles-field-input:focus { border-color: var(--primary); }
 .circles-field-input.filled { border-color: rgba(26,86,219,0.3); background: #fbfaff; }
 
+/* TRAIT ROWS — 各方案特性結構化 (Option B) */
+.trait-rows { background: var(--card); border: 1.5px solid var(--border); border-radius: 10px; overflow: hidden; margin-bottom: 0; }
+.trait-row { display: flex; align-items: center; gap: 10px; padding: 10px 13px; }
+.trait-row-divider { height: 1px; background: var(--border); }
+.trait-tag { font-size: 11px; font-weight: 700; color: var(--primary); background: var(--primary-lt); padding: 3px 10px; border-radius: 99px; flex-shrink: 0; white-space: nowrap; }
+.trait-tag.opt { color: var(--text-3); background: rgba(0,0,0,0.05); font-weight: 600; }
+.trait-input { flex: 1; border: none; outline: none; font-family: 'DM Sans', sans-serif; font-size: 12.5px; color: var(--text); padding: 2px 0; background: transparent; min-width: 0; }
+.trait-input::placeholder { color: var(--text-3); }
+
 .add-solution-btn {
   display: flex; align-items: center; gap: 8px;
   background: none; border: 1.5px dashed #ccc; border-radius: 10px;
@@ -199,13 +208,15 @@ body { font-family: 'DM Sans', -apple-system, sans-serif; background: #F2F0EB; d
 .score-nav-btn:disabled { opacity: 0.3; cursor: default; }
 
 .hint-overlay {
-  display: none; position: fixed; inset: 0; background: rgba(0,0,0,0.45);
-  z-index: 200; align-items: flex-end; justify-content: center;
+  display: none; position: fixed; top: 0; left: 0;
+  width: 100%; height: 100%;
+  background: rgba(0,0,0,0.45); z-index: 1100;
 }
-.hint-overlay.visible { display: flex; }
+.hint-overlay.visible { display: block; }
 .hint-sheet {
+  position: absolute; bottom: 0; left: 0; right: 0; margin: 0 auto;
   background: var(--card); border-radius: 20px 20px 0 0; padding: 20px 20px 32px;
-  width: 100%; max-width: 390px; max-height: 60vh; overflow-y: auto; position: relative;
+  width: 390px; max-height: 70vh; overflow-y: auto; box-sizing: border-box;
 }
 .hint-sheet-handle { width: 36px; height: 4px; background: #ddd; border-radius: 2px; margin: 0 auto 16px; }
 .hint-sheet-title { font-size: 14px; font-weight: 700; color: var(--text); margin-bottom: 10px; display: flex; align-items: center; gap: 6px; }
@@ -314,13 +325,24 @@ body { font-family: 'DM Sans', -apple-system, sans-serif; background: #F2F0EB; d
     <div class="circles-field-group">
       <div class="circles-field-label-row">
         <span class="circles-field-label">各方案特性</span>
-        <button class="circles-hint-trigger" onclick="showHint('各方案特性','各方案特性是把方案一、二、三的核心差異並排說明——例如：開發複雜度、見效時間、對廣告主的影響、對用戶的行為要求。這欄不需要展開評估（那是 E 步驟的工作），只要讓面試官能一眼看出你為什麼提這幾個不同方向。')"><i class="ph ph-lightbulb"></i> 提示</button>
+        <button class="circles-hint-trigger" onclick="showHint('各方案特性','逐方案各填一行，說明核心機制與最大特性，例如：開發複雜度、見效時間、對廣告主影響。填寫後 E 步驟會自動帶入這些方案進行逐一評估。')"><i class="ph ph-lightbulb"></i> 提示</button>
       </div>
-      <button class="field-example-toggle" onclick="toggleExample(this)">
-        <i class="ph ph-caret-right" style="font-size:9px"></i> 查看範例
-      </button>
-      <div class="field-example-body">方案一：系統主動、開發快（單季）；方案二：用戶主動、廣告影響最小；方案三：最激進、開發最複雜（逾一年）。</div>
-      <textarea class="circles-field-input" rows="3" placeholder="各方案的核心差異、複雜度、見效時間…"></textarea>
+      <div class="trait-rows">
+        <div class="trait-row">
+          <span class="trait-tag">方案一</span>
+          <input class="trait-input" type="text" placeholder="核心機制一句話 + 最大特性…">
+        </div>
+        <div class="trait-row-divider"></div>
+        <div class="trait-row">
+          <span class="trait-tag">方案二</span>
+          <input class="trait-input" type="text" placeholder="核心機制一句話 + 最大特性…">
+        </div>
+        <div class="trait-row-divider"></div>
+        <div class="trait-row">
+          <span class="trait-tag opt">方案三（選填）</span>
+          <input class="trait-input" type="text" placeholder="（選填）">
+        </div>
+      </div>
     </div>
   </div>
   <div class="submit-bar">
@@ -397,13 +419,24 @@ body { font-family: 'DM Sans', -apple-system, sans-serif; background: #F2F0EB; d
     <div class="circles-field-group">
       <div class="circles-field-label-row">
         <span class="circles-field-label">各方案特性</span>
-        <button class="circles-hint-trigger" onclick="showHint('各方案特性','各方案特性是把方案一、二、三的核心差異並排說明——例如：開發複雜度、見效時間、對廣告主的影響、對用戶的行為要求。這欄不需要展開評估（那是 E 步驟的工作），只要讓面試官能一眼看出你為什麼提這幾個不同方向。')"><i class="ph ph-lightbulb"></i> 提示</button>
+        <button class="circles-hint-trigger" onclick="showHint('各方案特性','逐方案各填一行，說明核心機制與最大特性，例如：開發複雜度、見效時間、對廣告主影響。填寫後 E 步驟會自動帶入這些方案進行逐一評估。')"><i class="ph ph-lightbulb"></i> 提示</button>
       </div>
-      <button class="field-example-toggle" onclick="toggleExample(this)">
-        <i class="ph ph-caret-right" style="font-size:9px"></i> 查看範例
-      </button>
-      <div class="field-example-body">方案一：系統主動、開發快（單季）；方案二：用戶主動、廣告影響最小；方案三：最激進、開發最複雜（逾一年）。</div>
-      <textarea class="circles-field-input" rows="3" placeholder="各方案的核心差異、複雜度、見效時間…"></textarea>
+      <div class="trait-rows">
+        <div class="trait-row">
+          <span class="trait-tag">方案一</span>
+          <input class="trait-input" type="text" value="演算法重排：系統主動，單季可見效，廣告風險中等" readonly>
+        </div>
+        <div class="trait-row-divider"></div>
+        <div class="trait-row">
+          <span class="trait-tag">方案二</span>
+          <input class="trait-input" type="text" placeholder="核心機制一句話 + 最大特性…">
+        </div>
+        <div class="trait-row-divider"></div>
+        <div class="trait-row">
+          <span class="trait-tag opt">方案三（選填）</span>
+          <input class="trait-input" type="text" placeholder="（選填）">
+        </div>
+      </div>
     </div>
   </div>
   <div class="submit-bar">
@@ -483,9 +516,24 @@ body { font-family: 'DM Sans', -apple-system, sans-serif; background: #F2F0EB; d
     <div class="circles-field-group">
       <div class="circles-field-label-row">
         <span class="circles-field-label">各方案特性</span>
-        <button class="circles-hint-trigger" onclick="showHint('各方案特性','各方案特性是把方案一、二、三的核心差異並排說明。')"><i class="ph ph-lightbulb"></i> 提示</button>
+        <button class="circles-hint-trigger" onclick="showHint('各方案特性','逐方案各填一行，說明核心機制與最大特性，例如：開發複雜度、見效時間、對廣告主影響。填寫後 E 步驟會自動帶入這些方案進行逐一評估。')"><i class="ph ph-lightbulb"></i> 提示</button>
       </div>
-      <textarea class="circles-field-input" rows="3" placeholder="各方案的核心差異、複雜度、見效時間…"></textarea>
+      <div class="trait-rows">
+        <div class="trait-row">
+          <span class="trait-tag">方案一</span>
+          <input class="trait-input" type="text" value="演算法重排：系統主動，單季可見效，廣告風險中等" readonly>
+        </div>
+        <div class="trait-row-divider"></div>
+        <div class="trait-row">
+          <span class="trait-tag">方案二</span>
+          <input class="trait-input" type="text" value="摯友列表：用戶主動，廣告衝擊最小，需用戶教育" readonly>
+        </div>
+        <div class="trait-row-divider"></div>
+        <div class="trait-row">
+          <span class="trait-tag" style="color:var(--primary)">方案三（可選）</span>
+          <input class="trait-input" type="text" placeholder="有更激進或更長期的路徑嗎？（選填）">
+        </div>
+      </div>
     </div>
   </div>
   <div class="submit-bar">
@@ -997,6 +1045,12 @@ function show(id) {
   var map = {'p1-drill':0,'p1-hint':1,'p1-sol3':2,'gate-pass':3,'gate-fail':4,'p2-early':5,'p2-late':6,'p2-conclude':7,'p3-l':8,'p3-c2':9};
   document.querySelectorAll('.nav-label').forEach(b => b.classList.remove('active'));
   if (map[id] !== undefined) document.querySelectorAll('.nav-label')[map[id]].classList.add('active');
+  // P1+提示畫面：自動展開「方案一」提示 overlay
+  if (id === 'p1-hint') {
+    showHint('方案一', '方案一通常是最直接解決優先痛點的路徑。根據 C 步驟的取捨標準，你最優先要解決的是「Feed 相關性不足」——方案一應該直接針對這個問題。說清楚你的方案是什麼、核心機制是什麼，一句話能讓面試官理解你在提什麼。');
+  } else {
+    document.getElementById('hint-overlay').classList.remove('visible');
+  }
 }
 function showHint(field, body) {
   document.getElementById('hint-title').textContent = field + ' — 分析思路';

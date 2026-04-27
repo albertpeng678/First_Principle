@@ -1,0 +1,407 @@
+<!DOCTYPE html>
+<html lang="zh-TW">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>L 步驟 UI 強化 — 比較方案</title>
+<link rel="stylesheet" href="https://unpkg.com/@phosphor-icons/web@2.1.1/src/regular/style.css">
+<link href="https://fonts.googleapis.com/css2?family=DM+Sans:wght@400;500;600;700&display=swap" rel="stylesheet">
+<style>
+* { box-sizing: border-box; margin: 0; padding: 0; }
+body {
+  background: #E8E6DF;
+  font-family: 'DM Sans', sans-serif;
+  min-height: 100vh;
+  padding: 32px 24px 80px;
+}
+h1 { text-align: center; font-size: 18px; font-weight: 700; color: #1a1a1a; margin-bottom: 6px; }
+.subtitle { text-align: center; font-size: 13px; color: #5a5a5a; margin-bottom: 8px; }
+.goal-note {
+  text-align: center;
+  font-size: 12px;
+  color: #1A56DB;
+  background: rgba(26,86,219,0.07);
+  border-radius: 10px;
+  padding: 8px 20px;
+  max-width: 700px;
+  margin: 0 auto 28px;
+}
+.compare-grid {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 32px;
+  max-width: 860px;
+  margin: 0 auto;
+}
+.option-label {
+  font-size: 12px; font-weight: 700; color: #1A56DB;
+  text-transform: uppercase; letter-spacing: 0.6px;
+  margin-bottom: 10px; text-align: center;
+}
+/* Phone */
+.phone {
+  width: 375px; margin: 0 auto;
+  background: #F2F0EB; border-radius: 40px; overflow: hidden;
+  box-shadow: 0 24px 64px rgba(0,0,0,0.28), 0 0 0 1.5px rgba(0,0,0,0.15);
+}
+/* Navbar */
+.navbar {
+  background: #fff; border-bottom: 1px solid rgba(0,0,0,0.08);
+  padding: 14px 16px; display: flex; align-items: center; justify-content: space-between;
+}
+.navbar-logo { font-weight: 700; font-size: 16px; color: #1a1a1a; }
+.btn-ghost { background: none; border: none; font-size: 13px; color: #1A56DB; font-weight: 600; cursor: pointer; font-family: 'DM Sans', sans-serif; }
+/* Step pills */
+.step-pills-bar {
+  background: #fff; border-bottom: 1px solid rgba(0,0,0,0.08);
+  padding: 10px 12px; display: flex; gap: 6px; overflow-x: auto;
+}
+.step-pill {
+  flex-shrink: 0; padding: 5px 11px; border-radius: 99px;
+  font-size: 12px; font-weight: 600; border: 1.5px solid rgba(0,0,0,0.12);
+  background: #fff; color: #5a5a5a;
+}
+.step-pill.active { background: #1A56DB; border-color: #1A56DB; color: #fff; }
+/* Phase bar */
+.phase-bar { padding: 14px 16px 0; }
+.phase-label { font-size: 11px; font-weight: 600; color: #8a8a8a; letter-spacing: 0.4px; text-transform: uppercase; margin-bottom: 4px; }
+.step-title { font-size: 17px; font-weight: 700; color: #1a1a1a; margin-bottom: 2px; }
+.step-sub { font-size: 12px; color: #5a5a5a; margin-bottom: 14px; }
+.progress-row { display: flex; gap: 4px; margin-bottom: 16px; }
+.progress-dot { flex: 1; height: 4px; border-radius: 99px; background: rgba(0,0,0,0.1); }
+.progress-dot.done { background: #1A56DB; }
+.progress-dot.active { background: #1A56DB; opacity: 0.5; }
+/* Cards area */
+.cards-area { padding: 0 16px 24px; max-height: 480px; overflow-y: auto; }
+/* Field card */
+.field-card {
+  background: #fff; border-radius: 14px; border: 1.5px solid rgba(0,0,0,0.08);
+  margin-bottom: 10px; overflow: hidden;
+}
+.field-header {
+  display: flex; align-items: center; justify-content: space-between;
+  padding: 13px 14px 10px;
+}
+.field-label { font-size: 13px; font-weight: 700; color: #1a1a1a; }
+.field-optional { font-size: 11px; color: #8a8a8a; font-weight: 400; margin-left: 4px; }
+.field-hint-btn {
+  width: 28px; height: 28px; border-radius: 8px;
+  background: rgba(26,86,219,0.08); border: none;
+  display: flex; align-items: center; justify-content: center;
+  color: #1A56DB; cursor: pointer; font-size: 15px;
+}
+.field-textarea {
+  width: 100%; border: none; outline: none; resize: none;
+  font-family: 'DM Sans', sans-serif; font-size: 13px; color: #1a1a1a;
+  padding: 0 14px 12px; line-height: 1.55; background: transparent; min-height: 56px;
+}
+.field-textarea::placeholder { color: #b0b0b0; }
+
+/* ─── APPROACH 1: 方案標籤 ─── */
+.solution-group {
+  background: #fff; border-radius: 14px; border: 1.5px solid rgba(0,0,0,0.08);
+  margin-bottom: 10px; overflow: hidden;
+}
+.solution-group-header {
+  display: flex; align-items: center; justify-content: space-between;
+  padding: 12px 14px 0;
+}
+.solution-tag-primary {
+  font-size: 12px; font-weight: 700; color: #1A56DB;
+  background: rgba(26,86,219,0.08); padding: 3px 10px; border-radius: 99px;
+}
+.solution-label-input {
+  margin: 8px 14px 0;
+  display: flex; align-items: center; gap: 8px;
+}
+.solution-label-input input {
+  flex: 1; border: none; border-bottom: 1.5px solid rgba(0,0,0,0.12);
+  outline: none; font-family: 'DM Sans', sans-serif; font-size: 13px; font-weight: 600;
+  color: #1a1a1a; padding: 4px 0 6px; background: transparent;
+}
+.solution-label-input input::placeholder { color: #b0b0b0; font-weight: 400; }
+.solution-label-input .label-icon { font-size: 13px; color: #8a8a8a; flex-shrink: 0; }
+.solution-divider { height: 1px; background: rgba(0,0,0,0.06); margin: 10px 14px 0; }
+.solution-desc-label { font-size: 11px; font-weight: 600; color: #8a8a8a; padding: 8px 14px 4px; text-transform: uppercase; letter-spacing: 0.4px; }
+
+/* ─── APPROACH 2: 各方案特性改版 ─── */
+.trait-card {
+  background: #fff; border-radius: 14px; border: 1.5px solid rgba(0,0,0,0.08);
+  margin-bottom: 10px; overflow: hidden;
+}
+.trait-header {
+  display: flex; align-items: center; justify-content: space-between;
+  padding: 13px 14px 10px;
+}
+.trait-row {
+  display: flex; align-items: flex-start; gap: 10px;
+  padding: 0 14px 12px;
+}
+.trait-tag {
+  font-size: 11px; font-weight: 700; color: #1A56DB;
+  background: rgba(26,86,219,0.08); padding: 4px 10px; border-radius: 99px;
+  flex-shrink: 0; margin-top: 2px; white-space: nowrap;
+}
+.trait-tag.opt { color: #8a8a8a; background: rgba(0,0,0,0.05); }
+.trait-input {
+  flex: 1; border: none; border-bottom: 1.5px solid rgba(0,0,0,0.1);
+  outline: none; font-family: 'DM Sans', sans-serif; font-size: 12.5px;
+  color: #1a1a1a; padding: 2px 0 6px; background: transparent;
+}
+.trait-input::placeholder { color: #b0b0b0; }
+.trait-divider { height: 1px; background: rgba(0,0,0,0.06); margin: 0 14px 10px; }
+
+/* Dashed add button */
+.add-solution-btn {
+  width: 100%; border: 1.5px dashed rgba(0,0,0,0.2); border-radius: 14px;
+  background: transparent; padding: 14px; font-family: 'DM Sans', sans-serif;
+  font-size: 13px; font-weight: 600; color: #8a8a8a;
+  display: flex; align-items: center; justify-content: center; gap: 8px;
+  cursor: pointer; margin-bottom: 10px;
+}
+
+/* Submit bar */
+.submit-bar {
+  background: #fff; border-top: 1px solid rgba(0,0,0,0.08);
+  padding: 12px 16px; display: flex; gap: 8px;
+}
+.btn-home {
+  padding: 12px 14px; border-radius: 12px; border: 1.5px solid rgba(0,0,0,0.12);
+  background: #fff; font-size: 13px; font-weight: 600; color: #5a5a5a;
+  font-family: 'DM Sans', sans-serif; cursor: pointer;
+}
+.btn-submit {
+  flex: 1; padding: 12px 14px; border-radius: 12px; border: none;
+  background: #1A56DB; color: #fff; font-size: 13px; font-weight: 700;
+  font-family: 'DM Sans', sans-serif; cursor: pointer;
+  display: flex; align-items: center; justify-content: center; gap: 6px;
+}
+
+/* Note */
+.option-note {
+  background: #fff; border-radius: 12px; padding: 14px 16px;
+  margin-top: 16px; max-width: 375px; margin-left: auto; margin-right: auto;
+  font-size: 13px; color: #1a1a1a; line-height: 1.6;
+  box-shadow: 0 2px 12px rgba(0,0,0,0.08);
+}
+.option-note strong { color: #1A56DB; }
+.option-note ul { padding-left: 18px; margin-top: 6px; }
+.option-note li { margin-bottom: 4px; }
+.e-preview {
+  background: rgba(26,86,219,0.06); border-radius: 10px;
+  padding: 10px 12px; margin-top: 10px; font-size: 12px; color: #1A56DB;
+}
+.e-preview strong { display: block; margin-bottom: 6px; font-size: 11px; text-transform: uppercase; letter-spacing: 0.5px; }
+.e-matrix-row { display: flex; align-items: center; gap: 8px; margin-bottom: 4px; }
+.e-matrix-tag { font-size: 11px; font-weight: 700; background: #1A56DB; color: #fff; padding: 2px 8px; border-radius: 99px; flex-shrink: 0; }
+.e-matrix-name { font-size: 12px; color: #1a1a1a; font-weight: 600; }
+</style>
+</head>
+<body>
+
+<h1>L 步驟 UI 強化 — 比較設計</h1>
+<p class="subtitle">目標：讓 L 步驟輸出足以支撐 E 步驟逐方案矩陣</p>
+<div class="goal-note">💡 E 步驟需要「方案名稱」才能顯示矩陣 row 標題。目前 L 的 frameworkDraft 在換步驟時被清空，需要在 L 強化資料輸出。</div>
+
+<div class="compare-grid">
+
+  <!-- ─── APPROACH 1: 方案標籤 + 描述 ─── -->
+  <div>
+    <div class="option-label">方向 A — 每方案加一行「標籤」</div>
+    <div class="phone">
+      <div class="navbar">
+        <span class="navbar-logo">PM Drill</span>
+        <button class="btn-ghost">北極星指標</button>
+      </div>
+      <div class="step-pills-bar">
+        <span class="step-pill">C 澄清</span>
+        <span class="step-pill">I 用戶</span>
+        <span class="step-pill">R 需求</span>
+        <span class="step-pill">C 排序</span>
+        <span class="step-pill active">L 方案</span>
+        <span class="step-pill">E 評估</span>
+        <span class="step-pill">S 推薦</span>
+      </div>
+      <div class="phase-bar">
+        <div class="phase-label">Phase 1 · 步驟加練</div>
+        <div class="step-title">L — 提出方案</div>
+        <div class="step-sub">提出 2-3 個差異化方案及各自特性</div>
+        <div class="progress-row">
+          <div class="progress-dot done"></div>
+          <div class="progress-dot done"></div>
+          <div class="progress-dot done"></div>
+          <div class="progress-dot done"></div>
+          <div class="progress-dot active"></div>
+          <div class="progress-dot"></div>
+          <div class="progress-dot"></div>
+        </div>
+      </div>
+      <div class="cards-area">
+
+        <!-- 方案一 -->
+        <div class="solution-group">
+          <div class="solution-group-header">
+            <span class="solution-tag-primary">方案一</span>
+            <button class="field-hint-btn"><i class="ph ph-lightbulb"></i></button>
+          </div>
+          <div class="solution-label-input">
+            <i class="ph ph-tag label-icon"></i>
+            <input type="text" value="演算法相關性重排" placeholder="方案名稱（10 字內）">
+          </div>
+          <div class="solution-divider"></div>
+          <div class="solution-desc-label">描述</div>
+          <textarea class="field-textarea" style="min-height:48px">調整 ML 模型，優先展示親密朋友動態，降低陌生粉絲頁比重。系統主動，用戶無感。</textarea>
+        </div>
+
+        <!-- 方案二 -->
+        <div class="solution-group">
+          <div class="solution-group-header">
+            <span class="solution-tag-primary">方案二</span>
+            <button class="field-hint-btn"><i class="ph ph-lightbulb"></i></button>
+          </div>
+          <div class="solution-label-input">
+            <i class="ph ph-tag label-icon"></i>
+            <input type="text" value="用戶主動優先序" placeholder="方案名稱（10 字內）">
+          </div>
+          <div class="solution-divider"></div>
+          <div class="solution-desc-label">描述</div>
+          <textarea class="field-textarea" style="min-height:48px">推出「摯友列表」，用戶自選誰的動態永遠置頂，不受演算法干擾。廣告主衝擊最小。</textarea>
+        </div>
+
+        <!-- 新增方案三 -->
+        <button class="add-solution-btn">
+          <i class="ph ph-plus-circle"></i> 新增方案三（可選）
+        </button>
+
+        <!-- 各方案特性 -->
+        <div class="field-card">
+          <div class="field-header">
+            <span class="field-label">各方案特性</span>
+            <button class="field-hint-btn"><i class="ph ph-lightbulb"></i></button>
+          </div>
+          <textarea class="field-textarea" placeholder="說明各方案的核心差異（開發複雜度、見效時間、對用戶/廣告主的影響）…">方案一系統決定、方案二用戶決定。方案一最快（單季），方案二需用戶教育（兩季）。</textarea>
+        </div>
+
+      </div>
+      <div class="submit-bar">
+        <button class="btn-home">回首頁</button>
+        <button class="btn-submit">提交審核 <i class="ph ph-arrow-right"></i></button>
+      </div>
+    </div>
+    <div class="option-note">
+      <strong>改動最小，方案名稱進 E 步驟</strong>
+      <ul>
+        <li>每個方案新增一行「標籤」短輸入框（≤10 字）</li>
+        <li>儲存至 <code>circlesStepDrafts['L']</code>，E 步驟讀取顯示 row 標題</li>
+        <li>「各方案特性」欄位維持原來自由文字</li>
+      </ul>
+      <div class="e-preview">
+        <strong>→ E 步驟矩陣 row 長這樣</strong>
+        <div class="e-matrix-row"><span class="e-matrix-tag">方案一</span><span class="e-matrix-name">演算法相關性重排</span></div>
+        <div class="e-matrix-row"><span class="e-matrix-tag">方案二</span><span class="e-matrix-name">用戶主動優先序</span></div>
+      </div>
+    </div>
+  </div>
+
+  <!-- ─── APPROACH 2: 各方案特性改版為結構化 ─── -->
+  <div>
+    <div class="option-label">方向 B — 各方案特性改為結構化 rows</div>
+    <div class="phone">
+      <div class="navbar">
+        <span class="navbar-logo">PM Drill</span>
+        <button class="btn-ghost">北極星指標</button>
+      </div>
+      <div class="step-pills-bar">
+        <span class="step-pill">C 澄清</span>
+        <span class="step-pill">I 用戶</span>
+        <span class="step-pill">R 需求</span>
+        <span class="step-pill">C 排序</span>
+        <span class="step-pill active">L 方案</span>
+        <span class="step-pill">E 評估</span>
+        <span class="step-pill">S 推薦</span>
+      </div>
+      <div class="phase-bar">
+        <div class="phase-label">Phase 1 · 步驟加練</div>
+        <div class="step-title">L — 提出方案</div>
+        <div class="step-sub">提出 2-3 個差異化方案及各自特性</div>
+        <div class="progress-row">
+          <div class="progress-dot done"></div>
+          <div class="progress-dot done"></div>
+          <div class="progress-dot done"></div>
+          <div class="progress-dot done"></div>
+          <div class="progress-dot active"></div>
+          <div class="progress-dot"></div>
+          <div class="progress-dot"></div>
+        </div>
+      </div>
+      <div class="cards-area">
+
+        <!-- 方案一（unchanged） -->
+        <div class="field-card">
+          <div class="field-header">
+            <span class="field-label">方案一</span>
+            <button class="field-hint-btn"><i class="ph ph-lightbulb"></i></button>
+          </div>
+          <textarea class="field-textarea" style="min-height:52px">演算法相關性重排——調整 ML 模型，優先展示親密朋友動態，降低陌生粉絲頁比重。</textarea>
+        </div>
+
+        <!-- 方案二（unchanged） -->
+        <div class="field-card">
+          <div class="field-header">
+            <span class="field-label">方案二</span>
+            <button class="field-hint-btn"><i class="ph ph-lightbulb"></i></button>
+          </div>
+          <textarea class="field-textarea" style="min-height:52px">用戶主動優先序——推出「摯友列表」，用戶自選誰的動態永遠置頂，不受演算法干擾。</textarea>
+        </div>
+
+        <!-- 新增方案三 -->
+        <button class="add-solution-btn">
+          <i class="ph ph-plus-circle"></i> 新增方案三（可選）
+        </button>
+
+        <!-- 各方案特性 → 結構化 -->
+        <div class="trait-card">
+          <div class="trait-header">
+            <span class="field-label">各方案特性 <span class="field-optional">— 逐方案一行摘要</span></span>
+            <button class="field-hint-btn"><i class="ph ph-lightbulb"></i></button>
+          </div>
+          <div class="trait-row">
+            <span class="trait-tag">方案一</span>
+            <input class="trait-input" type="text" value="演算法重排：系統主動，單季可見效，廣告風險中" placeholder="一句話描述核心機制與特性">
+          </div>
+          <div class="trait-divider"></div>
+          <div class="trait-row">
+            <span class="trait-tag">方案二</span>
+            <input class="trait-input" type="text" value="摯友列表：用戶主動，需教育，廣告衝擊最小" placeholder="一句話描述核心機制與特性">
+          </div>
+          <div class="trait-divider"></div>
+          <div class="trait-row">
+            <span class="trait-tag opt">方案三</span>
+            <input class="trait-input" type="text" placeholder="（選填）一句話描述核心機制與特性" style="color:#b0b0b0">
+          </div>
+        </div>
+
+      </div>
+      <div class="submit-bar">
+        <button class="btn-home">回首頁</button>
+        <button class="btn-submit">提交審核 <i class="ph ph-arrow-right"></i></button>
+      </div>
+    </div>
+    <div class="option-note">
+      <strong>改動「各方案特性」，同時解決兩個問題</strong>
+      <ul>
+        <li>原本的自由文字欄改為 3 個 row（方案一/二/三各一行）</li>
+        <li>每行含方案名稱 + 特性摘要，E 步驟直接讀取</li>
+        <li>方案一/二欄位本身不動，改動量集中在最後一欄</li>
+      </ul>
+      <div class="e-preview">
+        <strong>→ E 步驟矩陣 row 長這樣</strong>
+        <div class="e-matrix-row"><span class="e-matrix-tag">方案一</span><span class="e-matrix-name">演算法重排：系統主動，單季可見效</span></div>
+        <div class="e-matrix-row"><span class="e-matrix-tag">方案二</span><span class="e-matrix-name">摯友列表：用戶主動，廣告衝擊最小</span></div>
+      </div>
+    </div>
+  </div>
+
+</div>
+</body>
+</html>
