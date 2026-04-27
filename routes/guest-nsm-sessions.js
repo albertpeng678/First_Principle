@@ -90,8 +90,11 @@ router.post('/:id/evaluate', requireGuestId, async (req, res) => {
 });
 
 // POST /api/guest/nsm-sessions/:id/gate
+const NSM_GATE_MAX = 2000; // protect against runaway token cost
 router.post('/:id/gate', requireGuestId, async (req, res) => {
   const { nsm, rationale } = req.body;
+  if (typeof nsm !== 'string' || typeof rationale !== 'string') return res.status(400).json({ error: 'invalid_body' });
+  if (nsm.length > NSM_GATE_MAX || rationale.length > NSM_GATE_MAX) return res.status(400).json({ error: 'input_too_long' });
   const { data: session, error } = await db
     .from('nsm_sessions')
     .select('question_json')
@@ -102,8 +105,8 @@ router.post('/:id/gate', requireGuestId, async (req, res) => {
   try {
     const result = await reviewNSMGate({
       question: session.question_json,
-      nsm: nsm || '',
-      rationale: rationale || '',
+      nsm,
+      rationale,
     });
     res.json(result);
   } catch (e) { res.status(500).json({ error: e.message }); }

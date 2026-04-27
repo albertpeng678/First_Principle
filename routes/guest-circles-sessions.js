@@ -215,9 +215,13 @@ router.post('/:id/final-report', requireGuestId, async (req, res) => {
 });
 
 // POST /api/guest/circles-sessions/:id/hint
+const ALLOWED_STEPS = ['C1', 'I', 'R', 'C2', 'L', 'E', 'S'];
+const FIELD_MAX_LEN = 40;
 router.post('/:id/hint', requireGuestId, async (req, res) => {
   const { step, field } = req.body;
   if (!step || !field) return res.status(400).json({ error: 'missing_step_or_field' });
+  if (!ALLOWED_STEPS.includes(step)) return res.status(400).json({ error: 'invalid_step' });
+  if (typeof field !== 'string' || field.length > FIELD_MAX_LEN) return res.status(400).json({ error: 'invalid_field' });
   const { data: session, error } = await db
     .from('circles_sessions')
     .select('question_json')

@@ -133,7 +133,17 @@ ${rationale || '（未填）'}`;
         max_tokens: 900,
         response_format: { type: 'json_object' },
       });
-      return JSON.parse(resp.choices[0].message.content);
+      const parsed = JSON.parse(resp.choices[0].message.content);
+      // Schema validation: must have exactly 4 items, each with required fields.
+      if (!Array.isArray(parsed.items) || parsed.items.length !== 4)
+        throw new Error('schema: expected items array of length 4');
+      for (const it of parsed.items) {
+        if (typeof it.criterion !== 'string' || !['ok', 'warn', 'error'].includes(it.status) || typeof it.feedback !== 'string')
+          throw new Error('schema: invalid item shape');
+      }
+      if (typeof parsed.canProceed !== 'boolean') throw new Error('schema: canProceed missing');
+      if (!['ok', 'warn', 'error'].includes(parsed.overallStatus)) throw new Error('schema: invalid overallStatus');
+      return parsed;
     } catch (e) {
       if (attempt === 2) throw new Error('NSM 審核暫時失敗，請重試');
       await new Promise(r => setTimeout(r, 800 * (attempt + 1)));

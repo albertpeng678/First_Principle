@@ -91,7 +91,13 @@ ${coach_nsm || '（請自行根據公司情境和產品類型推斷）'}
         max_tokens: 700,
         response_format: { type: 'json_object' },
       });
-      return JSON.parse(resp.choices[0].message.content);
+      const parsed = JSON.parse(resp.choices[0].message.content);
+      // Schema validation: all 4 fields required, all strings.
+      for (const k of ['model', 'users', 'traps', 'insight']) {
+        if (typeof parsed[k] !== 'string' || !parsed[k].trim())
+          throw new Error('schema: missing or empty field "' + k + '"');
+      }
+      return parsed;
     } catch (e) {
       if (attempt === 2) throw new Error('NSM 情境分析暫時失敗，請重試');
       await new Promise(r => setTimeout(r, 800 * (attempt + 1)));
