@@ -5494,6 +5494,145 @@ Turn 4:
 
 ---
 
+## Per-Step Content Reference — E 評估取捨
+
+### Step Key: `E` | Label: E — 評估取捨 | Position: 6/7
+
+**Fields（Phase 1，per-solution 結構）：** 每個方案各自獨立一個區塊，包含：優點、缺點、風險與依賴、成功指標。欄位標題使用用戶在 L 步驟輸入的方案名稱（從 `circlesStepDrafts['L']` 讀取），若 sol3 為 null 則方案三區塊隱藏。
+
+> **Phase 1 UI 方向（Option B — per-solution matrix）：** 每個方案各自一個 `field-group`，標題列顯示方案編號 ＋ 用戶自訂名稱（e.g. 「方案一・演算法重排」），內部包含 4 個 textarea 欄位。相比「4 綜合欄位」的 Option A，此設計引導力更強——用戶被迫逐一評估每個方案，避免跳過薄弱方案。
+
+> **跨步驟資料依賴：** E 步驟在進入時讀取 `circlesStepDrafts['L']`（`{ sol1, sol2, sol3 }`）以顯示方案名稱標籤。若 `circlesStepDrafts['L']` 不存在（drill 模式或 L 未完成），則回退到預設標籤「方案一／二／三」，sol3 區塊預設隱藏。
+
+**Rubric (4 dimensions, total /20 → normalized to /100):**
+| Dimension | Max | Description |
+|-----------|-----|-------------|
+| 評估完整性 | 5 | 每個方案都有明確的優缺點，無遺漏 |
+| 風險識別 | 5 | 能點出每個方案最關鍵的風險或依賴條件 |
+| 成功指標具體性 | 5 | 成功指標可量化，與用戶痛點直接掛鉤 |
+| 取捨判斷清晰 | 5 | 能說明方案之間的關鍵取捨，為最終推薦做鋪墊 |
+
+**Phase 1 欄位 per-solution 結構（每個方案各含以下 4 個 textarea）：**
+```
+方案一・[sol1 name]
+  ├── 優點          placeholder: 這個方案的核心優勢是什麼？
+  ├── 缺點          placeholder: 最大的劣勢或限制？
+  ├── 風險與依賴    placeholder: 實施這個方案需要什麼前提條件？
+  └── 成功指標      placeholder: 如何衡量這個方案是否成功？
+
+方案二・[sol2 name]
+  └── （同上 4 欄）
+
+方案三・[sol3 name]（當 circlesStepDrafts['L'].sol3 存在時才顯示）
+  └── （同上 4 欄）
+```
+
+**Phase 1 hint overlay texts (lightbulb buttons，每個方案共用同一組 hint）：**
+- 優點：「優點要具體——不是「用戶喜歡」，而是「直接解決 Feed 相關性問題，系統主動，用戶無感」。說出這個方案「為什麼比其他方案更適合解決這個問題」。」
+- 缺點：「缺點不是說「這個方案不好」，而是誠實說「這個方向的侷限在哪裡」。面試官希望看到你能清楚識別方案的邊界，而不是只看到優點。」
+- 風險與依賴：「風險是「如果 X 沒有達成，這個方案就會失敗」。常見的有：資料依賴（需要哪些 ML 訓練資料）、用戶行為假設（用戶願意主動設定）、業務約束（廣告收入不能下降超過 N%）。」
+- 成功指標：「成功指標要和你在 R 步驟確認的核心痛點掛鉤。如果核心痛點是「Feed 相關性不足」，成功指標應該是「用戶在 Feed 上的停留時間提升 X%」或「廣告點擊率維持在 Y% 以上」。」
+
+**`CIRCLES_STEP_HINTS['E']` array (drill mode field example text，對應欄位順序):**
+```javascript
+// 方案一 優點:
+'演算法方案優點：系統主動過濾，用戶無需改變行為；ML 端優化，開發週期最短（單季）',
+// 方案一 缺點:
+'演算法方案缺點：黑盒決策，用戶感知不透明；廣告相關性可能連帶下降，影響廣告主收益',
+// 方案一 風險與依賴:
+'依賴足夠的用戶社交圖譜資料；廣告收入影響需事先 A/B test 量化上限',
+// 方案一 成功指標:
+'Feed 停留時間提升 ≥ 15%；朋友動態互動率（like/comment）提升 ≥ 20%；廣告 CTR 下降 ≤ 5%'
+```
+
+**Phase 2 icebreaker text:**
+「問被訪談者：「這幾個方案你們在評估時，最擔心的風險是什麼？」——不是問哪個最好，而是問顧慮。這樣能讓你確認自己的風險識別有沒有遺漏關鍵的業務約束。」
+
+**Phase 2 dialogue (4 turns):**
+
+Turn 1:
+- 用戶問：「這幾個方案在評估時，你們最擔心哪個風險？」
+- 被訪談者：「最擔心的是廣告收益的影響。演算法方案如果過濾太強，廣告曝光量會下降——這個數字內部對一個百分點都很敏感。」
+- 教練點評：「直接拿到業務約束：廣告收益是硬性指標，不能下降超過某個閾值。把這個加入演算法方案的風險欄位，同時確認其他方案是否也有類似的業務約束。」
+- 教練提示（折疊）：「問：「摯友列表方案呢？有沒有擔心用戶不願意主動設定的問題？」」
+
+Turn 2:
+- 用戶問：「摯友列表方案有沒有擔心用戶不願意主動設定？」
+- 被訪談者：「對，這是用戶教育成本的問題。Facebook 上大多數用戶是被動使用的，主動去設定「誰是摯友」這個動作，歷史上推過一次，採用率很低。」
+- 教練點評：「摯友列表的核心風險出來了：用戶採用率低（行為假設失效）。這比功能本身的技術複雜度更根本。加入缺點或風險欄位。」
+- 教練提示（折疊）：「問：「那分類頁籤方案的評估呢？」」
+
+Turn 3:
+- 用戶問：「分類頁籤方案，你們內部評估下來最大的阻力是什麼？」
+- 被訪談者：「改動太大了——整個 Feed 的資訊架構要重新設計，廣告的分類歸屬也要重新談。這個方案估計要超過一年才能上線，而且對廣告主的影響最不可預測。」
+- 教練點評：「分類頁籤三個風險都到位了：開發週期最長、廣告業務影響最不可預測、資訊架構改動量大。這個方案的缺點和風險都很清楚，可以整理提交。」
+- 教練提示（折疊）：「整理三個方案各自的成功指標，讓評估結果能為 S 步驟的推薦做鋪墊。」
+
+Turn 4:
+- 用戶問：「如果要衡量每個方案是否成功，你覺得最關鍵的指標是什麼？」
+- 被訪談者：「演算法方案看 Feed 停留時間和廣告 CTR；摯友列表看採用率和重複使用率；分類頁籤看頁籤切換行為和各分類的留存。三個方案衡量的指標本質上完全不同。」
+- 教練點評：「每個方案的成功指標各自清晰，且都和原始用戶痛點掛鉤。評估完整性和成功指標具體性兩個維度已達標，可以提交。」
+
+**Phase 2 conclusion box spec:**
+- title：「整理你這個步驟評估了什麼」
+- sub-text：「用 2-3 句話說明：各方案最關鍵的優缺點，以及你認為哪個方向最值得推薦」
+- Placeholder：「整理各方案的優缺點與風險，說明哪個方案最值得推薦及理由…」
+- Example strip（collapsed，不同題目）：「Spotify 免費版廣告體驗三個方案評估：廣告後推薦（優：系統主動，缺：可能推錯）；時段兌換（優：用戶主動，缺：採用率低）；分層訂閱（優：商業模式清晰，缺：開發週期長）。推薦廣告後推薦，短期可行且用戶無感。」
+- AI detection pass hint（length > 30 chars）：「結論涵蓋多方案比較並說明推薦方向，可以提交」
+
+**Phase 1.5 Gate — E 審核邏輯：**
+
+`canProceed = false` 條件：方案一或方案二有任何一個必填欄位（優點、缺點、風險與依賴、成功指標）出現 `error`。方案三若整個 sol3 區塊存在，至少需要填寫優點與缺點；sol3 整體缺失（L 未填方案三）時不影響 canProceed。
+
+**教練示範答案（完整，用於 coach-content HTML）：**
+```html
+<div style="margin-bottom:12px"><strong>方案一・演算法重排</strong><br>
+優點：系統主動，用戶無感，開發集中在 ML 端，單季可見效。<br>
+缺點：黑盒決策，廣告相關性可能連帶下降。<br>
+風險：依賴社交圖譜資料；廣告 CTR 需 A/B test 設底線。<br>
+成功指標：Feed 停留時間 ↑15%；朋友動態互動率 ↑20%；廣告 CTR 降幅 ≤5%。</div>
+
+<div style="margin-bottom:12px"><strong>方案二・摯友列表</strong><br>
+優點：廣告衝擊最小，用戶主動控制，無演算法爭議。<br>
+缺點：歷史採用率低，用戶教育成本高。<br>
+風險：行為假設失效（用戶不願主動設定）。<br>
+成功指標：摯友列表採用率 ≥20%；設定後 30 天留存率 ↑10%。</div>
+
+<div style="margin-bottom:12px"><strong>方案三・分類頁籤</strong><br>
+優點：最徹底的結構性解法，用戶自主選擇瀏覽情境。<br>
+缺點：開發週期最長（逾一年）；廣告歸類方式需重新談。<br>
+風險：廣告主配合度不確定；用戶習慣遷移成本高。<br>
+成功指標：頁籤切換率 ≥30%；各分類 7 日留存率持平或提升。</div>
+```
+
+**Score nav in circles-nav (simulation mode):**
+- ◀ (onclick → show L step score) — `score-nav-btn`
+- ▶ disabled (E is current/latest step) — `score-nav-btn` with `disabled`
+
+**Simulation 模式 submit-bar（E 是第 6/7 步）：** 回首頁 ｜ 繼續下一步：S 總結推薦 →
+
+**Mockup screens 規劃（待製作）：**
+1. `P1 加練` — Phase 1 drill mode，3 個方案區塊各展開 4 個欄位（方案三預設隱藏），方案名稱由 circlesStepDrafts['L'] 帶入；drill 模式回退為預設標籤
+2. `P1+提示` — 所有欄位的 lightbulb 按鈕可點，觸發 hint overlay
+3. `Gate 通過` — canProceed=true，各欄位評估完整
+4. `Gate 失敗` — 方案一缺點欄位空白（error），方案二成功指標過於模糊（warn）
+5. `P2 早期` — Turn 1：拿到廣告收益業務約束
+6. `P2 收斂` — Turn 2-4：確認各方案風險，收斂至可提交
+7. `P2 結論` — 結論框顯示最後一輪，含 example strip
+8. `P3 E評分` — 分數 + 4 維度分解 + 教練示範答案 + score-nav ◀L / ▶disabled
+9. `P3 L評分` — 展示 ◀disabled / ▶點擊切回 E 評分的 score-nav
+
+**New patterns introduced in E step:**
+| Pattern | Class / ID | Description |
+|---------|-----------|-------------|
+| Per-solution 區塊 | `.e-solution-block` | 每個方案一個 block，標題列顯示「方案N・[名稱]」，內含 4 個 `.circles-field-group` |
+| 方案名稱標題列 | `.e-sol-header` | `font-weight: 700`；左側方案編號 badge + 右側 sol-name；從 `circlesStepDrafts['L']` 注入 |
+| Sol3 條件渲染 | `#e-sol3-block` | `display:none` 當 `circlesStepDrafts['L'].sol3` 為 null；drill 模式回退時亦隱藏 |
+
+**Mockup HTML 路徑（待建立）：** `.superpowers/brainstorm/E-step-2026-04-27/content/circles-E-step-mockup.html`
+
+---
+
 ## Screen 7: NSM Step 1 — Question Selection (`renderNSMStep1`)
 
 ### 3 Sub-States
