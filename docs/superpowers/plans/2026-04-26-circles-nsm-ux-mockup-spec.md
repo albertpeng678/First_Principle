@@ -32,7 +32,7 @@
 | **I** | 定義用戶 | 用戶分群 → 選定焦點用戶 → 理解動機 | 目標用戶分群、選定焦點、用戶動機假設、排除對象 |
 | **R** | 發掘需求 | 從功能/情感/社交三層次挖掘需求與痛點 | 功能性需求、情感性需求、社交性需求、核心痛點 |
 | **C2** | 優先排序 | 訂出取捨標準 → 排出優先級 → 說明理由 | 取捨標準、最優先項目、暫緩項目、排序理由 |
-| **L** | 提出方案 | 提出 2-3 個差異化方案及各自特性 | 方案一、方案二、方案三（可選）、各方案特性 |
+| **L** | 提出方案 | 提出 2-3 個差異化方案（各附短名稱標籤） | 方案一（含名稱）、方案二（含名稱）、方案三（可選，含名稱） |
 | **E** | 評估取捨 | 分析每個方案的優缺點、風險、成功指標 | 方案優點、方案缺點、風險與依賴、成功指標 |
 | **S** | 總結推薦 | 選定方案、說明理由、定義北極星指標 | 推薦方案、選擇理由、**北極星指標**、追蹤指標 |
 
@@ -5363,9 +5363,11 @@ function onConclude() {
 
 ### Step Key: `L` | Label: L — 提出方案 | Position: 5/7
 
-**Fields:** 方案一, 方案二, 方案三（可選）, 各方案特性
+**Fields:** 方案一（含名稱標籤）, 方案二（含名稱標籤）, 方案三（可選，含名稱標籤）
 
-> **L 步驟唯一特例：** 方案三是整個 CIRCLES 框架唯一的選填欄位。Phase 1 UI 使用 Progressive Disclosure（選項 A）：預設顯示「新增方案三（可選）」按鈕，點擊後展開欄位（帶藍色左邊框）。Gate 審核時方案三留空須以 `status: 'skip'` 呈現（ph-minus-circle icon, 50% opacity），不影響 canProceed 判斷。
+> **L 步驟唯一特例：** 方案三是整個 CIRCLES 框架唯一的選填欄位。Phase 1 UI 使用 Progressive Disclosure：預設顯示「新增方案三（可選）」按鈕，點擊後展開欄位（帶藍色左邊框）。Gate 審核時方案三留空須以 `status: 'skip'` 呈現（ph-minus-circle icon, 50% opacity），不影響 canProceed 判斷。
+
+> **方案名稱標籤（sol-name-input）：** 每個方案欄位頂部新增一個短名稱輸入欄（≤10 字），用 `ph-tag` icon + 底線輸入框呈現。此欄位名稱在用戶送出 Phase 1 後存入 `circlesStepDrafts['L']`（格式：`{ sol1: string, sol2: string, sol3: string | null }`），E 步驟讀取此物件，以用戶自訂名稱取代預設的「方案一／二／三」標籤。**Phase 1 不設「各方案特性」欄位**——方案描述本身已足以提供 E 步驟所需資訊，避免重複填寫。
 
 **Rubric (4 dimensions, total /20 → normalized to /100):**
 | Dimension | Max | Description |
@@ -5386,14 +5388,18 @@ function onConclude() {
 - 方案一：「方案一通常是最直接解決優先痛點的路徑。根據 C 步驟的取捨標準，你最優先要解決的是「Feed 相關性不足」——方案一應該直接針對這個問題。說清楚你的方案是什麼、核心機制是什麼，一句話能讓面試官理解你在提什麼。」
 - 方案二：「方案二要和方案一有明確的方向差異——不是「更多」而是「不同」。例如：方案一是演算法主動過濾，方案二可以是讓用戶主動控制。多樣性是這個步驟的核心評分維度。如果你的方案二只是方案一的微調，面試官會認為你的思維不夠廣。」
 - 方案三（可選）：「方案三是加分項，不是必填。如果你有第三個有意義的方案——通常是更激進或更長期的路徑——加上去能展示你的思維廣度。但如果只是湊數，不填反而更好。方案三和前兩個的差距，應該讓面試官感覺「這是完全不同的思路」。」
-- 各方案特性：「各方案特性是把方案一、二、三的核心差異並排說明——例如：開發複雜度、見效時間、對廣告主的影響、對用戶的行為要求。這欄不需要展開評估（那是 E 步驟的工作），只要讓面試官能一眼看出你為什麼提這幾個不同方向。」
 
 **`CIRCLES_STEP_HINTS['L']` array (drill mode field example text):**
 ```javascript
-['演算法相關性重排——調整 ML 模型，優先展示親密朋友動態，降低陌生粉絲頁比重',
- '用戶主動優先序——推出「摯友列表」，該列表動態永遠優先展示，不受演算法干擾',
- '（可選）分類 Feed 頁籤——將朋友動態、廣告、影片拆成不同頁籤，讓用戶自行選擇瀏覽情境',
- '方案一：系統主動，開發快（單季）；方案二：用戶主動，廣告影響最小；方案三：最激進，開發週期最長（逾一年）']
+// 方案一 name: '演算法重排'
+// 方案一 body:
+'演算法相關性重排——調整 ML 模型，優先展示親密朋友動態，降低陌生粉絲頁比重',
+// 方案二 name: '摯友列表'
+// 方案二 body:
+'用戶主動優先序——推出「摯友列表」，該列表動態永遠優先展示，不受演算法干擾',
+// 方案三 name: '分類頁籤'（可選）
+// 方案三 body:
+'（可選）分類 Feed 頁籤——將朋友動態、廣告、影片拆成不同頁籤，讓用戶自行選擇瀏覽情境'
 ```
 
 **Phase 2 icebreaker text:**
@@ -5477,9 +5483,11 @@ Turn 4:
 **New patterns introduced in L step:**
 | Pattern | Class / ID | Description |
 |---------|-----------|-------------|
+| 方案名稱標籤 | `.sol-name-row` / `.sol-name-input` | 每個方案欄位 `circles-field-label-row` 之後插入一列；`ph-tag` icon + 底線 input（`border-bottom: 1.5px solid var(--border)`，無外框）；placeholder「方案名稱（10 字內）」；font-weight 600 |
 | 新增方案三按鈕 | `.add-solution-btn` | Dashed-border button，`display:flex`，點擊後 `display:none` 且展開 `#sol3-group` |
 | 方案三展開區 | `#sol3-group` | 預設 `display:none`，展開後帶 `border-left: 3px solid var(--primary)` + `padding-left:12px` |
 | 展開/收起函式 | `expandSol3()` / `collapseSol3()` | JS：toggles add-btn 和 sol3-group 的 display |
+| 跨步驟名稱資料 | `circlesStepDrafts['L']` | AppState 新欄位；格式 `{ sol1: string, sol2: string, sol3: string \| null }`；Phase 1 送出時儲存，E 步驟讀取以顯示用戶自訂方案名稱 |
 | Gate skip card | `.gate-card` + `opacity:.5` | 用 `ph-minus-circle`（gray），無 ok/warn/error border-color，不顯示 suggestion |
 | 全域 hint overlay | `#hint-overlay` + `showHint(field, body)` | 所有畫面共用同一個 overlay，P1+提示畫面的四個按鈕均綁定 `onclick="showHint(...)"` |
 | 無 emoji 全面改用 phosphor | — | ph-lightbulb（提示）、ph-check-circle（ok）、ph-warning（warn）、ph-x-circle（error）、ph-minus-circle（skip） |

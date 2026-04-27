@@ -95,14 +95,11 @@ body { font-family: 'DM Sans', -apple-system, sans-serif; background: #F2F0EB; d
 .circles-field-input:focus { border-color: var(--primary); }
 .circles-field-input.filled { border-color: rgba(26,86,219,0.3); background: #fbfaff; }
 
-/* TRAIT ROWS — 各方案特性結構化 (Option B) */
-.trait-rows { background: var(--card); border: 1.5px solid var(--border); border-radius: 10px; overflow: hidden; margin-bottom: 0; }
-.trait-row { display: flex; align-items: center; gap: 10px; padding: 10px 13px; }
-.trait-row-divider { height: 1px; background: var(--border); }
-.trait-tag { font-size: 11px; font-weight: 700; color: var(--primary); background: var(--primary-lt); padding: 3px 10px; border-radius: 99px; flex-shrink: 0; white-space: nowrap; }
-.trait-tag.opt { color: var(--text-3); background: rgba(0,0,0,0.05); font-weight: 600; }
-.trait-input { flex: 1; border: none; outline: none; font-family: 'DM Sans', sans-serif; font-size: 12.5px; color: var(--text); padding: 2px 0; background: transparent; min-width: 0; }
-.trait-input::placeholder { color: var(--text-3); }
+/* SOLUTION NAME ROW — Option A */
+.sol-name-row { display: flex; align-items: center; gap: 8px; margin-bottom: 8px; padding: 0 2px; }
+.sol-name-icon { font-size: 13px; color: var(--text-3); flex-shrink: 0; }
+.sol-name-input { flex: 1; border: none; border-bottom: 1.5px solid var(--border); outline: none; font-family: 'DM Sans', sans-serif; font-size: 13px; font-weight: 600; color: var(--text); padding: 3px 0 5px; background: transparent; }
+.sol-name-input::placeholder { color: var(--text-3); font-weight: 400; }
 
 .add-solution-btn {
   display: flex; align-items: center; gap: 8px;
@@ -209,14 +206,15 @@ body { font-family: 'DM Sans', -apple-system, sans-serif; background: #F2F0EB; d
 
 .hint-overlay {
   display: none; position: fixed; top: 0; left: 0;
-  width: 100%; height: 100%;
+  width: 100vw; height: 100vh;
   background: rgba(0,0,0,0.45); z-index: 1100;
 }
 .hint-overlay.visible { display: block; }
 .hint-sheet {
-  position: absolute; bottom: 0; left: 0; right: 0; margin: 0 auto;
+  position: fixed; left: 0; right: 0; margin: 0 auto;
   background: var(--card); border-radius: 20px 20px 0 0; padding: 20px 20px 32px;
   width: 390px; max-height: 70vh; overflow-y: auto; box-sizing: border-box;
+  z-index: 1101;
 }
 .hint-sheet-handle { width: 36px; height: 4px; background: #ddd; border-radius: 2px; margin: 0 auto 16px; }
 .hint-sheet-title { font-size: 14px; font-weight: 700; color: var(--text); margin-bottom: 10px; display: flex; align-items: center; gap: 6px; }
@@ -283,6 +281,7 @@ body { font-family: 'DM Sans', -apple-system, sans-serif; background: #F2F0EB; d
         <span class="circles-field-label">方案一</span>
         <button class="circles-hint-trigger" onclick="showHint('方案一','方案一通常是最直接解決優先痛點的路徑。根據 C 步驟的取捨標準，你最優先要解決的是「Feed 相關性不足」——方案一應該直接針對這個問題。說清楚你的方案是什麼、核心機制是什麼，一句話能讓面試官理解你在提什麼。')"><i class="ph ph-lightbulb"></i> 提示</button>
       </div>
+      <div class="sol-name-row"><i class="ph ph-tag sol-name-icon"></i><input class="sol-name-input" type="text" placeholder="方案名稱（10 字內）"></div>
       <button class="field-example-toggle" onclick="toggleExample(this)">
         <i class="ph ph-caret-right" style="font-size:9px"></i> 查看範例
       </button>
@@ -295,6 +294,7 @@ body { font-family: 'DM Sans', -apple-system, sans-serif; background: #F2F0EB; d
         <span class="circles-field-label">方案二</span>
         <button class="circles-hint-trigger" onclick="showHint('方案二','方案二要和方案一有明確的方向差異——不是「更多」而是「不同」。例如：方案一是演算法主動過濾，方案二可以是讓用戶主動控制。多樣性是這個步驟的核心評分維度。如果你的方案二只是方案一的微調，面試官會認為你的思維不夠廣。')"><i class="ph ph-lightbulb"></i> 提示</button>
       </div>
+      <div class="sol-name-row"><i class="ph ph-tag sol-name-icon"></i><input class="sol-name-input" type="text" placeholder="方案名稱（10 字內）"></div>
       <button class="field-example-toggle" onclick="toggleExample(this)">
         <i class="ph ph-caret-right" style="font-size:9px"></i> 查看範例
       </button>
@@ -312,6 +312,7 @@ body { font-family: 'DM Sans', -apple-system, sans-serif; background: #F2F0EB; d
         <span class="circles-field-label">方案三（可選）</span>
         <button class="circles-hint-trigger" onclick="showHint('方案三（可選）','方案三是加分項，不是必填。如果你有第三個有意義的方案——通常是更激進或更長期的路徑——加上去能展示你的思維廣度。但如果只是湊數，不填反而更好。方案三和前兩個的差距，應該讓面試官感覺「這是完全不同的思路」。')"><i class="ph ph-lightbulb"></i> 提示</button>
       </div>
+      <div class="sol-name-row"><i class="ph ph-tag sol-name-icon"></i><input class="sol-name-input" type="text" placeholder="方案名稱（10 字內）"></div>
       <button class="field-example-toggle" onclick="toggleExample(this)">
         <i class="ph ph-caret-right" style="font-size:9px"></i> 查看範例
       </button>
@@ -322,28 +323,6 @@ body { font-family: 'DM Sans', -apple-system, sans-serif; background: #F2F0EB; d
       </div>
     </div>
 
-    <div class="circles-field-group">
-      <div class="circles-field-label-row">
-        <span class="circles-field-label">各方案特性</span>
-        <button class="circles-hint-trigger" onclick="showHint('各方案特性','逐方案各填一行，說明核心機制與最大特性，例如：開發複雜度、見效時間、對廣告主影響。填寫後 E 步驟會自動帶入這些方案進行逐一評估。')"><i class="ph ph-lightbulb"></i> 提示</button>
-      </div>
-      <div class="trait-rows">
-        <div class="trait-row">
-          <span class="trait-tag">方案一</span>
-          <input class="trait-input" type="text" placeholder="核心機制一句話 + 最大特性…">
-        </div>
-        <div class="trait-row-divider"></div>
-        <div class="trait-row">
-          <span class="trait-tag">方案二</span>
-          <input class="trait-input" type="text" placeholder="核心機制一句話 + 最大特性…">
-        </div>
-        <div class="trait-row-divider"></div>
-        <div class="trait-row">
-          <span class="trait-tag opt">方案三（選填）</span>
-          <input class="trait-input" type="text" placeholder="（選填）">
-        </div>
-      </div>
-    </div>
   </div>
   <div class="submit-bar">
     <button class="btn-secondary">回首頁</button>
@@ -392,6 +371,7 @@ body { font-family: 'DM Sans', -apple-system, sans-serif; background: #F2F0EB; d
         <span class="circles-field-label">方案一</span>
         <button class="circles-hint-trigger" onclick="showHint('方案一','方案一通常是最直接解決優先痛點的路徑。根據 C 步驟的取捨標準，你最優先要解決的是「Feed 相關性不足」——方案一應該直接針對這個問題。說清楚你的方案是什麼、核心機制是什麼，一句話能讓面試官理解你在提什麼。')"><i class="ph ph-lightbulb"></i> 提示</button>
       </div>
+      <div class="sol-name-row"><i class="ph ph-tag sol-name-icon"></i><input class="sol-name-input" type="text" value="演算法重排" readonly></div>
       <button class="field-example-toggle" onclick="toggleExample(this)">
         <i class="ph ph-caret-right" style="font-size:9px"></i> 查看範例
       </button>
@@ -404,6 +384,7 @@ body { font-family: 'DM Sans', -apple-system, sans-serif; background: #F2F0EB; d
         <span class="circles-field-label">方案二</span>
         <button class="circles-hint-trigger" onclick="showHint('方案二','方案二要和方案一有明確的方向差異——不是「更多」而是「不同」。例如：方案一是演算法主動過濾，方案二可以是讓用戶主動控制。多樣性是這個步驟的核心評分維度。如果你的方案二只是方案一的微調，面試官會認為你的思維不夠廣。')"><i class="ph ph-lightbulb"></i> 提示</button>
       </div>
+      <div class="sol-name-row"><i class="ph ph-tag sol-name-icon"></i><input class="sol-name-input" type="text" placeholder="方案名稱（10 字內）"></div>
       <button class="field-example-toggle" onclick="toggleExample(this)">
         <i class="ph ph-caret-right" style="font-size:9px"></i> 查看範例
       </button>
@@ -416,28 +397,6 @@ body { font-family: 'DM Sans', -apple-system, sans-serif; background: #F2F0EB; d
       新增方案三（可選）
     </button>
 
-    <div class="circles-field-group">
-      <div class="circles-field-label-row">
-        <span class="circles-field-label">各方案特性</span>
-        <button class="circles-hint-trigger" onclick="showHint('各方案特性','逐方案各填一行，說明核心機制與最大特性，例如：開發複雜度、見效時間、對廣告主影響。填寫後 E 步驟會自動帶入這些方案進行逐一評估。')"><i class="ph ph-lightbulb"></i> 提示</button>
-      </div>
-      <div class="trait-rows">
-        <div class="trait-row">
-          <span class="trait-tag">方案一</span>
-          <input class="trait-input" type="text" value="演算法重排：系統主動，單季可見效，廣告風險中等" readonly>
-        </div>
-        <div class="trait-row-divider"></div>
-        <div class="trait-row">
-          <span class="trait-tag">方案二</span>
-          <input class="trait-input" type="text" placeholder="核心機制一句話 + 最大特性…">
-        </div>
-        <div class="trait-row-divider"></div>
-        <div class="trait-row">
-          <span class="trait-tag opt">方案三（選填）</span>
-          <input class="trait-input" type="text" placeholder="（選填）">
-        </div>
-      </div>
-    </div>
   </div>
   <div class="submit-bar">
     <button class="btn-secondary">回首頁</button>
@@ -486,6 +445,7 @@ body { font-family: 'DM Sans', -apple-system, sans-serif; background: #F2F0EB; d
         <span class="circles-field-label">方案一</span>
         <button class="circles-hint-trigger" onclick="showHint('方案一','方案一通常是最直接解決優先痛點的路徑。')"><i class="ph ph-lightbulb"></i> 提示</button>
       </div>
+      <div class="sol-name-row"><i class="ph ph-tag sol-name-icon"></i><input class="sol-name-input" type="text" value="演算法重排" readonly></div>
       <textarea class="circles-field-input filled" rows="3" readonly>演算法相關性重排——調整 ML 模型，優先展示親密朋友動態，降低陌生粉絲頁比重。</textarea>
     </div>
 
@@ -494,6 +454,7 @@ body { font-family: 'DM Sans', -apple-system, sans-serif; background: #F2F0EB; d
         <span class="circles-field-label">方案二</span>
         <button class="circles-hint-trigger" onclick="showHint('方案二','方案二要和方案一有明確的方向差異。')"><i class="ph ph-lightbulb"></i> 提示</button>
       </div>
+      <div class="sol-name-row"><i class="ph ph-tag sol-name-icon"></i><input class="sol-name-input" type="text" value="摯友列表" readonly></div>
       <textarea class="circles-field-input filled" rows="3" readonly>用戶主動優先序——推出「摯友列表」，該列表動態永遠優先展示，不受演算法干擾。</textarea>
     </div>
 
@@ -503,6 +464,7 @@ body { font-family: 'DM Sans', -apple-system, sans-serif; background: #F2F0EB; d
         <span class="circles-field-label" style="color:var(--primary)">方案三（可選）</span>
         <button class="circles-hint-trigger" onclick="showHint('方案三（可選）','方案三是加分項，不是必填。如果你有第三個有意義的方案——通常是更激進或更長期的路徑——加上去能展示你的思維廣度。')"><i class="ph ph-lightbulb"></i> 提示</button>
       </div>
+      <div class="sol-name-row"><i class="ph ph-tag sol-name-icon"></i><input class="sol-name-input" type="text" placeholder="方案名稱（10 字內）"></div>
       <button class="field-example-toggle" onclick="toggleExample(this)">
         <i class="ph ph-caret-right" style="font-size:9px"></i> 查看範例
       </button>
@@ -513,28 +475,6 @@ body { font-family: 'DM Sans', -apple-system, sans-serif; background: #F2F0EB; d
       </div>
     </div>
 
-    <div class="circles-field-group">
-      <div class="circles-field-label-row">
-        <span class="circles-field-label">各方案特性</span>
-        <button class="circles-hint-trigger" onclick="showHint('各方案特性','逐方案各填一行，說明核心機制與最大特性，例如：開發複雜度、見效時間、對廣告主影響。填寫後 E 步驟會自動帶入這些方案進行逐一評估。')"><i class="ph ph-lightbulb"></i> 提示</button>
-      </div>
-      <div class="trait-rows">
-        <div class="trait-row">
-          <span class="trait-tag">方案一</span>
-          <input class="trait-input" type="text" value="演算法重排：系統主動，單季可見效，廣告風險中等" readonly>
-        </div>
-        <div class="trait-row-divider"></div>
-        <div class="trait-row">
-          <span class="trait-tag">方案二</span>
-          <input class="trait-input" type="text" value="摯友列表：用戶主動，廣告衝擊最小，需用戶教育" readonly>
-        </div>
-        <div class="trait-row-divider"></div>
-        <div class="trait-row">
-          <span class="trait-tag" style="color:var(--primary)">方案三（可選）</span>
-          <input class="trait-input" type="text" placeholder="有更激進或更長期的路徑嗎？（選填）">
-        </div>
-      </div>
-    </div>
   </div>
   <div class="submit-bar">
     <button class="btn-secondary">回首頁</button>
@@ -1055,7 +995,17 @@ function show(id) {
 function showHint(field, body) {
   document.getElementById('hint-title').textContent = field + ' — 分析思路';
   document.getElementById('hint-body').textContent = body;
-  document.getElementById('hint-overlay').classList.add('visible');
+  var overlay = document.getElementById('hint-overlay');
+  overlay.classList.add('visible');
+  var sheet = overlay.querySelector('.hint-sheet');
+  sheet.style.bottom = '';
+  sheet.style.top = '';
+  requestAnimationFrame(function() {
+    var maxH = Math.round(window.innerHeight * 0.7);
+    var sheetH = Math.min(sheet.scrollHeight, maxH);
+    sheet.style.top = (window.innerHeight - sheetH) + 'px';
+    sheet.style.maxHeight = maxH + 'px';
+  });
 }
 function closeHint(e) {
   if (!e || e.target === document.getElementById('hint-overlay')) {
