@@ -116,6 +116,21 @@ router.post('/:id/gate', requireGuestId, async (req, res) => {
   } catch (e) { res.status(500).json({ error: e.message }); }
 });
 
+// POST /api/guest/nsm-sessions/:id/context
+router.post('/:id/context', requireGuestId, async (req, res) => {
+  const { data: session, error } = await db
+    .from('nsm_sessions')
+    .select('question_json')
+    .eq('id', req.params.id)
+    .eq('guest_id', req.guestId)
+    .single();
+  if (error || !session) return res.status(404).json({ error: 'not_found' });
+  try {
+    const context = await generateNSMContext({ question_json: session.question_json });
+    res.json(context);
+  } catch (e) { res.status(500).json({ error: e.message }); }
+});
+
 // POST /api/guest/nsm-sessions/:id/hints
 router.post('/:id/hints', requireGuestId, async (req, res) => {
   const { userNsm } = req.body;
