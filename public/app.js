@@ -433,8 +433,20 @@ async function loadCirclesSession(sessionId) {
     AppState.circlesStepDrafts        = s.step_drafts || {};
     AppState.circlesGateResult        = s.gate_result || null;
     AppState.circlesConversation      = s.conversation || [];
-    AppState.circlesScoreResult       = null;
     AppState.circlesStepScores        = s.step_scores || {};
+    // If resuming at phase 3 (step score), restore the displayed score from
+    // the per-step cache. Otherwise the page is stuck on "評分結果載入中".
+    var stepKey = s.mode === 'simulation'
+      ? CIRCLES_STEPS[s.sim_step_index || 0].key
+      : s.drill_step;
+    AppState.circlesScoreResult = (AppState.circlesPhase === 3 && AppState.circlesStepScores[stepKey])
+      ? AppState.circlesStepScores[stepKey]
+      : null;
+    // Defensive: if phase says 3 but we have no cached score, downgrade to phase 2
+    // so the user lands on the conclusion box rather than a perpetual loading screen.
+    if (AppState.circlesPhase === 3 && !AppState.circlesScoreResult) {
+      AppState.circlesPhase = 2;
+    }
     AppState.circlesFinalReport       = null;
     return true;
   } catch (e) { return false; }
@@ -454,9 +466,62 @@ async function fetchCirclesRecentSessions() {
     }
   } catch (e) {}
   AppState.circlesRecentLoading = false;
+  // Don't trigger a full render — that would wipe out any UI state the user has
+  // already interacted with (expanded question cards, dropdowns, etc.).
+  // Only update the recent-sessions slot in place.
   if (AppState.view === 'circles' && !AppState.circlesSelectedQuestion) {
-    render();
+    updateRecentSessionsSlot();
   }
+}
+
+// Update only the recent-sessions slot in the home page, without re-rendering
+// the entire view. Preserves any in-progress UI state (accordion expansion etc.).
+function updateRecentSessionsSlot() {
+  var slot = document.getElementById('circles-recent-slot');
+  if (!slot) return; // home not rendered (defensive)
+  if (AppState.circlesRecentSessions.length === 0) {
+    slot.innerHTML = '';
+    return;
+  }
+  var PHASE_LABELS = { 1: '填寫框架', 1.5: '等待審核', 2: '對話進行中', 3: '查看評分' };
+  var STEP_MAP = {};
+  CIRCLES_STEPS.forEach(function(s) { STEP_MAP[s.key] = s.label; });
+  var resumeCards = AppState.circlesRecentSessions.map(function(s) {
+    var stepLabel = s.mode === 'simulation'
+      ? 'Step ' + (s.sim_step_index + 1) + '/7'
+      : (STEP_MAP[s.drill_step] || s.drill_step);
+    var phaseLabel = PHASE_LABELS[s.current_phase] || 'Phase ' + s.current_phase;
+    var company = (s.question_json || {}).company || '—';
+    var modeLabel = s.mode === 'drill' ? '步驟加練' : '完整模擬';
+    return '<div class="circles-resume-card" data-resume-id="' + s.id + '">' +
+      '<div style="display:flex;align-items:center;justify-content:space-between">' +
+        '<div>' +
+          '<div class="circles-q-card-company">' + escHtml(company) + ' — ' + modeLabel + '</div>' +
+          '<div style="font-size:12px;color:var(--c-text-2,#5a5a5a);margin-top:2px;font-family:DM Sans,sans-serif">' + stepLabel + ' · ' + phaseLabel + '</div>' +
+        '</div>' +
+        '<div style="font-size:12px;font-weight:600;color:var(--c-primary,#1A56DB);font-family:DM Sans,sans-serif;white-space:nowrap">繼續練習 →</div>' +
+      '</div>' +
+    '</div>';
+  }).join('');
+  slot.innerHTML = '<div class="circles-step-select-label">繼續上次練習</div>' + resumeCards;
+  // Re-bind click listeners on the new resume cards
+  slot.querySelectorAll('.circles-resume-card').forEach(function(el) {
+    el.addEventListener('click', async function() {
+      var id = el.dataset.resumeId;
+      el.style.opacity = '0.6';
+      el.style.pointerEvents = 'none';
+      var ok = await loadCirclesSession(id);
+      if (ok) {
+        AppState.circlesRecentSessions = [];
+        AppState.view = 'circles';
+        document.body.dataset.view = 'circles';
+        render();
+      } else {
+        el.style.opacity = '';
+        el.style.pointerEvents = '';
+      }
+    });
+  });
 }
 
 function detectProductType(question) {
@@ -1007,10 +1072,13 @@ function renderCirclesHome() {
         '</div>' +
       '</div>';
     }).join('');
-    recentHtml = '<div style="margin-bottom:20px">' +
+    recentHtml = '<div id="circles-recent-slot" style="margin-bottom:20px">' +
       '<div class="circles-step-select-label">繼續上次練習</div>' +
       resumeCards +
     '</div>';
+  } else {
+    // Render an empty slot so updateRecentSessionsSlot can fill it later without re-rendering the page.
+    recentHtml = '<div id="circles-recent-slot" style="margin-bottom:0"></div>';
   }
 
   var qCardsHtml = displayedQs.length > 0
