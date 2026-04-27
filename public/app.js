@@ -1354,11 +1354,21 @@ function buildPrevStepCardHtml(stepKey) {
 // ──────────────────────────────────────────────────
 // Helper: build a standard textarea field group
 // ──────────────────────────────────────────────────
+// Collapsible field example: button + body. Default state collapsed (per spec line 3682,
+// "Replaces always-visible .circles-field-hint"). Returns empty string when no hint.
+function buildFieldExampleHtml(hintText) {
+  if (!hintText) return '';
+  return '<button class="field-example-toggle" type="button">' +
+      '<i class="ph ph-caret-right"></i> 查看範例' +
+    '</button>' +
+    '<div class="field-example-body">例：' + escHtml(hintText) + '</div>';
+}
+
 function buildFieldGroupHtml(stepKey, field, draft, isSimulation, fieldIdx) {
   var rows = field.rows || 2;
   var key = field.key;
   var val = draft[key] != null ? draft[key] : '';
-  // Drill mode: show static example hint inline (CIRCLES_STEP_HINTS); Simulation: hide
+  // Drill mode: show static example hint (collapsible); Simulation: hide
   var hint = '';
   if (!isSimulation && CIRCLES_STEP_HINTS[stepKey] && CIRCLES_STEP_HINTS[stepKey][fieldIdx]) {
     hint = CIRCLES_STEP_HINTS[stepKey][fieldIdx];
@@ -1370,7 +1380,7 @@ function buildFieldGroupHtml(stepKey, field, draft, isSimulation, fieldIdx) {
         '<i class="ph ph-lightbulb"></i> 提示' +
       '</button>' +
     '</div>' +
-    (hint ? '<div class="circles-field-hint">例：' + escHtml(hint) + '</div>' : '') +
+    buildFieldExampleHtml(hint) +
     '<textarea class="circles-field-input" data-field="' + escHtml(key) + '" rows="' + rows + '" placeholder="' + escHtml(field.placeholder || '填寫你的分析…') + '">' + escHtml(val) + '</textarea>' +
   '</div>';
 }
@@ -1400,7 +1410,7 @@ function buildSolutionFieldHtml(stepKey, field, draft, lDraft, isSimulation, fie
       '<i class="ph ph-tag"></i>' +
       '<input class="sol-name-input" type="text" maxlength="10" data-sol-name="' + solKey + '" placeholder="' + escHtml(field.namePlaceholder || '方案名稱（10 字內）') + '" value="' + escHtml(nameVal) + '">' +
     '</div>' +
-    (hint ? '<div class="circles-field-hint">例：' + escHtml(hint) + '</div>' : '') +
+    buildFieldExampleHtml(hint) +
     '<textarea class="circles-field-input" data-field="' + escHtml(key) + '" rows="' + (field.rows || 2) + '" placeholder="' + escHtml(field.placeholder || '') + '">' + escHtml(bodyVal) + '</textarea>' +
   '</div>';
 }
@@ -1454,7 +1464,7 @@ function buildESolutionBlockHtml(solKey, solIdx, solName, perSolDraft, eFieldsCo
           '<i class="ph ph-lightbulb"></i> 提示' +
         '</button>' +
       '</div>' +
-      (hint && solIdx === 0 ? '<div class="circles-field-hint">例：' + escHtml(hint) + '</div>' : '') +
+      (solIdx === 0 ? buildFieldExampleHtml(hint) : '') +
       '<textarea class="e-sol-input" data-sol="' + solKey + '" data-field="' + escHtml(f.key) + '" rows="2" placeholder="' + escHtml(f.placeholder) + '">' + escHtml(v) + '</textarea>' +
     '</div>';
   }).join('');
@@ -1662,6 +1672,18 @@ function bindCirclesPhase1() {
       var step = el.dataset.hintStep;
       var field = el.dataset.hintField;
       if (typeof showCirclesHint === 'function') showCirclesHint(step, field);
+    });
+  });
+
+  // ── Collapsible field example toggle (查看範例 / 收起範例) per spec line 3682
+  document.querySelectorAll('.field-example-toggle').forEach(function(btn) {
+    btn.addEventListener('click', function() {
+      var body = btn.nextElementSibling;
+      if (!body || !body.classList.contains('field-example-body')) return;
+      var isOpen = body.classList.toggle('open');
+      btn.innerHTML = isOpen
+        ? '<i class="ph ph-caret-down"></i> 收起範例'
+        : '<i class="ph ph-caret-right"></i> 查看範例';
     });
   });
 
