@@ -1425,7 +1425,7 @@ Turn 4:
 
 ## Mockup HTML — C1 澄清情境完整互動稿
 
-以下是本次討論中設計並核准的完整 mockup HTML（8 個畫面）。儲存為 `/tmp/circles-C1-step-v1.html` 後用瀏覽器開啟即可預覽。**此 HTML 是實作的視覺真相來源（canonical visual truth）——若 spec 文字與此畫面有出入，以此 HTML 為準。**
+**Mockup 來源路徑：** `.superpowers/brainstorm/99819-1777221639/content/circles-C1-step-v1.html`（直接用瀏覽器開啟即可預覽）。**此 HTML 是實作的視覺真相來源（canonical visual truth）——若 spec 文字與此畫面有出入，以此 HTML 為準。**
 
 **8 screens:** P1 加練, P1+提示, Gate ✓, Gate ✗, P2 早期, P2 收斂, P2 結論, P3 C1評分
 
@@ -2268,7 +2268,7 @@ function onConclude() {
 
 ## Mockup HTML — I 定義用戶完整互動稿
 
-以下是本次討論中設計並核准的完整 mockup HTML（9 個畫面）。儲存為 `/tmp/circles-I-step-mockup.html` 後用瀏覽器開啟即可預覽。**此 HTML 是實作的視覺真相來源（canonical visual truth）——若 spec 文字與此畫面有出入，以此 HTML 為準。**
+**Mockup 來源路徑：** `.superpowers/brainstorm/99819-1777221639/content/circles-I-step-mockup.html`（直接用瀏覽器開啟即可預覽）。**此 HTML 是實作的視覺真相來源（canonical visual truth）——若 spec 文字與此畫面有出入，以此 HTML 為準。**
 
 ```html
 <!DOCTYPE html>
@@ -4259,6 +4259,8 @@ function onConclude() {
 ---
 
 ## Mockup HTML — C2 優先排序完整互動稿
+
+**Mockup 來源路徑：** `.superpowers/brainstorm/C2-step-2026-04-26/content/circles-C2-step-mockup.html`（直接用瀏覽器開啟即可預覽）。**此 HTML 是實作的視覺真相來源（canonical visual truth）——若 spec 文字與此畫面有出入，以此 HTML 為準。**
 
 **9 screens:** P1 加練, P1+提示, Gate ✓, Gate ✗, P2 早期, P2 收斂, P2 結論, P3 C2評分, P3 R評分
 

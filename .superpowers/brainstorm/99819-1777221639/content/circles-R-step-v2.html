@@ -1,0 +1,952 @@
+<!DOCTYPE html>
+<html lang="zh-TW">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0">
+<title>CIRCLES — R 發掘需求 Mockup</title>
+<link rel="stylesheet" href="https://unpkg.com/@phosphor-icons/web@2.1.1/src/regular/style.css">
+<style>
+* { box-sizing: border-box; margin: 0; padding: 0; -webkit-tap-highlight-color: transparent; }
+body { font-family: 'DM Sans', -apple-system, sans-serif; background: #F2F0EB; display: flex; justify-content: center; }
+
+:root {
+  --bg: #F2F0EB;
+  --card: #ffffff;
+  --border: #e8e5de;
+  --primary: #1A56DB;
+  --primary-lt: #EEF3FF;
+  --text: #1a1a1a;
+  --text-2: #5a5a5a;
+  --text-3: #8a8a8a;
+  --success: #137A3D;
+  --warning: #B85C00;
+  --danger: #D92020;
+}
+
+/* ── Top nav ── */
+.top-nav {
+  position: fixed; top: 0; left: 50%; transform: translateX(-50%);
+  background: #111; display: flex; gap: 8px; padding: 8px 16px;
+  z-index: 999; border-radius: 0 0 12px 12px; overflow-x: auto;
+  white-space: nowrap; max-width: 100vw;
+}
+.nav-label {
+  font-size: 11px; font-weight: 700; background: #1a1a1a; color: #fff;
+  padding: 6px 14px; border-radius: 20px; cursor: pointer;
+  font-family: sans-serif; white-space: nowrap;
+}
+.nav-label:hover { background: #333; }
+.nav-label.active { background: var(--primary); }
+
+/* ── Shell ── */
+.wrapper { max-width: 390px; width: 100vw; margin-top: 54px; position: relative; }
+.shell { width: 390px; min-height: 100vh; background: var(--bg); position: relative; overflow: hidden; }
+.screen { display: none; flex-direction: column; height: 100vh; }
+.screen.active { display: flex; }
+
+/* ── Navbar ── */
+.navbar {
+  height: 52px; background: var(--card); border-bottom: 1px solid var(--border);
+  display: flex; align-items: center; padding: 0 16px; gap: 8px; flex-shrink: 0;
+}
+.navbar-logo { font-size: 15px; font-weight: 700; flex: 1; }
+.btn-icon { background: none; border: none; font-size: 18px; color: var(--text-2); cursor: pointer; padding: 6px; line-height: 1; }
+.btn-ghost { background: none; border: none; font-size: 13px; font-weight: 500; color: var(--text-2); cursor: pointer; padding: 4px 8px; }
+
+/* ── circles-nav ── */
+.circles-nav {
+  height: 52px; background: var(--card); border-bottom: 1px solid var(--border);
+  display: flex; align-items: center; padding: 0 14px; gap: 10px; flex-shrink: 0;
+}
+.circles-nav-title { font-size: 14px; font-weight: 700; color: var(--text); }
+.circles-nav-sub { font-size: 11px; color: var(--text-3); }
+.circles-nav-home { font-size: 12px; color: var(--primary); border-bottom: 1px solid var(--primary); background: none; border-top: none; border-left: none; border-right: none; padding: 2px 0; cursor: pointer; white-space: nowrap; flex-shrink: 0; margin-left: auto; }
+
+/* ── progress ── */
+.circles-progress {
+  height: 36px; background: var(--card); border-bottom: 1px solid var(--border);
+  display: flex; align-items: center; padding: 0 14px; gap: 3px; flex-shrink: 0;
+}
+.circles-progress-seg { flex: 1; height: 4px; background: #e8e5de; border-radius: 2px; }
+.circles-progress-seg.done { background: var(--primary); }
+.circles-progress-seg.active { background: rgba(26,86,219,0.4); }
+.circles-progress-label { font-size: 10px; color: var(--text-3); white-space: nowrap; margin-left: 8px; }
+
+/* ── scrollable body ── */
+.scroll-body { flex: 1; overflow-y: auto; padding: 16px; scrollbar-width: none; }
+.scroll-body::-webkit-scrollbar { display: none; }
+
+/* ── submit bar ── */
+.submit-bar {
+  background: var(--card); border-top: 1px solid var(--border);
+  padding: 12px 16px; display: flex; gap: 10px; flex-shrink: 0;
+}
+.btn-primary { flex: 1; background: var(--primary); color: #fff; border: none; border-radius: 10px; padding: 12px 16px; font-size: 14px; font-weight: 600; cursor: pointer; font-family: 'DM Sans', sans-serif; }
+.btn-secondary { background: #f0ede6; color: var(--text); border: none; border-radius: 10px; padding: 12px 16px; font-size: 14px; font-weight: 600; cursor: pointer; white-space: nowrap; }
+.btn-ghost-sm { background: none; color: var(--text-2); border: 1px solid var(--border); border-radius: 10px; padding: 12px 16px; font-size: 14px; font-weight: 600; cursor: pointer; white-space: nowrap; }
+
+/* ── problem card ── */
+.problem-card {
+  background: var(--card); border-radius: 10px; border: 1px solid var(--border);
+  padding: 12px 14px; font-size: 13px; color: var(--text-2); line-height: 1.6;
+  margin-bottom: 14px;
+}
+.problem-card-label { font-size: 9px; font-weight: 700; text-transform: uppercase; letter-spacing: .07em; color: var(--text-3); margin-bottom: 4px; }
+
+/* ── step pills ── */
+.circles-step-pills { display: flex; gap: 6px; overflow-x: auto; margin-bottom: 14px; scrollbar-width: none; padding-bottom: 2px; }
+.circles-step-pills::-webkit-scrollbar { display: none; }
+.circles-step-pill { flex-shrink: 0; padding: 5px 12px; border-radius: 20px; border: 1px solid var(--border); background: var(--card); font-size: 11px; font-weight: 600; color: var(--text-3); cursor: pointer; white-space: nowrap; }
+.circles-step-pill.active { background: var(--primary); color: #fff; border-color: var(--primary); }
+.circles-step-pill.done { background: #e6f0e8; color: var(--success); border-color: #b8dbbf; }
+
+/* ── field group ── */
+.circles-field-group { margin-bottom: 16px; }
+.circles-field-label-row { display: flex; justify-content: space-between; align-items: baseline; margin-bottom: 4px; }
+.circles-field-label { font-size: 10px; color: var(--text-3); text-transform: uppercase; letter-spacing: .07em; font-weight: 700; }
+.circles-hint-trigger { background: none; border: none; font-size: 11px; color: var(--primary); cursor: pointer; padding: 0; white-space: nowrap; }
+/* Collapsible example */
+.field-example-toggle { background: none; border: none; font-size: 10px; color: var(--text-3); cursor: pointer; padding: 0 0 5px; display: flex; align-items: center; gap: 3px; font-family: 'DM Sans', sans-serif; }
+.field-example-body { display: none; font-size: 11px; color: var(--text-3); margin-bottom: 6px; line-height: 1.5; padding: 5px 8px; background: rgba(0,0,0,0.03); border-radius: 6px; }
+.field-example-body.open { display: block; }
+.circles-field-input { width: 100%; padding: 11px 13px; border-radius: 10px; border: 1.5px solid var(--border); background: var(--card); font-size: 13px; font-family: 'DM Sans', sans-serif; color: var(--text); resize: none; outline: none; line-height: 1.5; }
+.circles-field-input:focus { border-color: var(--primary); }
+.circles-field-input.filled { border-color: rgba(26,86,219,0.3); background: #fbfaff; }
+
+/* ── Gate ── */
+.gate-pass-bar { background: var(--primary-lt); border: 1px solid #C5D5FF; border-radius: 10px; padding: 12px 14px; margin-bottom: 16px; display: flex; align-items: center; justify-content: space-between; gap: 12px; }
+.gate-pass-text { font-size: 12px; font-weight: 600; color: var(--primary); }
+.gate-pass-sub { font-size: 11px; color: #5a7ab5; }
+.gate-fail-bar { background: #FFF3F3; border: 1px solid #FFCDD2; border-radius: 10px; padding: 12px 14px; margin-bottom: 16px; font-size: 12px; color: var(--danger); }
+.gate-card { background: var(--card); border-radius: 10px; border: 1.5px solid var(--border); padding: 12px 14px; margin-bottom: 10px; display: flex; gap: 10px; align-items: flex-start; }
+.gate-card.ok { border-color: #b8dbbf; }
+.gate-card.warn { border-color: #FFD54F; }
+.gate-card.error { border-color: #f5c6c6; }
+.gate-card-icon { font-size: 15px; flex-shrink: 0; margin-top: 1px; }
+.gate-card-field { font-size: 9px; text-transform: uppercase; letter-spacing: .05em; color: var(--text-3); margin-bottom: 2px; }
+.gate-card-title { font-size: 13px; font-weight: 700; color: var(--text); margin-bottom: 3px; }
+.gate-card-reason { font-size: 12px; color: var(--text-2); line-height: 1.5; }
+.gate-card-suggestion { font-size: 11px; color: var(--warning); margin-top: 4px; }
+
+/* ── Phase 2 chat ── */
+.chat-wrap { display: flex; flex-direction: column; height: 100vh; overflow: hidden; }
+.chat-pinned { background: var(--card); border-bottom: 1px solid var(--border); padding: 8px 14px; flex-shrink: 0; }
+.pinned-co { font-size: 10px; color: var(--primary); font-weight: 600; text-transform: uppercase; letter-spacing: .05em; margin-bottom: 1px; }
+.pinned-stmt { font-size: 11px; color: var(--text); font-weight: 600; line-height: 1.4; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+.chat-body { flex: 1; overflow-y: auto; padding: 14px 16px; scrollbar-width: none; }
+.chat-body::-webkit-scrollbar { display: none; }
+.bubble-user {
+  background: var(--card); border: 1px solid var(--border);
+  border-radius: 12px 4px 12px 12px; padding: 10px 13px;
+  font-size: 13px; line-height: 1.6; color: var(--text);
+  margin-bottom: 10px; max-width: 88%; margin-left: auto;
+}
+.bubble-ai {
+  background: var(--primary-lt); border: 1px solid rgba(26,86,219,0.18);
+  border-radius: 4px 12px 12px 12px; padding: 10px 13px;
+  font-size: 13px; line-height: 1.6; color: var(--text);
+  margin-bottom: 10px; max-width: 88%;
+}
+.bubble-section { font-size: 10px; font-weight: 700; color: var(--text-3); text-transform: uppercase; letter-spacing: .07em; margin-bottom: 3px; }
+.bubble-coaching { background: rgba(0,0,0,0.03); border: 1px solid var(--border); border-radius: 4px 12px 12px 12px; padding: 10px 13px; font-size: 12px; line-height: 1.6; color: var(--text); margin-bottom: 10px; max-width: 88%; }
+.hint-toggle { background: none; border: none; font-size: 11px; color: var(--text-3); cursor: pointer; padding: 0; display: flex; align-items: center; gap: 3px; margin-top: 6px; }
+.hint-body { display: none; margin-top: 4px; padding: 6px 8px; background: rgba(0,0,0,0.04); border-radius: 6px; color: var(--text-2); font-size: 11px; line-height: 1.5; }
+.chat-input-bar { background: var(--card); border-top: 1px solid var(--border); padding: 10px 14px; display: flex; gap: 8px; align-items: flex-end; flex-shrink: 0; }
+.chat-icebreaker { background: rgba(26,86,219,0.05); border: 1px solid rgba(26,86,219,0.18); border-radius: 10px; padding: 10px 13px; margin-bottom: 14px; }
+.chat-icebreaker-label { font-size: 9px; font-weight: 700; color: var(--primary); text-transform: uppercase; letter-spacing: .07em; margin-bottom: 5px; display: flex; align-items: center; gap: 4px; }
+.chat-icebreaker-text { font-size: 12px; color: var(--text-2); line-height: 1.65; }
+.chat-input { flex: 1; background: #f5f5f5; border: 1px solid var(--border); border-radius: 10px; padding: 9px 13px; font-size: 14px; color: var(--text); font-family: 'DM Sans', sans-serif; resize: none; outline: none; min-height: 40px; }
+.chat-send-btn { width: 40px; height: 40px; border-radius: 10px; background: var(--primary); border: none; color: #fff; font-size: 16px; cursor: pointer; display: flex; align-items: center; justify-content: center; flex-shrink: 0; }
+.chat-submit-row { padding: 6px 12px 10px; display: flex; justify-content: center; background: var(--card); flex-shrink: 0; border-top: 1px solid var(--border); }
+.chat-submit-btn { font-size: 11px; color: var(--text-2); border: 1px solid var(--border); border-radius: 8px; padding: 6px 16px; cursor: pointer; background: var(--card); }
+
+/* ── Conclusion box ── */
+.conclusion-box { border-top: 2px solid var(--primary); background: var(--card); padding: 14px; flex-shrink: 0; max-height: 55vh; overflow-y: auto; }
+.conclusion-title { font-size: 11px; font-weight: 700; color: var(--text); margin-bottom: 2px; }
+.conclusion-sub { font-size: 10px; color: var(--text-3); margin-bottom: 8px; }
+.conclusion-textarea { width: 100%; border: 1px solid #ddd; border-radius: 8px; padding: 9px; font-size: 11px; line-height: 1.6; resize: none; height: 60px; box-sizing: border-box; font-family: 'DM Sans', sans-serif; color: var(--text); outline: none; }
+.conclusion-hint { min-height: 16px; font-size: 10px; color: var(--text-3); margin-top: 6px; }
+.conclusion-hint.pass { background: #E8F5E9; color: var(--success); border-radius: 4px; padding: 4px 8px; }
+.conclusion-hint.warn { background: #FFF8E1; color: #7A5800; border-radius: 4px; padding: 4px 8px; }
+.conclusion-actions { margin-top: 8px; display: flex; align-items: center; justify-content: space-between; }
+.conclusion-back-btn { font-size: 10px; color: var(--text-3); background: none; border: none; cursor: pointer; }
+.conclusion-submit-btn { background: var(--primary); color: #fff; border: none; border-radius: 8px; padding: 8px 14px; font-size: 12px; font-weight: 600; cursor: pointer; }
+.conclusion-submit-btn.disabled { opacity: .4; cursor: not-allowed; }
+
+/* ── Step Score ── */
+.score-total { background: var(--card); border-radius: 16px; border: 1px solid var(--border); padding: 20px; text-align: center; margin-bottom: 14px; }
+.score-number { font-family: 'Georgia', serif; font-size: 60px; color: var(--primary); line-height: 1; margin-bottom: 4px; font-weight: 400; }
+.score-sub { font-size: 13px; color: var(--text-2); }
+.score-breakdown { background: var(--card); border-radius: 12px; border: 1px solid var(--border); padding: 14px; margin-bottom: 14px; }
+.dim-row { display: flex; align-items: center; gap: 10px; padding: 9px 0; border-bottom: 1px solid var(--border); font-size: 12px; }
+.dim-row:last-child { border-bottom: none; }
+.dim-text { flex: 1; min-width: 0; }
+.dim-name { font-size: 12px; color: var(--text-2); }
+.dim-comment { font-size: 10px; color: var(--text-3); margin-top: 1px; line-height: 1.4; }
+.dim-bar-wrap { width: 70px; height: 5px; background: #f0ede6; border-radius: 3px; flex-shrink: 0; }
+.dim-bar { height: 100%; border-radius: 3px; background: var(--primary); }
+.dim-score { font-weight: 700; color: var(--text); min-width: 24px; text-align: right; font-size: 12px; }
+.dim-score span { font-size: 9px; color: var(--text-3); }
+.highlight-card { border-radius: 10px; border: 1.5px solid; padding: 12px 14px; margin-bottom: 10px; }
+.highlight-card.good { background: #F0FFF4; border-color: #BBF7D0; }
+.highlight-card.improve { background: #FFFBEB; border-color: #FDE68A; }
+.highlight-label { font-size: 10px; font-weight: 700; text-transform: uppercase; letter-spacing: .05em; margin-bottom: 4px; }
+.highlight-card.good .highlight-label { color: var(--success); }
+.highlight-card.improve .highlight-label { color: var(--warning); }
+.highlight-text { font-size: 13px; color: var(--text); line-height: 1.5; }
+.coach-toggle { background: var(--card); border: 1px solid var(--border); border-radius: 12px; padding: 14px; margin-bottom: 14px; cursor: pointer; }
+.coach-toggle-label { font-size: 12px; font-weight: 700; color: var(--text-2); display: flex; align-items: center; justify-content: space-between; }
+.coach-content { font-size: 12px; color: var(--text-2); line-height: 1.7; margin-top: 10px; display: none; }
+.coach-content.open { display: block; }
+
+/* Score nav arrows */
+.score-nav { display: flex; gap: 2px; margin-left: auto; }
+.score-nav-btn { background: none; border: 1px solid var(--border); border-radius: 6px; padding: 4px 8px; font-size: 12px; cursor: pointer; color: var(--text-2); }
+.score-nav-btn:disabled { opacity: 0.3; cursor: default; }
+
+/* ── Hint overlay ── */
+.hint-overlay {
+  position: absolute; inset: 0; background: rgba(0,0,0,0.45);
+  z-index: 200; display: none; align-items: center; justify-content: center; padding: 24px;
+}
+.hint-overlay.visible { display: flex; }
+.hint-card { background: #fff; border-radius: 16px; padding: 20px; max-width: 340px; width: 100%; box-shadow: 0 8px 40px rgba(0,0,0,0.18); position: relative; }
+.hint-card-title { font-size: 13px; font-weight: 700; color: var(--primary); margin-bottom: 2px; }
+.hint-card-sub { font-size: 11px; color: #8a8a8a; margin-bottom: 12px; }
+.hint-card-body { font-size: 13px; color: var(--text); line-height: 1.7; background: #F6F8FF; border-left: 3px solid var(--primary); padding: 12px; border-radius: 0 8px 8px 0; }
+.hint-card-footer { font-size: 11px; color: #aaa; text-align: center; margin-top: 12px; }
+.hint-close { position: absolute; top: 12px; right: 14px; background: none; border: none; font-size: 20px; color: #aaa; cursor: pointer; line-height: 1; padding: 0; }
+</style>
+</head>
+<body>
+
+<!-- Top nav -->
+<div class="top-nav">
+  <span class="nav-label active" onclick="show('p1-drill')">P1 加練</span>
+  <span class="nav-label" onclick="show('p1-hint')">P1+提示</span>
+  <span class="nav-label" onclick="show('gate-pass')">Gate ✓</span>
+  <span class="nav-label" onclick="show('gate-fail')">Gate ✗</span>
+  <span class="nav-label" onclick="show('p2-early')">P2 早期</span>
+  <span class="nav-label" onclick="show('p2-late')">P2 收斂</span>
+  <span class="nav-label" onclick="show('p2-conclude')">P2 結論</span>
+  <span class="nav-label" onclick="show('p3-r')">P3 R評分</span>
+  <span class="nav-label" onclick="show('p3-c1')">P3 C評分</span>
+</div>
+
+<div class="wrapper">
+<div class="shell">
+
+<!-- ════════════════════════════════════════════
+     SCREEN: Phase 1 — R step (Drill mode)
+════════════════════════════════════════════ -->
+<div id="screen-p1-drill" class="screen active" style="position:relative">
+  <div class="circles-nav">
+    <button class="btn-icon"><i class="ph ph-arrow-left"></i></button>
+    <div>
+      <div class="circles-nav-title">R — 發掘需求</div>
+      <div class="circles-nav-sub">Meta · News Feed</div>
+    </div>
+    <button class="circles-nav-home">回首頁</button>
+  </div>
+  <div class="circles-progress">
+    <div class="circles-progress-seg done"></div>
+    <div class="circles-progress-seg done"></div>
+    <div class="circles-progress-seg active"></div>
+    <div class="circles-progress-seg"></div>
+    <div class="circles-progress-seg"></div>
+    <div class="circles-progress-seg"></div>
+    <div class="circles-progress-seg"></div>
+    <div class="circles-progress-label">R · 發掘需求 · 3/7</div>
+  </div>
+  <div class="scroll-body">
+    <div class="problem-card">
+      <div class="problem-card-label">練習題目</div>
+      用戶反映 News Feed 廣告過多，如何改善廣告體驗並維持 Meta 的廣告收入？
+    </div>
+    <div class="circles-step-pills">
+      <span class="circles-step-pill done">C 澄清情境</span>
+      <span class="circles-step-pill done">I 定義用戶</span>
+      <span class="circles-step-pill active">R 發掘需求</span>
+      <span class="circles-step-pill">C 優先排序</span>
+      <span class="circles-step-pill">L 提出方案</span>
+      <span class="circles-step-pill">E 評估取捨</span>
+      <span class="circles-step-pill">S 總結推薦</span>
+    </div>
+
+    <!-- 功能性需求 -->
+    <div class="circles-field-group">
+      <div class="circles-field-label-row">
+        <div class="circles-field-label">功能性需求</div>
+        <button class="circles-hint-trigger" onclick="showHint('功能性需求','想想這位「習慣型用戶」打開 News Feed 要完成的任務。功能性需求是「做到什麼」——他需要什麼功能才能完成這個任務？從他每天打開 App 的那個行為出發，往前推：他想過濾什麼？想找到什麼？這個答案會決定後續核心痛點的定義方向。')">💡 提示</button>
+      </div>
+      <button class="field-example-toggle" onclick="toggleExample(this)">
+        <i class="ph ph-caret-right" style="font-size:9px"></i> 查看範例
+      </button>
+      <div class="field-example-body">例：快速判斷貼文價值、過濾低品質內容、控制看到哪些類型的貼文</div>
+      <textarea class="circles-field-input" rows="2" placeholder="填寫你的分析..."></textarea>
+    </div>
+
+    <!-- 情感性需求 -->
+    <div class="circles-field-group">
+      <div class="circles-field-label-row">
+        <div class="circles-field-label">情感性需求</div>
+        <button class="circles-hint-trigger" onclick="showHint('情感性需求','情感性需求不是功能，是用戶使用產品時的「感受」。這位用戶打開 Facebook 時想要什麼感覺？他不想有什麼感覺？注意：「想看好內容」是功能需求，不是情感需求——情感需求應該描述感受層，例如焦慮、歸屬感、成就感。即使是 SaaS 或工具性產品，也一定有情感需求。')">💡 提示</button>
+      </div>
+      <button class="field-example-toggle" onclick="toggleExample(this)">
+        <i class="ph ph-caret-right" style="font-size:9px"></i> 查看範例
+      </button>
+      <div class="field-example-body">例：不想因漏看重要動態而焦慮、希望打開 App 有收穫感而非空虛</div>
+      <textarea class="circles-field-input" rows="2" placeholder="填寫你的分析..."></textarea>
+    </div>
+
+    <!-- 社交性需求 -->
+    <div class="circles-field-group">
+      <div class="circles-field-label-row">
+        <div class="circles-field-label">社交性需求</div>
+        <button class="circles-hint-trigger" onclick="showHint('社交性需求','社交性需求是用戶在人際關係中需要什麼。這位用戶如何透過 News Feed 維持社交關係？他想對哪些人的動態有所回應？想在什麼樣的社群中保有存在感？B2B SaaS 也有社交需求——例如與團隊共享成果、讓主管看到你的工作進度。')">💡 提示</button>
+      </div>
+      <button class="field-example-toggle" onclick="toggleExample(this)">
+        <i class="ph ph-caret-right" style="font-size:9px"></i> 查看範例
+      </button>
+      <div class="field-example-body">例：維持與遠距朋友和家人的弱連結、對重要時刻（婚禮、升學）及時回應</div>
+      <textarea class="circles-field-input" rows="2" placeholder="填寫你的分析..."></textarea>
+    </div>
+
+    <!-- 核心痛點 -->
+    <div class="circles-field-group">
+      <div class="circles-field-label-row">
+        <div class="circles-field-label">核心痛點</div>
+        <button class="circles-hint-trigger" onclick="showHint('核心痛點','核心痛點是上面三層需求中「最根本的一個沒被滿足」的需求。你要選出一個，說明它是功能層、情感層還是社交層的痛點，並說清楚為什麼它是「核心」。這個優先判斷會直接影響後續 C 步驟的取捨標準——所以這欄要有你的立場，不只是列舉。')">💡 提示</button>
+      </div>
+      <button class="field-example-toggle" onclick="toggleExample(this)">
+        <i class="ph ph-caret-right" style="font-size:9px"></i> 查看範例
+      </button>
+      <div class="field-example-body">例：打開 App 後滑了 10 分鐘卻沒有任何有意義的互動，長期降低對 Facebook 的預期</div>
+      <textarea class="circles-field-input" rows="2" placeholder="填寫你的分析..."></textarea>
+    </div>
+  </div>
+  <div class="submit-bar">
+    <button class="btn-secondary">返回選題</button>
+    <button class="btn-primary" onclick="show('gate-pass')">提交框架 → AI 審核</button>
+  </div>
+  <!-- Hint overlay -->
+  <div class="hint-overlay" id="hint-overlay" onclick="closeHint(event)">
+    <div class="hint-card">
+      <button class="hint-close" onclick="closeHint()">×</button>
+      <div class="hint-card-title" id="hint-title">💡 功能性需求 — 分析思路</div>
+      <div class="hint-card-sub">Meta · News Feed · R 發掘需求</div>
+      <div class="hint-card-body" id="hint-body">載入中…</div>
+      <div class="hint-card-footer">閱讀後關閉，自行填寫你的分析</div>
+    </div>
+  </div>
+</div>
+
+<!-- ════════════════════════════════════════════
+     SCREEN: Phase 1 — hint overlay (filled example)
+════════════════════════════════════════════ -->
+<div id="screen-p1-hint" class="screen" style="position:relative">
+  <div class="circles-nav">
+    <button class="btn-icon"><i class="ph ph-arrow-left"></i></button>
+    <div>
+      <div class="circles-nav-title">R — 發掘需求</div>
+      <div class="circles-nav-sub">Meta · News Feed</div>
+    </div>
+    <button class="circles-nav-home">回首頁</button>
+  </div>
+  <div class="circles-progress">
+    <div class="circles-progress-seg done"></div>
+    <div class="circles-progress-seg done"></div>
+    <div class="circles-progress-seg active"></div>
+    <div class="circles-progress-seg"></div>
+    <div class="circles-progress-seg"></div>
+    <div class="circles-progress-seg"></div>
+    <div class="circles-progress-seg"></div>
+    <div class="circles-progress-label">R · 發掘需求 · 3/7</div>
+  </div>
+  <div class="scroll-body" style="filter:blur(1px);pointer-events:none">
+    <div class="problem-card">用戶反映 News Feed 廣告過多，如何改善廣告體驗並維持 Meta 的廣告收入？</div>
+    <div class="circles-step-pills">
+      <span class="circles-step-pill done">C 澄清情境</span>
+      <span class="circles-step-pill done">I 定義用戶</span>
+      <span class="circles-step-pill active">R 發掘需求</span>
+      <span class="circles-step-pill">C 優先排序</span>
+      <span class="circles-step-pill">L 提出方案</span>
+      <span class="circles-step-pill">E 評估取捨</span>
+      <span class="circles-step-pill">S 總結推薦</span>
+    </div>
+    <div class="circles-field-group">
+      <div class="circles-field-label-row"><div class="circles-field-label">功能性需求</div></div>
+      <textarea class="circles-field-input filled" rows="2">用戶需要快速判斷哪些貼文值得花時間，並過濾掉無關的陌生人貼文和廣告</textarea>
+    </div>
+    <div class="circles-field-group">
+      <div class="circles-field-label-row"><div class="circles-field-label">情感性需求</div></div>
+      <textarea class="circles-field-input" rows="2" placeholder="填寫你的分析..."></textarea>
+    </div>
+  </div>
+  <!-- Hint overlay — visible -->
+  <div class="hint-overlay visible">
+    <div class="hint-card">
+      <button class="hint-close" onclick="show('p1-drill')">×</button>
+      <div class="hint-card-title">💡 情感性需求 — 分析思路</div>
+      <div class="hint-card-sub">Meta · News Feed · R 發掘需求</div>
+      <div class="hint-card-body">情感性需求不是功能，是用戶使用產品時的「感受」。這位習慣型用戶每天打開 News Feed，不只是要看內容——他想要的是一種「沒有脫節」的安心感。試著問：如果今天他打開 App 後漏看了大學同學的婚禮宣布，他會有什麼感受？這個感受才是情感需求的核心，而不是「想看好內容」。</div>
+      <div class="hint-card-footer">閱讀後關閉，自行填寫你的分析</div>
+    </div>
+  </div>
+</div>
+
+<!-- ════════════════════════════════════════════
+     SCREEN: Gate — Pass
+════════════════════════════════════════════ -->
+<div id="screen-gate-pass" class="screen" style="position:relative">
+  <div class="circles-nav">
+    <button class="btn-icon" onclick="show('p1-drill')"><i class="ph ph-arrow-left"></i></button>
+    <div>
+      <div class="circles-nav-title">框架審核結果</div>
+      <div class="circles-nav-sub">R · 發掘需求 · Meta</div>
+    </div>
+    <button class="circles-nav-home">回首頁</button>
+  </div>
+  <div class="circles-progress">
+    <div class="circles-progress-seg done"></div>
+    <div class="circles-progress-seg done"></div>
+    <div class="circles-progress-seg done"></div>
+    <div class="circles-progress-seg"></div>
+    <div class="circles-progress-seg"></div>
+    <div class="circles-progress-seg"></div>
+    <div class="circles-progress-seg"></div>
+    <div class="circles-progress-label">R · 發掘需求</div>
+  </div>
+  <div class="scroll-body">
+    <div class="gate-pass-bar">
+      <div>
+        <div class="gate-pass-text">框架審核通過</div>
+        <div class="gate-pass-sub">框架方向正確，進入對話練習階段繼續探索。</div>
+      </div>
+    </div>
+    <div class="gate-card ok">
+      <div class="gate-card-icon" style="color:#137A3D"><i class="ph ph-check-circle"></i></div>
+      <div>
+        <div class="gate-card-field">功能性需求</div>
+        <div class="gate-card-title">篩選與控制需求清楚</div>
+        <div class="gate-card-reason">明確列出判斷、過濾、控制三個層次的功能需求，方向正確</div>
+      </div>
+    </div>
+    <div class="gate-card warn">
+      <div class="gate-card-icon" style="color:#B85C00"><i class="ph ph-warning"></i></div>
+      <div>
+        <div class="gate-card-field">情感性需求</div>
+        <div class="gate-card-title">情感動機可以再深一層</div>
+        <div class="gate-card-reason">「感覺有收穫」是表層描述，可嘗試挖到更深的情感動機</div>
+        <div class="gate-card-suggestion">建議補充：說明「有收穫感」背後的深層情感，例如歸屬感或焦慮的消解</div>
+      </div>
+    </div>
+    <div class="gate-card ok">
+      <div class="gate-card-icon" style="color:#137A3D"><i class="ph ph-check-circle"></i></div>
+      <div>
+        <div class="gate-card-field">社交性需求</div>
+        <div class="gate-card-title">弱連結維持需求具體</div>
+        <div class="gate-card-reason">「維持弱連結」和「重要時刻回應」符合這個用戶族群的社交動機</div>
+      </div>
+    </div>
+    <div class="gate-card ok">
+      <div class="gate-card-icon" style="color:#137A3D"><i class="ph ph-check-circle"></i></div>
+      <div>
+        <div class="gate-card-field">核心痛點</div>
+        <div class="gate-card-title">痛點與需求連結清楚</div>
+        <div class="gate-card-reason">「無效瀏覽導致降低預期」直接對應了功能性需求的篩選缺失</div>
+      </div>
+    </div>
+  </div>
+  <div class="submit-bar">
+    <button class="btn-ghost-sm" onclick="show('p1-drill')">重新編輯</button>
+    <button class="btn-primary" onclick="show('p2-early')">進入對話練習 →</button>
+  </div>
+</div>
+
+<!-- ════════════════════════════════════════════
+     SCREEN: Gate — Fail (drill mode, error blocks)
+════════════════════════════════════════════ -->
+<div id="screen-gate-fail" class="screen" style="position:relative">
+  <div class="circles-nav">
+    <button class="btn-icon" onclick="show('p1-drill')"><i class="ph ph-arrow-left"></i></button>
+    <div>
+      <div class="circles-nav-title">框架審核結果</div>
+      <div class="circles-nav-sub">R · 發掘需求 · Meta</div>
+    </div>
+    <button class="circles-nav-home">回首頁</button>
+  </div>
+  <div class="circles-progress">
+    <div class="circles-progress-seg done"></div>
+    <div class="circles-progress-seg done"></div>
+    <div class="circles-progress-seg done"></div>
+    <div class="circles-progress-seg"></div>
+    <div class="circles-progress-seg"></div>
+    <div class="circles-progress-seg"></div>
+    <div class="circles-progress-seg"></div>
+    <div class="circles-progress-label">R · 發掘需求</div>
+  </div>
+  <div class="scroll-body">
+    <div class="gate-fail-bar">框架有方向性錯誤，請修正後再提交（步驟加練模式）</div>
+    <div class="gate-card ok">
+      <div class="gate-card-icon" style="color:#137A3D"><i class="ph ph-check-circle"></i></div>
+      <div>
+        <div class="gate-card-field">功能性需求</div>
+        <div class="gate-card-title">篩選與控制方向正確</div>
+        <div class="gate-card-reason">功能需求列舉清楚，符合這個步驟的分析邏輯</div>
+      </div>
+    </div>
+    <div class="gate-card error">
+      <div class="gate-card-icon" style="color:#D92020"><i class="ph ph-x-circle"></i></div>
+      <div>
+        <div class="gate-card-field">情感性需求</div>
+        <div class="gate-card-title">情感需求停在功能層</div>
+        <div class="gate-card-reason">「想看好內容」是功能需求，不是情感性需求——情感需求應描述「感受」而非「行為目標」</div>
+        <div class="gate-card-suggestion">建議改為：「害怕錯過朋友重要動態的焦慮感」或「渴望歸屬感」等情感層描述</div>
+      </div>
+    </div>
+    <div class="gate-card ok">
+      <div class="gate-card-icon" style="color:#137A3D"><i class="ph ph-check-circle"></i></div>
+      <div>
+        <div class="gate-card-field">社交性需求</div>
+        <div class="gate-card-title">社交維繫方向正確</div>
+        <div class="gate-card-reason">提到維持弱連結和及時回應，符合社交需求的層次</div>
+      </div>
+    </div>
+    <div class="gate-card warn">
+      <div class="gate-card-icon" style="color:#B85C00"><i class="ph ph-warning"></i></div>
+      <div>
+        <div class="gate-card-field">核心痛點</div>
+        <div class="gate-card-title">痛點層次未說明</div>
+        <div class="gate-card-reason">痛點正確但未說明是功能/情感/社交哪一層的需求未被滿足</div>
+        <div class="gate-card-suggestion">補充說明：這個痛點屬於哪一層，以及為何它是最核心的</div>
+      </div>
+    </div>
+  </div>
+  <div class="submit-bar">
+    <button class="btn-primary" onclick="show('p1-drill')">修正框架後重試</button>
+  </div>
+</div>
+
+<!-- ════════════════════════════════════════════
+     SCREEN: Phase 2 — Early turns (< 3)
+════════════════════════════════════════════ -->
+<div id="screen-p2-early" class="screen chat-wrap">
+  <div class="circles-nav">
+    <button class="btn-icon" onclick="show('gate-pass')"><i class="ph ph-arrow-left"></i></button>
+    <div>
+      <div class="circles-nav-title">R — 對話練習</div>
+      <div class="circles-nav-sub">Meta · News Feed</div>
+    </div>
+    <button class="circles-nav-home">回首頁</button>
+  </div>
+  <div class="circles-progress">
+    <div class="circles-progress-seg done"></div>
+    <div class="circles-progress-seg done"></div>
+    <div class="circles-progress-seg active"></div>
+    <div class="circles-progress-seg"></div>
+    <div class="circles-progress-seg"></div>
+    <div class="circles-progress-seg"></div>
+    <div class="circles-progress-seg"></div>
+    <div class="circles-progress-label">R · 發掘需求 · 3/7</div>
+  </div>
+  <div class="chat-pinned">
+    <div class="pinned-co">Meta — 發掘需求</div>
+    <div class="pinned-stmt">用戶反映 News Feed 廣告過多，如何改善廣告體驗…</div>
+  </div>
+  <div class="chat-body">
+    <div class="chat-icebreaker">
+      <div class="chat-icebreaker-label"><i class="ph ph-compass"></i> 開始提問方向</div>
+      <div class="chat-icebreaker-text">問被訪談者這些習慣型用戶每天打開 News Feed 時，最常做的事情是什麼——從使用行為出發，逐步挖到功能、情感、社交三層需求。</div>
+    </div>
+    <div class="bubble-user">你們的習慣型用戶每天打開 News Feed 時，最常做的事情是什麼？</div>
+    <div class="bubble-ai">
+      <div class="bubble-section">被訪談者</div>
+      嗯，大部分人是滑一滑、看看有什麼新鮮事吧。有時候會對貼文按個讚，或者看到朋友的照片留個言。不過說實話，很多人打開來滑一滑，也說不清楚自己在幹嘛。
+    </div>
+    <div class="bubble-coaching" style="font-size:12px">
+      <div class="bubble-section">教練點評</div>
+      問出了基本使用行為，但還停在表面。「說不清楚自己在幹嘛」這句話很有趣，可以順著這個方向繼續挖。
+      <button class="hint-toggle" onclick="toggleHint(this)"><i class="ph ph-caret-right" style="font-size:10px"></i> 查看教練提示</button>
+      <div class="hint-body">試試問：「這些用戶打開 App 之前，他們預期會看到什麼？結果看到的是什麼？」</div>
+    </div>
+    <div class="bubble-user">這些用戶打開 App 的時候，他們希望看到什麼？實際上看到的是什麼？</div>
+    <div class="bubble-ai">
+      <div class="bubble-section">被訪談者</div>
+      我想他們是想知道朋友最近在幹嘛，有沒有什麼重要的事情發生。但實際上他們看到的，很大比例是廣告、粉絲頁的影片、還有完全不認識的人分享的東西。這個落差，確實是大家抱怨比較多的地方。
+    </div>
+    <div class="bubble-coaching" style="font-size:12px">
+      <div class="bubble-section">教練點評</div>
+      很好，你挖到了「預期與現實的落差」——這是功能性需求沒有被滿足的核心。繼續往情感層問，問問這個落差對用戶有什麼感受。
+      <button class="hint-toggle" onclick="toggleHint(this)"><i class="ph ph-caret-right" style="font-size:10px"></i> 查看教練提示</button>
+      <div class="hint-body">問：「這個落差對用戶有什麼影響？他們打完 App 後是什麼感覺？」</div>
+    </div>
+    <div style="height:8px"></div>
+    <div style="text-align:center;font-size:11px;color:var(--text-3);padding:4px 0">再對話 1 輪，可提交步驟</div>
+  </div>
+  <div class="chat-input-bar">
+    <textarea class="chat-input" rows="1" placeholder="問被訪談者一個問題…"></textarea>
+    <button class="chat-send-btn"><i class="ph ph-paper-plane-tilt"></i></button>
+  </div>
+</div>
+
+<!-- ════════════════════════════════════════════
+     SCREEN: Phase 2 — ≥3 turns, submit row (收斂)
+════════════════════════════════════════════ -->
+<div id="screen-p2-late" class="screen chat-wrap">
+  <div class="circles-nav">
+    <button class="btn-icon" onclick="show('p2-early')"><i class="ph ph-arrow-left"></i></button>
+    <div>
+      <div class="circles-nav-title">R — 對話練習</div>
+      <div class="circles-nav-sub">Meta · News Feed</div>
+    </div>
+    <button class="circles-nav-home">回首頁</button>
+  </div>
+  <div class="circles-progress">
+    <div class="circles-progress-seg done"></div>
+    <div class="circles-progress-seg done"></div>
+    <div class="circles-progress-seg active"></div>
+    <div class="circles-progress-seg"></div>
+    <div class="circles-progress-seg"></div>
+    <div class="circles-progress-seg"></div>
+    <div class="circles-progress-seg"></div>
+    <div class="circles-progress-label">R · 發掘需求 · 3/7 · 4 輪</div>
+  </div>
+  <div class="chat-pinned">
+    <div class="pinned-co">Meta — 發掘需求</div>
+    <div class="pinned-stmt">用戶反映 News Feed 廣告過多，如何改善廣告體驗…</div>
+  </div>
+  <div class="chat-body">
+    <div class="chat-icebreaker">
+      <div class="chat-icebreaker-label"><i class="ph ph-compass"></i> 開始提問方向</div>
+      <div class="chat-icebreaker-text">問被訪談者這些習慣型用戶每天打開 News Feed 時，最常做的事情是什麼——從使用行為出發，逐步挖到功能、情感、社交三層需求。</div>
+    </div>
+    <div class="bubble-user">這個落差對用戶有什麼影響？他們關掉 App 之後是什麼感覺？</div>
+    <div class="bubble-ai">
+      <div class="bubble-section">被訪談者</div>
+      有一部分人說關掉之後覺得有點空、有點浪費時間的感覺。有些人甚至會覺得有點焦慮——不確定自己有沒有漏掉什麼重要的朋友動態。
+    </div>
+    <div class="bubble-coaching" style="font-size:12px">
+      <div class="bubble-section">教練點評</div>
+      很好，挖到了兩種情感——「空虛感」和「漏接焦慮」。這兩個都是情感性需求，繼續問哪一個更核心。
+      <button class="hint-toggle" onclick="toggleHint(this)"><i class="ph ph-caret-right" style="font-size:10px"></i> 查看教練提示</button>
+      <div class="hint-body">問：「這兩種感覺哪一個更常出現？有沒有具體例子？」</div>
+    </div>
+    <div class="bubble-user">這兩種感覺——空虛感和漏接焦慮——哪一個更普遍？你們有沒有具體案例？</div>
+    <div class="bubble-ai">
+      <div class="bubble-section">被訪談者</div>
+      漏接焦慮我覺得更嚴重一點。有用戶說，同學結婚他後來才從別人口中知道——因為那則貼文被其他內容淹沒了，根本沒看到。這種錯誤不只讓他覺得難過，也讓他覺得「以後 Facebook 不可靠」。
+    </div>
+    <div class="bubble-coaching" style="font-size:12px">
+      <div class="bubble-section">教練點評</div>
+      這是社交需求和情感需求的交叉點——「維持重要關係的社交存在感」讓 Feed 的可信賴性變成核心痛點。
+      <button class="hint-toggle" onclick="toggleHint(this)"><i class="ph ph-caret-right" style="font-size:10px"></i> 查看教練提示</button>
+      <div class="hint-body">最後確認：「這個問題對你們的核心 KPI 有什麼影響？」然後可以收斂了。</div>
+    </div>
+    <div class="bubble-user">這個漏接焦慮問題，對你們的核心指標有影響嗎？</div>
+    <div class="bubble-ai">
+      <div class="bubble-section">被訪談者</div>
+      有，我們看到這部分用戶的打開頻率在下降。他們不是刪 App，但打開次數越來越少——就是「預期管理壞了」。
+    </div>
+    <div class="bubble-coaching" style="font-size:12px">
+      <div class="bubble-section">教練點評</div>
+      到這裡三層需求都已完整探索，可以收斂提交了。功能層（篩選缺失）→ 情感層（漏接焦慮）→ 社交層（重要時刻維繫）都有觸及。
+      <button class="hint-toggle" onclick="toggleHint(this)"><i class="ph ph-caret-right" style="font-size:10px"></i> 查看教練提示</button>
+      <div class="hint-body">整理結論：三層需求各一句，然後說哪個是最核心的痛點及原因。</div>
+    </div>
+    <div style="height:4px"></div>
+  </div>
+  <div class="chat-input-bar">
+    <textarea class="chat-input" rows="1" placeholder="繼續探索，或點下方提交…"></textarea>
+    <button class="chat-send-btn"><i class="ph ph-paper-plane-tilt"></i></button>
+  </div>
+  <div class="chat-submit-row">
+    <button class="chat-submit-btn" onclick="show('p2-conclude')">對話足夠了，提交這個步驟</button>
+  </div>
+</div>
+
+<!-- ════════════════════════════════════════════
+     SCREEN: Phase 2 — Conclusion box (expanded)
+════════════════════════════════════════════ -->
+<div id="screen-p2-conclude" class="screen chat-wrap">
+  <div class="circles-nav">
+    <button class="btn-icon" onclick="show('p2-late')"><i class="ph ph-arrow-left"></i></button>
+    <div>
+      <div class="circles-nav-title">R — 對話練習</div>
+      <div class="circles-nav-sub">Meta · News Feed</div>
+    </div>
+    <button class="circles-nav-home">回首頁</button>
+  </div>
+  <div class="circles-progress">
+    <div class="circles-progress-seg done"></div>
+    <div class="circles-progress-seg done"></div>
+    <div class="circles-progress-seg active"></div>
+    <div class="circles-progress-seg"></div>
+    <div class="circles-progress-seg"></div>
+    <div class="circles-progress-seg"></div>
+    <div class="circles-progress-seg"></div>
+    <div class="circles-progress-label">R · 發掘需求 · 3/7 · 4 輪</div>
+  </div>
+  <div class="chat-pinned">
+    <div class="pinned-co">Meta — 發掘需求</div>
+    <div class="pinned-stmt">用戶反映 News Feed 廣告過多，如何改善廣告體驗…</div>
+  </div>
+  <!-- 對話淡化 -->
+  <div class="chat-body" style="opacity:0.45;pointer-events:none">
+    <div class="bubble-user">這個落差對用戶有什麼影響？關掉 App 之後是什麼感覺？</div>
+    <div class="bubble-ai"><div class="bubble-section">被訪談者</div>有點空、有點焦慮——不確定有沒有漏掉什麼重要動態。</div>
+    <div class="bubble-user">漏接焦慮和空虛感，哪一個更普遍？有沒有具體案例？</div>
+    <div class="bubble-ai"><div class="bubble-section">被訪談者</div>漏接焦慮更嚴重。有用戶因為漏看同學婚禮的貼文，覺得「Facebook 不可靠了」。</div>
+    <div class="bubble-user">這個問題對你們的核心指標有影響嗎？</div>
+    <div class="bubble-ai"><div class="bubble-section">被訪談者</div>有，那批用戶打開頻率在下降。預期管理壞了，留存率跟著跌。</div>
+    <div style="text-align:center;padding:6px 0">
+      <span style="font-size:11px;color:var(--text-3);background:#f0ede6;border-radius:20px;padding:3px 12px">4 輪對話完成</span>
+    </div>
+  </div>
+
+  <!-- 結論框 -->
+  <div class="conclusion-box">
+    <div class="conclusion-title">整理你這個步驟確認了什麼</div>
+    <div class="conclusion-sub">用 1-2 句話說明：三層需求各一句，並說明哪個是核心痛點</div>
+
+    <!-- 折疊範例 -->
+    <div style="border:1px solid var(--border);border-radius:8px;margin-bottom:8px;overflow:hidden">
+      <div style="background:#f5f4f0;padding:5px 10px;display:flex;justify-content:space-between;cursor:pointer;align-items:center" onclick="var c=this.nextElementSibling;c.style.display=c.style.display==='none'?'block':'none';this.querySelector('span').textContent=c.style.display==='none'?'展開 ▾':'收起 ▴'">
+        <span style="font-size:9px;font-weight:700;color:var(--text-3);text-transform:uppercase;letter-spacing:.4px">範例（不同題目）</span>
+        <span style="font-size:10px;color:var(--text-3)">展開 ▾</span>
+      </div>
+      <div style="display:none;padding:8px 10px;font-size:11px;color:var(--text-2);line-height:1.6">
+        Spotify 免費用戶的功能需求是「快速找到符合當下心情的音樂」；情感需求是「用音樂管理情緒狀態的掌控感」；社交需求是「分享歌單維持社交話題」。核心痛點：情感層的掌控感缺失最嚴重，直接影響留存。
+      </div>
+    </div>
+
+    <textarea class="conclusion-textarea" id="conclude-text" rows="3" oninput="onConclude()" placeholder="針對這題，整理你確認的三層需求與核心痛點…" style="height:72px">功能需求：用戶需要 Feed 優先顯示緊密朋友動態，過濾無關內容。情感需求：核心是「漏接重要時刻的焦慮感」。社交需求：維持弱連結而不需主動管理。核心痛點（情感層）：演算法無法代替用戶判斷哪些關係更值得優先，導致焦慮感和留存下降。</textarea>
+    <div class="conclusion-hint pass" id="conclude-hint">✓ 結論涵蓋三層需求並說明核心痛點，可以提交</div>
+    <div class="conclusion-actions">
+      <button class="conclusion-back-btn" onclick="show('p2-late')">← 繼續對話</button>
+      <button class="conclusion-submit-btn" onclick="show('p3-r')">確認提交</button>
+    </div>
+  </div>
+</div>
+
+<!-- ════════════════════════════════════════════
+     SCREEN: Phase 3 — Step Score (R step)
+════════════════════════════════════════════ -->
+<div id="screen-p3-r" class="screen" style="position:relative">
+  <div class="circles-nav">
+    <button class="btn-icon" onclick="show('p2-conclude')"><i class="ph ph-arrow-left"></i></button>
+    <div>
+      <div class="circles-nav-title">步驟評分 — 發掘需求</div>
+      <div class="circles-nav-sub">Meta · News Feed</div>
+    </div>
+    <div class="score-nav">
+      <button class="score-nav-btn" disabled><i class="ph ph-caret-left"></i></button>
+      <button class="score-nav-btn" onclick="show('p3-c1')"><i class="ph ph-caret-right"></i></button>
+    </div>
+  </div>
+  <div class="circles-progress">
+    <div class="circles-progress-seg done"></div>
+    <div class="circles-progress-seg done"></div>
+    <div class="circles-progress-seg done"></div>
+    <div class="circles-progress-seg"></div>
+    <div class="circles-progress-seg"></div>
+    <div class="circles-progress-seg"></div>
+    <div class="circles-progress-seg"></div>
+    <div class="circles-progress-label">R · 評分 · 3/7</div>
+  </div>
+  <div class="scroll-body">
+    <div class="score-total">
+      <div class="score-number">73</div>
+      <div class="score-sub">R — 發掘需求 步驟得分</div>
+    </div>
+    <div class="score-breakdown">
+      <div class="dim-row">
+        <div class="dim-text">
+          <div class="dim-name">功能需求</div>
+          <div class="dim-comment">清楚列出效率需求與過濾需求，三層對應完整</div>
+        </div>
+        <div class="dim-bar-wrap"><div class="dim-bar" style="width:80%"></div></div>
+        <div class="dim-score">4<span>/5</span></div>
+      </div>
+      <div class="dim-row">
+        <div class="dim-text">
+          <div class="dim-name">情感/社交需求</div>
+          <div class="dim-comment">挖到漏接焦慮，但社交動機深度（弱連結價值）不足</div>
+        </div>
+        <div class="dim-bar-wrap"><div class="dim-bar" style="width:70%"></div></div>
+        <div class="dim-score">3.5<span>/5</span></div>
+      </div>
+      <div class="dim-row">
+        <div class="dim-text">
+          <div class="dim-name">痛點層次</div>
+          <div class="dim-comment">痛點與功能需求對應清晰，成功連結三層需求</div>
+        </div>
+        <div class="dim-bar-wrap"><div class="dim-bar" style="width:80%"></div></div>
+        <div class="dim-score">4<span>/5</span></div>
+      </div>
+      <div class="dim-row">
+        <div class="dim-text">
+          <div class="dim-name">需求優先說明</div>
+          <div class="dim-comment">未清楚說明哪個需求最核心、為何優先處理</div>
+        </div>
+        <div class="dim-bar-wrap"><div class="dim-bar" style="width:60%"></div></div>
+        <div class="dim-score">3<span>/5</span></div>
+      </div>
+    </div>
+    <div class="highlight-card good">
+      <div class="highlight-label">✦ 最強表現</div>
+      <div class="highlight-text">成功從功能層挖到情感痛點「漏接焦慮」，三層需求串聯完整</div>
+    </div>
+    <div class="highlight-card improve">
+      <div class="highlight-label">↑ 最需改進</div>
+      <div class="highlight-text">未說明哪個需求是最優先處理的痛點及其理由</div>
+    </div>
+    <div class="coach-toggle" onclick="this.querySelector('.coach-content').classList.toggle('open');this.querySelector('i').className=this.querySelector('.coach-content').classList.contains('open')?'ph ph-caret-up':'ph ph-caret-down'">
+      <div class="coach-toggle-label">教練示範答案 <i class="ph ph-caret-down"></i></div>
+      <div class="coach-content">
+        <div style="margin-bottom:6px"><strong style="color:var(--text)">功能性：</strong>用戶需要演算法優先展示「緊密連結朋友」的動態，過濾陌生粉絲頁內容。</div>
+        <div style="margin-bottom:6px"><strong style="color:var(--text)">情感性：</strong>最核心的情感需求是「避免錯過重要社交時刻的焦慮」，這個焦慮直接影響留存率。</div>
+        <div style="margin-bottom:6px"><strong style="color:var(--text)">社交性：</strong>用戶需要被動維持弱連結，關鍵是不需要主動管理優先序。</div>
+        <div><strong style="color:var(--text)">核心痛點（優先）：</strong>情感層的焦慮痛點優先，因為它直接觸發打開頻率下降。</div>
+      </div>
+    </div>
+  </div>
+  <div class="submit-bar">
+    <button class="btn-secondary">回首頁</button>
+    <button class="btn-primary">繼續下一步：C 優先排序 →</button>
+  </div>
+</div>
+
+<!-- ════════════════════════════════════════════
+     SCREEN: Phase 3 — C1 Score (simulation browsing)
+════════════════════════════════════════════ -->
+<div id="screen-p3-c1" class="screen" style="position:relative">
+  <div class="circles-nav">
+    <button class="btn-icon" onclick="show('p3-r')"><i class="ph ph-arrow-left"></i></button>
+    <div>
+      <div class="circles-nav-title">步驟評分 — 澄清情境</div>
+      <div class="circles-nav-sub">Meta · News Feed</div>
+    </div>
+    <!-- C1 是第一步，◀ disabled -->
+    <div class="score-nav">
+      <button class="score-nav-btn" disabled><i class="ph ph-caret-left"></i></button>
+      <button class="score-nav-btn" onclick="show('p3-r')"><i class="ph ph-caret-right"></i></button>
+    </div>
+  </div>
+  <div class="circles-progress">
+    <div class="circles-progress-seg done"></div>
+    <div class="circles-progress-seg done"></div>
+    <div class="circles-progress-seg done"></div>
+    <div class="circles-progress-seg"></div>
+    <div class="circles-progress-seg"></div>
+    <div class="circles-progress-seg"></div>
+    <div class="circles-progress-seg"></div>
+    <div class="circles-progress-label">C · 評分 · 1/7</div>
+  </div>
+  <div class="scroll-body">
+    <div class="score-total">
+      <div class="score-number">72</div>
+      <div class="score-sub">C — 澄清情境 步驟得分</div>
+    </div>
+    <div class="score-breakdown">
+      <div class="dim-row">
+        <div class="dim-text">
+          <div class="dim-name">問題邊界清晰度</div>
+          <div class="dim-comment">確認了廣告頻率問題，但未區分相關性與格式</div>
+        </div>
+        <div class="dim-bar-wrap"><div class="dim-bar" style="width:70%"></div></div>
+        <div class="dim-score">3.5<span>/5</span></div>
+      </div>
+      <div class="dim-row">
+        <div class="dim-text">
+          <div class="dim-name">業務影響連結</div>
+          <div class="dim-comment">提到廣告收入保護，但未量化約束條件</div>
+        </div>
+        <div class="dim-bar-wrap"><div class="dim-bar" style="width:60%"></div></div>
+        <div class="dim-score">3<span>/5</span></div>
+      </div>
+      <div class="dim-row">
+        <div class="dim-text">
+          <div class="dim-name">時間範圍合理性</div>
+          <div class="dim-comment">設定 90 天合理，符合廣告收入指標週期</div>
+        </div>
+        <div class="dim-bar-wrap"><div class="dim-bar" style="width:80%"></div></div>
+        <div class="dim-score">4<span>/5</span></div>
+      </div>
+      <div class="dim-row">
+        <div class="dim-text">
+          <div class="dim-name">假設排除完整性</div>
+          <div class="dim-comment">排除技術限制，但未說明競品對比的假設</div>
+        </div>
+        <div class="dim-bar-wrap"><div class="dim-bar" style="width:50%"></div></div>
+        <div class="dim-score">2.5<span>/5</span></div>
+      </div>
+    </div>
+    <div class="highlight-card good">
+      <div class="highlight-label">✦ 最強表現</div>
+      <div class="highlight-text">清楚說明「廣告收入保護」是這題的硬性約束</div>
+    </div>
+    <div class="highlight-card improve">
+      <div class="highlight-label">↑ 最需改進</div>
+      <div class="highlight-text">假設確認太少，未涵蓋競品和用戶行為假設</div>
+    </div>
+    <div class="coach-toggle" onclick="this.querySelector('.coach-content').classList.toggle('open');this.querySelector('i').className=this.querySelector('.coach-content').classList.contains('open')?'ph ph-caret-up':'ph ph-caret-down'">
+      <div class="coach-toggle-label">教練示範答案 <i class="ph ph-caret-down"></i></div>
+      <div class="coach-content">
+        <div style="margin-bottom:6px"><strong style="color:var(--text)">問題範圍：</strong>廣告頻率 vs 相關性 vs 格式是三個不同問題，應先確認是哪一個。</div>
+        <div style="margin-bottom:6px"><strong style="color:var(--text)">業務影響：</strong>Meta 廣告收入 = 曝光量 × 點擊率，改善相關性可提升點擊率但可能減少曝光量，需明確哪個指標優先。</div>
+        <div style="margin-bottom:6px"><strong style="color:var(--text)">時間：</strong>90 天符合廣告季度節奏。</div>
+        <div><strong style="color:var(--text)">假設：</strong>應確認「用戶是否願意為相關性損失部分隱私資料」。</div>
+      </div>
+    </div>
+  </div>
+  <div class="submit-bar">
+    <button class="btn-secondary">回首頁</button>
+    <button class="btn-primary">繼續下一步：C 優先排序 →</button>
+  </div>
+</div>
+
+</div><!-- shell -->
+</div><!-- wrapper -->
+
+<script>
+function show(id) {
+  document.querySelectorAll('.screen').forEach(s => s.classList.remove('active'));
+  document.getElementById('screen-' + id).classList.add('active');
+  document.querySelectorAll('.nav-label').forEach(b => b.classList.remove('active'));
+  var map = {'p1-drill':0,'p1-hint':1,'gate-pass':2,'gate-fail':3,'p2-early':4,'p2-late':5,'p2-conclude':6,'p3-r':7,'p3-c1':8};
+  if (map[id] !== undefined) document.querySelectorAll('.nav-label')[map[id]].classList.add('active');
+}
+function showHint(field, body) {
+  document.getElementById('hint-title').textContent = '💡 ' + field + ' — 分析思路';
+  document.getElementById('hint-body').textContent = body;
+  document.getElementById('hint-overlay').classList.add('visible');
+}
+function closeHint(e) {
+  if (!e || e.target === document.getElementById('hint-overlay')) {
+    document.getElementById('hint-overlay').classList.remove('visible');
+  }
+}
+function toggleHint(btn) {
+  var body = btn.nextElementSibling;
+  var shown = body.style.display === 'block';
+  body.style.display = shown ? 'none' : 'block';
+  btn.querySelector('i').className = shown ? 'ph ph-caret-right' : 'ph ph-caret-down';
+  btn.style.color = shown ? 'var(--text-3)' : 'var(--primary)';
+}
+function toggleExample(btn) {
+  var body = btn.nextElementSibling;
+  var shown = body.classList.contains('open');
+  body.classList.toggle('open', !shown);
+  btn.querySelector('i').className = shown ? 'ph ph-caret-right' : 'ph ph-caret-down';
+  btn.innerHTML = (shown ? '<i class="ph ph-caret-right" style="font-size:9px"></i> 查看範例' : '<i class="ph ph-caret-down" style="font-size:9px"></i> 收起範例');
+}
+function onConclude() {
+  var v = document.getElementById('conclude-text').value.trim();
+  var h = document.getElementById('conclude-hint');
+  if (v.length > 30) { h.className='conclusion-hint pass'; h.textContent='✓ 結論涵蓋三層需求並說明核心痛點，可以提交'; }
+  else { h.className='conclusion-hint warn'; h.textContent='請說明三層需求各一句話，並指出核心痛點'; }
+}
+</script>
+</body>
+</html>

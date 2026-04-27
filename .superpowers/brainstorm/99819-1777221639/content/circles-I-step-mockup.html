@@ -1,0 +1,933 @@
+<!DOCTYPE html>
+<html lang="zh-TW">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0">
+<title>CIRCLES — I 定義用戶 Mockup</title>
+<link rel="stylesheet" href="https://unpkg.com/@phosphor-icons/web@2.1.1/src/regular/style.css">
+<style>
+* { box-sizing: border-box; margin: 0; padding: 0; -webkit-tap-highlight-color: transparent; }
+body { font-family: 'DM Sans', -apple-system, sans-serif; background: #F2F0EB; display: flex; justify-content: center; }
+
+:root {
+  --bg: #F2F0EB;
+  --card: #ffffff;
+  --border: #e8e5de;
+  --primary: #1A56DB;
+  --primary-lt: #EEF3FF;
+  --text: #1a1a1a;
+  --text-2: #5a5a5a;
+  --text-3: #8a8a8a;
+  --success: #137A3D;
+  --warning: #B85C00;
+  --danger: #D92020;
+}
+
+/* ── Nav ── */
+.nav-label {
+  font-size: 11px; font-weight: 700; background: #1a1a1a; color: #fff;
+  padding: 6px 14px; border-radius: 20px; cursor: pointer;
+  font-family: sans-serif; white-space: nowrap;
+}
+.nav-label:hover { background: #333; }
+.nav-label.active { background: var(--primary); }
+
+/* ── Shell ── */
+.shell {
+  width: 390px; min-height: 100vh; background: var(--bg);
+  position: relative; overflow: hidden;
+}
+.screen { display: none; flex-direction: column; height: 100vh; }
+.screen.active { display: flex; }
+
+/* ── Navbar ── */
+.navbar {
+  height: 52px; background: var(--card); border-bottom: 1px solid var(--border);
+  display: flex; align-items: center; padding: 0 16px; gap: 8px;
+  flex-shrink: 0;
+}
+.navbar-logo { font-size: 15px; font-weight: 700; flex: 1; font-family: 'DM Sans', sans-serif; }
+.btn-icon { background: none; border: none; font-size: 18px; color: var(--text-2); cursor: pointer; padding: 6px; line-height: 1; }
+.btn-ghost { background: none; border: none; font-size: 13px; font-weight: 500; color: var(--text-2); cursor: pointer; padding: 4px 8px; font-family: 'DM Sans', sans-serif; }
+
+/* ── circles-nav ── */
+.circles-nav {
+  height: 52px; background: var(--card); border-bottom: 1px solid var(--border);
+  display: flex; align-items: center; padding: 0 14px; gap: 10px;
+  flex-shrink: 0;
+}
+.circles-nav-title { font-size: 14px; font-weight: 700; color: var(--text); font-family: 'DM Sans', sans-serif; }
+.circles-nav-sub { font-size: 11px; color: var(--text-3); font-family: 'DM Sans', sans-serif; }
+.circles-nav-home { font-size: 12px; color: var(--primary); border-bottom: 1px solid var(--primary); background: none; border-top: none; border-left: none; border-right: none; padding: 2px 0; cursor: pointer; font-family: 'DM Sans', sans-serif; white-space: nowrap; flex-shrink: 0; margin-left: auto; }
+
+/* ── progress ── */
+.circles-progress {
+  height: 36px; background: var(--card); border-bottom: 1px solid var(--border);
+  display: flex; align-items: center; padding: 0 14px; gap: 3px;
+  flex-shrink: 0;
+}
+.circles-progress-seg { flex: 1; height: 4px; background: #e8e5de; border-radius: 2px; }
+.circles-progress-seg.done { background: var(--primary); }
+.circles-progress-seg.active { background: rgba(26,86,219,0.4); }
+.circles-progress-label { font-size: 10px; color: var(--text-3); white-space: nowrap; font-family: 'DM Sans', sans-serif; margin-left: 8px; }
+
+/* ── scrollable body ── */
+.scroll-body { flex: 1; overflow-y: auto; padding: 16px; padding-bottom: 100px; scrollbar-width: none; }
+.scroll-body::-webkit-scrollbar { display: none; }
+
+/* ── submit bar ── */
+.submit-bar {
+  position: absolute; bottom: 0; left: 0; right: 0;
+  background: var(--card); border-top: 1px solid var(--border);
+  padding: 12px 16px; display: flex; gap: 10px;
+  flex-shrink: 0;
+}
+.btn-primary { flex: 1; background: var(--primary); color: #fff; border: none; border-radius: 10px; padding: 12px 16px; font-size: 14px; font-weight: 600; cursor: pointer; font-family: 'DM Sans', sans-serif; }
+.btn-secondary { background: #f0ede6; color: var(--text); border: none; border-radius: 10px; padding: 12px 16px; font-size: 14px; font-weight: 600; cursor: pointer; font-family: 'DM Sans', sans-serif; white-space: nowrap; }
+.btn-ghost-sm { background: none; color: var(--text-2); border: 1px solid var(--border); border-radius: 10px; padding: 12px 16px; font-size: 14px; font-weight: 600; cursor: pointer; font-family: 'DM Sans', sans-serif; white-space: nowrap; }
+
+/* ── problem card ── */
+.problem-card {
+  background: var(--card); border-radius: 10px; border: 1px solid var(--border);
+  padding: 12px 14px; font-size: 13px; color: var(--text-2); line-height: 1.6;
+  margin-bottom: 14px; font-family: 'DM Sans', sans-serif;
+}
+.problem-card-label { font-size: 9px; font-weight: 700; text-transform: uppercase; letter-spacing: .07em; color: var(--text-3); margin-bottom: 4px; }
+
+/* ── step pills ── */
+.circles-step-pills { display: flex; gap: 6px; overflow-x: auto; margin-bottom: 4px; scrollbar-width: none; }
+.circles-step-pills::-webkit-scrollbar { display: none; }
+.circles-step-pill { flex-shrink: 0; padding: 5px 12px; border-radius: 20px; border: 1px solid var(--border); background: var(--card); font-size: 11px; font-weight: 600; color: var(--text-3); cursor: pointer; font-family: 'DM Sans', sans-serif; white-space: nowrap; }
+.circles-step-pill.active { background: var(--primary); color: #fff; border-color: var(--primary); }
+
+/* ── field group ── */
+.circles-field-group { margin-bottom: 16px; }
+.circles-field-label-row { display: flex; justify-content: space-between; align-items: baseline; margin-bottom: 4px; }
+.circles-field-label { font-size: 10px; color: var(--text-3); text-transform: uppercase; letter-spacing: .07em; font-family: 'DM Sans', sans-serif; font-weight: 700; }
+.circles-hint-trigger { background: none; border: none; font-size: 11px; color: var(--primary); cursor: pointer; padding: 0; font-family: 'DM Sans', sans-serif; white-space: nowrap; }
+.circles-field-hint { font-size: 11px; color: var(--text-3); margin-bottom: 6px; line-height: 1.5; font-family: 'DM Sans', sans-serif; }
+.circles-field-input { width: 100%; padding: 11px 13px; border-radius: 10px; border: 1.5px solid var(--border); background: var(--card); font-size: 13px; font-family: 'DM Sans', sans-serif; color: var(--text); resize: none; outline: none; line-height: 1.5; }
+.circles-field-input:focus { border-color: var(--primary); }
+.circles-field-input.filled { border-color: rgba(26,86,219,0.3); background: #fbfaff; }
+
+/* ── Gate cards ── */
+.gate-card { background: var(--card); border-radius: 10px; border: 1.5px solid var(--border); padding: 12px 14px; margin-bottom: 10px; display: flex; gap: 10px; align-items: flex-start; }
+.gate-card.ok { border-color: #b8dbbf; }
+.gate-card.warn { border-color: #FFD54F; }
+.gate-card.error { border-color: #f5c6c6; }
+.gate-card-icon { font-size: 15px; flex-shrink: 0; margin-top: 1px; }
+.gate-card-field { font-size: 9px; text-transform: uppercase; letter-spacing: .05em; color: var(--text-3); font-family: 'DM Sans', sans-serif; margin-bottom: 2px; }
+.gate-card-status-label { font-size: 10px; font-weight: 700; margin-bottom: 4px; font-family: 'DM Sans', sans-serif; }
+.gate-card-title { font-size: 13px; font-weight: 700; color: var(--text); margin-bottom: 3px; font-family: 'DM Sans', sans-serif; }
+.gate-card-reason { font-size: 12px; color: var(--text-2); line-height: 1.5; font-family: 'DM Sans', sans-serif; }
+.gate-card-suggestion { font-size: 11px; color: var(--warning); margin-top: 4px; font-family: 'DM Sans', sans-serif; }
+.gate-pass-bar { background: var(--primary-lt); border: 1px solid #C5D5FF; border-radius: 10px; padding: 12px 14px; margin-bottom: 16px; display: flex; align-items: center; justify-content: space-between; gap: 12px; }
+.gate-pass-text { font-size: 12px; font-weight: 600; color: var(--primary); font-family: 'DM Sans', sans-serif; }
+.gate-pass-sub { font-size: 11px; color: #5a7ab5; font-family: 'DM Sans', sans-serif; }
+.gate-fail-bar { background: #FFF3F3; border: 1px solid #FFCDD2; border-radius: 10px; padding: 12px 14px; margin-bottom: 16px; font-size: 12px; color: var(--danger); font-family: 'DM Sans', sans-serif; }
+
+/* ── Phase 2 chat ── */
+.chat-wrap { display: flex; flex-direction: column; height: 100vh; overflow: hidden; }
+.chat-pinned { background: var(--card); border-bottom: 1px solid var(--border); padding: 8px 14px; flex-shrink: 0; }
+.pinned-co { font-size: 10px; color: var(--primary); font-weight: 600; text-transform: uppercase; letter-spacing: .05em; font-family: 'DM Sans', sans-serif; margin-bottom: 1px; }
+.pinned-stmt { font-size: 11px; color: var(--text); font-weight: 600; line-height: 1.4; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; font-family: 'DM Sans', sans-serif; }
+.chat-body { flex: 1; overflow-y: auto; padding: 14px 16px; scrollbar-width: none; }
+.chat-body::-webkit-scrollbar { display: none; }
+.bubble-user {
+  background: var(--card); border: 1px solid var(--border);
+  border-radius: 12px 4px 12px 12px; padding: 10px 13px;
+  font-size: 13px; line-height: 1.6; color: var(--text);
+  margin-bottom: 10px; max-width: 88%; margin-left: auto;
+  font-family: 'DM Sans', sans-serif;
+}
+.bubble-ai {
+  background: var(--primary-lt); border: 1px solid rgba(26,86,219,0.18);
+  border-radius: 4px 12px 12px 12px; padding: 10px 13px;
+  font-size: 13px; line-height: 1.6; color: var(--text);
+  margin-bottom: 10px; max-width: 88%;
+  font-family: 'DM Sans', sans-serif;
+}
+.bubble-section { font-size: 10px; font-weight: 700; color: var(--text-3); text-transform: uppercase; letter-spacing: .07em; margin-bottom: 3px; font-family: 'DM Sans', sans-serif; }
+.bubble-coaching { background: rgba(0,0,0,0.03); border: 1px solid var(--border); border-radius: 4px 12px 12px 12px; padding: 10px 13px; font-size: 12px; line-height: 1.6; color: var(--text); margin-bottom: 10px; max-width: 88%; font-family: 'DM Sans', sans-serif; }
+.hint-toggle { background: none; border: none; font-size: 11px; color: var(--text-3); cursor: pointer; padding: 0; font-family: 'DM Sans', sans-serif; display: flex; align-items: center; gap: 3px; margin-top: 6px; }
+.hint-body { display: none; margin-top: 4px; padding: 6px 8px; background: rgba(0,0,0,0.04); border-radius: 6px; color: var(--text-2); font-size: 11px; line-height: 1.5; }
+.chat-input-bar { background: var(--card); border-top: 1px solid var(--border); padding: 10px 14px; display: flex; gap: 8px; align-items: flex-end; flex-shrink: 0; }
+.chat-icebreaker { background: rgba(26,86,219,0.05); border: 1px solid rgba(26,86,219,0.18); border-radius: 10px; padding: 10px 13px; margin-bottom: 14px; }
+.chat-icebreaker-label { font-size: 9px; font-weight: 700; color: var(--primary); text-transform: uppercase; letter-spacing: .07em; margin-bottom: 5px; display: flex; align-items: center; gap: 4px; }
+.chat-icebreaker-text { font-size: 12px; color: var(--text-2); line-height: 1.65; }
+.chat-input { flex: 1; background: #f5f5f5; border: 1px solid var(--border); border-radius: 10px; padding: 9px 13px; font-size: 14px; color: var(--text); font-family: 'DM Sans', sans-serif; resize: none; outline: none; min-height: 40px; }
+.chat-send-btn { width: 40px; height: 40px; border-radius: 10px; background: var(--primary); border: none; color: #fff; font-size: 16px; cursor: pointer; display: flex; align-items: center; justify-content: center; flex-shrink: 0; }
+.chat-submit-row { padding: 6px 12px 10px; display: flex; justify-content: center; background: var(--card); flex-shrink: 0; border-top: 1px solid var(--border); }
+.chat-submit-btn { font-size: 11px; color: var(--text-2); border: 1px solid var(--border); border-radius: 8px; padding: 6px 16px; cursor: pointer; background: var(--card); font-family: 'DM Sans', sans-serif; }
+
+/* ── Step Score ── */
+.score-total { background: var(--card); border-radius: 16px; border: 1px solid var(--border); padding: 20px; text-align: center; margin-bottom: 14px; }
+.score-number { font-family: 'Georgia', serif; font-size: 60px; color: var(--primary); line-height: 1; margin-bottom: 4px; font-weight: 400; }
+.score-sub { font-size: 13px; color: var(--text-2); font-family: 'DM Sans', sans-serif; }
+.dim-row { display: flex; align-items: center; gap: 10px; padding: 9px 0; border-bottom: 1px solid var(--border); font-size: 12px; }
+.dim-row:last-child { border-bottom: none; }
+.dim-name { font-size: 12px; color: var(--text-2); font-family: 'DM Sans', sans-serif; flex: 1; }
+.dim-comment { font-size: 10px; color: var(--text-3); margin-top: 1px; line-height: 1.4; font-family: 'DM Sans', sans-serif; }
+.dim-bar-wrap { width: 70px; height: 5px; background: #f0ede6; border-radius: 3px; }
+.dim-bar { height: 100%; border-radius: 3px; background: var(--primary); }
+.dim-score { font-weight: 700; color: var(--text); min-width: 24px; text-align: right; font-family: 'DM Sans', sans-serif; font-size: 12px; }
+.dim-score span { font-size: 9px; color: var(--text-3); }
+.score-breakdown { background: var(--card); border-radius: 12px; border: 1px solid var(--border); padding: 14px; margin-bottom: 14px; }
+.highlight-card { border-radius: 10px; border: 1.5px solid; padding: 12px 14px; margin-bottom: 10px; }
+.highlight-card.good { background: #F0FFF4; border-color: #BBF7D0; }
+.highlight-card.improve { background: #FFFBEB; border-color: #FDE68A; }
+.highlight-label { font-size: 10px; font-weight: 700; text-transform: uppercase; letter-spacing: .05em; margin-bottom: 4px; font-family: 'DM Sans', sans-serif; }
+.highlight-card.good .highlight-label { color: var(--success); }
+.highlight-card.improve .highlight-label { color: var(--warning); }
+.highlight-text { font-size: 13px; color: var(--text); line-height: 1.5; font-family: 'DM Sans', sans-serif; }
+.coach-toggle { background: var(--card); border: 1px solid var(--border); border-radius: 12px; padding: 14px; margin-bottom: 14px; cursor: pointer; }
+.coach-toggle-label { font-size: 12px; font-weight: 700; color: var(--text-2); display: flex; align-items: center; justify-content: space-between; font-family: 'DM Sans', sans-serif; }
+.coach-content { font-size: 12px; color: var(--text-2); line-height: 1.7; margin-top: 10px; display: none; font-family: 'DM Sans', sans-serif; }
+.coach-content.open { display: block; }
+
+/* ── Hint overlay ── */
+.hint-overlay {
+  position: absolute; inset: 0; background: rgba(0,0,0,0.45);
+  z-index: 200; display: none; align-items: center;
+  justify-content: center; padding: 24px;
+}
+.hint-overlay.visible { display: flex; }
+.hint-card { background: #fff; border-radius: 16px; padding: 20px; max-width: 340px; width: 100%; box-shadow: 0 8px 40px rgba(0,0,0,0.18); position: relative; }
+.hint-card-title { font-size: 13px; font-weight: 700; color: var(--primary); margin-bottom: 2px; font-family: 'DM Sans', sans-serif; }
+.hint-card-sub { font-size: 11px; color: #8a8a8a; margin-bottom: 12px; font-family: 'DM Sans', sans-serif; }
+.hint-card-body { font-size: 13px; color: var(--text); line-height: 1.7; background: #F6F8FF; border-left: 3px solid var(--primary); padding: 12px; border-radius: 0 8px 8px 0; font-family: 'DM Sans', sans-serif; }
+.hint-card-footer { font-size: 11px; color: #aaa; text-align: center; margin-top: 12px; font-family: 'DM Sans', sans-serif; }
+.hint-close { position: absolute; top: 12px; right: 14px; background: none; border: none; font-size: 20px; color: #aaa; cursor: pointer; line-height: 1; padding: 0; }
+
+/* ── Conclusion strip/box ── */
+.submit-strip { border-top: 1px solid var(--border); background: var(--card); padding: 10px 14px; display: flex; align-items: center; justify-content: space-between; flex-shrink: 0; }
+.strip-label { font-size: 11px; font-weight: 600; color: var(--primary); font-family: 'DM Sans', sans-serif; }
+.strip-sub { font-size: 10px; color: var(--text-3); font-family: 'DM Sans', sans-serif; }
+.strip-expand-btn { background: var(--primary); color: #fff; border: none; border-radius: 8px; padding: 7px 12px; font-size: 11px; font-weight: 600; cursor: pointer; font-family: 'DM Sans', sans-serif; }
+.conclusion-box { border-top: 2px solid var(--primary); background: var(--card); padding: 14px; flex-shrink: 0; max-height: 55vh; overflow-y: auto; }
+.conclusion-title { font-size: 11px; font-weight: 700; color: var(--text); margin-bottom: 2px; font-family: 'DM Sans', sans-serif; }
+.conclusion-sub { font-size: 10px; color: var(--text-3); margin-bottom: 8px; font-family: 'DM Sans', sans-serif; }
+.conclusion-textarea { width: 100%; border: 1px solid #ddd; border-radius: 8px; padding: 9px; font-size: 11px; line-height: 1.6; resize: none; height: 60px; box-sizing: border-box; font-family: 'DM Sans', sans-serif; color: var(--text); outline: none; }
+.conclusion-hint { min-height: 16px; font-size: 10px; color: var(--text-3); margin-top: 6px; font-family: 'DM Sans', sans-serif; }
+.conclusion-hint.pass { background: #E8F5E9; color: var(--success); border-radius: 4px; padding: 4px 8px; }
+.conclusion-hint.warn { background: #FFF8E1; color: #7A5800; border-radius: 4px; padding: 4px 8px; }
+.conclusion-actions { margin-top: 8px; display: flex; align-items: center; justify-content: space-between; }
+.conclusion-back-btn { font-size: 10px; color: var(--text-3); background: none; border: none; cursor: pointer; font-family: 'DM Sans', sans-serif; }
+.conclusion-submit-btn { background: var(--primary); color: #fff; border: none; border-radius: 8px; padding: 8px 14px; font-size: 12px; font-weight: 600; cursor: pointer; font-family: 'DM Sans', sans-serif; }
+.conclusion-submit-btn.disabled { opacity: .4; cursor: not-allowed; }
+
+/* ── annotation strip ── */
+.step-annotation { background: var(--primary-lt); border: 1px solid #C5D5FF; border-radius: 10px; padding: 10px 14px; margin-bottom: 14px; font-size: 12px; color: var(--primary); line-height: 1.6; font-family: 'DM Sans', sans-serif; }
+
+/* ── nav bar at top ── */
+.top-nav {
+  position: fixed; top: 0; left: 50%; transform: translateX(-50%);
+  background: #111; display: flex; gap: 8px; padding: 8px 16px;
+  z-index: 999; border-radius: 0 0 12px 12px; overflow-x: auto;
+  white-space: nowrap; max-width: 100vw;
+}
+.wrapper { max-width: 390px; width: 100vw; margin-top: 54px; position: relative; }
+</style>
+</head>
+<body>
+
+<!-- Top nav -->
+<div class="top-nav">
+  <span class="nav-label active" onclick="show('p1-drill')">P1 加練</span>
+  <span class="nav-label" onclick="show('p1-hint')">P1+提示</span>
+  <span class="nav-label" onclick="show('gate-pass')">Gate ✓</span>
+  <span class="nav-label" onclick="show('gate-fail')">Gate ✗</span>
+  <span class="nav-label" onclick="show('p2-early')">P2 早期</span>
+  <span class="nav-label" onclick="show('p2-late')">P2 提交</span>
+  <span class="nav-label" onclick="show('p2-conclude')">P2 結論</span>
+  <span class="nav-label" onclick="show('p3-score')">P3 I評分</span>
+  <span class="nav-label" onclick="show('p3-c1')">P3 C評分</span>
+</div>
+
+<div class="wrapper">
+<div class="shell">
+
+<!-- ════════════════════════════════════════════
+     SCREEN: Phase 1 — I step (Drill mode)
+════════════════════════════════════════════ -->
+<div id="screen-p1-drill" class="screen active" style="position:relative">
+  <div class="circles-nav">
+    <button class="btn-icon" onclick="show('gate-pass')"><i class="ph ph-arrow-left"></i></button>
+    <div>
+      <div class="circles-nav-title">I — 定義用戶</div>
+      <div class="circles-nav-sub">Meta · News Feed</div>
+    </div>
+    <button class="circles-nav-home">回首頁</button>
+  </div>
+  <div class="circles-progress">
+    <div class="circles-progress-seg done"></div>
+    <div class="circles-progress-seg active"></div>
+    <div class="circles-progress-seg"></div>
+    <div class="circles-progress-seg"></div>
+    <div class="circles-progress-seg"></div>
+    <div class="circles-progress-seg"></div>
+    <div class="circles-progress-seg"></div>
+    <div class="circles-progress-label">I · 定義用戶 · 2/7</div>
+  </div>
+  <div class="scroll-body">
+    <div class="problem-card">
+      <div class="problem-card-label">練習題目</div>
+      用戶反映 News Feed 廣告過多，如何改善廣告體驗並維持 Meta 的廣告收入？
+    </div>
+
+    <!-- Field 1 -->
+    <div class="circles-field-group">
+      <div class="circles-field-label-row">
+        <div class="circles-field-label">目標用戶分群</div>
+        <button class="circles-hint-trigger" onclick="showHint('目標用戶分群','思考用戶使用 News Feed 的不同行為模式。哪些群體對廣告的感受最強烈？功能型用戶、習慣型用戶、新用戶各有什麼不同的痛點？這個分群方式要足夠具體，能讓後續的需求分析聚焦在真正不同的動機上。')">💡 提示</button>
+      </div>
+      <div class="circles-field-hint">例：功能型用戶 / 習慣型用戶 / 新用戶</div>
+      <textarea class="circles-field-input" rows="2" placeholder="填寫你的分析..."></textarea>
+    </div>
+
+    <!-- Field 2 -->
+    <div class="circles-field-group">
+      <div class="circles-field-label-row">
+        <div class="circles-field-label">選定焦點對象</div>
+        <button class="circles-hint-trigger" onclick="showHint('選定焦點對象','從上面的分群中選一個。選擇標準是：體量最大且對廣告痛點最有代表性的群體。說清楚為什麼這個群體是最值得優先服務的，而不是另外幾個。這個理由會影響整個後續的需求和方案設計。')">💡 提示</button>
+      </div>
+      <div class="circles-field-hint">例：最有代表性且體量最大的群體</div>
+      <textarea class="circles-field-input" rows="2" placeholder="填寫你的分析..."></textarea>
+    </div>
+
+    <!-- Field 3 -->
+    <div class="circles-field-group">
+      <div class="circles-field-label-row">
+        <div class="circles-field-label">用戶動機假設</div>
+        <button class="circles-hint-trigger" onclick="showHint('用戶動機假設','用 JTBD（Jobs to Be Done）框架思考：這個用戶「聘用」News Feed 是為了完成什麼任務？不是「滑手機」，而是更深層的目標——保持社交聯繫、消磨時間、獲取資訊？動機越具體，後面需求分析就越有說服力。')">💡 提示</button>
+      </div>
+      <div class="circles-field-hint">例：他們想完成什麼「任務」（JTBD）</div>
+      <textarea class="circles-field-input" rows="2" placeholder="填寫你的分析..."></textarea>
+    </div>
+
+    <!-- Field 4 -->
+    <div class="circles-field-group">
+      <div class="circles-field-label-row">
+        <div class="circles-field-label">排除對象</div>
+        <button class="circles-hint-trigger" onclick="showHint('排除對象','說明哪些用戶群體你不服務，以及原因。例如：不服務廣告主（有獨立工具）、不服務純新用戶（行為資料不足）。這一欄的目的是讓面試官看到你的邊界意識——你的設計不是要取悅所有人。')">💡 提示</button>
+      </div>
+      <div class="circles-field-hint">例：不服務哪類用戶及原因</div>
+      <textarea class="circles-field-input" rows="2" placeholder="填寫你的分析..."></textarea>
+    </div>
+  </div>
+  <div class="submit-bar">
+    <button class="btn-secondary">返回選題</button>
+    <button class="btn-primary" onclick="show('gate-pass')">提交框架 → AI 審核</button>
+  </div>
+  <!-- Hint overlay -->
+  <div class="hint-overlay" id="hint-overlay" onclick="closeHint(event)">
+    <div class="hint-card">
+      <button class="hint-close" onclick="closeHint()">×</button>
+      <div class="hint-card-title" id="hint-title">💡 目標用戶分群 — 分析思路</div>
+      <div class="hint-card-sub">Meta · News Feed · I 定義用戶</div>
+      <div class="hint-card-body" id="hint-body">載入中…</div>
+      <div class="hint-card-footer">閱讀後關閉，自行填寫你的分析</div>
+    </div>
+  </div>
+</div>
+
+<!-- ════════════════════════════════════════════
+     SCREEN: Phase 1 — hint overlay state (example filled)
+════════════════════════════════════════════ -->
+<div id="screen-p1-hint" class="screen" style="position:relative">
+  <div class="circles-nav">
+    <button class="btn-icon"><i class="ph ph-arrow-left"></i></button>
+    <div>
+      <div class="circles-nav-title">I — 定義用戶</div>
+      <div class="circles-nav-sub">Meta · News Feed</div>
+    </div>
+    <button class="circles-nav-home">回首頁</button>
+  </div>
+  <div class="circles-progress">
+    <div class="circles-progress-seg done"></div>
+    <div class="circles-progress-seg active"></div>
+    <div class="circles-progress-seg"></div>
+    <div class="circles-progress-seg"></div>
+    <div class="circles-progress-seg"></div>
+    <div class="circles-progress-seg"></div>
+    <div class="circles-progress-seg"></div>
+    <div class="circles-progress-label">I · 定義用戶 · 2/7</div>
+  </div>
+  <div class="scroll-body" style="filter:blur(1px);pointer-events:none">
+    <div class="problem-card">用戶反映 News Feed 廣告過多，如何改善廣告體驗並維持 Meta 的廣告收入？</div>
+    <div class="circles-field-group">
+      <div class="circles-field-label-row"><div class="circles-field-label">目標用戶分群</div></div>
+      <textarea class="circles-field-input filled" rows="2">功能型用戶、習慣型用戶、新用戶</textarea>
+    </div>
+    <div class="circles-field-group">
+      <div class="circles-field-label-row"><div class="circles-field-label">選定焦點對象</div></div>
+      <textarea class="circles-field-input" rows="2" placeholder="填寫你的分析..."></textarea>
+    </div>
+  </div>
+  <!-- Hint overlay — visible -->
+  <div class="hint-overlay visible">
+    <div class="hint-card">
+      <button class="hint-close">×</button>
+      <div class="hint-card-title">💡 選定焦點對象 — 分析思路</div>
+      <div class="hint-card-sub">Meta · News Feed · I 定義用戶</div>
+      <div class="hint-card-body">從上面的分群中選一個。選擇標準是體量最大且對廣告痛點最有代表性的群體。說清楚為什麼這個群體值得優先服務，而不是另外幾個。記住：習慣型用戶每天使用 News Feed 最頻繁，他們對廣告干擾最敏感，而且體量最大——這個理由要出現在你的答案中，才能說服面試官你的選擇有邏輯支撐。</div>
+      <div class="hint-card-footer">閱讀後關閉，自行填寫你的分析</div>
+    </div>
+  </div>
+</div>
+
+<!-- ════════════════════════════════════════════
+     SCREEN: Phase 1.5 Gate — Pass
+════════════════════════════════════════════ -->
+<div id="screen-gate-pass" class="screen" style="position:relative">
+  <div class="circles-nav">
+    <button class="btn-icon" onclick="show('p1-drill')"><i class="ph ph-arrow-left"></i></button>
+    <div>
+      <div class="circles-nav-title">框架審核結果</div>
+      <div class="circles-nav-sub">I · 定義用戶 · Meta</div>
+    </div>
+    <button class="circles-nav-home">回首頁</button>
+  </div>
+  <div class="circles-progress">
+    <div class="circles-progress-seg done"></div>
+    <div class="circles-progress-seg done"></div>
+    <div class="circles-progress-seg"></div>
+    <div class="circles-progress-seg"></div>
+    <div class="circles-progress-seg"></div>
+    <div class="circles-progress-seg"></div>
+    <div class="circles-progress-seg"></div>
+    <div class="circles-progress-label">I · 定義用戶</div>
+  </div>
+  <div class="scroll-body">
+    <div class="gate-pass-bar">
+      <div>
+        <div class="gate-pass-text">框架審核通過</div>
+        <div class="gate-pass-sub">框架方向正確，進入對話練習階段繼續探索。</div>
+      </div>
+    </div>
+    <div class="gate-card ok">
+      <div class="gate-card-icon" style="color:#137A3D"><i class="ph ph-check-circle"></i></div>
+      <div>
+        <div class="gate-card-field">目標用戶分群</div>
+        <div class="gate-card-title">分群邏輯清晰</div>
+        <div class="gate-card-reason">依行為模式分群（功能型、習慣型、新用戶），有助於後續差異化需求分析</div>
+      </div>
+    </div>
+    <div class="gate-card ok">
+      <div class="gate-card-icon" style="color:#137A3D"><i class="ph ph-check-circle"></i></div>
+      <div>
+        <div class="gate-card-field">選定焦點對象</div>
+        <div class="gate-card-title">選擇有理由支撐</div>
+        <div class="gate-card-reason">以體量最大且廣告痛點最強作為選擇理由，邏輯成立</div>
+      </div>
+    </div>
+    <div class="gate-card warn">
+      <div class="gate-card-icon" style="color:#B85C00"><i class="ph ph-warning"></i></div>
+      <div>
+        <div class="gate-card-field">用戶動機假設</div>
+        <div class="gate-card-title">動機較為表面</div>
+        <div class="gate-card-reason">只提到「想看到有興趣的內容」，JTBD 層次偏淺</div>
+        <div class="gate-card-suggestion">建議補充：維持社交聯繫或獲取特定資訊的底層需求</div>
+      </div>
+    </div>
+    <div class="gate-card ok">
+      <div class="gate-card-icon" style="color:#137A3D"><i class="ph ph-check-circle"></i></div>
+      <div>
+        <div class="gate-card-field">排除對象</div>
+        <div class="gate-card-title">邊界意識良好</div>
+        <div class="gate-card-reason">明確排除廣告主和純新用戶，理由充分</div>
+      </div>
+    </div>
+  </div>
+  <div class="submit-bar">
+    <button class="btn-ghost-sm" onclick="show('p1-drill')">重新編輯</button>
+    <button class="btn-primary" onclick="show('p2-early')">進入對話練習 →</button>
+  </div>
+</div>
+
+<!-- ════════════════════════════════════════════
+     SCREEN: Phase 1.5 Gate — Fail (drill mode, error blocks)
+════════════════════════════════════════════ -->
+<div id="screen-gate-fail" class="screen" style="position:relative">
+  <div class="circles-nav">
+    <button class="btn-icon" onclick="show('p1-drill')"><i class="ph ph-arrow-left"></i></button>
+    <div>
+      <div class="circles-nav-title">框架審核結果</div>
+      <div class="circles-nav-sub">I · 定義用戶 · Meta</div>
+    </div>
+    <button class="circles-nav-home">回首頁</button>
+  </div>
+  <div class="circles-progress">
+    <div class="circles-progress-seg done"></div>
+    <div class="circles-progress-seg done"></div>
+    <div class="circles-progress-seg"></div>
+    <div class="circles-progress-seg"></div>
+    <div class="circles-progress-seg"></div>
+    <div class="circles-progress-seg"></div>
+    <div class="circles-progress-seg"></div>
+    <div class="circles-progress-label">I · 定義用戶</div>
+  </div>
+  <div class="scroll-body">
+    <div class="gate-fail-bar">框架有方向性錯誤，請修正後再提交（步驟加練模式）</div>
+    <div class="gate-card error">
+      <div class="gate-card-icon" style="color:#D92020"><i class="ph ph-x-circle"></i></div>
+      <div>
+        <div class="gate-card-field">目標用戶分群</div>
+        <div class="gate-card-title">分群維度混淆</div>
+        <div class="gate-card-reason">同時使用人口統計（25-35歲）和行為（重度用戶）分群，兩個維度無法對比</div>
+        <div class="gate-card-suggestion">建議只選一個維度，行為分群在這題更有說服力</div>
+      </div>
+    </div>
+    <div class="gate-card error">
+      <div class="gate-card-icon" style="color:#D92020"><i class="ph ph-x-circle"></i></div>
+      <div>
+        <div class="gate-card-field">選定焦點對象</div>
+        <div class="gate-card-title">選擇理由缺失</div>
+        <div class="gate-card-reason">只說「選25-35歲女性」但沒有說明為什麼，面試官無從判斷你的邏輯</div>
+        <div class="gate-card-suggestion">補上選擇理由：體量、痛點強度、或商業價值</div>
+      </div>
+    </div>
+    <div class="gate-card warn">
+      <div class="gate-card-icon" style="color:#B85C00"><i class="ph ph-warning"></i></div>
+      <div>
+        <div class="gate-card-field">用戶動機假設</div>
+        <div class="gate-card-title">動機偏表面</div>
+        <div class="gate-card-reason">「想看廣告少一點」是症狀，不是動機，需要說清楚底層的使用目的</div>
+        <div class="gate-card-suggestion">例：維持社交聯繫、獲取特定資訊</div>
+      </div>
+    </div>
+    <div class="gate-card ok">
+      <div class="gate-card-icon" style="color:#137A3D"><i class="ph ph-check-circle"></i></div>
+      <div>
+        <div class="gate-card-field">排除對象</div>
+        <div class="gate-card-title">邊界設定合理</div>
+        <div class="gate-card-reason">明確排除廣告主，有助於聚焦</div>
+      </div>
+    </div>
+  </div>
+  <div class="submit-bar">
+    <button class="btn-primary" onclick="show('p1-drill')">修正框架後重試</button>
+  </div>
+</div>
+
+<!-- ════════════════════════════════════════════
+     SCREEN: Phase 2 — Early turns (< 3)
+════════════════════════════════════════════ -->
+<div id="screen-p2-early" class="screen chat-wrap">
+  <div class="circles-nav">
+    <button class="btn-icon" onclick="show('gate-pass')"><i class="ph ph-arrow-left"></i></button>
+    <div>
+      <div class="circles-nav-title">I — 對話練習</div>
+      <div class="circles-nav-sub">Meta · News Feed</div>
+    </div>
+    <button class="circles-nav-home">回首頁</button>
+  </div>
+  <div class="circles-progress">
+    <div class="circles-progress-seg done"></div>
+    <div class="circles-progress-seg done"></div>
+    <div class="circles-progress-seg"></div>
+    <div class="circles-progress-seg"></div>
+    <div class="circles-progress-seg"></div>
+    <div class="circles-progress-seg"></div>
+    <div class="circles-progress-seg"></div>
+    <div class="circles-progress-label">I · 定義用戶 · 2/7</div>
+  </div>
+  <div class="chat-pinned">
+    <div class="pinned-co">Meta — 定義用戶</div>
+    <div class="pinned-stmt">用戶反映 News Feed 廣告過多，如何改善廣告體驗…</div>
+  </div>
+  <div class="chat-body">
+    <div class="chat-icebreaker">
+      <div class="chat-icebreaker-label"><i class="ph ph-compass"></i> 開始提問方向</div>
+      <div class="chat-icebreaker-text">問被訪談者你們的用戶有沒有按行為做分類——哪個群體對廣告的抱怨最集中、對業務最重要？</div>
+    </div>
+    <div class="bubble-user">你好，我想先了解 News Feed 的主要用戶群，你覺得大家用 Feed 主要是在做什麼？</div>
+    <div class="bubble-ai">
+      <div class="bubble-section">被訪談者</div>
+      這個嘛…每個人好像都不太一樣。有些人每天一起床就滑，有些人只有閒下來才會打開。我自己的話，大概是想看看朋友在幹嘛，有時候也會看到一些社群動態或新聞之類的。
+    </div>
+    <div class="bubble-coaching" style="font-size:12px">
+      <div class="bubble-section">教練點評</div>
+      你用了開放式問題探索用戶行為，這是好的起點。但「大家在做什麼」還太廣，試著引導對方說出特定的使用情境或頻率差異。
+      <button class="hint-toggle" onclick="toggleHint(this)"><i class="ph ph-caret-right" style="font-size:10px"></i> 查看教練提示</button>
+      <div class="hint-body">試試問：「在你的用戶中，有沒有哪種人對廣告的感受特別強烈？他們和其他用戶有什麼不同？」</div>
+    </div>
+    <div class="bubble-user">那你們有沒有觀察到不同用戶群體對廣告的感受不一樣？</div>
+    <div class="bubble-ai">
+      <div class="bubble-section">被訪談者</div>
+      嗯，有一些資料顯示，每天都在用的那批人，他們對廣告比較有抱怨。偶爾來看的用戶好像沒那麼在意。不過我也不確定這是不是廣告本身的問題，還是說他們對整個 Feed 的期待就不一樣。
+    </div>
+    <div class="bubble-coaching" style="font-size:12px">
+      <div class="bubble-section">教練點評</div>
+      很好，你找到了頻率差異這個維度。這正是用戶分群的關鍵——繼續深挖「每天都用的那批人」他們的使用動機是什麼。
+      <button class="hint-toggle" onclick="toggleHint(this)"><i class="ph ph-caret-right" style="font-size:10px"></i> 查看教練提示</button>
+      <div class="hint-body">繼續問他們來 Feed 是為了完成什麼任務，不要停在「看廣告少一點」這個症狀層面。</div>
+    </div>
+    <div style="height:8px"></div>
+    <div style="text-align:center;font-size:11px;color:var(--text-3);font-family:'DM Sans',sans-serif;padding:4px 0">再對話 1 輪，可提交步驟</div>
+  </div>
+  <div class="chat-input-bar">
+    <textarea class="chat-input" rows="1" placeholder="問被訪談者一個問題…"></textarea>
+    <button class="chat-send-btn"><i class="ph ph-paper-plane-tilt"></i></button>
+  </div>
+</div>
+
+<!-- ════════════════════════════════════════════
+     SCREEN: Phase 2 — ≥3 turns, submit row (收斂範例)
+════════════════════════════════════════════ -->
+<div id="screen-p2-late" class="screen chat-wrap">
+  <div class="circles-nav">
+    <button class="btn-icon" onclick="show('p2-early')"><i class="ph ph-arrow-left"></i></button>
+    <div>
+      <div class="circles-nav-title">I — 對話練習</div>
+      <div class="circles-nav-sub">Meta · News Feed</div>
+    </div>
+    <button class="circles-nav-home">回首頁</button>
+  </div>
+  <div class="circles-progress">
+    <div class="circles-progress-seg done"></div>
+    <div class="circles-progress-seg done"></div>
+    <div class="circles-progress-seg"></div>
+    <div class="circles-progress-seg"></div>
+    <div class="circles-progress-seg"></div>
+    <div class="circles-progress-seg"></div>
+    <div class="circles-progress-seg"></div>
+    <div class="circles-progress-label">I · 定義用戶 · 2/7 · 4 輪</div>
+  </div>
+  <div class="chat-pinned">
+    <div class="pinned-co">Meta — 定義用戶</div>
+    <div class="pinned-stmt">用戶反映 News Feed 廣告過多，如何改善廣告體驗…</div>
+  </div>
+  <div class="chat-body">
+    <div class="chat-icebreaker">
+      <div class="chat-icebreaker-label"><i class="ph ph-compass"></i> 開始提問方向</div>
+      <div class="chat-icebreaker-text">問被訪談者你們的用戶有沒有按行為做分類——哪個群體對廣告的抱怨最集中、對業務最重要？</div>
+    </div>
+    <div class="bubble-user">News Feed 的用戶群，你們有沒有按照使用頻率或行為做分類？</div>
+    <div class="bubble-ai">
+      <div class="bubble-section">被訪談者</div>
+      有，我們大概分成每天都在滑的、每週來幾次的，還有偶爾才打開的。頻率不一樣，他們對 Feed 的依賴感也很不一樣。
+    </div>
+    <div class="bubble-coaching" style="font-size:12px">
+      <div class="bubble-section">教練點評</div>
+      好的開始，用頻率分群合理。但還沒說清楚「每天滑」的人和廣告問題的關係——繼續追。
+      <button class="hint-toggle" onclick="toggleHint(this)"><i class="ph ph-caret-right" style="font-size:10px"></i> 查看教練提示</button>
+      <div class="hint-body">問他們「哪個群體對廣告的投訴最集中？」這樣可以幫你確認焦點對象。</div>
+    </div>
+    <div class="bubble-user">這三組裡，哪一組對廣告的抱怨最多？他們有什麼共同特徵？</div>
+    <div class="bubble-ai">
+      <div class="bubble-section">被訪談者</div>
+      每天都在用的那批，他們的投訴量最多，而且情緒最強烈。他們覺得「廣告打斷了我想看的東西」。但他們也是我們最活躍的用戶，廣告曝光對我們很重要。
+    </div>
+    <div class="bubble-coaching" style="font-size:12px">
+      <div class="bubble-section">教練點評</div>
+      很好的觀察——你同時拿到了「誰痛苦最深」和「誰對業務最重要」兩個維度，這就是鎖定焦點對象的完整理由。
+      <button class="hint-toggle" onclick="toggleHint(this)"><i class="ph ph-caret-right" style="font-size:10px"></i> 查看教練提示</button>
+      <div class="hint-body">現在問他們來 Feed「是為了完成什麼任務」——不是「想看什麼內容」而是更深層的動機。</div>
+    </div>
+    <div class="bubble-user">這些每天用的人，他們打開 Feed 的底層動機是什麼？不是「看新聞」這種表面答案。</div>
+    <div class="bubble-ai">
+      <div class="bubble-section">被訪談者</div>
+      我覺得是一種「不想脫節」的感覺——他們想知道朋友在幹嘛、社群在討論什麼。有點像每天早上看報紙，是一個確認自己還在這個圈子的儀式。廣告打斷的，其實是這個「確認感」的心流。
+    </div>
+    <div class="bubble-coaching" style="font-size:12px">
+      <div class="bubble-section">教練點評</div>
+      這是整個 I 步驟最關鍵的一句話：「確認社交存在感」才是 JTBD，不是看廣告少一點。你問出了動機層，而不只是行為層。
+      <button class="hint-toggle" onclick="toggleHint(this)"><i class="ph ph-caret-right" style="font-size:10px"></i> 查看教練提示</button>
+      <div class="hint-body">最後補一個：「哪些用戶你們不打算服務？」確認排除對象後就可以提交了。</div>
+    </div>
+    <div class="bubble-user">那這次優化的範圍裡，哪些用戶你們不打算處理？</div>
+    <div class="bubble-ai">
+      <div class="bubble-section">被訪談者</div>
+      廣告主那側不在這次範圍，他們有 Ads Manager。純新用戶我們也先不管，資料太少、個人化沒辦法做，硬做反而體驗更差。
+    </div>
+    <div class="bubble-coaching" style="font-size:12px">
+      <div class="bubble-section">教練點評</div>
+      排除對象清晰有理由。到這裡，I 步驟的四個核心維度——分群、焦點、JTBD、排除——都已完整確認，可以收斂提交了。
+      <button class="hint-toggle" onclick="toggleHint(this)"><i class="ph ph-caret-right" style="font-size:10px"></i> 查看教練提示</button>
+      <div class="hint-body">整理你的結論：鎖定哪個群體、底層動機是什麼、排除誰及原因。一兩句話就夠。</div>
+    </div>
+    <div style="height:4px"></div>
+  </div>
+  <div class="chat-input-bar">
+    <textarea class="chat-input" rows="1" placeholder="繼續探索，或點下方提交…"></textarea>
+    <button class="chat-send-btn"><i class="ph ph-paper-plane-tilt"></i></button>
+  </div>
+  <div class="chat-submit-row">
+    <button class="chat-submit-btn" onclick="show('p2-conclude')">對話足夠了，提交這個步驟</button>
+  </div>
+</div>
+
+<!-- ════════════════════════════════════════════
+     SCREEN: Phase 2 — Conclusion box (expanded, 收斂範例)
+════════════════════════════════════════════ -->
+<div id="screen-p2-conclude" class="screen chat-wrap">
+  <div class="circles-nav">
+    <button class="btn-icon" onclick="show('p2-late')"><i class="ph ph-arrow-left"></i></button>
+    <div>
+      <div class="circles-nav-title">I — 對話練習</div>
+      <div class="circles-nav-sub">Meta · News Feed</div>
+    </div>
+    <button class="circles-nav-home">回首頁</button>
+  </div>
+  <div class="circles-progress">
+    <div class="circles-progress-seg done"></div>
+    <div class="circles-progress-seg done"></div>
+    <div class="circles-progress-seg"></div>
+    <div class="circles-progress-seg"></div>
+    <div class="circles-progress-seg"></div>
+    <div class="circles-progress-seg"></div>
+    <div class="circles-progress-seg"></div>
+    <div class="circles-progress-label">I · 定義用戶 · 2/7 · 4 輪</div>
+  </div>
+  <div class="chat-pinned">
+    <div class="pinned-co">Meta — 定義用戶</div>
+    <div class="pinned-stmt">用戶反映 News Feed 廣告過多，如何改善廣告體驗…</div>
+  </div>
+  <!-- 對話摘要（淡化顯示，表示用戶剛滑完） -->
+  <div class="chat-body" style="opacity:0.45;pointer-events:none">
+    <div class="bubble-user">News Feed 的用戶群，你們有沒有按照使用頻率做分類？</div>
+    <div class="bubble-ai"><div class="bubble-section">被訪談者</div>有，每天都在滑的、每週幾次的、偶爾才開的。</div>
+    <div class="bubble-user">哪一組對廣告的抱怨最多？</div>
+    <div class="bubble-ai"><div class="bubble-section">被訪談者</div>每天用的那批，投訴最多、情緒最強——「廣告打斷了我想看的東西」。</div>
+    <div class="bubble-user">他們打開 Feed 的底層動機是什麼？</div>
+    <div class="bubble-ai"><div class="bubble-section">被訪談者</div>「不想脫節」——一種確認自己還在社交圈的儀式。廣告打斷的是這個心流。</div>
+    <div class="bubble-user">哪些用戶你們不打算處理？</div>
+    <div class="bubble-ai"><div class="bubble-section">被訪談者</div>廣告主（有自己工具）和純新用戶（資料不足，個人化做不了）。</div>
+    <div style="text-align:center;padding:6px 0">
+      <span style="font-size:11px;color:var(--text-3);font-family:'DM Sans',sans-serif;background:#f0ede6;border-radius:20px;padding:3px 12px">4 輪對話完成 · 點右上方提交步驟後出現此畫面</span>
+    </div>
+  </div>
+
+  <!-- 結論框 -->
+  <div class="conclusion-box">
+    <div class="conclusion-title">整理你這個步驟確認了什麼</div>
+    <div class="conclusion-sub">用 1-2 句話說明：鎖定的用戶群、JTBD 動機、排除對象</div>
+
+    <!-- 範例（可展開，不同題目） -->
+    <div style="border:1px solid var(--border);border-radius:8px;margin-bottom:8px;overflow:hidden">
+      <div style="background:#f5f4f0;padding:5px 10px;display:flex;justify-content:space-between;cursor:pointer;align-items:center" onclick="var c=this.nextElementSibling;c.style.display=c.style.display==='none'?'block':'none';this.querySelector('span').textContent=c.style.display==='none'?'展開 ▾':'收起 ▴'">
+        <span style="font-size:9px;font-weight:700;color:var(--text-3);text-transform:uppercase;letter-spacing:.4px;font-family:'DM Sans',sans-serif">範例（不同題目）</span>
+        <span style="font-size:10px;color:var(--text-3);font-family:'DM Sans',sans-serif">展開 ▾</span>
+      </div>
+      <div style="display:none;padding:8px 10px;font-size:11px;color:var(--text-2);line-height:1.6;font-family:'DM Sans',sans-serif">
+        聚焦 Spotify 免費版每日活躍用戶，他們使用 App 的 JTBD 是「用音樂管理情緒狀態」，不是隨機發現新音樂。排除付費用戶（已無廣告痛點）和偶爾用戶（資料不足）。
+      </div>
+    </div>
+
+    <textarea class="conclusion-textarea" id="conclude-text" rows="3" oninput="onConclude()" placeholder="針對這題，整理你確認的關鍵定義…" style="height:72px">聚焦每日活躍用戶，他們使用 News Feed 的底層 JTBD 是「保持社交存在感」，廣告打斷的是這個心流。排除廣告主（有獨立工具）和純新用戶（個人化資料不足）。</textarea>
+    <div class="conclusion-hint pass" id="conclude-hint">✓ 結論涵蓋用戶群、JTBD 動機和排除對象，可以提交</div>
+    <div class="conclusion-actions">
+      <button class="conclusion-back-btn" onclick="show('p2-late')">← 繼續對話</button>
+      <button class="conclusion-submit-btn" onclick="show('p3-score')">確認提交</button>
+    </div>
+  </div>
+</div>
+
+<!-- ════════════════════════════════════════════
+     SCREEN: Phase 3 — Step Score (I step)
+════════════════════════════════════════════ -->
+<div id="screen-p3-score" class="screen" style="position:relative">
+  <div class="circles-nav">
+    <button class="btn-icon" onclick="show('p2-conclude')"><i class="ph ph-arrow-left"></i></button>
+    <div>
+      <div class="circles-nav-title">步驟評分 — 定義用戶</div>
+      <div class="circles-nav-sub">Meta · News Feed</div>
+    </div>
+    <!-- simulation: prev/next nav; drill: none -->
+  </div>
+  <div class="circles-progress">
+    <div class="circles-progress-seg done"></div>
+    <div class="circles-progress-seg done"></div>
+    <div class="circles-progress-seg"></div>
+    <div class="circles-progress-seg"></div>
+    <div class="circles-progress-seg"></div>
+    <div class="circles-progress-seg"></div>
+    <div class="circles-progress-seg"></div>
+    <div class="circles-progress-label">I · 定義用戶 · 2/7</div>
+  </div>
+  <div class="scroll-body">
+    <div class="score-total">
+      <div class="score-number">78</div>
+      <div class="score-sub">I — 定義用戶 步驟得分</div>
+    </div>
+    <div class="score-breakdown">
+      <div class="dim-row">
+        <div style="flex:1"><div class="dim-name">分群邏輯</div><div class="dim-comment">依行為分群，維度一致</div></div>
+        <div class="dim-bar-wrap"><div class="dim-bar" style="width:80%"></div></div>
+        <div class="dim-score">4<span>/5</span></div>
+      </div>
+      <div class="dim-row">
+        <div style="flex:1"><div class="dim-name">焦點選定理由</div><div class="dim-comment">理由說明了體量，但商業價值不夠清晰</div></div>
+        <div class="dim-bar-wrap"><div class="dim-bar" style="width:60%"></div></div>
+        <div class="dim-score">3<span>/5</span></div>
+      </div>
+      <div class="dim-row">
+        <div style="flex:1"><div class="dim-name">JTBD 動機深度</div><div class="dim-comment">挖到「保持社交存在感」，層次清晰</div></div>
+        <div class="dim-bar-wrap"><div class="dim-bar" style="width:90%"></div></div>
+        <div class="dim-score">4.5<span>/5</span></div>
+      </div>
+      <div class="dim-row">
+        <div style="flex:1"><div class="dim-name">排除對象說明</div><div class="dim-comment">排除廣告主和新用戶，理由合理</div></div>
+        <div class="dim-bar-wrap"><div class="dim-bar" style="width:72%"></div></div>
+        <div class="dim-score">3.5<span>/5</span></div>
+      </div>
+    </div>
+    <div class="highlight-card good">
+      <div class="highlight-label">最強表現</div>
+      <div class="highlight-text">成功挖出「保持社交存在感」作為 JTBD，而不只是表面的「減少廣告」，展現了用戶動機分析的深度</div>
+    </div>
+    <div class="highlight-card improve">
+      <div class="highlight-label">最需改進</div>
+      <div class="highlight-text">焦點用戶的選擇理由只說體量，沒有連結到商業價值——面試官會追問「為什麼這群人對 Meta 最重要？」</div>
+    </div>
+    <div class="coach-toggle" onclick="this.querySelector('.coach-content').classList.toggle('open'); this.querySelector('i').classList.toggle('ph-caret-down'); this.querySelector('i').classList.toggle('ph-caret-up')">
+      <div class="coach-toggle-label">教練示範答案 <i class="ph ph-caret-down"></i></div>
+      <div class="coach-content">
+        <strong>分群：</strong>依使用頻率分為三組：每日活躍用戶（DAU）、週活躍用戶（WAU）、月活躍用戶（MAU）。<br><br>
+        <strong>焦點：</strong>聚焦 DAU，理由有三：① 體量佔 Meta MAU 的 65%+，② 廣告曝光頻率最高，痛點最強，③ 對 Meta 廣告收入貢獻比例最高，優化 ROI 最大。<br><br>
+        <strong>JTBD：</strong>他們「聘用」News Feed 的任務是「以低成本維持在社交圈的存在感」，廣告打斷的是這個心流，而不只是視覺體驗。<br><br>
+        <strong>排除：</strong>不服務廣告主（有 Ads Manager）、不服務 MAU（資料稀疏，個人化困難）。
+      </div>
+    </div>
+  </div>
+  <div class="submit-bar">
+    <button class="btn-ghost-sm">回首頁</button>
+    <button class="btn-primary">繼續下一步：R 發掘需求 →</button>
+  </div>
+</div>
+
+<!-- ════════════════════════════════════════════
+     SCREEN: Phase 3 — Step Score (C1 澄清情境)
+════════════════════════════════════════════ -->
+<div id="screen-p3-c1" class="screen" style="position:relative">
+  <div class="circles-nav">
+    <button class="btn-icon"><i class="ph ph-arrow-left"></i></button>
+    <div>
+      <div class="circles-nav-title">步驟評分 — 澄清情境</div>
+      <div class="circles-nav-sub">Meta · News Feed</div>
+    </div>
+    <!-- simulation 模式有前後步驟按鈕 -->
+    <div style="display:flex;gap:4px;margin-left:auto">
+      <button class="btn-icon" disabled style="opacity:.3"><i class="ph ph-caret-left"></i></button>
+      <button class="btn-icon"><i class="ph ph-caret-right"></i></button>
+    </div>
+  </div>
+  <div class="circles-progress">
+    <div class="circles-progress-seg done"></div>
+    <div class="circles-progress-seg"></div>
+    <div class="circles-progress-seg"></div>
+    <div class="circles-progress-seg"></div>
+    <div class="circles-progress-seg"></div>
+    <div class="circles-progress-seg"></div>
+    <div class="circles-progress-seg"></div>
+    <div class="circles-progress-label">C · 澄清情境 · 1/7</div>
+  </div>
+  <div class="scroll-body">
+    <div class="score-total">
+      <div class="score-number">72</div>
+      <div class="score-sub">C — 澄清情境 步驟得分</div>
+    </div>
+    <div class="score-breakdown">
+      <div class="dim-row">
+        <div style="flex:1">
+          <div class="dim-name">問題邊界清晰度</div>
+          <div class="dim-comment">確認了廣告頻率問題，但未區分相關性與格式</div>
+        </div>
+        <div class="dim-bar-wrap"><div class="dim-bar" style="width:70%"></div></div>
+        <div class="dim-score">3.5<span>/5</span></div>
+      </div>
+      <div class="dim-row">
+        <div style="flex:1">
+          <div class="dim-name">業務影響連結</div>
+          <div class="dim-comment">提到廣告收入保護，但未量化約束條件</div>
+        </div>
+        <div class="dim-bar-wrap"><div class="dim-bar" style="width:60%"></div></div>
+        <div class="dim-score">3<span>/5</span></div>
+      </div>
+      <div class="dim-row">
+        <div style="flex:1">
+          <div class="dim-name">時間範圍合理性</div>
+          <div class="dim-comment">設定 90 天合理，符合廣告收入指標週期</div>
+        </div>
+        <div class="dim-bar-wrap"><div class="dim-bar" style="width:80%"></div></div>
+        <div class="dim-score">4<span>/5</span></div>
+      </div>
+      <div class="dim-row">
+        <div style="flex:1">
+          <div class="dim-name">假設排除完整性</div>
+          <div class="dim-comment">排除了技術限制，但未說明競品對比的假設</div>
+        </div>
+        <div class="dim-bar-wrap"><div class="dim-bar" style="width:52%"></div></div>
+        <div class="dim-score">2.5<span>/5</span></div>
+      </div>
+    </div>
+    <div class="highlight-card good">
+      <div class="highlight-label">最強表現</div>
+      <div class="highlight-text">清楚說明「廣告收入保護」是這題的硬性約束，讓整個分析有正確的業務邊界</div>
+    </div>
+    <div class="highlight-card improve">
+      <div class="highlight-label">最需改進</div>
+      <div class="highlight-text">假設確認太少——沒有問「廣告問題是頻率、相關性、還是格式？」這個區分會完全改變後續的解法方向</div>
+    </div>
+    <div class="coach-toggle" onclick="this.querySelector('.coach-content').classList.toggle('open'); var i=this.querySelector('i'); i.className=i.className.includes('caret-down')?'ph ph-caret-up':'ph ph-caret-down'">
+      <div class="coach-toggle-label">教練示範答案 <i class="ph ph-caret-down"></i></div>
+      <div class="coach-content">
+        <strong>問題範圍：</strong>聚焦 News Feed 廣告體驗，排除 Stories、Reels、Marketplace 廣告版位。需釐清「廣告過多」是指頻率（每 N 則一則廣告）、相關性（廣告與用戶興趣不符），還是格式（影片/靜態圖干擾感不同）——三者是完全不同的問題。<br><br>
+        <strong>時間範圍：</strong>設定 90 天觀察期。廣告業務以季度為單位衡量，90 天足以看到用戶行為變化與收入影響的相關性。<br><br>
+        <strong>業務影響：</strong>核心約束是廣告收入不能下降超過 X%（需確認 Meta 的容忍閾值）。改善用戶體驗的同時，廣告主 ROI 不能大幅下滑——否則廣告主撤單，業務鏈斷掉。<br><br>
+        <strong>假設確認：</strong>① 廣告問題是相關性而非純頻率（假設）；② 用戶對廣告的負感來自打斷心流，不是廣告本身（假設）；③ 技術上可以做到動態插入頻率調控（待確認）。
+      </div>
+    </div>
+  </div>
+  <div class="submit-bar">
+    <button class="btn-ghost-sm">回首頁</button>
+    <button class="btn-primary" onclick="show('p3-score')">繼續下一步：I 定義用戶 →</button>
+  </div>
+</div>
+
+</div><!-- /shell -->
+</div><!-- /wrapper -->
+
+<script>
+function show(id) {
+  document.querySelectorAll('.screen').forEach(function(s) {
+    s.classList.remove('active');
+  });
+  document.querySelectorAll('.nav-label').forEach(function(n) {
+    n.classList.remove('active');
+  });
+  var el = document.getElementById('screen-' + id);
+  if (el) el.classList.add('active');
+  document.querySelectorAll('.nav-label').forEach(function(n) {
+    if (n.getAttribute('onclick') && n.getAttribute('onclick').includes("'" + id + "'")) {
+      n.classList.add('active');
+    }
+  });
+}
+
+function showHint(fieldName, hintText) {
+  document.getElementById('hint-title').textContent = '💡 ' + fieldName + ' — 分析思路';
+  document.getElementById('hint-body').textContent = hintText;
+  document.getElementById('hint-overlay').classList.add('visible');
+}
+function closeHint(e) {
+  if (!e || e.target === document.getElementById('hint-overlay')) {
+    document.getElementById('hint-overlay').classList.remove('visible');
+  }
+}
+function toggleHint(btn) {
+  var content = btn.nextElementSibling;
+  if (!content) return;
+  var isOpen = content.style.display !== 'none';
+  content.style.display = isOpen ? 'none' : 'block';
+  var icon = btn.querySelector('i');
+  if (icon) icon.className = isOpen ? 'ph ph-caret-right' : 'ph ph-caret-down';
+  btn.style.color = isOpen ? 'var(--text-3)' : 'var(--primary)';
+}
+function onConclude() {
+  // Already filled with good text — always pass state in mockup
+}
+</script>
+</body>
+</html>
