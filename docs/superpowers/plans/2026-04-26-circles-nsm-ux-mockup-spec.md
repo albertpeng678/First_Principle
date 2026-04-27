@@ -1325,6 +1325,10 @@ Turn 4:
 
 **Simulation 模式 submit-bar（I 是第 2/7 步）：** 回首頁 ｜ 繼續下一步：R 發掘需求 →
 
+**Score nav in circles-nav (simulation mode):**
+- ◀ (onclick → show C1 step score) — `score-nav-btn`
+- ▶ disabled (I is current/latest step) — `score-nav-btn` with `disabled`
+
 ---
 
 ### R — 發掘需求
@@ -1412,6 +1416,10 @@ Turn 4:
 ```
 
 **Simulation 模式 submit-bar（R 是第 3/7 步）：** 回首頁 ｜ 繼續下一步：C 優先排序 →
+
+**Score nav in circles-nav (simulation mode):**
+- ◀ (onclick → show I step score) — `score-nav-btn`
+- ▶ disabled (R is current/latest step) — `score-nav-btn` with `disabled`
 
 ---
 
@@ -5139,6 +5147,133 @@ function onConclude() {
 </body>
 </html>
 ```
+
+---
+
+## Per-Step Content Reference — L 提出方案
+
+### Step Key: `L` | Label: L — 提出方案 | Position: 5/7
+
+**Fields:** 方案一, 方案二, 方案三（可選）, 各方案特性
+
+> **L 步驟唯一特例：** 方案三是整個 CIRCLES 框架唯一的選填欄位。Phase 1 UI 使用 Progressive Disclosure（選項 A）：預設顯示「新增方案三（可選）」按鈕，點擊後展開欄位（帶藍色左邊框）。Gate 審核時方案三留空須以 `status: 'skip'` 呈現（ph-minus-circle icon, 50% opacity），不影響 canProceed 判斷。
+
+**Rubric (4 dimensions, total /20 → normalized to /100):**
+| Dimension | Max | Description |
+|-----------|-----|-------------|
+| 方案數量與多樣性 | 5 | 至少 2 個方向，各有不同的核心維度（系統主動 / 用戶主動 / 結構性等） |
+| 各方案差異清晰 | 5 | 用一個核心維度清楚劃分方案之間的本質差異，面試官一眼可理解 |
+| 方案可行性 | 5 | 方案符合 C2 確立的取捨標準，無明顯業務約束違反 |
+| 創意與務實平衡 | 5 | 既有短期可行方案，也有更激進的長期選項，展示思維廣度 |
+
+**Sample score (78/100):**
+方案數量與多樣性 4 + 各方案差異清晰 4.4 + 方案可行性 3.6 + 創意與務實平衡 3 = 15/20 → 75（display rounded to 78）
+
+**最強表現：** 方案差異維度清晰——「系統主動 vs. 用戶主動」讓面試官一眼看出思路的方向差距
+
+**最需改進：** 方案三缺失——多一個「結構性改變」選項，能展示更寬的思維廣度
+
+**Phase 1 hint overlay texts (lightbulb buttons):**
+- 方案一：「方案一通常是最直接解決優先痛點的路徑。根據 C 步驟的取捨標準，你最優先要解決的是「Feed 相關性不足」——方案一應該直接針對這個問題。說清楚你的方案是什麼、核心機制是什麼，一句話能讓面試官理解你在提什麼。」
+- 方案二：「方案二要和方案一有明確的方向差異——不是「更多」而是「不同」。例如：方案一是演算法主動過濾，方案二可以是讓用戶主動控制。多樣性是這個步驟的核心評分維度。如果你的方案二只是方案一的微調，面試官會認為你的思維不夠廣。」
+- 方案三（可選）：「方案三是加分項，不是必填。如果你有第三個有意義的方案——通常是更激進或更長期的路徑——加上去能展示你的思維廣度。但如果只是湊數，不填反而更好。方案三和前兩個的差距，應該讓面試官感覺「這是完全不同的思路」。」
+- 各方案特性：「各方案特性是把方案一、二、三的核心差異並排說明——例如：開發複雜度、見效時間、對廣告主的影響、對用戶的行為要求。這欄不需要展開評估（那是 E 步驟的工作），只要讓面試官能一眼看出你為什麼提這幾個不同方向。」
+
+**`CIRCLES_STEP_HINTS['L']` array (drill mode field example text):**
+```javascript
+['演算法相關性重排——調整 ML 模型，優先展示親密朋友動態，降低陌生粉絲頁比重',
+ '用戶主動優先序——推出「摯友列表」，該列表動態永遠優先展示，不受演算法干擾',
+ '（可選）分類 Feed 頁籤——將朋友動態、廣告、影片拆成不同頁籤，讓用戶自行選擇瀏覽情境',
+ '方案一：系統主動，開發快（單季）；方案二：用戶主動，廣告影響最小；方案三：最激進，開發週期最長（逾一年）']
+```
+
+**Phase 2 icebreaker text:**
+「問被訪談者這個項目有沒有討論過的方案方向——不是評估哪個最好，而是問「你們考慮過哪幾種做法」。這樣能讓你確認自己的方案有沒有遺漏重要選項。」
+
+**Phase 2 dialogue (4 turns):**
+
+Turn 1:
+- 用戶問：「這個項目團隊有沒有討論過哪些可能的解法方向？」
+- 被訪談者：「有幾個方向——一個是直接調整演算法，讓 Feed 更偏向親密朋友的動態；另一個是讓用戶自己設定哪些朋友的動態優先。這兩個都在 roadmap 上討論過，但還沒有最終決定哪個先做。」
+- 教練點評：「直接拿到兩個不同方向，演算法（系統主動）和用戶控制（用戶主動）各有不同的主動方。這是好的多樣性基礎，繼續確認有沒有更激進的選項。」
+- 教練提示（折疊）：「問：「有沒有更激進或更長期的思路，比如把 Feed 整個分類？」」
+
+Turn 2:
+- 用戶問：「有沒有更激進的做法，比如把 Feed 整個分類？」
+- 被訪談者：「有工程師提過「分類頁籤」——朋友動態、廣告、影片各一個頁籤；不過評估起來改變太大，用戶習慣遷移成本高，暫時放在長期清單。」
+- 教練點評：「三個不同方向都到位了：系統端、用戶端、結構性。方案多樣性已足夠，現在確認各方案的特性差距。」
+- 教練提示（折疊）：「問：「這三個方向在開發複雜度和見效時間上大概有什麼差距？」」
+
+Turn 3:
+- 用戶問：「這三個方向在開發複雜度和見效時間上大概有什麼差距？」
+- 被訪談者：「演算法調整最快，單季可見效；用戶控制要做 UI，大概兩個季度；分類頁籤改動最大，沒有一年做不完，廣告的分法還要另外討論。」
+- 教練點評：「各方案特性清晰——演算法（快、低複雜）、用戶控制（中等）、分類頁籤（慢、高複雜）。三個維度都拿到了，可以整理提交。」
+- 教練提示（折疊）：「整理三個方案各一句話描述核心機制，再補充各自最大的差異特性。」
+
+Turn 4:
+- 用戶問：「這三個方向的核心差異是什麼？」
+- 被訪談者：「演算法是系統幫用戶決定；用戶控制是用戶自己決定；分類頁籤是改變整個資訊架構。這三種思路本質上完全不同。」
+- 教練點評：「用「誰來決定」這個維度清楚分類三個方案，方案多樣性與差異清晰兩個維度都已達標，可以提交。」
+
+**Phase 2 conclusion box spec:**
+- title：「整理你這個步驟確認了什麼」
+- sub-text：「用 1-2 句話說明：2-3 個方案各一句，並說明各方案核心差異」
+- Placeholder：「針對這題，整理你提出的 2-3 個解法方向及各自的核心特性…」
+- Example strip（collapsed，不同題目）：「Spotify 免費版廣告體驗：方案一：廣告後自動播放相關歌曲（系統主動，見效快）。方案二：用戶選擇「廣告換無廣告時段」兌換（用戶主動）。差異：系統 vs. 用戶主動兩個維度。」
+- AI detection pass hint（length > 30 chars）：「結論涵蓋 2+ 方案並說明核心差異，可以提交」
+
+**Phase 1.5 Gate — L 特殊規則：**
+
+方案三留空時，AI 回傳 gate JSON 須用 `status: 'skip'`（不是 ok / warn / error）：
+```json
+{ "field": "方案三（可選）", "status": "skip", "title": "未填寫，已跳過", "reason": "選填欄位，不影響審核結果", "suggestion": null }
+```
+
+渲染規則：`status: 'skip'` → 使用 `ph-minus-circle` icon（灰色），整個 gate-card 設 `opacity: 0.5`，無邊框高亮，不顯示 suggestion 行。
+
+`canProceed = false` 條件（drill mode）：方案一或方案二有 `error`。方案三 skip 永不影響 canProceed。
+
+**教練示範答案（完整，用於 coach-content HTML）：**
+```html
+<div style="margin-bottom:8px"><strong>方案一：</strong>演算法相關性重排——調整 ML 模型，優先展示親密朋友動態，降低陌生粉絲頁比重。系統主動，用戶無感，開發集中在 ML 端，單季可見效。</div>
+<div style="margin-bottom:8px"><strong>方案二：</strong>用戶主動優先序——推出「摯友列表」，用戶自選誰的動態永遠置頂，不受演算法干擾。廣告主衝擊最小，需要用戶教育。</div>
+<div style="margin-bottom:8px"><strong>方案三（可選）：</strong>分類 Feed 頁籤——朋友動態、廣告、影片各自一個頁籤，用戶決定看哪類。最激進，開發週期最長（逾一年），屬長期選項。</div>
+<div><strong>各方案特性：</strong>「誰來決定」是核心差異——方案一系統決定、方案二用戶決定、方案三結構改變。開發複雜度遞增：方案一最快（單季），方案二中等（兩季），方案三最長。</div>
+```
+
+**Score nav in circles-nav (simulation mode):**
+- ◀ (onclick → show C2 step score) — `score-nav-btn`
+- ▶ disabled (L is current/latest step) — `score-nav-btn` with `disabled`
+
+**Simulation 模式 submit-bar（L 是第 5/7 步）：** 回首頁 ｜ 繼續下一步：E 評估取捨 →
+
+---
+
+## Mockup HTML — L 提出方案完整互動稿
+
+**Mockup 來源路徑：** `.superpowers/brainstorm/L-step-2026-04-27/content/circles-L-step-mockup.html`（直接用瀏覽器開啟即可預覽）。**此 HTML 是實作的視覺真相來源（canonical visual truth）——若 spec 文字與此畫面有出入，以此 HTML 為準。**
+
+**10 screens（比前四步多一個「P1+方案三」展開狀態）：**
+1. `P1 加練` — Phase 1 drill mode，方案三預設隱藏，顯示「新增方案三（可選）」dashed button
+2. `P1+提示` — Phase 1，所有四個欄位的 lightbulb 按鈕均可點擊，觸發全域 hint overlay bottom sheet
+3. `P1+方案三` — Phase 1，點擊「新增方案三」後展開狀態（帶藍色 3px 左邊框，label 變藍色）
+4. `Gate 通過` — canProceed=true，方案三顯示為 skip card（ph-minus-circle, opacity 0.5）
+5. `Gate 失敗` — 方案一偏離取捨標準（error）＋方案二與方案一實質相同（error）
+6. `P2 早期` — Turn 1：被訪談者給出演算法和用戶控制兩個方向
+7. `P2 收斂` — Turn 2-4：問出分類頁籤第三方向 + 複雜度差距比較，收斂至可提交
+8. `P2 結論` — 結論框顯示最後一輪對話，example strip 可展開
+9. `P3 L評分` — 78 分，4 維度分解，教練示範答案（可展開），score-nav ◀ 顯示 C2 / ▶ disabled
+10. `P3 C2評分` — 82 分，展示 ◀ disabled / ▶ 點擊回到 L 評分的 score-nav 功能
+
+**New patterns introduced in L step:**
+| Pattern | Class / ID | Description |
+|---------|-----------|-------------|
+| 新增方案三按鈕 | `.add-solution-btn` | Dashed-border button，`display:flex`，點擊後 `display:none` 且展開 `#sol3-group` |
+| 方案三展開區 | `#sol3-group` | 預設 `display:none`，展開後帶 `border-left: 3px solid var(--primary)` + `padding-left:12px` |
+| 展開/收起函式 | `expandSol3()` / `collapseSol3()` | JS：toggles add-btn 和 sol3-group 的 display |
+| Gate skip card | `.gate-card` + `opacity:.5` | 用 `ph-minus-circle`（gray），無 ok/warn/error border-color，不顯示 suggestion |
+| 全域 hint overlay | `#hint-overlay` + `showHint(field, body)` | 所有畫面共用同一個 overlay，P1+提示畫面的四個按鈕均綁定 `onclick="showHint(...)"` |
+| 無 emoji 全面改用 phosphor | — | ph-lightbulb（提示）、ph-check-circle（ok）、ph-warning（warn）、ph-x-circle（error）、ph-minus-circle（skip） |
 
 ---
 
