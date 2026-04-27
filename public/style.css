@@ -1804,4 +1804,202 @@ body { -webkit-font-smoothing: antialiased; }
   margin-bottom: 8px;
   transition: border-color 0.2s;
 }
+
+/* ══════════════════════════════════════════════════
+   NSM Screen 8 — sub-tabs, Step 2 form, gate review
+   ══════════════════════════════════════════════════ */
+
+/* Sub-tabs at top of Step 2 / Gate / Step 3 */
+.nsm-sub-tabs {
+  display: flex;
+  gap: 4px;
+  padding: 8px 12px 0;
+  border-bottom: 1px solid var(--border);
+  background: var(--bg-primary);
+  overflow-x: auto;
+  scrollbar-width: none;
+}
+.nsm-sub-tabs::-webkit-scrollbar { display: none; }
+.nsm-sub-tab {
+  flex: 1 1 auto;
+  min-width: max-content;
+  background: transparent;
+  border: none;
+  padding: 8px 12px 10px;
+  font-size: 12.5px;
+  font-weight: 600;
+  color: var(--text-secondary);
+  cursor: pointer;
+  font-family: inherit;
+  border-bottom: 2px solid transparent;
+  transition: color 0.15s, border-color 0.15s;
+  white-space: nowrap;
+}
+.nsm-sub-tab.active {
+  color: var(--accent);
+  border-bottom-color: var(--accent);
+}
+.nsm-sub-tab:disabled {
+  opacity: 0.4;
+  cursor: not-allowed;
+}
+
+/* Step 2 — 3-field form */
+.nsm-field-group {
+  margin-bottom: 16px;
+}
+.nsm-field-label-sm {
+  font-size: 11px;
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: 0.07em;
+  color: var(--text-secondary);
+  margin-bottom: 6px;
+}
+.nsm-input {
+  width: 100%;
+  background: var(--bg-surface);
+  border: 1.5px solid var(--border);
+  border-radius: 10px;
+  padding: 11px 13px;
+  font-size: 14px;
+  color: var(--text-primary);
+  outline: none;
+  font-family: inherit;
+  box-sizing: border-box;
+}
+.nsm-input:focus { border-color: var(--accent); }
+.nsm-textarea-sm {
+  width: 100%;
+  background: var(--bg-surface);
+  border: 1.5px solid var(--border);
+  border-radius: 10px;
+  padding: 11px 13px;
+  font-size: 14px;
+  color: var(--text-primary);
+  resize: none;
+  outline: none;
+  font-family: inherit;
+  box-sizing: border-box;
+  min-height: 70px;
+  line-height: 1.5;
+}
+.nsm-textarea-sm:focus { border-color: var(--accent); }
+.nsm-example-toggle {
+  background: none;
+  border: none;
+  padding: 0;
+  font-size: 11px;
+  color: var(--text-secondary);
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  gap: 3px;
+  font-family: inherit;
+  margin-bottom: 6px;
+  min-height: 28px;
+}
+.nsm-example-toggle:hover,
+.nsm-example-toggle:focus { color: var(--accent); outline: none; }
+.nsm-example-toggle i { font-size: 11px; }
+.nsm-example-body {
+  margin-bottom: 8px;
+  padding: 8px 10px;
+  background: rgba(108,99,255,0.06);
+  border-left: 3px solid var(--accent);
+  border-radius: 6px;
+}
+.nsm-example-text {
+  font-size: 12px;
+  color: var(--text-secondary);
+  line-height: 1.55;
+}
+
+/* NSM Gate review — pass/fail header + criterion items */
+.gate-transition-bar {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  padding: 12px 14px;
+  border-radius: 10px;
+  margin-bottom: 14px;
+  font-size: 13px;
+  font-weight: 600;
+  line-height: 1.5;
+}
+.gate-transition-bar i { font-size: 18px; flex-shrink: 0; }
+.gate-transition-bar.gate-pass {
+  background: rgba(16,185,129,0.10);
+  border: 1.5px solid rgba(16,185,129,0.35);
+  color: #047857;
+}
+.gate-transition-bar.gate-fail {
+  background: rgba(239,68,68,0.10);
+  border: 1.5px solid rgba(239,68,68,0.32);
+  color: #b91c1c;
+}
+.nsm-gate-summary {
+  font-size: 12px;
+  color: var(--text-secondary);
+  margin-bottom: 14px;
+  padding: 8px 12px;
+  background: var(--bg-surface);
+  border-radius: 8px;
+  line-height: 1.6;
+  word-break: break-word;
+}
+.nsm-gate-summary strong { color: var(--text-primary); font-weight: 700; }
+.nsm-gate-nsm-text { color: var(--accent); font-weight: 600; }
+.nsm-gate-items { display: flex; flex-direction: column; gap: 10px; }
+.gate-item {
+  border-radius: 10px;
+  padding: 12px 14px;
+  font-family: inherit;
+  border: 1.5px solid var(--border);
+  background: var(--bg-surface);
+}
+.gate-item.gate-error {
+  background: rgba(239,68,68,0.08);
+  border-color: rgba(239,68,68,0.30);
+}
+.gate-item.gate-warn {
+  background: rgba(245,158,11,0.08);
+  border-color: rgba(245,158,11,0.30);
+}
+.gate-item.gate-ok {
+  background: rgba(16,185,129,0.08);
+  border-color: rgba(16,185,129,0.30);
+}
+.gate-item-status {
+  font-size: 10.5px;
+  font-weight: 700;
+  letter-spacing: 0.05em;
+  margin-bottom: 4px;
+  text-transform: uppercase;
+  color: var(--text-secondary);
+}
+.gate-item.gate-error .gate-item-status { color: #b91c1c; }
+.gate-item.gate-warn  .gate-item-status { color: #b45309; }
+.gate-item.gate-ok    .gate-item-status { color: #047857; }
+.gate-item-criterion {
+  font-size: 13.5px;
+  font-weight: 700;
+  color: var(--text-primary);
+  margin-bottom: 4px;
+}
+.gate-item-feedback {
+  font-size: 12.5px;
+  color: var(--text-secondary);
+  line-height: 1.55;
+}
+.gate-item-suggestion {
+  font-size: 12.5px;
+  color: var(--accent);
+  margin-top: 6px;
+  line-height: 1.55;
+  display: flex;
+  gap: 5px;
+  align-items: flex-start;
+}
+.gate-item-suggestion i { flex-shrink: 0; margin-top: 2px; font-size: 12px; }
 [data-view="circles"] .circles-resume-card:active { border-color: var(--c-primary); }

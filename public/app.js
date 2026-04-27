@@ -25,10 +25,15 @@ const AppState = {
   nsmSession: null,
   nsmSelectedQuestion: null,
   nsmNsmDraft: '',
+  nsmDefinitionDraft: '',     // 定義說明 (Step 2 field 2)
+  nsmBusinessLinkDraft: '',   // 與業務目標的連結 (Step 2 field 3)
   nsmBreakdownDraft: {},
   nsmVanityWarning: null,
   nsmReportTab: 'overview',
   nsmOpenNode: null,
+  nsmSubTab: 'nsm-step2',     // 'nsm-step2' | 'nsm-gate' | 'nsm-step3' — sub-tab nav for Screen 8
+  nsmGateResult: null,        // { items: [...], canProceed, overallStatus }
+  nsmGateLoading: false,
   // CIRCLES
   circlesMode: localStorage.getItem('circlesMode') || 'simulation', // 'drill' | 'simulation'
   circlesSelectedType: 'design',   // 'design' | 'improve' | 'strategy'
@@ -1929,8 +1934,13 @@ function bindHome() {
       AppState.nsmSession = null;
       AppState.nsmSelectedQuestion = null;
       AppState.nsmNsmDraft = '';
+      AppState.nsmDefinitionDraft = '';
+      AppState.nsmBusinessLinkDraft = '';
       AppState.nsmBreakdownDraft = {};
       AppState.nsmVanityWarning = null;
+      AppState.nsmGateResult = null;
+      AppState.nsmGateLoading = false;
+      AppState.nsmSubTab = 'nsm-step2';
       navigate('nsm');
     });
   }
@@ -2799,7 +2809,11 @@ function renderHistoryList(sessions) {
 function renderNSM() {
   switch (AppState.nsmStep) {
     case 1: return renderNSMStep1();
-    case 2: return renderNSMStep2();
+    case 2:
+      // Screen 8 sub-tabs: nsm-step2 / nsm-gate / nsm-step3
+      if (AppState.nsmSubTab === 'nsm-gate') return renderNSMGate();
+      if (AppState.nsmSubTab === 'nsm-step3') return renderNSMStep3();
+      return renderNSMStep2();
     case 3: return renderNSMStep3();
     case 4: return renderNSMStep4();
     default: return renderNSMStep1();
@@ -3013,9 +3027,24 @@ function initNSMStep1VirtualScroll() {
   scrollParent.addEventListener('scroll', _nsmScrollFn, { passive: true });
 }
 
+// Sub-tabs for Screen 8 (NSM Step 2 / Gate / Step 3) — only step 2 enabled until gate run, gate enabled once a result exists, step 3 only after gate passed.
+function renderNSMSubTabs() {
+  const active = AppState.nsmSubTab || 'nsm-step2';
+  const hasGate = !!AppState.nsmGateResult;
+  const gatePassed = hasGate && AppState.nsmGateResult.canProceed !== false && AppState.nsmGateResult.overallStatus !== 'error';
+  return `
+    <div class="nsm-sub-tabs">
+      <button class="nsm-sub-tab ${active === 'nsm-step2' ? 'active' : ''}" data-nsm-sub-tab="nsm-step2">步驟 2：定義 NSM</button>
+      <button class="nsm-sub-tab ${active === 'nsm-gate' ? 'active' : ''}" data-nsm-sub-tab="nsm-gate" ${hasGate ? '' : 'disabled'}>NSM 審核</button>
+      <button class="nsm-sub-tab ${active === 'nsm-step3' ? 'active' : ''}" data-nsm-sub-tab="nsm-step3" ${gatePassed ? '' : 'disabled'}>步驟 3：拆解指標</button>
+    </div>`;
+}
+
 function renderNSMStep2() {
   const q = AppState.nsmSelectedQuestion;
   const draft = AppState.nsmNsmDraft || '';
+  const definitionDraft = AppState.nsmDefinitionDraft || '';
+  const businessLinkDraft = AppState.nsmBusinessLinkDraft || '';
   const warning = AppState.nsmVanityWarning || null;
   const productType = detectProductType(q);
   const typeMeta = NSM_TYPE_META[productType];
@@ -3042,8 +3071,9 @@ function renderNSMStep2() {
       <div class="nsm-navbar">
         <button class="btn-icon" id="btn-nsm-back" aria-label="返回上一步"><i class="ph ph-arrow-left"></i></button>
         <span class="nsm-title">定義 NSM</span>
-        <div class="nsm-navbar-spacer"></div>
+        <button class="btn-icon" id="btn-nsm-home-nav" aria-label="回首頁" title="回首頁"><i class="ph ph-house"></i></button>
       </div>
+      ${renderNSMSubTabs()}
       <div class="nsm-progress">
         <div class="nsm-progress-step done">1</div>
         <div class="nsm-progress-line" style="background:var(--accent)"></div>
@@ -3082,16 +3112,134 @@ function renderNSMStep2() {
             <span class="nsm-guide-sub">問自己：如果這個數字翻倍，${escHtml(q.company)} 的商業收益一定增加嗎？</span></div>
           </div>
         </div>
-        <label class="nsm-field-label">你認為 ${escHtml(q.company)} 的北極星指標是？</label>
-        <textarea id="nsm-nsm-input" class="nsm-textarea" placeholder="一句話描述核心指標，例如：每月付費用戶完整收聽時長（分鐘）" rows="4">${escHtml(draft)}</textarea>
+
+        <div class="nsm-field-group">
+          <div class="nsm-field-label-sm">北極星指標 (NSM)</div>
+          <button onclick="toggleFieldHint(this)" class="nsm-example-toggle" type="button"><i class="ph ph-caret-right"></i> 查看範例</button>
+          <div class="nsm-example-body" style="display:none">
+            <div class="nsm-example-text">例 (Spotify)：每月完成至少一首完整曲目播放的活躍月用戶數 — 反映真正的聆聽行為，非背景播放</div>
+          </div>
+          <input id="nsm-nsm-input" class="nsm-input" placeholder="用一句話定義你的 NSM，包含量化描述..." value="${escHtml(draft)}">
+        </div>
+
+        <div class="nsm-field-group">
+          <div class="nsm-field-label-sm">定義說明</div>
+          <button onclick="toggleFieldHint(this)" class="nsm-example-toggle" type="button"><i class="ph ph-caret-right"></i> 查看範例</button>
+          <div class="nsm-example-body" style="display:none">
+            <div class="nsm-example-text">例 (Spotify)：區分「被動背景播放」與「主動完整聆聽」，後者才代表用戶真正得到價值，避免被播放次數虛高誤導</div>
+          </div>
+          <textarea id="nsm-definition-input" class="nsm-textarea-sm" placeholder="解釋為什麼要這樣定義，避免哪些虛榮陷阱..." rows="3">${escHtml(definitionDraft)}</textarea>
+        </div>
+
+        <div class="nsm-field-group">
+          <div class="nsm-field-label-sm">與業務目標的連結</div>
+          <button onclick="toggleFieldHint(this)" class="nsm-example-toggle" type="button"><i class="ph ph-caret-right"></i> 查看範例</button>
+          <div class="nsm-example-body" style="display:none">
+            <div class="nsm-example-text">例 (Spotify)：Spotify 的收入來自 Premium 訂閱與廣告，深度聆聽的用戶更容易感受到廣告干擾進而付費升級，且留存率較高代表獲客成本（CAC）被更多用戶週期攤薄。NSM 若能捕捉「真正在聽音樂」的行為，就能同時作為訂閱轉化與廣告效益的領先指標</div>
+          </div>
+          <textarea id="nsm-business-link-input" class="nsm-textarea-sm" placeholder="這個 NSM 如何驅動營收/留存/獲利..." rows="3">${escHtml(businessLinkDraft)}</textarea>
+        </div>
+
         ${warningHtml}
         <div style="height:80px"></div>
       </div>
       <div class="nsm-fixed-bottom">
         <div id="nsm-step2-error" class="nsm-inline-error" role="alert" style="display:none"></div>
         <button class="btn btn-primary nsm-next-btn" id="btn-nsm-step2-next">
-          確認，拆解輸入指標 <i class="ph ph-arrow-right"></i>
+          提交審核 <i class="ph ph-arrow-right"></i>
         </button>
+      </div>
+    </div>`;
+}
+
+// Switch between Screen 8 sub-tabs ("nsm-step2" / "nsm-gate" / "nsm-step3").
+// Disabled tabs are gated: gate requires a result; step3 requires gate passed.
+function switchNSMStep(stepKey) {
+  if (stepKey === 'nsm-gate' && !AppState.nsmGateResult) return;
+  if (stepKey === 'nsm-step3') {
+    var r = AppState.nsmGateResult;
+    var passed = r && r.canProceed !== false && r.overallStatus !== 'error';
+    if (!passed) return;
+  }
+  AppState.nsmSubTab = stepKey;
+  render();
+}
+window.switchNSMStep = switchNSMStep;
+
+// Toggle collapsible "查看範例" content under each Step 2 field.
+function toggleFieldHint(btn) {
+  const body = btn.nextElementSibling;
+  if (!body) return;
+  const open = body.style.display !== 'none';
+  body.style.display = open ? 'none' : 'block';
+  const icon = btn.querySelector('i');
+  if (icon) icon.className = open ? 'ph ph-caret-right' : 'ph ph-caret-down';
+}
+window.toggleFieldHint = toggleFieldHint;
+
+// Screen 8 sub-tab "NSM 審核" — renders gate result returned from POST /gate.
+// Loading state shown while gateLoading; pass/fail state once result lands.
+function renderNSMGate() {
+  const result = AppState.nsmGateResult;
+  const loading = AppState.nsmGateLoading;
+  const q = AppState.nsmSelectedQuestion || {};
+
+  if (loading || !result) {
+    return `
+      <div class="nsm-view">
+        <div class="nsm-navbar">
+          <button class="btn-icon" id="btn-nsm-back" aria-label="返回上一步"><i class="ph ph-arrow-left"></i></button>
+          <span class="nsm-title">NSM 品質審核</span>
+          <button class="btn-icon" id="btn-nsm-home-nav" aria-label="回首頁" title="回首頁"><i class="ph ph-house"></i></button>
+        </div>
+        ${renderNSMSubTabs()}
+        <div class="nsm-loading-state">
+          <i class="ph ph-circle-notch"></i>
+          <p>AI 正在審核你的 NSM 定義…</p>
+        </div>
+      </div>`;
+  }
+
+  const STATUS_LABEL = { error: '× 需修正', warn: '△ 建議補充', ok: '✓ 通過' };
+  const items = (result.items || []).map(function(item) {
+    const safeStatus = (item.status || '').replace(/[^a-z]/g, '');
+    const criterion = item.criterion || item.field || '';
+    const feedback = item.feedback || item.reason || '';
+    const suggestion = item.suggestion || '';
+    return `
+      <div class="gate-item gate-${safeStatus}">
+        <div class="gate-item-status">${STATUS_LABEL[safeStatus] || safeStatus}</div>
+        <div class="gate-item-criterion">${escHtml(criterion)}</div>
+        <div class="gate-item-feedback">${escHtml(feedback)}</div>
+        ${suggestion && safeStatus !== 'ok' ? `<div class="gate-item-suggestion"><i class="ph ph-arrow-right"></i> 建議：${escHtml(suggestion)}</div>` : ''}
+      </div>`;
+  }).join('');
+
+  const passed = result.canProceed !== false && result.overallStatus !== 'error';
+  const headerHtml = passed
+    ? `<div class="gate-transition-bar gate-pass"><i class="ph ph-check-circle"></i> NSM 定義通過審核，可以進入拆解指標</div>`
+    : `<div class="gate-transition-bar gate-fail"><i class="ph ph-warning-circle"></i> NSM 定義有根本性問題，請修正後再提交</div>`;
+
+  const bottomBtn = passed
+    ? `<button class="btn btn-primary nsm-next-btn" id="btn-nsm-gate-proceed">繼續到 步驟3 <i class="ph ph-arrow-right"></i></button>`
+    : `<button class="btn btn-primary nsm-next-btn" id="btn-nsm-gate-back">返回修改</button>`;
+
+  return `
+    <div class="nsm-view">
+      <div class="nsm-navbar">
+        <button class="btn-icon" id="btn-nsm-back" aria-label="返回上一步"><i class="ph ph-arrow-left"></i></button>
+        <span class="nsm-title">NSM 品質審核</span>
+        <button class="btn-icon" id="btn-nsm-home-nav" aria-label="回首頁" title="回首頁"><i class="ph ph-house"></i></button>
+      </div>
+      ${renderNSMSubTabs()}
+      <div class="nsm-body">
+        ${headerHtml}
+        <div class="nsm-gate-summary">公司情境：<strong>${escHtml(q.company || '')}</strong>　|　你的 NSM：<span class="nsm-gate-nsm-text">${escHtml(AppState.nsmNsmDraft || '（未填寫）')}</span></div>
+        <div class="nsm-gate-items">${items}</div>
+        <div style="height:80px"></div>
+      </div>
+      <div class="nsm-fixed-bottom">
+        ${bottomBtn}
       </div>
     </div>`;
 }
@@ -3127,8 +3275,9 @@ function renderNSMStep3() {
       <div class="nsm-navbar">
         <button class="btn-icon" id="btn-nsm-back" aria-label="返回上一步"><i class="ph ph-arrow-left"></i></button>
         <span class="nsm-title">拆解輸入指標</span>
-        <div class="nsm-navbar-spacer"></div>
+        <button class="btn-icon" id="btn-nsm-home-nav" aria-label="回首頁" title="回首頁"><i class="ph ph-house"></i></button>
       </div>
+      ${renderNSMSubTabs()}
       <div class="nsm-progress">
         <div class="nsm-progress-step done">1</div>
         <div class="nsm-progress-line" style="background:var(--accent)"></div>
@@ -3139,9 +3288,8 @@ function renderNSMStep3() {
         <div class="nsm-progress-step">4</div>
       </div>
       <div class="nsm-body">
-        <div class="nsm-sticky-nsm">
-          <span class="nsm-sticky-label">你的 NSM：</span>
-          <span class="nsm-sticky-value">${escHtml(AppState.nsmNsmDraft || '')}</span>
+        <div style="background:#EEF3FF;border-radius:10px;border:1px solid #C5D5FF;padding:12px 14px;margin-bottom:16px;font-size:13px;color:var(--accent)">
+          <strong>你的 NSM：</strong>${escHtml(AppState.nsmNsmDraft || '（未填寫）')}
         </div>
         <div class="nsm-step3-intro">
           <span class="nsm-type-badge" style="background:${typeMeta.color}18;color:${typeMeta.color};border:1px solid ${typeMeta.color}38">
@@ -3281,12 +3429,53 @@ function renderNSMStep4() {
     </div>`;
 }
 
+// Reset NSM state and return to NSM home (Step 1) — used by 回首頁 buttons.
+function nsmResetToHome() {
+  AppState.nsmStep = 1;
+  AppState.nsmSession = null;
+  AppState.nsmSelectedQuestion = null;
+  AppState.nsmNsmDraft = '';
+  AppState.nsmDefinitionDraft = '';
+  AppState.nsmBusinessLinkDraft = '';
+  AppState.nsmBreakdownDraft = {};
+  AppState.nsmVanityWarning = null;
+  AppState.nsmGateResult = null;
+  AppState.nsmGateLoading = false;
+  AppState.nsmSubTab = 'nsm-step2';
+  AppState.nsmHints = null;
+  AppState.nsmHintsLoading = false;
+  AppState.nsmContext = null;
+  AppState.nsmContextLoading = false;
+  AppState.nsmContextQuestionId = null;
+  navigate('nsm');
+}
+
 function bindNSM() {
-  // Back button
+  // Back button — sub-tab aware on Step 2 (gate ↩ form, step3 ↩ gate, etc.)
   document.getElementById('btn-nsm-back')?.addEventListener('click', () => {
-    if (AppState.nsmStep === 1) navigate('circles');
-    else if (AppState.nsmStep === 4) { AppState.nsmStep = 1; AppState.nsmSession = null; AppState.nsmSelectedQuestion = null; navigate('nsm'); }
-    else { AppState.nsmStep--; render(); }
+    if (AppState.nsmStep === 1) { navigate('circles'); return; }
+    if (AppState.nsmStep === 4) { AppState.nsmStep = 1; AppState.nsmSession = null; AppState.nsmSelectedQuestion = null; navigate('nsm'); return; }
+    if (AppState.nsmStep === 2) {
+      // Sub-tab back navigation: step3 → gate → step2 → step1.
+      if (AppState.nsmSubTab === 'nsm-step3') { AppState.nsmSubTab = 'nsm-gate'; render(); return; }
+      if (AppState.nsmSubTab === 'nsm-gate')  { AppState.nsmSubTab = 'nsm-step2'; render(); return; }
+      AppState.nsmStep = 1;
+      render();
+      return;
+    }
+    AppState.nsmStep--;
+    render();
+  });
+
+  // 回首頁 button — appears on Step 2 / Gate / Step 3 (per spec)
+  document.getElementById('btn-nsm-home-nav')?.addEventListener('click', nsmResetToHome);
+
+  // Sub-tab nav: 步驟2 / NSM 審核 / 步驟3
+  document.querySelectorAll('[data-nsm-sub-tab]').forEach(function(btn) {
+    btn.addEventListener('click', function() {
+      if (btn.disabled) return;
+      switchNSMStep(btn.dataset.nsmSubTab);
+    });
   });
 
   // Step 1: virtual scroll initialisation (card click/keyboard events are
@@ -3323,6 +3512,11 @@ function bindNSM() {
           );
         }
         AppState.nsmStep = 2;
+        AppState.nsmSubTab = 'nsm-step2';
+        AppState.nsmGateResult = null;
+        AppState.nsmGateLoading = false;
+        AppState.nsmDefinitionDraft = '';
+        AppState.nsmBusinessLinkDraft = '';
         AppState.nsmVanityWarning = null;
         render();
       } catch (e) {
@@ -3334,36 +3528,86 @@ function bindNSM() {
     });
   }
 
-  // Step 2: NSM input
+  // Step 2: form fields (3 fields per spec — NSM input, definition, business link)
   var nsmInput = document.getElementById('nsm-nsm-input');
   if (nsmInput) nsmInput.addEventListener('input', function() { AppState.nsmNsmDraft = nsmInput.value; });
+  var nsmDefinitionInput = document.getElementById('nsm-definition-input');
+  if (nsmDefinitionInput) nsmDefinitionInput.addEventListener('input', function() { AppState.nsmDefinitionDraft = nsmDefinitionInput.value; });
+  var nsmBusinessLinkInput = document.getElementById('nsm-business-link-input');
+  if (nsmBusinessLinkInput) nsmBusinessLinkInput.addEventListener('input', function() { AppState.nsmBusinessLinkDraft = nsmBusinessLinkInput.value; });
 
-  // Step 2: next
+  // Step 2: 提交審核 → POST /gate, switch to NSM 審核 sub-tab.
   var btnStep2Next = document.getElementById('btn-nsm-step2-next');
   if (btnStep2Next) {
-    btnStep2Next.addEventListener('click', function() {
-      var val = (nsmInput ? nsmInput.value : AppState.nsmNsmDraft || '').trim();
-      if (!val) {
+    btnStep2Next.addEventListener('click', async function() {
+      var nsmVal = (nsmInput ? nsmInput.value : AppState.nsmNsmDraft || '').trim();
+      var defVal = (nsmDefinitionInput ? nsmDefinitionInput.value : AppState.nsmDefinitionDraft || '').trim();
+      var bizVal = (nsmBusinessLinkInput ? nsmBusinessLinkInput.value : AppState.nsmBusinessLinkDraft || '').trim();
+      if (!nsmVal) {
         var step2Err = document.getElementById('nsm-step2-error');
-        if (step2Err) { step2Err.textContent = '請先輸入你認為的北極星指標'; step2Err.style.display = 'block'; }
+        if (step2Err) { step2Err.textContent = '請先填寫北極星指標'; step2Err.style.display = 'block'; }
         if (nsmInput) nsmInput.focus();
         return;
       }
-      AppState.nsmNsmDraft = val;
-      var q = AppState.nsmSelectedQuestion;
-      if (!AppState.nsmVanityWarning && isVanityMetric(val, q.anti_patterns)) {
-        AppState.nsmVanityWarning = { coachHint: '試著思考：這個指標如果翻倍，' + q.company + ' 的核心商業價值會增加嗎？考慮從「用戶行為產生的業務影響」角度重新定義。' };
-        render();
+      AppState.nsmNsmDraft = nsmVal;
+      AppState.nsmDefinitionDraft = defVal;
+      AppState.nsmBusinessLinkDraft = bizVal;
+
+      var sessionId = AppState.nsmSession ? AppState.nsmSession.id : '';
+      if (!sessionId) {
+        var step2Err2 = document.getElementById('nsm-step2-error');
+        if (step2Err2) { step2Err2.textContent = '練習資料遺失，請重新從 Step 1 開始'; step2Err2.style.display = 'block'; }
         return;
       }
-      AppState.nsmVanityWarning = null;
-      AppState.nsmHints = null;
-      AppState.nsmHintsLoading = false;
-      AppState.nsmStep = 3;
+
+      // Combine "definition" + "business link" into single rationale string for /gate body.
+      var rationale = [
+        defVal ? '定義說明：' + defVal : '',
+        bizVal ? '與業務目標的連結：' + bizVal : ''
+      ].filter(Boolean).join('\n\n');
+
+      AppState.nsmGateLoading = true;
+      AppState.nsmGateResult = null;
+      AppState.nsmSubTab = 'nsm-gate';
+      render();
+
+      try {
+        var headers = { 'Content-Type': 'application/json' };
+        if (AppState.accessToken) headers['Authorization'] = 'Bearer ' + AppState.accessToken;
+        else headers['X-Guest-ID'] = AppState.guestId;
+        var res = await fetch(nsmRoute(sessionId + '/gate'), {
+          method: 'POST',
+          headers: headers,
+          body: JSON.stringify({ nsm: nsmVal, rationale: rationale })
+        });
+        var data = await res.json();
+        if (!res.ok) throw new Error(data.error || ('HTTP ' + res.status));
+        AppState.nsmGateResult = data;
+      } catch (e) {
+        AppState.nsmGateResult = {
+          items: [{ criterion: '審核錯誤', status: 'error', feedback: '無法連線審核服務（' + e.message + '），請稍後再試。', suggestion: '檢查網路或稍後重試' }],
+          canProceed: false,
+          overallStatus: 'error'
+        };
+      }
+      AppState.nsmGateLoading = false;
       render();
     });
   }
 
+  // Gate sub-tab buttons
+  document.getElementById('btn-nsm-gate-proceed')?.addEventListener('click', function() {
+    AppState.nsmSubTab = 'nsm-step3';
+    AppState.nsmHints = null;
+    AppState.nsmHintsLoading = false;
+    render();
+  });
+  document.getElementById('btn-nsm-gate-back')?.addEventListener('click', function() {
+    AppState.nsmSubTab = 'nsm-step2';
+    render();
+  });
+
+  // Vanity warning (legacy, only shown if state explicitly set elsewhere)
   document.getElementById('btn-nsm-redefine')?.addEventListener('click', function() {
     AppState.nsmVanityWarning = null;
     AppState.nsmNsmDraft = '';
@@ -3371,7 +3615,7 @@ function bindNSM() {
   });
   document.getElementById('btn-nsm-proceed-anyway')?.addEventListener('click', function() {
     AppState.nsmVanityWarning = null;
-    AppState.nsmStep = 3;
+    AppState.nsmSubTab = 'nsm-step3';
     render();
   });
 
@@ -3553,15 +3797,15 @@ function bindNSM() {
     AppState.nsmSession = null;
     AppState.nsmSelectedQuestion = null;
     AppState.nsmNsmDraft = '';
+    AppState.nsmDefinitionDraft = '';
+    AppState.nsmBusinessLinkDraft = '';
     AppState.nsmBreakdownDraft = {};
     AppState.nsmVanityWarning = null;
+    AppState.nsmGateResult = null;
+    AppState.nsmSubTab = 'nsm-step2';
     render();
   });
-  document.getElementById('btn-nsm-home')?.addEventListener('click', function() {
-    AppState.nsmStep = 1; AppState.nsmSession = null; AppState.nsmSelectedQuestion = null;
-    AppState.nsmNsmDraft = ''; AppState.nsmBreakdownDraft = {}; AppState.nsmVanityWarning = null;
-    navigate('nsm');
-  });
+  document.getElementById('btn-nsm-home')?.addEventListener('click', nsmResetToHome);
 
   // visualViewport keyboard fix — use module-level ref to prevent listener accumulation
   if (_adjustNsmKeyboardFn && window.visualViewport) {
