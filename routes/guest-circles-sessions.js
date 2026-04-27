@@ -7,6 +7,7 @@ const { streamCirclesReply } = require('../prompts/circles-coach');
 const { evaluateCirclesStep } = require('../prompts/circles-evaluator');
 const { checkConclusion } = require('../prompts/circles-conclusion-check');
 const { generateFinalReport } = require('../prompts/circles-final-report');
+const { generateCirclesHint } = require('../prompts/circles-hint');
 
 // GET /api/guest-circles-sessions
 router.get('/', requireGuestId, async (req, res) => {
@@ -211,6 +212,23 @@ router.post('/:id/final-report', requireGuestId, async (req, res) => {
     }).eq('id', req.params.id).eq('guest_id', req.guestId);
     res.json(report);
   } catch (e) { res.status(500).json({ error: 'report_generation_failed' }); }
+});
+
+// POST /api/guest/circles-sessions/:id/hint
+router.post('/:id/hint', requireGuestId, async (req, res) => {
+  const { step, field } = req.body;
+  if (!step || !field) return res.status(400).json({ error: 'missing_step_or_field' });
+  const { data: session, error } = await db
+    .from('circles_sessions')
+    .select('question_json')
+    .eq('id', req.params.id)
+    .eq('guest_id', req.guestId)
+    .single();
+  if (error || !session) return res.status(404).json({ error: 'not_found' });
+  try {
+    const hint = await generateCirclesHint({ step, field, questionJson: session.question_json });
+    res.json({ hint });
+  } catch (e) { res.status(500).json({ error: e.message }); }
 });
 
 module.exports = router;
