@@ -219,9 +219,9 @@ var CIRCLES_STEP_HINTS = {
 };
 
 // ──────────────────────────────────────────────────
-// CIRCLES_STEP_CONFIG — full per-step content for Phase 1 form
-//   Drives renderCirclesPhase1() — defines fields, placeholders, hint overlay text,
-//   icebreaker text, and special block kinds (tracking-block for S, e-solution-block for E).
+// CIRCLES_STEP_CONFIG — full per-step content for Phase 1 form + Phase 2 conclusion
+//   Drives renderCirclesPhase1() and renderCirclesPhase2() — defines fields,
+//   placeholders, hint overlay text, icebreaker text, and conclusion-box copy.
 // ──────────────────────────────────────────────────
 var CIRCLES_STEP_CONFIG = {
   C1: {
@@ -238,6 +238,9 @@ var CIRCLES_STEP_CONFIG = {
         hintOverlay: '列出你在後續分析中會用到的、尚未被確認的假設。例如：「廣告問題是相關性而非純頻率」、「用戶的負感來自打斷心流而非廣告本身」。把假設說清楚，面試官才知道你的分析建立在什麼基礎上，也給你機會確認哪些假設需要驗證。列出 2-3 條最關鍵的就夠。' },
     ],
     icebreaker: '問被訪談者這個問題的核心是什麼——「廣告過多」是指頻率、相關性，還是格式？同時確認業務上有哪些不能突破的限制。',
+    conclusionSub: '說明問題範圍、時間框架、業務約束，以及你確認或待確認的假設',
+    conclusionPlaceholder: '針對這題，整理你澄清的問題範圍、時間框架、業務約束，以及假設確認…',
+    conclusionExample: 'Spotify 問題範圍：聚焦免費版廣告體驗，排除付費方案和播客廣告。時間範圍：60 天。業務約束：廣告收入和免費→付費轉換率都不能下降。假設：用戶廣告負感主要來自廣告在情感高潮段落出現，而非廣告本身。',
   },
   I: {
     label: 'I — 定義用戶',
@@ -253,6 +256,9 @@ var CIRCLES_STEP_CONFIG = {
         hintOverlay: '說明哪些用戶群體你不服務，以及原因。例如：不服務廣告主（有獨立工具）、不服務純新用戶（行為資料不足）。這一欄的目的是讓面試官看到你的邊界意識——你的設計不是要取悅所有人。' },
     ],
     icebreaker: '問被訪談者這個產品的用戶分群——哪些行為模式可以分群？哪些群體對這個問題最敏感？',
+    conclusionSub: '用 1-2 句話說明：鎖定的用戶群、JTBD 動機、排除對象',
+    conclusionPlaceholder: '針對這題，整理你確認的用戶分群、焦點對象的 JTBD 動機與排除對象…',
+    conclusionExample: '聚焦 Spotify 免費版每日活躍用戶，他們使用 App 的 JTBD 是「用音樂管理情緒狀態」，不是隨機發現新音樂。排除付費用戶（已無廣告痛點）和偶爾用戶（資料不足）。',
   },
   R: {
     label: 'R — 發掘需求',
@@ -268,6 +274,9 @@ var CIRCLES_STEP_CONFIG = {
         hintOverlay: '核心痛點是上面三層需求中「最根本的一個沒被滿足」的需求。你要選出一個，說明它是功能層、情感層還是社交層的痛點，並說清楚為什麼它是「核心」。這個優先判斷會直接影響後續 C 步驟的取捨標準——所以這欄要有你的立場，不只是列舉。' },
     ],
     icebreaker: '問被訪談者這位用戶實際使用產品時的真實場景——他想完成什麼？他真實的感受是什麼？',
+    conclusionSub: '用 1-2 句話說明：三層需求各一句，並說明哪個是核心痛點',
+    conclusionPlaceholder: '針對這題，整理三層需求（功能 / 情感 / 社交）以及最核心的痛點…',
+    conclusionExample: 'Spotify 免費用戶的功能需求是「快速找到符合當下心情的音樂」；情感需求是「用音樂管理情緒狀態的掌控感」；社交需求是「分享歌單維持社交話題」。核心痛點：情感層的掌控感缺失最嚴重，直接影響留存。',
   },
   C2: {
     label: 'C — 優先排序',
@@ -283,6 +292,9 @@ var CIRCLES_STEP_CONFIG = {
         hintOverlay: '排序理由是把前三欄串起來的關鍵。它要回答：「為什麼最優先的不能暫緩？為什麼暫緩的不能優先？」說清楚這個邏輯，才是真正的取捨分析，而不只是列表。面試官期待看到你的判斷——為什麼是這個順序，而不是另一個順序？' },
     ],
     icebreaker: '問被訪談者這個項目有哪些硬性的業務限制——收入不能下降多少、廣告主有哪些合約承諾。有了約束邊界，才能確立你的取捨標準。',
+    conclusionSub: '說明取捨標準、最優先項目、暫緩項目以及排序理由',
+    conclusionPlaceholder: '針對這題，整理你確認的取捨標準、最優先項目與暫緩理由…',
+    conclusionExample: 'Spotify 取捨標準：不影響付費轉換率為硬性約束，優先改善廣告後的回聽體驗。最優先：廣告後自動播放相關歌曲（不影響收入且可提升留存）。暫緩：廣告頻率自訂（影響廣告主收入預期）。排序理由：自動播放是正和，頻率控制是零和；正和優先。',
   },
   L: {
     label: 'L — 提出方案',
@@ -299,6 +311,9 @@ var CIRCLES_STEP_CONFIG = {
         hintOverlay: '方案三是加分項，不是必填。如果你有第三個有意義的方案——通常是更激進或更長期的路徑——加上去能展示你的思維廣度。但如果只是湊數，不填反而更好。方案三和前兩個的差距，應該讓面試官感覺「這是完全不同的思路」。' },
     ],
     icebreaker: '問被訪談者這個項目有沒有討論過的方案方向——不是評估哪個最好，而是問「你們考慮過哪幾種做法」。這樣能讓你確認自己的方案有沒有遺漏重要選項。',
+    conclusionSub: '用 1-2 句話說明：2-3 個方案各一句，並說明各方案核心差異',
+    conclusionPlaceholder: '針對這題，整理你提出的 2-3 個解法方向及各自的核心特性…',
+    conclusionExample: 'Spotify 免費版廣告體驗：方案一：廣告後自動播放相關歌曲（系統主動，見效快）。方案二：用戶選擇「廣告換無廣告時段」兌換（用戶主動）。差異：系統 vs. 用戶主動兩個維度。',
   },
   E: {
     label: 'E — 評估取捨',
@@ -316,6 +331,9 @@ var CIRCLES_STEP_CONFIG = {
         hintOverlay: '成功指標要和你在 R 步驟確認的核心痛點掛鉤。如果核心痛點是「Feed 相關性不足」，成功指標應該是「用戶在 Feed 上的停留時間提升 X%」或「廣告點擊率維持在 Y% 以上」。' },
     ],
     icebreaker: '問被訪談者：「這幾個方案你們在評估時，最擔心的風險是什麼？」——不是問哪個最好，而是問顧慮。這樣能讓你確認自己的風險識別有沒有遺漏關鍵的業務約束。',
+    conclusionSub: '用 2-3 句話說明：各方案最關鍵的優缺點，以及你認為哪個方向最值得推薦',
+    conclusionPlaceholder: '整理各方案的優缺點與風險，說明哪個方案最值得推薦及理由…',
+    conclusionExample: 'Spotify 免費版廣告體驗三個方案評估：廣告後推薦（優：系統主動，缺：可能推錯）；時段兌換（優：用戶主動，缺：採用率低）；分層訂閱（優：商業模式清晰，缺：開發週期長）。推薦廣告後推薦，短期可行且用戶無感。',
   },
   S: {
     label: 'S — 總結推薦',
@@ -333,6 +351,9 @@ var CIRCLES_STEP_CONFIG = {
         hintOverlay: '4 個維度讓你從不同角度驗證方案是否有效推動北極星指標：觸及廣度 — 有多少人看到你的方案？互動深度 — 看到之後有沒有真正採取行動？習慣頻率 — 持續回來使用嗎？留存驅力 — 是什麼讓他們留下來付費？每個指標盡量包含量化目標，例如「轉化率 ≥ 5%」。' },
     ],
     icebreaker: '你已完成 S 步驟的框架分析。現在透過與被訪談者對話，深化你的推薦邏輯與指標選擇。',
+    conclusionSub: '說明選定的推薦方案、北極星指標的精確定義、追蹤指標的優先序',
+    conclusionPlaceholder: '整理你的最終推薦結論…',
+    conclusionExample: '推薦「連續學習獎勵」方案，在第 7 天連續學習時觸發 Super 試用。NSM 定為每月完成 ≥5 堂課的學習用戶數。追蹤指標優先序：① 試用啟動率（觸及廣度）② 試用期課程完成率（互動深度）③ 試用到期後 30 日訂閱率（留存驅力）。',
   },
 };
 
@@ -1896,24 +1917,46 @@ function renderCirclesPhase2() {
   var turnCount = conv.length;
   var submitState = AppState.circlesSubmitState; // null | 'collapsed' | 'expanded'
   var conclusionText = AppState.circlesConclusionText || '';
+  var stepConfig = (CIRCLES_STEP_CONFIG && CIRCLES_STEP_CONFIG[stepKey]) || {};
 
   var progressSegs = CIRCLES_STEPS.map(function(s, i) {
     var cls = i < stepIdx ? 'done' : i === stepIdx ? 'active' : '';
     return '<div class="circles-progress-seg ' + cls + '"></div>';
   }).join('');
 
-  var bubbles = conv.map(function(t) {
-    return '<div class="circles-bubble-user">' + escHtml(t.userMessage) + '</div>' +
-      (t.interviewee ? '<div class="circles-bubble-ai"><div class="circles-bubble-section">被訪談者</div>' + t.interviewee + '</div>' : '') +
-      (t.coaching ? '<div class="circles-bubble-ai"><div class="circles-bubble-section">教練點評</div>' + t.coaching + '</div>' : '') +
-      (t.hint ? '<div class="circles-bubble-ai"><div class="circles-bubble-section">教練提示</div>' + t.hint + '</div>' : '');
-  }).join('');
+  // Icebreaker card (first element in chat body, all steps)
+  var icebreakerHtml = stepConfig.icebreaker
+    ? '<div class="circles-icebreaker">' +
+        '<div class="circles-icebreaker-label"><i class="ph ph-compass"></i> 開始提問方向</div>' +
+        '<div class="circles-icebreaker-text">' + escHtml(stepConfig.icebreaker) + '</div>' +
+      '</div>'
+    : '';
 
-  if (!bubbles) {
-    bubbles = '<div class="circles-bubble-ai"><div class="circles-bubble-section">教練提示</div>' +
-      (mode === 'drill' ? '準備好了嗎？針對「' + step.label + '」步驟，請開始探索題目。你可以從問問看情境的背景開始。' : '面試開始。請用「' + step.label + '」步驟的思路展開你的分析。') +
-      '</div>';
-  }
+  // Chat turns: user bubble + 被訪談者 bubble + 教練點評 bubble (with collapsed 教練提示)
+  var bubbles = conv.map(function(t) {
+    var userBubble = '<div class="circles-bubble-user">' + escHtml(t.userMessage) + '</div>';
+    var intervieweeBubble = t.interviewee
+      ? '<div class="circles-bubble-ai"><div class="circles-bubble-section">被訪談者</div>' + t.interviewee + '</div>'
+      : '';
+    var coachingBubble = '';
+    if (t.coaching || t.hint) {
+      coachingBubble = '<div class="circles-bubble-ai" style="font-size:11px;padding:8px 10px">' +
+        '<div class="circles-bubble-section">教練點評</div>' +
+        (t.coaching || '');
+      if (t.hint) {
+        coachingBubble += '<div style="margin-top:6px">' +
+          '<button onclick="toggleCoachHint(this)" style="background:none;border:none;font-size:11px;color:var(--c-text-3,#8a8a8a);cursor:pointer;padding:0;font-family:\'DM Sans\',sans-serif;display:flex;align-items:center;gap:3px">' +
+            '<i class="ph ph-caret-right" style="font-size:10px"></i> 查看教練提示' +
+          '</button>' +
+          '<div style="display:none;margin-top:4px;padding:6px 8px;background:rgba(0,0,0,0.04);border-radius:6px;color:var(--c-text-2,#5a5a5a);font-size:11px;line-height:1.5">' +
+            t.hint +
+          '</div>' +
+        '</div>';
+      }
+      coachingBubble += '</div>';
+    }
+    return userBubble + intervieweeBubble + coachingBubble;
+  }).join('');
 
   // Pinned question card
   var pinnedCard = q ? (
@@ -1929,46 +1972,54 @@ function renderCirclesPhase2() {
   // Bottom section: input bar OR collapsed strip OR conclusion box
   var bottomSection;
   if (submitState === 'expanded') {
-    // Conclusion box
-    var detectionHtml = '<div id="circles-conclusion-hint" style="min-height:16px;font-size:10px;color:#8a8a8a;margin-top:6px"></div>';
+    // Conclusion box (states 4 & 5)
+    var subText = stepConfig.conclusionSub || '說明本步驟的關鍵結論';
+    var placeholder = stepConfig.conclusionPlaceholder || '針對這題，整理你確認的關鍵資訊…';
+    var exampleText = stepConfig.conclusionExample || '';
+    var detectionHtml = '<div id="circles-conclusion-hint" class="conclusion-hint"></div>';
     bottomSection = '<div class="circles-conclusion-box" id="circles-conclusion-box">' +
-      '<div style="font-size:11px;font-weight:700;color:#1a1a1a;margin-bottom:2px">整理你這個步驟確認了什麼</div>' +
-      '<div style="font-size:10px;color:#8a8a8a;margin-bottom:8px">1-2 句話說明範圍、時間、影響</div>' +
-      '<div id="circles-example-block" style="border:1px solid #e8e5de;border-radius:8px;margin-bottom:8px;overflow:hidden">' +
-        '<div id="circles-example-header" style="background:#f0ede6;padding:5px 9px;display:flex;justify-content:space-between;cursor:pointer">' +
-          '<div style="font-size:9px;font-weight:700;color:#8a8a8a;text-transform:uppercase;letter-spacing:.4px">範例（不同題目）</div>' +
-          '<div id="circles-example-toggle-label" style="font-size:10px;color:#8a8a8a">展開 ▾</div>' +
+      '<div class="conclusion-title">整理你這個步驟確認了什麼</div>' +
+      '<div class="conclusion-sub">' + escHtml(subText) + '</div>' +
+      '<div class="conclusion-example-block" id="circles-example-block">' +
+        '<div class="conclusion-example-header" id="circles-example-header">' +
+          '<div class="conclusion-example-label">範例（不同題目）</div>' +
+          '<div class="conclusion-example-toggle" id="circles-example-toggle-label">展開 ▾</div>' +
         '</div>' +
-        '<div id="circles-example-content" style="display:none;padding:8px 10px;font-size:11px;color:#5a5a5a;line-height:1.6">問題集中在移動端搜尋功能，過去 90 天內轉換率下降 12%，主要影響首次訂房用戶，與近期過濾器 UI 改動時間吻合。</div>' +
+        '<div class="conclusion-example-content" id="circles-example-content" style="display:none">' + escHtml(exampleText) + '</div>' +
       '</div>' +
-      '<textarea id="circles-conclusion-input" style="width:100%;border:1px solid #ddd;border-radius:8px;padding:9px;font-size:11px;line-height:1.6;resize:none;height:60px;box-sizing:border-box;font-family:DM Sans,sans-serif" placeholder="針對這題，整理你確認的關鍵資訊...">' + escHtml(conclusionText) + '</textarea>' +
+      '<textarea id="circles-conclusion-input" class="conclusion-textarea" rows="5" placeholder="' + escHtml(placeholder) + '">' + escHtml(conclusionText) + '</textarea>' +
       detectionHtml +
-      '<div style="margin-top:8px;display:flex;align-items:center;justify-content:space-between">' +
-        '<button id="circles-conclusion-back" style="font-size:10px;color:#8a8a8a;background:none;border:none;cursor:pointer;font-family:DM Sans,sans-serif;padding:0">← 繼續對話</button>' +
-        '<button id="circles-conclusion-submit" class="circles-btn-primary" disabled style="opacity:.45;cursor:not-allowed">確認提交</button>' +
+      '<div class="conclusion-actions">' +
+        '<button id="circles-conclusion-back" class="conclusion-back-btn">← 繼續對話</button>' +
+        '<button id="circles-conclusion-submit" class="conclusion-submit-btn disabled" disabled>確認提交</button>' +
       '</div>' +
     '</div>';
   } else if (submitState === 'collapsed') {
-    // Collapsed strip
+    // Collapsed strip (state 3)
     bottomSection = '<div class="circles-submit-strip" id="circles-submit-strip">' +
       '<div>' +
-        '<div style="font-size:11px;font-weight:600;color:#1A56DB;font-family:DM Sans,sans-serif">整理結論</div>' +
-        '<div style="font-size:10px;color:#8a8a8a;font-family:DM Sans,sans-serif">翻閱完對話後，點右側展開填寫</div>' +
+        '<div class="strip-label">整理結論</div>' +
+        '<div class="strip-sub">翻閱完對話後，點右側展開填寫</div>' +
       '</div>' +
-      '<button id="circles-strip-expand" style="background:#1A56DB;color:#fff;border:none;border-radius:8px;padding:7px 12px;font-size:11px;font-weight:600;cursor:pointer;font-family:DM Sans,sans-serif;white-space:nowrap">展開填寫 ▲</button>' +
+      '<button id="circles-strip-expand" class="strip-expand-btn">展開填寫 ▲</button>' +
     '</div>';
   } else {
-    // Normal input bar
+    // Normal input bar (states 1 & 2). Submit row only shown when turns ≥ 3 (state 2)
     bottomSection = '<div class="circles-input-bar" id="circles-input-bar">' +
-      '<textarea class="circles-input" id="circles-msg-input" placeholder="輸入追問或回應..." rows="1"></textarea>' +
+      '<textarea class="circles-input" id="circles-msg-input" placeholder="輸入你的問題..." rows="1"></textarea>' +
       '<button class="circles-send-btn" id="circles-send-btn"><i class="ph ph-paper-plane-tilt"></i></button>' +
     '</div>' +
-    (turnCount >= 2
-      ? '<div id="circles-submit-row" style="padding:6px 12px 10px;display:flex;justify-content:center">' +
-          '<button id="circles-submit-step" style="font-size:11px;color:#5a5a5a;border:1px solid #e8e5de;border-radius:8px;padding:6px 16px;cursor:pointer;background:#fff;font-family:DM Sans,sans-serif">對話足夠了，提交這個步驟</button>' +
+    (turnCount >= 3
+      ? '<div class="circles-submit-row" id="circles-submit-row">' +
+          '<button id="circles-submit-step" class="circles-submit-step-btn">對話足夠了，提交這個步驟</button>' +
         '</div>'
       : '');
   }
+
+  // Dim chat body when conclusion box is open
+  var chatBodyAttrs = (submitState === 'expanded')
+    ? ' style="opacity:0.45;pointer-events:none"'
+    : '';
 
   return '<div data-view="circles" class="circles-chat-wrap">' +
     '<div class="circles-nav">' +
@@ -1978,12 +2029,25 @@ function renderCirclesPhase2() {
         '<div class="circles-nav-sub">' + (q ? escHtml(q.company) : '') + '</div>' +
       '</div>' +
       (turnCount > 0 && !submitState ? '<div class="circles-nav-right">' + turnCount + ' 輪</div>' : '') +
+      '<button class="circles-nav-home-btn" id="circles-p2-home">回首頁</button>' +
     '</div>' +
     '<div class="circles-progress">' + progressSegs + '<div class="circles-progress-label">' + step.short + ' · ' + step.label + ' · ' + (stepIdx + 1) + '/7</div></div>' +
     pinnedCard +
-    '<div class="circles-chat-body" id="circles-chat-body">' + bubbles + '<div id="circles-streaming-bubble"></div></div>' +
+    '<div class="circles-chat-body" id="circles-chat-body"' + chatBodyAttrs + '>' + icebreakerHtml + bubbles + '<div id="circles-streaming-bubble"></div></div>' +
     bottomSection +
   '</div>';
+}
+
+// Toggle coach hint visibility (used inline in render output)
+function toggleCoachHint(btn) {
+  if (!btn) return;
+  var content = btn.nextElementSibling;
+  if (!content) return;
+  var isOpen = content.style.display !== 'none';
+  content.style.display = isOpen ? 'none' : 'block';
+  var icon = btn.querySelector('i');
+  if (icon) icon.className = isOpen ? 'ph ph-caret-right' : 'ph ph-caret-down';
+  btn.style.color = isOpen ? 'var(--c-text-3,#8a8a8a)' : 'var(--c-primary,#1A56DB)';
 }
 
 function bindCirclesPhase2() {
@@ -2019,6 +2083,20 @@ function bindCirclesPhase2() {
     AppState.circlesPhase = 1.5;
     AppState.circlesSubmitState = null;
     render();
+  });
+
+  // 回首頁 button (returns to CIRCLES home, navigation rule)
+  document.getElementById('circles-p2-home')?.addEventListener('click', function() {
+    AppState.circlesSelectedQuestion = null;
+    AppState.circlesSession = null;
+    AppState.circlesPhase = 1;
+    AppState.circlesSubmitState = null;
+    AppState.circlesConclusionText = '';
+    AppState.circlesConversation = [];
+    AppState.circlesScoreResult = null;
+    AppState.circlesFinalReport = null;
+    AppState.circlesStepScores = {};
+    navigate('circles');
   });
 
   // Auto-scroll chat
@@ -2070,7 +2148,7 @@ function bindCirclesPhase2() {
     if (label) label.textContent = hidden ? '收起 ▴' : '展開 ▾';
   });
 
-  // Conclusion textarea — 8 second debounce → AI detection
+  // Conclusion textarea — 8 second debounce → AI detection (states 4 & 5)
   var _conclusionTimer = null;
   var _lastChecked = '';
   document.getElementById('circles-conclusion-input')?.addEventListener('input', function() {
@@ -2078,8 +2156,8 @@ function bindCirclesPhase2() {
     AppState.circlesConclusionText = text;
     var hintEl = document.getElementById('circles-conclusion-hint');
     var submitBtn = document.getElementById('circles-conclusion-submit');
-    if (hintEl) hintEl.textContent = '';
-    if (submitBtn) { submitBtn.disabled = true; submitBtn.style.opacity = '.45'; submitBtn.style.cursor = 'not-allowed'; }
+    if (hintEl) { hintEl.textContent = ''; hintEl.className = 'conclusion-hint'; }
+    if (submitBtn) { submitBtn.disabled = true; submitBtn.classList.add('disabled'); }
     if (_conclusionTimer) clearTimeout(_conclusionTimer);
     if (!text.trim() || text.trim().length < 10) return;
     if (text === _lastChecked) return;
@@ -2087,7 +2165,7 @@ function bindCirclesPhase2() {
       _lastChecked = text;
       var session = AppState.circlesSession;
       if (!session) return;
-      if (hintEl) hintEl.textContent = '分析中…';
+      if (hintEl) { hintEl.textContent = '分析中…'; hintEl.className = 'conclusion-hint'; }
       try {
         var headers = { 'Content-Type': 'application/json' };
         if (AppState.accessToken) headers['Authorization'] = 'Bearer ' + AppState.accessToken;
@@ -2099,14 +2177,14 @@ function bindCirclesPhase2() {
         var hintEl2 = document.getElementById('circles-conclusion-hint');
         var submitBtn2 = document.getElementById('circles-conclusion-submit');
         if (data.ok) {
-          if (hintEl2) { hintEl2.textContent = data.message || ''; hintEl2.style.color = '#137A3D'; }
-          if (submitBtn2) { submitBtn2.disabled = false; submitBtn2.style.opacity = '1'; submitBtn2.style.cursor = 'pointer'; }
+          if (hintEl2) { hintEl2.textContent = '✓ ' + (data.message || '結論完整，可以提交'); hintEl2.className = 'conclusion-hint pass'; }
+          if (submitBtn2) { submitBtn2.disabled = false; submitBtn2.classList.remove('disabled'); }
         } else {
-          if (hintEl2) { hintEl2.textContent = data.message || ''; hintEl2.style.color = '#B85C00'; }
+          if (hintEl2) { hintEl2.textContent = '⚠ ' + (data.message || '結論尚未涵蓋關鍵維度'); hintEl2.className = 'conclusion-hint warn'; }
         }
       } catch (_) {
         var hintEl3 = document.getElementById('circles-conclusion-hint');
-        if (hintEl3) hintEl3.textContent = '';
+        if (hintEl3) { hintEl3.textContent = ''; hintEl3.className = 'conclusion-hint'; }
       }
     }, 8000);
   });
@@ -2116,7 +2194,7 @@ function bindCirclesPhase2() {
     var btn = this;
     btn.disabled = true;
     btn.textContent = '評分中...';
-    btn.style.opacity = '.65';
+    btn.classList.add('disabled');
 
     var session = AppState.circlesSession;
     var conclusionText = AppState.circlesConclusionText;
@@ -2147,7 +2225,7 @@ function bindCirclesPhase2() {
     } catch (e) {
       btn.disabled = false;
       btn.textContent = '確認提交';
-      btn.style.opacity = '1';
+      btn.classList.remove('disabled');
     }
   });
 
@@ -2222,10 +2300,22 @@ async function sendCirclesMessage() {
             var coaching = fullText.match(/【教練點評】\n([\s\S]*?)(?=【教練提示】|$)/)?.[1]?.trim() || '';
             var hint = fullText.match(/【教練提示】\n([\s\S]*?)$/)?.[1]?.trim() || '';
             if (streamingBubble) {
+              var coachingHtml = '';
+              if (coaching || hint) {
+                coachingHtml = '<div class="circles-bubble-ai" style="font-size:11px;padding:8px 10px"><div class="circles-bubble-section">教練點評</div>' + (coaching || '');
+                if (hint) {
+                  coachingHtml += '<div style="margin-top:6px">' +
+                    '<button onclick="toggleCoachHint(this)" style="background:none;border:none;font-size:11px;color:var(--c-text-3,#8a8a8a);cursor:pointer;padding:0;font-family:\'DM Sans\',sans-serif;display:flex;align-items:center;gap:3px">' +
+                      '<i class="ph ph-caret-right" style="font-size:10px"></i> 查看教練提示' +
+                    '</button>' +
+                    '<div style="display:none;margin-top:4px;padding:6px 8px;background:rgba(0,0,0,0.04);border-radius:6px;color:var(--c-text-2,#5a5a5a);font-size:11px;line-height:1.5">' + hint + '</div>' +
+                  '</div>';
+                }
+                coachingHtml += '</div>';
+              }
               streamingBubble.innerHTML =
                 (interviewee ? '<div class="circles-bubble-ai"><div class="circles-bubble-section">被訪談者</div>' + interviewee + '</div>' : '') +
-                (coaching ? '<div class="circles-bubble-ai"><div class="circles-bubble-section">教練點評</div>' + coaching + '</div>' : '') +
-                (hint ? '<div class="circles-bubble-ai"><div class="circles-bubble-section">教練提示</div>' + hint + '</div>' : '');
+                coachingHtml;
               chatBody.scrollTop = chatBody.scrollHeight;
             }
           }

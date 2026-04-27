@@ -1775,6 +1775,210 @@ body { -webkit-font-smoothing: antialiased; }
   max-height: 65vh;
 }
 
+/* Phase 2 — 回首頁 button in nav */
+[data-view="circles"] .circles-nav-home-btn {
+  font-size: 12px;
+  color: var(--c-primary);
+  border-bottom: 1px solid var(--c-primary);
+  background: none;
+  border-top: none;
+  border-left: none;
+  border-right: none;
+  padding: 2px 0;
+  cursor: pointer;
+  font-family: 'DM Sans', sans-serif;
+  white-space: nowrap;
+  flex-shrink: 0;
+  margin-left: auto;
+}
+/* If turn counter exists before the home button, counter takes margin-left:auto and button follows */
+[data-view="circles"] .circles-nav-right + .circles-nav-home-btn {
+  margin-left: 8px;
+}
+
+/* Phase 2 — Icebreaker card */
+[data-view="circles"] .circles-icebreaker {
+  background: rgba(26,86,219,0.05);
+  border: 1px solid rgba(26,86,219,0.18);
+  border-radius: 10px;
+  padding: 10px 13px;
+  margin-bottom: 14px;
+}
+[data-view="circles"] .circles-icebreaker-label {
+  font-size: 9px;
+  font-weight: 700;
+  color: var(--c-primary);
+  text-transform: uppercase;
+  letter-spacing: .07em;
+  margin-bottom: 5px;
+  display: flex;
+  align-items: center;
+  gap: 4px;
+  font-family: 'DM Sans', sans-serif;
+}
+[data-view="circles"] .circles-icebreaker-text {
+  font-size: 12px;
+  color: var(--c-text-2);
+  line-height: 1.65;
+  font-family: 'DM Sans', sans-serif;
+}
+
+/* Phase 2 — Submit row (state 2: turns >= 3) */
+[data-view="circles"] .circles-submit-row {
+  padding: 6px 12px 10px;
+  display: flex;
+  justify-content: center;
+  background: var(--c-card);
+  flex-shrink: 0;
+  border-top: 1px solid var(--c-border);
+}
+[data-view="circles"] .circles-submit-step-btn {
+  font-size: 11px;
+  color: var(--c-text-2);
+  border: 1px solid #e8e5de;
+  border-radius: 8px;
+  padding: 6px 16px;
+  cursor: pointer;
+  background: var(--c-card);
+  font-family: 'DM Sans', sans-serif;
+}
+
+/* Phase 2 — Strip (state 3) */
+[data-view="circles"] .circles-submit-strip .strip-label {
+  font-size: 11px;
+  font-weight: 600;
+  color: var(--c-primary);
+  font-family: 'DM Sans', sans-serif;
+}
+[data-view="circles"] .circles-submit-strip .strip-sub {
+  font-size: 10px;
+  color: var(--c-text-3);
+  font-family: 'DM Sans', sans-serif;
+}
+[data-view="circles"] .circles-submit-strip .strip-expand-btn {
+  background: var(--c-primary);
+  color: #fff;
+  border: none;
+  border-radius: 8px;
+  padding: 7px 12px;
+  font-size: 11px;
+  font-weight: 600;
+  cursor: pointer;
+  font-family: 'DM Sans', sans-serif;
+  white-space: nowrap;
+}
+
+/* Phase 2 — Conclusion box (states 4 & 5) */
+[data-view="circles"] .conclusion-title {
+  font-size: 11px;
+  font-weight: 700;
+  color: var(--c-text);
+  margin-bottom: 2px;
+  font-family: 'DM Sans', sans-serif;
+}
+[data-view="circles"] .conclusion-sub {
+  font-size: 10px;
+  color: var(--c-text-3);
+  margin-bottom: 8px;
+  font-family: 'DM Sans', sans-serif;
+}
+[data-view="circles"] .conclusion-example-block {
+  border: 1px solid #e8e5de;
+  border-radius: 8px;
+  margin-bottom: 8px;
+  overflow: hidden;
+}
+[data-view="circles"] .conclusion-example-header {
+  background: #f0ede6;
+  padding: 5px 9px;
+  display: flex;
+  justify-content: space-between;
+  cursor: pointer;
+}
+[data-view="circles"] .conclusion-example-label {
+  font-size: 9px;
+  font-weight: 700;
+  color: var(--c-text-3);
+  text-transform: uppercase;
+  letter-spacing: 0.4px;
+  font-family: 'DM Sans', sans-serif;
+}
+[data-view="circles"] .conclusion-example-toggle {
+  font-size: 10px;
+  color: var(--c-text-3);
+  font-family: 'DM Sans', sans-serif;
+}
+[data-view="circles"] .conclusion-example-content {
+  padding: 8px 10px;
+  font-size: 11px;
+  color: var(--c-text-2);
+  line-height: 1.6;
+  font-family: 'DM Sans', sans-serif;
+}
+[data-view="circles"] .conclusion-textarea {
+  width: 100%;
+  border: 1px solid #ddd;
+  border-radius: 8px;
+  padding: 9px;
+  font-size: 12px;
+  line-height: 1.6;
+  resize: none;
+  height: 90px;
+  box-sizing: border-box;
+  font-family: 'DM Sans', sans-serif;
+  color: var(--c-text);
+  outline: none;
+}
+[data-view="circles"] .conclusion-hint {
+  min-height: 16px;
+  font-size: 10px;
+  color: var(--c-text-3);
+  margin-top: 6px;
+  font-family: 'DM Sans', sans-serif;
+}
+[data-view="circles"] .conclusion-hint.warn {
+  background: #FFF8E1;
+  color: #7A5800;
+  border-radius: 4px;
+  padding: 4px 8px;
+}
+[data-view="circles"] .conclusion-hint.pass {
+  background: #E8F5E9;
+  color: #137A3D;
+  border-radius: 4px;
+  padding: 4px 8px;
+}
+[data-view="circles"] .conclusion-actions {
+  margin-top: 8px;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+}
+[data-view="circles"] .conclusion-back-btn {
+  font-size: 10px;
+  color: var(--c-text-3);
+  background: none;
+  border: none;
+  cursor: pointer;
+  font-family: 'DM Sans', sans-serif;
+  padding: 0;
+}
+[data-view="circles"] .conclusion-submit-btn {
+  background: var(--c-primary);
+  color: #fff;
+  border: none;
+  border-radius: 8px;
+  padding: 8px 14px;
+  font-size: 12px;
+  font-weight: 600;
+  cursor: pointer;
+  font-family: 'DM Sans', sans-serif;
+}
+[data-view="circles"] .conclusion-submit-btn.disabled {
+  opacity: .45;
+  cursor: not-allowed;
+}
+
 [data-view="circles"] .circles-input {
   flex: 1;
   background: var(--c-surface);
