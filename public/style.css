@@ -844,6 +844,22 @@ textarea::placeholder { white-space: nowrap; overflow: hidden; text-overflow: el
 
 /* Step 1 */
 .nsm-instruction { font-size: 14px; color: var(--text-secondary); margin-bottom: 14px; }
+.nsm-list-header {
+  display: flex; align-items: center; justify-content: space-between;
+  margin-bottom: 8px;
+}
+.nsm-list-header-label {
+  font-size: 11px; font-weight: 600; color: var(--text-secondary);
+  font-family: 'DM Sans', sans-serif;
+}
+.nsm-shuffle-btn {
+  background: none; border: none; padding: 0; cursor: pointer;
+  font-size: 11px; font-weight: 600; color: var(--accent);
+  font-family: 'DM Sans', sans-serif;
+  display: inline-flex; align-items: center; gap: 4px;
+}
+.nsm-shuffle-btn:hover { text-decoration: underline; }
+.nsm-shuffle-btn:active { opacity: 0.7; }
 .nsm-question-card {
   background: var(--bg-surface); border: 2px solid var(--border);
   border-radius: 14px; padding: 16px; margin-bottom: 10px;

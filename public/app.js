@@ -1,8 +1,6 @@
 // ── 常數 ─────────────────────────────────────────
 var _adjustNsmKeyboardFn = null; // module-level to prevent listener leak
 var _adjustCirclesKbFn = null; // module-level to prevent listener leak (used by bindCirclesPhase2)
-var _nsmScrollFn = null;         // module-level NSM scroll listener ref
-var _nsmScrollParent = null;     // module-level NSM scroll parent ref (for cleanup)
 
 const SUPABASE_URL = 'https://klvlizxmvzfpvfgswmfk.supabase.co';
 const SUPABASE_ANON_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImtsdmxpenhtdnpmcHZmZ3N3bWZrIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NzY2NjcyNDIsImV4cCI6MjA5MjI0MzI0Mn0.KOF72gPKbllpYq7t3ny21HBEScUlj2diSl47oNyhJTY';
@@ -59,6 +57,7 @@ const AppState = {
   nsmContext: null,
   nsmContextLoading: false,
   nsmContextQuestionId: null,
+  nsmDisplayedQuestions: [],   // 5 random NSM_QUESTIONS shown on Step 1
   nsmHints: null,
   nsmHintsLoading: false,
   offcanvasCache: null,  // cached offcanvas session list for instant render
@@ -354,6 +353,17 @@ function isVanityMetric(input, antiPatterns) {
 function nsmRoute(path) {
   const base = AppState.accessToken ? '/api/nsm-sessions' : '/api/guest/nsm-sessions';
   return base + (path ? '/' + path : '');
+}
+
+// Pick up to 5 random items from an array (Fisher-Yates shuffle, returns shallow copy).
+function pickRandom5(arr) {
+  if (!Array.isArray(arr) || arr.length === 0) return [];
+  var copy = arr.slice();
+  for (var i = copy.length - 1; i > 0; i--) {
+    var j = Math.floor(Math.random() * (i + 1));
+    var tmp = copy[i]; copy[i] = copy[j]; copy[j] = tmp;
+  }
+  return copy.slice(0, Math.min(5, copy.length));
 }
 
 function circlesRoute(id) {
@@ -3506,7 +3516,7 @@ function renderNSM() {
   }
 }
 
-// Virtual scroll helper — builds the innerHTML for a single NSM question card.
+// Builds the innerHTML for a single NSM question card.
 function createNSMQuestionCardHtml(q) {
   var isSelected = AppState.nsmSelectedQuestion && AppState.nsmSelectedQuestion.id === q.id;
   var productType = detectProductType(q);
@@ -3514,7 +3524,7 @@ function createNSMQuestionCardHtml(q) {
 
   var contextHtml = '';
   if (isSelected) {
-    if (AppState.nsmContextLoading) {
+    if (AppState.nsmContextLoading && AppState.nsmContextQuestionId === q.id) {
       contextHtml = `
         <div class="nsm-context-preview loading">
           <i class="ph ph-circle-notch" style="animation:spin 0.8s linear infinite"></i>
@@ -3524,10 +3534,10 @@ function createNSMQuestionCardHtml(q) {
       var ctx = AppState.nsmContext;
       contextHtml = `
         <div class="nsm-context-preview">
-          <div class="nsm-ctx-row"><span class="nsm-ctx-label"><i class="ph ph-buildings"></i> 商業模式</span><span class="nsm-ctx-val">${escHtml(ctx.businessModel)}</span></div>
-          <div class="nsm-ctx-row"><span class="nsm-ctx-label"><i class="ph ph-users"></i> 使用者</span><span class="nsm-ctx-val">${escHtml(ctx.userTypes)}</span></div>
-          <div class="nsm-ctx-row nsm-ctx-trap"><span class="nsm-ctx-label"><i class="ph ph-warning"></i> 常見陷阱</span><span class="nsm-ctx-val">${escHtml(ctx.commonTrap)}</span></div>
-          <div class="nsm-ctx-row nsm-ctx-angle"><span class="nsm-ctx-label"><i class="ph ph-lightbulb"></i> 破題切入</span><span class="nsm-ctx-val">${escHtml(ctx.thinkingAngle)}</span></div>
+          <div class="nsm-ctx-row"><span class="nsm-ctx-label"><i class="ph ph-buildings"></i> 商業模式</span><span class="nsm-ctx-val">${escHtml(ctx.model)}</span></div>
+          <div class="nsm-ctx-row"><span class="nsm-ctx-label"><i class="ph ph-users"></i> 使用者</span><span class="nsm-ctx-val">${escHtml(ctx.users)}</span></div>
+          <div class="nsm-ctx-row nsm-ctx-trap"><span class="nsm-ctx-label"><i class="ph ph-warning"></i> 常見陷阱</span><span class="nsm-ctx-val">${escHtml(ctx.traps)}</span></div>
+          <div class="nsm-ctx-row nsm-ctx-angle"><span class="nsm-ctx-label"><i class="ph ph-lightbulb"></i> 破題切入</span><span class="nsm-ctx-val">${escHtml(ctx.insight)}</span></div>
         </div>`;
     }
   }
@@ -3546,6 +3556,13 @@ function createNSMQuestionCardHtml(q) {
 
 function renderNSMStep1() {
   var selected = AppState.nsmSelectedQuestion;
+  var contextLoaded = !!(AppState.nsmContext && selected && AppState.nsmContextQuestionId === selected.id);
+  var ctaDisabled = !selected || !contextLoaded;
+
+  // Initialise displayed questions on first render.
+  if (!Array.isArray(AppState.nsmDisplayedQuestions) || AppState.nsmDisplayedQuestions.length === 0) {
+    AppState.nsmDisplayedQuestions = pickRandom5(NSM_QUESTIONS);
+  }
 
   var progressBar = `
     <div class="nsm-progress">
@@ -3558,8 +3575,8 @@ function renderNSMStep1() {
       <div class="nsm-progress-step">4</div>
     </div>`;
 
-  // The question list is left empty here; virtual scrolling is set up
-  // imperatively in bindNSM() after this HTML is inserted into the DOM.
+  var cardsHtml = AppState.nsmDisplayedQuestions.map(createNSMQuestionCardHtml).join('');
+
   return `
     <div class="nsm-view">
       <div class="nsm-navbar">
@@ -3570,147 +3587,99 @@ function renderNSMStep1() {
       ${progressBar}
       <div class="nsm-body">
         <p class="nsm-instruction">選擇一個企業情境，開始定義北極星指標</p>
-        <div class="nsm-question-list"></div>
+        <div class="nsm-list-header">
+          <div class="nsm-list-header-label">選擇題目</div>
+          <button type="button" class="nsm-shuffle-btn" id="btn-nsm-shuffle">
+            <i class="ph ph-shuffle"></i> 隨機選題
+          </button>
+        </div>
+        <div class="nsm-question-list">${cardsHtml}</div>
         <div style="height:80px"></div>
       </div>
       <div class="nsm-fixed-bottom">
         <div id="nsm-step1-error" class="nsm-inline-error" role="alert" style="display:none"></div>
-        <button class="btn btn-primary nsm-next-btn" id="btn-nsm-step1-next" ${selected ? '' : 'disabled'}>
-          確認，開始定義 <i class="ph ph-arrow-right"></i>
+        <button class="btn btn-primary nsm-next-btn" id="btn-nsm-step1-next" ${ctaDisabled ? 'disabled' : ''}>
+          開始 NSM 訓練 <i class="ph ph-arrow-right"></i>
         </button>
       </div>
     </div>`;
 }
 
-// Sets up lightweight virtual scrolling on the Step 1 question list.
-// Called from bindNSM() after the Step 1 HTML is in the DOM.
-function initNSMStep1VirtualScroll() {
-  var BUFFER = 5;
-  var questions = NSM_QUESTIONS;
+// Re-renders just the NSM Step 1 question list area (cards + CTA) in place,
+// so that selecting a card / receiving context doesn't full-page re-render.
+function refreshNSMStep1List() {
+  var listEl = document.querySelector('.nsm-question-list');
+  if (!listEl) return;
+  listEl.innerHTML = AppState.nsmDisplayedQuestions.map(createNSMQuestionCardHtml).join('');
+  bindNSMStep1Cards();
 
-  var scrollParent = document.querySelector('.nsm-body');
-  var containerEl = document.querySelector('.nsm-question-list');
-  if (!scrollParent || !containerEl) return;
+  var selected = AppState.nsmSelectedQuestion;
+  var contextLoaded = !!(AppState.nsmContext && selected && AppState.nsmContextQuestionId === selected.id);
+  var btn = document.getElementById('btn-nsm-step1-next');
+  if (btn) btn.disabled = !selected || !contextLoaded;
+}
 
-  // C2 (Method B): Measure actual card height from a dummy render.
-  // Avoids hardcoding a value that drifts from CSS. Only measures the
-  // unselected state; the selected/expanded card is acceptable as an outlier.
-  var ITEM_HEIGHT = 80; // fallback
-  var dummy = document.createElement('div');
-  dummy.innerHTML = createNSMQuestionCardHtml(questions[0]);
-  dummy.style.cssText = 'visibility:hidden;position:absolute;width:100%;pointer-events:none';
-  containerEl.appendChild(dummy);
-  var measured = dummy.firstElementChild ? dummy.firstElementChild.offsetHeight : 0;
-  if (measured > 0) ITEM_HEIGHT = measured;
-  containerEl.innerHTML = '';
-
-  // Make the container occupy the full virtual height so scrollbar is correct.
-  containerEl.style.position = 'relative';
-  containerEl.style.height = (questions.length * ITEM_HEIGHT) + 'px';
-
-  // I1: memoize last rendered range to skip redundant DOM rebuilds.
-  var _lastStart = -1, _lastEnd = -1;
-
-  function bindCardEvents(cardEl) {
-    cardEl.addEventListener('click', async function() {
-      var q = NSM_QUESTIONS.find(function(item) { return item.id === cardEl.dataset.qid; }) || null;
-      AppState.nsmSelectedQuestion = q;
-
-      if (q && AppState.nsmContextQuestionId !== q.id) {
-        AppState.nsmContext = null;
-        AppState.nsmContextQuestionId = null;
-      }
-
-      // Re-render the virtual scroll frame in place (avoids full page re-render).
-      // Force re-render by resetting memo (selected state changed card height).
-      _lastStart = -1; _lastEnd = -1;
-      renderVisible(scrollParent.scrollTop, scrollParent.clientHeight);
-
-      // Update next button state.
-      var btn = document.getElementById('btn-nsm-step1-next');
-      if (btn) btn.disabled = !AppState.nsmSelectedQuestion;
-
-      if (q && !AppState.nsmContext && !AppState.nsmContextLoading) {
-        AppState.nsmContextLoading = true;
-        AppState.nsmContextQuestionId = q.id;
-        _lastStart = -1; _lastEnd = -1;
-        renderVisible(scrollParent.scrollTop, scrollParent.clientHeight);
-        try {
-          var res = await fetch('/api/nsm-context', {
-            method: 'POST',
-            headers: { 'Content-Type': 'application/json' },
-            body: JSON.stringify({ questionJson: q })
-          });
-          if (res.ok) AppState.nsmContext = await res.json();
-        } catch (_) {}
-        AppState.nsmContextLoading = false;
-        // C1 async guard: abort if the container is no longer in the DOM.
-        if (!document.contains(containerEl)) return;
-        if (AppState.nsmSelectedQuestion && AppState.nsmSelectedQuestion.id === q.id) {
-          _lastStart = -1; _lastEnd = -1;
-          renderVisible(scrollParent.scrollTop, scrollParent.clientHeight);
-        }
-      }
-    });
-
+// Wires click/keyboard handlers to every NSM question card currently in the DOM.
+function bindNSMStep1Cards() {
+  document.querySelectorAll('.nsm-question-card').forEach(function(cardEl) {
+    cardEl.addEventListener('click', function() { handleNSMCardSelect(cardEl.dataset.qid); });
     cardEl.addEventListener('keydown', function(e) {
       if (e.key === 'Enter' || e.key === ' ') { e.preventDefault(); cardEl.click(); }
     });
+  });
+}
+
+// Card selection: set selected, fetch context if not cached, refresh in place.
+async function handleNSMCardSelect(qid) {
+  var q = NSM_QUESTIONS.find(function(item) { return item.id === qid; }) || null;
+  if (!q) return;
+
+  // If clicking the same card that's already selected and context is loaded, no-op.
+  var alreadySelected = AppState.nsmSelectedQuestion && AppState.nsmSelectedQuestion.id === q.id;
+  AppState.nsmSelectedQuestion = q;
+
+  // Drop any stale context when switching to a different question.
+  if (!alreadySelected) {
+    AppState.nsmContext = null;
   }
 
-  function renderVisible(scrollTop, containerHeight) {
-    var start = Math.max(0, Math.floor(scrollTop / ITEM_HEIGHT) - BUFFER);
-    var end = Math.min(questions.length, Math.floor((scrollTop + containerHeight) / ITEM_HEIGHT) + 1 + BUFFER);
+  // Fetch context if we don't have it for this question yet.
+  // Note: nsmContextLoading guards against in-flight fetches *for this same q*; switching
+  // to a different question implicitly invalidates the in-flight one (the async guard
+  // below checks selectedQuestion at completion time and discards stale responses).
+  var needFetch = !AppState.nsmContext || AppState.nsmContextQuestionId !== q.id;
+  if (needFetch) {
+    AppState.nsmContextLoading = true;
+    AppState.nsmContextQuestionId = q.id;
+    refreshNSMStep1List();
+    var ctx = null;
+    try {
+      var res = await fetch('/api/nsm-context', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ questionJson: q }),
+      });
+      if (res.ok) ctx = await res.json();
+    } catch (_) { /* swallow; ctx stays null */ }
 
-    // I1: skip rebuild when the visible range hasn't changed.
-    if (start === _lastStart && end === _lastEnd) return;
-    _lastStart = start; _lastEnd = end;
+    // Async guard: discard the response if user navigated away or selected a different
+    // question while we were awaiting. Don't touch nsmContextLoading either, since a
+    // newer in-flight fetch might own that flag now.
+    if (!document.querySelector('.nsm-question-list')) return;
+    if (!AppState.nsmSelectedQuestion || AppState.nsmSelectedQuestion.id !== q.id) return;
+    if (AppState.nsmContextQuestionId !== q.id) return;
 
-    // Build fragment: top spacer + visible cards + bottom spacer.
-    var frag = document.createDocumentFragment();
-
-    var topSpacer = document.createElement('div');
-    topSpacer.style.height = (start * ITEM_HEIGHT) + 'px';
-    frag.appendChild(topSpacer);
-
-    for (var i = start; i < end; i++) {
-      var q = questions[i];
-      var wrapper = document.createElement('div');
-      wrapper.innerHTML = createNSMQuestionCardHtml(q);
-      var cardEl = wrapper.firstElementChild;
-      bindCardEvents(cardEl);
-      frag.appendChild(cardEl);
+    AppState.nsmContextLoading = false;
+    if (ctx) {
+      AppState.nsmContext = ctx;
+    } else {
+      AppState.nsmContext = null;
+      AppState.nsmContextQuestionId = null;
     }
-
-    var bottomSpacer = document.createElement('div');
-    bottomSpacer.style.height = ((questions.length - end) * ITEM_HEIGHT) + 'px';
-    frag.appendChild(bottomSpacer);
-
-    containerEl.innerHTML = '';
-    containerEl.appendChild(frag);
+    refreshNSMStep1List();
+  } else {
+    refreshNSMStep1List();
   }
-
-  // Initial render.
-  renderVisible(scrollParent.scrollTop, scrollParent.clientHeight);
-
-  // C1: remove any stale scroll listener before registering a new one.
-  if (_nsmScrollFn && _nsmScrollParent) {
-    _nsmScrollParent.removeEventListener('scroll', _nsmScrollFn);
-    _nsmScrollFn = null;
-    _nsmScrollParent = null;
-  }
-  var currentScrollParent = scrollParent; // capture for async closure safety
-  _nsmScrollParent = scrollParent;        // store ref for future cleanup
-  _nsmScrollFn = function() {
-    // C1 guard: if scrollParent has been replaced by a full re-render, bail.
-    if (!document.contains(currentScrollParent)) {
-      _nsmScrollFn = null;
-      _nsmScrollParent = null;
-      return;
-    }
-    renderVisible(currentScrollParent.scrollTop, currentScrollParent.clientHeight);
-  };
-  scrollParent.addEventListener('scroll', _nsmScrollFn, { passive: true });
 }
 
 function renderNSMStep2() {
@@ -3989,10 +3958,22 @@ function bindNSM() {
     else { AppState.nsmStep--; render(); }
   });
 
-  // Step 1: virtual scroll initialisation (card click/keyboard events are
-  // attached inside initNSMStep1VirtualScroll's bindCardEvents helper).
+  // Step 1: bind card click/keyboard handlers + shuffle button.
   if (AppState.nsmStep === 1) {
-    initNSMStep1VirtualScroll();
+    bindNSMStep1Cards();
+    var shuffleBtn = document.getElementById('btn-nsm-shuffle');
+    if (shuffleBtn) {
+      shuffleBtn.addEventListener('click', function() {
+        AppState.nsmDisplayedQuestions = pickRandom5(NSM_QUESTIONS);
+        // Clear selection + context — the previously-selected card may no longer
+        // be in the visible 5, so the context card no longer makes sense.
+        AppState.nsmSelectedQuestion = null;
+        AppState.nsmContext = null;
+        AppState.nsmContextQuestionId = null;
+        AppState.nsmContextLoading = false;
+        refreshNSMStep1List();
+      });
+    }
   }
 
   // Step 1: next
@@ -4000,6 +3981,9 @@ function bindNSM() {
   if (btnStep1Next) {
     btnStep1Next.addEventListener('click', async function() {
       if (!AppState.nsmSelectedQuestion) return;
+      // Require context to be loaded — UI also enforces via disabled.
+      var sel = AppState.nsmSelectedQuestion;
+      if (!AppState.nsmContext || AppState.nsmContextQuestionId !== sel.id) return;
       btnStep1Next.classList.add('btn-loading');
       btnStep1Next.disabled = true;
       try {
