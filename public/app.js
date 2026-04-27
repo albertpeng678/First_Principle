@@ -2250,6 +2250,7 @@ function renderCirclesStepScore() {
   var stepIdx = CIRCLES_STEPS.findIndex(function(s) { return s.key === stepKey; });
   var step = CIRCLES_STEPS[stepIdx];
   var q = AppState.circlesSelectedQuestion;
+  var stepScores = AppState.circlesStepScores || {};
 
   if (!result) {
     return '<div data-view="circles"><div style="text-align:center;padding:48px 16px;font-family:DM Sans,sans-serif">評分結果載入中...</div></div>';
@@ -2260,80 +2261,136 @@ function renderCirclesStepScore() {
     return '<div class="circles-progress-seg ' + cls + '"></div>';
   }).join('');
 
+  // 4-dimension breakdown with visual bars (0-5 fill)
   var dims = (result.dimensions || []).map(function(d) {
+    var score = Number(d.score) || 0;
+    var pct = Math.max(0, Math.min(100, (score / 5) * 100));
     return '<div class="circles-dim-row">' +
-      '<div><div class="circles-dim-name">' + escHtml(d.name) + '</div><div class="circles-dim-comment">' + escHtml(d.comment) + '</div></div>' +
-      '<div class="circles-dim-score">' + d.score + '<span style="font-size:10px;color:var(--c-text-3,#8a8a8a)">/5</span></div>' +
+      '<div class="circles-dim-row-main">' +
+        '<div class="circles-dim-row-head">' +
+          '<div class="circles-dim-name">' + escHtml(d.name) + '</div>' +
+          '<div class="circles-dim-score">' + score + '<span>/5</span></div>' +
+        '</div>' +
+        '<div class="circles-dim-bar-wrap"><div class="circles-dim-bar-fill" style="width:' + pct + '%"></div></div>' +
+        '<div class="circles-dim-comment">' + escHtml(d.comment || '') + '</div>' +
+      '</div>' +
     '</div>';
   }).join('');
 
   var coachContent = escHtml(result.coachVersion || '');
+  var coachOpen = !!AppState.circlesCoachOpen;
   var isLastStep = stepIdx === 6;
+
+  // Score nav row (simulation mode only): ◀ {prev} | {current} | {next} ▶
+  var scoreNavRow = '';
+  if (mode === 'simulation') {
+    var prevStep = stepIdx > 0 ? CIRCLES_STEPS[stepIdx - 1] : null;
+    var nextStep = stepIdx < 6 ? CIRCLES_STEPS[stepIdx + 1] : null;
+    var prevAvailable = prevStep && stepScores[prevStep.key];
+    var nextAvailable = nextStep && stepScores[nextStep.key];
+    scoreNavRow = '<div class="circles-score-nav-row">' +
+      '<button class="circles-score-nav-arrow" id="circles-score-prev" ' + (prevAvailable ? '' : 'disabled') + '>' +
+        '<i class="ph ph-caret-left"></i>' +
+        '<span>' + (prevStep ? escHtml(prevStep.short + ' ' + prevStep.label) : '—') + '</span>' +
+      '</button>' +
+      '<div class="circles-score-nav-current">' + escHtml(step.short + ' ' + step.label) + '</div>' +
+      '<button class="circles-score-nav-arrow right" id="circles-score-nav-next" ' + (nextAvailable ? '' : 'disabled') + '>' +
+        '<span>' + (nextStep ? escHtml(nextStep.short + ' ' + nextStep.label) : '—') + '</span>' +
+        '<i class="ph ph-caret-right"></i>' +
+      '</button>' +
+    '</div>';
+  }
+
+  // Bottom submit-bar variants
+  var submitBar;
+  if (mode === 'simulation' && isLastStep) {
+    submitBar =
+      '<button class="circles-btn-ghost" id="circles-score-home">回首頁</button>' +
+      '<button class="circles-btn-primary" id="circles-score-final">看完整總結報告</button>';
+  } else if (mode === 'simulation') {
+    var nxt = CIRCLES_STEPS[stepIdx + 1];
+    submitBar =
+      '<button class="circles-btn-ghost" id="circles-score-home">回首頁</button>' +
+      '<button class="circles-btn-primary" id="circles-score-next">繼續下一步：' + escHtml(nxt.label) + ' →</button>';
+  } else {
+    // drill mode (any step) — 再練一次
+    submitBar =
+      '<button class="circles-btn-ghost" id="circles-score-home">回首頁</button>' +
+      '<button class="circles-btn-primary" id="circles-score-again">再練一次</button>';
+  }
+
+  // One-line summary subtext under big score
+  var summaryLine = step.short + ' — ' + step.label + ' 步驟得分';
 
   return '<div data-view="circles">' +
     '<div class="circles-nav">' +
       '<button class="circles-nav-back" id="circles-score-back"><i class="ph ph-arrow-left"></i></button>' +
-      '<div>' +
-        '<div class="circles-nav-title">步驟評分 — ' + step.label + '</div>' +
-        '<div class="circles-nav-sub">' + (q ? q.company : '') + '</div>' +
+      '<div style="flex:1;min-width:0">' +
+        '<div class="circles-nav-title">' + escHtml(step.label) + ' 評分結果</div>' +
+        '<div class="circles-nav-sub">' + escHtml(q ? (q.company + (q.product ? ' · ' + q.product : '')) : '') + '</div>' +
       '</div>' +
-      (mode === 'simulation'
-        ? '<div style="display:flex;gap:4px">' +
-            '<button class="circles-nav-back" id="circles-score-prev" ' + (stepIdx === 0 ? 'disabled style="opacity:.35"' : '') + '><i class="ph ph-caret-left"></i></button>' +
-            '<button class="circles-nav-back" id="circles-score-nav-next" ' + (stepIdx >= AppState.circlesSimStep ? 'disabled style="opacity:.35"' : '') + '><i class="ph ph-caret-right"></i></button>' +
-          '</div>'
-        : '') +
+      '<button class="circles-nav-home-btn" id="circles-score-home-btn">回首頁</button>' +
     '</div>' +
+    scoreNavRow +
     '<div class="circles-progress">' + progressSegs + '<div class="circles-progress-label">' + step.short + ' · ' + step.label + ' · ' + (stepIdx + 1) + '/7</div></div>' +
     '<div class="circles-score-wrap">' +
       '<div class="circles-score-total">' +
         '<div class="circles-score-number">' + Math.round(result.totalScore || 0) + '</div>' +
-        '<div class="circles-score-label">/ 100 分</div>' +
+        '<div class="circles-score-sub">' + escHtml(summaryLine) + '</div>' +
       '</div>' +
-      dims +
+      '<div class="circles-score-breakdown">' + dims + '</div>' +
       '<div class="circles-highlight-card good"><div class="circles-highlight-card-label">最強表現</div><div class="circles-highlight-card-text">' + escHtml(result.highlight || '—') + '</div></div>' +
       '<div class="circles-highlight-card improve"><div class="circles-highlight-card-label">最需改進</div><div class="circles-highlight-card-text">' + escHtml(result.improvement || '—') + '</div></div>' +
       '<div class="circles-coach-toggle" id="circles-coach-toggle">' +
-        '<div class="circles-coach-toggle-label">教練示範答案 <i class="ph ph-caret-down"></i></div>' +
-        '<div class="circles-coach-content" id="circles-coach-content">' + coachContent + '</div>' +
+        '<div class="circles-coach-toggle-label">教練示範答案 <i class="ph ' + (coachOpen ? 'ph-caret-up' : 'ph-caret-down') + '" id="circles-coach-icon"></i></div>' +
+        '<div class="circles-coach-content' + (coachOpen ? ' open' : '') + '" id="circles-coach-content">' + coachContent + '</div>' +
       '</div>' +
-      '<div class="circles-submit-bar">' +
-        (isLastStep && mode === 'simulation'
-          ? '<button class="circles-btn-primary" id="circles-score-final">查看總結報告</button><button class="circles-btn-ghost" id="circles-score-home">回首頁</button>'
-          : (mode === 'drill' || isLastStep
-              ? '<button class="circles-btn-primary" id="circles-score-again">重練這道題</button><button class="circles-btn-ghost" id="circles-score-home">回首頁</button>'
-              : '<button class="circles-btn-primary" id="circles-score-next">繼續下一步：' + CIRCLES_STEPS[stepIdx + 1].label + ' →</button><button class="circles-btn-ghost" id="circles-score-home">回首頁</button>')) +
-      '</div>' +
+      '<div class="circles-submit-bar circles-submit-bar-row">' + submitBar + '</div>' +
     '</div>' +
   '</div>';
 }
 
 function bindCirclesStepScore() {
+  // Back arrow → return to Phase 2
   document.getElementById('circles-score-back')?.addEventListener('click', function() {
     AppState.circlesPhase = 2;
     render();
   });
 
+  // Coach toggle → expand/collapse, flip icon, persist state in AppState
   document.getElementById('circles-coach-toggle')?.addEventListener('click', function() {
     var content = document.getElementById('circles-coach-content');
-    if (content) content.classList.toggle('open');
+    var icon = document.getElementById('circles-coach-icon');
+    if (!content) return;
+    var open = !content.classList.contains('open');
+    content.classList.toggle('open', open);
+    if (icon) icon.className = open ? 'ph ph-caret-up' : 'ph ph-caret-down';
+    AppState.circlesCoachOpen = open;
   });
 
-  document.getElementById('circles-score-home')?.addEventListener('click', function() {
+  // 回首頁 (nav top-right + bottom submit bar) — same handler
+  function goHome() {
     AppState.circlesSelectedQuestion = null;
     AppState.circlesSession = null;
     AppState.circlesPhase = 1;
     AppState.circlesScoreResult = null;
     AppState.circlesFinalReport = null;
     AppState.circlesStepScores = {};
+    AppState.circlesSimStep = 0;
+    AppState.circlesCoachOpen = false;
     navigate('circles');
-  });
+  }
+  document.getElementById('circles-score-home')?.addEventListener('click', goHome);
+  document.getElementById('circles-score-home-btn')?.addEventListener('click', goHome);
 
+  // 看完整總結報告 (simulation last step S)
   document.getElementById('circles-score-final')?.addEventListener('click', function() {
     AppState.circlesPhase = 4;
+    AppState.circlesCoachOpen = false;
     render();
   });
 
+  // 再練一次 (drill mode) → reset Phase to 1, clear framework, stay on same screen
   document.getElementById('circles-score-again')?.addEventListener('click', function() {
     AppState.circlesSession = null;
     AppState.circlesPhase = 1;
@@ -2343,11 +2400,12 @@ function bindCirclesStepScore() {
     AppState.circlesScoreResult = null;
     AppState.circlesFinalReport = null;
     AppState.circlesStepScores = {};
+    AppState.circlesCoachOpen = false;
     render();
   });
 
+  // 繼續下一步 (simulation mid-step) → advance simStep, render Phase 1 of next step
   document.getElementById('circles-score-next')?.addEventListener('click', function() {
-    var mode = AppState.circlesMode;
     var stepIdx = CIRCLES_STEPS.findIndex(function(s) { return s.key === AppState.circlesDrillStep; });
     if (stepIdx < 6) {
       var nextStep = CIRCLES_STEPS[stepIdx + 1];
@@ -2357,32 +2415,37 @@ function bindCirclesStepScore() {
       AppState.circlesGateResult = null;
       AppState.circlesConversation = [];
       AppState.circlesScoreResult = null;
-      if (mode === 'simulation') {
-        AppState.circlesSimStep = stepIdx + 1;
-        saveCirclesProgress({ currentPhase: 1, simStepIndex: stepIdx + 1 });
-      } else {
-        AppState.circlesSession = null;
-      }
+      AppState.circlesSimStep = stepIdx + 1;
+      AppState.circlesCoachOpen = false;
+      saveCirclesProgress({ currentPhase: 1, simStepIndex: stepIdx + 1 });
       render();
     }
   });
 
+  // Score nav ◀ (simulation only) → switch displayed score using cache, no re-fetch
   document.getElementById('circles-score-prev')?.addEventListener('click', function() {
     var idx = CIRCLES_STEPS.findIndex(function(s) { return s.key === AppState.circlesDrillStep; });
-    if (idx > 0) {
-      AppState.circlesDrillStep = CIRCLES_STEPS[idx - 1].key;
-      AppState.circlesScoreResult = (AppState.circlesStepScores || {})[CIRCLES_STEPS[idx - 1].key] || null;
-      render();
-    }
+    if (idx <= 0) return;
+    var prevKey = CIRCLES_STEPS[idx - 1].key;
+    var cached = (AppState.circlesStepScores || {})[prevKey];
+    if (!cached) return;
+    AppState.circlesDrillStep = prevKey;
+    AppState.circlesScoreResult = cached;
+    AppState.circlesCoachOpen = false;
+    render();
   });
 
+  // Score nav ▶ (simulation only) → switch displayed score using cache, no re-fetch
   document.getElementById('circles-score-nav-next')?.addEventListener('click', function() {
     var idx = CIRCLES_STEPS.findIndex(function(s) { return s.key === AppState.circlesDrillStep; });
-    if (idx < AppState.circlesSimStep && idx < 6) {
-      AppState.circlesDrillStep = CIRCLES_STEPS[idx + 1].key;
-      AppState.circlesScoreResult = (AppState.circlesStepScores || {})[CIRCLES_STEPS[idx + 1].key] || null;
-      render();
-    }
+    if (idx >= 6) return;
+    var nextKey = CIRCLES_STEPS[idx + 1].key;
+    var cached = (AppState.circlesStepScores || {})[nextKey];
+    if (!cached) return;
+    AppState.circlesDrillStep = nextKey;
+    AppState.circlesScoreResult = cached;
+    AppState.circlesCoachOpen = false;
+    render();
   });
 }
 
