@@ -730,7 +730,9 @@ function renderOffcanvasList(listEl, sessions) {
       : isCircles
         ? `CIRCLES · ${s.question_json?.company || ''}`
         : `${s.difficulty || ''}`;
-    const date = new Date(s.created_at).toLocaleString('zh-TW', { month: 'numeric', day: 'numeric', hour: '2-digit', minute: '2-digit' });
+    // Fall back to updated_at when created_at is absent (older session rows or DB selects that omit it).
+    const _ts = s.created_at || s.updated_at;
+    const date = _ts ? new Date(_ts).toLocaleString('zh-TW', { month: 'numeric', day: 'numeric', hour: '2-digit', minute: '2-digit' }) : '—';
     let badge, badgeClass;
     if (s.status === 'completed') {
       badge = s.scores_json ? Math.round(s.scores_json.totalScore ?? s.scores_json.total ?? 0) + ' 分' : '完成';
