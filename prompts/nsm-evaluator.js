@@ -1,5 +1,6 @@
 const OpenAI = require('openai');
 const client = new OpenAI({ apiKey: process.env.OPENAI_API_KEY });
+const { guessProductType } = require('./utils/product-type');
 
 async function evaluateNSM({ question_json, user_nsm, user_breakdown }) {
   const { company, scenario, coach_nsm } = question_json;
@@ -11,15 +12,7 @@ async function evaluateNSM({ question_json, user_nsm, user_breakdown }) {
     saas:        'SaaS 型（B2B/訂閱）：廣度=啟用（Activation）率，深度=席次利用率，頻率=工作流黏著率，業務影響=NRR/帳號擴張信號',
   };
 
-  function guessType(company, scenario) {
-    const t = (company + ' ' + scenario).toLowerCase();
-    if (/電商|marketplace|外賣|美食|租車|共享|打車|預訂|配送|撮合/.test(t)) return 'transaction';
-    if (/saas|企業|b2b|crm|協作|辦公|工具|管理系統|自動化/.test(t)) return 'saas';
-    if (/創作|creator|ugc|知識|課程|部落|newsletter|直播|podcast/.test(t)) return 'creator';
-    return 'attention';
-  }
-
-  const productType = guessType(company, scenario);
+  const productType = guessProductType(question_json);
 
   const prompt = `你是一位嚴格的 PM 教練，正在評估學員定義北極星指標（NSM）的能力。
 

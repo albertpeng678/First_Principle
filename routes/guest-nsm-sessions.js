@@ -6,14 +6,7 @@ const { evaluateNSM } = require('../prompts/nsm-evaluator');
 const { generateNSMHints } = require('../prompts/nsm-hints');
 const { reviewNSMGate } = require('../prompts/nsm-gate');
 const { generateNSMContext } = require('../prompts/nsm-context');
-
-function guessProductType(question_json) {
-  const t = ((question_json.industry || '') + ' ' + (question_json.scenario || '') + ' ' + (question_json.company || '')).toLowerCase();
-  if (/電商|marketplace|外賣|美食|租車|共享|打車|預訂|配送|撮合/.test(t)) return 'transaction';
-  if (/saas|企業|b2b|crm|協作|辦公|工具|管理系統|自動化/.test(t)) return 'saas';
-  if (/創作|creator|ugc|知識|課程|部落|newsletter|直播|podcast/.test(t)) return 'creator';
-  return 'attention';
-}
+const { guessProductType } = require('../prompts/utils/product-type');
 
 // POST /api/guest/nsm-sessions
 router.post('/', requireGuestId, async (req, res) => {

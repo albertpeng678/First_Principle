@@ -1,17 +1,6 @@
 const OpenAI = require('openai');
 const openai = new OpenAI({ apiKey: process.env.OPENAI_API_KEY });
-
-// Detect product archetype to calibrate the insight and traps fields.
-function guessProductType(company, scenario) {
-  const text = (company + ' ' + (scenario || '')).toLowerCase();
-  if (/電商|marketplace|外賣|美食|叫車|打車|共享|租車|配送|撮合|airbnb|uber|grab|foodpanda|wolt|booking/.test(text))
-    return 'transaction';
-  if (/saas|企業|b2b|crm|協作|辦公|工具|管理|zendesk|slack|notion|figma|datadog|zoom|intercom|twilio|stripe|shopify/.test(text))
-    return 'saas';
-  if (/教育|學習|課程|語言|創作|ugc|知識|podcast|直播|duolingo|coursera|creator/.test(text))
-    return 'creator';
-  return 'attention';
-}
+const { guessProductType } = require('./utils/product-type');
 
 const PRODUCT_TYPE_LENS = {
   attention: {
@@ -38,7 +27,7 @@ const PRODUCT_TYPE_LENS = {
 
 async function generateNSMContext({ question_json }) {
   const { company, industry, scenario, coach_nsm } = question_json;
-  const productType = guessProductType(company, scenario);
+  const productType = guessProductType(question_json);
   const lens = PRODUCT_TYPE_LENS[productType];
 
   const systemPrompt = `你是 PM 教練，為學員提供「北極星指標（NSM）訓練」的破題導讀卡。
