@@ -36,7 +36,12 @@ const AppState = {
   circlesSelectedQuestion: null,   // { id, company, ... }
   circlesSession: null,            // { id, mode, drill_step } — other fields live in top-level AppState keys
   circlesPhase: 1,                 // 1 | 1.5 | 2 | 3 (score) | 4 (report)
-  circlesFrameworkDraft: {},       // { fieldName: value }
+  circlesFrameworkDraft: {},       // { fieldName: value } — current step's framework draft
+  circlesStepDrafts: {},           // { stepKey: draftObj } — per-step persistent drafts saved on Phase 1 submit
+                                   // L: { sol1, sol2, sol3 } — solution names
+                                   // C1/I/R/C2: { fieldName: value, conclusion?: string } — Phase 1/2 values
+                                   // E: { perSolution: { sol1: {...4 fields}, sol2: {...}, sol3: {...} }, conclusion?: string }
+                                   // S: { fieldName: value, tracking: { reach, depth, frequency, impact } }
   circlesGateResult: null,         // { items, canProceed, overallStatus }
   circlesConversation: [],         // [{ userMessage, interviewee, coaching, hint }]
   circlesGateLoading: false,
@@ -179,14 +184,165 @@ var CIRCLES_STEPS = [
 ];
 
 var CIRCLES_STEP_HINTS = {
-  C1: ['平台 / 地區 / 功能範圍', '過去 7 天 / 30 天 / 90 天', '直接影響哪個業務指標', '已排除哪些干擾因素'],
-  I:  ['功能型用戶 / 習慣型用戶 / 新用戶', '最有代表性且體量最大的群體', '他們想完成什麼「任務」', '不服務哪類用戶及原因'],
-  R:  ['需要做到什麼功能', '使用這個產品時的感受期待', '在社群中想達到的目標', '最讓用戶沮喪的一件事'],
-  C2: ['以影響力 × 可行性 × 緊迫性排序', '選定最優先的一個需求', '哪些需求先放後期', '說明取捨的核心邏輯'],
-  L:  ['漸進式改進方案', '重新設計方案', '生態系整合方案', '各方案的核心差異'],
-  E:  ['用戶價值提升點', '實作難度 / 時間成本', '技術或商業依賴', '用什麼指標衡量成功'],
-  S:  ['選擇哪個方案並推薦', '因為它在 X 情況下最優', '北極星指標是...', '追蹤：每週 / 每月 X 指標'],
+  C1: ['聚焦 News Feed 廣告，排除 Stories / Reels / Marketplace。「廣告過多」先判定是相關性問題（廣告內容與用戶興趣不符），而非頻率或格式問題——訪談中再確認',
+       '設定 90 天觀察期——廣告業務以季度為單位，90 天足以看到用戶行為變化與收入影響的相關性',
+       '核心約束是廣告收入不能下降超過 X%，廣告主 ROI 不能大幅下滑——否則廣告主撤單，業務鏈斷掉',
+       '① 廣告問題是相關性而非純頻率；② 用戶負感來自打斷心流，不是廣告本身；③ 技術上可做到動態插入頻率調控（待確認）'],
+  I:  ['功能型用戶 / 習慣型用戶 / 新用戶',
+       '最有代表性且體量最大的群體',
+       '他們想完成什麼「任務」（JTBD）',
+       '不服務哪類用戶及原因'],
+  R:  ['快速判斷貼文價值、過濾低品質內容、控制看到哪些類型的貼文',
+       '不想因漏看重要動態而焦慮、希望打開 App 有收穫感而非空虛',
+       '維持與遠距朋友和家人的弱連結、對重要時刻（婚禮、升學）及時回應',
+       '打開 App 後滑了 10 分鐘卻沒有任何有意義的互動，長期降低對 Facebook 的預期'],
+  C2: ['以廣告收入季度不降超過 5% 為硬性約束，在此前提下最大化 DAU 打開頻率',
+       '改善 Feed 演算法相關性——可同時提升 DAU 打開頻率與廣告點擊率，是正和博弈',
+       '用戶自訂廣告頻率控制——廣告主合約關係風險高，且工程複雜度不在單季度範圍內',
+       '相關性改善是正和博弈（用戶與廣告主雙贏），頻率控制是零和博弈；正和優先，零和暫緩'],
+  L:  ['演算法相關性重排——調整 ML 模型，優先展示親密朋友動態，降低陌生粉絲頁比重',
+       '用戶主動優先序——推出「摯友列表」，該列表動態永遠優先展示，不受演算法干擾',
+       '（可選）分類 Feed 頁籤——將朋友動態、廣告、影片拆成不同頁籤，讓用戶自行選擇瀏覽情境',
+       null],
+  E:  ['演算法方案優點：系統主動過濾，用戶無需改變行為；ML 端優化，開發週期最短（單季）',
+       '演算法方案缺點：黑盒決策，用戶感知不透明；廣告相關性可能連帶下降，影響廣告主收益',
+       '依賴足夠的用戶社交圖譜資料；廣告收入影響需事先 A/B test 量化上限',
+       'Feed 停留時間提升 ≥ 15%；朋友動態互動率（like/comment）提升 ≥ 20%；廣告 CTR 下降 ≤ 5%'],
+  S:  ['例：推薦方案一「情境式升級提示」— 在廣告中斷時觸發，轉換意圖最強，選擇理由是 E 步驟評估顯示風險最低',
+       '例：E 步驟評估顯示此方案依賴條件最少、成功指標清晰且直接對應核心痛點，不需要廣告主或第三方合作',
+       '例：每月完成至少一首完整曲目播放的活躍月用戶數 — 區分「開 App 就算」與「真正在聽音樂」的行為門檻',
+       null],
 };
+
+// ──────────────────────────────────────────────────
+// CIRCLES_STEP_CONFIG — full per-step content for Phase 1 form
+//   Drives renderCirclesPhase1() — defines fields, placeholders, hint overlay text,
+//   icebreaker text, and special block kinds (tracking-block for S, e-solution-block for E).
+// ──────────────────────────────────────────────────
+var CIRCLES_STEP_CONFIG = {
+  C1: {
+    label: 'C — 澄清情境',
+    progressLabel: 'C · 澄清情境 · 1/7',
+    fields: [
+      { key: '問題範圍', placeholder: '說明討論的問題範圍與問題類型…', rows: 2,
+        hintOverlay: '澄清「廣告過多」的具體含義——是頻率（每 N 則出現一則廣告）、相關性（廣告與用戶興趣不符），還是格式（影片廣告干擾感更強）？三者是完全不同的問題，會導致完全不同的解法。同時確認討論範圍：只看 News Feed，還是包含 Stories 和 Reels？邊界越清楚，後面的分析越聚焦。' },
+      { key: '時間範圍', placeholder: '設定時間範圍並說明理由…', rows: 2,
+        hintOverlay: '設定一個合理的觀察期。廣告業務以季度為單位衡量，90 天足以觀察用戶行為變化和收入影響的相關性。太短（2週）看不出趨勢，太長（1年）讓面試官覺得你沒有執行感。說明為什麼這個時間範圍適合這個問題——不只是給個數字。' },
+      { key: '業務影響', placeholder: '說明業務影響與核心約束…', rows: 2,
+        hintOverlay: '廣告業務有兩個關鍵利益相關方——用戶和廣告主。改善用戶廣告體驗可能影響廣告曝光量，進而影響廣告主 ROI 和 Meta 收入。你需要說明這個改善的核心業務約束：收入不能下降多少？廣告主的什麼承諾不能打破？說清楚這個邊界，你的分析才有業務合理性。' },
+      { key: '假設確認', placeholder: '列出你的關鍵假設，並標註哪些待確認…', rows: 2,
+        hintOverlay: '列出你在後續分析中會用到的、尚未被確認的假設。例如：「廣告問題是相關性而非純頻率」、「用戶的負感來自打斷心流而非廣告本身」。把假設說清楚，面試官才知道你的分析建立在什麼基礎上，也給你機會確認哪些假設需要驗證。列出 2-3 條最關鍵的就夠。' },
+    ],
+    icebreaker: '問被訪談者這個問題的核心是什麼——「廣告過多」是指頻率、相關性，還是格式？同時確認業務上有哪些不能突破的限制。',
+  },
+  I: {
+    label: 'I — 定義用戶',
+    progressLabel: 'I · 定義用戶 · 2/7',
+    fields: [
+      { key: '目標用戶分群', placeholder: '說明你如何劃分用戶群…', rows: 2,
+        hintOverlay: '思考用戶使用 News Feed 的不同行為模式。哪些群體對廣告的感受最強烈？功能型用戶、習慣型用戶、新用戶各有什麼不同的痛點？這個分群方式要足夠具體，能讓後續的需求分析聚焦在真正不同的動機上。' },
+      { key: '選定焦點對象', placeholder: '選定要服務的焦點群體並說明理由…', rows: 2,
+        hintOverlay: '從上面的分群中選一個。選擇標準是：體量最大且對廣告痛點最有代表性的群體。說清楚為什麼這個群體是最值得優先服務的，而不是另外幾個。這個理由會影響整個後續的需求和方案設計。' },
+      { key: '用戶動機假設', placeholder: '用 JTBD 框架描述用戶的深層動機…', rows: 2,
+        hintOverlay: '用 JTBD（Jobs to Be Done）框架思考：這個用戶「聘用」News Feed 是為了完成什麼任務？不是「滑手機」，而是更深層的目標——保持社交聯繫、消磨時間、獲取資訊？動機越具體，後面需求分析就越有說服力。' },
+      { key: '排除對象', placeholder: '說明哪些用戶群體不在服務範圍及理由…', rows: 2,
+        hintOverlay: '說明哪些用戶群體你不服務，以及原因。例如：不服務廣告主（有獨立工具）、不服務純新用戶（行為資料不足）。這一欄的目的是讓面試官看到你的邊界意識——你的設計不是要取悅所有人。' },
+    ],
+    icebreaker: '問被訪談者這個產品的用戶分群——哪些行為模式可以分群？哪些群體對這個問題最敏感？',
+  },
+  R: {
+    label: 'R — 發掘需求',
+    progressLabel: 'R · 發掘需求 · 3/7',
+    fields: [
+      { key: '功能性需求', placeholder: '描述用戶要完成的具體任務與功能需求…', rows: 2,
+        hintOverlay: '想想這位「習慣型用戶」打開 News Feed 要完成的任務。功能性需求是「做到什麼」——他需要什麼功能才能完成這個任務？從他每天打開 App 的那個行為出發，往前推：他想過濾什麼？想找到什麼？這個答案會決定後續核心痛點的定義方向。' },
+      { key: '情感性需求', placeholder: '描述用戶想要或想避免的感受…', rows: 2,
+        hintOverlay: '情感性需求不是功能，是用戶使用產品時的「感受」。這位用戶打開 Facebook 時想要什麼感覺？他不想有什麼感覺？注意：「想看好內容」是功能需求，不是情感需求——情感需求應該描述感受層，例如焦慮、歸屬感、成就感。即使是 SaaS 或工具性產品，也一定有情感需求。' },
+      { key: '社交性需求', placeholder: '描述用戶在人際關係中的需求…', rows: 2,
+        hintOverlay: '社交性需求是用戶在人際關係中需要什麼。這位用戶如何透過 News Feed 維持社交關係？他想對哪些人的動態有所回應？想在什麼樣的社群中保有存在感？B2B SaaS 也有社交需求——例如與團隊共享成果、讓主管看到你的工作進度。' },
+      { key: '核心痛點', placeholder: '挑選一個最核心的痛點並說明為什麼優先…', rows: 2,
+        hintOverlay: '核心痛點是上面三層需求中「最根本的一個沒被滿足」的需求。你要選出一個，說明它是功能層、情感層還是社交層的痛點，並說清楚為什麼它是「核心」。這個優先判斷會直接影響後續 C 步驟的取捨標準——所以這欄要有你的立場，不只是列舉。' },
+    ],
+    icebreaker: '問被訪談者這位用戶實際使用產品時的真實場景——他想完成什麼？他真實的感受是什麼？',
+  },
+  C2: {
+    label: 'C — 優先排序',
+    progressLabel: 'C · 優先排序 · 4/7',
+    fields: [
+      { key: '取捨標準', placeholder: '建立可操作的取捨判斷框架…', rows: 2,
+        hintOverlay: '取捨標準不是「什麼最重要」，而是「用什麼框架來判斷重要性」。你的標準應該是可操作的——例如「以廣告收入不降超過5%為硬性約束，在此前提下最大化 DAU 打開頻率」。沒有顯性標準，後面的排序理由就無法自圓其說。' },
+      { key: '最優先項目', placeholder: '說明最優先處理的項目與選擇理由…', rows: 2,
+        hintOverlay: '從 R 步驟確認的需求中，選出最優先要解決的那一個。選擇理由要對應你的取捨標準——不能只說「最重要」，要說「根據我的取捨標準，它最優先因為…」。最優先項目要和暫緩項目形成對比，讓面試官看到你的判斷邏輯，而不只是一個列表。' },
+      { key: '暫緩項目', placeholder: '說明哪些項目暫緩處理及理由…', rows: 2,
+        hintOverlay: '暫緩不等於不重要——你要說清楚「為什麼現在不做」。是資源限制？廣告主關係風險？還是依賴其他功能先完成？好的暫緩理由展示你對整個業務系統的理解，而不只是「先做 A 再做 B」。理由越具體，說服力越強。' },
+      { key: '排序理由', placeholder: '說明整體排序的核心邏輯…', rows: 2,
+        hintOverlay: '排序理由是把前三欄串起來的關鍵。它要回答：「為什麼最優先的不能暫緩？為什麼暫緩的不能優先？」說清楚這個邏輯，才是真正的取捨分析，而不只是列表。面試官期待看到你的判斷——為什麼是這個順序，而不是另一個順序？' },
+    ],
+    icebreaker: '問被訪談者這個項目有哪些硬性的業務限制——收入不能下降多少、廣告主有哪些合約承諾。有了約束邊界，才能確立你的取捨標準。',
+  },
+  L: {
+    label: 'L — 提出方案',
+    progressLabel: 'L · 提出方案 · 5/7',
+    fields: [
+      { key: '方案一', placeholder: '說明方案一的核心機制…', rows: 2, kind: 'solution', solKey: 'sol1',
+        nameKey: 'sol1', namePlaceholder: '方案名稱（10 字內）',
+        hintOverlay: '方案一通常是最直接解決優先痛點的路徑。根據 C 步驟的取捨標準，你最優先要解決的是「Feed 相關性不足」——方案一應該直接針對這個問題。說清楚你的方案是什麼、核心機制是什麼，一句話能讓面試官理解你在提什麼。' },
+      { key: '方案二', placeholder: '說明方案二的核心機制（與方案一方向不同）…', rows: 2, kind: 'solution', solKey: 'sol2',
+        nameKey: 'sol2', namePlaceholder: '方案名稱（10 字內）',
+        hintOverlay: '方案二要和方案一有明確的方向差異——不是「更多」而是「不同」。例如：方案一是演算法主動過濾，方案二可以是讓用戶主動控制。多樣性是這個步驟的核心評分維度。如果你的方案二只是方案一的微調，面試官會認為你的思維不夠廣。' },
+      { key: '方案三（可選）', placeholder: '說明方案三的核心機制（可選）…', rows: 2, kind: 'solution', solKey: 'sol3', optional: true,
+        nameKey: 'sol3', namePlaceholder: '方案名稱（10 字內）',
+        hintOverlay: '方案三是加分項，不是必填。如果你有第三個有意義的方案——通常是更激進或更長期的路徑——加上去能展示你的思維廣度。但如果只是湊數，不填反而更好。方案三和前兩個的差距，應該讓面試官感覺「這是完全不同的思路」。' },
+    ],
+    icebreaker: '問被訪談者這個項目有沒有討論過的方案方向——不是評估哪個最好，而是問「你們考慮過哪幾種做法」。這樣能讓你確認自己的方案有沒有遺漏重要選項。',
+  },
+  E: {
+    label: 'E — 評估取捨',
+    progressLabel: 'E · 評估取捨 · 6/7',
+    kind: 'per-solution',
+    showPrevStepCard: true,
+    perSolutionFields: [
+      { key: '優點', placeholder: '這個方案的核心優勢是什麼？',
+        hintOverlay: '優點要具體——不是「用戶喜歡」，而是「直接解決 Feed 相關性問題，系統主動，用戶無感」。說出這個方案「為什麼比其他方案更適合解決這個問題」。' },
+      { key: '缺點', placeholder: '最大的劣勢或限制？',
+        hintOverlay: '缺點不是說「這個方案不好」，而是誠實說「這個方向的侷限在哪裡」。面試官希望看到你能清楚識別方案的邊界，而不是只看到優點。' },
+      { key: '風險與依賴', placeholder: '實施這個方案需要什麼前提條件？',
+        hintOverlay: '風險是「如果 X 沒有達成，這個方案就會失敗」。常見的有：資料依賴（需要哪些 ML 訓練資料）、用戶行為假設（用戶願意主動設定）、業務約束（廣告收入不能下降超過 N%）。' },
+      { key: '成功指標', placeholder: '如何衡量這個方案是否成功？',
+        hintOverlay: '成功指標要和你在 R 步驟確認的核心痛點掛鉤。如果核心痛點是「Feed 相關性不足」，成功指標應該是「用戶在 Feed 上的停留時間提升 X%」或「廣告點擊率維持在 Y% 以上」。' },
+    ],
+    icebreaker: '問被訪談者：「這幾個方案你們在評估時，最擔心的風險是什麼？」——不是問哪個最好，而是問顧慮。這樣能讓你確認自己的風險識別有沒有遺漏關鍵的業務約束。',
+  },
+  S: {
+    label: 'S — 總結推薦',
+    progressLabel: 'S · 總結推薦 · 7/7',
+    showPrevStepCard: true,
+    showNsmAnnotation: true,
+    fields: [
+      { key: '推薦方案', placeholder: '清楚點名一個推薦方案…', rows: 2,
+        hintOverlay: 'S 步驟的核心是做出一個清晰的決策，而不是羅列選項。「推薦方案一或方案二都可以」這種回答會讓面試官覺得你缺乏決斷力。直接說「我推薦方案 X，因為……」——一句話，一個方案，一個最核心的理由。' },
+      { key: '選擇理由', placeholder: '引用 E 步驟結論說明選擇理由…', rows: 2,
+        hintOverlay: '最強的選擇理由來自你自己前幾步的分析，而非重新發明新邏輯。試著把 E 步驟的評估結論直接引用進來：「E 步驟顯示此方案風險最低、成功指標最清晰、依賴條件最少。」這樣的回答展現出你的分析有連貫性，整個 CIRCLES 框架是有機的整體，不是各自獨立的格子。' },
+      { key: '北極星指標', placeholder: '定義能反映核心價值的成果指標…', rows: 2,
+        hintOverlay: '北極星指標是衡量用戶真正獲得核心價值的成果指標，不是業務結果（營收、訂閱數）也不是活動指標（下載數、登入次數）。好的北極星指標能分辨「用戶有沒有真的在使用」：✗ 月活用戶數（開 App 就算）✓ 每月完整播放 ≥1 首歌的用戶數（真正在聽音樂）。你的推薦方案若成功，這個指標應該要上升。' },
+      { key: '追蹤指標', kind: 'tracking',
+        hintOverlay: '4 個維度讓你從不同角度驗證方案是否有效推動北極星指標：觸及廣度 — 有多少人看到你的方案？互動深度 — 看到之後有沒有真正採取行動？習慣頻率 — 持續回來使用嗎？留存驅力 — 是什麼讓他們留下來付費？每個指標盡量包含量化目標，例如「轉化率 ≥ 5%」。' },
+    ],
+    icebreaker: '你已完成 S 步驟的框架分析。現在透過與被訪談者對話，深化你的推薦邏輯與指標選擇。',
+  },
+};
+
+// Tracking dimensions for S step (NSM dimensions)
+var CIRCLES_TRACKING_DIMS = [
+  { key: 'reach',     label: '觸及廣度', desc: '有多少用戶真正接觸到推薦方案的核心功能',
+    placeholder: '例：情境式升級提示曝光人數 / 月活用戶', dotColor: '#3b82f6', textColor: '#1d4ed8' },
+  { key: 'depth',     label: '互動深度', desc: '用戶與核心功能的互動品質',
+    placeholder: '例：看到提示後點擊進入試用頁的轉化率', dotColor: '#8b5cf6', textColor: '#6d28d9' },
+  { key: 'frequency', label: '習慣頻率', desc: '用戶回訪與重複觸發的頻率',
+    placeholder: '例：試用期內每週啟動 Premium 功能的平均天數', dotColor: '#10b981', textColor: '#065f46' },
+  { key: 'impact',    label: '留存驅力', desc: '推動用戶留下來的核心機制',
+    placeholder: '例：試用到期後 30 日內完成訂閱的轉換率', dotColor: '#f59e0b', textColor: '#92400e' },
+];
 
 // ── NSM 輔助函式 ─────────────────────────────────
 function isVanityMetric(input, antiPatterns) {
@@ -238,6 +394,7 @@ async function loadCirclesSession(sessionId) {
     AppState.circlesPhase             = s.current_phase || 1;
     AppState.circlesSimStep           = s.sim_step_index || 0;
     AppState.circlesFrameworkDraft    = s.framework_draft || {};
+    AppState.circlesStepDrafts        = s.step_drafts || {};
     AppState.circlesGateResult        = s.gate_result || null;
     AppState.circlesConversation      = s.conversation || [];
     AppState.circlesScoreResult       = null;
@@ -411,6 +568,7 @@ async function navigate(view) {
     AppState.circlesPhase = 1;
     AppState.circlesSelectedQuestion = null;
     AppState.circlesFrameworkDraft = {};
+    AppState.circlesStepDrafts = {};
     AppState.circlesGateResult = null;
     AppState.circlesConversation = [];
     AppState.circlesScoreResult = null;
@@ -1042,64 +1200,383 @@ function bindCirclesHome() {
     });
   }
 }
+// ──────────────────────────────────────────────────
+// Helper: build prev-step-card HTML for E and S steps
+//   Reads AppState.circlesStepDrafts; falls back to '—' when missing.
+// ──────────────────────────────────────────────────
+function buildPrevStepCardHtml(stepKey) {
+  var sd = AppState.circlesStepDrafts || {};
+  var rows;
+  if (stepKey === 'E') {
+    var c1 = (sd.C1 && sd.C1['業務影響']) || '—';
+    var rConc = (sd.R && sd.R.conclusion) || (sd.R && sd.R['核心痛點']) || '—';
+    var lDraft = sd.L || {};
+    var lParts = [];
+    if (lDraft.sol1) lParts.push('① ' + lDraft.sol1);
+    if (lDraft.sol2) lParts.push('② ' + lDraft.sol2);
+    if (lDraft.sol3) lParts.push('③ ' + lDraft.sol3);
+    var lText = lParts.length ? lParts.join(' ') : '—';
+    rows = [
+      { label: 'C1 業務約束', val: escHtml(c1) },
+      { label: 'R 核心痛點', val: escHtml(rConc) },
+      { label: 'L 方案',     val: escHtml(lText) },
+    ];
+  } else if (stepKey === 'S') {
+    var eConc = (sd.E && sd.E.conclusion) || '—';
+    var rConcS = (sd.R && sd.R.conclusion) || (sd.R && sd.R['核心痛點']) || '—';
+    var lDraftS = sd.L || {};
+    var lPartsS = [];
+    if (lDraftS.sol1) lPartsS.push('① ' + lDraftS.sol1);
+    if (lDraftS.sol2) lPartsS.push('② ' + lDraftS.sol2);
+    if (lDraftS.sol3) lPartsS.push('③ ' + lDraftS.sol3);
+    var lTextS = lPartsS.length ? lPartsS.join(' ') : '—';
+    rows = [
+      { label: 'E 評估',     val: escHtml(eConc) },
+      { label: 'L 方案',     val: escHtml(lTextS) },
+      { label: 'R 核心痛點', val: escHtml(rConcS) },
+    ];
+  } else {
+    return '';
+  }
+  return '<div class="prev-step-card">' +
+    '<button class="prev-step-toggle" type="button" data-prev-toggle="1">' +
+      '<span class="prev-step-toggle-title"><i class="ph ph-clock-counter-clockwise"></i> 前步驟重點參考</span>' +
+      '<i class="ph ph-caret-down toggle-caret"></i>' +
+    '</button>' +
+    '<div class="prev-step-body">' +
+      rows.map(function(r) {
+        return '<div class="prev-step-row">' +
+          '<span class="prev-step-label">' + r.label + '</span>' +
+          '<span class="prev-step-val">' + r.val + '</span>' +
+        '</div>';
+      }).join('') +
+    '</div>' +
+  '</div>';
+}
+
+// ──────────────────────────────────────────────────
+// Helper: build a standard textarea field group
+// ──────────────────────────────────────────────────
+function buildFieldGroupHtml(stepKey, field, draft, isSimulation, fieldIdx) {
+  var rows = field.rows || 2;
+  var key = field.key;
+  var val = draft[key] != null ? draft[key] : '';
+  // Drill mode: show static example hint inline (CIRCLES_STEP_HINTS); Simulation: hide
+  var hint = '';
+  if (!isSimulation && CIRCLES_STEP_HINTS[stepKey] && CIRCLES_STEP_HINTS[stepKey][fieldIdx]) {
+    hint = CIRCLES_STEP_HINTS[stepKey][fieldIdx];
+  }
+  return '<div class="circles-field-group">' +
+    '<div class="circles-field-label-row">' +
+      '<div class="circles-field-label">' + escHtml(key) + '</div>' +
+      '<button class="circles-hint-trigger" type="button" data-hint-step="' + stepKey + '" data-hint-field="' + escHtml(key) + '">' +
+        '<i class="ph ph-lightbulb"></i> 提示' +
+      '</button>' +
+    '</div>' +
+    (hint ? '<div class="circles-field-hint">例：' + escHtml(hint) + '</div>' : '') +
+    '<textarea class="circles-field-input" data-field="' + escHtml(key) + '" rows="' + rows + '" placeholder="' + escHtml(field.placeholder || '填寫你的分析…') + '">' + escHtml(val) + '</textarea>' +
+  '</div>';
+}
+
+// ──────────────────────────────────────────────────
+// Helper: build the L-step solution field group (with name input)
+// ──────────────────────────────────────────────────
+function buildSolutionFieldHtml(stepKey, field, draft, lDraft, isSimulation, fieldIdx) {
+  var key = field.key;
+  var solKey = field.solKey;
+  var nameVal = lDraft[solKey] != null ? lDraft[solKey] : '';
+  var bodyVal = draft[key] != null ? draft[key] : '';
+  var optional = !!field.optional;
+  var hint = '';
+  if (!isSimulation && CIRCLES_STEP_HINTS[stepKey] && CIRCLES_STEP_HINTS[stepKey][fieldIdx]) {
+    hint = CIRCLES_STEP_HINTS[stepKey][fieldIdx];
+  }
+  var groupId = optional ? ' id="l-sol3-group" style="display:' + (nameVal || bodyVal ? 'block' : 'none') + '"' : '';
+  return '<div class="circles-field-group"' + groupId + '>' +
+    '<div class="circles-field-label-row">' +
+      '<div class="circles-field-label">' + escHtml(key) + '</div>' +
+      '<button class="circles-hint-trigger" type="button" data-hint-step="' + stepKey + '" data-hint-field="' + escHtml(key) + '">' +
+        '<i class="ph ph-lightbulb"></i> 提示' +
+      '</button>' +
+    '</div>' +
+    '<div class="sol-name-row">' +
+      '<i class="ph ph-tag"></i>' +
+      '<input class="sol-name-input" type="text" maxlength="10" data-sol-name="' + solKey + '" placeholder="' + escHtml(field.namePlaceholder || '方案名稱（10 字內）') + '" value="' + escHtml(nameVal) + '">' +
+    '</div>' +
+    (hint ? '<div class="circles-field-hint">例：' + escHtml(hint) + '</div>' : '') +
+    '<textarea class="circles-field-input" data-field="' + escHtml(key) + '" rows="' + (field.rows || 2) + '" placeholder="' + escHtml(field.placeholder || '') + '">' + escHtml(bodyVal) + '</textarea>' +
+  '</div>';
+}
+
+// ──────────────────────────────────────────────────
+// Helper: build the S step's tracking-block (4 NSM dimensions)
+// ──────────────────────────────────────────────────
+function buildTrackingBlockHtml(tracking) {
+  tracking = tracking || {};
+  var dimsHtml = CIRCLES_TRACKING_DIMS.map(function(dim) {
+    var v = tracking[dim.key] != null ? tracking[dim.key] : '';
+    return '<div class="tracking-dim">' +
+      '<div class="tracking-dim-label">' +
+        '<span class="tracking-dim-dot" style="background:' + dim.dotColor + '"></span>' +
+        '<span style="color:' + dim.textColor + '">' + escHtml(dim.label) + '</span>' +
+      '</div>' +
+      '<div class="tracking-dim-desc">' + escHtml(dim.desc) + '</div>' +
+      '<textarea class="tracking-dim-input' + (v ? ' filled' : '') + '" data-tracking-dim="' + dim.key + '" rows="1" placeholder="' + escHtml(dim.placeholder) + '">' + escHtml(v) + '</textarea>' +
+    '</div>';
+  }).join('');
+  return '<div class="tracking-block">' +
+    '<div class="tracking-block-header">' +
+      '<div class="tracking-block-label">追蹤指標</div>' +
+      '<button class="circles-hint-trigger" type="button" data-hint-step="S" data-hint-field="追蹤指標">' +
+        '<i class="ph ph-lightbulb"></i> 提示' +
+      '</button>' +
+    '</div>' +
+    '<div class="tracking-block-sub">對應 NSM 4 個拆解維度，定義驗證方案成效的具體指標</div>' +
+    dimsHtml +
+  '</div>';
+}
+
+// ──────────────────────────────────────────────────
+// Helper: build a single E-step solution block (with 4 sub-fields)
+// ──────────────────────────────────────────────────
+function buildESolutionBlockHtml(solKey, solIdx, solName, perSolDraft, eFieldsConfig, isOptional) {
+  perSolDraft = perSolDraft || {};
+  var labels = ['方案一', '方案二', '方案三'];
+  var solLabel = labels[solIdx] || ('方案' + (solIdx + 1));
+  var dimmedStyle = isOptional ? 'background:rgba(0,0,0,0.05);color:var(--c-text-3)' : '';
+  var nameStyle = isOptional ? 'color:var(--c-text-3)' : '';
+  var displayName = solName || '（未命名）';
+  var fieldsHtml = eFieldsConfig.map(function(f, i) {
+    var v = perSolDraft[f.key] != null ? perSolDraft[f.key] : '';
+    var hintIdx = i; // E hints are per-field for sol1; reuse for all sols
+    var hint = (!isOptional && CIRCLES_STEP_HINTS['E'] && CIRCLES_STEP_HINTS['E'][hintIdx]) ? CIRCLES_STEP_HINTS['E'][hintIdx] : '';
+    return '<div class="circles-field-group">' +
+      '<div class="circles-field-label-row">' +
+        '<div class="circles-field-label">' + escHtml(f.key) + '</div>' +
+        '<button class="circles-hint-trigger" type="button" data-hint-step="E" data-hint-field="' + escHtml(f.key) + '">' +
+          '<i class="ph ph-lightbulb"></i> 提示' +
+        '</button>' +
+      '</div>' +
+      (hint && solIdx === 0 ? '<div class="circles-field-hint">例：' + escHtml(hint) + '</div>' : '') +
+      '<textarea class="e-sol-input" data-sol="' + solKey + '" data-field="' + escHtml(f.key) + '" rows="2" placeholder="' + escHtml(f.placeholder) + '">' + escHtml(v) + '</textarea>' +
+    '</div>';
+  }).join('');
+  var blockId = solKey === 'sol3' ? ' id="e-sol3-block"' : '';
+  var displayStyle = solKey === 'sol3' && isOptional ? 'display:none' : '';
+  return '<div class="e-solution-block"' + blockId + (displayStyle ? ' style="' + displayStyle + '"' : '') + '>' +
+    '<div class="e-sol-header">' +
+      '<span class="e-sol-badge"' + (dimmedStyle ? ' style="' + dimmedStyle + '"' : '') + '>' + solLabel + '</span>' +
+      '<span class="e-sol-name"' + (nameStyle ? ' style="' + nameStyle + '"' : '') + '>' + escHtml(displayName) + '</span>' +
+    '</div>' +
+    '<div class="e-sol-fields">' + fieldsHtml + '</div>' +
+  '</div>';
+}
+
+// ──────────────────────────────────────────────────
+// renderCirclesPhase1 — Screen 2: Phase 1 Framework Form
+// ──────────────────────────────────────────────────
 function renderCirclesPhase1() {
   var q = AppState.circlesSelectedQuestion;
   var mode = AppState.circlesMode;
-  var stepKey = mode === 'drill' ? AppState.circlesDrillStep : 'C1';
+  var stepKey = mode === 'drill' ? AppState.circlesDrillStep : (CIRCLES_STEPS[AppState.circlesSimStep || 0] || CIRCLES_STEPS[0]).key;
   var stepIdx = CIRCLES_STEPS.findIndex(function(s) { return s.key === stepKey; });
+  if (stepIdx < 0) stepIdx = 0;
   var step = CIRCLES_STEPS[stepIdx];
-  var draft = AppState.circlesFrameworkDraft;
+  var config = CIRCLES_STEP_CONFIG[stepKey] || CIRCLES_STEP_CONFIG.C1;
+  var draft = AppState.circlesFrameworkDraft || {};
   var isSimulation = mode === 'simulation';
 
+  // Progress segments (current step active, prior steps done)
   var progressSegs = CIRCLES_STEPS.map(function(s, i) {
     var cls = i < stepIdx ? 'done' : i === stepIdx ? 'active' : '';
     return '<div class="circles-progress-seg ' + cls + '"></div>';
   }).join('');
 
-  var fields = step.fields.map(function(field, i) {
-    var hint = (!isSimulation && CIRCLES_STEP_HINTS[stepKey]) ? CIRCLES_STEP_HINTS[stepKey][i] : '';
-    return '<div class="circles-field-group">' +
-      '<div class="circles-field-label">' + field + '</div>' +
-      (hint ? '<div class="circles-field-hint">例：' + hint + '</div>' : '') +
-      '<textarea class="circles-field-input" data-field="' + field + '" rows="2" placeholder="' + (isSimulation ? '' : '填寫你的分析...') + '">' + (draft[field] || '') + '</textarea>' +
+  // Step pills (only in drill mode for visual nav cue; click on pills NOT navigation per current Phase 1 requirement)
+  var pillsHtml = '';
+  if (mode === 'drill') {
+    pillsHtml = '<div class="circles-step-pills" style="margin-bottom:14px">' +
+      CIRCLES_STEPS.map(function(s, i) {
+        var cls = (s.key === stepKey) ? 'active' : (i < stepIdx ? 'done' : '');
+        return '<button class="circles-step-pill ' + cls + '" type="button" data-pill-step="' + s.key + '">' + s.short + ' ' + s.label + '</button>';
+      }).join('') +
     '</div>';
-  }).join('');
+  }
+
+  // Build body content based on step kind
+  var bodyHtml = '';
+
+  // E step — per-solution matrix (no standard fields)
+  if (config.kind === 'per-solution' && stepKey === 'E') {
+    var sd = AppState.circlesStepDrafts || {};
+    var lDraft = sd.L || {};
+    var ePerSol = (sd.E && sd.E.perSolution) || (draft.perSolution) || {};
+    // Save back to circlesFrameworkDraft so we have a single source for the gate POST
+    if (!draft.perSolution) draft.perSolution = ePerSol;
+
+    var hasSol3 = !!lDraft.sol3;
+    bodyHtml += buildESolutionBlockHtml('sol1', 0, lDraft.sol1, ePerSol.sol1 || {}, config.perSolutionFields, false);
+    bodyHtml += buildESolutionBlockHtml('sol2', 1, lDraft.sol2, ePerSol.sol2 || {}, config.perSolutionFields, false);
+    bodyHtml += buildESolutionBlockHtml('sol3', 2, lDraft.sol3 || '', ePerSol.sol3 || {}, config.perSolutionFields, !hasSol3);
+    if (!hasSol3) {
+      bodyHtml += '<button class="e-sol3-add-btn" id="e-sol3-add-btn" type="button">' +
+        '<i class="ph ph-plus-circle"></i> 新增方案三（可選）' +
+      '</button>';
+    }
+  } else {
+    // Standard fields (with possible solution kind for L step or tracking kind for S step)
+    bodyHtml = config.fields.map(function(field, i) {
+      if (field.kind === 'tracking') {
+        var sdRoot = AppState.circlesStepDrafts || {};
+        var trackingDraft = (sdRoot.S && sdRoot.S.tracking) || draft.tracking || {};
+        if (!draft.tracking) draft.tracking = trackingDraft;
+        return buildTrackingBlockHtml(trackingDraft);
+      }
+      if (field.kind === 'solution') {
+        var sdL = AppState.circlesStepDrafts || {};
+        var lDraftL = sdL.L || draft.solutionNames || {};
+        if (!draft.solutionNames) draft.solutionNames = lDraftL;
+        // For sol3 (optional), wrap in a hidden group + render add button later
+        return buildSolutionFieldHtml(stepKey, field, draft, lDraftL, isSimulation, i);
+      }
+      return buildFieldGroupHtml(stepKey, field, draft, isSimulation, i);
+    }).join('');
+
+    // L step — append "+ 新增方案三" button after the fields if sol3 not yet revealed
+    if (stepKey === 'L') {
+      var lDraftBtn = (AppState.circlesStepDrafts && AppState.circlesStepDrafts.L) || draft.solutionNames || {};
+      var sol3Has = !!(lDraftBtn.sol3 || draft['方案三（可選）']);
+      bodyHtml += '<button class="add-solution-btn" id="l-sol3-add-btn" type="button" style="display:' + (sol3Has ? 'none' : 'flex') + '">' +
+        '<i class="ph ph-plus-circle"></i> 新增方案三（可選）' +
+      '</button>';
+    }
+  }
+
+  // Submit bar (Simulation last step shows "查看完整報告 →" instead)
+  var isLastStep = stepIdx === CIRCLES_STEPS.length - 1;
+  var submitBarHtml = '<div class="circles-submit-bar">' +
+    '<button class="circles-btn-secondary" id="circles-p1-back" type="button">返回選題</button>' +
+    '<button class="circles-btn-primary" id="circles-p1-submit" type="button">' + (isSimulation && isLastStep ? '提交審核' : '提交審核') + '</button>' +
+  '</div>';
 
   return '<div data-view="circles">' +
     '<div class="circles-nav">' +
-      '<button class="circles-nav-back" id="circles-p1-back"><i class="ph ph-arrow-left"></i></button>' +
+      '<button class="circles-nav-back" id="circles-p1-nav-back" type="button"><i class="ph ph-arrow-left"></i></button>' +
       '<div>' +
-        '<div class="circles-nav-title">' + step.label + '</div>' +
-        '<div class="circles-nav-sub">' + q.company + ' · ' + (q.product || '') + '</div>' +
+        '<div class="circles-nav-title">' + escHtml(config.label) + '</div>' +
+        '<div class="circles-nav-sub">' + escHtml(q.company || '') + (q.product ? ' · ' + escHtml(q.product) : '') + '</div>' +
       '</div>' +
-      '<button style="font-size:12px;color:#1A56DB;border-bottom:1px solid #1A56DB;background:none;border-top:none;border-left:none;border-right:none;padding:2px 0;cursor:pointer;font-family:DM Sans,sans-serif;white-space:nowrap;flex-shrink:0" id="circles-p1-home">回首頁</button>' +
+      '<button class="circles-nav-home" id="circles-p1-home" type="button">回首頁</button>' +
     '</div>' +
-    '<div class="circles-progress">' + progressSegs + '<div class="circles-progress-label">' + step.short + ' · ' + step.label + ' · ' + (stepIdx + 1) + '/7</div></div>' +
+    '<div class="circles-progress">' + progressSegs + '<div class="circles-progress-label">' + escHtml(config.progressLabel) + '</div></div>' +
     '<div class="circles-phase1-wrap">' +
-      '<div style="font-size:13px;color:var(--c-text-2,#5a5a5a);line-height:1.6;margin-bottom:16px;font-family:DM Sans,sans-serif;padding:12px 14px;background:#fff;border-radius:10px;border:1px solid rgba(0,0,0,0.08)">' + q.problem_statement + '</div>' +
-      fields +
+      pillsHtml +
+      '<div class="problem-card">' + escHtml(q.problem_statement || '') + '</div>' +
+      (config.showPrevStepCard ? buildPrevStepCardHtml(stepKey) : '') +
+      (config.showNsmAnnotation ? '<div class="nsm-annotation">' +
+        '此步驟的北極星指標欄位是 NSM 訓練的濃縮版。想深入練習？' +
+        '<button id="circles-s-nsm-link" type="button">前往 NSM 訓練 →</button>' +
+      '</div>' : '') +
+      bodyHtml +
     '</div>' +
-    '<div class="circles-submit-bar">' +
-      '<button class="circles-btn-primary" id="circles-p1-submit">提交框架 → AI 審核</button>' +
-    '</div>' +
+    submitBarHtml +
   '</div>';
 }
 
 function bindCirclesPhase1() {
-  document.getElementById('circles-p1-back')?.addEventListener('click', function() {
+  // ── Navigation: back button (clear selection, return to home)
+  function backToHome() {
     AppState.circlesSelectedQuestion = null;
     AppState.circlesPhase = 1;
-    render();
-  });
-  document.getElementById('circles-p1-home')?.addEventListener('click', function() {
-    AppState.circlesSelectedQuestion = null;
-    AppState.circlesPhase = 1;
+    AppState.circlesFrameworkDraft = {};
     navigate('circles');
+  }
+  document.getElementById('circles-p1-nav-back')?.addEventListener('click', backToHome);
+  document.getElementById('circles-p1-back')?.addEventListener('click', backToHome);
+  document.getElementById('circles-p1-home')?.addEventListener('click', backToHome);
+
+  // ── NSM annotation link (S step only)
+  document.getElementById('circles-s-nsm-link')?.addEventListener('click', function() {
+    navigate('nsm');
   });
 
+  // ── Save standard textarea fields to circlesFrameworkDraft on every input
   document.querySelectorAll('.circles-field-input').forEach(function(el) {
     el.addEventListener('input', function() {
       AppState.circlesFrameworkDraft[el.dataset.field] = el.value;
+      saveCirclesProgress({ frameworkDraft: AppState.circlesFrameworkDraft });
+    });
+  });
+
+  // ── L step: solution name inputs save to circlesStepDrafts['L']
+  document.querySelectorAll('.sol-name-input').forEach(function(el) {
+    el.addEventListener('input', function() {
+      var solKey = el.dataset.solName;
+      if (!AppState.circlesStepDrafts.L) AppState.circlesStepDrafts.L = {};
+      AppState.circlesStepDrafts.L[solKey] = el.value;
+      // Mirror in framework draft for gate evaluation
+      if (!AppState.circlesFrameworkDraft.solutionNames) AppState.circlesFrameworkDraft.solutionNames = {};
+      AppState.circlesFrameworkDraft.solutionNames[solKey] = el.value;
+      saveCirclesProgress({ frameworkDraft: AppState.circlesFrameworkDraft, stepDrafts: AppState.circlesStepDrafts });
+    });
+  });
+
+  // ── L step: 新增方案三 button → reveal sol3 group
+  document.getElementById('l-sol3-add-btn')?.addEventListener('click', function() {
+    var grp = document.getElementById('l-sol3-group');
+    if (grp) grp.style.display = 'block';
+    this.style.display = 'none';
+  });
+
+  // ── E step: per-solution textarea inputs save to nested perSolution
+  document.querySelectorAll('.e-sol-input').forEach(function(el) {
+    el.addEventListener('input', function() {
+      var sol = el.dataset.sol;
+      var f = el.dataset.field;
+      if (!AppState.circlesFrameworkDraft.perSolution) AppState.circlesFrameworkDraft.perSolution = {};
+      if (!AppState.circlesFrameworkDraft.perSolution[sol]) AppState.circlesFrameworkDraft.perSolution[sol] = {};
+      AppState.circlesFrameworkDraft.perSolution[sol][f] = el.value;
+      saveCirclesProgress({ frameworkDraft: AppState.circlesFrameworkDraft });
+    });
+  });
+
+  // ── E step: 新增方案三 button → reveal sol3 block
+  document.getElementById('e-sol3-add-btn')?.addEventListener('click', function() {
+    var blk = document.getElementById('e-sol3-block');
+    if (blk) blk.style.display = 'block';
+    this.style.display = 'none';
+  });
+
+  // ── S step: tracking-block dim inputs save to nested tracking object
+  document.querySelectorAll('.tracking-dim-input').forEach(function(el) {
+    el.addEventListener('input', function() {
+      var dim = el.dataset.trackingDim;
+      if (!AppState.circlesFrameworkDraft.tracking) AppState.circlesFrameworkDraft.tracking = {};
+      AppState.circlesFrameworkDraft.tracking[dim] = el.value;
+      // Toggle .filled class for visual feedback
+      if (el.value) el.classList.add('filled'); else el.classList.remove('filled');
+      saveCirclesProgress({ frameworkDraft: AppState.circlesFrameworkDraft });
+    });
+  });
+
+  // ── Hint trigger (提示) buttons — call showCirclesHint
+  document.querySelectorAll('.circles-hint-trigger').forEach(function(el) {
+    el.addEventListener('click', function() {
+      var step = el.dataset.hintStep;
+      var field = el.dataset.hintField;
+      if (typeof showCirclesHint === 'function') showCirclesHint(step, field);
+    });
+  });
+
+  // ── Prev-step-card toggle (E and S steps only)
+  document.querySelectorAll('[data-prev-toggle]').forEach(function(btn) {
+    btn.addEventListener('click', function() {
+      var body = btn.nextElementSibling;
+      if (!body) return;
+      var open = body.style.display !== 'none';
+      body.style.display = open ? 'none' : 'block';
+      var caret = btn.querySelector('.toggle-caret');
+      if (caret) caret.className = open ? 'ph ph-caret-right toggle-caret' : 'ph ph-caret-down toggle-caret';
     });
   });
 
@@ -1134,6 +1611,17 @@ function bindCirclesPhase1() {
     var btn = this;
     btn.disabled = true;
     btn.textContent = 'AI 審核中...';
+
+    // ── Snapshot Phase 1 draft into circlesStepDrafts[stepKey] for cross-step reads
+    var mode2 = AppState.circlesMode;
+    var stepKey2 = mode2 === 'drill' ? AppState.circlesDrillStep : (CIRCLES_STEPS[AppState.circlesSimStep || 0] || CIRCLES_STEPS[0]).key;
+    var snapshot = JSON.parse(JSON.stringify(AppState.circlesFrameworkDraft || {}));
+    AppState.circlesStepDrafts[stepKey2] = Object.assign({}, AppState.circlesStepDrafts[stepKey2] || {}, snapshot);
+    // For L step, persist solution names canonical structure
+    if (stepKey2 === 'L' && snapshot.solutionNames) {
+      AppState.circlesStepDrafts.L = Object.assign({}, AppState.circlesStepDrafts.L || {}, snapshot.solutionNames);
+    }
+
     AppState.circlesGateLoading = true;
     AppState.circlesPhase = 1.5;
     render();
@@ -1173,6 +1661,8 @@ function bindCirclesPhase1() {
       var gateData = await gateRes.json();
       AppState.circlesGateResult = gateData;
       AppState.circlesGateLoading = false;
+      // Persist stepDrafts after gate succeeds
+      saveCirclesProgress({ stepDrafts: AppState.circlesStepDrafts });
       render();
     } catch (e) {
       if (AppState.circlesSession && !AppState.circlesSession.id) AppState.circlesSession = null;
@@ -1182,6 +1672,84 @@ function bindCirclesPhase1() {
     }
   });
 }
+
+// ──────────────────────────────────────────────────
+// showCirclesHint — Screen 3 hint overlay (modal)
+//   Renders a centered hint card; tries to fetch AI-generated hint, falls back
+//   to the static `hintOverlay` text in CIRCLES_STEP_CONFIG. Both auth and guest
+//   /hint endpoints exist server-side (routes/circles-sessions.js).
+// ──────────────────────────────────────────────────
+async function showCirclesHint(step, field) {
+  var q = AppState.circlesSelectedQuestion;
+  var session = AppState.circlesSession;
+
+  // Static fallback hint (always available — looks up the field's hintOverlay text)
+  var fallbackHint = '';
+  var cfg = CIRCLES_STEP_CONFIG[step];
+  if (cfg) {
+    if (cfg.kind === 'per-solution' && cfg.perSolutionFields) {
+      var pf = cfg.perSolutionFields.find(function(f) { return f.key === field; });
+      if (pf) fallbackHint = pf.hintOverlay || '';
+    }
+    if (!fallbackHint && cfg.fields) {
+      var sf = cfg.fields.find(function(f) { return f.key === field; });
+      if (sf) fallbackHint = sf.hintOverlay || '';
+    }
+  }
+
+  // Remove any existing overlay
+  var existing = document.getElementById('circles-hint-overlay');
+  if (existing) existing.remove();
+
+  var overlay = document.createElement('div');
+  overlay.className = 'hint-overlay visible';
+  overlay.id = 'circles-hint-overlay';
+  overlay.innerHTML = '<div class="hint-card">' +
+    '<button class="hint-close" id="hint-close-btn" type="button">×</button>' +
+    '<div class="hint-title"><i class="ph ph-lightbulb"></i> ' + escHtml(field) + ' — 分析思路</div>' +
+    '<div class="hint-sub">' + escHtml((q && q.company) || '') + (q && q.product ? ' · ' + escHtml(q.product) : '') + ' · ' + escHtml(step) + '</div>' +
+    '<div id="hint-body-area" class="hint-loading">' +
+      '<div style="display:inline-block;width:16px;height:16px;border:2px solid #ccc;border-top-color:var(--c-primary);border-radius:50%;animation:spin 0.8s linear infinite;margin-right:6px;vertical-align:middle"></div>' +
+      '生成中…' +
+    '</div>' +
+  '</div>';
+  document.body.appendChild(overlay);
+
+  function close() { overlay.remove(); }
+  document.getElementById('hint-close-btn')?.addEventListener('click', close);
+  overlay.addEventListener('click', function(e) { if (e.target === overlay) close(); });
+
+  function renderHintBody(text) {
+    var body = document.getElementById('hint-body-area');
+    if (!body) return;
+    body.outerHTML = '<div class="hint-body">' + escHtml(text) + '</div>' +
+      '<div style="display:flex;justify-content:space-between;align-items:center;margin-top:10px">' +
+        '<button id="hint-collapse-btn" type="button" style="font-size:11px;color:var(--c-text-3);background:none;border:none;cursor:pointer;font-family:DM Sans,sans-serif">收起提示</button>' +
+        '<div class="hint-footer" style="margin-top:0">閱讀後自行填寫</div>' +
+      '</div>';
+    document.getElementById('hint-collapse-btn')?.addEventListener('click', close);
+  }
+
+  // Try the AI endpoint; fall back to the static hint if it errors
+  if (session && session.id) {
+    try {
+      var hintHeaders = AppState.accessToken
+        ? { 'Content-Type': 'application/json', 'Authorization': 'Bearer ' + AppState.accessToken }
+        : { 'Content-Type': 'application/json', 'X-Guest-ID': AppState.guestId };
+      var baseUrl = AppState.accessToken
+        ? '/api/circles-sessions/' + session.id + '/hint'
+        : '/api/guest-circles-sessions/' + session.id + '/hint';
+      var res = await fetch(baseUrl, { method: 'POST', headers: hintHeaders, body: JSON.stringify({ step: step, field: field }) });
+      if (res.ok) {
+        var data = await res.json();
+        renderHintBody(data.hint || fallbackHint || '尚無提示');
+        return;
+      }
+    } catch (e) { /* fall through to static hint */ }
+  }
+  renderHintBody(fallbackHint || '尚無提示');
+}
+window.showCirclesHint = showCirclesHint;
 function renderCirclesGate() {
   var loading = AppState.circlesGateLoading;
   var result = AppState.circlesGateResult;
