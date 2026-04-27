@@ -1,0 +1,653 @@
+<!DOCTYPE html>
+<html lang="zh-TW">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0">
+<title>CIRCLES — S 總結推薦 Mockup</title>
+<link rel="stylesheet" href="https://unpkg.com/@phosphor-icons/web@2.1.1/src/regular/style.css">
+<link href="https://fonts.googleapis.com/css2?family=DM+Sans:ital,wght@0,400;0,500;0,600;0,700;1,400&display=swap" rel="stylesheet">
+<style>
+* { box-sizing: border-box; margin: 0; padding: 0; -webkit-tap-highlight-color: transparent; }
+body { font-family: 'DM Sans', -apple-system, sans-serif; background: #F2F0EB; display: flex; justify-content: center; }
+
+:root {
+  --bg: #F2F0EB;
+  --card: #ffffff;
+  --border: #e8e5de;
+  --primary: #1A56DB;
+  --primary-lt: #EEF3FF;
+  --text: #1a1a1a;
+  --text-2: #5a5a5a;
+  --text-3: #8a8a8a;
+  --success: #137A3D;
+  --warning: #B85C00;
+  --danger: #D92020;
+}
+
+.top-nav {
+  position: fixed; top: 0; left: 50%; transform: translateX(-50%);
+  background: #111; display: flex; gap: 6px; padding: 8px 14px;
+  z-index: 999; border-radius: 0 0 12px 12px; overflow-x: auto;
+  white-space: nowrap; max-width: 100vw; scrollbar-width: none;
+}
+.top-nav::-webkit-scrollbar { display: none; }
+.nav-label {
+  font-size: 11px; font-weight: 700; background: #1a1a1a; color: #fff;
+  padding: 5px 12px; border-radius: 20px; cursor: pointer; white-space: nowrap;
+}
+.nav-label:hover { background: #333; }
+.nav-label.active { background: var(--primary); }
+
+.wrapper { max-width: 390px; width: 100vw; margin-top: 52px; }
+.shell { width: 390px; min-height: 100vh; background: var(--bg); position: relative; overflow: hidden; }
+.screen { display: none; flex-direction: column; height: 100vh; }
+.screen.active { display: flex; }
+
+/* ── Shared ── */
+.btn-icon { background: none; border: none; font-size: 18px; color: var(--text-2); cursor: pointer; padding: 6px; line-height: 1; }
+.circles-nav { height: 52px; background: var(--card); border-bottom: 1px solid var(--border); display: flex; align-items: center; padding: 0 14px; gap: 10px; flex-shrink: 0; }
+.circles-nav-title { font-size: 14px; font-weight: 700; color: var(--text); }
+.circles-nav-sub { font-size: 11px; color: var(--text-3); }
+.circles-nav-home { font-size: 12px; color: var(--primary); border-bottom: 1px solid var(--primary); background: none; border-top: none; border-left: none; border-right: none; padding: 2px 0; cursor: pointer; white-space: nowrap; flex-shrink: 0; margin-left: auto; font-family: 'DM Sans', sans-serif; }
+.circles-progress { height: 36px; background: var(--card); border-bottom: 1px solid var(--border); display: flex; align-items: center; padding: 0 14px; gap: 3px; flex-shrink: 0; }
+.circles-progress-seg { flex: 1; height: 4px; background: #e8e5de; border-radius: 2px; }
+.circles-progress-seg.done { background: var(--primary); }
+.circles-progress-seg.active { background: rgba(26,86,219,0.4); }
+.circles-progress-label { font-size: 10px; color: var(--text-3); white-space: nowrap; margin-left: 8px; }
+.scroll-body { flex: 1; overflow-y: auto; padding: 16px; padding-bottom: 120px; scrollbar-width: none; }
+.scroll-body::-webkit-scrollbar { display: none; }
+.submit-bar { background: var(--card); border-top: 1px solid var(--border); padding: 12px 16px; display: flex; gap: 10px; flex-shrink: 0; }
+.btn-primary { flex: 1; background: var(--primary); color: #fff; border: none; border-radius: 10px; padding: 12px 16px; font-size: 14px; font-weight: 600; cursor: pointer; font-family: 'DM Sans', sans-serif; }
+.btn-secondary { background: #f0ede6; color: var(--text); border: none; border-radius: 10px; padding: 12px 16px; font-size: 14px; font-weight: 600; cursor: pointer; white-space: nowrap; font-family: 'DM Sans', sans-serif; }
+
+.problem-card { background: var(--card); border-radius: 10px; border: 1px solid var(--border); padding: 12px 14px; font-size: 13px; color: var(--text-2); line-height: 1.6; margin-bottom: 14px; }
+.problem-card-label { font-size: 9px; font-weight: 700; text-transform: uppercase; letter-spacing: .07em; color: var(--text-3); margin-bottom: 4px; }
+.circles-step-pills { display: flex; gap: 6px; overflow-x: auto; margin-bottom: 14px; scrollbar-width: none; padding-bottom: 2px; }
+.circles-step-pills::-webkit-scrollbar { display: none; }
+.circles-step-pill { flex-shrink: 0; padding: 5px 12px; border-radius: 20px; border: 1px solid var(--border); background: var(--card); font-size: 11px; font-weight: 600; color: var(--text-3); white-space: nowrap; }
+.circles-step-pill.active { background: var(--primary); color: #fff; border-color: var(--primary); }
+.circles-step-pill.done { background: #e6f0e8; color: var(--success); border-color: #b8dbbf; }
+
+/* Prev-step card */
+.prev-step-card { background: var(--card); border: 1px solid var(--border); border-radius: 10px; margin-bottom: 14px; overflow: hidden; }
+.prev-step-toggle { width: 100%; display: flex; align-items: center; justify-content: space-between; background: none; border: none; cursor: pointer; padding: 10px 14px; text-align: left; font-family: 'DM Sans', sans-serif; }
+.prev-step-toggle-title { font-size: 11px; font-weight: 700; color: var(--text-2); display: flex; align-items: center; gap: 5px; }
+.prev-step-toggle i.toggle-caret { font-size: 11px; color: var(--text-3); flex-shrink: 0; }
+.prev-step-body { padding: 0 14px 12px; }
+.prev-step-row { display: flex; gap: 10px; align-items: flex-start; padding: 7px 0; border-top: 1px solid var(--border); }
+.prev-step-row:first-child { border-top: none; }
+.prev-step-label { font-size: 9px; font-weight: 700; text-transform: uppercase; letter-spacing: .07em; color: var(--text-3); white-space: nowrap; padding-top: 2px; min-width: 60px; }
+.prev-step-val { font-size: 12px; color: var(--text-2); line-height: 1.55; }
+
+/* NSM annotation */
+.nsm-annotation { background: #EEF3FF; border: 1px solid #C5D5FF; border-radius: 10px; padding: 12px 14px; margin-bottom: 14px; font-size: 13px; color: var(--primary); line-height: 1.6; }
+.nsm-link { background: none; border: none; color: var(--primary); font-size: 13px; cursor: pointer; text-decoration: underline; padding: 0; }
+
+/* Field group */
+.circles-field-group { margin-bottom: 12px; }
+.circles-field-label-row { display: flex; justify-content: space-between; align-items: baseline; margin-bottom: 4px; }
+.circles-field-label { font-size: 10px; color: var(--text-3); text-transform: uppercase; letter-spacing: .07em; font-weight: 700; font-family: 'DM Sans', sans-serif; }
+.circles-hint-trigger { background: none; border: none; font-size: 11px; color: var(--primary); cursor: pointer; padding: 0; white-space: nowrap; display: flex; align-items: center; gap: 3px; font-family: 'DM Sans', sans-serif; }
+.field-example-toggle { background: none; border: none; font-size: 10px; color: var(--text-3); cursor: pointer; padding: 0 0 5px; display: flex; align-items: center; gap: 3px; font-family: 'DM Sans', sans-serif; }
+.field-example-body { display: none; font-size: 11px; color: var(--text-3); margin-bottom: 6px; line-height: 1.5; padding: 5px 8px; background: rgba(0,0,0,0.03); border-radius: 6px; }
+.field-example-body.open { display: block; }
+.circles-field-input { width: 100%; padding: 9px 12px; border-radius: 10px; border: 1.5px solid var(--border); background: var(--card); font-size: 13px; font-family: 'DM Sans', sans-serif; color: var(--text); resize: none; outline: none; line-height: 1.5; }
+.circles-field-input:focus { border-color: var(--primary); }
+.circles-field-input.filled { border-color: rgba(26,86,219,0.3); background: #fbfaff; }
+
+/* Tracking block */
+.tracking-block { background: var(--card); border: 1px solid var(--border); border-radius: 12px; margin-bottom: 12px; overflow: hidden; }
+.tracking-block-header { display: flex; justify-content: space-between; align-items: baseline; padding: 10px 14px 0; }
+.tracking-block-label { font-size: 10px; color: var(--text-3); text-transform: uppercase; letter-spacing: .07em; font-weight: 700; font-family: 'DM Sans', sans-serif; }
+.tracking-block-sub { font-size: 11px; color: var(--text-3); line-height: 1.5; padding: 3px 14px 10px; }
+.tracking-dim { padding: 8px 14px 10px; border-top: 1px solid var(--border); }
+.tracking-dim-label { font-size: 10px; font-weight: 700; display: flex; align-items: center; gap: 5px; margin-bottom: 4px; font-family: 'DM Sans', sans-serif; }
+.tracking-dim-dot { width: 8px; height: 8px; border-radius: 50%; flex-shrink: 0; }
+.tracking-dim-desc { font-size: 10px; color: var(--text-3); margin-bottom: 5px; line-height: 1.4; }
+.tracking-dim-input { width: 100%; padding: 7px 10px; border-radius: 8px; border: 1.5px solid var(--border); background: var(--bg); font-size: 12px; font-family: 'DM Sans', sans-serif; color: var(--text); resize: none; outline: none; line-height: 1.4; }
+.tracking-dim-input.filled { border-color: rgba(26,86,219,0.3); background: #fbfaff; }
+
+/* Gate */
+.gate-pass-bar { background: var(--primary-lt); border: 1px solid #C5D5FF; border-radius: 10px; padding: 12px 14px; margin-bottom: 16px; display: flex; align-items: center; justify-content: space-between; gap: 12px; }
+.gate-pass-text { font-size: 12px; font-weight: 600; color: var(--primary); }
+.gate-continue-btn { background: var(--primary); color: #fff; border: none; border-radius: 8px; padding: 7px 14px; font-size: 12px; font-weight: 600; cursor: pointer; white-space: nowrap; flex-shrink: 0; }
+.gate-fail-bar { background: #FFF3F3; border: 1px solid #FFCDD2; border-radius: 10px; padding: 12px 14px; margin-bottom: 16px; font-size: 12px; color: var(--danger); }
+.gate-card { background: var(--card); border-radius: 10px; border: 1.5px solid var(--border); padding: 12px 14px; margin-bottom: 10px; display: flex; gap: 10px; align-items: flex-start; }
+.gate-card.ok { border-color: #b8dbbf; }
+.gate-card.warn { border-color: #FFD54F; }
+.gate-card.error { border-color: #f5c6c6; }
+.gate-card-icon { font-size: 15px; flex-shrink: 0; margin-top: 1px; }
+.gate-card-field { font-size: 9px; text-transform: uppercase; letter-spacing: .05em; color: var(--text-3); margin-bottom: 2px; }
+.gate-card-title { font-size: 13px; font-weight: 700; color: var(--text); margin-bottom: 3px; }
+.gate-card-reason { font-size: 12px; color: var(--text-2); line-height: 1.5; }
+.gate-card-suggestion { font-size: 11px; color: var(--warning); margin-top: 4px; }
+
+/* Phase 2 */
+.chat-wrap { display: flex; flex-direction: column; height: 100vh; overflow: hidden; }
+.chat-pinned { background: var(--card); border-bottom: 1px solid var(--border); padding: 8px 14px; flex-shrink: 0; }
+.pinned-co { font-size: 10px; color: var(--primary); font-weight: 600; text-transform: uppercase; letter-spacing: .05em; margin-bottom: 1px; }
+.pinned-stmt { font-size: 11px; color: var(--text); font-weight: 600; line-height: 1.4; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+.chat-body { flex: 1; overflow-y: auto; padding: 14px 16px; scrollbar-width: none; }
+.chat-body::-webkit-scrollbar { display: none; }
+.bubble-user { background: var(--card); border: 1px solid var(--border); border-radius: 12px 4px 12px 12px; padding: 10px 13px; font-size: 13px; line-height: 1.6; color: var(--text); margin-bottom: 10px; max-width: 88%; margin-left: auto; }
+.bubble-ai { background: var(--primary-lt); border: 1px solid rgba(26,86,219,0.18); border-radius: 4px 12px 12px 12px; padding: 10px 13px; font-size: 13px; line-height: 1.6; color: var(--text); margin-bottom: 10px; max-width: 88%; }
+.bubble-section { font-size: 10px; font-weight: 700; color: var(--text-3); text-transform: uppercase; letter-spacing: .07em; margin-bottom: 3px; }
+.bubble-coaching { background: rgba(0,0,0,0.03); border: 1px solid var(--border); border-radius: 4px 12px 12px 12px; padding: 10px 13px; font-size: 12px; line-height: 1.6; color: var(--text); margin-bottom: 10px; max-width: 88%; }
+.hint-toggle { background: none; border: none; font-size: 11px; color: var(--text-3); cursor: pointer; padding: 0; display: flex; align-items: center; gap: 3px; margin-top: 6px; }
+.hint-body { display: none; margin-top: 4px; padding: 6px 8px; background: rgba(0,0,0,0.04); border-radius: 6px; color: var(--text-2); font-size: 11px; line-height: 1.5; }
+.hint-body.open { display: block; }
+.chat-icebreaker { background: rgba(26,86,219,0.05); border: 1px solid rgba(26,86,219,0.18); border-radius: 10px; padding: 10px 13px; margin-bottom: 14px; }
+.chat-icebreaker-label { font-size: 9px; font-weight: 700; color: var(--primary); text-transform: uppercase; letter-spacing: .07em; margin-bottom: 5px; display: flex; align-items: center; gap: 4px; }
+.chat-icebreaker-text { font-size: 12px; color: var(--text-2); line-height: 1.65; }
+.chat-input-bar { background: var(--card); border-top: 1px solid var(--border); padding: 10px 14px; display: flex; gap: 8px; align-items: flex-end; flex-shrink: 0; }
+.chat-input { flex: 1; background: #f5f5f5; border: 1px solid var(--border); border-radius: 10px; padding: 9px 13px; font-size: 14px; color: var(--text); font-family: 'DM Sans', sans-serif; resize: none; outline: none; min-height: 40px; }
+.chat-send-btn { width: 40px; height: 40px; border-radius: 10px; background: var(--primary); border: none; color: #fff; font-size: 16px; cursor: pointer; display: flex; align-items: center; justify-content: center; flex-shrink: 0; }
+.chat-submit-row { padding: 6px 12px 10px; display: flex; justify-content: center; background: var(--card); flex-shrink: 0; border-top: 1px solid var(--border); }
+.chat-submit-btn { font-size: 11px; color: var(--text-2); border: 1px solid var(--border); border-radius: 8px; padding: 6px 16px; cursor: pointer; background: var(--card); }
+
+/* Conclusion box */
+.conclusion-box { border-top: 2px solid var(--primary); background: var(--card); padding: 14px; flex-shrink: 0; max-height: 55vh; overflow-y: auto; }
+.conclusion-title { font-size: 11px; font-weight: 700; color: var(--text); margin-bottom: 2px; }
+.conclusion-sub { font-size: 10px; color: var(--text-3); margin-bottom: 8px; }
+.conclusion-example-block { border: 1px solid #e8e5de; border-radius: 8px; margin-bottom: 8px; overflow: hidden; }
+.conclusion-example-header { background: #f0ede6; padding: 5px 9px; display: flex; justify-content: space-between; cursor: pointer; }
+.conclusion-example-label { font-size: 9px; font-weight: 700; color: var(--text-3); text-transform: uppercase; letter-spacing: 0.4px; }
+.conclusion-example-toggle { font-size: 10px; color: var(--text-3); }
+.conclusion-example-content { padding: 8px 10px; font-size: 11px; color: var(--text-2); line-height: 1.6; display: none; }
+.conclusion-example-content.open { display: block; }
+.conclusion-textarea { width: 100%; border: 1px solid #ddd; border-radius: 8px; padding: 9px; font-size: 11px; line-height: 1.6; resize: none; height: 68px; box-sizing: border-box; font-family: 'DM Sans', sans-serif; color: var(--text); outline: none; }
+.conclusion-hint { min-height: 16px; font-size: 10px; color: var(--text-3); margin-top: 6px; }
+.conclusion-hint.warn { background: #FFF8E1; color: #7A5800; border-radius: 4px; padding: 4px 8px; }
+.conclusion-hint.pass { background: #E8F5E9; color: var(--success); border-radius: 4px; padding: 4px 8px; }
+.conclusion-actions { margin-top: 8px; display: flex; align-items: center; justify-content: space-between; }
+.conclusion-back-btn { font-size: 10px; color: var(--text-3); background: none; border: none; cursor: pointer; }
+.conclusion-submit-btn { background: var(--primary); color: #fff; border: none; border-radius: 8px; padding: 8px 14px; font-size: 12px; font-weight: 600; cursor: pointer; }
+.conclusion-submit-btn.disabled { opacity: .45; cursor: not-allowed; }
+
+/* Score */
+.score-total { background: var(--card); border-radius: 16px; border: 1px solid var(--border); padding: 20px; text-align: center; margin-bottom: 14px; }
+.score-number { font-family: 'Georgia', serif; font-size: 60px; color: var(--primary); line-height: 1; margin-bottom: 4px; font-weight: 400; }
+.score-sub { font-size: 13px; color: var(--text-2); }
+.score-breakdown { background: var(--card); border-radius: 12px; border: 1px solid var(--border); padding: 14px; margin-bottom: 14px; }
+.dim-row { display: flex; align-items: center; gap: 10px; padding: 9px 0; border-bottom: 1px solid var(--border); }
+.dim-row:last-child { border-bottom: none; }
+.dim-text { flex: 1; min-width: 0; }
+.dim-name { font-size: 12px; color: var(--text-2); }
+.dim-comment { font-size: 10px; color: var(--text-3); margin-top: 1px; line-height: 1.4; }
+.dim-bar-wrap { width: 70px; height: 5px; background: #f0ede6; border-radius: 3px; flex-shrink: 0; }
+.dim-bar { height: 100%; border-radius: 3px; background: var(--primary); }
+.dim-score { font-weight: 700; color: var(--text); min-width: 24px; text-align: right; font-size: 12px; }
+.dim-score span { font-size: 9px; color: var(--text-3); }
+.highlight-card { border-radius: 10px; border: 1.5px solid; padding: 12px 14px; margin-bottom: 10px; }
+.highlight-card.good { background: #F0FFF4; border-color: #BBF7D0; }
+.highlight-card.improve { background: #FFFBEB; border-color: #FDE68A; }
+.highlight-label { font-size: 10px; font-weight: 700; text-transform: uppercase; letter-spacing: .05em; margin-bottom: 4px; }
+.highlight-card.good .highlight-label { color: var(--success); }
+.highlight-card.improve .highlight-label { color: var(--warning); }
+.highlight-text { font-size: 13px; color: var(--text); line-height: 1.5; }
+.coach-toggle { background: var(--card); border: 1px solid var(--border); border-radius: 12px; padding: 14px; margin-bottom: 14px; cursor: pointer; }
+.coach-toggle-label { font-size: 12px; font-weight: 700; color: var(--text-2); display: flex; align-items: center; justify-content: space-between; }
+.coach-content { font-size: 12px; color: var(--text-2); line-height: 1.7; margin-top: 10px; display: none; }
+.coach-content.open { display: block; }
+.score-nav { display: flex; gap: 2px; margin-left: auto; }
+.score-nav-btn { background: none; border: 1px solid var(--border); border-radius: 6px; padding: 4px 8px; font-size: 12px; cursor: pointer; color: var(--text-2); }
+.score-nav-btn:disabled { opacity: 0.3; cursor: default; }
+
+/* Hint overlay */
+.hint-overlay { position: absolute; inset: 0; background: rgba(0,0,0,0.45); z-index: 200; display: none; align-items: center; justify-content: center; padding: 24px; }
+.hint-overlay.visible { display: flex; }
+.hint-card { background: #fff; border-radius: 16px; padding: 20px; max-width: 340px; width: 100%; box-shadow: 0 8px 40px rgba(0,0,0,0.18); position: relative; }
+.hint-card-title { font-size: 13px; font-weight: 700; color: var(--primary); margin-bottom: 2px; }
+.hint-card-sub { font-size: 11px; color: #8a8a8a; margin-bottom: 12px; }
+.hint-card-body { font-size: 13px; color: var(--text); line-height: 1.7; background: #F6F8FF; border-left: 3px solid var(--primary); padding: 12px; border-radius: 0 8px 8px 0; }
+.hint-card-footer { font-size: 11px; color: #aaa; text-align: center; margin-top: 12px; }
+.hint-close { position: absolute; top: 12px; right: 14px; background: none; border: none; font-size: 20px; color: #aaa; cursor: pointer; line-height: 1; padding: 0; }
+
+@keyframes spin { to { transform: rotate(360deg); } }
+</style>
+</head>
+<body>
+
+<div class="top-nav">
+  <span class="nav-label active"  onclick="show('p1-sim')">P1 模擬</span>
+  <span class="nav-label"         onclick="show('p1-hint-rec')">提示:推薦</span>
+  <span class="nav-label"         onclick="show('p1-hint-why')">提示:理由</span>
+  <span class="nav-label"         onclick="show('p1-hint-nsm')">提示:NSM</span>
+  <span class="nav-label"         onclick="show('p1-hint-track')">提示:追蹤</span>
+  <span class="nav-label"         onclick="show('gate-pass')">Gate ✓</span>
+  <span class="nav-label"         onclick="show('gate-fail')">Gate ✗</span>
+  <span class="nav-label"         onclick="show('p2-early')">P2 早期</span>
+  <span class="nav-label"         onclick="show('p2-late')">P2 收斂</span>
+  <span class="nav-label"         onclick="show('p2-conclude')">P2 結論</span>
+  <span class="nav-label"         onclick="show('p2-conclude-pass')">結論審核✓</span>
+  <span class="nav-label"         onclick="show('p2-conclude-warn')">結論審核⚠</span>
+  <span class="nav-label"         onclick="show('p3-score')">P3 評分</span>
+</div>
+
+<div class="wrapper"><div class="shell">
+
+<!-- ══ P1: Phase 1 Simulation ══ -->
+<div id="screen-p1-sim" class="screen active" style="position:relative">
+  <div class="circles-nav">
+    <button class="btn-icon"><i class="ph ph-arrow-left"></i></button>
+    <div><div class="circles-nav-title">S — 總結推薦</div><div class="circles-nav-sub">Spotify · Premium 轉換</div></div>
+    <button class="circles-nav-home">回首頁</button>
+  </div>
+  <div class="circles-progress">
+    <div class="circles-progress-seg done"></div><div class="circles-progress-seg done"></div><div class="circles-progress-seg done"></div><div class="circles-progress-seg done"></div><div class="circles-progress-seg done"></div><div class="circles-progress-seg done"></div><div class="circles-progress-seg active"></div>
+    <div class="circles-progress-label">S · 總結推薦 · 7/7</div>
+  </div>
+  <div class="scroll-body">
+    <div class="circles-step-pills">
+      <span class="circles-step-pill done">C 澄清情境</span><span class="circles-step-pill done">I 定義用戶</span><span class="circles-step-pill done">R 發掘需求</span><span class="circles-step-pill done">C 優先排序</span><span class="circles-step-pill done">L 提出方案</span><span class="circles-step-pill done">E 評估取捨</span><span class="circles-step-pill active">S 總結推薦</span>
+    </div>
+    <div class="problem-card"><div class="problem-card-label">題目</div>你是 Spotify PM，如何提升免費用戶轉 Premium 的轉換率？</div>
+    <div class="prev-step-card">
+      <button class="prev-step-toggle" onclick="togglePrevCard(this)">
+        <span class="prev-step-toggle-title"><i class="ph ph-clock-counter-clockwise"></i> 前步驟重點參考</span>
+        <i class="ph ph-caret-down toggle-caret"></i>
+      </button>
+      <div class="prev-step-body">
+        <div class="prev-step-row"><span class="prev-step-label">E 評估</span><span class="prev-step-val">情境式升級提示風險最低、轉換效益最直接；廣告插播成本最高。</span></div>
+        <div class="prev-step-row"><span class="prev-step-label">L 方案</span><span class="prev-step-val">① 情境式升級提示 ② 廣告插播升級 ③ 學生組合方案</span></div>
+        <div class="prev-step-row"><span class="prev-step-label">R 核心痛點</span><span class="prev-step-val">用戶感受不到 Premium 的獨特價值，不願為未知體驗付費。</span></div>
+      </div>
+    </div>
+    <div class="nsm-annotation">此步驟的北極星指標欄位是 NSM 訓練的濃縮版。想深入練習？<button class="nsm-link">前往 NSM 訓練 →</button></div>
+
+    <!-- 推薦方案 -->
+    <div class="circles-field-group">
+      <div class="circles-field-label-row">
+        <div class="circles-field-label">推薦方案</div>
+        <button class="circles-hint-trigger" onclick="show('p1-hint-rec')"><i class="ph ph-lightbulb"></i> 提示</button>
+      </div>
+      <button class="field-example-toggle" onclick="toggleExample(this)"><i class="ph ph-caret-right"></i> 範例（不同題目）</button>
+      <div class="field-example-body">例 (Duolingo)：推薦方案一「連續學習獎勵」— 在用戶完成第 7 天連續學習時觸發 Super 會員 7 日試用，選擇理由是成本最低且轉換意圖最強。</div>
+      <textarea class="circles-field-input" rows="2" placeholder="填寫你的分析..."></textarea>
+    </div>
+
+    <!-- 選擇理由 -->
+    <div class="circles-field-group">
+      <div class="circles-field-label-row">
+        <div class="circles-field-label">選擇理由</div>
+        <button class="circles-hint-trigger" onclick="show('p1-hint-why')"><i class="ph ph-lightbulb"></i> 提示</button>
+      </div>
+      <button class="field-example-toggle" onclick="toggleExample(this)"><i class="ph ph-caret-right"></i> 範例（不同題目）</button>
+      <div class="field-example-body">例 (Duolingo)：E 步驟評估顯示此方案依賴條件最少（不需要廣告主合作）、成功指標清晰且直接對應核心痛點「不知道付費後體驗有多好」。</div>
+      <textarea class="circles-field-input" rows="2" placeholder="填寫你的分析..."></textarea>
+    </div>
+
+    <!-- 北極星指標 -->
+    <div class="circles-field-group">
+      <div class="circles-field-label-row">
+        <div class="circles-field-label">北極星指標</div>
+        <button class="circles-hint-trigger" onclick="show('p1-hint-nsm')"><i class="ph ph-lightbulb"></i> 提示</button>
+      </div>
+      <button class="field-example-toggle" onclick="toggleExample(this)"><i class="ph ph-caret-right"></i> 範例（不同題目）</button>
+      <div class="field-example-body">例 (Duolingo)：每月完成至少 5 堂課程的活躍學習用戶數 — 區分「開 App 看了一眼」與「真正在學習」的行為門檻。</div>
+      <textarea class="circles-field-input" rows="2" placeholder="例 (Spotify)：每月完成至少一首完整曲目播放的活躍月用戶數"></textarea>
+    </div>
+
+    <!-- 追蹤指標 block -->
+    <div class="tracking-block">
+      <div class="tracking-block-header">
+        <div class="tracking-block-label">追蹤指標</div>
+        <button class="circles-hint-trigger" onclick="show('p1-hint-track')"><i class="ph ph-lightbulb"></i> 提示</button>
+      </div>
+      <div class="tracking-block-sub">對應 NSM 4 個拆解維度，定義驗證方案成效的具體指標</div>
+      <div class="tracking-dim">
+        <div class="tracking-dim-label"><span class="tracking-dim-dot" style="background:#3b82f6"></span><span style="color:#1d4ed8">觸及廣度</span></div>
+        <div class="tracking-dim-desc">有多少用戶真正接觸到推薦方案的核心功能</div>
+        <textarea class="tracking-dim-input" rows="1" placeholder="例：情境式升級提示曝光人數 / 月活用戶"></textarea>
+      </div>
+      <div class="tracking-dim">
+        <div class="tracking-dim-label"><span class="tracking-dim-dot" style="background:#8b5cf6"></span><span style="color:#6d28d9">互動深度</span></div>
+        <div class="tracking-dim-desc">用戶與核心功能的互動品質</div>
+        <textarea class="tracking-dim-input" rows="1" placeholder="例：看到提示後點擊進入試用頁的轉化率"></textarea>
+      </div>
+      <div class="tracking-dim">
+        <div class="tracking-dim-label"><span class="tracking-dim-dot" style="background:#10b981"></span><span style="color:#065f46">習慣頻率</span></div>
+        <div class="tracking-dim-desc">用戶回訪與重複觸發的頻率</div>
+        <textarea class="tracking-dim-input" rows="1" placeholder="例：試用期內每週啟動 Premium 功能的平均天數"></textarea>
+      </div>
+      <div class="tracking-dim">
+        <div class="tracking-dim-label"><span class="tracking-dim-dot" style="background:#f59e0b"></span><span style="color:#92400e">留存驅力</span></div>
+        <div class="tracking-dim-desc">推動用戶留下來的核心機制</div>
+        <textarea class="tracking-dim-input" rows="1" placeholder="例：試用到期後 30 日內完成訂閱的轉換率"></textarea>
+      </div>
+    </div>
+  </div>
+  <div class="submit-bar">
+    <button class="btn-secondary">返回選題</button>
+    <button class="btn-primary" onclick="show('gate-pass')">提交審核</button>
+  </div>
+</div>
+
+<!-- ══ 提示: 推薦方案 ══ -->
+<div id="screen-p1-hint-rec" class="screen" style="position:relative">
+  <div class="circles-nav"><button class="btn-icon"><i class="ph ph-arrow-left"></i></button><div><div class="circles-nav-title">S — 總結推薦</div><div class="circles-nav-sub">Spotify · Premium 轉換</div></div></div>
+  <div class="circles-progress"><div class="circles-progress-seg done"></div><div class="circles-progress-seg done"></div><div class="circles-progress-seg done"></div><div class="circles-progress-seg done"></div><div class="circles-progress-seg done"></div><div class="circles-progress-seg done"></div><div class="circles-progress-seg active"></div><div class="circles-progress-label">S · 7/7</div></div>
+  <div class="scroll-body" style="opacity:0.35;pointer-events:none">
+    <div class="circles-field-group"><div class="circles-field-label-row"><div class="circles-field-label">推薦方案</div></div><textarea class="circles-field-input" rows="2" placeholder="填寫你的分析..."></textarea></div>
+    <div class="circles-field-group"><div class="circles-field-label-row"><div class="circles-field-label">選擇理由</div></div><textarea class="circles-field-input" rows="2" placeholder="填寫你的分析..."></textarea></div>
+  </div>
+  <div class="hint-overlay visible" onclick="show('p1-sim')">
+    <div class="hint-card" onclick="event.stopPropagation()">
+      <button class="hint-close" onclick="show('p1-sim')">×</button>
+      <div class="hint-card-title">推薦方案</div>
+      <div class="hint-card-sub">S — 總結推薦 · Spotify</div>
+      <div class="hint-card-body">
+        S 步驟的核心是做出一個<strong>清晰的決策</strong>，而不是羅列選項。<br><br>
+        「推薦方案一或方案二都可以」這種回答會讓面試官覺得你缺乏決斷力。<br><br>
+        直接說「我推薦方案 X，因為……」——一句話，一個方案，一個最核心的理由。
+      </div>
+      <div class="hint-card-footer">點擊任意處關閉</div>
+    </div>
+  </div>
+  <div class="submit-bar"><button class="btn-secondary">返回選題</button><button class="btn-primary">提交審核</button></div>
+</div>
+
+<!-- ══ 提示: 選擇理由 ══ -->
+<div id="screen-p1-hint-why" class="screen" style="position:relative">
+  <div class="circles-nav"><button class="btn-icon"><i class="ph ph-arrow-left"></i></button><div><div class="circles-nav-title">S — 總結推薦</div><div class="circles-nav-sub">Spotify · Premium 轉換</div></div></div>
+  <div class="circles-progress"><div class="circles-progress-seg done"></div><div class="circles-progress-seg done"></div><div class="circles-progress-seg done"></div><div class="circles-progress-seg done"></div><div class="circles-progress-seg done"></div><div class="circles-progress-seg done"></div><div class="circles-progress-seg active"></div><div class="circles-progress-label">S · 7/7</div></div>
+  <div class="scroll-body" style="opacity:0.35;pointer-events:none">
+    <div class="circles-field-group"><div class="circles-field-label-row"><div class="circles-field-label">推薦方案</div></div><textarea class="circles-field-input filled" rows="2">推薦情境式升級提示 — 在廣告中斷時觸發，轉換意圖最強。</textarea></div>
+    <div class="circles-field-group"><div class="circles-field-label-row"><div class="circles-field-label">選擇理由</div></div><textarea class="circles-field-input" rows="2" placeholder="填寫你的分析..."></textarea></div>
+  </div>
+  <div class="hint-overlay visible" onclick="show('p1-sim')">
+    <div class="hint-card" onclick="event.stopPropagation()">
+      <button class="hint-close" onclick="show('p1-sim')">×</button>
+      <div class="hint-card-title">選擇理由</div>
+      <div class="hint-card-sub">S — 總結推薦 · Spotify</div>
+      <div class="hint-card-body">
+        最強的選擇理由來自<strong>你自己前幾步的分析</strong>，而非重新發明新邏輯。<br><br>
+        試著把 E 步驟的評估結論直接引用進來：「E 步驟顯示此方案風險最低、成功指標最清晰、依賴條件最少。」<br><br>
+        這樣的回答展現出你的分析有連貫性，整個 CIRCLES 框架是有機的整體，不是各自獨立的格子。
+      </div>
+      <div class="hint-card-footer">點擊任意處關閉</div>
+    </div>
+  </div>
+  <div class="submit-bar"><button class="btn-secondary">返回選題</button><button class="btn-primary">提交審核</button></div>
+</div>
+
+<!-- ══ 提示: 北極星指標 ══ -->
+<div id="screen-p1-hint-nsm" class="screen" style="position:relative">
+  <div class="circles-nav"><button class="btn-icon"><i class="ph ph-arrow-left"></i></button><div><div class="circles-nav-title">S — 總結推薦</div><div class="circles-nav-sub">Spotify · Premium 轉換</div></div></div>
+  <div class="circles-progress"><div class="circles-progress-seg done"></div><div class="circles-progress-seg done"></div><div class="circles-progress-seg done"></div><div class="circles-progress-seg done"></div><div class="circles-progress-seg done"></div><div class="circles-progress-seg done"></div><div class="circles-progress-seg active"></div><div class="circles-progress-label">S · 7/7</div></div>
+  <div class="scroll-body" style="opacity:0.35;pointer-events:none">
+    <div class="circles-field-group"><div class="circles-field-label-row"><div class="circles-field-label">選擇理由</div></div><textarea class="circles-field-input filled" rows="2">E 步驟評估顯示此方案風險最低、依賴條件少，成功指標清晰。</textarea></div>
+    <div class="circles-field-group"><div class="circles-field-label-row"><div class="circles-field-label">北極星指標</div></div><textarea class="circles-field-input" rows="2" placeholder="填寫你的分析..."></textarea></div>
+  </div>
+  <div class="hint-overlay visible" onclick="show('p1-sim')">
+    <div class="hint-card" onclick="event.stopPropagation()">
+      <button class="hint-close" onclick="show('p1-sim')">×</button>
+      <div class="hint-card-title">北極星指標</div>
+      <div class="hint-card-sub">S — 總結推薦 · Spotify</div>
+      <div class="hint-card-body">
+        北極星指標是衡量用戶<strong>真正獲得核心價值</strong>的成果指標，不是業務結果（營收、訂閱數）也不是活動指標（下載數、登入次數）。<br><br>
+        好的北極星指標能分辨「用戶有沒有真的在使用」：<br>
+        ✗ 月活用戶數（開 App 就算）<br>
+        ✓ 每月完整播放 ≥1 首歌的用戶數（真正在聽音樂）<br><br>
+        你的推薦方案若成功，這個指標應該要上升。
+      </div>
+      <div class="hint-card-footer">點擊任意處關閉</div>
+    </div>
+  </div>
+  <div class="submit-bar"><button class="btn-secondary">返回選題</button><button class="btn-primary">提交審核</button></div>
+</div>
+
+<!-- ══ 提示: 追蹤指標 ══ -->
+<div id="screen-p1-hint-track" class="screen" style="position:relative">
+  <div class="circles-nav"><button class="btn-icon"><i class="ph ph-arrow-left"></i></button><div><div class="circles-nav-title">S — 總結推薦</div><div class="circles-nav-sub">Spotify · Premium 轉換</div></div></div>
+  <div class="circles-progress"><div class="circles-progress-seg done"></div><div class="circles-progress-seg done"></div><div class="circles-progress-seg done"></div><div class="circles-progress-seg done"></div><div class="circles-progress-seg done"></div><div class="circles-progress-seg done"></div><div class="circles-progress-seg active"></div><div class="circles-progress-label">S · 7/7</div></div>
+  <div class="scroll-body" style="opacity:0.35;pointer-events:none">
+    <div class="circles-field-group"><div class="circles-field-label-row"><div class="circles-field-label">北極星指標</div></div><textarea class="circles-field-input filled" rows="2">每月完成至少一首完整曲目播放的活躍月用戶數</textarea></div>
+    <div class="tracking-block"><div class="tracking-block-header"><div class="tracking-block-label">追蹤指標</div></div><div class="tracking-block-sub">填寫中…</div></div>
+  </div>
+  <div class="hint-overlay visible" onclick="show('p1-sim')">
+    <div class="hint-card" onclick="event.stopPropagation()">
+      <button class="hint-close" onclick="show('p1-sim')">×</button>
+      <div class="hint-card-title">追蹤指標 — 4 個維度</div>
+      <div class="hint-card-sub">S — 總結推薦 · Spotify</div>
+      <div class="hint-card-body" style="font-size:12px;line-height:1.75">
+        4 個維度讓你從不同角度驗證方案是否有效推動北極星指標：<br><br>
+        <strong style="color:#1d4ed8">觸及廣度</strong> — 有多少人看到你的方案？<br>
+        <strong style="color:#6d28d9">互動深度</strong> — 看到之後有沒有真正採取行動？<br>
+        <strong style="color:#065f46">習慣頻率</strong> — 持續回來使用嗎？<br>
+        <strong style="color:#92400e">留存驅力</strong> — 是什麼讓他們留下來付費？<br><br>
+        每個指標盡量包含量化目標，例如「轉化率 ≥ 5%」。
+      </div>
+      <div class="hint-card-footer">點擊任意處關閉</div>
+    </div>
+  </div>
+  <div class="submit-bar"><button class="btn-secondary">返回選題</button><button class="btn-primary">提交審核</button></div>
+</div>
+
+<!-- ══ Gate Pass ══ -->
+<div id="screen-gate-pass" class="screen">
+  <div class="circles-nav"><button class="btn-icon" onclick="show('p1-sim')"><i class="ph ph-arrow-left"></i></button><div><div class="circles-nav-title">S — 品質審核</div><div class="circles-nav-sub">Spotify · Premium 轉換</div></div></div>
+  <div class="scroll-body">
+    <div class="gate-pass-bar"><span class="gate-pass-text">✓ 推薦邏輯清晰，可進入對話練習</span><button class="gate-continue-btn" onclick="show('p2-early')">繼續 →</button></div>
+    <div class="gate-card ok"><div class="gate-card-icon" style="color:var(--success)"><i class="ph ph-check-circle"></i></div><div><div class="gate-card-field">推薦方案</div><div class="gate-card-title">推薦明確，點名方案一</div><div class="gate-card-reason">清楚說明選擇情境式升級提示，給出一句核心理由。</div></div></div>
+    <div class="gate-card ok"><div class="gate-card-icon" style="color:var(--success)"><i class="ph ph-check-circle"></i></div><div><div class="gate-card-field">選擇理由</div><div class="gate-card-title">有效引用 E 步驟結論</div><div class="gate-card-reason">選擇理由與 E 步驟評估邏輯一致，論點有連貫性。</div></div></div>
+    <div class="gate-card warn"><div class="gate-card-icon" style="color:#F9A825"><i class="ph ph-warning"></i></div><div><div class="gate-card-field">北極星指標</div><div class="gate-card-title">指標稍顯模糊</div><div class="gate-card-reason">「活躍用戶數」未明確定義「活躍」的行為門檻。</div><div class="gate-card-suggestion">建議補充觸發條件，例如「完成至少一首完整播放」。</div></div></div>
+    <div class="gate-card ok"><div class="gate-card-icon" style="color:var(--success)"><i class="ph ph-check-circle"></i></div><div><div class="gate-card-field">追蹤指標</div><div class="gate-card-title">4 個維度覆蓋完整</div><div class="gate-card-reason">觸及廣度至留存驅力均有具體指標，可操作性高。</div></div></div>
+  </div>
+</div>
+
+<!-- ══ Gate Fail ══ -->
+<div id="screen-gate-fail" class="screen">
+  <div class="circles-nav"><button class="btn-icon" onclick="show('p1-sim')"><i class="ph ph-arrow-left"></i></button><div><div class="circles-nav-title">S — 品質審核</div><div class="circles-nav-sub">Spotify · Premium 轉換</div></div></div>
+  <div class="scroll-body">
+    <div class="gate-fail-bar">✗ 推薦邏輯有根本性問題，請修正後再提交</div>
+    <div class="gate-card error"><div class="gate-card-icon" style="color:var(--danger)"><i class="ph ph-x-circle"></i></div><div><div class="gate-card-field">推薦方案</div><div class="gate-card-title">未明確點名推薦哪個方案</div><div class="gate-card-reason">僅描述「可以考慮多種方案」，未做出具體推薦決策。</div><div class="gate-card-suggestion">PM 的職責是做決策，必須明確選擇一個方案。</div></div></div>
+    <div class="gate-card error"><div class="gate-card-icon" style="color:var(--danger)"><i class="ph ph-x-circle"></i></div><div><div class="gate-card-field">北極星指標</div><div class="gate-card-title">使用虛榮指標</div><div class="gate-card-reason">「App 下載數」不能反映用戶真正獲得 Premium 價值。</div><div class="gate-card-suggestion">改為能衡量用戶真正獲得核心價值的行為指標。</div></div></div>
+    <div class="gate-card ok"><div class="gate-card-icon" style="color:var(--success)"><i class="ph ph-check-circle"></i></div><div><div class="gate-card-field">追蹤指標</div><div class="gate-card-title">維度覆蓋完整</div><div class="gate-card-reason">4 個維度均有定義，結構清晰。</div></div></div>
+  </div>
+  <div class="submit-bar"><button class="btn-secondary" style="flex:1" onclick="show('p1-sim')">← 返回修改</button></div>
+</div>
+
+<!-- ══ P2 Early ══ -->
+<div id="screen-p2-early" class="screen">
+  <div class="chat-wrap">
+    <div class="circles-nav"><button class="btn-icon"><i class="ph ph-arrow-left"></i></button><div><div class="circles-nav-title">S — 總結推薦</div><div class="circles-nav-sub">Spotify · Phase 2</div></div><button class="circles-nav-home">回首頁</button></div>
+    <div class="chat-pinned"><div class="pinned-co">被訪談者</div><div class="pinned-stmt">如何提升免費用戶轉 Premium 的轉換率？</div></div>
+    <div class="chat-body">
+      <div class="chat-icebreaker"><div class="chat-icebreaker-label"><i class="ph ph-chat-dots"></i> 對話開場</div><div class="chat-icebreaker-text">你已完成 S 步驟的框架分析。現在透過與被訪談者對話，深化你的推薦邏輯與指標選擇。</div></div>
+      <div class="bubble-user">我推薦情境式升級提示，在廣告中斷時觸發。請問這個觸發時機你認為可行嗎？</div>
+      <div class="bubble-ai"><div class="bubble-section">被訪談者</div>嗯，廣告中斷確實是用戶痛感最高的時刻。只是我擔心彈窗太強制會讓用戶直接關掉 App，這個設計上要很小心。</div>
+      <div class="bubble-coaching"><div class="bubble-section">教練點評</div>你的推薦方向明確，並連結到用戶行為時機。下一步可以深入追問設計細節以強化指標選擇。<button class="hint-toggle" onclick="toggleHint(this)"><i class="ph ph-caret-right"></i> 教練提示</button><div class="hint-body">問：「哪種 CTA 設計讓用戶感覺是幫助而非打擾？過去有試過的數據嗎？」</div></div>
+    </div>
+    <div class="chat-input-bar"><textarea class="chat-input" rows="1" placeholder="繼續提問..."></textarea><button class="chat-send-btn"><i class="ph ph-paper-plane-tilt"></i></button></div>
+    <div class="chat-submit-row"><button class="chat-submit-btn" onclick="show('p2-late')">整理結論 →</button></div>
+  </div>
+</div>
+
+<!-- ══ P2 Late ══ -->
+<div id="screen-p2-late" class="screen">
+  <div class="chat-wrap">
+    <div class="circles-nav"><button class="btn-icon"><i class="ph ph-arrow-left"></i></button><div><div class="circles-nav-title">S — 總結推薦</div><div class="circles-nav-sub">Spotify · Phase 2</div></div><button class="circles-nav-home">回首頁</button></div>
+    <div class="chat-pinned"><div class="pinned-co">被訪談者</div><div class="pinned-stmt">如何提升免費用戶轉 Premium 的轉換率？</div></div>
+    <div class="chat-body">
+      <div class="bubble-user">請問過去有沒有做過類似的情境提示測試？轉換效果如何？</div>
+      <div class="bubble-ai"><div class="bubble-section">被訪談者</div>有做過一次 A/B test，在播完第 5 首歌後彈出，點擊率約 12%，但付費轉換只有 1.5%。我們猜是時機太早，用戶還沒感受到廣告痛點。</div>
+      <div class="bubble-coaching"><div class="bubble-section">教練點評</div>你善用追問取得具體數據，這直接強化了北極星指標的基準設定。<button class="hint-toggle" onclick="toggleHint(this)"><i class="ph ph-caret-right"></i> 教練提示</button><div class="hint-body">整理：廣告中斷觸發的點擊率如果是 12%，轉換率目標可以設多少才合理？</div></div>
+      <div class="bubble-user">所以改成廣告中斷時觸發，再搭配 7 天免費試用 CTA，轉換意圖應該更強。</div>
+      <div class="bubble-ai"><div class="bubble-section">被訪談者</div>對，7 天試用讓用戶先體驗再決定，確實可以降低決策門檻。不過試用期結束後的續訂設計也很關鍵。</div>
+      <div class="bubble-coaching"><div class="bubble-section">教練點評</div>對話涵蓋了推薦邏輯的核心要素：觸發時機、用戶動機、轉換機制。可以開始整理結論了。<button class="hint-toggle" onclick="toggleHint(this)"><i class="ph ph-caret-right"></i> 教練提示</button><div class="hint-body">結論應包含：最終推薦版本、北極星指標精確定義、追蹤指標的優先序。</div></div>
+    </div>
+    <div class="chat-input-bar"><textarea class="chat-input" rows="1" placeholder="繼續提問..."></textarea><button class="chat-send-btn"><i class="ph ph-paper-plane-tilt"></i></button></div>
+    <div class="chat-submit-row"><button class="chat-submit-btn" onclick="show('p2-conclude')">整理結論 →</button></div>
+  </div>
+</div>
+
+<!-- ══ P2 結論（空白，未輸入） ══ -->
+<div id="screen-p2-conclude" class="screen">
+  <div class="chat-wrap">
+    <div class="circles-nav"><button class="btn-icon"><i class="ph ph-arrow-left"></i></button><div><div class="circles-nav-title">S — 總結推薦</div><div class="circles-nav-sub">Spotify · Phase 2</div></div></div>
+    <div class="chat-pinned"><div class="pinned-co">被訪談者</div><div class="pinned-stmt">如何提升免費用戶轉 Premium 的轉換率？</div></div>
+    <div class="chat-body" style="opacity:0.4;pointer-events:none">
+      <div class="bubble-user">改成廣告中斷觸發，搭配 7 天試用 CTA。</div>
+      <div class="bubble-ai"><div class="bubble-section">被訪談者</div>7 天試用讓用戶先體驗再決定，確實可以降低決策門檻。</div>
+    </div>
+    <div class="conclusion-box">
+      <div class="conclusion-title">整理你這個步驟確認了什麼</div>
+      <div class="conclusion-sub">說明選定的推薦方案、北極星指標的精確定義、追蹤指標的優先序</div>
+      <div class="conclusion-example-block">
+        <div class="conclusion-example-header" onclick="toggleConcludeExample(this)">
+          <div class="conclusion-example-label">範例（不同題目）</div>
+          <div class="conclusion-example-toggle">展開 ▾</div>
+        </div>
+        <div class="conclusion-example-content">例 (Duolingo Super)：推薦「連續學習獎勵」方案，在第 7 天連續學習時觸發 Super 試用。NSM 定為每月完成 ≥5 堂課的學習用戶數。追蹤指標優先序：① 試用啟動率（觸及廣度）② 試用期課程完成率（互動深度）③ 試用到期後 30 日訂閱率（留存驅力）。</div>
+      </div>
+      <textarea class="conclusion-textarea" placeholder="整理你的最終推薦結論..."></textarea>
+      <div class="conclusion-hint"></div>
+      <div class="conclusion-actions">
+        <button class="conclusion-back-btn">← 繼續對話</button>
+        <button class="conclusion-submit-btn disabled">確認提交</button>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- ══ P2 結論審核通過 ══ -->
+<div id="screen-p2-conclude-pass" class="screen">
+  <div class="chat-wrap">
+    <div class="circles-nav"><button class="btn-icon"><i class="ph ph-arrow-left"></i></button><div><div class="circles-nav-title">S — 總結推薦</div><div class="circles-nav-sub">Spotify · Phase 2</div></div></div>
+    <div class="chat-pinned"><div class="pinned-co">被訪談者</div><div class="pinned-stmt">如何提升免費用戶轉 Premium 的轉換率？</div></div>
+    <div class="chat-body" style="opacity:0.4;pointer-events:none">
+      <div class="bubble-user">改成廣告中斷觸發，搭配 7 天試用 CTA。</div>
+      <div class="bubble-ai"><div class="bubble-section">被訪談者</div>7 天試用讓用戶先體驗再決定，確實可以降低決策門檻。</div>
+    </div>
+    <div class="conclusion-box">
+      <div class="conclusion-title">整理你這個步驟確認了什麼</div>
+      <div class="conclusion-sub">說明選定的推薦方案、北極星指標的精確定義、追蹤指標的優先序</div>
+      <div class="conclusion-example-block">
+        <div class="conclusion-example-header" onclick="toggleConcludeExample(this)">
+          <div class="conclusion-example-label">範例（不同題目）</div>
+          <div class="conclusion-example-toggle">展開 ▾</div>
+        </div>
+        <div class="conclusion-example-content">例 (Duolingo Super)：推薦「連續學習獎勵」方案，在第 7 天連續學習時觸發 Super 試用。NSM 定為每月完成 ≥5 堂課的學習用戶數。</div>
+      </div>
+      <textarea class="conclusion-textarea">推薦情境式升級提示，在廣告中斷時觸發並搭配 7 天免費試用。NSM：每月完成至少一首完整播放的活躍用戶數。追蹤指標優先序：① 提示曝光率 ② 試用啟動轉化率 ③ 試用到期 30 日訂閱率。</textarea>
+      <div class="conclusion-hint pass">✓ 結論包含推薦方案、NSM 定義與追蹤指標優先序，可以提交</div>
+      <div class="conclusion-actions">
+        <button class="conclusion-back-btn">← 繼續對話</button>
+        <button class="conclusion-submit-btn" onclick="show('p3-score')">確認提交</button>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- ══ P2 結論審核警告 ══ -->
+<div id="screen-p2-conclude-warn" class="screen">
+  <div class="chat-wrap">
+    <div class="circles-nav"><button class="btn-icon"><i class="ph ph-arrow-left"></i></button><div><div class="circles-nav-title">S — 總結推薦</div><div class="circles-nav-sub">Spotify · Phase 2</div></div></div>
+    <div class="chat-pinned"><div class="pinned-co">被訪談者</div><div class="pinned-stmt">如何提升免費用戶轉 Premium 的轉換率？</div></div>
+    <div class="chat-body" style="opacity:0.4;pointer-events:none">
+      <div class="bubble-user">改成廣告中斷觸發。</div>
+      <div class="bubble-ai"><div class="bubble-section">被訪談者</div>有道理。</div>
+    </div>
+    <div class="conclusion-box">
+      <div class="conclusion-title">整理你這個步驟確認了什麼</div>
+      <div class="conclusion-sub">說明選定的推薦方案、北極星指標的精確定義、追蹤指標的優先序</div>
+      <div class="conclusion-example-block">
+        <div class="conclusion-example-header" onclick="toggleConcludeExample(this)">
+          <div class="conclusion-example-label">範例（不同題目）</div>
+          <div class="conclusion-example-toggle">展開 ▾</div>
+        </div>
+        <div class="conclusion-example-content">例 (Duolingo Super)：推薦「連續學習獎勵」方案…</div>
+      </div>
+      <textarea class="conclusion-textarea">推薦情境式升級提示，北極星指標是活躍用戶數。</textarea>
+      <div class="conclusion-hint warn">⚠ 結論缺少 NSM 的精確行為定義，以及追蹤指標的優先序</div>
+      <div class="conclusion-actions">
+        <button class="conclusion-back-btn">← 繼續對話</button>
+        <button class="conclusion-submit-btn disabled">確認提交</button>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- ══ P3 Score (S = last step 7/7) ══ -->
+<div id="screen-p3-score" class="screen">
+  <div class="circles-nav">
+    <button class="btn-icon" onclick="show('p2-conclude-pass')"><i class="ph ph-arrow-left"></i></button>
+    <div><div class="circles-nav-title">S — 評分結果</div><div class="circles-nav-sub">Spotify · Premium 轉換</div></div>
+    <div class="score-nav">
+      <button class="score-nav-btn" title="上一步：E 評估取捨">◀</button>
+      <button class="score-nav-btn" disabled title="S 是最後一步">▶</button>
+    </div>
+  </div>
+  <div class="scroll-body">
+    <div class="score-total">
+      <div class="score-number">84</div>
+      <div class="score-sub">S — 總結推薦 · 整體評分</div>
+    </div>
+    <div class="score-breakdown">
+      <div class="dim-row"><div class="dim-text"><div class="dim-name">推薦清晰度</div><div class="dim-comment">明確點名方案，推薦決策有說服力</div></div><div class="dim-bar-wrap"><div class="dim-bar" style="width:90%"></div></div><div class="dim-score">4.5<span>/5</span></div></div>
+      <div class="dim-row"><div class="dim-text"><div class="dim-name">選擇理由</div><div class="dim-comment">有效引用 E 步驟結論，邏輯連貫</div></div><div class="dim-bar-wrap"><div class="dim-bar" style="width:84%"></div></div><div class="dim-score">4.2<span>/5</span></div></div>
+      <div class="dim-row"><div class="dim-text"><div class="dim-name">指標領先性</div><div class="dim-comment">北極星指標能反映核心價值，非虛榮指標</div></div><div class="dim-bar-wrap"><div class="dim-bar" style="width:80%"></div></div><div class="dim-score">4.0<span>/5</span></div></div>
+      <div class="dim-row"><div class="dim-text"><div class="dim-name">可操作性</div><div class="dim-comment">追蹤指標具體但缺乏量化目標基準</div></div><div class="dim-bar-wrap"><div class="dim-bar" style="width:70%"></div></div><div class="dim-score">3.5<span>/5</span></div></div>
+    </div>
+    <div class="highlight-card good"><div class="highlight-label">做得好</div><div class="highlight-text">推薦邏輯完整閉環，從 E 步驟評估直接導出推薦，說服力強。北極星指標避開了虛榮指標的陷阱。</div></div>
+    <div class="highlight-card improve"><div class="highlight-label">可以更好</div><div class="highlight-text">追蹤指標缺少量化目標值（如目標轉換率 ≥X%），難以判斷方案是否真的成功。建議加入基準線或目標閾值。</div></div>
+    <div class="coach-toggle" onclick="toggleCoach(this)">
+      <div class="coach-toggle-label"><span>教練總評</span><i class="ph ph-caret-down"></i></div>
+      <div class="coach-content">你完成了整個 CIRCLES 框架。S 步驟的推薦展現出完整的決策思維，能從前六步的分析中提煉清晰建議。下一個練習重點：為每個追蹤指標加入量化目標與時間框架，讓指標從「可追蹤」升級為「可判斷成敗」。</div>
+    </div>
+  </div>
+  <div class="submit-bar">
+    <button class="btn-secondary" onclick="show('p1-sim')">回首頁</button>
+    <button class="btn-primary">查看完整報告 →</button>
+  </div>
+</div>
+
+</div></div>
+
+<script>
+var NAV_MAP = {'p1-sim':0,'p1-hint-rec':1,'p1-hint-why':2,'p1-hint-nsm':3,'p1-hint-track':4,'gate-pass':5,'gate-fail':6,'p2-early':7,'p2-late':8,'p2-conclude':9,'p2-conclude-pass':10,'p2-conclude-warn':11,'p3-score':12};
+function show(id) {
+  document.querySelectorAll('.screen').forEach(s => s.classList.remove('active'));
+  var el = document.getElementById('screen-' + id);
+  if (el) el.classList.add('active');
+  document.querySelectorAll('.nav-label').forEach(n => n.classList.remove('active'));
+  if (NAV_MAP[id] !== undefined) document.querySelectorAll('.nav-label')[NAV_MAP[id]].classList.add('active');
+}
+function togglePrevCard(btn) {
+  var body = btn.nextElementSibling;
+  var open = body.style.display !== 'none';
+  body.style.display = open ? 'none' : 'block';
+  var caret = btn.querySelector('.toggle-caret');
+  if (caret) caret.className = open ? 'ph ph-caret-right toggle-caret' : 'ph ph-caret-down toggle-caret';
+}
+function toggleExample(btn) {
+  var body = btn.nextElementSibling;
+  var open = body.classList.contains('open');
+  body.classList.toggle('open', !open);
+  var icon = btn.querySelector('i');
+  if (icon) icon.className = open ? 'ph ph-caret-right' : 'ph ph-caret-down';
+}
+function toggleHint(btn) {
+  var body = btn.nextElementSibling;
+  var open = body.classList.contains('open');
+  body.classList.toggle('open', !open);
+  var icon = btn.querySelector('i');
+  if (icon) icon.className = open ? 'ph ph-caret-right' : 'ph ph-caret-down';
+}
+function toggleCoach(el) {
+  var c = el.querySelector('.coach-content');
+  var icon = el.querySelector('i');
+  c.classList.toggle('open');
+  if (icon) icon.className = c.classList.contains('open') ? 'ph ph-caret-up' : 'ph ph-caret-down';
+}
+function toggleConcludeExample(header) {
+  var content = header.nextElementSibling;
+  var toggle = header.querySelector('.conclusion-example-toggle');
+  var open = content.classList.contains('open');
+  content.classList.toggle('open', !open);
+  if (toggle) toggle.textContent = open ? '展開 ▾' : '收起 ▴';
+}
+</script>
+</body>
+</html>

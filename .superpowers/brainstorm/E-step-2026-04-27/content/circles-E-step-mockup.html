@@ -1,0 +1,1107 @@
+<!DOCTYPE html>
+<html lang="zh-TW">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0">
+<title>CIRCLES — E 評估取捨 Mockup</title>
+<link rel="stylesheet" href="https://unpkg.com/@phosphor-icons/web@2.1.1/src/regular/style.css">
+<link href="https://fonts.googleapis.com/css2?family=DM+Sans:ital,wght@0,400;0,500;0,600;0,700;1,400&display=swap" rel="stylesheet">
+<style>
+* { box-sizing: border-box; margin: 0; padding: 0; -webkit-tap-highlight-color: transparent; }
+body { font-family: 'DM Sans', -apple-system, sans-serif; background: #F2F0EB; display: flex; justify-content: center; }
+
+:root {
+  --bg: #F2F0EB;
+  --card: #ffffff;
+  --border: #e8e5de;
+  --primary: #1A56DB;
+  --primary-lt: #EEF3FF;
+  --text: #1a1a1a;
+  --text-2: #5a5a5a;
+  --text-3: #8a8a8a;
+  --success: #137A3D;
+  --warning: #B85C00;
+  --danger: #D92020;
+}
+
+/* ── Top navigation bar (mockup switcher) ── */
+.top-nav {
+  position: fixed; top: 0; left: 50%; transform: translateX(-50%);
+  background: #111; display: flex; gap: 6px; padding: 8px 14px;
+  z-index: 999; border-radius: 0 0 12px 12px; overflow-x: auto;
+  white-space: nowrap; max-width: 100vw; scrollbar-width: none;
+}
+.top-nav::-webkit-scrollbar { display: none; }
+.nav-label {
+  font-size: 11px; font-weight: 700; background: #1a1a1a; color: #fff;
+  padding: 5px 12px; border-radius: 20px; cursor: pointer;
+  font-family: 'DM Sans', sans-serif; white-space: nowrap;
+}
+.nav-label:hover { background: #333; }
+.nav-label.active { background: var(--primary); }
+
+/* ── Shell ── */
+.wrapper { max-width: 390px; width: 100vw; margin-top: 52px; position: relative; }
+.shell { width: 390px; min-height: 100vh; background: var(--bg); position: relative; overflow: hidden; }
+.screen { display: none; flex-direction: column; height: 100vh; }
+.screen.active { display: flex; }
+
+/* ── Shared components ── */
+.btn-icon { background: none; border: none; font-size: 18px; color: var(--text-2); cursor: pointer; padding: 6px; line-height: 1; }
+
+.circles-nav {
+  height: 52px; background: var(--card); border-bottom: 1px solid var(--border);
+  display: flex; align-items: center; padding: 0 14px; gap: 10px; flex-shrink: 0;
+}
+.circles-nav-title { font-size: 14px; font-weight: 700; color: var(--text); font-family: 'DM Sans', sans-serif; }
+.circles-nav-sub { font-size: 11px; color: var(--text-3); font-family: 'DM Sans', sans-serif; }
+.circles-nav-home { font-size: 12px; color: var(--primary); border-bottom: 1px solid var(--primary); background: none; border-top: none; border-left: none; border-right: none; padding: 2px 0; cursor: pointer; white-space: nowrap; flex-shrink: 0; margin-left: auto; font-family: 'DM Sans', sans-serif; }
+
+.circles-progress {
+  height: 36px; background: var(--card); border-bottom: 1px solid var(--border);
+  display: flex; align-items: center; padding: 0 14px; gap: 3px; flex-shrink: 0;
+}
+.circles-progress-seg { flex: 1; height: 4px; background: #e8e5de; border-radius: 2px; }
+.circles-progress-seg.done { background: var(--primary); }
+.circles-progress-seg.active { background: rgba(26,86,219,0.4); }
+.circles-progress-label { font-size: 10px; color: var(--text-3); white-space: nowrap; margin-left: 8px; font-family: 'DM Sans', sans-serif; }
+
+.scroll-body { flex: 1; overflow-y: auto; padding: 16px; padding-bottom: 120px; scrollbar-width: none; }
+.scroll-body::-webkit-scrollbar { display: none; }
+
+.submit-bar {
+  background: var(--card); border-top: 1px solid var(--border);
+  padding: 12px 16px; display: flex; gap: 10px; flex-shrink: 0;
+}
+.btn-primary { flex: 1; background: var(--primary); color: #fff; border: none; border-radius: 10px; padding: 12px 16px; font-size: 14px; font-weight: 600; cursor: pointer; font-family: 'DM Sans', sans-serif; }
+.btn-secondary { background: #f0ede6; color: var(--text); border: none; border-radius: 10px; padding: 12px 16px; font-size: 14px; font-weight: 600; cursor: pointer; white-space: nowrap; font-family: 'DM Sans', sans-serif; }
+
+.problem-card {
+  background: var(--card); border-radius: 10px; border: 1px solid var(--border);
+  padding: 12px 14px; font-size: 13px; color: var(--text-2); line-height: 1.6;
+  margin-bottom: 14px; font-family: 'DM Sans', sans-serif;
+}
+.problem-card-label { font-size: 9px; font-weight: 700; text-transform: uppercase; letter-spacing: .07em; color: var(--text-3); margin-bottom: 4px; font-family: 'DM Sans', sans-serif; }
+
+/* Step pills (horizontal scroll) */
+.circles-step-pills { display: flex; gap: 6px; overflow-x: auto; margin-bottom: 14px; scrollbar-width: none; padding-bottom: 2px; }
+.circles-step-pills::-webkit-scrollbar { display: none; }
+.circles-step-pill { flex-shrink: 0; padding: 5px 12px; border-radius: 20px; border: 1px solid var(--border); background: var(--card); font-size: 11px; font-weight: 600; color: var(--text-3); cursor: pointer; white-space: nowrap; font-family: 'DM Sans', sans-serif; }
+.circles-step-pill.active { background: var(--primary); color: #fff; border-color: var(--primary); }
+.circles-step-pill.done { background: #e6f0e8; color: var(--success); border-color: #b8dbbf; }
+
+/* ── Prev-step summary card ── */
+.prev-step-card {
+  background: var(--card); border: 1px solid var(--border); border-radius: 10px;
+  margin-bottom: 14px; overflow: hidden;
+}
+.prev-step-toggle {
+  width: 100%; display: flex; align-items: center; justify-content: space-between;
+  background: none; border: none; cursor: pointer; padding: 10px 14px; text-align: left;
+  font-family: 'DM Sans', sans-serif;
+}
+.prev-step-toggle-title {
+  font-size: 11px; font-weight: 700; color: var(--text-2);
+  display: flex; align-items: center; gap: 5px;
+}
+.prev-step-toggle i.toggle-caret { font-size: 11px; color: var(--text-3); flex-shrink: 0; }
+.prev-step-body { padding: 0 14px 12px; }
+.prev-step-row {
+  display: flex; gap: 10px; align-items: flex-start;
+  padding: 7px 0; border-top: 1px solid var(--border);
+}
+.prev-step-row:first-child { border-top: none; }
+.prev-step-label {
+  font-size: 9px; font-weight: 700; text-transform: uppercase; letter-spacing: .07em;
+  color: var(--text-3); white-space: nowrap; padding-top: 2px; min-width: 60px;
+  font-family: 'DM Sans', sans-serif;
+}
+.prev-step-val {
+  font-size: 12px; color: var(--text-2); line-height: 1.55;
+  font-family: 'DM Sans', sans-serif;
+}
+
+/* ── E step — per-solution block ── */
+.e-solution-block {
+  background: var(--card); border-radius: 12px; border: 1.5px solid var(--border);
+  margin-bottom: 14px; overflow: hidden;
+}
+.e-sol-header {
+  display: flex; align-items: center; gap: 8px;
+  padding: 12px 14px 10px; border-bottom: 1px solid var(--border);
+  background: #fafaf9;
+}
+.e-sol-badge {
+  font-size: 11px; font-weight: 700; color: var(--primary);
+  background: var(--primary-lt); border-radius: 99px; padding: 2px 9px;
+  white-space: nowrap; font-family: 'DM Sans', sans-serif; flex-shrink: 0;
+}
+.e-sol-name {
+  font-size: 13px; font-weight: 600; color: var(--text);
+  font-family: 'DM Sans', sans-serif; min-width: 0; overflow: hidden;
+  text-overflow: ellipsis; white-space: nowrap;
+}
+.e-sol-fields { padding: 12px 14px 6px; }
+
+/* Field group inside solution block */
+.circles-field-group { margin-bottom: 12px; }
+.circles-field-label-row { display: flex; justify-content: space-between; align-items: baseline; margin-bottom: 4px; }
+.circles-field-label { font-size: 10px; color: var(--text-3); text-transform: uppercase; letter-spacing: .07em; font-weight: 700; font-family: 'DM Sans', sans-serif; }
+.circles-hint-trigger { background: none; border: none; font-size: 11px; color: var(--primary); cursor: pointer; padding: 0; white-space: nowrap; display: flex; align-items: center; gap: 3px; font-family: 'DM Sans', sans-serif; }
+.field-example-toggle { background: none; border: none; font-size: 10px; color: var(--text-3); cursor: pointer; padding: 0 0 5px; display: flex; align-items: center; gap: 3px; font-family: 'DM Sans', sans-serif; }
+.field-example-body { display: none; font-size: 11px; color: var(--text-3); margin-bottom: 6px; line-height: 1.5; padding: 5px 8px; background: rgba(0,0,0,0.03); border-radius: 6px; font-family: 'DM Sans', sans-serif; }
+.field-example-body.open { display: block; }
+.circles-field-input { width: 100%; padding: 9px 12px; border-radius: 10px; border: 1.5px solid var(--border); background: var(--card); font-size: 13px; font-family: 'DM Sans', sans-serif; color: var(--text); resize: none; outline: none; line-height: 1.5; }
+.circles-field-input:focus { border-color: var(--primary); }
+.circles-field-input.filled { border-color: rgba(26,86,219,0.3); background: #fbfaff; }
+
+/* ── Gate screens ── */
+.gate-pass-bar { background: var(--primary-lt); border: 1px solid #C5D5FF; border-radius: 10px; padding: 12px 14px; margin-bottom: 16px; display: flex; align-items: center; justify-content: space-between; gap: 12px; }
+.gate-pass-text { font-size: 12px; font-weight: 600; color: var(--primary); font-family: 'DM Sans', sans-serif; }
+.gate-continue-btn { background: var(--primary); color: #fff; border: none; border-radius: 8px; padding: 7px 14px; font-size: 12px; font-weight: 600; cursor: pointer; white-space: nowrap; flex-shrink: 0; font-family: 'DM Sans', sans-serif; }
+.gate-fail-bar { background: #FFF3F3; border: 1px solid #FFCDD2; border-radius: 10px; padding: 12px 14px; margin-bottom: 16px; font-size: 12px; color: var(--danger); font-family: 'DM Sans', sans-serif; }
+.gate-card { background: var(--card); border-radius: 10px; border: 1.5px solid var(--border); padding: 12px 14px; margin-bottom: 10px; display: flex; gap: 10px; align-items: flex-start; }
+.gate-card.ok { border-color: #b8dbbf; }
+.gate-card.warn { border-color: #FFD54F; }
+.gate-card.error { border-color: #f5c6c6; }
+.gate-card-icon { font-size: 15px; flex-shrink: 0; margin-top: 1px; }
+.gate-card-field { font-size: 9px; text-transform: uppercase; letter-spacing: .05em; color: var(--text-3); margin-bottom: 2px; font-family: 'DM Sans', sans-serif; }
+.gate-card-title { font-size: 13px; font-weight: 700; color: var(--text); margin-bottom: 3px; font-family: 'DM Sans', sans-serif; }
+.gate-card-reason { font-size: 12px; color: var(--text-2); line-height: 1.5; font-family: 'DM Sans', sans-serif; }
+.gate-card-suggestion { font-size: 11px; color: var(--warning); margin-top: 4px; font-family: 'DM Sans', sans-serif; }
+
+/* ── Phase 2 — chat ── */
+.chat-wrap { display: flex; flex-direction: column; height: 100vh; overflow: hidden; }
+.chat-pinned { background: var(--card); border-bottom: 1px solid var(--border); padding: 8px 14px; flex-shrink: 0; }
+.pinned-co { font-size: 10px; color: var(--primary); font-weight: 600; text-transform: uppercase; letter-spacing: .05em; margin-bottom: 1px; font-family: 'DM Sans', sans-serif; }
+.pinned-stmt { font-size: 11px; color: var(--text); font-weight: 600; line-height: 1.4; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; font-family: 'DM Sans', sans-serif; }
+.chat-body { flex: 1; overflow-y: auto; padding: 14px 16px; scrollbar-width: none; }
+.chat-body::-webkit-scrollbar { display: none; }
+.bubble-user {
+  background: var(--card); border: 1px solid var(--border);
+  border-radius: 12px 4px 12px 12px; padding: 10px 13px;
+  font-size: 13px; line-height: 1.6; color: var(--text);
+  margin-bottom: 10px; max-width: 88%; margin-left: auto;
+  font-family: 'DM Sans', sans-serif;
+}
+.bubble-ai {
+  background: var(--primary-lt); border: 1px solid rgba(26,86,219,0.18);
+  border-radius: 4px 12px 12px 12px; padding: 10px 13px;
+  font-size: 13px; line-height: 1.6; color: var(--text);
+  margin-bottom: 10px; max-width: 88%; font-family: 'DM Sans', sans-serif;
+}
+.bubble-section { font-size: 10px; font-weight: 700; color: var(--text-3); text-transform: uppercase; letter-spacing: .07em; margin-bottom: 3px; font-family: 'DM Sans', sans-serif; }
+.bubble-coaching { background: rgba(0,0,0,0.03); border: 1px solid var(--border); border-radius: 4px 12px 12px 12px; padding: 10px 13px; font-size: 12px; line-height: 1.6; color: var(--text); margin-bottom: 10px; max-width: 88%; font-family: 'DM Sans', sans-serif; }
+.hint-toggle { background: none; border: none; font-size: 11px; color: var(--text-3); cursor: pointer; padding: 0; display: flex; align-items: center; gap: 3px; margin-top: 6px; font-family: 'DM Sans', sans-serif; }
+.hint-body { display: none; margin-top: 4px; padding: 6px 8px; background: rgba(0,0,0,0.04); border-radius: 6px; color: var(--text-2); font-size: 11px; line-height: 1.5; font-family: 'DM Sans', sans-serif; }
+.chat-input-bar { background: var(--card); border-top: 1px solid var(--border); padding: 10px 14px; display: flex; gap: 8px; align-items: flex-end; flex-shrink: 0; }
+.chat-icebreaker { background: rgba(26,86,219,0.05); border: 1px solid rgba(26,86,219,0.18); border-radius: 10px; padding: 10px 13px; margin-bottom: 14px; }
+.chat-icebreaker-label { font-size: 9px; font-weight: 700; color: var(--primary); text-transform: uppercase; letter-spacing: .07em; margin-bottom: 5px; display: flex; align-items: center; gap: 4px; font-family: 'DM Sans', sans-serif; }
+.chat-icebreaker-text { font-size: 12px; color: var(--text-2); line-height: 1.65; font-family: 'DM Sans', sans-serif; }
+.chat-input { flex: 1; background: #f5f5f5; border: 1px solid var(--border); border-radius: 10px; padding: 9px 13px; font-size: 14px; color: var(--text); font-family: 'DM Sans', sans-serif; resize: none; outline: none; min-height: 40px; }
+.chat-send-btn { width: 40px; height: 40px; border-radius: 10px; background: var(--primary); border: none; color: #fff; font-size: 16px; cursor: pointer; display: flex; align-items: center; justify-content: center; flex-shrink: 0; }
+.chat-submit-row { padding: 6px 12px 10px; display: flex; justify-content: center; background: var(--card); flex-shrink: 0; border-top: 1px solid var(--border); }
+.chat-submit-btn { font-size: 11px; color: var(--text-2); border: 1px solid var(--border); border-radius: 8px; padding: 6px 16px; cursor: pointer; background: var(--card); font-family: 'DM Sans', sans-serif; }
+
+/* Conclusion box */
+.conclusion-box { border-top: 2px solid var(--primary); background: var(--card); padding: 14px; flex-shrink: 0; max-height: 55vh; overflow-y: auto; }
+.conclusion-title { font-size: 11px; font-weight: 700; color: var(--text); margin-bottom: 2px; font-family: 'DM Sans', sans-serif; }
+.conclusion-sub { font-size: 10px; color: var(--text-3); margin-bottom: 8px; font-family: 'DM Sans', sans-serif; }
+.conclusion-textarea { width: 100%; border: 1px solid #ddd; border-radius: 8px; padding: 9px; font-size: 11px; line-height: 1.6; resize: none; height: 68px; box-sizing: border-box; font-family: 'DM Sans', sans-serif; color: var(--text); outline: none; }
+.conclusion-hint { min-height: 16px; font-size: 10px; color: var(--text-3); margin-top: 6px; font-family: 'DM Sans', sans-serif; }
+.conclusion-hint.pass { background: #E8F5E9; color: var(--success); border-radius: 4px; padding: 4px 8px; }
+.conclusion-actions { margin-top: 8px; display: flex; align-items: center; justify-content: space-between; }
+.conclusion-back-btn { font-size: 10px; color: var(--text-3); background: none; border: none; cursor: pointer; font-family: 'DM Sans', sans-serif; }
+.conclusion-submit-btn { background: var(--primary); color: #fff; border: none; border-radius: 8px; padding: 8px 14px; font-size: 12px; font-weight: 600; cursor: pointer; font-family: 'DM Sans', sans-serif; }
+
+/* ── Phase 3 — Score ── */
+.score-total { background: var(--card); border-radius: 16px; border: 1px solid var(--border); padding: 20px; text-align: center; margin-bottom: 14px; }
+.score-number { font-family: 'Georgia', serif; font-size: 60px; color: var(--primary); line-height: 1; margin-bottom: 4px; font-weight: 400; }
+.score-sub { font-size: 13px; color: var(--text-2); font-family: 'DM Sans', sans-serif; }
+.score-breakdown { background: var(--card); border-radius: 12px; border: 1px solid var(--border); padding: 14px; margin-bottom: 14px; }
+.dim-row { display: flex; align-items: center; gap: 10px; padding: 9px 0; border-bottom: 1px solid var(--border); }
+.dim-row:last-child { border-bottom: none; }
+.dim-text { flex: 1; min-width: 0; }
+.dim-name { font-size: 12px; color: var(--text-2); font-family: 'DM Sans', sans-serif; }
+.dim-comment { font-size: 10px; color: var(--text-3); margin-top: 1px; line-height: 1.4; font-family: 'DM Sans', sans-serif; }
+.dim-bar-wrap { width: 70px; height: 5px; background: #f0ede6; border-radius: 3px; flex-shrink: 0; }
+.dim-bar { height: 100%; border-radius: 3px; background: var(--primary); }
+.dim-score { font-weight: 700; color: var(--text); min-width: 24px; text-align: right; font-size: 12px; font-family: 'DM Sans', sans-serif; }
+.dim-score span { font-size: 9px; color: var(--text-3); }
+.highlight-card { border-radius: 10px; border: 1.5px solid; padding: 12px 14px; margin-bottom: 10px; }
+.highlight-card.good { background: #F0FFF4; border-color: #BBF7D0; }
+.highlight-card.improve { background: #FFFBEB; border-color: #FDE68A; }
+.highlight-label { font-size: 10px; font-weight: 700; text-transform: uppercase; letter-spacing: .05em; margin-bottom: 4px; font-family: 'DM Sans', sans-serif; }
+.highlight-card.good .highlight-label { color: var(--success); }
+.highlight-card.improve .highlight-label { color: var(--warning); }
+.highlight-text { font-size: 13px; color: var(--text); line-height: 1.5; font-family: 'DM Sans', sans-serif; }
+.coach-toggle { background: var(--card); border: 1px solid var(--border); border-radius: 12px; padding: 14px; margin-bottom: 14px; cursor: pointer; }
+.coach-toggle-label { font-size: 12px; font-weight: 700; color: var(--text-2); display: flex; align-items: center; justify-content: space-between; font-family: 'DM Sans', sans-serif; }
+.coach-content { font-size: 12px; color: var(--text-2); line-height: 1.7; margin-top: 10px; display: none; font-family: 'DM Sans', sans-serif; }
+.coach-content.open { display: block; }
+
+.score-nav { display: flex; gap: 2px; margin-left: auto; }
+.score-nav-btn { background: none; border: 1px solid var(--border); border-radius: 6px; padding: 4px 8px; font-size: 12px; cursor: pointer; color: var(--text-2); font-family: 'DM Sans', sans-serif; }
+.score-nav-btn:disabled { opacity: 0.3; cursor: default; }
+
+/* ── Hint overlay ── */
+.hint-overlay {
+  position: absolute; inset: 0; background: rgba(0,0,0,0.45);
+  z-index: 200; display: none; align-items: center; justify-content: center; padding: 24px;
+}
+.hint-overlay.visible { display: flex; }
+.hint-card { background: #fff; border-radius: 16px; padding: 20px; max-width: 340px; width: 100%; box-shadow: 0 8px 40px rgba(0,0,0,0.18); position: relative; }
+.hint-card-title { font-size: 13px; font-weight: 700; color: var(--primary); margin-bottom: 2px; font-family: 'DM Sans', sans-serif; }
+.hint-card-sub { font-size: 11px; color: #8a8a8a; margin-bottom: 12px; font-family: 'DM Sans', sans-serif; }
+.hint-card-body { font-size: 13px; color: var(--text); line-height: 1.7; background: #F6F8FF; border-left: 3px solid var(--primary); padding: 12px; border-radius: 0 8px 8px 0; font-family: 'DM Sans', sans-serif; }
+.hint-card-footer { font-size: 11px; color: #aaa; text-align: center; margin-top: 12px; font-family: 'DM Sans', sans-serif; }
+.hint-close { position: absolute; top: 12px; right: 14px; background: none; border: none; font-size: 20px; color: #aaa; cursor: pointer; line-height: 1; padding: 0; }
+
+@keyframes spin { to { transform: rotate(360deg); } }
+</style>
+</head>
+<body>
+
+<!-- ── Mockup switcher ── -->
+<div class="top-nav">
+  <span class="nav-label active"  onclick="show('p1-drill')">P1 加練</span>
+  <span class="nav-label"         onclick="show('p1-hint')">P1+提示</span>
+  <span class="nav-label"         onclick="show('gate-pass')">Gate ✓</span>
+  <span class="nav-label"         onclick="show('gate-fail')">Gate ✗</span>
+  <span class="nav-label"         onclick="show('p2-early')">P2 早期</span>
+  <span class="nav-label"         onclick="show('p2-late')">P2 收斂</span>
+  <span class="nav-label"         onclick="show('p2-conclude')">P2 結論</span>
+  <span class="nav-label"         onclick="show('p3-e')">P3 E評分</span>
+  <span class="nav-label"         onclick="show('p3-l')">P3 L評分</span>
+</div>
+
+<div class="wrapper">
+<div class="shell">
+
+<!-- ════════════════════════════════════════════
+     SCREEN 1: Phase 1 — E step (Drill mode)
+     3 solution blocks, sol3 hidden by default
+════════════════════════════════════════════ -->
+<div id="screen-p1-drill" class="screen active" style="position:relative">
+  <div class="circles-nav">
+    <button class="btn-icon" onclick="show('gate-pass')"><i class="ph ph-arrow-left"></i></button>
+    <div>
+      <div class="circles-nav-title">E — 評估取捨</div>
+      <div class="circles-nav-sub">Meta · News Feed</div>
+    </div>
+    <button class="circles-nav-home">回首頁</button>
+  </div>
+  <div class="circles-progress">
+    <div class="circles-progress-seg done"></div>
+    <div class="circles-progress-seg done"></div>
+    <div class="circles-progress-seg done"></div>
+    <div class="circles-progress-seg done"></div>
+    <div class="circles-progress-seg done"></div>
+    <div class="circles-progress-seg active"></div>
+    <div class="circles-progress-seg"></div>
+    <div class="circles-progress-label">E · 評估取捨 · 6/7</div>
+  </div>
+  <div class="scroll-body">
+    <!-- Step pills -->
+    <div class="circles-step-pills">
+      <span class="circles-step-pill done">C 澄清情境</span>
+      <span class="circles-step-pill done">I 定義用戶</span>
+      <span class="circles-step-pill done">R 發掘需求</span>
+      <span class="circles-step-pill done">C 優先排序</span>
+      <span class="circles-step-pill done">L 提出方案</span>
+      <span class="circles-step-pill active">E 評估取捨</span>
+      <span class="circles-step-pill">S 總結推薦</span>
+    </div>
+    <!-- Problem card -->
+    <div class="problem-card">
+      <div class="problem-card-label">題目</div>
+      用戶反映 Facebook News Feed 廣告過多，導致使用體驗下降。請提出改善方案。
+    </div>
+
+    <!-- ── 前步驟重點參考（從 C1 / R / L 帶入） ── -->
+    <div class="prev-step-card">
+      <button class="prev-step-toggle" onclick="togglePrevCard(this)">
+        <span class="prev-step-toggle-title"><i class="ph ph-clock-counter-clockwise"></i> 前步驟重點參考</span>
+        <i class="ph ph-caret-down toggle-caret"></i>
+      </button>
+      <div class="prev-step-body">
+        <div class="prev-step-row">
+          <span class="prev-step-label">C1 業務約束</span>
+          <span class="prev-step-val">廣告收入不能下降超過一定比例；廣告主曝光量承諾不能大幅縮減</span>
+        </div>
+        <div class="prev-step-row">
+          <span class="prev-step-label">R 核心痛點</span>
+          <span class="prev-step-val">情感層：習慣型用戶「漏接重要社交時刻」的焦慮，直接觸發打開頻率下降</span>
+        </div>
+        <div class="prev-step-row">
+          <span class="prev-step-label">L 方案</span>
+          <span class="prev-step-val">① 演算法相關性重排 ② 用戶主動優先序（摯友列表） ③ 分類 Feed 頁籤</span>
+        </div>
+      </div>
+    </div>
+
+    <!-- ── 方案一 ── -->
+    <div class="e-solution-block">
+      <div class="e-sol-header">
+        <span class="e-sol-badge">方案一</span>
+        <span class="e-sol-name">演算法相關性重排</span>
+      </div>
+      <div class="e-sol-fields">
+        <!-- 優點 -->
+        <div class="circles-field-group">
+          <div class="circles-field-label-row">
+            <span class="circles-field-label">優點</span>
+            <button class="circles-hint-trigger" onclick="showHint('優點','方案一・演算法相關性重排','優點要具體——不是「用戶喜歡」，而是「直接解決 Feed 相關性問題，系統主動，用戶無感」。說出這個方案「為什麼比其他方案更適合解決這個問題」。')"><i class="ph ph-lightbulb"></i> 提示</button>
+          </div>
+          <button class="field-example-toggle" onclick="toggleExample(this)"><i class="ph ph-caret-right" style="font-size:9px"></i> 查看範例</button>
+          <div class="field-example-body">系統主動過濾，用戶無需改變行為；ML 端優化，開發週期最短（單季）</div>
+          <textarea class="circles-field-input filled" rows="2">系統主動，用戶無感，廣告過濾由演算法統一處理，不需用戶額外操作</textarea>
+        </div>
+        <!-- 缺點 -->
+        <div class="circles-field-group">
+          <div class="circles-field-label-row">
+            <span class="circles-field-label">缺點</span>
+            <button class="circles-hint-trigger" onclick="showHint('缺點','方案一・演算法相關性重排','缺點不是說「這個方案不好」，而是誠實說「這個方向的侷限在哪裡」。面試官希望看到你能清楚識別方案的邊界，而不是只看到優點。')"><i class="ph ph-lightbulb"></i> 提示</button>
+          </div>
+          <button class="field-example-toggle" onclick="toggleExample(this)"><i class="ph ph-caret-right" style="font-size:9px"></i> 查看範例</button>
+          <div class="field-example-body">黑盒決策，廣告相關性可能連帶下降；廣告主收益影響難以預測</div>
+          <textarea class="circles-field-input" rows="2" placeholder="最大的劣勢或限制？"></textarea>
+        </div>
+        <!-- 風險與依賴 -->
+        <div class="circles-field-group">
+          <div class="circles-field-label-row">
+            <span class="circles-field-label">風險與依賴</span>
+            <button class="circles-hint-trigger" onclick="showHint('風險與依賴','方案一・演算法相關性重排','風險是「如果 X 沒有達成，這個方案就會失敗」。常見的有：資料依賴（需要哪些 ML 訓練資料）、用戶行為假設（用戶願意主動設定）、業務約束（廣告收入不能下降超過 N%）。')"><i class="ph ph-lightbulb"></i> 提示</button>
+          </div>
+          <button class="field-example-toggle" onclick="toggleExample(this)"><i class="ph ph-caret-right" style="font-size:9px"></i> 查看範例</button>
+          <div class="field-example-body">依賴足夠的用戶社交圖譜資料；廣告收入影響需事先 A/B test 量化上限</div>
+          <textarea class="circles-field-input" rows="2" placeholder="實施這個方案需要什麼前提條件？"></textarea>
+        </div>
+        <!-- 成功指標 -->
+        <div class="circles-field-group">
+          <div class="circles-field-label-row">
+            <span class="circles-field-label">成功指標</span>
+            <button class="circles-hint-trigger" onclick="showHint('成功指標','方案一・演算法相關性重排','成功指標要和你在 R 步驟確認的核心痛點掛鉤。如果核心痛點是「Feed 相關性不足」，成功指標應該是「用戶在 Feed 上的停留時間提升 X%」或「廣告點擊率維持在 Y% 以上」。')"><i class="ph ph-lightbulb"></i> 提示</button>
+          </div>
+          <button class="field-example-toggle" onclick="toggleExample(this)"><i class="ph ph-caret-right" style="font-size:9px"></i> 查看範例</button>
+          <div class="field-example-body">Feed 停留時間 ↑15%；朋友動態互動率 ↑20%；廣告 CTR 降幅 ≤5%</div>
+          <textarea class="circles-field-input" rows="2" placeholder="如何衡量這個方案是否成功？"></textarea>
+        </div>
+      </div>
+    </div>
+
+    <!-- ── 方案二 ── -->
+    <div class="e-solution-block">
+      <div class="e-sol-header">
+        <span class="e-sol-badge">方案二</span>
+        <span class="e-sol-name">用戶主動優先序（摯友列表）</span>
+      </div>
+      <div class="e-sol-fields">
+        <div class="circles-field-group">
+          <div class="circles-field-label-row">
+            <span class="circles-field-label">優點</span>
+            <button class="circles-hint-trigger" onclick="showHint('優點','方案二・摯友列表','優點要具體——不是「用戶喜歡」，而是「直接解決 Feed 相關性問題，系統主動，用戶無感」。說出這個方案「為什麼比其他方案更適合解決這個問題」。')"><i class="ph ph-lightbulb"></i> 提示</button>
+          </div>
+          <button class="field-example-toggle" onclick="toggleExample(this)"><i class="ph ph-caret-right" style="font-size:9px"></i> 查看範例</button>
+          <div class="field-example-body">廣告衝擊最小，用戶掌控感強，無演算法爭議</div>
+          <textarea class="circles-field-input" rows="2" placeholder="這個方案的核心優勢是什麼？"></textarea>
+        </div>
+        <div class="circles-field-group">
+          <div class="circles-field-label-row">
+            <span class="circles-field-label">缺點</span>
+            <button class="circles-hint-trigger" onclick="showHint('缺點','方案二・摯友列表','缺點不是說「這個方案不好」，而是誠實說「這個方向的侷限在哪裡」。面試官希望看到你能清楚識別方案的邊界，而不是只看到優點。')"><i class="ph ph-lightbulb"></i> 提示</button>
+          </div>
+          <button class="field-example-toggle" onclick="toggleExample(this)"><i class="ph ph-caret-right" style="font-size:9px"></i> 查看範例</button>
+          <div class="field-example-body">歷史採用率低，用戶教育成本高</div>
+          <textarea class="circles-field-input" rows="2" placeholder="最大的劣勢或限制？"></textarea>
+        </div>
+        <div class="circles-field-group">
+          <div class="circles-field-label-row">
+            <span class="circles-field-label">風險與依賴</span>
+            <button class="circles-hint-trigger" onclick="showHint('風險與依賴','方案二・摯友列表','風險是「如果 X 沒有達成，這個方案就會失敗」。常見的有：資料依賴、用戶行為假設（用戶願意主動設定）、業務約束。')"><i class="ph ph-lightbulb"></i> 提示</button>
+          </div>
+          <button class="field-example-toggle" onclick="toggleExample(this)"><i class="ph ph-caret-right" style="font-size:9px"></i> 查看範例</button>
+          <div class="field-example-body">行為假設失效（用戶不願主動設定）</div>
+          <textarea class="circles-field-input" rows="2" placeholder="實施這個方案需要什麼前提條件？"></textarea>
+        </div>
+        <div class="circles-field-group">
+          <div class="circles-field-label-row">
+            <span class="circles-field-label">成功指標</span>
+            <button class="circles-hint-trigger" onclick="showHint('成功指標','方案二・摯友列表','成功指標要和你在 R 步驟確認的核心痛點掛鉤。成功指標應該可量化，與用戶痛點直接掛鉤。')"><i class="ph ph-lightbulb"></i> 提示</button>
+          </div>
+          <button class="field-example-toggle" onclick="toggleExample(this)"><i class="ph ph-caret-right" style="font-size:9px"></i> 查看範例</button>
+          <div class="field-example-body">摯友列表採用率 ≥20%；設定後 30 天留存率 ↑10%</div>
+          <textarea class="circles-field-input" rows="2" placeholder="如何衡量這個方案是否成功？"></textarea>
+        </div>
+      </div>
+    </div>
+
+    <!-- ── 方案三（預設隱藏，sol3 條件渲染） ── -->
+    <div class="e-solution-block" id="e-sol3-block" style="display:none">
+      <div class="e-sol-header">
+        <span class="e-sol-badge" style="background:rgba(0,0,0,0.05);color:var(--text-3)">方案三</span>
+        <span class="e-sol-name" style="color:var(--text-3)">分類 Feed 頁籤</span>
+      </div>
+      <div class="e-sol-fields">
+        <div class="circles-field-group">
+          <div class="circles-field-label-row"><span class="circles-field-label">優點</span><button class="circles-hint-trigger"><i class="ph ph-lightbulb"></i> 提示</button></div>
+          <textarea class="circles-field-input" rows="2" placeholder="這個方案的核心優勢是什麼？"></textarea>
+        </div>
+        <div class="circles-field-group">
+          <div class="circles-field-label-row"><span class="circles-field-label">缺點</span><button class="circles-hint-trigger"><i class="ph ph-lightbulb"></i> 提示</button></div>
+          <textarea class="circles-field-input" rows="2" placeholder="最大的劣勢或限制？"></textarea>
+        </div>
+        <div class="circles-field-group">
+          <div class="circles-field-label-row"><span class="circles-field-label">風險與依賴</span><button class="circles-hint-trigger"><i class="ph ph-lightbulb"></i> 提示</button></div>
+          <textarea class="circles-field-input" rows="2" placeholder="實施這個方案需要什麼前提條件？"></textarea>
+        </div>
+        <div class="circles-field-group">
+          <div class="circles-field-label-row"><span class="circles-field-label">成功指標</span><button class="circles-hint-trigger"><i class="ph ph-lightbulb"></i> 提示</button></div>
+          <textarea class="circles-field-input" rows="2" placeholder="如何衡量這個方案是否成功？"></textarea>
+        </div>
+      </div>
+    </div>
+
+    <!-- 展開方案三按鈕（有 sol3 時顯示） -->
+    <button onclick="document.getElementById('e-sol3-block').style.display='block';this.style.display='none'"
+      style="width:100%;padding:10px;border-radius:10px;border:1.5px dashed var(--border);background:none;font-size:12px;color:var(--primary);font-weight:600;cursor:pointer;font-family:'DM Sans',sans-serif;margin-bottom:14px"
+      id="e-sol3-add-btn">
+      <i class="ph ph-plus"></i> 加入方案三（從 L 步驟帶入）
+    </button>
+  </div>
+  <div class="submit-bar">
+    <button class="btn-secondary">返回選題</button>
+    <button class="btn-primary" onclick="show('gate-pass')">提交審核</button>
+  </div>
+</div>
+
+<!-- ════════════════════════════════════════════
+     SCREEN 2: Phase 1 + Hint overlay
+════════════════════════════════════════════ -->
+<div id="screen-p1-hint" class="screen" style="position:relative">
+  <div class="circles-nav">
+    <button class="btn-icon"><i class="ph ph-arrow-left"></i></button>
+    <div>
+      <div class="circles-nav-title">E — 評估取捨</div>
+      <div class="circles-nav-sub">Meta · News Feed</div>
+    </div>
+    <button class="circles-nav-home">回首頁</button>
+  </div>
+  <div class="circles-progress">
+    <div class="circles-progress-seg done"></div>
+    <div class="circles-progress-seg done"></div>
+    <div class="circles-progress-seg done"></div>
+    <div class="circles-progress-seg done"></div>
+    <div class="circles-progress-seg done"></div>
+    <div class="circles-progress-seg active"></div>
+    <div class="circles-progress-seg"></div>
+    <div class="circles-progress-label">E · 評估取捨 · 6/7</div>
+  </div>
+  <div class="scroll-body" style="opacity:0.4;pointer-events:none">
+    <div class="circles-step-pills">
+      <span class="circles-step-pill done">C 澄清情境</span>
+      <span class="circles-step-pill done">I 定義用戶</span>
+      <span class="circles-step-pill done">R 發掘需求</span>
+      <span class="circles-step-pill done">C 優先排序</span>
+      <span class="circles-step-pill done">L 提出方案</span>
+      <span class="circles-step-pill active">E 評估取捨</span>
+      <span class="circles-step-pill">S 總結推薦</span>
+    </div>
+    <div class="problem-card">用戶反映 Facebook News Feed 廣告過多，導致使用體驗下降。請提出改善方案。</div>
+    <!-- 前步驟卡（折疊示意） -->
+    <div class="prev-step-card">
+      <button class="prev-step-toggle">
+        <span class="prev-step-toggle-title"><i class="ph ph-clock-counter-clockwise"></i> 前步驟重點參考</span>
+        <i class="ph ph-caret-right toggle-caret"></i>
+      </button>
+    </div>
+    <div class="e-solution-block">
+      <div class="e-sol-header">
+        <span class="e-sol-badge">方案一</span>
+        <span class="e-sol-name">演算法相關性重排</span>
+      </div>
+      <div class="e-sol-fields">
+        <div class="circles-field-group">
+          <div class="circles-field-label-row">
+            <span class="circles-field-label">優點</span>
+            <button class="circles-hint-trigger"><i class="ph ph-lightbulb"></i> 提示</button>
+          </div>
+          <textarea class="circles-field-input filled" rows="2">系統主動，用戶無感，不需額外操作</textarea>
+        </div>
+        <div class="circles-field-group">
+          <div class="circles-field-label-row">
+            <span class="circles-field-label">缺點</span>
+            <button class="circles-hint-trigger"><i class="ph ph-lightbulb"></i> 提示</button>
+          </div>
+          <textarea class="circles-field-input" rows="2" placeholder="最大的劣勢或限制？"></textarea>
+        </div>
+      </div>
+    </div>
+  </div>
+  <div class="submit-bar" style="opacity:0.4;pointer-events:none">
+    <button class="btn-secondary">返回選題</button>
+    <button class="btn-primary">提交審核</button>
+  </div>
+
+  <!-- Hint overlay (visible) -->
+  <div class="hint-overlay visible" onclick="if(event.target===this)show('p1-drill')">
+    <div class="hint-card">
+      <button class="hint-close" onclick="show('p1-drill')">×</button>
+      <div class="hint-card-title">成功指標 — 分析思路</div>
+      <div class="hint-card-sub">Meta · News Feed · E</div>
+      <div class="hint-card-body">
+        成功指標要和你在 R 步驟確認的核心痛點掛鉤。如果核心痛點是「Feed 相關性不足」，成功指標應該是「用戶在 Feed 上的停留時間提升 X%」或「廣告點擊率維持在 Y% 以上」。
+      </div>
+      <div style="display:flex;justify-content:space-between;align-items:center;margin-top:10px">
+        <button onclick="show('p1-drill')" style="font-size:11px;color:var(--text-3);background:none;border:none;cursor:pointer;font-family:'DM Sans',sans-serif">收起提示</button>
+        <div class="hint-card-footer" style="margin-top:0">閱讀後自行填寫</div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- ════════════════════════════════════════════
+     SCREEN 3: Gate — Pass
+════════════════════════════════════════════ -->
+<div id="screen-gate-pass" class="screen" style="position:relative">
+  <div class="circles-nav">
+    <button class="btn-icon" onclick="show('p1-drill')"><i class="ph ph-arrow-left"></i></button>
+    <div>
+      <div class="circles-nav-title">框架審核 · E · 評估取捨</div>
+      <div class="circles-nav-sub">Meta · News Feed</div>
+    </div>
+    <button class="circles-nav-home">回首頁</button>
+  </div>
+  <div class="scroll-body">
+    <div class="gate-pass-bar">
+      <div>
+        <div class="gate-pass-text">框架評估完整，可以進入對話練習</div>
+        <div style="font-size:11px;color:#5a7ab5;margin-top:2px;font-family:'DM Sans',sans-serif">三個方案的優缺點與風險均已填寫</div>
+      </div>
+      <button class="gate-continue-btn" onclick="show('p2-early')">繼續</button>
+    </div>
+    <!-- 方案一 ok -->
+    <div class="gate-card ok">
+      <div class="gate-card-icon" style="color:var(--success)"><i class="ph ph-check-circle"></i></div>
+      <div>
+        <div class="gate-card-field">方案一・演算法重排</div>
+        <div class="gate-card-title">評估完整</div>
+        <div class="gate-card-reason">優點、缺點、風險與成功指標均已明確填寫</div>
+      </div>
+    </div>
+    <!-- 方案二 warn -->
+    <div class="gate-card warn">
+      <div class="gate-card-icon" style="color:var(--warning)"><i class="ph ph-warning"></i></div>
+      <div>
+        <div class="gate-card-field">方案二・摯友列表 — 成功指標</div>
+        <div class="gate-card-title">指標不夠具體</div>
+        <div class="gate-card-reason">提到「留存率提升」但未量化具體數字</div>
+        <div class="gate-card-suggestion">建議補充：設定後 30 天留存率 ↑10%</div>
+      </div>
+    </div>
+    <!-- 方案三 ok -->
+    <div class="gate-card ok">
+      <div class="gate-card-icon" style="color:var(--success)"><i class="ph ph-check-circle"></i></div>
+      <div>
+        <div class="gate-card-field">方案三・分類頁籤</div>
+        <div class="gate-card-title">風險識別清晰</div>
+        <div class="gate-card-reason">點出開發週期長與廣告主配合度不確定兩大風險</div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- ════════════════════════════════════════════
+     SCREEN 4: Gate — Fail (drill mode)
+════════════════════════════════════════════ -->
+<div id="screen-gate-fail" class="screen" style="position:relative">
+  <div class="circles-nav">
+    <button class="btn-icon" onclick="show('p1-drill')"><i class="ph ph-arrow-left"></i></button>
+    <div>
+      <div class="circles-nav-title">框架審核 · E · 評估取捨</div>
+      <div class="circles-nav-sub">Meta · News Feed</div>
+    </div>
+    <button class="circles-nav-home">回首頁</button>
+  </div>
+  <div class="scroll-body" style="padding-bottom:120px">
+    <div class="gate-fail-bar">方案一有方向性錯誤，請修正後再提交</div>
+    <!-- 方案一缺點 error -->
+    <div class="gate-card error">
+      <div class="gate-card-icon" style="color:var(--danger)"><i class="ph ph-x-circle"></i></div>
+      <div>
+        <div class="gate-card-field">方案一・演算法重排 — 缺點</div>
+        <div class="gate-card-title">方向錯誤</div>
+        <div class="gate-card-reason">僅描述「廣告主不滿意」而非本方案本身的侷限</div>
+        <div class="gate-card-suggestion">缺點應聚焦演算法本身的不透明性與可解釋性問題</div>
+      </div>
+    </div>
+    <!-- 方案二成功指標 warn -->
+    <div class="gate-card warn">
+      <div class="gate-card-icon" style="color:var(--warning)"><i class="ph ph-warning"></i></div>
+      <div>
+        <div class="gate-card-field">方案二・摯友列表 — 成功指標</div>
+        <div class="gate-card-title">指標過於模糊</div>
+        <div class="gate-card-reason">「用戶滿意度提升」不可量化，無法追蹤</div>
+        <div class="gate-card-suggestion">建議改為：摯友列表採用率 ≥20%，30 日留存 ↑10%</div>
+      </div>
+    </div>
+    <!-- 方案三 ok -->
+    <div class="gate-card ok">
+      <div class="gate-card-icon" style="color:var(--success)"><i class="ph ph-check-circle"></i></div>
+      <div>
+        <div class="gate-card-field">方案三・分類頁籤</div>
+        <div class="gate-card-title">評估方向正確</div>
+        <div class="gate-card-reason">開發週期與廣告主配合度兩大風險均已點出</div>
+      </div>
+    </div>
+  </div>
+  <div style="position:absolute;bottom:0;left:0;right:0;background:var(--card);border-top:1px solid var(--border);padding:12px 16px">
+    <button class="btn-primary" style="width:100%" onclick="show('p1-drill')">返回修改</button>
+  </div>
+</div>
+
+<!-- ════════════════════════════════════════════
+     SCREEN 5: Phase 2 — Early turns (< 3)
+════════════════════════════════════════════ -->
+<div id="screen-p2-early" class="screen chat-wrap">
+  <div class="circles-nav" style="flex-shrink:0">
+    <button class="btn-icon" onclick="show('gate-pass')"><i class="ph ph-arrow-left"></i></button>
+    <div>
+      <div class="circles-nav-title">E — 對話練習</div>
+      <div class="circles-nav-sub">Meta · News Feed</div>
+    </div>
+    <button class="circles-nav-home">回首頁</button>
+  </div>
+  <div class="circles-progress" style="flex-shrink:0">
+    <div class="circles-progress-seg done"></div>
+    <div class="circles-progress-seg done"></div>
+    <div class="circles-progress-seg done"></div>
+    <div class="circles-progress-seg done"></div>
+    <div class="circles-progress-seg done"></div>
+    <div class="circles-progress-seg active"></div>
+    <div class="circles-progress-seg"></div>
+    <div class="circles-progress-label">E · 對話 · 1 輪</div>
+  </div>
+  <div class="chat-pinned" style="flex-shrink:0">
+    <div class="pinned-co">Meta — 評估取捨</div>
+    <div class="pinned-stmt">用戶反映 News Feed 廣告過多，如何改善廣告體驗…</div>
+  </div>
+  <div class="chat-body">
+    <!-- Icebreaker -->
+    <div class="chat-icebreaker">
+      <div class="chat-icebreaker-label"><i class="ph ph-compass"></i> 建議切入點</div>
+      <div class="chat-icebreaker-text">問被訪談者：「這幾個方案你們在評估時，最擔心的風險是什麼？」——不是問哪個最好，而是問顧慮。這樣能讓你確認自己的風險識別有沒有遺漏關鍵的業務約束。</div>
+    </div>
+    <!-- Turn 1 -->
+    <div class="bubble-user">這幾個方案在評估時，你們最擔心哪個風險？</div>
+    <div class="bubble-ai">
+      <div class="bubble-section">被訪談者</div>
+      最擔心的是廣告收益的影響。演算法方案如果過濾太強，廣告曝光量會下降——這個數字內部對一個百分點都很敏感。
+    </div>
+    <div class="bubble-coaching">
+      <div class="bubble-section">教練點評</div>
+      直接拿到業務約束：廣告收益是硬性指標，不能下降超過某個閾值。把這個加入演算法方案的風險欄位。
+      <div>
+        <button class="hint-toggle" onclick="toggleHint(this)"><i class="ph ph-caret-right" style="font-size:10px"></i> 查看教練提示</button>
+        <div class="hint-body">問：「摯友列表方案呢？有沒有擔心用戶不願意主動設定的問題？」</div>
+      </div>
+    </div>
+  </div>
+  <div class="chat-input-bar" style="flex-shrink:0">
+    <textarea class="chat-input" rows="1" placeholder="向被訪談者提問…"></textarea>
+    <button class="chat-send-btn"><i class="ph ph-paper-plane-right"></i></button>
+  </div>
+</div>
+
+<!-- ════════════════════════════════════════════
+     SCREEN 6: Phase 2 — ≥3 turns, submit row
+════════════════════════════════════════════ -->
+<div id="screen-p2-late" class="screen chat-wrap">
+  <div class="circles-nav" style="flex-shrink:0">
+    <button class="btn-icon" onclick="show('p2-early')"><i class="ph ph-arrow-left"></i></button>
+    <div>
+      <div class="circles-nav-title">E — 對話練習</div>
+      <div class="circles-nav-sub">Meta · News Feed</div>
+    </div>
+    <button class="circles-nav-home">回首頁</button>
+  </div>
+  <div class="circles-progress" style="flex-shrink:0">
+    <div class="circles-progress-seg done"></div>
+    <div class="circles-progress-seg done"></div>
+    <div class="circles-progress-seg done"></div>
+    <div class="circles-progress-seg done"></div>
+    <div class="circles-progress-seg done"></div>
+    <div class="circles-progress-seg active"></div>
+    <div class="circles-progress-seg"></div>
+    <div class="circles-progress-label">E · 對話 · 4 輪</div>
+  </div>
+  <div class="chat-pinned" style="flex-shrink:0">
+    <div class="pinned-co">Meta — 評估取捨</div>
+    <div class="pinned-stmt">用戶反映 News Feed 廣告過多，如何改善廣告體驗…</div>
+  </div>
+  <div class="chat-body">
+    <div class="bubble-user">這幾個方案在評估時，你們最擔心哪個風險？</div>
+    <div class="bubble-ai">
+      <div class="bubble-section">被訪談者</div>
+      最擔心廣告收益影響。演算法方案過濾太強，廣告曝光量會下降。
+    </div>
+    <div class="bubble-user">摯友列表方案有沒有擔心用戶不願意主動設定？</div>
+    <div class="bubble-ai">
+      <div class="bubble-section">被訪談者</div>
+      對，採用率一直是問題。歷史上推過一次，採用率很低。
+    </div>
+    <div class="bubble-coaching">
+      <div class="bubble-section">教練點評</div>
+      摯友列表核心風險確認：用戶採用率低（行為假設失效）。
+      <div>
+        <button class="hint-toggle" onclick="toggleHint(this)"><i class="ph ph-caret-right" style="font-size:10px"></i> 查看教練提示</button>
+        <div class="hint-body">問：「分類頁籤方案的評估呢？」</div>
+      </div>
+    </div>
+    <div class="bubble-user">分類頁籤方案內部評估最大的阻力是什麼？</div>
+    <div class="bubble-ai">
+      <div class="bubble-section">被訪談者</div>
+      改動太大了——整個 Feed 資訊架構要重新設計，估計超過一年才能上線。
+    </div>
+    <div class="bubble-user">如果要衡量每個方案是否成功，最關鍵的指標是什麼？</div>
+    <div class="bubble-ai">
+      <div class="bubble-section">被訪談者</div>
+      演算法看 Feed 停留時間和廣告 CTR；摯友列表看採用率和重複使用率；分類頁籤看頁籤切換行為和各分類留存。三個方案衡量的指標本質上完全不同。
+    </div>
+    <div class="bubble-coaching">
+      <div class="bubble-section">教練點評</div>
+      每個方案的成功指標各自清晰，且都和原始痛點掛鉤。評估完整性和成功指標具體性兩個維度已達標，可以提交。
+      <div>
+        <button class="hint-toggle" onclick="toggleHint(this)"><i class="ph ph-caret-right" style="font-size:10px"></i> 查看教練提示</button>
+        <div class="hint-body">整理結論：各方案最關鍵的優缺點，以及哪個方向最值得推薦。</div>
+      </div>
+    </div>
+  </div>
+  <div class="chat-input-bar" style="flex-shrink:0">
+    <textarea class="chat-input" rows="1" placeholder="向被訪談者提問…"></textarea>
+    <button class="chat-send-btn"><i class="ph ph-paper-plane-right"></i></button>
+  </div>
+  <div class="chat-submit-row" style="flex-shrink:0">
+    <button class="chat-submit-btn" onclick="show('p2-conclude')">整理結論 →</button>
+  </div>
+</div>
+
+<!-- ════════════════════════════════════════════
+     SCREEN 7: Phase 2 — Conclusion box (expanded)
+════════════════════════════════════════════ -->
+<div id="screen-p2-conclude" class="screen chat-wrap">
+  <div class="circles-nav" style="flex-shrink:0">
+    <button class="btn-icon" onclick="show('p2-late')"><i class="ph ph-arrow-left"></i></button>
+    <div>
+      <div class="circles-nav-title">E — 對話練習</div>
+      <div class="circles-nav-sub">Meta · News Feed</div>
+    </div>
+    <button class="circles-nav-home">回首頁</button>
+  </div>
+  <div class="circles-progress" style="flex-shrink:0">
+    <div class="circles-progress-seg done"></div>
+    <div class="circles-progress-seg done"></div>
+    <div class="circles-progress-seg done"></div>
+    <div class="circles-progress-seg done"></div>
+    <div class="circles-progress-seg done"></div>
+    <div class="circles-progress-seg active"></div>
+    <div class="circles-progress-seg"></div>
+    <div class="circles-progress-label">E · 對話 · 4 輪</div>
+  </div>
+  <div class="chat-pinned" style="flex-shrink:0">
+    <div class="pinned-co">Meta — 評估取捨</div>
+    <div class="pinned-stmt">用戶反映 News Feed 廣告過多，如何改善廣告體驗…</div>
+  </div>
+  <!-- 對話淡化 -->
+  <div class="chat-body" style="opacity:0.4;pointer-events:none">
+    <div class="bubble-user">如果要衡量每個方案是否成功，最關鍵的指標是什麼？</div>
+    <div class="bubble-ai">
+      <div class="bubble-section">被訪談者</div>
+      演算法看 Feed 停留時間和廣告 CTR；摯友列表看採用率和重複使用率；分類頁籤看頁籤切換行為。
+    </div>
+    <div style="text-align:center;padding:6px 0">
+      <span style="font-size:11px;color:var(--text-3);background:#f0ede6;border-radius:20px;padding:3px 12px;font-family:'DM Sans',sans-serif">4 輪對話完成</span>
+    </div>
+  </div>
+  <!-- Conclusion box -->
+  <div class="conclusion-box" style="flex-shrink:0">
+    <div class="conclusion-title">整理你這個步驟評估了什麼</div>
+    <div class="conclusion-sub">用 2-3 句話說明：各方案最關鍵的優缺點，以及你認為哪個方向最值得推薦</div>
+    <!-- Example strip -->
+    <div style="border:1px solid var(--border);border-radius:8px;margin-bottom:8px;overflow:hidden">
+      <div style="background:#f5f4f0;padding:5px 10px;display:flex;justify-content:space-between;cursor:pointer;align-items:center" onclick="var c=this.nextElementSibling;c.style.display=c.style.display==='none'?'block':'none';this.querySelector('span').textContent=c.style.display==='none'?'展開 ▾':'收起 ▴'">
+        <span style="font-size:9px;font-weight:700;color:var(--text-3);text-transform:uppercase;letter-spacing:.4px;font-family:'DM Sans',sans-serif">範例（不同題目）</span>
+        <span style="font-size:10px;color:var(--text-3);font-family:'DM Sans',sans-serif">展開 ▾</span>
+      </div>
+      <div style="display:none;padding:8px 10px;font-size:11px;color:var(--text-2);line-height:1.6;font-family:'DM Sans',sans-serif">
+        Spotify 免費版廣告體驗三個方案評估：廣告後推薦（優：系統主動，缺：可能推錯）；時段兌換（優：用戶主動，缺：採用率低）；分層訂閱（優：商業模式清晰，缺：開發週期長）。推薦廣告後推薦，短期可行且用戶無感。
+      </div>
+    </div>
+    <textarea class="conclusion-textarea" rows="3" placeholder="整理各方案的優缺點與風險，說明哪個方案最值得推薦及理由…">演算法重排：優——系統主動，週期短；缺——黑盒，廣告 CTR 風險。摯友列表：優——廣告衝擊小；缺——採用率低。分類頁籤：最徹底但週期最長。推薦演算法重排，90 天可見效，廣告 CTR 設底線 A/B 控制。</textarea>
+    <div class="conclusion-hint pass">✓ 結論涵蓋多方案比較並說明推薦方向，可以提交</div>
+    <div class="conclusion-actions">
+      <button class="conclusion-back-btn" onclick="show('p2-late')">← 繼續對話</button>
+      <button class="conclusion-submit-btn" onclick="show('p3-e')">確認提交</button>
+    </div>
+  </div>
+</div>
+
+<!-- ════════════════════════════════════════════
+     SCREEN 8: Phase 3 — E Step Score
+════════════════════════════════════════════ -->
+<div id="screen-p3-e" class="screen" style="position:relative">
+  <div class="circles-nav">
+    <button class="btn-icon" onclick="show('p2-conclude')"><i class="ph ph-arrow-left"></i></button>
+    <div>
+      <div class="circles-nav-title">步驟評分 — 評估取捨</div>
+      <div class="circles-nav-sub">Meta · News Feed</div>
+    </div>
+    <div class="score-nav">
+      <button class="score-nav-btn" onclick="show('p3-l')"><i class="ph ph-caret-left"></i></button>
+      <button class="score-nav-btn" disabled><i class="ph ph-caret-right"></i></button>
+    </div>
+  </div>
+  <div class="circles-progress">
+    <div class="circles-progress-seg done"></div>
+    <div class="circles-progress-seg done"></div>
+    <div class="circles-progress-seg done"></div>
+    <div class="circles-progress-seg done"></div>
+    <div class="circles-progress-seg done"></div>
+    <div class="circles-progress-seg done"></div>
+    <div class="circles-progress-seg"></div>
+    <div class="circles-progress-label">E · 評分 · 6/7</div>
+  </div>
+  <div class="scroll-body">
+    <div class="score-total">
+      <div class="score-number">81</div>
+      <div class="score-sub">E — 評估取捨 步驟得分</div>
+    </div>
+    <div class="score-breakdown">
+      <div class="dim-row">
+        <div class="dim-text">
+          <div class="dim-name">評估完整性</div>
+          <div class="dim-comment">三個方案均有明確的優缺點，無遺漏</div>
+        </div>
+        <div class="dim-bar-wrap"><div class="dim-bar" style="width:90%"></div></div>
+        <div class="dim-score">4.5<span>/5</span></div>
+      </div>
+      <div class="dim-row">
+        <div class="dim-text">
+          <div class="dim-name">風險識別</div>
+          <div class="dim-comment">廣告 CTR 約束與採用率失效兩個核心風險均點出</div>
+        </div>
+        <div class="dim-bar-wrap"><div class="dim-bar" style="width:80%"></div></div>
+        <div class="dim-score">4<span>/5</span></div>
+      </div>
+      <div class="dim-row">
+        <div class="dim-text">
+          <div class="dim-name">成功指標具體性</div>
+          <div class="dim-comment">演算法方案指標量化，摯友列表指標略模糊</div>
+        </div>
+        <div class="dim-bar-wrap"><div class="dim-bar" style="width:70%"></div></div>
+        <div class="dim-score">3.5<span>/5</span></div>
+      </div>
+      <div class="dim-row">
+        <div class="dim-text">
+          <div class="dim-name">取捨判斷清晰</div>
+          <div class="dim-comment">推薦演算法方案有理由，鋪墊了 S 步驟</div>
+        </div>
+        <div class="dim-bar-wrap"><div class="dim-bar" style="width:72%"></div></div>
+        <div class="dim-score">3.6<span>/5</span></div>
+      </div>
+    </div>
+    <div class="highlight-card good">
+      <div class="highlight-label">✦ 最強表現</div>
+      <div class="highlight-text">三個方案的風險各自清晰，且能連回業務約束（廣告 CTR 底線），評估有業務視角</div>
+    </div>
+    <div class="highlight-card improve">
+      <div class="highlight-label">↑ 最需改進</div>
+      <div class="highlight-text">摯友列表的成功指標應更具體量化（採用率 ≥20%、30 日留存 ↑10%），才能與演算法方案做公平比較</div>
+    </div>
+    <div class="coach-toggle" onclick="this.querySelector('.coach-content').classList.toggle('open');this.querySelector('i').className=this.querySelector('.coach-content').classList.contains('open')?'ph ph-caret-up':'ph ph-caret-down'">
+      <div class="coach-toggle-label">教練示範答案 <i class="ph ph-caret-down"></i></div>
+      <div class="coach-content">
+        <div style="margin-bottom:10px"><strong style="color:var(--text)">方案一・演算法重排</strong><br>
+        優點：系統主動，用戶無感，單季可見效。<br>
+        缺點：黑盒決策，廣告相關性可能連帶下降。<br>
+        風險：依賴社交圖譜資料；廣告 CTR 需 A/B 設底線。<br>
+        成功指標：Feed 停留時間 ↑15%；互動率 ↑20%；CTR 降幅 ≤5%。</div>
+        <div style="margin-bottom:10px"><strong style="color:var(--text)">方案二・摯友列表</strong><br>
+        優點：廣告衝擊最小，用戶主動控制。<br>
+        缺點：歷史採用率低，用戶教育成本高。<br>
+        風險：行為假設失效（用戶不願主動設定）。<br>
+        成功指標：採用率 ≥20%；設定後 30 天留存 ↑10%。</div>
+        <div><strong style="color:var(--text)">方案三・分類頁籤</strong><br>
+        優點：最徹底的結構性解法，用戶自主選擇情境。<br>
+        缺點：開發週期逾一年；廣告歸類方式需重談。<br>
+        風險：廣告主配合度不確定；用戶習慣遷移成本高。<br>
+        成功指標：頁籤切換率 ≥30%；各分類 7 日留存持平。</div>
+      </div>
+    </div>
+  </div>
+  <div class="submit-bar">
+    <button class="btn-secondary">回首頁</button>
+    <button class="btn-primary">繼續下一步：S 總結推薦 →</button>
+  </div>
+</div>
+
+<!-- ════════════════════════════════════════════
+     SCREEN 9: Phase 3 — L Step Score
+     (for score-nav demo: ◀disabled / ▶ → E score)
+════════════════════════════════════════════ -->
+<div id="screen-p3-l" class="screen" style="position:relative">
+  <div class="circles-nav">
+    <button class="btn-icon" onclick="show('p3-e')"><i class="ph ph-arrow-left"></i></button>
+    <div>
+      <div class="circles-nav-title">步驟評分 — 提出方案</div>
+      <div class="circles-nav-sub">Meta · News Feed</div>
+    </div>
+    <div class="score-nav">
+      <button class="score-nav-btn" disabled><i class="ph ph-caret-left"></i></button>
+      <button class="score-nav-btn" onclick="show('p3-e')"><i class="ph ph-caret-right"></i></button>
+    </div>
+  </div>
+  <div class="circles-progress">
+    <div class="circles-progress-seg done"></div>
+    <div class="circles-progress-seg done"></div>
+    <div class="circles-progress-seg done"></div>
+    <div class="circles-progress-seg done"></div>
+    <div class="circles-progress-seg done"></div>
+    <div class="circles-progress-seg done"></div>
+    <div class="circles-progress-seg"></div>
+    <div class="circles-progress-label">L · 評分 · 5/7</div>
+  </div>
+  <div class="scroll-body">
+    <div class="score-total">
+      <div class="score-number">76</div>
+      <div class="score-sub">L — 提出方案 步驟得分</div>
+    </div>
+    <div class="score-breakdown">
+      <div class="dim-row">
+        <div class="dim-text">
+          <div class="dim-name">方案數量與多樣性</div>
+          <div class="dim-comment">三個方案涵蓋系統端、用戶端、架構層，多樣性足</div>
+        </div>
+        <div class="dim-bar-wrap"><div class="dim-bar" style="width:90%"></div></div>
+        <div class="dim-score">4.5<span>/5</span></div>
+      </div>
+      <div class="dim-row">
+        <div class="dim-text">
+          <div class="dim-name">各方案差異清晰</div>
+          <div class="dim-comment">方案名稱有標籤，各自切入角度不同</div>
+        </div>
+        <div class="dim-bar-wrap"><div class="dim-bar" style="width:80%"></div></div>
+        <div class="dim-score">4<span>/5</span></div>
+      </div>
+      <div class="dim-row">
+        <div class="dim-text">
+          <div class="dim-name">方案可行性</div>
+          <div class="dim-comment">演算法方案可行性高，分類頁籤未說明技術前提</div>
+        </div>
+        <div class="dim-bar-wrap"><div class="dim-bar" style="width:60%"></div></div>
+        <div class="dim-score">3<span>/5</span></div>
+      </div>
+      <div class="dim-row">
+        <div class="dim-text">
+          <div class="dim-name">創意與務實平衡</div>
+          <div class="dim-comment">三方案分別對應快打、控制、結構，平衡合理</div>
+        </div>
+        <div class="dim-bar-wrap"><div class="dim-bar" style="width:72%"></div></div>
+        <div class="dim-score">3.6<span>/5</span></div>
+      </div>
+    </div>
+    <div class="highlight-card good">
+      <div class="highlight-label">✦ 最強表現</div>
+      <div class="highlight-text">三個方案切入角度差異明顯（系統端 / 用戶端 / 架構層），展現了多維思考而非只是變化同一個解法</div>
+    </div>
+    <div class="highlight-card improve">
+      <div class="highlight-label">↑ 最需改進</div>
+      <div class="highlight-text">分類頁籤方案缺少技術可行性說明，面試官會追問「這個方案在技術上可行嗎？預計需要多長時間？」</div>
+    </div>
+    <div class="coach-toggle" onclick="this.querySelector('.coach-content').classList.toggle('open');this.querySelector('i').className=this.querySelector('.coach-content').classList.contains('open')?'ph ph-caret-up':'ph ph-caret-down'">
+      <div class="coach-toggle-label">教練示範答案 <i class="ph ph-caret-down"></i></div>
+      <div class="coach-content">
+        方案一・演算法相關性重排：利用用戶社交圖譜重新排序廣告，讓廣告更貼近用戶興趣，系統主導。<br><br>
+        方案二・摯友列表優先序：讓用戶手動設定「摯友」，這些人的動態優先顯示，廣告系統不受影響。<br><br>
+        方案三・分類 Feed 頁籤：將 Feed 拆成「朋友」「推薦」「廣告」三個頁籤，讓用戶自主選擇瀏覽情境。需全面重設計資訊架構，開發週期估計超過一年。
+      </div>
+    </div>
+  </div>
+  <div class="submit-bar">
+    <button class="btn-secondary">回首頁</button>
+    <button class="btn-primary" onclick="show('p3-e')">查看 E 步驟評分 →</button>
+  </div>
+</div>
+
+</div><!-- .shell -->
+</div><!-- .wrapper -->
+
+<!-- ── Global Hint Overlay (for P1 screens) ── -->
+<div id="global-hint-overlay" class="hint-overlay" onclick="if(event.target===this)closeHint()">
+  <div class="hint-card">
+    <button class="hint-close" onclick="closeHint()">×</button>
+    <div class="hint-card-title" id="hint-title">優點 — 分析思路</div>
+    <div class="hint-card-sub" id="hint-sub">方案一・演算法相關性重排</div>
+    <div class="hint-card-body" id="hint-body">提示內容</div>
+    <div style="display:flex;justify-content:space-between;align-items:center;margin-top:10px">
+      <button onclick="closeHint()" style="font-size:11px;color:var(--text-3);background:none;border:none;cursor:pointer;font-family:'DM Sans',sans-serif">收起提示</button>
+      <div class="hint-card-footer" style="margin-top:0">閱讀後自行填寫</div>
+    </div>
+  </div>
+</div>
+
+<script>
+function show(id) {
+  document.querySelectorAll('.screen').forEach(function(s) { s.classList.remove('active'); });
+  var el = document.getElementById('screen-' + id);
+  if (el) el.classList.add('active');
+  document.querySelectorAll('.nav-label').forEach(function(b) {
+    b.classList.toggle('active', b.getAttribute('onclick') && b.getAttribute('onclick').includes("'" + id + "'"));
+  });
+}
+
+function toggleExample(btn) {
+  var body = btn.nextElementSibling;
+  if (!body) return;
+  body.classList.toggle('open');
+  var icon = btn.querySelector('i');
+  if (icon) icon.className = body.classList.contains('open') ? 'ph ph-caret-down' : 'ph ph-caret-right';
+  btn.lastChild.textContent = body.classList.contains('open') ? ' 收起範例' : ' 查看範例';
+}
+
+function toggleHint(btn) {
+  var content = btn.nextElementSibling;
+  if (!content) return;
+  var open = content.style.display !== 'none';
+  content.style.display = open ? 'none' : 'block';
+  var icon = btn.querySelector('i');
+  if (icon) icon.className = open ? 'ph ph-caret-right' : 'ph ph-caret-down';
+  btn.style.color = open ? 'var(--text-3)' : 'var(--primary)';
+}
+
+function showHint(field, sol, text) {
+  document.getElementById('hint-title').textContent = field + ' — 分析思路';
+  document.getElementById('hint-sub').textContent = 'Meta · News Feed · ' + sol;
+  document.getElementById('hint-body').textContent = text;
+  var overlay = document.getElementById('global-hint-overlay');
+  // Move overlay into the active screen
+  var active = document.querySelector('.screen.active');
+  if (active) active.appendChild(overlay);
+  overlay.classList.add('visible');
+}
+
+function togglePrevCard(btn) {
+  var body = btn.nextElementSibling;
+  if (!body) return;
+  var open = body.style.display !== 'none';
+  body.style.display = open ? 'none' : 'block';
+  var caret = btn.querySelector('.toggle-caret');
+  if (caret) caret.className = open ? 'ph ph-caret-right toggle-caret' : 'ph ph-caret-down toggle-caret';
+}
+
+function closeHint() {
+  document.getElementById('global-hint-overlay').classList.remove('visible');
+}
+</script>
+</body>
+</html>

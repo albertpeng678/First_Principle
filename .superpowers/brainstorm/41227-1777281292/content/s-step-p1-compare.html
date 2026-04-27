@@ -1,0 +1,302 @@
+<!DOCTYPE html>
+<html lang="zh-Hant">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>S 步驟 Phase 1 設計比較</title>
+<link rel="stylesheet" href="https://unpkg.com/@phosphor-icons/web@2.1.1/src/regular/style.css">
+<link href="https://fonts.googleapis.com/css2?family=DM+Sans:wght@400;500;600;700&family=Instrument+Serif&display=swap" rel="stylesheet">
+<style>
+* { box-sizing: border-box; margin: 0; padding: 0; }
+body { font-family: 'DM Sans', sans-serif; background: #f5f3ef; min-height: 100vh; padding: 24px 16px 60px; }
+
+.page-title { text-align: center; font-size: 14px; font-weight: 700; color: #555; letter-spacing: .04em; text-transform: uppercase; margin-bottom: 6px; }
+.page-sub { text-align: center; font-size: 12px; color: #888; margin-bottom: 28px; }
+
+.compare-wrap { display: flex; gap: 20px; max-width: 860px; margin: 0 auto; align-items: flex-start; }
+
+.phone-col { flex: 1; }
+.phone-label { text-align: center; font-size: 11px; font-weight: 700; letter-spacing: .08em; text-transform: uppercase; color: #666; margin-bottom: 10px; }
+.phone-label.selected-label { color: #2C53E8; }
+
+.phone { background: #1a1a2e; border-radius: 36px; padding: 8px; box-shadow: 0 12px 40px rgba(0,0,0,.25); cursor: pointer; transition: transform .15s, box-shadow .15s; }
+.phone:hover { transform: translateY(-3px); box-shadow: 0 18px 48px rgba(0,0,0,.3); }
+.phone.selected { outline: 3px solid #2C53E8; outline-offset: 3px; }
+
+.phone-inner { background: #fff; border-radius: 28px; overflow: hidden; min-height: 680px; position: relative; }
+.phone-notch { width: 90px; height: 20px; background: #1a1a2e; border-radius: 0 0 14px 14px; margin: 0 auto 0; position: relative; z-index: 10; }
+
+/* App styles inside phone */
+--primary: #2C53E8;
+:root {
+  --primary: #2C53E8;
+  --primary-lt: #EEF3FF;
+  --card: #fff;
+  --border: #e8e5de;
+  --text: #1a1a2e;
+  --text-2: #3d3d4e;
+  --text-3: #888;
+  --bg: #f5f3ef;
+}
+
+.app { background: var(--bg); min-height: 660px; display: flex; flex-direction: column; }
+
+/* Nav */
+.circles-nav { display: flex; align-items: center; padding: 10px 14px 8px; background: var(--card); border-bottom: 1px solid var(--border); gap: 8px; flex-shrink: 0; }
+.nav-back { background: none; border: none; color: var(--text-3); cursor: pointer; font-size: 18px; display: flex; align-items: center; }
+.nav-meta { flex: 1; }
+.nav-question { font-size: 10px; color: var(--text-3); font-family: 'DM Sans',sans-serif; margin-bottom: 2px; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+.nav-step { font-size: 13px; font-weight: 700; color: var(--text); font-family: 'DM Sans',sans-serif; }
+.step-badge { background: var(--primary-lt); color: var(--primary); border-radius: 6px; padding: 2px 7px; font-size: 10px; font-weight: 700; }
+
+/* Step progress bar */
+.step-progress { display: flex; gap: 3px; padding: 8px 14px 6px; background: var(--card); flex-shrink: 0; }
+.step-dot { flex: 1; height: 3px; border-radius: 2px; background: #e0ddd8; }
+.step-dot.done { background: var(--primary); }
+.step-dot.active { background: var(--primary); opacity: 0.6; }
+
+/* Problem card */
+.problem-card { background: var(--card); border: 1px solid var(--border); border-radius: 10px; margin: 10px 12px 0; padding: 9px 12px; flex-shrink: 0; }
+.problem-label { font-size: 9px; font-weight: 700; color: var(--text-3); text-transform: uppercase; letter-spacing: .07em; margin-bottom: 3px; }
+.problem-text { font-size: 11px; color: var(--text-2); line-height: 1.5; }
+
+/* Prev-step card */
+.prev-step-card { background: var(--card); border: 1px solid var(--border); border-radius: 10px; margin: 8px 12px 0; overflow: hidden; flex-shrink: 0; }
+.prev-step-toggle { width: 100%; display: flex; align-items: center; justify-content: space-between; background: none; border: none; cursor: pointer; padding: 8px 12px; text-align: left; font-family: 'DM Sans',sans-serif; }
+.prev-step-toggle-title { font-size: 10px; font-weight: 700; color: var(--text-2); display: flex; align-items: center; gap: 5px; }
+.toggle-caret { font-size: 11px; color: var(--text-3); }
+.prev-step-body { padding: 0 12px 10px; }
+.prev-step-row { display: flex; gap: 8px; align-items: flex-start; padding: 5px 0; border-top: 1px solid var(--border); }
+.prev-step-row:first-child { border-top: none; }
+.prev-step-label { font-size: 9px; font-weight: 700; text-transform: uppercase; letter-spacing: .07em; color: var(--text-3); white-space: nowrap; padding-top: 2px; min-width: 54px; }
+.prev-step-val { font-size: 11px; color: var(--text-2); line-height: 1.5; }
+
+/* NSM annotation */
+.nsm-annotation { background: #EEF3FF; border: 1px solid #C5D5FF; border-radius: 10px; padding: 10px 12px; margin: 8px 12px 0; font-size: 11px; color: var(--primary); line-height: 1.5; flex-shrink: 0; }
+.nsm-link { background: none; border: none; color: var(--primary); font-size: 11px; cursor: pointer; text-decoration: underline; padding: 0; font-family: 'DM Sans',sans-serif; }
+
+/* Form area */
+.phase1-wrap { padding: 10px 12px 100px; flex: 1; overflow-y: auto; }
+.field-group { margin-bottom: 12px; }
+.field-label-row { display: flex; justify-content: space-between; align-items: baseline; margin-bottom: 4px; }
+.field-label { font-size: 9px; color: var(--text-3); text-transform: uppercase; letter-spacing: .07em; font-weight: 700; }
+.hint-btn { background: none; border: none; font-size: 11px; color: var(--primary); cursor: pointer; padding: 0; }
+.field-hint { font-size: 10px; color: var(--text-3); margin-bottom: 5px; line-height: 1.4; }
+.field-input { width: 100%; padding: 8px 10px; border-radius: 8px; border: 1.5px solid var(--border); background: var(--card); font-size: 11px; font-family: 'DM Sans',sans-serif; color: var(--text); resize: none; outline: none; line-height: 1.4; }
+
+/* Submit bar */
+.submit-bar { position: absolute; bottom: 0; left: 0; right: 0; background: var(--card); border-top: 1px solid var(--border); padding: 10px 12px; display: flex; gap: 8px; }
+.btn-primary { flex: 1; background: var(--primary); color: #fff; border: none; border-radius: 8px; padding: 10px; font-size: 12px; font-weight: 600; cursor: pointer; font-family: 'DM Sans',sans-serif; }
+.btn-secondary { background: #f0ede6; color: var(--text); border: none; border-radius: 8px; padding: 10px 12px; font-size: 12px; font-weight: 600; cursor: pointer; font-family: 'DM Sans',sans-serif; white-space: nowrap; }
+
+/* Option label badges */
+.opt-badge { display: inline-block; font-size: 10px; font-weight: 800; letter-spacing: .06em; text-transform: uppercase; padding: 2px 8px; border-radius: 5px; margin-bottom: 8px; }
+.opt-badge.a { background: #d4f4e2; color: #1a7a42; }
+.opt-badge.b { background: #fde8d0; color: #a05a00; }
+
+.choice-indicator { text-align: center; margin-top: 10px; font-size: 11px; font-weight: 600; color: #2C53E8; min-height: 18px; }
+</style>
+</head>
+<body>
+<div class="page-title">S 步驟 Phase 1 設計比較</div>
+<div class="page-sub">點擊任一方案選擇</div>
+
+<div class="compare-wrap">
+
+  <!-- Option A: with prev-step card -->
+  <div class="phone-col">
+    <div class="phone-label" id="label-a">方案 A — 有前步驟摘要卡</div>
+    <div class="phone" id="opt-a" onclick="selectOpt('a')">
+      <div class="phone-notch"></div>
+      <div class="phone-inner">
+        <div class="app">
+          <!-- Nav -->
+          <div class="circles-nav">
+            <button class="nav-back"><i class="ph ph-arrow-left"></i></button>
+            <div class="nav-meta">
+              <div class="nav-question">Spotify — 提升 Premium 轉換率</div>
+              <div class="nav-step"><span class="step-badge">S 7/7</span> 總結推薦</div>
+            </div>
+          </div>
+          <!-- Progress -->
+          <div class="step-progress">
+            <div class="step-dot done"></div>
+            <div class="step-dot done"></div>
+            <div class="step-dot done"></div>
+            <div class="step-dot done"></div>
+            <div class="step-dot done"></div>
+            <div class="step-dot done"></div>
+            <div class="step-dot active"></div>
+          </div>
+          <!-- Problem card -->
+          <div class="problem-card">
+            <div class="problem-label">題目情境</div>
+            <div class="problem-text">你是 Spotify PM，如何提升免費用戶轉 Premium 的轉換率？</div>
+          </div>
+          <!-- Prev-step card -->
+          <div class="prev-step-card">
+            <button class="prev-step-toggle">
+              <span class="prev-step-toggle-title"><i class="ph ph-clock-counter-clockwise"></i> 前步驟重點參考</span>
+              <i class="ph ph-caret-down toggle-caret"></i>
+            </button>
+            <div class="prev-step-body">
+              <div class="prev-step-row">
+                <span class="prev-step-label">E 結論</span>
+                <span class="prev-step-val">情境式升級提示風險最低；廣告插播成本最高；組合方案需資源協調。</span>
+              </div>
+              <div class="prev-step-row">
+                <span class="prev-step-label">L 方案</span>
+                <span class="prev-step-val">① 情境式升級提示 ② 廣告插播升級 ③ 學生組合方案</span>
+              </div>
+              <div class="prev-step-row">
+                <span class="prev-step-label">R 核心痛點</span>
+                <span class="prev-step-val">用戶感受不到 Premium 的獨特價值，不願為未知體驗付費。</span>
+              </div>
+            </div>
+          </div>
+          <!-- NSM annotation -->
+          <div class="nsm-annotation">
+            此步驟的北極星指標欄位是 NSM 訓練的濃縮版。想深入練習？<button class="nsm-link">前往 NSM 訓練 →</button>
+          </div>
+          <!-- Form -->
+          <div class="phase1-wrap">
+            <div class="field-group">
+              <div class="field-label-row">
+                <div class="field-label">推薦方案</div>
+                <button class="hint-btn">提示</button>
+              </div>
+              <div class="field-hint">明確點名你推薦哪個方案，並簡述核心理由</div>
+              <textarea class="field-input" rows="2" placeholder="填寫你的分析..."></textarea>
+            </div>
+            <div class="field-group">
+              <div class="field-label-row">
+                <div class="field-label">選擇理由</div>
+                <button class="hint-btn">提示</button>
+              </div>
+              <div class="field-hint">為何此方案優於其他選項？結合 E 步驟的評估邏輯</div>
+              <textarea class="field-input" rows="2" placeholder="填寫你的分析..."></textarea>
+            </div>
+            <div class="field-group">
+              <div class="field-label-row">
+                <div class="field-label">北極星指標</div>
+                <button class="hint-btn">提示</button>
+              </div>
+              <div class="field-hint">一個能反映核心用戶價值的領先指標</div>
+              <textarea class="field-input" rows="2" placeholder="填寫你的分析..."></textarea>
+            </div>
+            <div class="field-group">
+              <div class="field-label-row">
+                <div class="field-label">追蹤指標</div>
+                <button class="hint-btn">提示</button>
+              </div>
+              <div class="field-hint">2–3 個輔助驗證的滯後指標</div>
+              <textarea class="field-input" rows="2" placeholder="填寫你的分析..."></textarea>
+            </div>
+          </div>
+          <!-- Submit bar -->
+          <div class="submit-bar">
+            <button class="btn-secondary">返回選題</button>
+            <button class="btn-primary">提交審核</button>
+          </div>
+        </div>
+      </div>
+    </div>
+    <div class="choice-indicator" id="ind-a"></div>
+  </div>
+
+  <!-- Option B: no prev-step card -->
+  <div class="phone-col">
+    <div class="phone-label" id="label-b">方案 B — 無摘要卡</div>
+    <div class="phone" id="opt-b" onclick="selectOpt('b')">
+      <div class="phone-notch"></div>
+      <div class="phone-inner">
+        <div class="app">
+          <!-- Nav -->
+          <div class="circles-nav">
+            <button class="nav-back"><i class="ph ph-arrow-left"></i></button>
+            <div class="nav-meta">
+              <div class="nav-question">Spotify — 提升 Premium 轉換率</div>
+              <div class="nav-step"><span class="step-badge">S 7/7</span> 總結推薦</div>
+            </div>
+          </div>
+          <!-- Progress -->
+          <div class="step-progress">
+            <div class="step-dot done"></div>
+            <div class="step-dot done"></div>
+            <div class="step-dot done"></div>
+            <div class="step-dot done"></div>
+            <div class="step-dot done"></div>
+            <div class="step-dot done"></div>
+            <div class="step-dot active"></div>
+          </div>
+          <!-- Problem card -->
+          <div class="problem-card">
+            <div class="problem-label">題目情境</div>
+            <div class="problem-text">你是 Spotify PM，如何提升免費用戶轉 Premium 的轉換率？</div>
+          </div>
+          <!-- NSM annotation (直接接在 problem card 後) -->
+          <div class="nsm-annotation" style="margin-top:8px">
+            此步驟的北極星指標欄位是 NSM 訓練的濃縮版。想深入練習？<button class="nsm-link">前往 NSM 訓練 →</button>
+          </div>
+          <!-- Form -->
+          <div class="phase1-wrap">
+            <div class="field-group">
+              <div class="field-label-row">
+                <div class="field-label">推薦方案</div>
+                <button class="hint-btn">提示</button>
+              </div>
+              <div class="field-hint">明確點名你推薦哪個方案，並簡述核心理由</div>
+              <textarea class="field-input" rows="2" placeholder="填寫你的分析..."></textarea>
+            </div>
+            <div class="field-group">
+              <div class="field-label-row">
+                <div class="field-label">選擇理由</div>
+                <button class="hint-btn">提示</button>
+              </div>
+              <div class="field-hint">為何此方案優於其他選項？結合 E 步驟的評估邏輯</div>
+              <textarea class="field-input" rows="2" placeholder="填寫你的分析..."></textarea>
+            </div>
+            <div class="field-group">
+              <div class="field-label-row">
+                <div class="field-label">北極星指標</div>
+                <button class="hint-btn">提示</button>
+              </div>
+              <div class="field-hint">一個能反映核心用戶價值的領先指標</div>
+              <textarea class="field-input" rows="2" placeholder="填寫你的分析..."></textarea>
+            </div>
+            <div class="field-group">
+              <div class="field-label-row">
+                <div class="field-label">追蹤指標</div>
+                <button class="hint-btn">提示</button>
+              </div>
+              <div class="field-hint">2–3 個輔助驗證的滯後指標</div>
+              <textarea class="field-input" rows="2" placeholder="填寫你的分析..."></textarea>
+            </div>
+          </div>
+          <!-- Submit bar -->
+          <div class="submit-bar">
+            <button class="btn-secondary">返回選題</button>
+            <button class="btn-primary">提交審核</button>
+          </div>
+        </div>
+      </div>
+    </div>
+    <div class="choice-indicator" id="ind-b"></div>
+  </div>
+
+</div>
+
+<script>
+var selected = null;
+function selectOpt(choice) {
+  selected = choice;
+  ['a','b'].forEach(function(c) {
+    document.getElementById('opt-'+c).classList.toggle('selected', c === choice);
+    document.getElementById('label-'+c).classList.toggle('selected-label', c === choice);
+    document.getElementById('ind-'+c).textContent = c === choice ? '✓ 已選擇' : '';
+  });
+  if (window.recordSelection) window.recordSelection(choice, choice === 'a' ? '方案 A — 有前步驟摘要卡' : '方案 B — 無摘要卡');
+}
+</script>
+</body>
+</html>
