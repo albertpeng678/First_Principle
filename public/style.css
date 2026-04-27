@@ -3014,17 +3014,27 @@ body { -webkit-font-smoothing: antialiased; }
 .hint-overlay.visible {
   display: flex;
 }
-.hint-card {
+/* All rules scoped to .hint-overlay so they don't collide with the legacy
+   .hint-card chat-bubble style at the top of this file (which uses flex). */
+.hint-overlay .hint-card {
+  display: block;
   background: #fff;
+  border: none;
   border-radius: 16px;
   padding: 20px;
   max-width: 360px;
   width: 100%;
+  max-height: 75vh;
+  max-height: 75dvh;
+  overflow-y: auto;
+  -webkit-overflow-scrolling: touch;
+  overscroll-behavior: contain;
   box-shadow: 0 8px 40px rgba(0,0,0,0.18);
   position: relative;
   font-family: 'DM Sans', sans-serif;
+  color: #1a1a1a;
 }
-.hint-close {
+.hint-overlay .hint-close {
   position: absolute;
   top: 12px;
   right: 14px;
@@ -3036,30 +3046,30 @@ body { -webkit-font-smoothing: antialiased; }
   line-height: 1;
   padding: 0;
 }
-.hint-title {
+.hint-overlay .hint-title {
   font-size: 13px;
   font-weight: 700;
   color: #1A56DB;
-  margin-bottom: 4px;
+  margin: 0 0 4px;
   font-family: 'DM Sans', sans-serif;
   display: flex;
   align-items: center;
   gap: 5px;
 }
-.hint-sub {
+.hint-overlay .hint-sub {
   font-size: 12px;
   color: #8a8a8a;
-  margin-bottom: 12px;
+  margin: 0 0 12px;
   font-family: 'DM Sans', sans-serif;
 }
-.hint-loading {
+.hint-overlay .hint-loading {
   text-align: center;
   padding: 20px;
   font-size: 13px;
   color: #5a5a5a;
   font-family: 'DM Sans', sans-serif;
 }
-.hint-body {
+.hint-overlay .hint-body {
   font-size: 14px;
   color: #1a1a1a;
   line-height: 1.7;
@@ -3068,8 +3078,10 @@ body { -webkit-font-smoothing: antialiased; }
   padding: 12px;
   border-radius: 0 8px 8px 0;
   font-family: 'DM Sans', sans-serif;
+  white-space: pre-wrap;
+  word-break: break-word;
 }
-.hint-footer {
+.hint-overlay .hint-footer {
   font-size: 11px;
   color: #8a8a8a;
   font-family: 'DM Sans', sans-serif;

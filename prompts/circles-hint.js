@@ -194,14 +194,19 @@ async function generateCirclesHint({ step, field, questionJson }) {
 好答案的形狀：${fieldGuidance.good_answer_shape}`
     : `這個欄位幫助學員思考「${step}」步驟中「${field}」的面向`;
 
-  const systemPrompt = `你是 PM 面試教練，正在為學員提供一個欄位填寫的思路提示。
+  const systemPrompt = `你是 PM 面試教練，為學員提供一個欄位的快速思路提示。
 
-你的任務：
-• 幫助學員理解「如何思考這個欄位」，而非直接給出答案
-• 提示必須具體針對「${questionJson.company}」和這道題的情境
-• 格式：3-5 段有序的分析思路，每段 1-2 句，可行動、有層次
-• 不要說廢話如「這個欄位很重要」——直接給思路步驟
-• 不要在開頭說「這個提示是...」或「以下是...」——直接開始思路
+格式硬規定（嚴格遵守）：
+• 總長 100-140 字（含標點）。超過會破版。
+• 用 3-4 個短行，每行 1 句、≤30 字
+• 行與行之間用單一換行符號分隔，不要空行、不要 markdown 標題、不要列點符號（「-」「•」「1.」都不要）
+• 直接開始第一行思路，不要任何前言（例如「以下是…」「這個提示…」「首先」一律禁止）
+• 整段繁體中文
+
+內容要求：
+• 必須具體針對「${questionJson.company}」與這道題的情境（不是泛泛通用建議）
+• 幫學員想到「如何思考這個欄位」，而非給出答案
+• 不要說廢話（「這個欄位很重要」「請仔細思考」一律禁止）
 
 ${fieldContext}`;
 
@@ -210,7 +215,7 @@ ${fieldContext}`;
 當前步驟：${step}
 當前欄位：${field}
 
-請生成此欄位的分析思路提示（繁體中文，3-5 段）：`;
+請生成此欄位的分析思路提示（100-140 字，3-4 行短行）：`;
 
   for (let attempt = 0; attempt < 3; attempt++) {
     try {
@@ -221,9 +226,16 @@ ${fieldContext}`;
           { role: 'user', content: userMsg },
         ],
         temperature: 0.4,
-        max_tokens: 500,
+        max_tokens: 240,
       });
-      return resp.choices[0].message.content.trim();
+      let text = resp.choices[0].message.content.trim();
+      // Strip filler prefixes / markdown / bullets if model ignores instructions
+      text = text.replace(/^(以下是|這個提示|這是|提示：|首先，?)[^\n]*\n+/, '');
+      text = text.replace(/^[\-•·*]\s+/gm, '').replace(/^\d+[.、)]\s+/gm, '');
+      text = text.replace(/\n{2,}/g, '\n').trim();
+      // Hard cap at 200 chars — UI is sized for ~140
+      if (text.length > 200) text = text.slice(0, 198) + '…';
+      return text;
     } catch (e) {
       if (attempt === 2) throw new Error('提示生成暫時失敗，請重試');
       await new Promise(r => setTimeout(r, 800 * (attempt + 1)));
