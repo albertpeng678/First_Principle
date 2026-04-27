@@ -50,6 +50,7 @@ const AppState = {
   circlesSimStep: 0,               // for simulation: which of 7 steps is active (0-6)
   circlesRecentSessions: [],       // [{ id, question_json, mode, drill_step, current_phase, sim_step_index, updated_at }]
   circlesRecentLoading: false,
+  circlesDisplayedQuestions: [],   // up to 5 randomly picked questions for current type tab
   nsmContext: null,
   nsmContextLoading: false,
   nsmContextQuestionId: null,
@@ -575,7 +576,7 @@ function renderOffcanvasList(listEl, sessions) {
           AppState.circlesGateResult = null;
           AppState.circlesConversation = [];
           AppState.circlesScoreResult = null;
-          AppState.circlesStepScores = {};
+          AppState.circlesStepScores = cached.circles_step_scores || cached.step_scores || {};
           AppState.circlesFinalReport = null;
           navigate('circles');
         } else {
@@ -693,6 +694,28 @@ window.submitDefinition = submitDefinition;
 window.openOffcanvas = openOffcanvas;
 window.closeOffcanvas = closeOffcanvas;
 window.showHintCard = showHintCard;
+
+// ── CIRCLES helper functions ──────────────────────
+
+function pickRandom5(arr) {
+  if (!arr || arr.length === 0) return [];
+  var a = arr.slice();
+  for (var i = a.length - 1; i > 0; i--) {
+    var j = Math.floor(Math.random() * (i + 1));
+    var tmp = a[i]; a[i] = a[j]; a[j] = tmp;
+  }
+  return a.slice(0, Math.min(5, a.length));
+}
+
+function toggleInfoCard(btn) {
+  var body = document.getElementById('info-card-body');
+  var icon = document.getElementById('info-card-icon');
+  if (!body) return;
+  var open = body.style.display !== 'none';
+  body.style.display = open ? 'none' : 'block';
+  if (icon) icon.className = open ? 'ph ph-caret-right' : 'ph ph-caret-down';
+}
+window.toggleInfoCard = toggleInfoCard;
 
 // ── View stubs（後續 Task 填入）────────────────────
 // CIRCLES stubs — replaced by Tasks 14-18
@@ -1998,7 +2021,7 @@ function renderAuth(isLogin) {
           <button type="submit" class="btn btn-primary" style="width:100%">${isLogin?'登入':'建立帳號'}</button>
         </form>
         <p style="margin-top:16px;text-align:center">
-          <a href="#" style="color:var(--accent)" onclick="navigate('home')">← 返回首頁</a>
+          <a href="#" style="color:var(--accent)" onclick="navigate('circles')">← 返回首頁</a>
         </p>
       </div>
     </div>
@@ -2616,7 +2639,7 @@ function bindReport() {
   });
   document.getElementById('btn-export-pdf')?.addEventListener('click', exportPDF);
   document.getElementById('btn-export-png')?.addEventListener('click', exportPNG);
-  document.getElementById('btn-practice-again')?.addEventListener('click', () => navigate('home'));
+  document.getElementById('btn-practice-again')?.addEventListener('click', () => navigate('circles'));
 }
 
 function exportPDF() {
@@ -2652,7 +2675,7 @@ function renderHistory() {
   return `
     <div style="margin-bottom:24px;display:flex;justify-content:space-between;align-items:center">
       <h2 style="font-weight:700">練習歷史</h2>
-      <button class="btn btn-ghost" onclick="navigate('home')">← 返回</button>
+      <button class="btn btn-ghost" onclick="navigate('circles')">← 返回</button>
     </div>
     <div id="history-chart" style="margin-bottom:24px">載入中…</div>
     <div id="history-list" class="history-list">載入中…</div>
@@ -2746,7 +2769,7 @@ function attachHistoryDeleteListeners(el) {
           }
           if (AppState.currentSession?.id === id) {
             AppState.currentSession = null;
-            navigate('home');
+            navigate('circles');
           } else {
             item.remove();
           }
@@ -3284,7 +3307,7 @@ function renderNSMStep4() {
 function bindNSM() {
   // Back button
   document.getElementById('btn-nsm-back')?.addEventListener('click', () => {
-    if (AppState.nsmStep === 1) navigate('circles');
+    if (AppState.nsmStep === 1) { AppState.circlesSession = null; navigate('circles'); }
     else if (AppState.nsmStep === 4) { AppState.nsmStep = 1; AppState.nsmSession = null; AppState.nsmSelectedQuestion = null; navigate('nsm'); }
     else { AppState.nsmStep--; render(); }
   });
