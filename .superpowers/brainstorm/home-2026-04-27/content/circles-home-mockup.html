@@ -1,0 +1,565 @@
+<!DOCTYPE html>
+<html lang="zh-TW">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0">
+<title>CIRCLES — 首頁 Home Mockup</title>
+<link rel="stylesheet" href="https://unpkg.com/@phosphor-icons/web@2.1.1/src/regular/style.css">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=DM+Sans:wght@400;500;600;700&display=swap" rel="stylesheet">
+<style>
+* { box-sizing: border-box; margin: 0; padding: 0; }
+:root {
+  --primary: #1A56DB;
+  --primary-lt: #EEF3FF;
+  --primary-border: #C5D5FF;
+  --success: #137A3D;
+  --warning: #B85C00;
+  --danger: #D92020;
+  --bg: #F5F4EF;
+  --card: #FFFFFF;
+  --border: #E2DDD5;
+  --text: #1A1A1A;
+  --text-2: #555555;
+  --text-3: #888888;
+}
+body { background: #2C2B26; font-family: 'DM Sans', sans-serif; min-height: 100vh; display: flex; flex-direction: column; align-items: center; padding: 24px 16px 40px; }
+
+/* NAV */
+.mockup-nav { display: flex; align-items: center; gap: 12px; margin-bottom: 20px; background: #3A3930; border-radius: 10px; padding: 10px 16px; width: 100%; max-width: 900px; }
+.mockup-title { color: #D4D0C4; font-size: 13px; font-weight: 600; margin-right: auto; }
+.nav-btn { background: none; border: 1px solid #555; color: #bbb; border-radius: 6px; padding: 5px 14px; font-size: 12px; cursor: pointer; font-family: 'DM Sans', sans-serif; }
+.nav-btn:hover { border-color: #bbb; color: #eee; }
+.nav-btn:disabled { opacity: 0.35; cursor: default; }
+.screen-label { color: #999; font-size: 11px; min-width: 160px; text-align: center; }
+
+/* PHONE */
+.phone-wrap { display: flex; flex-direction: column; align-items: center; gap: 16px; width: 100%; }
+.phone { width: 375px; min-height: 720px; background: var(--bg); border-radius: 36px; overflow: hidden; box-shadow: 0 24px 64px rgba(0,0,0,0.55), 0 0 0 2px #555; display: flex; flex-direction: column; }
+
+/* NAVBAR */
+.app-navbar { background: var(--card); border-bottom: 1px solid var(--border); padding: 0 16px; height: 52px; display: flex; align-items: center; justify-content: space-between; flex-shrink: 0; }
+.navbar-logo { font-size: 15px; font-weight: 700; color: var(--text); letter-spacing: -0.3px; }
+.navbar-right { display: flex; align-items: center; gap: 8px; }
+.navbar-nsm-link { font-size: 12px; color: var(--primary); font-weight: 600; background: none; border: none; cursor: pointer; padding: 0; }
+.navbar-login { font-size: 12px; color: var(--text-2); background: none; border: none; cursor: pointer; padding: 0 2px; }
+.navbar-menu { background: none; border: none; cursor: pointer; display: flex; align-items: center; padding: 4px; }
+
+/* SCROLLABLE BODY */
+.home-body { flex: 1; overflow-y: auto; padding: 20px 16px 32px; }
+
+/* TITLE */
+.home-title { font-size: 22px; font-weight: 700; color: var(--text); margin-bottom: 4px; }
+.home-sub { font-size: 13px; color: var(--text-2); margin-bottom: 20px; line-height: 1.5; }
+
+/* INFO CARD */
+.circles-info-card { background: var(--card); border: 1px solid #e8e5de; border-radius: 10px; margin-bottom: 20px; overflow: hidden; }
+.info-card-header { width: 100%; display: flex; align-items: center; justify-content: space-between; background: none; border: none; cursor: pointer; padding: 12px 14px; text-align: left; }
+.info-card-title { font-size: 13px; font-weight: 700; color: var(--text); }
+.info-card-body { padding: 0 14px 14px; }
+.info-card-sub { font-size: 12px; color: var(--text-2); line-height: 1.6; margin-bottom: 10px; }
+.info-steps { display: flex; flex-wrap: wrap; gap: 6px; }
+.info-step { font-size: 11px; color: var(--primary); font-weight: 600; background: var(--primary-lt); border-radius: 4px; padding: 2px 7px; }
+
+/* MODE SELECTOR */
+.mode-row { display: flex; gap: 10px; margin-bottom: 20px; }
+.mode-card { flex: 1; padding: 14px; border-radius: 12px; border: 1.5px solid var(--border); background: var(--card); cursor: pointer; transition: border-color 0.15s, background 0.15s; }
+.mode-card.selected { border-color: var(--primary); background: var(--primary-lt); }
+.mode-card-title { font-size: 13px; font-weight: 600; color: var(--text); margin-bottom: 3px; }
+.mode-card-desc { font-size: 11px; color: var(--text-3); line-height: 1.5; }
+
+/* TYPE TABS */
+.type-tabs { display: flex; gap: 6px; margin-bottom: 14px; align-items: center; }
+.type-tab { min-height: 34px; display: flex; align-items: center; padding: 5px 14px; border-radius: 20px; border: 1px solid var(--border); background: var(--card); font-size: 12px; color: var(--text-2); cursor: pointer; font-family: 'DM Sans', sans-serif; transition: background 0.12s, color 0.12s; }
+.type-tab.active { background: var(--primary); color: #fff; border-color: var(--primary); }
+.type-tab-random { margin-left: auto; font-size: 11px; color: var(--primary); background: none; border: none; cursor: pointer; padding: 5px 4px; display: flex; align-items: center; gap: 4px; font-family: 'DM Sans', sans-serif; }
+
+/* QUESTION CARDS */
+.q-card { padding: 14px 16px; border-radius: 12px; background: var(--card); border: 1.5px solid var(--border); cursor: pointer; margin-bottom: 10px; transition: border-color 0.15s; }
+.q-card.expanded { border-color: var(--primary); }
+.q-card-company { font-size: 11px; color: var(--primary); font-weight: 600; margin-bottom: 4px; }
+.q-card-stmt { font-size: 13px; color: var(--text); line-height: 1.5; }
+.q-card-more { font-size: 11px; color: var(--primary); cursor: pointer; margin-top: 4px; display: block; }
+.q-card-expanded-body { font-size: 12px; color: var(--text-2); line-height: 1.6; margin-top: 8px; padding-top: 8px; border-top: 1px solid var(--border); }
+.q-card-actions { display: flex; align-items: center; gap: 8px; margin-top: 10px; }
+.btn-confirm { flex: 1; padding: 9px 0; font-size: 13px; background: var(--primary); color: #fff; border: none; border-radius: 8px; cursor: pointer; font-family: 'DM Sans', sans-serif; font-weight: 600; }
+.btn-cancel { background: none; border: none; font-size: 13px; color: var(--text-2); cursor: pointer; padding: 9px 4px; white-space: nowrap; font-family: 'DM Sans', sans-serif; }
+
+/* NSM BANNER */
+.nsm-banner { background: var(--primary-lt); border: 1px solid var(--primary-border); border-radius: 10px; padding: 14px 16px; display: flex; align-items: center; justify-content: space-between; margin-top: 16px; }
+.nsm-banner-label { font-size: 12px; color: var(--primary); font-weight: 600; margin-bottom: 2px; }
+.nsm-banner-sub { font-size: 12px; color: #5a7ab5; }
+.nsm-banner-btn { background: var(--primary); color: #fff; border: none; padding: 7px 12px; border-radius: 8px; font-size: 12px; font-weight: 600; cursor: pointer; white-space: nowrap; }
+
+/* STATE GUIDE */
+.state-guide { width: 375px; background: #3A3930; border-radius: 10px; padding: 12px 14px; }
+.state-guide-title { font-size: 10px; color: #888; font-weight: 600; letter-spacing: 0.8px; text-transform: uppercase; margin-bottom: 8px; }
+.state-btns { display: flex; flex-wrap: wrap; gap: 6px; }
+.state-btn { font-size: 11px; color: #bbb; background: none; border: 1px solid #555; border-radius: 5px; padding: 4px 10px; cursor: pointer; font-family: 'DM Sans', sans-serif; transition: border-color 0.1s, color 0.1s; }
+.state-btn:hover { border-color: #aaa; color: #eee; }
+.state-btn.active { border-color: var(--primary); color: #7EB3FF; background: rgba(26,86,219,0.12); }
+
+/* SCREEN */
+.screen { display: none; }
+.screen.active { display: block; }
+
+/* ANNOTATION */
+.annotation { width: 375px; background: #3A3930; border-radius: 10px; padding: 12px 14px; margin-top: 12px; }
+.ann-title { font-size: 10px; color: #888; font-weight: 600; letter-spacing: 0.8px; text-transform: uppercase; margin-bottom: 8px; }
+.ann-row { font-size: 11px; color: #B0AD9F; line-height: 1.6; padding: 4px 0; border-top: 1px solid #4A4840; }
+.ann-row:first-of-type { border-top: none; }
+.ann-key { color: #7EB3FF; font-weight: 600; }
+</style>
+</head>
+<body>
+
+<div class="mockup-nav">
+  <span class="mockup-title">CIRCLES — 首頁 Home Mockup</span>
+  <button class="nav-btn" id="btn-prev" onclick="prevScreen()" disabled>← 上一個</button>
+  <span class="screen-label" id="screen-label">Screen 1 / 5</span>
+  <button class="nav-btn" id="btn-next" onclick="nextScreen()">下一個 →</button>
+</div>
+
+<div class="phone-wrap">
+
+  <!-- ===================== SCREEN 1: 首頁預設 ===================== -->
+  <div class="phone screen active" id="s1">
+    <div class="app-navbar">
+      <span class="navbar-logo">PM Drill</span>
+      <div class="navbar-right">
+        <button class="navbar-nsm-link">北極星指標</button>
+        <button class="navbar-login">登入</button>
+        <button class="navbar-menu"><i class="ph ph-list" style="font-size:18px;color:var(--text-2)"></i></button>
+      </div>
+    </div>
+    <div class="home-body">
+      <div class="home-title">CIRCLES 訓練</div>
+      <div class="home-sub">選題，按步驟填寫框架、訪談、拿到評分</div>
+
+      <!-- Info Card — COLLAPSED -->
+      <div class="circles-info-card">
+        <button class="info-card-header">
+          <span class="info-card-title">什麼是 CIRCLES 實戰訓練？</span>
+          <i class="ph ph-caret-right" style="font-size:13px;color:var(--text-3);flex-shrink:0"></i>
+        </button>
+      </div>
+
+      <!-- Mode Selector — 完整模擬 selected -->
+      <div class="mode-row">
+        <div class="mode-card selected">
+          <div class="mode-card-title">完整模擬</div>
+          <div class="mode-card-desc">走完 7 個步驟，最後產出總結報告</div>
+        </div>
+        <div class="mode-card">
+          <div class="mode-card-title">步驟加練</div>
+          <div class="mode-card-desc">選定單一步驟深度練習</div>
+        </div>
+      </div>
+
+      <!-- Type Tabs — 全部 active -->
+      <div class="type-tabs">
+        <button class="type-tab active">全部</button>
+        <button class="type-tab">B2C</button>
+        <button class="type-tab">B2B</button>
+        <button class="type-tab-random"><i class="ph ph-shuffle" style="font-size:11px"></i> 隨機選題</button>
+      </div>
+
+      <!-- 5 Question Cards — all collapsed -->
+      <div class="q-card">
+        <div class="q-card-company">Meta — B2C</div>
+        <div class="q-card-stmt">用戶反映 News Feed 廣告過多，如何改善廣告體驗並維持收入</div>
+        <span class="q-card-more">看更多 ▾</span>
+      </div>
+      <div class="q-card">
+        <div class="q-card-company">Shopee — B2C</div>
+        <div class="q-card-stmt">買家在結帳流程中的放棄率持續上升，如何提升轉換率</div>
+        <span class="q-card-more">看更多 ▾</span>
+      </div>
+      <div class="q-card">
+        <div class="q-card-company">Slack — B2B</div>
+        <div class="q-card-stmt">企業用戶反映通知雜訊過多，導致訊息被忽略</div>
+        <span class="q-card-more">看更多 ▾</span>
+      </div>
+      <div class="q-card">
+        <div class="q-card-company">Grab — B2C</div>
+        <div class="q-card-stmt">外送司機流失率高，如何改善司機端體驗以提高留存率</div>
+        <span class="q-card-more">看更多 ▾</span>
+      </div>
+      <div class="q-card">
+        <div class="q-card-company">Notion — B2B</div>
+        <div class="q-card-stmt">新用戶在 14 天內流失率達 60%，如何改善 onboarding 體驗</div>
+        <span class="q-card-more">看更多 ▾</span>
+      </div>
+
+      <div class="nsm-banner">
+        <div>
+          <div class="nsm-banner-label">S 步驟含北極星指標練習</div>
+          <div class="nsm-banner-sub">想做最完整的 NSM 定義訓練？</div>
+        </div>
+        <button class="nsm-banner-btn">前往 NSM →</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- ===================== SCREEN 2: Info Card 展開 ===================== -->
+  <div class="phone screen" id="s2">
+    <div class="app-navbar">
+      <span class="navbar-logo">PM Drill</span>
+      <div class="navbar-right">
+        <button class="navbar-nsm-link">北極星指標</button>
+        <button class="navbar-login">登入</button>
+        <button class="navbar-menu"><i class="ph ph-list" style="font-size:18px;color:var(--text-2)"></i></button>
+      </div>
+    </div>
+    <div class="home-body">
+      <div class="home-title">CIRCLES 訓練</div>
+      <div class="home-sub">選題，按步驟填寫框架、訪談、拿到評分</div>
+
+      <!-- Info Card — EXPANDED -->
+      <div class="circles-info-card">
+        <button class="info-card-header">
+          <span class="info-card-title">什麼是 CIRCLES 實戰訓練？</span>
+          <i class="ph ph-caret-down" style="font-size:13px;color:var(--text-3);flex-shrink:0"></i>
+        </button>
+        <div class="info-card-body">
+          <div class="info-card-sub">用結構化框架拆解 PM 面試題，模擬真實訪談對話並逐步評分。每道題走完 7 個步驟，拿到分項反饋與總分報告。</div>
+          <div class="info-steps">
+            <span class="info-step">C 澄清情境</span>
+            <span class="info-step">I 定義用戶</span>
+            <span class="info-step">R 發掘需求</span>
+            <span class="info-step">C 優先排序</span>
+            <span class="info-step">L 提出方案</span>
+            <span class="info-step">E 評估取捨</span>
+            <span class="info-step">S 總結推薦</span>
+          </div>
+        </div>
+      </div>
+
+      <!-- Mode Selector -->
+      <div class="mode-row">
+        <div class="mode-card selected">
+          <div class="mode-card-title">完整模擬</div>
+          <div class="mode-card-desc">走完 7 個步驟，最後產出總結報告</div>
+        </div>
+        <div class="mode-card">
+          <div class="mode-card-title">步驟加練</div>
+          <div class="mode-card-desc">選定單一步驟深度練習</div>
+        </div>
+      </div>
+
+      <!-- Type Tabs -->
+      <div class="type-tabs">
+        <button class="type-tab active">全部</button>
+        <button class="type-tab">B2C</button>
+        <button class="type-tab">B2B</button>
+        <button class="type-tab-random"><i class="ph ph-shuffle" style="font-size:11px"></i> 隨機選題</button>
+      </div>
+
+      <div class="q-card">
+        <div class="q-card-company">Meta — B2C</div>
+        <div class="q-card-stmt">用戶反映 News Feed 廣告過多，如何改善廣告體驗並維持收入</div>
+        <span class="q-card-more">看更多 ▾</span>
+      </div>
+      <div class="q-card">
+        <div class="q-card-company">Shopee — B2C</div>
+        <div class="q-card-stmt">買家在結帳流程中的放棄率持續上升，如何提升轉換率</div>
+        <span class="q-card-more">看更多 ▾</span>
+      </div>
+    </div>
+  </div>
+
+  <!-- ===================== SCREEN 3: 步驟加練 mode ===================== -->
+  <div class="phone screen" id="s3">
+    <div class="app-navbar">
+      <span class="navbar-logo">PM Drill</span>
+      <div class="navbar-right">
+        <button class="navbar-nsm-link">北極星指標</button>
+        <button class="navbar-login">登入</button>
+        <button class="navbar-menu"><i class="ph ph-list" style="font-size:18px;color:var(--text-2)"></i></button>
+      </div>
+    </div>
+    <div class="home-body">
+      <div class="home-title">CIRCLES 訓練</div>
+      <div class="home-sub">選題，按步驟填寫框架、訪談、拿到評分</div>
+
+      <!-- Info Card — collapsed -->
+      <div class="circles-info-card">
+        <button class="info-card-header">
+          <span class="info-card-title">什麼是 CIRCLES 實戰訓練？</span>
+          <i class="ph ph-caret-right" style="font-size:13px;color:var(--text-3);flex-shrink:0"></i>
+        </button>
+      </div>
+
+      <!-- Mode Selector — 步驟加練 selected -->
+      <div class="mode-row">
+        <div class="mode-card">
+          <div class="mode-card-title">完整模擬</div>
+          <div class="mode-card-desc">走完 7 個步驟，最後產出總結報告</div>
+        </div>
+        <div class="mode-card selected">
+          <div class="mode-card-title">步驟加練</div>
+          <div class="mode-card-desc">選定單一步驟深度練習</div>
+        </div>
+      </div>
+
+      <!-- Type Tabs — 全部 -->
+      <div class="type-tabs">
+        <button class="type-tab active">全部</button>
+        <button class="type-tab">B2C</button>
+        <button class="type-tab">B2B</button>
+        <button class="type-tab-random"><i class="ph ph-shuffle" style="font-size:11px"></i> 隨機選題</button>
+      </div>
+
+      <div class="q-card">
+        <div class="q-card-company">Meta — B2C</div>
+        <div class="q-card-stmt">用戶反映 News Feed 廣告過多，如何改善廣告體驗並維持收入</div>
+        <span class="q-card-more">看更多 ▾</span>
+      </div>
+      <div class="q-card">
+        <div class="q-card-company">Shopee — B2C</div>
+        <div class="q-card-stmt">買家在結帳流程中的放棄率持續上升，如何提升轉換率</div>
+        <span class="q-card-more">看更多 ▾</span>
+      </div>
+      <div class="q-card">
+        <div class="q-card-company">Slack — B2B</div>
+        <div class="q-card-stmt">企業用戶反映通知雜訊過多，導致訊息被忽略</div>
+        <span class="q-card-more">看更多 ▾</span>
+      </div>
+      <div class="q-card">
+        <div class="q-card-company">Grab — B2C</div>
+        <div class="q-card-stmt">外送司機流失率高，如何改善司機端體驗以提高留存率</div>
+        <span class="q-card-more">看更多 ▾</span>
+      </div>
+      <div class="q-card">
+        <div class="q-card-company">Notion — B2B</div>
+        <div class="q-card-stmt">新用戶在 14 天內流失率達 60%，如何改善 onboarding 體驗</div>
+        <span class="q-card-more">看更多 ▾</span>
+      </div>
+
+      <div class="nsm-banner">
+        <div>
+          <div class="nsm-banner-label">S 步驟含北極星指標練習</div>
+          <div class="nsm-banner-sub">想做最完整的 NSM 定義訓練？</div>
+        </div>
+        <button class="nsm-banner-btn">前往 NSM →</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- ===================== SCREEN 4: B2C 篩選 ===================== -->
+  <div class="phone screen" id="s4">
+    <div class="app-navbar">
+      <span class="navbar-logo">PM Drill</span>
+      <div class="navbar-right">
+        <button class="navbar-nsm-link">北極星指標</button>
+        <button class="navbar-login">登入</button>
+        <button class="navbar-menu"><i class="ph ph-list" style="font-size:18px;color:var(--text-2)"></i></button>
+      </div>
+    </div>
+    <div class="home-body">
+      <div class="home-title">CIRCLES 訓練</div>
+      <div class="home-sub">選題，按步驟填寫框架、訪談、拿到評分</div>
+
+      <!-- Info Card — collapsed -->
+      <div class="circles-info-card">
+        <button class="info-card-header">
+          <span class="info-card-title">什麼是 CIRCLES 實戰訓練？</span>
+          <i class="ph ph-caret-right" style="font-size:13px;color:var(--text-3);flex-shrink:0"></i>
+        </button>
+      </div>
+
+      <!-- Mode Selector — 完整模擬 -->
+      <div class="mode-row">
+        <div class="mode-card selected">
+          <div class="mode-card-title">完整模擬</div>
+          <div class="mode-card-desc">走完 7 個步驟，最後產出總結報告</div>
+        </div>
+        <div class="mode-card">
+          <div class="mode-card-title">步驟加練</div>
+          <div class="mode-card-desc">選定單一步驟深度練習</div>
+        </div>
+      </div>
+
+      <!-- Type Tabs — B2C active -->
+      <div class="type-tabs">
+        <button class="type-tab">全部</button>
+        <button class="type-tab active">B2C</button>
+        <button class="type-tab">B2B</button>
+        <button class="type-tab-random"><i class="ph ph-shuffle" style="font-size:11px"></i> 隨機選題</button>
+      </div>
+
+      <!-- Only B2C cards shown (re-picked from B2C pool) -->
+      <div class="q-card">
+        <div class="q-card-company">Meta — B2C</div>
+        <div class="q-card-stmt">用戶反映 News Feed 廣告過多，如何改善廣告體驗並維持收入</div>
+        <span class="q-card-more">看更多 ▾</span>
+      </div>
+      <div class="q-card">
+        <div class="q-card-company">Shopee — B2C</div>
+        <div class="q-card-stmt">買家在結帳流程中的放棄率持續上升，如何提升轉換率</div>
+        <span class="q-card-more">看更多 ▾</span>
+      </div>
+      <div class="q-card">
+        <div class="q-card-company">Grab — B2C</div>
+        <div class="q-card-stmt">外送司機流失率高，如何改善司機端體驗以提高留存率</div>
+        <span class="q-card-more">看更多 ▾</span>
+      </div>
+      <div class="q-card">
+        <div class="q-card-company">Netflix — B2C</div>
+        <div class="q-card-stmt">用戶分享功能使用率低，如何提升內容傳播與社交互動</div>
+        <span class="q-card-more">看更多 ▾</span>
+      </div>
+      <div class="q-card">
+        <div class="q-card-company">LINE — B2C</div>
+        <div class="q-card-stmt">貼圖商城購買轉換率低，如何提升貼圖的發現性與購買意願</div>
+        <span class="q-card-more">看更多 ▾</span>
+      </div>
+
+      <div class="nsm-banner">
+        <div>
+          <div class="nsm-banner-label">S 步驟含北極星指標練習</div>
+          <div class="nsm-banner-sub">想做最完整的 NSM 定義訓練？</div>
+        </div>
+        <button class="nsm-banner-btn">前往 NSM →</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- ===================== SCREEN 5: 題目展開（Card Expanded）===================== -->
+  <div class="phone screen" id="s5">
+    <div class="app-navbar">
+      <span class="navbar-logo">PM Drill</span>
+      <div class="navbar-right">
+        <button class="navbar-nsm-link">北極星指標</button>
+        <button class="navbar-login">登入</button>
+        <button class="navbar-menu"><i class="ph ph-list" style="font-size:18px;color:var(--text-2)"></i></button>
+      </div>
+    </div>
+    <div class="home-body">
+      <div class="home-title">CIRCLES 訓練</div>
+      <div class="home-sub">選題，按步驟填寫框架、訪談、拿到評分</div>
+
+      <!-- Info Card — collapsed -->
+      <div class="circles-info-card">
+        <button class="info-card-header">
+          <span class="info-card-title">什麼是 CIRCLES 實戰訓練？</span>
+          <i class="ph ph-caret-right" style="font-size:13px;color:var(--text-3);flex-shrink:0"></i>
+        </button>
+      </div>
+
+      <!-- Mode Selector -->
+      <div class="mode-row">
+        <div class="mode-card selected">
+          <div class="mode-card-title">完整模擬</div>
+          <div class="mode-card-desc">走完 7 個步驟，最後產出總結報告</div>
+        </div>
+        <div class="mode-card">
+          <div class="mode-card-title">步驟加練</div>
+          <div class="mode-card-desc">選定單一步驟深度練習</div>
+        </div>
+      </div>
+
+      <!-- Type Tabs -->
+      <div class="type-tabs">
+        <button class="type-tab active">全部</button>
+        <button class="type-tab">B2C</button>
+        <button class="type-tab">B2B</button>
+        <button class="type-tab-random"><i class="ph ph-shuffle" style="font-size:11px"></i> 隨機選題</button>
+      </div>
+
+      <!-- Card 0: EXPANDED (border turns primary, full text + confirm/cancel) -->
+      <div class="q-card expanded">
+        <div class="q-card-company">Meta — B2C</div>
+        <div class="q-card-stmt">用戶反映 News Feed 廣告過多，如何改善廣告體驗並維持收入</div>
+        <!-- Expanded body -->
+        <div class="q-card-expanded-body">Meta 內部數據顯示，過去一季 News Feed 廣告曝光頻率提升 18%，但用戶滿意度（CSAT）下降 12 個百分點，DAU 留存率也出現微幅下滑。廣告主的 CPM 收入雖維持，但點擊率（CTR）已連續三個月走低。請你以 PM 的角色，說明你如何診斷問題、找出核心用戶需求，並提出兼顧用戶體驗與廣告收入的解決方案。</div>
+        <div class="q-card-actions">
+          <button class="btn-confirm">確認，開始練習</button>
+          <button class="btn-cancel">取消</button>
+        </div>
+      </div>
+
+      <!-- Cards 1–4: COLLAPSED -->
+      <div class="q-card">
+        <div class="q-card-company">Shopee — B2C</div>
+        <div class="q-card-stmt">買家在結帳流程中的放棄率持續上升，如何提升轉換率</div>
+        <span class="q-card-more">看更多 ▾</span>
+      </div>
+      <div class="q-card">
+        <div class="q-card-company">Slack — B2B</div>
+        <div class="q-card-stmt">企業用戶反映通知雜訊過多，導致訊息被忽略</div>
+        <span class="q-card-more">看更多 ▾</span>
+      </div>
+      <div class="q-card">
+        <div class="q-card-company">Grab — B2C</div>
+        <div class="q-card-stmt">外送司機流失率高，如何改善司機端體驗以提高留存率</div>
+        <span class="q-card-more">看更多 ▾</span>
+      </div>
+      <div class="q-card">
+        <div class="q-card-company">Notion — B2B</div>
+        <div class="q-card-stmt">新用戶在 14 天內流失率達 60%，如何改善 onboarding 體驗</div>
+        <span class="q-card-more">看更多 ▾</span>
+      </div>
+
+      <div class="nsm-banner">
+        <div>
+          <div class="nsm-banner-label">S 步驟含北極星指標練習</div>
+          <div class="nsm-banner-sub">想做最完整的 NSM 定義訓練？</div>
+        </div>
+        <button class="nsm-banner-btn">前往 NSM →</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- STATE GUIDE -->
+  <div class="state-guide">
+    <div class="state-guide-title">快速切換狀態</div>
+    <div class="state-btns">
+      <button class="state-btn active" onclick="goScreen(1)">1 首頁預設</button>
+      <button class="state-btn" onclick="goScreen(2)">2 Info 展開</button>
+      <button class="state-btn" onclick="goScreen(3)">3 步驟加練</button>
+      <button class="state-btn" onclick="goScreen(4)">4 B2C 篩選</button>
+      <button class="state-btn" onclick="goScreen(5)">5 題目展開</button>
+    </div>
+  </div>
+
+  <!-- ANNOTATION -->
+  <div class="annotation">
+    <div class="ann-title">各畫面說明</div>
+    <div class="ann-row"><span class="ann-key">Screen 1 首頁預設</span> — app 啟動時的初始狀態。info card 折疊，完整模擬已選，全部 tab active，5 張題卡全部折疊，NSM banner 在底部。</div>
+    <div class="ann-row"><span class="ann-key">Screen 2 Info Card 展開</span> — 點擊「什麼是 CIRCLES 實戰訓練？」後，caret 變 ph-caret-down，展開說明文字 + 7 個步驟色塊。再點一次收合。</div>
+    <div class="ann-row"><span class="ann-key">Screen 3 步驟加練</span> — 點「步驟加練」mode-card 後，border + background 切換至 primary；完整模擬回到未選狀態。題目列表不變（步驟選擇在下一頁進行）。</div>
+    <div class="ann-row"><span class="ann-key">Screen 4 B2C 篩選</span> — 點 B2C tab 後 active 切換，系統從 B2C 題目池重新隨機抽 5 題顯示。隨機選題按鈕只重新洗牌，不切換頁面。</div>
+    <div class="ann-row"><span class="ann-key">Screen 5 題目展開</span> — 點題卡後邊框變 primary，顯示完整題幹 + 確認按鈕 + 取消連結。同時所有其他題卡自動折疊（accordion 行為）。確認後建立 session，進入 Phase 1。</div>
+  </div>
+
+</div>
+
+<script>
+var current = 1;
+var total = 5;
+var labels = [
+  '',
+  'Screen 1 / 5 — 首頁預設',
+  'Screen 2 / 5 — Info Card 展開',
+  'Screen 3 / 5 — 步驟加練 mode',
+  'Screen 4 / 5 — B2C 篩選',
+  'Screen 5 / 5 — 題目展開'
+];
+
+function goScreen(n) {
+  document.getElementById('s' + current).classList.remove('active');
+  document.querySelectorAll('.state-btn')[current - 1].classList.remove('active');
+  current = n;
+  document.getElementById('s' + current).classList.add('active');
+  document.querySelectorAll('.state-btn')[current - 1].classList.add('active');
+  document.getElementById('screen-label').textContent = labels[current];
+  document.getElementById('btn-prev').disabled = current === 1;
+  document.getElementById('btn-next').disabled = current === total;
+}
+
+function prevScreen() { if (current > 1) goScreen(current - 1); }
+function nextScreen() { if (current < total) goScreen(current + 1); }
+</script>
+</body>
+</html>

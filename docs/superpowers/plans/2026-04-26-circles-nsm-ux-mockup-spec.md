@@ -179,6 +179,8 @@ CSS:
 
 ## Screen 1: CIRCLES Home (`renderCirclesHome`)
 
+**Mockup 來源路徑：** `.superpowers/brainstorm/home-2026-04-27/content/circles-home-mockup.html`（直接用瀏覽器開啟即可預覽，含 5 個互動狀態）。**此 HTML 是實作的視覺真相來源（canonical visual truth）——若 spec 文字與此畫面有出入，以此 HTML 為準。**
+
 **Route/view:** `view: 'circles'` (this is the default view — app opens here)
 
 ### Layout
