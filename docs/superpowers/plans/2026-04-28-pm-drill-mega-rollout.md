@@ -995,60 +995,99 @@ Resolve conflicts (most likely in `public/app.js` `render*` functions and `publi
 
 # 測試 agent 團隊（dispatched after Phase 7 integration）
 
-7 個 test agents dispatched in parallel via `superpowers:dispatching-parallel-agents`. Each agent runs against `phase-X-integration` branch in its own checkout. Use `Agent` tool with `subagent_type=general-purpose` and isolation=worktree.
+**3 層共 17 個 agents**，全部 dispatched in parallel via `superpowers:dispatching-parallel-agents`，各自獨立 worktree（`Agent` tool with `isolation=worktree`）。
 
-## Test Agent 1: Spec 1 Bullet rendering & content quality
+## 第一層 · SIT 系統整合測試（8 agents）—— 拆到每個按鈕、每個情境
 
-**Mission:** Verify all 100 questions × 27 fields render correctly as nested bullets with proper bold marking.
+每個 agent 的 task 必須**每個按鈕／每個 toggle／每個鍵盤事件／每個 viewport 都跑一次**。 失敗任一條 = agent FAIL。
+
+### SIT-1: Spec 1 Bullet rendering & content quality
+
+**Mission:** Verify all 100 questions × 27 fields render correctly + every example toggle button works.
 
 **Tasks:**
 1. Run `node scripts/audit-circles-examples.js` → expect violation rate < 1%
-2. Visually inspect 20 random questions in `/review-examples.html` desktop & mobile
+2. **Visually inspect ALL 100 questions** in `/review-examples.html` (use loop) at desktop 1280 + mobile 375 — check every step section's bullet structure
 3. Verify bullet HTML structure: `<ul class="rt-bullet-list"><li>...<ul class="rt-bullet-sub">...</ul></li></ul>`
-4. Verify bold renders as `<strong>` with primary color
-5. Check no orphan `**` markers
-6. Confirm circles_002 anchor matches 27-field spec skeleton
-7. Edge cases: empty example, single bullet, very long line
+4. Verify bold renders as `<strong>` with `color: var(--c-primary)` resolved blue
+5. Check no orphan `**` markers in any field
+6. Confirm circles_002 anchor 27 fields all match spec § 3.2 skeleton
+7. **Every「查看範例」toggle on every Phase 1 step (C1/I/R/C2/L/E/S × all fields)** — click → verify bullet renders, click again → collapses
+8. **Every「查看範例」toggle on Phase 3 教練示範答案** — same drill
+9. **Every NSM Step 2「查看範例」toggle** (3 fields)
+10. **Every NSM Step 3「查看範例」toggle** (4 dimensions)
+11. Edge cases: empty example string, single bullet, no children, deeply nested (impossible per spec but test fallback)
+12. Verify `renderBulletText` exposed on `window` for review-examples.html
+13. Verify `\n\n` collapsed to `\n`; tab characters rejected
+14. Long-line line-wrap behavior (60+ chars per line) doesn't break layout
+15. Search/filter in review-examples.html — every step filter dropdown option works
 
-**Pass criteria:** 0 audit violations of `top_level_count`, `bad_indent`, `total_too_long`, `bad_prefix`. ≤ 5 `no_bold` (acceptable).
+**Pass criteria:** 0 audit violations of structural rules; every toggle (~600 across the app) opens & collapses correctly.
 
-## Test Agent 2: Spec 2 Progress save behavior
+### SIT-1 加項: regenerate flow（CI step）
+Run `node scripts/retry-flagged-circles-examples.js` → must converge to <1% in ≤2 iterations.
 
-**Mission:** End-to-end auto-save flow.
+### SIT-2: Spec 2 Progress save behavior
 
-**Tasks:**
-1. Playwright: open Phase 1 fresh, type in textarea → wait 1.5s → verify PATCH fired
-2. Reload page → verify session in offcanvas with "進行中" badge
-3. Click session → verify text restored to textarea
-4. CIRCLES homepage banner appears with correct company name & relative time
-5. Click "繼續" → loads phase 1 with content
-6. Click X dismiss → banner hidden, `localStorage` flag set
-7. Disable network → type → verify "儲存失敗，重試" indicator
-8. Re-enable network, click retry → verify save succeeds
-9. Backend test: POST `/draft` returns valid session with empty step_drafts
-10. Backend test: PATCH `/progress` is merge-not-overwrite (other fields preserved)
-11. Cron cleanup: insert empty session > 24hr old → run cleanup → verify deleted
-
-**Pass criteria:** All 11 scenarios pass. No data loss on reload.
-
-## Test Agent 3: Spec 3 Desktop responsive layouts
-
-**Mission:** Visual regression on every page at 1280×800 and 1440×900.
+**Mission:** End-to-end auto-save flow + every textarea trigger + every UI touch point.
 
 **Tasks:**
-1. Capture full-page screenshots of every screen state at both viewports
-2. Compare to mockup files (`final-*.html`) — pixel-level alignment of headers, grids, cards
+1. **Per-textarea trigger test**: open Phase 1, for **every textarea (4 in C1, 4 in I, 4 in R, 4 in C2, 2-3 in L, 4×N in E, 4 in S-1, 4 in S-2)** — type → wait 1.5s → verify PATCH fired with correct field key
+2. Reload page → verify session in offcanvas with **"進行中" badge yellow** (not 完成 green / 60 分 purple)
+3. Click session → verify all typed text restored to all textareas
+4. CIRCLES homepage banner appears with correct company name & relative time format (`< 5min` → "剛剛", `< 60min` → "N 分鐘前", `>= 60min` → date)
+5. **「繼續」button click** → loads phase 1 at correct step with content
+6. **「X」dismiss button click** → banner hidden, `localStorage` `dismiss-resume-{id}` set
+7. Disable network → type → verify "儲存失敗，重試" indicator with red dot
+8. **Click "儲存失敗，重試" link** → triggers retry, succeeds → indicator becomes "已儲存 · 剛剛" green
+9. **Saving indicator state transitions:** verify each: idle (hidden) → saving (orange) → saved (green) → 5s later → "saved · N 分鐘前" gray-green
+10. **Multiple textareas typing rapidly**: type field A → type field B before A's debounce fires → verify both eventually saved (pending flag)
+11. Backend test: POST `/draft` returns valid session with empty step_drafts
+12. Backend test: PATCH `/progress` is merge-not-overwrite (other fields preserved)
+13. Backend test: Guest mode `X-Guest-ID` header works for both `/draft` and `/progress`
+14. Cron cleanup: insert empty session > 24hr old → run cleanup → verify deleted; insert non-empty → not deleted
+15. Edge: type → close tab before debounce fires → reopen → verify content was NOT saved (debounce not fired) BUT no orphan empty session created (lazy-create only on first PATCH after debounce)
+16. Edge: Solution name input (L step) `<input class="sol-name-input">` also triggers auto-save
+17. Edge: 4 NSM tracking dimension sub-textareas trigger auto-save with correct nested key
+
+**Pass criteria:** All 17 scenarios pass. No data loss across reload. Every textarea triggers save; every UI button (繼續, X, retry) works.
+
+### SIT-3: Spec 3 Desktop responsive layouts (every page × every state × every interactive element)
+
+**Mission:** Visual regression + interactive coverage at 1280×800 and 1440×900.
+
+**Tasks:**
+1. **Capture full-page screenshots** of every screen state at both viewports (~30 screenshots: home / phase1 7 steps / phase2 5 sub-states / phase3 3 variants / nsm step 1-4 with sub-states / review / login)
+2. **Pixel-level comparison** to mockup files (`final-*.html`) — header / grid / card / spacing within ±10px
 3. Verify per-page max-width matches spec (1180 / 920 / 720 / 420)
-4. Verify all `var(--c-primary)` resolves to `#1A56DB` (not purple leak)
-5. Cross-breakpoint: resize 1024 ↔ 1023 → verify smooth re-render
-6. Verify Instrument Serif loaded on Phase 3 score number, NSM Step 4 total, page hero
-7. Verify Phosphor icons render (no missing glyph boxes)
-8. Verify navbar 2 tabs visible desktop, hidden mobile
-9. Verify favicon shows in tab title bar (visual)
+4. **Color audit**: every `var(--c-primary)` resolves to `#1A56DB`; grep `getComputedStyle` on 30 elements
+5. Cross-breakpoint: resize 1024 ↔ 1023 → verify smooth re-render, no flash, AppState preserved
+6. **Font check**: Instrument Serif loaded on Phase 3 score-number (84px desktop), NSM Step 4 nsm-total (54px); other text DM Sans
+7. **Phosphor icon enumeration**: list all `<i class="ph ph-*">` rendered, verify none show as 「∎」 missing glyph
+8. Verify navbar 2 tabs visible at ≥1024, hidden at <1024 (display:none verified via getComputedStyle)
+9. Verify favicon shows in tab title bar (Playwright `page.locator('link[rel=icon]')` href === '/favicon.svg')
+10. **CIRCLES home interactive coverage**:
+    - 完整模擬 mode card click → active state
+    - 步驟加練 mode card click → step pills appear
+    - Each step pill click (C/I/R/C2/L/E/S) — locked pills show tooltip
+    - Type filter pills click (產品設計 / 改進 / 策略) — list filters
+    - 「隨機選題」link click → random question selected & highlighted
+    - Question row click → inline expand → 確認/取消 buttons
+    - Navbar tab click (CIRCLES / 北極星指標) → navigate
+    - Hamburger button → offcanvas opens
+    - Logout icon → logs out
+11. **Phase 1 interactive**: every field's lightbulb button (hint modal opens), 查看範例 toggle, 返回選題, 提交審核
+12. **Phase 2 interactive**: 5 sub-state transitions (chat → chat3 at turn 3, click 提交 → strip, 展開填寫 → expand, 8s wait → pass), every coach hint toggle, send button, 提前提交
+13. **Phase 3 interactive**: ◀▶ step navigation (sim mode), coach toggle expand/collapse, 重練/繼續/查看總結報告 button variants
+14. **NSM Step 1**: type tab clicks, 隨機選題, every q-card click → loading → loaded state, 開始練習
+15. **NSM Step 2**: every field's hint button, 查看範例 toggle, 提交審核
+16. **NSM Step 3**: every dimension's 3-state hint button (default → loading → revealed → 收起提示), 查看範例
+17. **NSM Step 4**: 4 tab switches (總覽 / 對比 / 亮點 / 完成), 對比 tab card click → detail panel, 再練一次, 回首頁
+18. **review-examples**: search input, step filter, 全展開 / 全收起, every q-list-item click → right detail updates
 
-**Pass criteria:** All viewports render without overflow, alignment matches mockup ±10px, no missing fonts/icons.
+**Pass criteria:** Every interactive element above produces expected state change. Visual diff < 10px from mockups. Zero console errors during enumeration.
 
-## Test Agent 4: Spec 3 Onboarding tour
+### SIT-4: Spec 3 Onboarding tour
 
 **Mission:** New-user onboarding flow including mobile parity.
 
@@ -1066,7 +1105,7 @@ Resolve conflicts (most likely in `public/app.js` `render*` functions and `publi
 
 **Pass criteria:** All 10 paths work. No spotlight misalignment > 5px. No JS errors.
 
-## Test Agent 5: Spec 4 Rich text toolbar
+### SIT-5: Spec 4 Rich text toolbar
 
 **Mission:** Toolbar actions, keyboard, mobile, IME.
 
@@ -1088,7 +1127,7 @@ Resolve conflicts (most likely in `public/app.js` `render*` functions and `publi
 
 **Pass criteria:** All 14 scenarios pass. No selection lost on toolbar action.
 
-## Test Agent 6: Cross-spec integration
+### SIT-6: Cross-spec integration
 
 **Mission:** Verify specs don't conflict; end-to-end PM session works.
 
@@ -1104,7 +1143,7 @@ Resolve conflicts (most likely in `public/app.js` `render*` functions and `publi
 
 **Pass criteria:** Full e2e session completes without errors. No spec contradicts another.
 
-## Test Agent 7: A11y, browser compat, console clean
+### SIT-7: A11y, browser compat, console clean
 
 **Mission:** Production readiness gate.
 
@@ -1123,6 +1162,273 @@ Resolve conflicts (most likely in `public/app.js` `render*` functions and `publi
 12. Progress save: handles guest mode (X-Guest-ID header)
 
 **Pass criteria:** Lighthouse a11y ≥ 90, 0 console errors, all browsers work.
+
+### SIT-8: Backend API contract（NEW）
+
+**Mission:** Every endpoint, every auth state, every error path.
+
+**Tasks:**
+1. `POST /api/circles-sessions/draft` — auth happy path, missing auth, missing fields, invalid question_id
+2. `POST /api/guest-circles-sessions/draft` — same matrix with X-Guest-ID
+3. `GET /api/circles-sessions` — auth, pagination, status filter
+4. `GET /api/circles-sessions/:id` — auth, owner check, not_found
+5. `PATCH /api/circles-sessions/:id/progress` — partial merge, wrong owner, large payload
+6. `POST /api/circles-sessions/:id/evaluate-step` — drill / sim, S step → completes
+7. `POST /api/circles-sessions/:id/final-report` — incomplete / complete / cached
+8. `DELETE /api/circles-sessions/:id` — auth, cascade
+9. NSM equivalents: `/api/nsm-sessions/*`
+10. Public: `POST /api/circles-public/hint`, `/example`, `GET /all-examples` — input validation, 404 not_curated, rate limit
+11. Schema validation: every endpoint rejects malformed JSON with 400
+12. CSRF: confirm cookie/auth header pattern (no token-based vulnerabilities)
+13. Race: 5 parallel PATCH `/progress` to same session → server merges all (last-write-wins acceptable per spec 2 § 9)
+
+**Pass criteria:** Every endpoint × every auth combo behaves per route spec. 0 unhandled exceptions in server.log.
+
+---
+
+## 第二層 · UAT 用戶驗收測試（7 personas）—— 模擬真實使用者 journey
+
+每個 persona 是一個 agent，扮演那個角色從零開始操作。**每個 persona 的 mission 必須完整跑完一個真實的 user goal**，過程中記錄任何摩擦點、不直覺處、值得加分／扣分的細節。
+
+### UAT-1: Persona「Alice」— PM 新手學員（mobile + desktop 混合）
+
+**背景：** 25 歲，準備轉職 PM，從沒聽過 CIRCLES 框架。手機上下班通勤練習，週末桌面深度練習。
+**期望：** 想被引導著走完一輪，看自己分數、知道哪裡可以改進。
+
+**Mission journey:**
+1. **(mobile)** 第一次造訪，期待 onboarding 引導
+2. 跟著 4 步 coachmark 走完，理解流程
+3. 選 Easy 難度題目（Amazon Kindle）
+4. 進 Phase 1，使用「💡 提示」與「查看範例」幫忙寫
+5. 用 toolbar 加 bullet 與 bold（手機 sticky-bottom）
+6. 提交審核
+7. 通勤結束，關 tab，回家
+8. **(desktop)** 從近期練習 banner 點繼續
+9. 確認手機填的內容正確還在
+10. 完成後續步驟，看到評分
+11. 點開「教練示範答案」對照自己寫的
+
+**Verify:**
+- onboarding 不會讓她覺得被打擾或被瞧不起
+- 提示／範例真的有幫助（內容切題）
+- 手機到桌面切換無縫
+- 評分結果讓她「知道下次怎麼進步」
+- 整個流程沒有任何「卡住」「不知道下一步」的時刻
+
+**Pass criteria:** Alice 能獨力完成首次完整練習。記錄 ≤ 3 個小摩擦點（且每個都有具體改進建議）。
+
+### UAT-2: Persona「Ben」— 資深 PM 求職者，效率派
+
+**背景：** 38 歲，10 年 PM 經驗，正在面試 Sr PM 職缺。CIRCLES 對他是基本功，他純粹要練手感、找思維盲點。
+**期望：** 最快速度進入練習，跳過所有教學，鍵盤操作優先。
+
+**Mission journey:**
+1. 進站第二次（已關過 onboarding flag），不應再看到 welcome card
+2. 直接從 navbar tab 切到 CIRCLES
+3. 用「隨機選題」快速挑題
+4. 進 Phase 1，**不點任何提示／範例**，純自己寫
+5. 全程使用 **keyboard shortcuts**（Ctrl+B 粗體、Tab 縮排、Enter 接 bullet）
+6. 故意少寫一條假設 → submit → 看 gate 卡他在哪裡
+7. 修正後通過 gate，進入 Phase 2 對話
+8. 看 AI 教練點評是否切中他的薄弱環節
+9. 收尾後對比自己的答案 vs 教練示範
+
+**Verify:**
+- 沒有「請看教學」或「歡迎」這類阻礙效率的元素
+- 每個欄位 keyboard 操作流暢無 bug
+- toolbar 不擋他，tab 縮排不會被瀏覽器搶走焦點
+- 教練評分有用，不是套話
+
+**Pass criteria:** Ben 能在 25 分鐘內走完一個完整 simulation 模式，全程 keyboard 為主。
+
+### UAT-3: Persona「Cathy」— 訪客（guest mode）試用
+
+**背景：** 30 歲，剛聽朋友推薦這 app，不想註冊先試試看。
+**期望：** 不註冊也能玩到核心體驗。
+
+**Mission journey:**
+1. 登入頁點「先試試看（不註冊）」
+2. 進 CIRCLES 首頁
+3. 跑完 onboarding（如果出現）
+4. 選一題、走 Phase 1 + Phase 2 + Phase 3
+5. 中途關 tab，重開 → 期待進度還在（guest mode 用 cookie/X-Guest-ID）
+6. 看到評分後，受到啟發決定註冊
+7. 點註冊，建立帳號
+8. 之前的 guest session 是否能轉移到新帳號？（spec 沒明確定義，標記為發現點）
+
+**Verify:**
+- guest mode 全功能可用
+- guest 不註冊也能存進度（X-Guest-ID 持久）
+- 註冊流程簡單
+- session 遷移行為符合預期（或有清楚提示）
+
+**Pass criteria:** Cathy 能完成完整一輪不註冊；註冊體驗順暢；session 遷移行為一致。
+
+### UAT-4: Persona「David」— 手機通勤族，網路不穩，斷續使用
+
+**背景：** 35 歲，每天捷運通勤練習。網路時好時壞，常常中途車站換站斷網 30 秒。
+**期望：** 斷網不掉資料、回網自動恢復。
+
+**Mission journey:**
+1. mobile, 1Mbps 網路
+2. 開始 Phase 1，打第一個欄位 → 看到「儲存中…」→ 「已儲存」
+3. 進站，網路斷 30 秒，繼續打第二欄位 → indicator 變「儲存失敗，重試」
+4. 出站網路恢復
+5. **不點重試按鈕**，繼續打字 → expect auto-save 自己會 retry 並成功
+6. 真的點重試按鈕（手指 tap）→ 不應重複多次或產生重複 session
+7. 用單手操作 toolbar（拇指夠不到？）
+8. 過長 session 中切到別的 app（背景）→ 回來時看到 sticky-bottom toolbar 是否還黏對位置（visualViewport changes）
+9. iOS Safari 上鍵盤切換中／英／emoji 模式 → toolbar 不誤觸
+
+**Verify:**
+- 無資料遺失
+- 失敗自動 retry 行為合理
+- toolbar 在所有手機 viewport 變化下都黏鍵盤上方
+- 單手大拇指可達 toolbar 全部 4 個按鈕
+
+**Pass criteria:** 全程網路斷續但無任何資料丟失。Toolbar 在 8 次 viewport 變化中位置都正確。
+
+### UAT-5: Persona「Emma」— 桌面深度工作者，多 session 並行
+
+**背景：** 42 歲，正職 PM 在做 NSM 培訓，工作中開好幾個 PM Drill tab 對比不同題目的 NSM 設計。
+**期望：** 桌面寬螢幕、多 tab 切換、能看到歷史 session 對比。
+
+**Mission journey:**
+1. desktop 1440×900
+2. 同時開 4 個 tab：CIRCLES home / NSM Step 4 報告 A / NSM Step 4 報告 B / review-examples
+3. 在 tab A 改答案 → tab B 切回去看是否需要 reload
+4. 用 review-examples 看其他公司的合格範例
+5. 對比 自己 NSM vs 教練版（在 NSM Step 4 對比 tab）
+6. 多開時 server 端有沒有 session race condition
+7. 用 navbar tab 切換 CIRCLES ↔ 北極星指標 → 確保 state 不互相干擾
+
+**Verify:**
+- 多 tab 沒有 state 串味
+- 對比 tab 設計思路很有 insight
+- review-examples 桌面版易用性
+- 桌面 1440 真的用得到那麼多空間（不是浪費）
+
+**Pass criteria:** 多 tab 操作無 race；對比 tab 至少 3 個 dim 的 rationale 給她「啊原來如此」的時刻。
+
+### UAT-6: Persona「Frank」— A11y 用戶，鍵盤 only + screen reader
+
+**背景：** 視障 PM，使用 NVDA/VoiceOver，鍵盤操作為主。
+**期望：** 所有功能都能不用滑鼠操作；按鈕都有 aria-label。
+
+**Mission journey:**
+1. 鍵盤 Tab 走過 navbar → 漢堡 / logo / 兩個 tab / 北極星指標 / 登出 → 全部可達
+2. 進 CIRCLES home → Tab 走到 mode card → Enter 啟動
+3. Tab 走到 type filter → 方向鍵切換
+4. Tab 走到 question row → Enter 展開 → Tab 到「確認」按鈕
+5. Phase 1 表單：Tab 在 textarea 之間 → 在 textarea 內 Tab 能否縮排（注意：Tab 應給 toolbar 的 indent action，不是切換 focus）
+6. Hint modal 開啟 → focus trap + Esc 關閉
+7. NSM Step 4 對比 tab → Tab 走到每個 card → Enter 開 detail
+8. screen reader：每個 icon button 有 `aria-label`
+9. Coachmark spotlight 不應 trap keyboard focus（可 Esc 跳出）
+
+**Verify:**
+- 0 鍵盤陷阱
+- 0 缺失 aria-label
+- 所有 modal 有 focus trap 但 Esc 關閉
+- Lighthouse A11y ≥ 90
+
+**Pass criteria:** Frank 能不用滑鼠完成完整 drill 流程。axe-core 0 critical violations。
+
+### UAT-7: Persona「Grace」— 中斷重來，多次中斷
+
+**背景：** 48 歲，半工半讀的轉職者，每天能練 15 分鐘但常被打斷（接孩子／開會）。
+**期望：** 隨時能停、隨時能繼續，不會丟東西。
+
+**Mission journey:**
+1. 開始 Phase 1，寫 2 個欄位 → 突然要走 → 直接關 tab
+2. 隔天回來 → 期待從上次的 step 繼續
+3. 銷續寫剩下兩個欄位 → 提交審核 → 進 Phase 2
+4. 對話到第 5 輪 → 又要走 → 關 tab
+5. 兩天後回來 → 對話歷史是否完整保留？submit row 是否還在？
+6. 累積完成 3 個不同題目（中度練習者）→ 近期練習列表合理排序（最新優先）
+7. 想刪除某個失敗的 session → 點刪除 → 確認對話 → 刪除生效
+
+**Verify:**
+- 中斷／恢復零摩擦
+- Phase 2 對話歷史完整保留
+- 多個未完成 session 並存時，「未完成練習 banner」只顯示最近一個（不是全部洗版）
+- 刪除有確認對話避免誤刪
+
+**Pass criteria:** Grace 在 5 個工作日內反覆中斷／恢復 7 次都無資料丟失。
+
+---
+
+## 第三層 · UI/UX 稽核員（2 agents）—— 手機美觀／便利／有用性吹毛求疵
+
+**這 2 個 agents 的角色是「美學潔癖」+「UX 痛點獵人」**，專盯手機版（最重要的場景）。每個 agent 走過所有 mobile screen 並輸出**主觀但有依據**的稽核報告。
+
+### UI/UX-1: Persona「美學總監（雜誌編輯背景）」
+
+**Mission:** 用「精緻消費品 app」標準看 PM Drill 手機版每個 screen，找出視覺上的不協調。
+
+**核對項目：**
+
+#### 美觀 (Aesthetics)
+1. Typography hierarchy：每個畫面的 H1/H2/body/label 大小比例是否清楚？是否有「字級平淡」的螢幕？
+2. Spacing rhythm：邊距／行距是否有節奏感（不是硬塞滿、也不是空到失去重心）？
+3. Color tension：cream + 藍 + 暖灰的搭配是否任何一處顯得「髒」「太冷」「對比不足」？
+4. Instrument Serif 使用是否克制且有效（hero 數字 + 必要 italic accent，沒過度），還是退回到 generic？
+5. Card border vs border-radius：每張卡的圓角／邊框／陰影是否一致風格？
+6. Icon weight：Phosphor regular 是否視覺一致（有沒有混用 fill 變種）？
+7. NSM 紫色 (#7C3AED) 在哪些畫面出現是必要的（NSM 模組）vs 可移除（CIRCLES 內部誤用）？
+8. Dark mode（如未實作）：當前暖系是否有「夜晚刺眼」風險？
+
+#### 視覺品味 deep-dive
+- 對比參考：Linear / Notion / Vercel / Stripe / Substack 等同級工具，PM Drill 哪幾屏可以拿出去 / 哪幾屏需要再 polish？
+- 每個 screen 給 0-10 分美學評分 + 改進建議
+
+**Output：手機版美學稽核報告（每 screen 一段：分數 + 至少 1 個具體改進）**
+
+### UI/UX-2: Persona「UX 痛點獵人（PM 用戶心理背景）」
+
+**Mission:** 用「焦慮的真實使用者」視角找便利性與有用性的死角。
+
+**核對項目：**
+
+#### 使用便利性 (Usability)
+1. **手指可達性**：每個按鈕是否在拇指自然弧度內（375 寬螢幕）？是否有按鈕太小（< 36×36）？
+2. **點擊面積**：textarea「💡 提示」按鈕點擊區是不是只在 icon 上、還是包含整個 hover 範圍？
+3. **滑動衝突**：對話頁滑動時 toolbar 會不會被誤觸？sticky-bottom toolbar 與系統手勢區是否衝突？
+4. **回退路徑**：每個畫面都有「回上一頁」嗎？硬體返回鍵（Android）行為是？
+5. **Loading 期間**：載入超過 2 秒的操作是否有 feedback？（評分審核 / NSM 情境分析）
+6. **錯誤訊息**：每個失敗情境（網路錯誤 / 表單未填 / gate fail）的錯誤文案是否「有解法」「不指責用戶」？
+7. **Modal 可關閉性**：所有 modal 都能 X / Esc / 點背景關嗎？
+8. **Form 自動填**：autocomplete 是否合理（email autocomplete=email、password autocomplete=current-password）？
+
+#### 有用性 (Usefulness)
+9. **每個按鈕／元素的價值**：有沒有 button 點下去發現「這個沒用啊」的情況？
+10. **資訊密度**：mobile 每屏資訊量太多（壓垮）vs 太少（要滑很久）平衡是否合理？
+11. **Onboarding 跟新手的真實 gap**：4 步 coachmark 真的解決了「我不知道怎麼開始」嗎？
+12. **教練示範與用戶答案對比**：對比是否「啟發性」？還是只是「貼一段標準答案」沒有 insight？
+13. **NSM 對比 tab 的設計思路 rationale**：每條 rationale 是否真的揭露 insight？還是套話？
+14. **Phase 2 對話的教練點評**：每輪點評是否真的點到使用者的薄弱環節？還是泛泛地「很好繼續」？
+15. **保存進度的價值感**：用戶能感受到「啊還好有自動存」的時刻嗎（例：意外關閉後）？
+
+#### 痛點 deep-dive
+- 列出至少 **15 個具體痛點**（每個含：哪個 screen、哪個元素、為什麼是痛點、改進方向）
+- 痛點分級：BLOCKER（必修）/ MAJOR（強烈建議）/ MINOR（nice-to-have）
+
+**Output：手機版 UX 痛點稽核報告（≥ 15 痛點 + 分級 + 改進建議）**
+
+---
+
+## 整合決策流程
+
+7 phase agents 全部 PR draft → 9 SIT agents（含新加的 SIT-8 backend）平行跑 → 7 UAT personas 平行跑 → 2 UI/UX 稽核員產出報告。
+
+**最終決策矩陣：**
+| 結果 | 決策 |
+|---|---|
+| 9 SIT 全 PASS + 7 UAT 都完成 mission + 2 UI/UX 報告無 BLOCKER | merge to main |
+| 任一 SIT FAIL | 回對應 Phase 修，再跑該 SIT |
+| UAT mission 完成但摩擦點 ≥ 4 個 | 開 follow-up issue，不阻擋 merge |
+| UI/UX 報告有 BLOCKER | 進 hotfix branch 修，再 merge |
+| MAJOR 痛點累積 ≥ 5 | issue 單列出，下 sprint 修 |
 
 ---
 
