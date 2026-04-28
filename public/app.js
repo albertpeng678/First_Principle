@@ -67,6 +67,14 @@ const AppState = {
   nsmHints: null,
   nsmHintsLoading: false,
   offcanvasCache: null,  // cached offcanvas session list for instant render
+
+  // ── Phase 2 Spec 2: CIRCLES progress auto-save ──
+  circlesSaveStatus: 'idle',         // 'idle' | 'saving' | 'saved' | 'error'
+  circlesLastSavedAt: null,          // ms timestamp
+  circlesSavingDebounce: null,       // setTimeout handle
+  circlesSavingInFlight: false,
+  circlesSavingPending: false,       // queued change while inflight
+  circlesActiveDraft: null,          // for homepage resume banner
 };
 
 // Expose for tests + debugging.
@@ -390,6 +398,107 @@ function circlesRoute(id) {
   const base = AppState.accessToken ? '/api/circles-sessions' : '/api/guest-circles-sessions';
   return id ? base + '/' + id : base;
 }
+
+function getCirclesHeaders() {
+  return AppState.accessToken
+    ? { 'Content-Type': 'application/json', 'Authorization': 'Bearer ' + AppState.accessToken }
+    : { 'Content-Type': 'application/json', 'X-Guest-ID': AppState.guestId };
+}
+
+// ── Phase 2 Spec 2: triggerCirclesAutoSave ──────────────────────────────────
+// Called from Phase 1 textarea / sol-name input listeners. Debounces 1.5s,
+// lazy-creates session on first save, then PATCH /progress with all drafts.
+// In-flight queue ensures we never lose a change between requests.
+function triggerCirclesAutoSave() {
+  if (AppState.circlesSavingInFlight) {
+    AppState.circlesSavingPending = true;
+    return;
+  }
+  clearTimeout(AppState.circlesSavingDebounce);
+  AppState.circlesSavingDebounce = setTimeout(async function () {
+    AppState.circlesSavingInFlight = true;
+    AppState.circlesSaveStatus = 'saving';
+    updateSaveIndicator();
+    try {
+      // Lazy-create on first save
+      if (!AppState.circlesSession || !AppState.circlesSession.id) {
+        const q = AppState.circlesSelectedQuestion;
+        if (!q || !q.id) throw new Error('no_selected_question');
+        const route = AppState.accessToken ? '/api/circles-sessions/draft' : '/api/guest-circles-sessions/draft';
+        const r = await fetch(route, {
+          method: 'POST',
+          headers: getCirclesHeaders(),
+          body: JSON.stringify({
+            question_id: q.id,
+            mode: AppState.circlesMode,
+            drill_step: AppState.circlesDrillStep || null,
+            sim_step_index: AppState.circlesSimStep || 0,
+          }),
+        });
+        if (!r.ok) throw new Error('draft_create_failed_' + r.status);
+        const data = await r.json();
+        AppState.circlesSession = { id: data.id, mode: data.mode, drill_step: data.drill_step };
+      }
+      // PATCH /progress merges into existing row
+      const pr = await fetch(circlesRoute(AppState.circlesSession.id) + '/progress', {
+        method: 'PATCH',
+        headers: getCirclesHeaders(),
+        body: JSON.stringify({
+          stepDrafts:     AppState.circlesStepDrafts,
+          frameworkDraft: AppState.circlesFrameworkDraft,
+        }),
+      });
+      if (!pr.ok) throw new Error('progress_patch_failed_' + pr.status);
+      AppState.circlesSaveStatus = 'saved';
+      AppState.circlesLastSavedAt = Date.now();
+    } catch (e) {
+      console.warn('[circles auto-save] failed:', e && e.message);
+      AppState.circlesSaveStatus = 'error';
+    } finally {
+      AppState.circlesSavingInFlight = false;
+      updateSaveIndicator();
+      if (AppState.circlesSavingPending) {
+        AppState.circlesSavingPending = false;
+        triggerCirclesAutoSave();
+      }
+    }
+  }, 1500);
+}
+
+// Expose for tests/manual retry button.
+window.triggerCirclesAutoSave = triggerCirclesAutoSave;
+
+function updateSaveIndicator() {
+  const el = document.querySelector('.save-indicator');
+  if (!el) return;
+  const status = AppState.circlesSaveStatus;
+  if (status === 'idle') { el.style.display = 'none'; return; }
+  el.style.display = 'inline-flex';
+  el.className = 'save-indicator save-' + status;
+  let text = '';
+  if (status === 'saving') {
+    text = '<span class="dot"></span>儲存中…';
+  } else if (status === 'saved') {
+    const ago = Date.now() - (AppState.circlesLastSavedAt || Date.now());
+    if (ago < 5000) {
+      text = '<span class="dot"></span>已儲存';
+    } else if (ago < 60000) {
+      text = '<span class="dot"></span>已儲存 · 剛剛';
+    } else {
+      text = '<span class="dot"></span>已儲存 · ' + Math.round(ago / 60000) + ' 分鐘前';
+    }
+  } else if (status === 'error') {
+    text = '<span class="dot"></span>儲存失敗，重試';
+  }
+  el.innerHTML = text;
+}
+
+window.updateSaveIndicator = updateSaveIndicator;
+
+// Periodic re-render so "已儲存 · 剛剛 / N 分鐘前" stays current.
+setInterval(function () {
+  if (AppState.circlesSaveStatus === 'saved') updateSaveIndicator();
+}, 30000);
 
 function saveCirclesProgress(patch) {
   var session = AppState.circlesSession;
@@ -1595,7 +1704,9 @@ function renderCirclesPhase1() {
       '</div>' +
       '<button class="circles-nav-home" id="circles-p1-home" type="button">回首頁</button>' +
     '</div>' +
-    '<div class="circles-progress">' + progressSegs + '<div class="circles-progress-label">' + escHtml(config.progressLabel) + '</div></div>' +
+    '<div class="circles-progress">' + progressSegs + '<div class="circles-progress-label">' + escHtml(config.progressLabel) + '</div>' +
+      '<span class="save-indicator" aria-live="polite"></span>' +
+    '</div>' +
     '<div class="circles-phase1-wrap">' +
       pillsHtml +
       '<div class="problem-card">' + escHtml(q.problem_statement || '') + '</div>' +
@@ -1631,7 +1742,8 @@ function bindCirclesPhase1() {
   document.querySelectorAll('.circles-field-input').forEach(function(el) {
     el.addEventListener('input', function() {
       AppState.circlesFrameworkDraft[el.dataset.field] = el.value;
-      saveCirclesProgress({ frameworkDraft: AppState.circlesFrameworkDraft });
+      // Phase 2 Spec 2: auto-save with lazy-create + debounce
+      triggerCirclesAutoSave();
     });
   });
 
@@ -1644,7 +1756,14 @@ function bindCirclesPhase1() {
       // Mirror in framework draft for gate evaluation
       if (!AppState.circlesFrameworkDraft.solutionNames) AppState.circlesFrameworkDraft.solutionNames = {};
       AppState.circlesFrameworkDraft.solutionNames[solKey] = el.value;
-      saveCirclesProgress({ frameworkDraft: AppState.circlesFrameworkDraft, stepDrafts: AppState.circlesStepDrafts });
+      triggerCirclesAutoSave();
+    });
+  });
+
+  // ── Save indicator: click on error → manual retry
+  document.querySelectorAll('.save-indicator').forEach(function(el) {
+    el.addEventListener('click', function() {
+      if (AppState.circlesSaveStatus === 'error') triggerCirclesAutoSave();
     });
   });
 
