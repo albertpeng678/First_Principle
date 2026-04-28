@@ -973,6 +973,294 @@ async function init() {
 
 init();
 
+// ── Rich-text toolbar (Phase 3 Spec 4) ──────────────────────────────
+// Class-based opt-in: textareas with `.rt-textarea` get bold/bullet/indent
+// keyboard shortcuts + auto-bullet on Enter + IME-safe handlers.
+// Toolbar (.rt-toolbar) is rendered inline above each textarea by buildRtField.
+// On mobile (<1024px), inline toolbar is hidden via CSS; a single shared
+// sticky-bottom toolbar (#rt-toolbar-mobile) follows focused textarea.
+(function rtInit() {
+  let _activeRt = null;
+
+  function getActive() {
+    if (_activeRt && document.contains(_activeRt)) return _activeRt;
+    if (document.activeElement && document.activeElement.classList?.contains('rt-textarea')) {
+      return document.activeElement;
+    }
+    return null;
+  }
+
+  function fire(ta) { ta.dispatchEvent(new Event('input', { bubbles: true })); }
+
+  function applyBold(ta) {
+    const s = ta.selectionStart, e = ta.selectionEnd;
+    const text = ta.value;
+    const selected = text.slice(s, e);
+    if (s === e) {
+      ta.value = text.slice(0, s) + '****' + text.slice(e);
+      ta.selectionStart = ta.selectionEnd = s + 2;
+    } else if (selected.startsWith('**') && selected.endsWith('**') && selected.length >= 4) {
+      ta.value = text.slice(0, s) + selected.slice(2, -2) + text.slice(e);
+      ta.selectionStart = s; ta.selectionEnd = e - 4;
+    } else {
+      ta.value = text.slice(0, s) + '**' + selected + '**' + text.slice(e);
+      ta.selectionStart = s + 2; ta.selectionEnd = e + 2;
+    }
+    fire(ta);
+  }
+
+  function applyBullet(ta) {
+    const s = ta.selectionStart;
+    const text = ta.value;
+    const lineStart = text.lastIndexOf('\n', s - 1) + 1;
+    let lineEnd = text.indexOf('\n', s); if (lineEnd < 0) lineEnd = text.length;
+    const line = text.slice(lineStart, lineEnd);
+    let newLine;
+    const m = line.match(/^( {0,2})- (.*)$/);
+    if (m) {
+      newLine = m[1] + m[2];
+    } else {
+      newLine = '- ' + line;
+    }
+    ta.value = text.slice(0, lineStart) + newLine + text.slice(lineEnd);
+    const diff = newLine.length - line.length;
+    ta.selectionStart = ta.selectionEnd = Math.max(lineStart, s + diff);
+    fire(ta);
+  }
+
+  function applyIndentDelta(ta, delta) {
+    const s = ta.selectionStart;
+    const text = ta.value;
+    const lineStart = text.lastIndexOf('\n', s - 1) + 1;
+    let lineEnd = text.indexOf('\n', s); if (lineEnd < 0) lineEnd = text.length;
+    const line = text.slice(lineStart, lineEnd);
+    const m = line.match(/^( *)- /);
+    if (!m) return;
+    const currentIndent = m[1].length;
+    let newIndent;
+    if (delta > 0) newIndent = Math.min(currentIndent + 2, 4);
+    else newIndent = Math.max(currentIndent - 2, 0);
+    if (newIndent === currentIndent) return;
+    const newLine = ' '.repeat(newIndent) + line.replace(/^ */, '');
+    ta.value = text.slice(0, lineStart) + newLine + text.slice(lineEnd);
+    ta.selectionStart = ta.selectionEnd = s + (newIndent - currentIndent);
+    fire(ta);
+  }
+
+  function applyIndent(ta) { applyIndentDelta(ta, +2); }
+  function applyOutdent(ta) { applyIndentDelta(ta, -2); }
+
+  // ── Active state: B button highlighted when caret inside **...** ──
+  function isPositionInsideBold(text, pos) {
+    // scan ** runs in order; toggle a flag
+    const re = /\*\*/g;
+    let m, runs = [];
+    while ((m = re.exec(text)) !== null) runs.push(m.index);
+    // pair them up
+    for (let i = 0; i + 1 < runs.length; i += 2) {
+      const open = runs[i] + 2;
+      const close = runs[i + 1];
+      if (pos >= open && pos <= close) return true;
+    }
+    return false;
+  }
+
+  function updateToolbarState() {
+    const ta = getActive();
+    document.querySelectorAll('.rt-tbtn[data-rt-action="bold"], .rt-mtbtn[data-rt-action="bold"]').forEach(btn => {
+      btn.classList.remove('active');
+    });
+    if (!ta) return;
+    const inBold = isPositionInsideBold(ta.value, ta.selectionStart);
+    if (!inBold) return;
+    // Activate the toolbar button(s) corresponding to active textarea's container
+    const field = ta.closest('.rt-field');
+    if (field) {
+      const b = field.querySelector('.rt-tbtn[data-rt-action="bold"]');
+      if (b) b.classList.add('active');
+    }
+    if (window.innerWidth < 1024) {
+      const mb = document.querySelector('#rt-toolbar-mobile .rt-mtbtn[data-rt-action="bold"]');
+      if (mb) mb.classList.add('active');
+    }
+  }
+
+  // ── keydown: shortcuts + IME guard + auto-bullet on Enter ──
+  function handleKeydown(e) {
+    const ta = e.currentTarget;
+    if (ta._rtComposing) return;  // IME suppression
+    // Browsers usually set isComposing on the event during composition
+    if (e.isComposing) return;
+
+    // Ctrl/Cmd+B
+    if ((e.ctrlKey || e.metaKey) && (e.key === 'b' || e.key === 'B')) {
+      e.preventDefault();
+      applyBold(ta);
+      return;
+    }
+    // Ctrl/Cmd+L
+    if ((e.ctrlKey || e.metaKey) && (e.key === 'l' || e.key === 'L')) {
+      e.preventDefault();
+      applyBullet(ta);
+      return;
+    }
+    // Tab / Shift+Tab on bullet lines
+    if (e.key === 'Tab') {
+      const s = ta.selectionStart;
+      const text = ta.value;
+      const lineStart = text.lastIndexOf('\n', s - 1) + 1;
+      let lineEnd = text.indexOf('\n', s); if (lineEnd < 0) lineEnd = text.length;
+      const line = text.slice(lineStart, lineEnd);
+      if (!/^ *- /.test(line)) return;
+      e.preventDefault();
+      applyIndentDelta(ta, e.shiftKey ? -2 : +2);
+      return;
+    }
+    // Enter — auto-bullet continuation / empty exit
+    if (e.key === 'Enter' && !e.shiftKey) {
+      const s = ta.selectionStart;
+      const text = ta.value;
+      const lineStart = text.lastIndexOf('\n', s - 1) + 1;
+      const linePrefix = text.slice(lineStart, s);
+      const m = linePrefix.match(/^( *)- /);
+      if (!m) return;
+      // empty bullet ("- " or "  - ")
+      if (linePrefix.replace(/ /g, '') === '-') {
+        e.preventDefault();
+        ta.value = text.slice(0, lineStart) + '\n' + text.slice(s);
+        ta.selectionStart = ta.selectionEnd = lineStart + 1;
+        fire(ta);
+        return;
+      }
+      e.preventDefault();
+      const insert = '\n' + m[1] + '- ';
+      ta.value = text.slice(0, s) + insert + text.slice(s);
+      ta.selectionStart = ta.selectionEnd = s + insert.length;
+      fire(ta);
+    }
+  }
+
+  function initRichTextarea(ta) {
+    if (ta._rtInited) return;
+    ta._rtInited = true;
+    ta.addEventListener('compositionstart', () => { ta._rtComposing = true; });
+    ta.addEventListener('compositionend', () => { ta._rtComposing = false; });
+    ta.addEventListener('keydown', handleKeydown);
+    ta.addEventListener('input', updateToolbarState);
+    ta.addEventListener('keyup', updateToolbarState);
+    ta.addEventListener('click', updateToolbarState);
+    ta.addEventListener('focus', () => { _activeRt = ta; updateToolbarState(); });
+  }
+
+  // Toolbar click delegation (covers both inline desktop + mobile sticky)
+  document.addEventListener('click', (e) => {
+    const btn = e.target.closest('[data-rt-action]');
+    if (!btn) return;
+    const action = btn.dataset.rtAction;
+    let ta = null;
+    if (btn.classList.contains('rt-tbtn')) {
+      const field = btn.closest('.rt-field');
+      if (field) ta = field.querySelector('textarea.rt-textarea');
+    } else if (btn.classList.contains('rt-mtbtn')) {
+      ta = getActive();
+    }
+    if (!ta) return;
+    e.preventDefault();
+    // Prevent blur stealing focus from textarea on mobile button mousedown
+    ta.focus();
+    if (action === 'bold') applyBold(ta);
+    else if (action === 'bullet') applyBullet(ta);
+    else if (action === 'indent') applyIndent(ta);
+    else if (action === 'outdent') applyOutdent(ta);
+    updateToolbarState();
+  });
+
+  // Prevent mobile toolbar mousedown from stealing focus
+  document.addEventListener('mousedown', (e) => {
+    if (e.target.closest('#rt-toolbar-mobile')) {
+      e.preventDefault();
+    }
+  });
+
+  // ── Mobile sticky toolbar focus/blur + visualViewport ──
+  function attachMobile() {
+    const mobileToolbar = document.getElementById('rt-toolbar-mobile');
+    if (!mobileToolbar) return;
+    document.addEventListener('focusin', (e) => {
+      if (!e.target?.classList?.contains?.('rt-textarea')) return;
+      _activeRt = e.target;
+      initRichTextarea(e.target);
+      if (window.innerWidth >= 1024) return;
+      mobileToolbar.style.display = 'flex';
+    });
+    document.addEventListener('focusout', (e) => {
+      if (!e.target?.classList?.contains?.('rt-textarea')) return;
+      setTimeout(() => {
+        if (document.activeElement === e.target) return;
+        if (mobileToolbar.contains(document.activeElement)) return;
+        mobileToolbar.style.display = 'none';
+        _activeRt = null;
+      }, 200);
+    });
+    if (window.visualViewport) {
+      window.visualViewport.addEventListener('resize', () => {
+        if (mobileToolbar.style.display === 'flex') {
+          const offset = Math.max(0, window.innerHeight - window.visualViewport.height);
+          mobileToolbar.style.bottom = offset + 'px';
+        }
+      });
+    }
+    window.__rtMobileBound = true;
+  }
+
+  function bindAllRichTextareas() {
+    document.querySelectorAll('textarea.rt-textarea').forEach(initRichTextarea);
+  }
+
+  if (document.readyState === 'loading') {
+    document.addEventListener('DOMContentLoaded', () => { attachMobile(); bindAllRichTextareas(); });
+  } else {
+    attachMobile();
+    bindAllRichTextareas();
+  }
+
+  // Re-bind after every render() call (handles dynamic CIRCLES/NSM rerenders)
+  const origRender = window.render;
+  // render is reassigned later via `window.render = render` — use MutationObserver
+  // on #main as a robust hook so newly-rendered textareas are bound.
+  const main = document.getElementById('main');
+  if (main) {
+    const mo = new MutationObserver(() => bindAllRichTextareas());
+    mo.observe(main, { childList: true, subtree: true });
+  }
+
+  // Expose for buildRtField / external callers
+  window.buildRtField = function buildRtField(opts) {
+    opts = opts || {};
+    const key = opts.key != null ? opts.key : '';
+    const rows = opts.rows || 2;
+    const placeholder = opts.placeholder || '';
+    const value = opts.value || '';
+    const extraClass = opts.extraClass || '';
+    const dataAttrs = opts.dataAttrs || '';
+    const esc = (s) => String(s).replace(/[&<>"']/g, c => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
+    return (
+      '<div class="rt-field">' +
+        '<div class="rt-toolbar">' +
+          '<button type="button" class="rt-tbtn" data-rt-action="bold" title="粗體 (Ctrl+B)"><strong>B</strong></button>' +
+          '<button type="button" class="rt-tbtn" data-rt-action="bullet" title="列點 (Ctrl+L)"><i class="ph ph-list-bullets"></i></button>' +
+          '<button type="button" class="rt-tbtn" data-rt-action="indent" title="縮排 (Tab)"><i class="ph ph-text-indent"></i></button>' +
+          '<button type="button" class="rt-tbtn" data-rt-action="outdent" title="退縮 (Shift+Tab)"><i class="ph ph-text-outdent"></i></button>' +
+        '</div>' +
+        '<textarea class="rt-textarea ' + extraClass + '" data-field="' + esc(key) + '" rows="' + rows + '" placeholder="' + esc(placeholder) + '" ' + dataAttrs + '>' + esc(value) + '</textarea>' +
+      '</div>'
+    );
+  };
+
+  // Expose helpers for tests
+  window.__rtActions = { applyBold, applyBullet, applyIndent, applyOutdent, isPositionInsideBold };
+})();
+
 // 暴露至全域，讓 HTML inline onclick 可使用
 window.navigate = navigate;
 window.render = render;
@@ -1406,7 +1694,15 @@ function buildFieldGroupHtml(stepKey, field, draft, isSimulation, fieldIdx) {
       '</button>' +
     '</div>' +
     buildFieldExampleHtml(stepKey, key, '') +
-    '<textarea class="circles-field-input" data-field="' + escHtml(key) + '" rows="' + rows + '" placeholder="' + escHtml(field.placeholder || '填寫你的分析…') + '">' + escHtml(val) + '</textarea>' +
+    '<div class="rt-field">' +
+      '<div class="rt-toolbar">' +
+        '<button type="button" class="rt-tbtn" data-rt-action="bold" title="粗體 (Ctrl+B)"><strong>B</strong></button>' +
+        '<button type="button" class="rt-tbtn" data-rt-action="bullet" title="列點 (Ctrl+L)"><i class="ph ph-list-bullets"></i></button>' +
+        '<button type="button" class="rt-tbtn" data-rt-action="indent" title="縮排 (Tab)"><i class="ph ph-text-indent"></i></button>' +
+        '<button type="button" class="rt-tbtn" data-rt-action="outdent" title="退縮 (Shift+Tab)"><i class="ph ph-text-outdent"></i></button>' +
+      '</div>' +
+      '<textarea class="circles-field-input rt-textarea" data-field="' + escHtml(key) + '" rows="' + rows + '" placeholder="' + escHtml(field.placeholder || '填寫你的分析…') + '">' + escHtml(val) + '</textarea>' +
+    '</div>' +
   '</div>';
 }
 
@@ -1432,7 +1728,15 @@ function buildSolutionFieldHtml(stepKey, field, draft, lDraft, isSimulation, fie
       '<input class="sol-name-input" type="text" maxlength="10" data-sol-name="' + solKey + '" placeholder="' + escHtml(field.namePlaceholder || '方案名稱（10 字內）') + '" value="' + escHtml(nameVal) + '">' +
     '</div>' +
     buildFieldExampleHtml(stepKey, key, '') +
-    '<textarea class="circles-field-input" data-field="' + escHtml(key) + '" rows="' + (field.rows || 2) + '" placeholder="' + escHtml(field.placeholder || '') + '">' + escHtml(bodyVal) + '</textarea>' +
+    '<div class="rt-field">' +
+      '<div class="rt-toolbar">' +
+        '<button type="button" class="rt-tbtn" data-rt-action="bold" title="粗體 (Ctrl+B)"><strong>B</strong></button>' +
+        '<button type="button" class="rt-tbtn" data-rt-action="bullet" title="列點 (Ctrl+L)"><i class="ph ph-list-bullets"></i></button>' +
+        '<button type="button" class="rt-tbtn" data-rt-action="indent" title="縮排 (Tab)"><i class="ph ph-text-indent"></i></button>' +
+        '<button type="button" class="rt-tbtn" data-rt-action="outdent" title="退縮 (Shift+Tab)"><i class="ph ph-text-outdent"></i></button>' +
+      '</div>' +
+      '<textarea class="circles-field-input rt-textarea" data-field="' + escHtml(key) + '" rows="' + (field.rows || 2) + '" placeholder="' + escHtml(field.placeholder || '') + '">' + escHtml(bodyVal) + '</textarea>' +
+    '</div>' +
   '</div>';
 }
 
@@ -1449,7 +1753,15 @@ function buildTrackingBlockHtml(tracking) {
         '<span style="color:' + dim.textColor + '">' + escHtml(dim.label) + '</span>' +
       '</div>' +
       '<div class="tracking-dim-desc">' + escHtml(dim.desc) + '</div>' +
-      '<textarea class="tracking-dim-input' + (v ? ' filled' : '') + '" data-tracking-dim="' + dim.key + '" rows="1" placeholder="' + escHtml(dim.placeholder) + '">' + escHtml(v) + '</textarea>' +
+      '<div class="rt-field">' +
+        '<div class="rt-toolbar">' +
+          '<button type="button" class="rt-tbtn" data-rt-action="bold" title="粗體 (Ctrl+B)"><strong>B</strong></button>' +
+          '<button type="button" class="rt-tbtn" data-rt-action="bullet" title="列點 (Ctrl+L)"><i class="ph ph-list-bullets"></i></button>' +
+          '<button type="button" class="rt-tbtn" data-rt-action="indent" title="縮排 (Tab)"><i class="ph ph-text-indent"></i></button>' +
+          '<button type="button" class="rt-tbtn" data-rt-action="outdent" title="退縮 (Shift+Tab)"><i class="ph ph-text-outdent"></i></button>' +
+        '</div>' +
+        '<textarea class="tracking-dim-input rt-textarea' + (v ? ' filled' : '') + '" data-tracking-dim="' + dim.key + '" rows="1" placeholder="' + escHtml(dim.placeholder) + '">' + escHtml(v) + '</textarea>' +
+      '</div>' +
     '</div>';
   }).join('');
   return '<div class="tracking-block">' +
@@ -1485,7 +1797,15 @@ function buildESolutionBlockHtml(solKey, solIdx, solName, perSolDraft, eFieldsCo
         '</button>' +
       '</div>' +
       (solIdx === 0 ? buildFieldExampleHtml('E', f.key, hint) : '') +
-      '<textarea class="e-sol-input" data-sol="' + solKey + '" data-field="' + escHtml(f.key) + '" rows="2" placeholder="' + escHtml(f.placeholder) + '">' + escHtml(v) + '</textarea>' +
+      '<div class="rt-field">' +
+        '<div class="rt-toolbar">' +
+          '<button type="button" class="rt-tbtn" data-rt-action="bold" title="粗體 (Ctrl+B)"><strong>B</strong></button>' +
+          '<button type="button" class="rt-tbtn" data-rt-action="bullet" title="列點 (Ctrl+L)"><i class="ph ph-list-bullets"></i></button>' +
+          '<button type="button" class="rt-tbtn" data-rt-action="indent" title="縮排 (Tab)"><i class="ph ph-text-indent"></i></button>' +
+          '<button type="button" class="rt-tbtn" data-rt-action="outdent" title="退縮 (Shift+Tab)"><i class="ph ph-text-outdent"></i></button>' +
+        '</div>' +
+        '<textarea class="e-sol-input rt-textarea" data-sol="' + solKey + '" data-field="' + escHtml(f.key) + '" rows="2" placeholder="' + escHtml(f.placeholder) + '">' + escHtml(v) + '</textarea>' +
+      '</div>' +
     '</div>';
   }).join('');
   var blockId = solKey === 'sol3' ? ' id="e-sol3-block"' : '';
@@ -2141,7 +2461,15 @@ function renderCirclesPhase2() {
         '</div>' +
         '<div class="conclusion-example-content" id="circles-example-content" style="display:none">' + escHtml(exampleText) + '</div>' +
       '</div>' +
-      '<textarea id="circles-conclusion-input" class="conclusion-textarea" rows="5" placeholder="' + escHtml(placeholder) + '">' + escHtml(conclusionText) + '</textarea>' +
+      '<div class="rt-field">' +
+        '<div class="rt-toolbar">' +
+          '<button type="button" class="rt-tbtn" data-rt-action="bold" title="粗體 (Ctrl+B)"><strong>B</strong></button>' +
+          '<button type="button" class="rt-tbtn" data-rt-action="bullet" title="列點 (Ctrl+L)"><i class="ph ph-list-bullets"></i></button>' +
+          '<button type="button" class="rt-tbtn" data-rt-action="indent" title="縮排 (Tab)"><i class="ph ph-text-indent"></i></button>' +
+          '<button type="button" class="rt-tbtn" data-rt-action="outdent" title="退縮 (Shift+Tab)"><i class="ph ph-text-outdent"></i></button>' +
+        '</div>' +
+        '<textarea id="circles-conclusion-input" class="conclusion-textarea rt-textarea" rows="5" placeholder="' + escHtml(placeholder) + '">' + escHtml(conclusionText) + '</textarea>' +
+      '</div>' +
       detectionHtml +
       '<div class="conclusion-actions">' +
         '<button id="circles-conclusion-back" class="conclusion-back-btn">← 繼續對話</button>' +
@@ -4142,7 +4470,15 @@ function renderNSMStep2() {
           <div class="nsm-example-body" style="display:none">
             <div class="nsm-example-text">例 (Spotify)：區分「被動背景播放」與「主動完整聆聽」，後者才代表用戶真正得到價值，避免被播放次數虛高誤導</div>
           </div>
-          <textarea id="nsm-definition-input" class="nsm-textarea-sm" placeholder="解釋為什麼要這樣定義，避免哪些虛榮陷阱..." rows="3">${escHtml(definitionDraft)}</textarea>
+          <div class="rt-field">
+            <div class="rt-toolbar">
+              <button type="button" class="rt-tbtn" data-rt-action="bold" title="粗體 (Ctrl+B)"><strong>B</strong></button>
+              <button type="button" class="rt-tbtn" data-rt-action="bullet" title="列點 (Ctrl+L)"><i class="ph ph-list-bullets"></i></button>
+              <button type="button" class="rt-tbtn" data-rt-action="indent" title="縮排 (Tab)"><i class="ph ph-text-indent"></i></button>
+              <button type="button" class="rt-tbtn" data-rt-action="outdent" title="退縮 (Shift+Tab)"><i class="ph ph-text-outdent"></i></button>
+            </div>
+            <textarea id="nsm-definition-input" class="nsm-textarea-sm rt-textarea" placeholder="解釋為什麼要這樣定義，避免哪些虛榮陷阱..." rows="3">${escHtml(definitionDraft)}</textarea>
+          </div>
         </div>
 
         <div class="nsm-field-group">
@@ -4151,7 +4487,15 @@ function renderNSMStep2() {
           <div class="nsm-example-body" style="display:none">
             <div class="nsm-example-text">例 (Spotify)：Spotify 的收入來自 Premium 訂閱與廣告，深度聆聽的用戶更容易感受到廣告干擾進而付費升級，且留存率較高代表獲客成本（CAC）被更多用戶週期攤薄。NSM 若能捕捉「真正在聽音樂」的行為，就能同時作為訂閱轉化與廣告效益的領先指標</div>
           </div>
-          <textarea id="nsm-business-link-input" class="nsm-textarea-sm" placeholder="這個 NSM 如何驅動營收/留存/獲利..." rows="3">${escHtml(businessLinkDraft)}</textarea>
+          <div class="rt-field">
+            <div class="rt-toolbar">
+              <button type="button" class="rt-tbtn" data-rt-action="bold" title="粗體 (Ctrl+B)"><strong>B</strong></button>
+              <button type="button" class="rt-tbtn" data-rt-action="bullet" title="列點 (Ctrl+L)"><i class="ph ph-list-bullets"></i></button>
+              <button type="button" class="rt-tbtn" data-rt-action="indent" title="縮排 (Tab)"><i class="ph ph-text-indent"></i></button>
+              <button type="button" class="rt-tbtn" data-rt-action="outdent" title="退縮 (Shift+Tab)"><i class="ph ph-text-outdent"></i></button>
+            </div>
+            <textarea id="nsm-business-link-input" class="nsm-textarea-sm rt-textarea" placeholder="這個 NSM 如何驅動營收/留存/獲利..." rows="3">${escHtml(businessLinkDraft)}</textarea>
+          </div>
         </div>
 
         ${warningHtml}
@@ -4280,7 +4624,15 @@ function renderNSMStep3() {
       <div class="nsm-hint-content" id="nsm-hint-${d.key}" style="display:none">
         ${hint ? `<div class="nsm-hint-revealed">${escHtml(hint)}</div>` : ''}
       </div>
-      <textarea class="nsm-textarea nsm-dim-input" id="nsm-dim-${d.key}" placeholder="${escHtml(d.placeholder)}" rows="2">${escHtml(breakdown[d.key] || '')}</textarea>
+      <div class="rt-field">
+        <div class="rt-toolbar">
+          <button type="button" class="rt-tbtn" data-rt-action="bold" title="粗體 (Ctrl+B)"><strong>B</strong></button>
+          <button type="button" class="rt-tbtn" data-rt-action="bullet" title="列點 (Ctrl+L)"><i class="ph ph-list-bullets"></i></button>
+          <button type="button" class="rt-tbtn" data-rt-action="indent" title="縮排 (Tab)"><i class="ph ph-text-indent"></i></button>
+          <button type="button" class="rt-tbtn" data-rt-action="outdent" title="退縮 (Shift+Tab)"><i class="ph ph-text-outdent"></i></button>
+        </div>
+        <textarea class="nsm-textarea nsm-dim-input rt-textarea" id="nsm-dim-${d.key}" placeholder="${escHtml(d.placeholder)}" rows="2">${escHtml(breakdown[d.key] || '')}</textarea>
+      </div>
     </div>`;
   }).join('');
 
