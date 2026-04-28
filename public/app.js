@@ -2288,10 +2288,10 @@ function bindCirclesPhase2() {
         var hintEl2 = document.getElementById('circles-conclusion-hint');
         var submitBtn2 = document.getElementById('circles-conclusion-submit');
         if (data.ok) {
-          if (hintEl2) { hintEl2.textContent = '✓ ' + (data.message || '結論完整，可以提交'); hintEl2.className = 'conclusion-hint pass'; }
+          if (hintEl2) { hintEl2.innerHTML = '<i class="ph ph-check-circle"></i> ' + (data.message || '結論完整，可以提交'); hintEl2.className = 'conclusion-hint pass'; }
           if (submitBtn2) { submitBtn2.disabled = false; submitBtn2.classList.remove('disabled'); }
         } else {
-          if (hintEl2) { hintEl2.textContent = '⚠ ' + (data.message || '結論尚未涵蓋關鍵維度'); hintEl2.className = 'conclusion-hint warn'; }
+          if (hintEl2) { hintEl2.innerHTML = '<i class="ph ph-warning"></i> ' + (data.message || '結論尚未涵蓋關鍵維度'); hintEl2.className = 'conclusion-hint warn'; }
         }
       } catch (_) {
         var hintEl3 = document.getElementById('circles-conclusion-hint');
@@ -2671,7 +2671,7 @@ function renderCirclesFinalReport() {
   if (report._error) {
     return '<div data-view="circles">' + navBar +
       '<div style="text-align:center;padding:48px 16px;font-family:DM Sans,sans-serif">' +
-        '<div style="font-size:32px;margin-bottom:12px">⚠️</div>' +
+        '<i class="ph ph-warning-circle" style="font-size:32px;color:#D97706;display:block;margin-bottom:12px"></i>' +
         '<div style="color:#D92020;font-size:14px;margin-bottom:16px">報告生成失敗，請稍後重試</div>' +
         '<button class="circles-btn-ghost" id="circles-final-retry">重試</button>' +
       '</div></div>';
@@ -2711,7 +2711,7 @@ function renderCirclesFinalReport() {
         stepRows +
       '</div>' +
       '<div style="background:#F0FFF4;border-radius:16px;padding:16px;margin-bottom:12px;border:1px solid #BBF7D0">' +
-        '<div style="font-size:12px;font-weight:600;color:#137A3D;margin-bottom:8px;font-family:DM Sans,sans-serif">✓ 表現優秀</div>' +
+        '<div style="font-size:12px;font-weight:600;color:#137A3D;margin-bottom:8px;font-family:DM Sans,sans-serif"><i class="ph ph-check-circle"></i> 表現優秀</div>' +
         '<ul style="padding-left:18px;margin:0">' + strengths + '</ul>' +
       '</div>' +
       '<div style="background:#FFF7ED;border-radius:16px;padding:16px;margin-bottom:12px;border:1px solid #FED7AA">' +
@@ -4171,7 +4171,7 @@ function renderNSMGate() {
       </div>`;
   }
 
-  const STATUS_LABEL = { error: '× 需修正', warn: '△ 建議補充', ok: '✓ 通過' };
+  const STATUS_LABEL = { error: '<i class="ph ph-x-circle"></i> 需修正', warn: '<i class="ph ph-warning-circle"></i> 建議補充', ok: '<i class="ph ph-check-circle"></i> 通過' };
   const items = (result.items || []).map(function(item) {
     const safeStatus = (item.status || '').replace(/[^a-z]/g, '');
     const criterion = item.criterion || item.field || '';

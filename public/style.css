@@ -1164,7 +1164,7 @@ label[for] {
 body { -webkit-font-smoothing: antialiased; }
 
 /* ══════════════════════════════════════════════════
-   PERF — Task 2: Fix transition:all → scoped transitions
+   PERF -- Task 2: Fix transition:all to scoped transitions
    ══════════════════════════════════════════════════ */
 
 .home-tab-btn {

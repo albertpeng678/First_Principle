@@ -101,7 +101,7 @@
 </head>
 <body>
   <div class="topbar">
-    <h1>📝 CIRCLES 範例 Review</h1>
+    <h1><i class="ph ph-pencil-line"></i> CIRCLES 範例 Review</h1>
     <input id="search" placeholder="搜尋公司／產品／題目（例：Marketplace、Spotify、安全）...">
     <select id="filter-step">
       <option value="">所有步驟</option>
@@ -191,7 +191,7 @@ function render() {
         <span class="card-toggle"></span>
       </div>
       <div class="card-body">
-        <div class="problem-full">📋 ${escHtml(q.problem_statement || '')}</div>
+        <div class="problem-full"><i class="ph ph-clipboard-text"></i> ${escHtml(q.problem_statement || '')}</div>
         ${stepBlocks}
       </div>
     </div>`;
