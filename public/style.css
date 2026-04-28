@@ -3153,3 +3153,79 @@ body { -webkit-font-smoothing: antialiased; }
 .navbar-tab { padding:6px 12px; border-radius:7px; cursor:pointer; font-size:12.5px; color:var(--c-text-2); }
 .navbar-tab.active { background:#fff; color:var(--c-text); font-weight:500; border:1px solid var(--c-border); }
 @media (max-width: 1023px) { .hide-mobile { display:none !important; } }
+
+/* ── Rich-text toolbar (Phase 3 Spec 4) ────────────────────────────── */
+.rt-field { display:block; }
+.rt-toolbar {
+  display:flex;
+  gap:5px;
+  padding:5px 6px;
+  background:var(--c-surface, #fff);
+  border:1px solid var(--c-border-mid, #e2e2e2);
+  border-bottom:none;
+  border-radius:6px 6px 0 0;
+}
+.rt-tbtn {
+  padding:3px 8px;
+  font-size:10.5px;
+  border:1px solid var(--c-border-mid, #e2e2e2);
+  background:#fff;
+  border-radius:4px;
+  cursor:pointer;
+  color:var(--c-text-2, #4a4a4a);
+  min-width:24px;
+  display:inline-flex;
+  align-items:center;
+  justify-content:center;
+}
+.rt-tbtn:hover { background:var(--c-bg-alt, #f3f3f0); }
+.rt-tbtn.active {
+  background:var(--c-primary);
+  color:#fff;
+  border-color:var(--c-primary);
+}
+.rt-tbtn i { font-size:13px; }
+textarea.rt-textarea {
+  border-radius:0 0 6px 6px;
+  border-top:none;
+}
+
+/* Mobile sticky-bottom toolbar */
+.rt-toolbar-mobile {
+  position:fixed;
+  left:0; right:0;
+  bottom:0;
+  background:rgba(255,255,255,0.95);
+  -webkit-backdrop-filter:blur(8px);
+  backdrop-filter:blur(8px);
+  border-top:1px solid var(--c-border, #e2e2e2);
+  padding:8px 12px;
+  padding-bottom:max(8px, env(safe-area-inset-bottom));
+  gap:6px;
+  z-index:200;
+}
+.rt-mtbtn {
+  flex:1;
+  padding:8px 0;
+  background:#fff;
+  border:1px solid var(--c-border-mid, #e2e2e2);
+  border-radius:6px;
+  font-size:11px;
+  min-height:36px;
+  cursor:pointer;
+  color:var(--c-text, #1f1d1b);
+}
+.rt-mtbtn i { font-size:13px; }
+.rt-mtbtn:active { background:var(--c-bg-alt, #f3f3f0); }
+.rt-mtbtn.active {
+  background:var(--c-primary);
+  color:#fff;
+  border-color:var(--c-primary);
+}
+@media (min-width: 1024px) {
+  .rt-toolbar-mobile { display:none !important; }
+}
+@media (max-width: 1023px) {
+  .rt-toolbar { display:none; }
+}
+
