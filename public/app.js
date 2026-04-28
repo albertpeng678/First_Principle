@@ -69,6 +69,27 @@ const AppState = {
   offcanvasCache: null,  // cached offcanvas session list for instant render
 };
 
+// Expose for tests + debugging.
+window.AppState = AppState;
+
+// ── isDesktop helper + cross-breakpoint re-render (Phase 0 Task 0.7) ──
+function isDesktop() { return window.innerWidth >= 1024; }
+AppState._lastIsDesktop = isDesktop();
+function debounce(fn, ms) {
+  let t;
+  return function(...args) { clearTimeout(t); t = setTimeout(() => fn.apply(this, args), ms); };
+}
+window.addEventListener('resize', debounce(() => {
+  const now = isDesktop();
+  if (now !== AppState._lastIsDesktop) {
+    AppState._lastIsDesktop = now;
+    if (typeof render === 'function') render();
+  }
+  if (AppState.onboardingActive && typeof showCoachmark === 'function') {
+    showCoachmark(AppState.onboardingStep);
+  }
+}, 100));
+
 // ── NSM 題庫（100 題 database + 3 計畫獨有）────────
 const NSM_QUESTIONS = [
   { id:'q1',  company:'Netflix',   industry:'內容訂閱制',   scenario:'影音串流平台競爭激烈，必須確保用戶持續感受到內容價值以維持自動扣款。',  coach_nsm:'訂閱用戶每月活躍觀看時長', anti_patterns:['App下載數','註冊數'] },
