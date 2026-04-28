@@ -36,6 +36,11 @@
   --c-danger-lt: #FEE2E2;
   --c-danger-fg: #991B1B;
 
+  /* Spec-3 bold report palette (used by NSM report and CIRCLES gate bars) */
+  --c-error: #D92020;
+  --c-warn-bold: #B85C00;
+  --c-ok-bold: #137A3D;
+
   /* Score dim colors (固定，不改) */
   --c-dim-reach: #3b82f6;
   --c-dim-depth: #8b5cf6;
@@ -57,7 +62,7 @@ body {
      and breaks mouse-wheel scroll on the document. */
   overscroll-behavior-y: none;
   font-family: 'DM Sans', -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
-  background: #F2F0EB;
+  background: var(--c-bg);
   color: #1a1a1a;
   min-height: 100dvh;
 }
@@ -1211,7 +1216,7 @@ body { -webkit-font-smoothing: antialiased; }
 /* ═══════════════════════════════════════════════
    CIRCLES Training — Light Theme
    All styles scoped under [data-view="circles"]
-   Primary: var(--c-primary)  Surface: #F2F0EB  Card: #fff
+   Primary: var(--c-primary)  Surface: var(--c-bg)  Card: #fff
    ═══════════════════════════════════════════════ */
 
 [data-view="circles"] {
@@ -1664,7 +1669,7 @@ body { -webkit-font-smoothing: antialiased; }
   align-items: center;
 }
 [data-view="circles"] .gate-transition-bar.gate-pass .gate-transition-icon { color: #137A3D; }
-[data-view="circles"] .gate-transition-bar.gate-fail .gate-transition-icon { color: #D92020; }
+[data-view="circles"] .gate-transition-bar.gate-fail .gate-transition-icon { color: var(--c-error); }
 [data-view="circles"] .gate-transition-text {
   flex: 1;
   font-size: 12px;
@@ -1672,7 +1677,7 @@ body { -webkit-font-smoothing: antialiased; }
   font-family: 'DM Sans', sans-serif;
 }
 [data-view="circles"] .gate-transition-bar.gate-pass .gate-transition-text { color: #137A3D; }
-[data-view="circles"] .gate-transition-bar.gate-fail .gate-transition-text { color: #D92020; }
+[data-view="circles"] .gate-transition-bar.gate-fail .gate-transition-text { color: var(--c-error); }
 [data-view="circles"] .gate-continue-btn {
   background: var(--c-primary);
   color: #fff;
@@ -1734,7 +1739,7 @@ body { -webkit-font-smoothing: antialiased; }
 }
 [data-view="circles"] .gate-item-suggestion {
   font-size: 11px;
-  color: #B85C00;
+  color: var(--c-warn);
   margin-top: 4px;
   font-family: 'DM Sans', sans-serif;
   line-height: 1.5;
