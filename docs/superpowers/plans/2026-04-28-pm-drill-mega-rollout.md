@@ -1417,18 +1417,69 @@ Run `node scripts/retry-flagged-circles-examples.js` → must converge to <1% in
 
 ---
 
-## 整合決策流程
+## 整合決策流程（零延後 — 一次修完）
 
-7 phase agents 全部 PR draft → 9 SIT agents（含新加的 SIT-8 backend）平行跑 → 7 UAT personas 平行跑 → 2 UI/UX 稽核員產出報告。
+7 phase agents → 8 SIT agents → 7 UAT personas → 2 UI/UX 稽核員 串接執行。**所有回饋必須在 merge to main 之前全部修完。** 沒有「下個 sprint」。
 
-**最終決策矩陣：**
-| 結果 | 決策 |
-|---|---|
-| 9 SIT 全 PASS + 7 UAT 都完成 mission + 2 UI/UX 報告無 BLOCKER | merge to main |
-| 任一 SIT FAIL | 回對應 Phase 修，再跑該 SIT |
-| UAT mission 完成但摩擦點 ≥ 4 個 | 開 follow-up issue，不阻擋 merge |
-| UI/UX 報告有 BLOCKER | 進 hotfix branch 修，再 merge |
-| MAJOR 痛點累積 ≥ 5 | issue 單列出，下 sprint 修 |
+**標準作業流程（SOP）：**
+
+```
+Phase 7 integration branch ready
+        │
+        ▼
+┌─────────────────────────────────────────────┐
+│ Round 1: 8 SIT agents 平行跑                │
+│ 任何 FAIL → 修 → 重跑該 SIT → 直到全 PASS   │
+└─────────────────────────────────────────────┘
+        │ (8/8 SIT green)
+        ▼
+┌─────────────────────────────────────────────┐
+│ Round 2: 7 UAT personas 平行跑              │
+│ 收集所有摩擦點（不論大小）→ 列 fix list     │
+└─────────────────────────────────────────────┘
+        │
+        ▼
+┌─────────────────────────────────────────────┐
+│ Round 3: 2 UI/UX 稽核員平行跑                │
+│ 收集 BLOCKER/MAJOR/MINOR 痛點 → 加 fix list │
+└─────────────────────────────────────────────┘
+        │
+        ▼
+┌─────────────────────────────────────────────┐
+│ Fix Round: 全 fix list 一次修完              │
+│  - BLOCKER 必修                              │
+│  - MAJOR 必修                                │
+│  - MINOR 必修                                │
+│  - UAT 摩擦點必修                            │
+│ 修法：可一個 fix-pass agent 跑、               │
+│       或拆 fix-spec1/spec2/spec3/spec4 並行   │
+└─────────────────────────────────────────────┘
+        │
+        ▼
+┌─────────────────────────────────────────────┐
+│ Round 4: 全 17 agents 重跑驗收（regression） │
+│ 任何 regression → 回 Fix Round              │
+│ 全 PASS → merge to main                     │
+└─────────────────────────────────────────────┘
+```
+
+**修復規則：**
+- 不允許「下個 sprint」「follow-up issue」「TODO」「known issue」這類延後字眼
+- 痛點等級僅用來排序修復順序（BLOCKER 先 → MAJOR → MINOR），**全部都要修**
+- UAT 摩擦點如果有「設計層需求」（例：Persona 想要新功能），由 PM 判斷納入 spec 5 或 reject；若 reject 必須有書面理由
+
+**Fix Round 上限：**
+- 預估 1 輪 fix（半天）涵蓋 ~80% 痛點；2 輪涵蓋 ~95%
+- 如 3 輪 fix 後仍有未消除的 BLOCKER/MAJOR → 進架構重審（systematic-debugging skill 的 Phase 4.5）
+
+**最終 merge 條件（all must hold）：**
+- ✅ 8 / 8 SIT agents PASS
+- ✅ 7 / 7 UAT personas mission complete + 摩擦點 0
+- ✅ 2 / 2 UI/UX 稽核員 BLOCKER 0 / MAJOR 0 / MINOR 0
+- ✅ Lighthouse mobile + desktop ≥ 90 (a11y / best practices) ≥ 85 (perf)
+- ✅ axe-core 0 critical violations
+- ✅ console 0 errors during all 17 agents 的 e2e
+- ✅ 全 17 agents Round 4 regression 通過
 
 ---
 
