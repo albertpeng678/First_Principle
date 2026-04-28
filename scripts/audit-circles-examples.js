@@ -56,27 +56,65 @@ function auditEntry(qid, step, field, text) {
     return issues;
   }
   const len = text.length;
-  if (len < 80) issues.push({ kind: 'too_short', detail: `長度 ${len}（< 80）` });
-  if (len > 220) issues.push({ kind: 'too_long',  detail: `長度 ${len}（> 220）` });
+  const lines = text.split('\n');
+
+  // ─── Bullet-format structural rules (spec 1 § 6) ────────────────────────
+  const topBullets = lines.filter(l => /^- /.test(l));
+  const subBullets = lines.filter(l => /^  - /.test(l));
+
+  if (topBullets.length === 0) {
+    issues.push({ kind: 'no_bullets', detail: '沒有任何「- 」開頭的頂層 bullet' });
+  } else {
+    if (topBullets.length < 2) {
+      issues.push({ kind: 'top_level_count', detail: `頂層 bullet 數 ${topBullets.length}（< 2）` });
+    }
+    if (topBullets.length > 4) {
+      issues.push({ kind: 'top_level_count', detail: `頂層 bullet 數 ${topBullets.length}（> 4）` });
+    }
+  }
+
+  // bad_indent: any non-empty line whose leading whitespace is not 0 or 2 spaces
+  for (let i = 0; i < lines.length; i++) {
+    const l = lines[i];
+    if (!l.trim()) continue;
+    const m = l.match(/^( *)/);
+    const indent = m ? m[1].length : 0;
+    if (indent !== 0 && indent !== 2) {
+      issues.push({ kind: 'bad_indent', detail: `第 ${i + 1} 行縮排 ${indent} 空白（只允許 0 或 2）` });
+      break;
+    }
+  }
+
+  // line_too_long: warn-level
+  const longLines = lines.filter(l => l.length > 60);
+  if (longLines.length > 0) {
+    issues.push({ kind: 'line_too_long', severity: 'warn', detail: `${longLines.length} 行超過 60 字（最長 ${Math.max(...longLines.map(l => l.length))}）` });
+  }
+
+  // total_too_long: fail
+  if (len > 320) {
+    issues.push({ kind: 'total_too_long', detail: `總長 ${len}（> 320）` });
+  }
+
+  // ─── Retained checks ────────────────────────────────────────────────────
   if (BANNED_PREFIX_RE.test(text)) {
     const m = text.match(BANNED_PREFIX_RE);
     issues.push({ kind: 'bad_prefix', detail: `以「${m[0]}」開頭` });
   }
-  if (/^[\-•·]\s/m.test(text)) issues.push({ kind: 'bullet_in_text', detail: '有列點符號開頭' });
   if (/^#+\s/m.test(text)) issues.push({ kind: 'heading_markdown', detail: '有 # 標題' });
-  if (text.includes('\n\n')) issues.push({ kind: 'multi_paragraph', detail: '有空行 / 多段落' });
-  if (/[…\.]{1}$/.test(text) && !/[。！？]$/.test(text)) {
-    if (text.endsWith('…') || text.endsWith('...')) {
-      issues.push({ kind: 'truncated', detail: '句尾被截斷（以 … 結尾）' });
+
+  // no_terminal_punct: spec § 3.1 — 句尾標點完整；最後一個 bullet 不一定要句號
+  // Only flag if the last line is mid-sentence truncated (ends with … or trailing comma).
+  const lastLine = [...lines].reverse().find(l => l.trim());
+  if (lastLine) {
+    const stripped = lastLine.trim();
+    if (/[，、,]$/.test(stripped) || stripped.endsWith('…') || stripped.endsWith('...')) {
+      issues.push({ kind: 'no_terminal_punct', severity: 'warn', detail: '最後一個 bullet 句尾被截斷' });
     }
-  }
-  if (!/[。！？…」』）)\]"']$/.test(text.trim())) {
-    issues.push({ kind: 'no_terminal_punct', detail: '句尾沒有句號／問號／驚嘆號' });
   }
 
   const bolds = getBolds(text);
-  if (bolds.length === 0) issues.push({ kind: 'no_bold', detail: '沒有任何 **粗體** 標記' });
-  if (bolds.length > 4)   issues.push({ kind: 'too_many_bold', detail: `${bolds.length} 處粗體（> 4）` });
+  if (bolds.length > 4) issues.push({ kind: 'too_many_bold', detail: `${bolds.length} 處粗體（> 4）` });
 
   for (const b of bolds) {
     const norm = b.toLowerCase().replace(/[（）()「」"'\s]/g, '');
@@ -101,6 +139,7 @@ function main() {
     questions_with_examples: 0,
     total_fields: 0,
     fields_with_issues: 0,
+    fields_with_failures: 0, // failures only (excludes warn-level)
     by_kind: {},
   };
 
@@ -115,6 +154,8 @@ function main() {
         const issues = auditEntry(q.id, step, f, text);
         if (issues.length > 0) {
           stats.fields_with_issues++;
+          const hasFailure = issues.some(i => i.severity !== 'warn');
+          if (hasFailure) stats.fields_with_failures++;
           for (const iss of issues) {
             stats.by_kind[iss.kind] = (stats.by_kind[iss.kind] || 0) + 1;
           }
@@ -133,6 +174,7 @@ function main() {
   console.log(`Questions with field_examples: ${stats.questions_with_examples}/${stats.questions}`);
   console.log(`Total fields evaluated:        ${stats.total_fields}`);
   console.log(`Fields with ≥1 issue:          ${stats.fields_with_issues}  (${((stats.fields_with_issues / stats.total_fields) * 100).toFixed(1)}%)`);
+  console.log(`Fields with ≥1 FAILURE:        ${stats.fields_with_failures}  (${((stats.fields_with_failures / stats.total_fields) * 100).toFixed(1)}%)  ← violation rate`);
   console.log('\nIssue counts by kind:');
   for (const [k, v] of Object.entries(stats.by_kind).sort((a, b) => b[1] - a[1])) {
     console.log(`  ${k.padEnd(20)} ${v}`);
