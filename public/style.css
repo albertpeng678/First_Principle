@@ -1,42 +1,46 @@
-:root,
-[data-theme="dark"] {
-  --bg-primary: #0f1117;
-  --bg-surface: #1a1d27;
-  --bg-surface-2: #252836;
-  --text-primary: #e8eaf0;
-  --text-secondary: #9399a6;
-  --text-tertiary: rgba(255,255,255,0.28);
-  --accent: #6c63ff;
-  --accent-hover: #5a52e0;
-  --success: #4caf7d;
-  --warning: #f0a04b;
-  --danger: #e05252;
-  --border: rgba(255,255,255,0.08);
-  --shadow: 0 4px 24px rgba(0,0,0,0.4);
-  --bubble-user-bg: #6c63ff;
-  --bubble-user-text: #ffffff;
-  --bubble-ai-bg: #252836;
-  --bubble-ai-text: #e8eaf0;
-}
+:root, [data-theme="light"] {
+  /* Primary */
+  --c-primary: #1A56DB;          /* 統一 (原 hardcode 109 處 + var 設紫色衝突) */
+  --c-primary-lt: rgba(26,86,219,0.08);
+  --c-primary-mid: rgba(26,86,219,0.18);
 
-[data-theme="light"] {
-  --bg-primary: #ffffff;
-  --bg-surface: #f5f5f5;
-  --bg-surface-2: #ebebeb;
-  --text-primary: #1a1d27;
-  --text-secondary: #5a5e6b;
-  --text-tertiary: rgba(0,0,0,0.28);
-  --accent: #5a52e0;
-  --accent-hover: #4840c8;
-  --success: #2e7d52;
-  --warning: #d4821a;
-  --danger: #c0392b;
-  --border: rgba(0,0,0,0.1);
-  --shadow: 0 4px 24px rgba(0,0,0,0.1);
-  --bubble-user-bg: #5a52e0;
-  --bubble-user-text: #ffffff;
-  --bubble-ai-bg: #ebebeb;
-  --bubble-ai-text: #1a1d27;
+  /* NSM secondary (purple, used only for NSM banners/labels) */
+  --c-nsm: #7C3AED;
+  --c-nsm-lt: rgba(124,58,237,0.06);
+
+  /* Surface */
+  --c-bg: #F2F0EB;               /* 主背景，已存在 */
+  --c-bg-alt: #F4F1EB;           /* desktop 細暖底 */
+  --c-card: #fff;
+  --c-surface: #fafaf8;
+
+  /* Text */
+  --c-text: #1F1D1B;             /* 暖深棕，比 #1a1a1a 更柔 */
+  --c-text-2: #5a5046;
+  --c-text-3: #8a7e6f;
+  --c-text-4: #a89d8e;
+
+  /* Border */
+  --c-border: rgba(60,45,30,0.08);
+  --c-border-mid: rgba(60,45,30,0.12);
+  --c-border-strong: rgba(60,45,30,0.15);
+
+  /* Status */
+  --c-success: #10b981;
+  --c-success-lt: #D1FAE5;
+  --c-success-fg: #065F46;
+  --c-warn: #D97706;
+  --c-warn-lt: #FEF3C7;
+  --c-warn-fg: #92400E;
+  --c-danger: #DC2626;
+  --c-danger-lt: #FEE2E2;
+  --c-danger-fg: #991B1B;
+
+  /* Score dim colors (固定，不改) */
+  --c-dim-reach: #3b82f6;
+  --c-dim-depth: #8b5cf6;
+  --c-dim-frequency: #10b981;
+  --c-dim-retention: #f59e0b;
 }
 
 * { box-sizing: border-box; margin: 0; padding: 0; -webkit-tap-highlight-color: transparent; }
