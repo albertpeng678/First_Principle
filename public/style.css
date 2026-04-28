@@ -1449,7 +1449,7 @@ body { -webkit-font-smoothing: antialiased; }
 }
 .circles-q-card-more {
   font-size: 11px;
-  color: var(--c-primary, var(--c-primary));
+  color: var(--c-primary);
   cursor: pointer;
   margin-top: 4px;
   font-family: 'DM Sans', sans-serif;
