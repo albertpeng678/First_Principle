@@ -394,6 +394,18 @@ function pickRandom5(arr) {
   return copy.slice(0, Math.min(5, copy.length));
 }
 
+// Phase 2 Spec 2 § 6.1: relative-time formatter for "edited N min ago".
+// <5min → 剛剛; <60min → N 分鐘前; else absolute month-day-time.
+function formatRelativeEdit(ts) {
+  if (!ts) return '—';
+  const ms = Date.now() - new Date(ts).getTime();
+  if (Number.isNaN(ms)) return '—';
+  if (ms < 5 * 60 * 1000)  return '剛剛編輯';
+  if (ms < 60 * 60 * 1000) return Math.round(ms / 60000) + ' 分鐘前編輯';
+  return new Date(ts).toLocaleString('zh-TW', { month: 'numeric', day: 'numeric', hour: '2-digit', minute: '2-digit' });
+}
+window.formatRelativeEdit = formatRelativeEdit;
+
 function circlesRoute(id) {
   const base = AppState.accessToken ? '/api/circles-sessions' : '/api/guest-circles-sessions';
   return id ? base + '/' + id : base;
@@ -918,13 +930,22 @@ function renderOffcanvasList(listEl, sessions) {
       : isCircles
         ? `CIRCLES · ${s.question_json?.company || ''}`
         : `${s.difficulty || ''}`;
-    // Fall back to updated_at when created_at is absent (older session rows or DB selects that omit it).
-    const _ts = s.created_at || s.updated_at;
-    const date = _ts ? new Date(_ts).toLocaleString('zh-TW', { month: 'numeric', day: 'numeric', hour: '2-digit', minute: '2-digit' }) : '—';
+    // Phase 2 Spec 2: prefer updated_at as the "edit recency" timestamp.
+    const _ts = s.updated_at || s.created_at;
+    // Active CIRCLES session with drafts → relative time; everything else keeps absolute date.
+    const hasCirclesDrafts = isCircles && s.status === 'active'
+      && s.step_drafts && Object.keys(s.step_drafts).length > 0;
+    const date = _ts
+      ? (hasCirclesDrafts ? formatRelativeEdit(_ts) : new Date(_ts).toLocaleString('zh-TW', { month: 'numeric', day: 'numeric', hour: '2-digit', minute: '2-digit' }))
+      : '—';
     let badge, badgeClass;
     if (s.status === 'completed') {
       badge = s.scores_json ? Math.round(s.scores_json.totalScore ?? s.scores_json.total ?? 0) + ' 分' : '完成';
       badgeClass = isCircles ? 'badge-circles' : 'badge-nsm';
+    } else if (hasCirclesDrafts) {
+      // Phase 2 Spec 2 § 6.1: yellow "進行中" badge for active CIRCLES with drafts.
+      badge = '進行中';
+      badgeClass = 'badge-warn';
     } else {
       badge = '進行中';
       badgeClass = 'badge-blue';
