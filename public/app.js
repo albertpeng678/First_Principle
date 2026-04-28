@@ -1172,6 +1172,63 @@ function collapseQCard(card) {
   card.style.borderColor = '';
 }
 
+// Phase 2 Spec 2 § 6.2: fetch most-recent active CIRCLES draft for the home
+// resume banner. Populates AppState.circlesActiveDraft (null if none).
+async function fetchActiveDraft() {
+  try {
+    const headers = AppState.accessToken
+      ? { 'Authorization': 'Bearer ' + AppState.accessToken }
+      : { 'X-Guest-ID': AppState.guestId };
+    const route = (AppState.accessToken ? '/api/circles-sessions' : '/api/guest-circles-sessions') + '?status=active&limit=5';
+    const r = await fetch(route, { headers });
+    if (!r.ok) { AppState.circlesActiveDraft = null; return; }
+    const list = await r.json();
+    // Most recent active session that actually has draft content (skip empties).
+    const found = (list || []).find(function (s) {
+      return s.step_drafts && Object.keys(s.step_drafts).length > 0;
+    }) || null;
+    AppState.circlesActiveDraft = found;
+  } catch (_e) {
+    AppState.circlesActiveDraft = null;
+  }
+}
+window.fetchActiveDraft = fetchActiveDraft;
+
+function renderResumeBanner() {
+  const d = AppState.circlesActiveDraft;
+  if (!d) return '';
+  if (localStorage.getItem('dismiss-resume-' + d.id)) return '';
+  const q = d.question_json || {};
+  const company = q.company || '練習';
+  const product = q.product || q.problem_statement || '';
+  return '<div class="resume-banner" data-resume-id="' + escHtml(d.id) + '">' +
+    '<span><strong>未完成練習</strong> · ' + escHtml(company) + (product ? ' · ' + escHtml(product) : '') + ' · ' + escHtml(formatRelativeEdit(d.updated_at)) + '</span>' +
+    '<span><a class="resume-go" data-id="' + escHtml(d.id) + '">繼續 →</a><i class="ph ph-x dismiss" data-id="' + escHtml(d.id) + '" role="button" aria-label="關閉"></i></span>' +
+  '</div>';
+}
+window.renderResumeBanner = renderResumeBanner;
+
+function bindResumeBanner() {
+  document.querySelectorAll('.resume-banner .resume-go').forEach(function (el) {
+    el.addEventListener('click', async function () {
+      const id = el.dataset.id;
+      if (!id) return;
+      await loadCirclesSession(id);
+      navigate('circles');
+    });
+  });
+  document.querySelectorAll('.resume-banner .dismiss').forEach(function (el) {
+    el.addEventListener('click', function (ev) {
+      ev.stopPropagation();
+      const id = el.dataset.id;
+      if (id) localStorage.setItem('dismiss-resume-' + id, '1');
+      const banner = el.closest('.resume-banner');
+      if (banner) banner.remove();
+    });
+  });
+}
+window.bindResumeBanner = bindResumeBanner;
+
 function renderCirclesHome() {
   var mode = AppState.circlesMode;
   var type = AppState.circlesSelectedType;
@@ -1244,6 +1301,7 @@ function renderCirclesHome() {
 
   return '<div data-view="circles">' +
     '<div class="circles-home-wrap">' +
+      renderResumeBanner() +
       recentHtml +
       '<div class="circles-home-title">CIRCLES 訓練</div>' +
       '<div class="circles-home-sub">選題，按步驟填寫框架、訪談、拿到評分</div>' +
@@ -1331,6 +1389,27 @@ function bindCirclesHome() {
   if (AppState.circlesRecentSessions.length === 0 && !AppState.circlesRecentLoading) {
     fetchCirclesRecentSessions();
   }
+
+  // Phase 2 Spec 2 § 6.2: bind resume banner controls + fetch fresh active draft.
+  // First call: render whatever's currently in AppState (instant if cached);
+  // then fetch and re-render the slot only if the result changes.
+  bindResumeBanner();
+  fetchActiveDraft().then(function () {
+    const wrap = document.querySelector('[data-view="circles"] .circles-home-wrap');
+    if (!wrap) return;
+    const existing = wrap.querySelector('.resume-banner');
+    const newHtml = renderResumeBanner();
+    if (existing && !newHtml) { existing.remove(); return; }
+    if (!existing && newHtml) {
+      wrap.insertAdjacentHTML('afterbegin', newHtml);
+      bindResumeBanner();
+      return;
+    }
+    if (existing && newHtml) {
+      existing.outerHTML = newHtml;
+      bindResumeBanner();
+    }
+  });
 
   document.getElementById('circles-nsm-banner-btn')?.addEventListener('click', function() { navigate('nsm'); });
 
