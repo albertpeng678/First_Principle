@@ -17,3 +17,10 @@ test('css tokens resolve to expected values', async ({ page }) => {
   expect(cssVars.success).toBe('#10b981');
   expect(cssVars.nsm).toBe('#7C3AED');
 });
+
+test('navbar favicon mark uses primary token at runtime', async ({ page }) => {
+  await page.goto('http://localhost:4000/');
+  await page.waitForSelector('.navbar-favicon');
+  const bg = await page.locator('.navbar-favicon').first().evaluate(el => getComputedStyle(el).backgroundColor);
+  expect(bg).toBe('rgb(26, 86, 219)'); // == #1A56DB
+});
