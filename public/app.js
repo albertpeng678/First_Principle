@@ -634,6 +634,7 @@ function render() {
       }
       break;
   }
+  syncNavbarTab();
 }
 
 async function navigate(view) {
@@ -659,6 +660,25 @@ async function navigate(view) {
   } else {
     render();
   }
+}
+
+// Sync active tab indicator with current AppState.view (Phase 0 Task 0.5).
+function syncNavbarTab() {
+  const view = AppState.view;
+  document.querySelectorAll('.navbar-tab').forEach(t => {
+    t.classList.toggle('active', t.dataset.nav === view);
+  });
+}
+
+// Attach navbar tab click handlers exactly once at boot.
+function bindNavbarTabs() {
+  document.querySelectorAll('.navbar-tab').forEach(t => {
+    t.addEventListener('click', () => {
+      document.querySelectorAll('.navbar-tab').forEach(x => x.classList.remove('active'));
+      t.classList.add('active');
+      navigate(t.dataset.nav);
+    });
+  });
 }
 
 function renderNavbar() {
@@ -902,6 +922,8 @@ async function init() {
   }
   AppState.guestId = localStorage.getItem('guestId');
   document.body.dataset.view = AppState.view;
+
+  bindNavbarTabs();
 
   await initSupabase();
 
