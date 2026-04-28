@@ -3153,3 +3153,9 @@ body { -webkit-font-smoothing: antialiased; }
 .navbar-tab { padding:6px 12px; border-radius:7px; cursor:pointer; font-size:12.5px; color:var(--c-text-2); }
 .navbar-tab.active { background:#fff; color:var(--c-text); font-weight:500; border:1px solid var(--c-border); }
 @media (max-width: 1023px) { .hide-mobile { display:none !important; } }
+
+/* ── Bullet text renderer (spec 1 § 4.3) ── */
+.rt-bullet-list { list-style:disc; padding-left:18px; margin:0; font-size:13px; line-height:1.7; color:var(--c-text); }
+.rt-bullet-list > li { margin: 4px 0; }
+.rt-bullet-list .rt-bullet-sub { list-style:circle; padding-left:18px; margin:4px 0; }
+.rt-bullet-list strong { color:var(--c-primary); font-weight:700; }

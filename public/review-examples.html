@@ -139,6 +139,10 @@ function escHtml(s) {
   }[c]));
 }
 function renderText(s) {
+  // Prefer the shared bullet renderer from app.js when available.
+  if (typeof window !== 'undefined' && typeof window.renderBulletText === 'function') {
+    return window.renderBulletText(s);
+  }
   return escHtml(s).replace(/\*\*([^*]+?)\*\*/g, '<strong>$1</strong>');
 }
 
