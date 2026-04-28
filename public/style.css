@@ -1215,15 +1215,9 @@ body { -webkit-font-smoothing: antialiased; }
    ═══════════════════════════════════════════════ */
 
 [data-view="circles"] {
-  --c-primary:     #1A56DB;
-  --c-primary-lt:  rgba(26,86,219,0.08);
   --c-primary-dim: #C8D8FF;
-  --c-surface:    #F2F0EB;
+  --c-surface:    var(--c-bg);
   --c-card:       #ffffff;
-  --c-border:     rgba(0,0,0,0.08);
-  --c-text:       #1a1a1a;
-  --c-text-2:     #5a5a5a;
-  --c-text-3:     #8a8a8a;
   --c-error:      #D92020;
   --c-error-lt:   rgba(217,32,32,0.08);
   --c-warn:       #B85C00;
