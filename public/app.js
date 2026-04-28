@@ -472,7 +472,7 @@ function updateRecentSessionsSlot() {
           '<div class="circles-q-card-company">' + escHtml(company) + ' — ' + modeLabel + '</div>' +
           '<div style="font-size:12px;color:var(--c-text-2,#5a5a5a);margin-top:2px;font-family:DM Sans,sans-serif">' + stepLabel + ' · ' + phaseLabel + '</div>' +
         '</div>' +
-        '<div style="font-size:12px;font-weight:600;color:var(--c-primary,#1A56DB);font-family:DM Sans,sans-serif;white-space:nowrap">繼續練習 →</div>' +
+        '<div style="font-size:12px;font-weight:600;color:var(--c-primary,var(--c-primary));font-family:DM Sans,sans-serif;white-space:nowrap">繼續練習 →</div>' +
       '</div>' +
     '</div>';
   }).join('');
@@ -1052,7 +1052,7 @@ function renderCirclesHome() {
             '<div class="circles-q-card-company">' + escHtml(company) + ' — ' + modeLabel + '</div>' +
             '<div style="font-size:12px;color:var(--c-text-2,#5a5a5a);margin-top:2px;font-family:DM Sans,sans-serif">' + stepLabel + ' · ' + phaseLabel + '</div>' +
           '</div>' +
-          '<div style="font-size:12px;font-weight:600;color:var(--c-primary,#1A56DB);font-family:DM Sans,sans-serif;white-space:nowrap">繼續練習 →</div>' +
+          '<div style="font-size:12px;font-weight:600;color:var(--c-primary,var(--c-primary));font-family:DM Sans,sans-serif;white-space:nowrap">繼續練習 →</div>' +
         '</div>' +
       '</div>';
     }).join('');
@@ -1911,7 +1911,7 @@ function renderCirclesGate() {
     return '<div class="circles-progress-seg ' + cls + '"></div>';
   }).join('');
 
-  var homeBtn = '<button style="font-size:12px;color:#1A56DB;border-bottom:1px solid #1A56DB;background:none;border-top:none;border-left:none;border-right:none;padding:2px 0;cursor:pointer;font-family:DM Sans,sans-serif;white-space:nowrap;flex-shrink:0" id="circles-gate-home">回首頁</button>';
+  var homeBtn = '<button style="font-size:12px;color:var(--c-primary);border-bottom:1px solid var(--c-primary);background:none;border-top:none;border-left:none;border-right:none;padding:2px 0;cursor:pointer;font-family:DM Sans,sans-serif;white-space:nowrap;flex-shrink:0" id="circles-gate-home">回首頁</button>';
 
   if (loading || !result) {
     return '<div data-view="circles">' +
@@ -2073,10 +2073,10 @@ function renderCirclesPhase2() {
   var pinnedCard = q ? (
     '<div class="circles-pinned-card" id="circles-pinned-card">' +
       '<div style="display:flex;align-items:center;gap:6px;margin-bottom:4px">' +
-        '<span style="background:#EEF3FF;color:#1A56DB;border-radius:4px;padding:1px 6px;font-size:9px;font-weight:700">' + escHtml(q.company) + '</span>' +
+        '<span style="background:#EEF3FF;color:var(--c-primary);border-radius:4px;padding:1px 6px;font-size:9px;font-weight:700">' + escHtml(q.company) + '</span>' +
       '</div>' +
       '<div style="font-size:11px;color:#1a1a1a;font-weight:600;line-height:1.4" id="circles-pinned-stmt">' + escHtml(q.problem_statement.slice(0, 80)) + (q.problem_statement.length > 80 ? '…' : '') + '</div>' +
-      (q.problem_statement.length > 80 ? '<div id="circles-pinned-toggle" style="font-size:10px;color:#1A56DB;cursor:pointer;margin-top:2px">展開 ▾</div>' : '') +
+      (q.problem_statement.length > 80 ? '<div id="circles-pinned-toggle" style="font-size:10px;color:var(--c-primary);cursor:pointer;margin-top:2px">展開 ▾</div>' : '') +
     '</div>'
   ) : '';
 
@@ -2158,7 +2158,7 @@ function toggleCoachHint(btn) {
   content.style.display = isOpen ? 'none' : 'block';
   var icon = btn.querySelector('i');
   if (icon) icon.className = isOpen ? 'ph ph-caret-right' : 'ph ph-caret-down';
-  btn.style.color = isOpen ? 'var(--c-text-3,#8a8a8a)' : 'var(--c-primary,#1A56DB)';
+  btn.style.color = isOpen ? 'var(--c-text-3,#8a8a8a)' : 'var(--c-primary,var(--c-primary))';
 }
 
 function bindCirclesPhase2() {
@@ -2677,7 +2677,7 @@ function renderCirclesFinalReport() {
       '</div></div>';
   }
 
-  var gradeColor = ({ A: '#137A3D', B: '#1A56DB', C: '#B85C00', D: '#D92020' })[report.grade] || '#1a1a1a';
+  var gradeColor = ({ A: '#137A3D', B: 'var(--c-primary)', C: '#B85C00', D: '#D92020' })[report.grade] || '#1a1a1a';
 
   var stepLabels = { C1:'澄清', I:'用戶', R:'需求', C2:'排序', L:'方案', E:'取捨', S:'總結' };
   var stepRows = ['C1','I','R','C2','L','E','S'].filter(function(k) { return stepScores[k]; }).map(function(k) {
@@ -2719,7 +2719,7 @@ function renderCirclesFinalReport() {
         '<ul style="padding-left:18px;margin:0">' + improvements + '</ul>' +
       '</div>' +
       '<div style="background:#EEF3FF;border-radius:16px;padding:16px;margin-bottom:12px;border:1px solid #C5D5FF">' +
-        '<div style="font-size:12px;font-weight:600;color:#1A56DB;margin-bottom:8px;font-family:DM Sans,sans-serif">教練總評</div>' +
+        '<div style="font-size:12px;font-weight:600;color:var(--c-primary);margin-bottom:8px;font-family:DM Sans,sans-serif">教練總評</div>' +
         '<div style="font-size:13px;color:#1a1a1a;line-height:1.7;font-family:DM Sans,sans-serif">' + escHtml(report.coachVerdict || '') + '</div>' +
       '</div>' +
       (report.nextSteps ? '<div style="background:#fff;border-radius:12px;padding:14px;margin-bottom:16px;border:1px solid rgba(0,0,0,0.08);font-size:13px;color:#5a5a5a;font-family:DM Sans,sans-serif;line-height:1.6"><span style="font-weight:600;color:#1a1a1a">建議下一步：</span>' + escHtml(report.nextSteps) + '</div>' : '') +
@@ -4302,7 +4302,7 @@ function renderNSMStep4() {
   }
 
   const dims = [
-    { key: 'alignment',     label: '價值關聯', color: '#6c63ff' },
+    { key: 'alignment',     label: '價值關聯', color: 'var(--c-primary)' },
     { key: 'leading',       label: '領先指標', color: '#3b82f6' },
     { key: 'actionability', label: '操作性',   color: '#10b981' },
     { key: 'simplicity',    label: '可理解性', color: '#f59e0b' },

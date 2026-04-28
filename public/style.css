@@ -1195,7 +1195,7 @@ body { -webkit-font-smoothing: antialiased; }
 /* ═══════════════════════════════════════════════
    CIRCLES Training — Light Theme
    All styles scoped under [data-view="circles"]
-   Primary: #1A56DB  Surface: #F2F0EB  Card: #fff
+   Primary: var(--c-primary)  Surface: #F2F0EB  Card: #fff
    ═══════════════════════════════════════════════ */
 
 [data-view="circles"] {
@@ -1439,7 +1439,7 @@ body { -webkit-font-smoothing: antialiased; }
 }
 .circles-q-card-more {
   font-size: 11px;
-  color: var(--c-primary, #1A56DB);
+  color: var(--c-primary, var(--c-primary));
   cursor: pointer;
   margin-top: 4px;
   font-family: 'DM Sans', sans-serif;
@@ -1810,7 +1810,7 @@ body { -webkit-font-smoothing: antialiased; }
 }
 
 .circles-conclusion-box {
-  border-top: 2px solid #1A56DB;
+  border-top: 2px solid var(--c-primary);
   background: #fff;
   padding: 14px;
   flex-shrink: 0;
@@ -3092,7 +3092,7 @@ body { -webkit-font-smoothing: antialiased; }
 .hint-overlay .hint-title {
   font-size: 13px;
   font-weight: 700;
-  color: #1A56DB;
+  color: var(--c-primary);
   margin: 0 0 4px;
   font-family: 'DM Sans', sans-serif;
   display: flex;
@@ -3117,7 +3117,7 @@ body { -webkit-font-smoothing: antialiased; }
   color: #1a1a1a;
   line-height: 1.7;
   background: #F6F8FF;
-  border-left: 3px solid #1A56DB;
+  border-left: 3px solid var(--c-primary);
   padding: 12px;
   border-radius: 0 8px 8px 0;
   font-family: 'DM Sans', sans-serif;
