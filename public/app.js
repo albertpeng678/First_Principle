@@ -1043,6 +1043,11 @@ function collapseQCard(card) {
 }
 
 function renderCirclesHome() {
+  if (typeof isDesktop === 'function' && isDesktop()) return renderCirclesHomeDesktop();
+  return renderCirclesHomeMobile();
+}
+
+function renderCirclesHomeMobile() {
   var mode = AppState.circlesMode;
   var type = AppState.circlesSelectedType;
   var drillStep = AppState.circlesDrillStep;
@@ -1180,6 +1185,108 @@ function renderCirclesHome() {
     '</div>' +
 
     // Tooltip for step pills
+    '<div class="circles-pill-tooltip" id="circles-pill-tooltip"></div>' +
+  '</div>';
+}
+
+// Phase 4.1 — desktop 3-col layout
+function renderCirclesHomeDesktop() {
+  var mode = AppState.circlesMode;
+  var type = AppState.circlesSelectedType;
+  var drillStep = AppState.circlesDrillStep;
+  var allQs = (typeof CIRCLES_QUESTIONS !== 'undefined' ? CIRCLES_QUESTIONS : []);
+  var filteredQs = allQs.filter(function(q) { return q.question_type === type; });
+  if (!AppState.circlesDisplayedQuestions || AppState.circlesDisplayedQuestions.length === 0 ||
+      (AppState.circlesDisplayedQuestions[0] && AppState.circlesDisplayedQuestions[0].question_type !== type)) {
+    AppState.circlesDisplayedQuestions = pickRandom5(filteredQs);
+  }
+  var displayedQs = AppState.circlesDisplayedQuestions;
+  var designCount = allQs.filter(function(q) { return q.question_type === 'design'; }).length;
+  var improveCount = allQs.filter(function(q) { return q.question_type === 'improve'; }).length;
+  var strategyCount = allQs.filter(function(q) { return q.question_type === 'strategy'; }).length;
+
+  var modeCardsHtml =
+    '<div class="circles-mode-card ' + (mode === 'simulation' ? 'selected' : '') + '" data-mode="simulation">' +
+      '<div class="circles-mode-card-title"><i class="ph ph-video-camera"></i> 完整模擬</div>' +
+      '<div class="circles-mode-card-desc">25-35 分鐘 · 全 7 步</div>' +
+    '</div>' +
+    '<div class="circles-mode-card ' + (mode === 'drill' ? 'selected' : '') + '" data-mode="drill">' +
+      '<div class="circles-mode-card-title"><i class="ph ph-target"></i> 步驟加練</div>' +
+      '<div class="circles-mode-card-desc">5-10 分鐘 · 單一步驟</div>' +
+    '</div>';
+
+  var typeListHtml =
+    '<button class="circles-type-tab ' + (type === 'design' ? 'active' : '') + '" data-type="design"><span>產品設計</span><span>×' + designCount + '</span></button>' +
+    '<button class="circles-type-tab ' + (type === 'improve' ? 'active' : '') + '" data-type="improve"><span>產品改進</span><span>×' + improveCount + '</span></button>' +
+    '<button class="circles-type-tab ' + (type === 'strategy' ? 'active' : '') + '" data-type="strategy"><span>產品策略</span><span>×' + strategyCount + '</span></button>';
+
+  var qCardsHtml = displayedQs.length > 0
+    ? displayedQs.map(function(q) { return renderQCardHtml(q); }).join('')
+    : '<div style="color:var(--c-text-3);font-size:13px;text-align:center;padding:24px 0">暫無題目</div>';
+
+  // recent rail (right)
+  var recentItemsHtml = '';
+  if (AppState.circlesRecentSessions && AppState.circlesRecentSessions.length > 0) {
+    var STEP_MAP = {};
+    CIRCLES_STEPS.forEach(function(s) { STEP_MAP[s.key] = s.label; });
+    recentItemsHtml = AppState.circlesRecentSessions.slice(0, 3).map(function(s) {
+      var company = (s.question_json || {}).company || '—';
+      var modeLabel = s.mode === 'drill' ? '步驟加練' : '完整模擬';
+      var stepLabel = s.mode === 'simulation'
+        ? 'Step ' + (s.sim_step_index + 1) + '/7'
+        : (STEP_MAP[s.drill_step] || s.drill_step);
+      return '<div class="circles-resume-card" data-resume-id="' + s.id + '" style="margin-bottom:6px">' +
+        '<div class="circles-q-card-company" style="font-size:12px">' + escHtml(company) + ' · ' + modeLabel + '</div>' +
+        '<div style="font-size:11px;color:var(--c-text-2);margin-top:2px">' + stepLabel + '</div>' +
+      '</div>';
+    }).join('');
+  } else {
+    recentItemsHtml = '<div style="color:var(--c-text-3);font-size:11.5px">尚無紀錄</div>';
+  }
+
+  return '<div data-view="circles" class="circles-home-desktop">' +
+    '<div class="ch-header">' +
+      '<div>' +
+        '<h1>CIRCLES 訓練</h1>' +
+        '<div class="ch-sub">選題，按步驟填寫框架、訪談、拿到評分</div>' +
+      '</div>' +
+      '<div class="ch-meta">100 題 · 7 步驟框架</div>' +
+    '</div>' +
+    '<div class="ch-grid">' +
+      // Left rail
+      '<div class="left-rail">' +
+        '<div class="mode-section">' +
+          '<div class="rail-label">練習模式</div>' +
+          '<div class="mode-list">' + modeCardsHtml + '</div>' +
+        '</div>' +
+        '<div class="type-section">' +
+          '<div class="rail-label">題型</div>' +
+          '<div class="type-list">' + typeListHtml + '</div>' +
+        '</div>' +
+      '</div>' +
+      // Center
+      '<div class="center-col">' +
+        '<div style="display:flex;align-items:center;justify-content:space-between">' +
+          '<div class="rail-label">選擇題目</div>' +
+          '<button id="circles-random-btn" style="font-size:11px;color:var(--c-primary);background:none;border:none;cursor:pointer;padding:0">隨機選題</button>' +
+        '</div>' +
+        '<div class="circles-q-list ch-q-list" id="circles-q-list">' + qCardsHtml + '</div>' +
+        '<div class="nsm-banner">' +
+          '<div>' +
+            '<div class="nsm-banner-label">S 步驟含北極星指標練習</div>' +
+            '<div class="nsm-banner-sub">想做最完整的 NSM 定義訓練？</div>' +
+          '</div>' +
+          '<button class="nsm-banner-btn" id="circles-nsm-banner-btn">前往 NSM →</button>' +
+        '</div>' +
+      '</div>' +
+      // Right rail
+      '<div class="right-rail">' +
+        '<div class="recent-section" id="circles-recent-slot">' +
+          '<div class="rail-label">近期練習</div>' +
+          recentItemsHtml +
+        '</div>' +
+      '</div>' +
+    '</div>' +
     '<div class="circles-pill-tooltip" id="circles-pill-tooltip"></div>' +
   '</div>';
 }
