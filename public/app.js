@@ -188,36 +188,8 @@ var CIRCLES_STEPS = [
   { key: 'S',  label: '總結推薦',   short: 'S', fields: ['推薦方案', '選擇理由', '北極星指標', '追蹤指標'] },
 ];
 
-var CIRCLES_STEP_HINTS = {
-  C1: ['聚焦 News Feed 廣告，排除 Stories / Reels / Marketplace。「廣告過多」先判定是相關性問題（廣告內容與用戶興趣不符），而非頻率或格式問題——訪談中再確認',
-       '設定 90 天觀察期——廣告業務以季度為單位，90 天足以看到用戶行為變化與收入影響的相關性',
-       '核心約束是廣告收入不能下降超過 X%，廣告主 ROI 不能大幅下滑——否則廣告主撤單，業務鏈斷掉',
-       '① 廣告問題是相關性而非純頻率；② 用戶負感來自打斷心流，不是廣告本身；③ 技術上可做到動態插入頻率調控（待確認）'],
-  I:  ['功能型用戶 / 習慣型用戶 / 新用戶',
-       '最有代表性且體量最大的群體',
-       '他們想完成什麼「任務」（JTBD）',
-       '不服務哪類用戶及原因'],
-  R:  ['快速判斷貼文價值、過濾低品質內容、控制看到哪些類型的貼文',
-       '不想因漏看重要動態而焦慮、希望打開 App 有收穫感而非空虛',
-       '維持與遠距朋友和家人的弱連結、對重要時刻（婚禮、升學）及時回應',
-       '打開 App 後滑了 10 分鐘卻沒有任何有意義的互動，長期降低對 Facebook 的預期'],
-  C2: ['以廣告收入季度不降超過 5% 為硬性約束，在此前提下最大化 DAU 打開頻率',
-       '改善 Feed 演算法相關性——可同時提升 DAU 打開頻率與廣告點擊率，是正和博弈',
-       '用戶自訂廣告頻率控制——廣告主合約關係風險高，且工程複雜度不在單季度範圍內',
-       '相關性改善是正和博弈（用戶與廣告主雙贏），頻率控制是零和博弈；正和優先，零和暫緩'],
-  L:  ['演算法相關性重排——調整 ML 模型，優先展示親密朋友動態，降低陌生粉絲頁比重',
-       '用戶主動優先序——推出「摯友列表」，該列表動態永遠優先展示，不受演算法干擾',
-       '（可選）分類 Feed 頁籤——將朋友動態、廣告、影片拆成不同頁籤，讓用戶自行選擇瀏覽情境',
-       null],
-  E:  ['演算法方案優點：系統主動過濾，用戶無需改變行為；ML 端優化，開發週期最短（單季）',
-       '演算法方案缺點：黑盒決策，用戶感知不透明；廣告相關性可能連帶下降，影響廣告主收益',
-       '依賴足夠的用戶社交圖譜資料；廣告收入影響需事先 A/B test 量化上限',
-       'Feed 停留時間提升 ≥ 15%；朋友動態互動率（like/comment）提升 ≥ 20%；廣告 CTR 下降 ≤ 5%'],
-  S:  ['例：推薦方案一「情境式升級提示」— 在廣告中斷時觸發，轉換意圖最強，選擇理由是 E 步驟評估顯示風險最低',
-       '例：E 步驟評估顯示此方案依賴條件最少、成功指標清晰且直接對應核心痛點，不需要廣告主或第三方合作',
-       '例：每月完成至少一首完整曲目播放的活躍月用戶數 — 區分「開 App 就算」與「真正在聽音樂」的行為門檻',
-       null],
-};
+// (CIRCLES_STEP_HINTS removed — fallback was never read; examples now load from
+// /api/circles-public/example which is curated per question.)
 
 // ──────────────────────────────────────────────────
 // CIRCLES_STEP_CONFIG — full per-step content for Phase 1 form + Phase 2 conclusion
@@ -230,15 +202,15 @@ var CIRCLES_STEP_CONFIG = {
     progressLabel: 'C · 澄清情境 · 1/7',
     fields: [
       { key: '問題範圍', placeholder: '說明討論的問題範圍與問題類型…', rows: 2,
-        hintOverlay: '澄清「廣告過多」的具體含義——是頻率（每 N 則出現一則廣告）、相關性（廣告與用戶興趣不符），還是格式（影片廣告干擾感更強）？三者是完全不同的問題，會導致完全不同的解法。同時確認討論範圍：只看 News Feed，還是包含 Stories 和 Reels？邊界越清楚，後面的分析越聚焦。' },
+        hintOverlay: '先把題目的問題本身定義清楚——它的具體類型是什麼（行為層／情感層／系統層）？涵蓋哪些功能或場景？哪些明確排除？沒釐清這層，後面的分析會在錯的邊界上展開。' },
       { key: '時間範圍', placeholder: '設定時間範圍並說明理由…', rows: 2,
-        hintOverlay: '設定一個合理的觀察期。廣告業務以季度為單位衡量，90 天足以觀察用戶行為變化和收入影響的相關性。太短（2週）看不出趨勢，太長（1年）讓面試官覺得你沒有執行感。說明為什麼這個時間範圍適合這個問題——不只是給個數字。' },
+        hintOverlay: '設定一個合理的觀察期，並說明為什麼這個時長對應這題的業務節奏。太短看不出趨勢、太長缺乏執行感。「X 天，因為這個業務以 Y 為週期」比丟個數字更有說服力。' },
       { key: '業務影響', placeholder: '說明業務影響與核心約束…', rows: 2,
-        hintOverlay: '廣告業務有兩個關鍵利益相關方——用戶和廣告主。改善用戶廣告體驗可能影響廣告曝光量，進而影響廣告主 ROI 和 Meta 收入。你需要說明這個改善的核心業務約束：收入不能下降多少？廣告主的什麼承諾不能打破？說清楚這個邊界，你的分析才有業務合理性。' },
+        hintOverlay: '列出這題的核心業務指標和兩個關鍵利益方（通常是用戶端 vs. 商業端）。說清楚哪條紅線不能踩——什麼指標下滑多少就破局？沒有量化邊界，後面的取捨會發散。' },
       { key: '假設確認', placeholder: '列出你的關鍵假設，並標註哪些待確認…', rows: 2,
-        hintOverlay: '列出你在後續分析中會用到的、尚未被確認的假設。例如：「廣告問題是相關性而非純頻率」、「用戶的負感來自打斷心流而非廣告本身」。把假設說清楚，面試官才知道你的分析建立在什麼基礎上，也給你機會確認哪些假設需要驗證。列出 2-3 條最關鍵的就夠。' },
+        hintOverlay: '列出 2-3 條後續分析會依賴的假設，最好寫成「X 是 A 而不是 B」的形式，並標明哪些先接受、哪些待驗證。把假設攤開，整個分析的根基才透明。' },
     ],
-    icebreaker: '問被訪談者這個問題的核心是什麼——「廣告過多」是指頻率、相關性，還是格式？同時確認業務上有哪些不能突破的限制。',
+    icebreaker: '先與被訪談者澄清題目本身的邊界——具體在問什麼問題、涵蓋哪些功能或場景、有哪些業務限制不能突破。',
     conclusionSub: '說明問題範圍、時間框架、業務約束，以及你確認或待確認的假設',
     conclusionPlaceholder: '針對這題，整理你澄清的問題範圍、時間框架、業務約束，以及假設確認…',
     conclusionExample: 'Spotify 問題範圍：聚焦免費版廣告體驗，排除付費方案和播客廣告。時間範圍：60 天。業務約束：廣告收入和免費→付費轉換率都不能下降。假設：用戶廣告負感主要來自廣告在情感高潮段落出現，而非廣告本身。',
@@ -248,15 +220,15 @@ var CIRCLES_STEP_CONFIG = {
     progressLabel: 'I · 定義用戶 · 2/7',
     fields: [
       { key: '目標用戶分群', placeholder: '說明你如何劃分用戶群…', rows: 2,
-        hintOverlay: '思考用戶使用 News Feed 的不同行為模式。哪些群體對廣告的感受最強烈？功能型用戶、習慣型用戶、新用戶各有什麼不同的痛點？這個分群方式要足夠具體，能讓後續的需求分析聚焦在真正不同的動機上。' },
+        hintOverlay: '用「同一把尺」切 2-4 群（依行為、使用頻率、或場景）。不要混用兩種維度，例如「新手 vs. 老手」和「付費 vs. 免費」要選一個。分群越具體，後面選焦點時越有理由。' },
       { key: '選定焦點對象', placeholder: '選定要服務的焦點群體並說明理由…', rows: 2,
-        hintOverlay: '從上面的分群中選一個。選擇標準是：體量最大且對廣告痛點最有代表性的群體。說清楚為什麼這個群體是最值得優先服務的，而不是另外幾個。這個理由會影響整個後續的需求和方案設計。' },
+        hintOverlay: '從分群中挑一個焦點。選擇理由不是「人最多」，而是「體量、戰略價值、問題嚴重程度」三者中至少一個強。說清楚為什麼是它，而不是另外幾個——這會決定後面整條分析的方向。' },
       { key: '用戶動機假設', placeholder: '用 JTBD 框架描述用戶的深層動機…', rows: 2,
-        hintOverlay: '用 JTBD（Jobs to Be Done）框架思考：這個用戶「聘用」News Feed 是為了完成什麼任務？不是「滑手機」，而是更深層的目標——保持社交聯繫、消磨時間、獲取資訊？動機越具體，後面需求分析就越有說服力。' },
+        hintOverlay: '用 JTBD（Jobs to Be Done）思考焦點用戶「真正在意的事」。表面動機（功能性任務）+ 深層動機（情感／社交層）—用戶為什麼真的會回來？深層越具體，需求分析才會有洞察。' },
       { key: '排除對象', placeholder: '說明哪些用戶群體不在服務範圍及理由…', rows: 2,
-        hintOverlay: '說明哪些用戶群體你不服務，以及原因。例如：不服務廣告主（有獨立工具）、不服務純新用戶（行為資料不足）。這一欄的目的是讓面試官看到你的邊界意識——你的設計不是要取悅所有人。' },
+        hintOverlay: '明確說哪些用戶這次不討論，以及為什麼——可能是體量太小、需求差太遠、或資源不足以同時覆蓋。排除是邊界意識的展現，你的設計不需要取悅所有人。' },
     ],
-    icebreaker: '問被訪談者這個產品的用戶分群——哪些行為模式可以分群？哪些群體對這個問題最敏感？',
+    icebreaker: '先與被訪談者確認用戶分群的可能維度——哪些行為模式可以分群？選定的焦點對象有什麼具體特徵？',
     conclusionSub: '用 1-2 句話說明：鎖定的用戶群、JTBD 動機、排除對象',
     conclusionPlaceholder: '針對這題，整理你確認的用戶分群、焦點對象的 JTBD 動機與排除對象…',
     conclusionExample: '聚焦 Spotify 免費版每日活躍用戶，他們使用 App 的 JTBD 是「用音樂管理情緒狀態」，不是隨機發現新音樂。排除付費用戶（已無廣告痛點）和偶爾用戶（資料不足）。',
@@ -266,15 +238,15 @@ var CIRCLES_STEP_CONFIG = {
     progressLabel: 'R · 發掘需求 · 3/7',
     fields: [
       { key: '功能性需求', placeholder: '描述用戶要完成的具體任務與功能需求…', rows: 2,
-        hintOverlay: '想想這位「習慣型用戶」打開 News Feed 要完成的任務。功能性需求是「做到什麼」——他需要什麼功能才能完成這個任務？從他每天打開 App 的那個行為出發，往前推：他想過濾什麼？想找到什麼？這個答案會決定後續核心痛點的定義方向。' },
+        hintOverlay: '想清楚焦點用戶在具體場景下要「做到什麼」——他要完成什麼任務？目前產品做不到的卡點在哪裡？場景越具體，需求越好分析。避免「更好的體驗」這種空話。' },
       { key: '情感性需求', placeholder: '描述用戶想要或想避免的感受…', rows: 2,
-        hintOverlay: '情感性需求不是功能，是用戶使用產品時的「感受」。這位用戶打開 Facebook 時想要什麼感覺？他不想有什麼感覺？注意：「想看好內容」是功能需求，不是情感需求——情感需求應該描述感受層，例如焦慮、歸屬感、成就感。即使是 SaaS 或工具性產品，也一定有情感需求。' },
+        hintOverlay: '情感需求是「感受層」不是功能。用戶在過程中想感受到什麼（掌控感、安全感、成就感、連結感）？害怕失去什麼？哪一刻會沮喪或焦慮？工具型產品也有情感需求，不要跳過這層。' },
       { key: '社交性需求', placeholder: '描述用戶在人際關係中的需求…', rows: 2,
-        hintOverlay: '社交性需求是用戶在人際關係中需要什麼。這位用戶如何透過 News Feed 維持社交關係？他想對哪些人的動態有所回應？想在什麼樣的社群中保有存在感？B2B SaaS 也有社交需求——例如與團隊共享成果、讓主管看到你的工作進度。' },
+        hintOverlay: '用戶在社群／關係中想被怎麼看？想透過產品建立什麼樣的人際連結？即便是 B2B 工具也有——例如「讓主管看到我的進度」「與團隊共享成果」。如果真的不適用，要說明原因。' },
       { key: '核心痛點', placeholder: '挑選一個最核心的痛點並說明為什麼優先…', rows: 2,
-        hintOverlay: '核心痛點是上面三層需求中「最根本的一個沒被滿足」的需求。你要選出一個，說明它是功能層、情感層還是社交層的痛點，並說清楚為什麼它是「核心」。這個優先判斷會直接影響後續 C 步驟的取捨標準——所以這欄要有你的立場，不只是列舉。' },
+        hintOverlay: '從三層需求中挑一個最根本的，並說明為什麼是它（嚴重程度、頻率、影響範圍）。這欄要有立場——這個判斷會直接決定後面 C2 的取捨方向，不只是列舉。' },
     ],
-    icebreaker: '問被訪談者這位用戶實際使用產品時的真實場景——他想完成什麼？他真實的感受是什麼？',
+    icebreaker: '先與被訪談者深入焦點用戶的真實使用場景——他想完成什麼任務？真實的感受是什麼？這是發掘需求的起點。',
     conclusionSub: '用 1-2 句話說明：三層需求各一句，並說明哪個是核心痛點',
     conclusionPlaceholder: '針對這題，整理三層需求（功能 / 情感 / 社交）以及最核心的痛點…',
     conclusionExample: 'Spotify 免費用戶的功能需求是「快速找到符合當下心情的音樂」；情感需求是「用音樂管理情緒狀態的掌控感」；社交需求是「分享歌單維持社交話題」。核心痛點：情感層的掌控感缺失最嚴重，直接影響留存。',
@@ -284,15 +256,15 @@ var CIRCLES_STEP_CONFIG = {
     progressLabel: 'C · 優先排序 · 4/7',
     fields: [
       { key: '取捨標準', placeholder: '建立可操作的取捨判斷框架…', rows: 2,
-        hintOverlay: '取捨標準不是「什麼最重要」，而是「用什麼框架來判斷重要性」。你的標準應該是可操作的——例如「以廣告收入不降超過5%為硬性約束，在此前提下最大化 DAU 打開頻率」。沒有顯性標準，後面的排序理由就無法自圓其說。' },
+        hintOverlay: '取捨標準是「排序方案」的可操作框架，不是「什麼比較重要」的口號。最好寫成「以 A 為硬性約束，在此前提下最大化 B」這種可比較形式。沒顯性標準，後面排序就站不住腳。' },
       { key: '最優先項目', placeholder: '說明最優先處理的項目與選擇理由…', rows: 2,
-        hintOverlay: '從 R 步驟確認的需求中，選出最優先要解決的那一個。選擇理由要對應你的取捨標準——不能只說「最重要」，要說「根據我的取捨標準，它最優先因為…」。最優先項目要和暫緩項目形成對比，讓面試官看到你的判斷邏輯，而不只是一個列表。' },
+        hintOverlay: '從 R 的需求中挑最該優先做的一個。理由要對應取捨標準——不能只說「最重要」。最優先必須能和暫緩形成明確對比，才看得出取捨邏輯。' },
       { key: '暫緩項目', placeholder: '說明哪些項目暫緩處理及理由…', rows: 2,
-        hintOverlay: '暫緩不等於不重要——你要說清楚「為什麼現在不做」。是資源限制？廣告主關係風險？還是依賴其他功能先完成？好的暫緩理由展示你對整個業務系統的理解，而不只是「先做 A 再做 B」。理由越具體，說服力越強。' },
+        hintOverlay: '暫緩不等於不重要——說清楚「為什麼現在不做」。資源限制？依賴未到？業務時機不對？理由越具體，越能展現你對整個業務系統的理解。' },
       { key: '排序理由', placeholder: '說明整體排序的核心邏輯…', rows: 2,
-        hintOverlay: '排序理由是把前三欄串起來的關鍵。它要回答：「為什麼最優先的不能暫緩？為什麼暫緩的不能優先？」說清楚這個邏輯，才是真正的取捨分析，而不只是列表。面試官期待看到你的判斷——為什麼是這個順序，而不是另一個順序？' },
+        hintOverlay: '把前三欄串起來：為什麼最優先的不能暫緩？為什麼暫緩的不能優先？這欄考的是判斷力，不是再列一次清單。最好能回應一個潛在反對意見。' },
     ],
-    icebreaker: '問被訪談者這個項目有哪些硬性的業務限制——收入不能下降多少、廣告主有哪些合約承諾。有了約束邊界，才能確立你的取捨標準。',
+    icebreaker: '先與被訪談者確認這題的業務硬約束——什麼指標不能掉、什麼承諾不能違背。約束邊界先定下來，取捨標準才能立得住。',
     conclusionSub: '說明取捨標準、最優先項目、暫緩項目以及排序理由',
     conclusionPlaceholder: '針對這題，整理你確認的取捨標準、最優先項目與暫緩理由…',
     conclusionExample: 'Spotify 取捨標準：不影響付費轉換率為硬性約束，優先改善廣告後的回聽體驗。最優先：廣告後自動播放相關歌曲（不影響收入且可提升留存）。暫緩：廣告頻率自訂（影響廣告主收入預期）。排序理由：自動播放是正和，頻率控制是零和；正和優先。',
@@ -303,15 +275,15 @@ var CIRCLES_STEP_CONFIG = {
     fields: [
       { key: '方案一', placeholder: '說明方案一的核心機制…', rows: 2, kind: 'solution', solKey: 'sol1',
         nameKey: 'sol1', namePlaceholder: '方案名稱（10 字內）',
-        hintOverlay: '方案一通常是最直接解決優先痛點的路徑。根據 C 步驟的取捨標準，你最優先要解決的是「Feed 相關性不足」——方案一應該直接針對這個問題。說清楚你的方案是什麼、核心機制是什麼，一句話能讓面試官理解你在提什麼。' },
+        hintOverlay: '方案一通常最直接打到核心痛點。給它一個有記憶點的短名（不是「方案 A」）+ 核心機制一句話。讓面試官一聽就懂你在提什麼。' },
       { key: '方案二', placeholder: '說明方案二的核心機制（與方案一方向不同）…', rows: 2, kind: 'solution', solKey: 'sol2',
         nameKey: 'sol2', namePlaceholder: '方案名稱（10 字內）',
-        hintOverlay: '方案二要和方案一有明確的方向差異——不是「更多」而是「不同」。例如：方案一是演算法主動過濾，方案二可以是讓用戶主動控制。多樣性是這個步驟的核心評分維度。如果你的方案二只是方案一的微調，面試官會認為你的思維不夠廣。' },
+        hintOverlay: '方案二要和方案一在「方向」上有本質差異——不是更多，而是不同。例如方案一是系統主動，方案二可以是用戶主動；或方案一是短期戰術，方案二是長期重設計。多樣性是評分重點。' },
       { key: '方案三（可選）', placeholder: '說明方案三的核心機制（可選）…', rows: 2, kind: 'solution', solKey: 'sol3', optional: true,
         nameKey: 'sol3', namePlaceholder: '方案名稱（10 字內）',
-        hintOverlay: '方案三是加分項，不是必填。如果你有第三個有意義的方案——通常是更激進或更長期的路徑——加上去能展示你的思維廣度。但如果只是湊數，不填反而更好。方案三和前兩個的差距，應該讓面試官感覺「這是完全不同的思路」。' },
+        hintOverlay: '方案三是加分項。如果有第三個真正不同的思路（更激進、更長線、或從另一個維度切入），能展示思維廣度。湊數寧可不填——說明「前兩個已涵蓋主要可能性」也是有效回答。' },
     ],
-    icebreaker: '問被訪談者這個項目有沒有討論過的方案方向——不是評估哪個最好，而是問「你們考慮過哪幾種做法」。這樣能讓你確認自己的方案有沒有遺漏重要選項。',
+    icebreaker: '先與被訪談者確認對方有沒有討論過的方案方向——不是評估哪個最好，而是「考慮過哪幾種做法」，幫你檢查是否有遺漏。',
     conclusionSub: '用 1-2 句話說明：2-3 個方案各一句，並說明各方案核心差異',
     conclusionPlaceholder: '針對這題，整理你提出的 2-3 個解法方向及各自的核心特性…',
     conclusionExample: 'Spotify 免費版廣告體驗：方案一：廣告後自動播放相關歌曲（系統主動，見效快）。方案二：用戶選擇「廣告換無廣告時段」兌換（用戶主動）。差異：系統 vs. 用戶主動兩個維度。',
@@ -323,15 +295,15 @@ var CIRCLES_STEP_CONFIG = {
     showPrevStepCard: true,
     perSolutionFields: [
       { key: '優點', placeholder: '這個方案的核心優勢是什麼？',
-        hintOverlay: '優點要具體——不是「用戶喜歡」，而是「直接解決 Feed 相關性問題，系統主動，用戶無感」。說出這個方案「為什麼比其他方案更適合解決這個問題」。' },
+        hintOverlay: '優點要具體——不是「用戶喜歡」，而是「直接解決核心痛點 X、且見效快」。最好能說出「相對其他方案在 Y 維度上更強」，比孤立列點有說服力。' },
       { key: '缺點', placeholder: '最大的劣勢或限制？',
-        hintOverlay: '缺點不是說「這個方案不好」，而是誠實說「這個方向的侷限在哪裡」。面試官希望看到你能清楚識別方案的邊界，而不是只看到優點。' },
+        hintOverlay: '誠實列出方案的局限——隱藏缺點只會讓面試官不信任你。每個缺點標清楚影響程度（嚴重／中等／輕微）和觸發條件（什麼情況下會被放大）。' },
       { key: '風險與依賴', placeholder: '實施這個方案需要什麼前提條件？',
-        hintOverlay: '風險是「如果 X 沒有達成，這個方案就會失敗」。常見的有：資料依賴（需要哪些 ML 訓練資料）、用戶行為假設（用戶願意主動設定）、業務約束（廣告收入不能下降超過 N%）。' },
+        hintOverlay: '列出方案要成功的前提條件——技術依賴、組織依賴、市場條件。若這些不具備，最壞情況是什麼？哪些可以提前緩解？這欄考的是系統思考。' },
       { key: '成功指標', placeholder: '如何衡量這個方案是否成功？',
-        hintOverlay: '成功指標要和你在 R 步驟確認的核心痛點掛鉤。如果核心痛點是「Feed 相關性不足」，成功指標應該是「用戶在 Feed 上的停留時間提升 X%」或「廣告點擊率維持在 Y% 以上」。' },
+        hintOverlay: '成功指標要和 R 的核心痛點掛鉤——指標一動，就代表痛點解了。最好同時有領先指標（2-6 週可看）+ 滯後指標（3-6 月才確定的核心目標）+ 量化門檻。' },
     ],
-    icebreaker: '問被訪談者：「這幾個方案你們在評估時，最擔心的風險是什麼？」——不是問哪個最好，而是問顧慮。這樣能讓你確認自己的風險識別有沒有遺漏關鍵的業務約束。',
+    icebreaker: '先與被訪談者問「這幾個方案最擔心的風險是什麼」——不是問哪個最好，而是問顧慮，幫你檢查風險識別有沒有遺漏關鍵業務約束。',
     conclusionSub: '用 2-3 句話說明：各方案最關鍵的優缺點，以及你認為哪個方向最值得推薦',
     conclusionPlaceholder: '整理各方案的優缺點與風險，說明哪個方案最值得推薦及理由…',
     conclusionExample: 'Spotify 免費版廣告體驗三個方案評估：廣告後推薦（優：系統主動，缺：可能推錯）；時段兌換（優：用戶主動，缺：採用率低）；分層訂閱（優：商業模式清晰，缺：開發週期長）。推薦廣告後推薦，短期可行且用戶無感。',
@@ -343,15 +315,15 @@ var CIRCLES_STEP_CONFIG = {
     showNsmAnnotation: true,
     fields: [
       { key: '推薦方案', placeholder: '清楚點名一個推薦方案…', rows: 2,
-        hintOverlay: 'S 步驟的核心是做出一個清晰的決策，而不是羅列選項。「推薦方案一或方案二都可以」這種回答會讓面試官覺得你缺乏決斷力。直接說「我推薦方案 X，因為……」——一句話，一個方案，一個最核心的理由。' },
+        hintOverlay: 'S 的核心是做決策，不是羅列。「方案一二都可以」會被視為缺乏決斷。直接說「我推薦 X，因為……」——一句話、一個方案、一個最核心的理由。' },
       { key: '選擇理由', placeholder: '引用 E 步驟結論說明選擇理由…', rows: 2,
-        hintOverlay: '最強的選擇理由來自你自己前幾步的分析，而非重新發明新邏輯。試著把 E 步驟的評估結論直接引用進來：「E 步驟顯示此方案風險最低、成功指標最清晰、依賴條件最少。」這樣的回答展現出你的分析有連貫性，整個 CIRCLES 框架是有機的整體，不是各自獨立的格子。' },
+        hintOverlay: '最強的選擇理由來自前幾步的分析，不是重新發明邏輯。引用 E 步驟的評估結論 + 對照其他方案落選的具體理由 + 回應自己選定方案最大的缺點。展現分析的連貫性。' },
       { key: '北極星指標', placeholder: '定義能反映核心價值的成果指標…', rows: 2,
-        hintOverlay: '北極星指標是衡量用戶真正獲得核心價值的成果指標，不是業務結果（營收、訂閱數）也不是活動指標（下載數、登入次數）。好的北極星指標能分辨「用戶有沒有真的在使用」：✗ 月活用戶數（開 App 就算）✓ 每月完整播放 ≥1 首歌的用戶數（真正在聽音樂）。你的推薦方案若成功，這個指標應該要上升。' },
+        hintOverlay: '北極星指標反映「用戶真正獲得核心價值」，不是營收／訂閱（業務結果）也不是 DAU／下載量（活動指標）。好 NSM 能分辨用戶有沒有真的在用——例如「每月完整使用核心功能 ≥ N 次的用戶數」這種行為指標。' },
       { key: '追蹤指標', kind: 'tracking',
-        hintOverlay: '4 個維度讓你從不同角度驗證方案是否有效推動北極星指標：觸及廣度 — 有多少人看到你的方案？互動深度 — 看到之後有沒有真正採取行動？習慣頻率 — 持續回來使用嗎？留存驅力 — 是什麼讓他們留下來付費？每個指標盡量包含量化目標，例如「轉化率 ≥ 5%」。' },
+        hintOverlay: '4 個維度檢查 NSM 的驅動因素：觸及廣度（多少人看到）、互動深度（看到後是否行動）、習慣頻率（是否持續回來）、留存驅力（什麼讓他們留下）。每個指標盡量加量化門檻。' },
     ],
-    icebreaker: '你已完成 S 步驟的框架分析。現在透過與被訪談者對話，深化你的推薦邏輯與指標選擇。',
+    icebreaker: '最後階段：把推薦方案、選擇邏輯、北極星與追蹤指標整理成一個完整的決策論述。能用一句話講完，是檢驗清晰度的標準。',
     conclusionSub: '說明選定的推薦方案、北極星指標的精確定義、追蹤指標的優先序',
     conclusionPlaceholder: '整理你的最終推薦結論…',
     conclusionExample: '推薦「連續學習獎勵」方案，在第 7 天連續學習時觸發 Super 試用。NSM 定為每月完成 ≥5 堂課的學習用戶數。追蹤指標優先序：① 試用啟動率（觸及廣度）② 試用期課程完成率（互動深度）③ 試用到期後 30 日訂閱率（留存驅力）。',
@@ -825,9 +797,11 @@ function renderOffcanvasList(listEl, sessions) {
       const type = item.dataset.type;
       if (type === 'circles') {
         closeOffcanvas();
-        // Try to use cached session data for instant navigation
+        // Use cached session data only for active sessions (instant navigation).
+        // Completed sessions need full fetch — list select doesn't include
+        // final_report / conversation, so we'd land on a perpetual loading screen.
         const cached = AppState.offcanvasCache?.find(s => s.id === id);
-        if (cached) {
+        if (cached && cached.status !== 'completed') {
           AppState.circlesSelectedQuestion = cached.question_json;
           AppState.circlesSession = { id: cached.id, mode: cached.mode, drill_step: cached.drill_step };
           AppState.circlesMode = cached.mode || 'simulation';
@@ -837,8 +811,17 @@ function renderOffcanvasList(listEl, sessions) {
           AppState.circlesFrameworkDraft = {};
           AppState.circlesGateResult = null;
           AppState.circlesConversation = [];
-          AppState.circlesScoreResult = null;
-          AppState.circlesStepScores = cached.circles_step_scores || cached.step_scores || {};
+          var cachedSteps = cached.circles_step_scores || cached.step_scores || {};
+          AppState.circlesStepScores = cachedSteps;
+          var cachedKey = (cached.mode === 'simulation')
+            ? (CIRCLES_STEPS[cached.sim_step_index || 0] || {}).key
+            : cached.drill_step;
+          AppState.circlesScoreResult = (AppState.circlesPhase === 3 && cachedKey && cachedSteps[cachedKey])
+            ? cachedSteps[cachedKey]
+            : null;
+          if (AppState.circlesPhase === 3 && !AppState.circlesScoreResult) {
+            AppState.circlesPhase = 2;
+          }
           AppState.circlesFinalReport = null;
           navigate('circles');
         } else {
@@ -1372,11 +1355,6 @@ function buildFieldGroupHtml(stepKey, field, draft, isSimulation, fieldIdx) {
   var rows = field.rows || 2;
   var key = field.key;
   var val = draft[key] != null ? draft[key] : '';
-  // Drill mode: show static example hint (collapsible); Simulation: hide
-  var hint = '';
-  if (!isSimulation && CIRCLES_STEP_HINTS[stepKey] && CIRCLES_STEP_HINTS[stepKey][fieldIdx]) {
-    hint = CIRCLES_STEP_HINTS[stepKey][fieldIdx];
-  }
   return '<div class="circles-field-group">' +
     '<div class="circles-field-label-row">' +
       '<div class="circles-field-label">' + escHtml(key) + '</div>' +
@@ -1384,7 +1362,7 @@ function buildFieldGroupHtml(stepKey, field, draft, isSimulation, fieldIdx) {
         '<i class="ph ph-lightbulb"></i> 提示' +
       '</button>' +
     '</div>' +
-    buildFieldExampleHtml(stepKey, key, hint) +
+    buildFieldExampleHtml(stepKey, key, '') +
     '<textarea class="circles-field-input" data-field="' + escHtml(key) + '" rows="' + rows + '" placeholder="' + escHtml(field.placeholder || '填寫你的分析…') + '">' + escHtml(val) + '</textarea>' +
   '</div>';
 }
@@ -1398,10 +1376,6 @@ function buildSolutionFieldHtml(stepKey, field, draft, lDraft, isSimulation, fie
   var nameVal = lDraft[solKey] != null ? lDraft[solKey] : '';
   var bodyVal = draft[key] != null ? draft[key] : '';
   var optional = !!field.optional;
-  var hint = '';
-  if (!isSimulation && CIRCLES_STEP_HINTS[stepKey] && CIRCLES_STEP_HINTS[stepKey][fieldIdx]) {
-    hint = CIRCLES_STEP_HINTS[stepKey][fieldIdx];
-  }
   var groupId = optional ? ' id="l-sol3-group" style="display:' + (nameVal || bodyVal ? 'block' : 'none') + '"' : '';
   return '<div class="circles-field-group"' + groupId + '>' +
     '<div class="circles-field-label-row">' +
@@ -1414,7 +1388,7 @@ function buildSolutionFieldHtml(stepKey, field, draft, lDraft, isSimulation, fie
       '<i class="ph ph-tag"></i>' +
       '<input class="sol-name-input" type="text" maxlength="10" data-sol-name="' + solKey + '" placeholder="' + escHtml(field.namePlaceholder || '方案名稱（10 字內）') + '" value="' + escHtml(nameVal) + '">' +
     '</div>' +
-    buildFieldExampleHtml(stepKey, key, hint) +
+    buildFieldExampleHtml(stepKey, key, '') +
     '<textarea class="circles-field-input" data-field="' + escHtml(key) + '" rows="' + (field.rows || 2) + '" placeholder="' + escHtml(field.placeholder || '') + '">' + escHtml(bodyVal) + '</textarea>' +
   '</div>';
 }
@@ -1459,8 +1433,7 @@ function buildESolutionBlockHtml(solKey, solIdx, solName, perSolDraft, eFieldsCo
   var displayName = solName || '（未命名）';
   var fieldsHtml = eFieldsConfig.map(function(f, i) {
     var v = perSolDraft[f.key] != null ? perSolDraft[f.key] : '';
-    var hintIdx = i; // E hints are per-field for sol1; reuse for all sols
-    var hint = (!isOptional && CIRCLES_STEP_HINTS['E'] && CIRCLES_STEP_HINTS['E'][hintIdx]) ? CIRCLES_STEP_HINTS['E'][hintIdx] : '';
+    var hint = '';
     return '<div class="circles-field-group">' +
       '<div class="circles-field-label-row">' +
         '<div class="circles-field-label">' + escHtml(f.key) + '</div>' +
@@ -1680,71 +1653,75 @@ function bindCirclesPhase1() {
   });
 
   // ── Collapsible field example toggle: 查看範例 / 收起範例
-  // First open: fetch question-specific example via AI, cache, then show
-  // Subsequent toggles: instant from cache (no refetch)
+  // Examples are curated per-question in circles_database.json.field_examples,
+  // served by the session-less /api/circles-public/example endpoint.
+  // First open: fetch + cache. Subsequent toggles: instant from cache.
   document.querySelectorAll('.field-example-toggle').forEach(function(btn) {
     btn.addEventListener('click', async function() {
       var body = btn.nextElementSibling;
       if (!body || !body.classList.contains('field-example-body')) return;
       var stepKey = btn.dataset.exampleStep;
       var fieldKey = btn.dataset.exampleField;
-      var session = AppState.circlesSession;
+      var question = AppState.circlesSelectedQuestion;
       var isOpen = body.classList.toggle('open');
       btn.innerHTML = isOpen
         ? '<i class="ph ph-caret-down"></i> 收起範例'
         : '<i class="ph ph-caret-right"></i> 查看範例';
       if (!isOpen) return; // closing — no fetch needed
 
-      // Already populated this open cycle? skip
       if (body.dataset.loaded === '1') return;
 
-      // Init cache
       if (!AppState.circlesExamplesCache) AppState.circlesExamplesCache = {};
-      var cacheKey = (session && session.id ? session.id : 'nosession') + '|' + stepKey + '|' + fieldKey;
+      var qid = question && question.id ? question.id : '';
+      var cacheKey = qid + '|' + stepKey + '|' + fieldKey;
 
-      // Show fallback static text (if any) immediately while AI loads
-      var fallback = body.dataset.fallback || '';
       var cached = AppState.circlesExamplesCache[cacheKey];
+      if (cached === '__not_curated__') {
+        body.innerHTML = '<span style="color:var(--c-text-3);font-size:11px">此題目暫無範例</span>';
+        body.dataset.loaded = '1';
+        return;
+      }
       if (cached) {
         body.innerHTML = '例：' + escHtml(cached);
         body.dataset.loaded = '1';
         return;
       }
-      body.innerHTML = '<span style="color:var(--c-text-3);font-size:11px">'
-        + (fallback ? '例（通用）：' + escHtml(fallback) + '<br>' : '')
-        + '<i class="ph ph-circle-notch" style="display:inline-block;animation:spin 0.8s linear infinite;font-size:10px;margin-right:4px"></i>正在生成此題範例…</span>';
 
-      // Fetch from AI
-      if (!session || !session.id) {
-        // No session yet — show only fallback
-        body.innerHTML = fallback ? '例：' + escHtml(fallback) : '<span style="color:var(--c-text-3);font-size:11px">需建立 session 後才能生成範例</span>';
+      if (!qid) {
+        body.innerHTML = '<span style="color:var(--c-text-3);font-size:11px">題目資訊缺失，無法載入範例</span>';
         body.dataset.loaded = '1';
         return;
       }
+
+      body.innerHTML = '<span style="color:var(--c-text-3);font-size:11px">'
+        + '<i class="ph ph-circle-notch" style="display:inline-block;animation:spin 0.8s linear infinite;font-size:10px;margin-right:4px"></i>載入範例…</span>';
+
       try {
-        var headers = { 'Content-Type': 'application/json' };
-        if (AppState.accessToken) headers['Authorization'] = 'Bearer ' + AppState.accessToken;
-        else headers['X-Guest-ID'] = AppState.guestId;
-        var url = (AppState.accessToken ? '/api/circles-sessions/' : '/api/guest-circles-sessions/')
-          + session.id + '/example';
-        var resp = await fetch(url, {
+        var resp = await fetch('/api/circles-public/example', {
           method: 'POST',
-          headers: headers,
-          body: JSON.stringify({ step: stepKey, field: fieldKey }),
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ questionId: qid, step: stepKey, field: fieldKey }),
         });
+        if (resp.status === 404) {
+          AppState.circlesExamplesCache[cacheKey] = '__not_curated__';
+          if (body.classList.contains('open')) {
+            body.innerHTML = '<span style="color:var(--c-text-3);font-size:11px">此題目暫無範例</span>';
+            body.dataset.loaded = '1';
+          }
+          return;
+        }
         var data = await resp.json();
         if (!resp.ok || !data.example) throw new Error(data.error || 'failed');
         AppState.circlesExamplesCache[cacheKey] = data.example;
-        // User may have closed the panel during fetch — only update if still open
         if (body.classList.contains('open')) {
-          body.innerHTML = '例：' + escHtml(data.example);
+          // Render **bold** markdown to <strong> after escaping HTML.
+          var rendered = escHtml(data.example).replace(/\*\*([^*]+?)\*\*/g, '<strong>$1</strong>');
+          body.innerHTML = '例：' + rendered;
           body.dataset.loaded = '1';
         }
       } catch (e) {
         if (body.classList.contains('open')) {
-          body.innerHTML = fallback
-            ? '例：' + escHtml(fallback) + '<br><span style="color:var(--c-text-3);font-size:10px">（AI 範例生成失敗，顯示通用範例）</span>'
-            : '<span style="color:var(--c-text-3);font-size:11px">範例生成失敗，請重試</span>';
+          body.innerHTML = '<span style="color:var(--c-text-3);font-size:11px">範例載入失敗，請重試</span>';
           body.dataset.loaded = '1';
         }
       }
@@ -1858,27 +1835,12 @@ function bindCirclesPhase1() {
 
 // ──────────────────────────────────────────────────
 // showCirclesHint — Screen 3 hint overlay (modal)
-//   Renders a centered hint card; tries to fetch AI-generated hint, falls back
-//   to the static `hintOverlay` text in CIRCLES_STEP_CONFIG. Both auth and guest
-//   /hint endpoints exist server-side (routes/circles-sessions.js).
+//   Always fetches AI-generated, question-specific hint via the session-less
+//   public endpoint (`/api/circles-public/hint`). No more static Meta-themed
+//   fallback — if generation fails, ask the user to retry.
 // ──────────────────────────────────────────────────
 async function showCirclesHint(step, field) {
   var q = AppState.circlesSelectedQuestion;
-  var session = AppState.circlesSession;
-
-  // Static fallback hint (always available — looks up the field's hintOverlay text)
-  var fallbackHint = '';
-  var cfg = CIRCLES_STEP_CONFIG[step];
-  if (cfg) {
-    if (cfg.kind === 'per-solution' && cfg.perSolutionFields) {
-      var pf = cfg.perSolutionFields.find(function(f) { return f.key === field; });
-      if (pf) fallbackHint = pf.hintOverlay || '';
-    }
-    if (!fallbackHint && cfg.fields) {
-      var sf = cfg.fields.find(function(f) { return f.key === field; });
-      if (sf) fallbackHint = sf.hintOverlay || '';
-    }
-  }
 
   // Remove any existing overlay
   var existing = document.getElementById('circles-hint-overlay');
@@ -1905,7 +1867,9 @@ async function showCirclesHint(step, field) {
   function renderHintBody(text) {
     var body = document.getElementById('hint-body-area');
     if (!body) return;
-    body.outerHTML = '<div class="hint-body">' + escHtml(text) + '</div>' +
+    // Render **bold** markdown to <strong> after HTML-escaping the rest.
+    var rendered = escHtml(text).replace(/\*\*([^*]+?)\*\*/g, '<strong>$1</strong>');
+    body.outerHTML = '<div class="hint-body">' + rendered + '</div>' +
       '<div style="display:flex;justify-content:space-between;align-items:center;margin-top:10px">' +
         '<button id="hint-collapse-btn" type="button" style="font-size:11px;color:var(--c-text-3);background:none;border:none;cursor:pointer;font-family:DM Sans,sans-serif">收起提示</button>' +
         '<div class="hint-footer" style="margin-top:0">閱讀後自行填寫</div>' +
@@ -1913,24 +1877,24 @@ async function showCirclesHint(step, field) {
     document.getElementById('hint-collapse-btn')?.addEventListener('click', close);
   }
 
-  // Try the AI endpoint; fall back to the static hint if it errors
-  if (session && session.id) {
-    try {
-      var hintHeaders = AppState.accessToken
-        ? { 'Content-Type': 'application/json', 'Authorization': 'Bearer ' + AppState.accessToken }
-        : { 'Content-Type': 'application/json', 'X-Guest-ID': AppState.guestId };
-      var baseUrl = AppState.accessToken
-        ? '/api/circles-sessions/' + session.id + '/hint'
-        : '/api/guest-circles-sessions/' + session.id + '/hint';
-      var res = await fetch(baseUrl, { method: 'POST', headers: hintHeaders, body: JSON.stringify({ step: step, field: field }) });
-      if (res.ok) {
-        var data = await res.json();
-        renderHintBody(data.hint || fallbackHint || '尚無提示');
-        return;
-      }
-    } catch (e) { /* fall through to static hint */ }
+  if (!q || !q.id) {
+    renderHintBody('題目資訊缺失，無法生成提示');
+    return;
   }
-  renderHintBody(fallbackHint || '尚無提示');
+
+  try {
+    var res = await fetch('/api/circles-public/hint', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ questionId: q.id, step: step, field: field }),
+    });
+    if (res.ok) {
+      var data = await res.json();
+      renderHintBody(data.hint || '提示生成失敗，請重試');
+      return;
+    }
+  } catch (e) { /* fall through */ }
+  renderHintBody('提示生成失敗，請重試');
 }
 window.showCirclesHint = showCirclesHint;
 function renderCirclesGate() {

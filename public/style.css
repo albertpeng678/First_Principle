@@ -48,7 +48,9 @@ html {
 }
 
 body {
-  overflow-x: hidden;
+  /* overflow-x is handled on <html>; setting it here would implicitly turn
+     body's overflow-y into `auto`, which makes body its own scroll container
+     and breaks mouse-wheel scroll on the document. */
   overscroll-behavior-y: none;
   font-family: 'DM Sans', -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
   background: #F2F0EB;

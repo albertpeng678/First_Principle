@@ -1,0 +1,225 @@
+<!DOCTYPE html>
+<html lang="zh-TW">
+<head>
+<meta charset="UTF-8">
+<title>Review · CIRCLES Field Examples</title>
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<style>
+  :root {
+    --bg: #F2F0EB; --card: #fff; --border: rgba(0,0,0,0.08);
+    --text: #1a1a1a; --text-2: #5a5a5a; --text-3: #8a8a8a;
+    --accent: #1A56DB; --accent-lt: rgba(26,86,219,0.08);
+    --warn-bg: #FFF7ED; --warn-border: #FED7AA;
+  }
+  * { box-sizing: border-box; }
+  body {
+    margin: 0; padding: 0;
+    font-family: 'DM Sans', -apple-system, sans-serif;
+    background: var(--bg); color: var(--text);
+    line-height: 1.6;
+  }
+  .topbar {
+    position: sticky; top: 0; z-index: 10;
+    background: rgba(255,255,255,0.9); backdrop-filter: blur(10px);
+    border-bottom: 1px solid var(--border);
+    padding: 12px 24px;
+    display: flex; gap: 16px; align-items: center; flex-wrap: wrap;
+  }
+  .topbar h1 { margin: 0; font-size: 16px; font-weight: 600; }
+  .topbar input {
+    flex: 1; min-width: 200px;
+    padding: 8px 12px; border: 1px solid var(--border); border-radius: 6px;
+    font-size: 14px;
+  }
+  .topbar select, .topbar button {
+    padding: 8px 12px; border: 1px solid var(--border); border-radius: 6px;
+    font-size: 13px; background: #fff; cursor: pointer;
+  }
+  .topbar button:hover { background: var(--accent-lt); }
+  .meta { color: var(--text-3); font-size: 12px; }
+  .container { max-width: 1100px; margin: 0 auto; padding: 16px; }
+  .card {
+    background: var(--card); border: 1px solid var(--border);
+    border-radius: 12px; margin-bottom: 16px;
+    overflow: hidden;
+  }
+  .card-header {
+    padding: 12px 16px; cursor: pointer;
+    display: flex; justify-content: space-between; align-items: center;
+    background: linear-gradient(180deg, #fff 0%, #fafafa 100%);
+    border-bottom: 1px solid transparent;
+    user-select: none;
+  }
+  .card.open .card-header { border-bottom-color: var(--border); }
+  .card-id { font-size: 11px; color: var(--text-3); font-family: monospace; }
+  .card-title {
+    font-weight: 600; font-size: 14px;
+    margin: 2px 0;
+  }
+  .card-problem {
+    font-size: 12px; color: var(--text-2);
+    overflow: hidden; text-overflow: ellipsis;
+    display: -webkit-box; -webkit-line-clamp: 2; -webkit-box-orient: vertical;
+  }
+  .card-toggle {
+    font-size: 18px; color: var(--text-3); flex-shrink: 0; margin-left: 12px;
+  }
+  .card.open .card-toggle::before { content: '▾'; }
+  .card:not(.open) .card-toggle::before { content: '▸'; }
+  .card-body { padding: 0; display: none; }
+  .card.open .card-body { display: block; }
+
+  .step-section {
+    border-bottom: 1px solid var(--border); padding: 14px 16px;
+  }
+  .step-section:last-child { border-bottom: none; }
+  .step-label {
+    display: inline-block; padding: 2px 8px; font-size: 11px;
+    background: var(--accent); color: #fff; border-radius: 4px;
+    margin-bottom: 8px; font-weight: 600;
+  }
+  .field-row {
+    margin: 8px 0; padding: 10px 12px;
+    background: #fafafa; border-radius: 8px;
+    border-left: 3px solid var(--accent);
+  }
+  .field-name {
+    font-size: 12px; font-weight: 600; color: var(--accent);
+    margin-bottom: 4px;
+  }
+  .field-text { font-size: 13px; color: var(--text); }
+  .field-text strong { color: var(--accent); font-weight: 700; }
+  .field-meta { font-size: 11px; color: var(--text-3); margin-top: 4px; }
+  .missing { color: #B85C00; font-style: italic; }
+
+  .problem-full {
+    font-size: 13px; color: var(--text-2);
+    padding: 10px 16px; background: var(--warn-bg);
+    border-bottom: 1px solid var(--border);
+  }
+</style>
+</head>
+<body>
+  <div class="topbar">
+    <h1>📝 CIRCLES 範例 Review</h1>
+    <input id="search" placeholder="搜尋公司／產品／題目（例：Marketplace、Spotify、安全）...">
+    <select id="filter-step">
+      <option value="">所有步驟</option>
+      <option value="C1">C1 澄清情境</option>
+      <option value="I">I 定義用戶</option>
+      <option value="R">R 發掘需求</option>
+      <option value="C2">C2 優先排序</option>
+      <option value="L">L 提出方案</option>
+      <option value="E">E 評估取捨</option>
+      <option value="S">S 總結推薦</option>
+    </select>
+    <button id="expand-all">全展開</button>
+    <button id="collapse-all">全收起</button>
+    <span id="meta" class="meta">載入中…</span>
+  </div>
+  <div class="container" id="container"></div>
+
+<script>
+const STEP_FIELDS = {
+  C1: ['問題範圍', '時間範圍', '業務影響', '假設確認'],
+  I:  ['目標用戶分群', '選定焦點對象', '用戶動機假設', '排除對象'],
+  R:  ['功能性需求', '情感性需求', '社交性需求', '核心痛點'],
+  C2: ['取捨標準', '最優先項目', '暫緩項目', '排序理由'],
+  L:  ['方案一', '方案二', '方案三（可選）'],
+  E:  ['優點', '缺點', '風險與依賴', '成功指標'],
+  S:  ['推薦方案', '選擇理由', '北極星指標', '追蹤指標'],
+};
+const STEP_ORDER = ['C1', 'I', 'R', 'C2', 'L', 'E', 'S'];
+
+function escHtml(s) {
+  return String(s ?? '').replace(/[&<>"']/g, c => ({
+    '&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'
+  }[c]));
+}
+function renderText(s) {
+  return escHtml(s).replace(/\*\*([^*]+?)\*\*/g, '<strong>$1</strong>');
+}
+
+let DATA = [];
+let stepFilter = '';
+let searchTerm = '';
+
+async function load() {
+  const res = await fetch('/api/circles-public/all-examples');
+  DATA = await res.json();
+  document.getElementById('meta').textContent = `${DATA.length} 題`;
+  render();
+}
+
+function render() {
+  const container = document.getElementById('container');
+  const term = searchTerm.toLowerCase();
+  const filtered = DATA.filter(q => {
+    if (!term) return true;
+    const haystack = (q.id + ' ' + (q.company || '') + ' ' + (q.product || '') + ' ' + (q.problem_statement || '')).toLowerCase();
+    return haystack.includes(term);
+  });
+
+  container.innerHTML = filtered.map(q => {
+    const fe = q.field_examples || {};
+    let stepBlocks = '';
+    const stepsToShow = stepFilter ? [stepFilter] : STEP_ORDER;
+    for (const step of stepsToShow) {
+      const fields = STEP_FIELDS[step];
+      const stepData = fe[step] || {};
+      const rows = fields.map(f => {
+        const text = stepData[f];
+        if (!text) {
+          return `<div class="field-row"><div class="field-name">${escHtml(f)}</div><div class="missing">— 未生成</div></div>`;
+        }
+        return `<div class="field-row">
+          <div class="field-name">${escHtml(f)}</div>
+          <div class="field-text">${renderText(text)}</div>
+          <div class="field-meta">${text.length} 字</div>
+        </div>`;
+      }).join('');
+      stepBlocks += `<div class="step-section"><div class="step-label">${step}</div>${rows}</div>`;
+    }
+
+    return `<div class="card" data-id="${escHtml(q.id)}">
+      <div class="card-header">
+        <div style="flex:1; min-width:0">
+          <div class="card-id">${escHtml(q.id)}</div>
+          <div class="card-title">${escHtml(q.company || '')} · ${escHtml(q.product || '')}</div>
+          <div class="card-problem">${escHtml(q.problem_statement || '')}</div>
+        </div>
+        <span class="card-toggle"></span>
+      </div>
+      <div class="card-body">
+        <div class="problem-full">📋 ${escHtml(q.problem_statement || '')}</div>
+        ${stepBlocks}
+      </div>
+    </div>`;
+  }).join('');
+
+  document.querySelectorAll('.card-header').forEach(h => {
+    h.addEventListener('click', () => h.parentElement.classList.toggle('open'));
+  });
+  document.getElementById('meta').textContent =
+    `${filtered.length}/${DATA.length} 題` + (stepFilter ? ` · 只看 ${stepFilter}` : '');
+}
+
+document.getElementById('search').addEventListener('input', e => {
+  searchTerm = e.target.value;
+  render();
+});
+document.getElementById('filter-step').addEventListener('change', e => {
+  stepFilter = e.target.value;
+  render();
+});
+document.getElementById('expand-all').addEventListener('click', () => {
+  document.querySelectorAll('.card').forEach(c => c.classList.add('open'));
+});
+document.getElementById('collapse-all').addEventListener('click', () => {
+  document.querySelectorAll('.card').forEach(c => c.classList.remove('open'));
+});
+
+load();
+</script>
+</body>
+</html>
