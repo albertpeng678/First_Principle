@@ -24,6 +24,31 @@ router.get('/', requireGuestId, async (req, res) => {
   res.json(data || []);
 });
 
+// POST /api/guest-circles-sessions/draft — Lazy-create endpoint (Spec 2 § 3.1)
+router.post('/draft', requireGuestId, async (req, res) => {
+  const { question_id, mode, drill_step, sim_step_index } = req.body;
+  if (!question_id || !mode) return res.status(400).json({ error: 'missing_fields' });
+  try {
+    const { data, error } = await db
+      .from('circles_sessions')
+      .insert({
+        guest_id: req.guestId,
+        question_id,
+        mode,
+        drill_step: drill_step || null,
+        sim_step_index: sim_step_index || 0,
+        current_phase: 1,
+        status: 'active',
+        step_drafts: {},
+        framework_draft: {},
+      })
+      .select()
+      .single();
+    if (error) throw error;
+    res.json(data);
+  } catch (e) { res.status(500).json({ error: e.message }); }
+});
+
 // POST /api/guest-circles-sessions
 router.post('/', requireGuestId, async (req, res) => {
   const { questionId, questionJson, mode, drillStep } = req.body;
@@ -172,12 +197,13 @@ router.post('/:id/conclusion-check', requireGuestId, async (req, res) => {
 
 // PATCH /api/guest-circles-sessions/:id/progress
 router.patch('/:id/progress', requireGuestId, async (req, res) => {
-  const { currentPhase, simStepIndex, frameworkDraft, gateResult } = req.body;
+  const { currentPhase, simStepIndex, frameworkDraft, gateResult, stepDrafts } = req.body;
   const patch = {};
   if (currentPhase   !== undefined) patch.current_phase    = currentPhase;
   if (simStepIndex   !== undefined) patch.sim_step_index   = simStepIndex;
   if (frameworkDraft !== undefined) patch.framework_draft  = frameworkDraft;
   if (gateResult     !== undefined) patch.gate_result      = gateResult;
+  if (stepDrafts     !== undefined) patch.step_drafts      = stepDrafts;
   if (Object.keys(patch).length === 0) return res.status(400).json({ error: 'nothing_to_update' });
 
   const { error } = await db

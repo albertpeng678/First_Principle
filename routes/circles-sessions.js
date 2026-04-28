@@ -25,6 +25,34 @@ router.post('/', requireAuth, async (req, res) => {
   } catch (e) { res.status(500).json({ error: e.message }); }
 });
 
+// POST /api/circles-sessions/draft — Lazy-create endpoint (Spec 2 § 3.1)
+// Used by Phase 1 auto-save to mint an active session on first textarea input.
+// Returns the inserted row (not just `{ sessionId }`) so the front-end can
+// hydrate AppState.circlesSession in one round-trip.
+router.post('/draft', requireAuth, async (req, res) => {
+  const { question_id, mode, drill_step, sim_step_index } = req.body;
+  if (!question_id || !mode) return res.status(400).json({ error: 'missing_fields' });
+  try {
+    const { data, error } = await db
+      .from('circles_sessions')
+      .insert({
+        user_id: req.user.id,
+        question_id,
+        mode,
+        drill_step: drill_step || null,
+        sim_step_index: sim_step_index || 0,
+        current_phase: 1,
+        status: 'active',
+        step_drafts: {},
+        framework_draft: {},
+      })
+      .select()
+      .single();
+    if (error) throw error;
+    res.json(data);
+  } catch (e) { res.status(500).json({ error: e.message }); }
+});
+
 // GET /api/circles-sessions
 router.get('/', requireAuth, async (req, res) => {
   let query = db
@@ -177,12 +205,13 @@ router.post('/:id/conclusion-check', requireAuth, async (req, res) => {
 // PATCH /api/circles-sessions/:id/progress — save phase/step without AI call
 // Called on every phase transition so the session can be resumed after page close.
 router.patch('/:id/progress', requireAuth, async (req, res) => {
-  const { currentPhase, simStepIndex, frameworkDraft, gateResult } = req.body;
+  const { currentPhase, simStepIndex, frameworkDraft, gateResult, stepDrafts } = req.body;
   const patch = {};
   if (currentPhase   !== undefined) patch.current_phase    = currentPhase;
   if (simStepIndex   !== undefined) patch.sim_step_index   = simStepIndex;
   if (frameworkDraft !== undefined) patch.framework_draft  = frameworkDraft;
   if (gateResult     !== undefined) patch.gate_result      = gateResult;
+  if (stepDrafts     !== undefined) patch.step_drafts      = stepDrafts;
   if (Object.keys(patch).length === 0) return res.status(400).json({ error: 'nothing_to_update' });
 
   const { error } = await db
