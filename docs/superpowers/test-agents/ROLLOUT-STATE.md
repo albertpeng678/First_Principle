@@ -1,6 +1,6 @@
 # PM Drill Mega Rollout — Live State Checkpoint
 
-**Last updated:** 2026-04-28 (Phase 0 complete, Phases 1-4 dispatched in parallel and running in background)
+**Last updated:** 2026-04-29 — Phase 0 ✅ done. Phases 1-4 partial: org monthly usage limit hit on all 4 background agents.
 
 This file is the source of truth if my conversation context is lost. **New sessions: read this end-to-end first**, then read the plan, then resume.
 
@@ -83,24 +83,24 @@ This file is the source of truth if my conversation context is lost. **New sessi
 
 ### Worktrees on disk
 
-| Path | Branch | Pushed to origin? | Status |
-|---|---|---|---|
-| `/Users/albertpeng/Desktop/claude_project/pm-drill-phase-0` | `phase-0-foundation` | ✅ pushed | ✅ COMPLETE — 11 commits, both reviews APPROVED |
-| `/Users/albertpeng/Desktop/claude_project/pm-drill-phase-1` | `phase-1-bullet-examples` (off phase-0) | ⏳ pending agent | 🟡 IN PROGRESS — Phase 1 bullet examples |
-| `/Users/albertpeng/Desktop/claude_project/pm-drill-phase-2` | `phase-2-progress-save` (off phase-0) | ⏳ pending agent | 🟡 IN PROGRESS — Phase 2 progress save |
-| `/Users/albertpeng/Desktop/claude_project/pm-drill-phase-3` | `phase-3-rich-text` (off phase-0) | ⏳ pending agent | 🟡 IN PROGRESS — Phase 3 rich text toolbar |
-| `/Users/albertpeng/Desktop/claude_project/pm-drill-phase-4` | `phase-4-desktop-layouts` (off phase-0) | ⏳ pending agent | 🟡 IN PROGRESS — Phase 4 desktop layouts (4.1-4.7 sequentially) |
+| Path | Branch | Pushed | Commits done | Status |
+|---|---|---|---|---|
+| `pm-drill-phase-0` | `phase-0-foundation` | ✅ | 11 | ✅ COMPLETE — both reviews APPROVED |
+| `pm-drill-phase-1` | `phase-1-bullet-examples` | ✅ | 4 | 🟠 PARTIAL — Tasks 1.1, 1.2, 1.3, 1.5 done. Task 1.4 (regenerate 99 questions via Claude API) **NOT done**. Task 1.6 push **DONE by controller**. Uncommitted: `circles_plan/circles_database.json` modified, `tmp/update-circles-002.js` untracked — likely mid-Task-1.2/1.4 state, do NOT commit blindly, inspect first. |
+| `pm-drill-phase-2` | `phase-2-progress-save` | ✅ | 4 | 🟠 PARTIAL — Tasks 2.1 (POST /draft), 2.2 (auto-save), 2.3 (indicator), 2.4 (badge), 2.5 (banner) done. Tests **NOT done** (Task 2.6) — `tests/playwright/journeys/circles-progress-save.spec.js` is untracked but unfinished. Push **DONE by controller**. Migration for `step_drafts` JSONB column status: agent's last commit accepts `stepDrafts` in PATCH — verify column exists in Supabase before merge. |
+| `pm-drill-phase-3` | `phase-3-rich-text` | ✅ | 3 | 🟠 PARTIAL — Tasks 3.1 (CSS), 3.2 (actions), 3.3 (IME-safe shortcuts) done. Tasks 3.4 (mobile visualViewport), 3.5 (`.rt-textarea` opt-in across forms), 3.6 (test pass-through) **NOT done**. 5 test specs are written but failing (TDD red state). Modified test files uncommitted. Push **DONE by controller**. |
+| `pm-drill-phase-4` | `phase-4-desktop-layouts` | ✅ | 1 | 🟠 PARTIAL — Only Task 4.1 (CIRCLES home desktop) done. Tasks 4.2-4.7 **NOT done**. Uncommitted Task 4.2 work in progress: `public/app.js` modified, `tests/playwright/journeys/desktop-phase1.spec.js` untracked. Push **DONE by controller**. |
 
-### Background agent IDs (as of dispatch)
+### Background agent IDs (NO LONGER ALIVE — all hit org monthly usage limit)
 
-These are async subagent IDs — use SendMessage to query/continue them.
+These agents stopped on 2026-04-29 with `You've hit your org's monthly usage limit`. They are **not resumable**. New session must dispatch fresh agents (after billing resets) to finish each phase.
 
-| Phase | Agent ID |
+| Phase | Old Agent ID (dead) |
 |---|---|
-| Phase 1 | `ae6fce19502b1ffc0` |
-| Phase 2 | `a3f5decccb375d40d` |
-| Phase 3 | `aa288be19d65b5224` |
-| Phase 4 | `a6df15d1e67ff466e` |
+| Phase 1 | `ae6fce19502b1ffc0` (1422s, 70 tool uses) |
+| Phase 2 | `a3f5decccb375d40d` (1085s, 82 tool uses) |
+| Phase 3 | `aa288be19d65b5224` (996s, 63 tool uses) |
+| Phase 4 | `a6df15d1e67ff466e` (953s, 55 tool uses) |
 
 ### Phase 0 commit hashes (Phase 1-4 are branched off this)
 
@@ -110,11 +110,15 @@ Tip of `phase-0-foundation` branch: `06acaa8 test(tokens): assert navbar favicon
 
 ---
 
-## Next steps (in order)
+## Next steps (in order) — UPDATED for partial state
 
-1. **Wait for Phase 4 checkpoint after 4.1** → dispatch Phase 5 onboarding agent (depends on Phase 4.1 CIRCLES home desktop).
-2. **Wait for Phase 4 checkpoint after 4.6** → dispatch Phase 6 NSM 對比 mobile bottom-sheet agent.
-3. **As each Phase 1-6 reports DONE** → run two-stage review (spec compliance + code quality) per `superpowers:subagent-driven-development` skill.
+1. **Resume Phase 1** (when budget restored): dispatch new agent on worktree `../pm-drill-phase-1`. Inspect uncommitted state first (`circles_plan/circles_database.json` + `tmp/update-circles-002.js`); decide whether to keep or discard. Then complete Task 1.4 (regenerate 99 questions via Claude API, ~10 min), iterate audit until <1% violations, commit, push.
+2. **Resume Phase 2**: dispatch new agent on `../pm-drill-phase-2`. Complete Task 2.6 (Playwright test for end-to-end auto-save). Verify Supabase `step_drafts` column exists or write migration. Push.
+3. **Resume Phase 3**: dispatch new agent on `../pm-drill-phase-3`. Complete Tasks 3.4 (mobile visualViewport), 3.5 (`.rt-textarea` opt-in on Phase 1 + NSM 2/3 + E + S 4-dim textareas), 3.6 (make 5 failing TDD tests pass). Push.
+4. **Resume Phase 4**: dispatch new agent on `../pm-drill-phase-4`. Inspect uncommitted Task 4.2 work first. Then complete 4.2 (Phase 1 form desktop), 4.3 (Phase 2 chat desktop, easy), 4.4 (Phase 3 score desktop), 4.5 (NSM Step 1-3 desktop), 4.6 (NSM Step 4 + 對比 tab), 4.7 (review-examples + login desktop). After 4.6, dispatch Phase 6.
+5. **After Phase 4.1 already done** → dispatch Phase 5 onboarding agent in parallel (worktree `../pm-drill-phase-5` off `phase-0-foundation`).
+6. **After Phase 4 reports 4.6 done** → dispatch Phase 6 NSM 對比 mobile bottom-sheet agent (worktree `../pm-drill-phase-6` off Phase 4 branch).
+7. **Per phase DONE** → spec compliance review subagent → code quality review subagent → fix loop → APPROVED.
 4. **Phase 7 integration**: create worktree `../pm-drill-phase-X-integration` off `main`, merge `phase-0-foundation` → `phase-1-bullet-examples` → `phase-2-progress-save` → `phase-3-rich-text` → `phase-4-desktop-layouts` → `phase-5-onboarding` → `phase-6-nsm-mobile-sheet`. Resolve conflicts (highest concentration in `public/app.js` + `public/style.css`).
 5. **Round 1 SIT**: dispatch 8 SIT agents in parallel using `docs/superpowers/test-agents/sit-prompts.md`. Loop fix until 8/8 PASS.
 6. **Round 2 UAT**: dispatch 7 UAT personas in parallel using `uat-prompts.md`. Collect friction points.
