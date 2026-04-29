@@ -3366,11 +3366,19 @@ textarea.rt-textarea {
   color:#fff;
   border-color:var(--c-primary);
 }
+/* Mobile (≤1023px): inline toolbar attached to each .rt-field, hidden until
+   the textarea (or any sibling button inside the field) gains focus. The
+   prior keyboard-top fixed toolbar (#rt-toolbar-mobile) was unreliable on
+   iOS Safari because of visualViewport timing — inline + focus-within is
+   deterministic and never floats out of place. Desktop keeps the always-on
+   toolbar at the top of each field. */
 @media (min-width: 1024px) {
   .rt-toolbar-mobile { display:none !important; }
 }
 @media (max-width: 1023px) {
-  .rt-toolbar { display:none; }
+  .rt-toolbar-mobile { display:none !important; }
+  .rt-field .rt-toolbar { display:none; }
+  .rt-field:focus-within .rt-toolbar { display:flex; }
 }
 
 /* ─────────────────────────────────────────────

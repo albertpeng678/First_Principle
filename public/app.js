@@ -1340,12 +1340,17 @@ init();
     updateToolbarState();
   });
 
-  // Prevent mobile toolbar mousedown from stealing focus
-  document.addEventListener('mousedown', (e) => {
-    if (e.target.closest('#rt-toolbar-mobile')) {
+  // Prevent toolbar mousedown/touchstart from blurring the textarea —
+  // critical for the mobile :focus-within visibility model: if the
+  // textarea blurs, .rt-toolbar becomes display:none before the click
+  // can fire on the button.
+  const _preventBlur = (e) => {
+    if (e.target.closest('.rt-toolbar, #rt-toolbar-mobile')) {
       e.preventDefault();
     }
-  });
+  };
+  document.addEventListener('mousedown', _preventBlur);
+  document.addEventListener('touchstart', _preventBlur, { passive: false });
 
   // ── Mobile sticky toolbar focus/blur + visualViewport ──
   function attachMobile() {
