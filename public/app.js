@@ -1693,6 +1693,68 @@ function renderCirclesPhase1() {
     '<button class="circles-btn-primary" id="circles-p1-submit" type="button">' + (isSimulation && isLastStep ? '提交審核' : '提交審核') + '</button>' +
   '</div>';
 
+  // Phase 4.2 — desktop wrapper class
+  var _isDesktopP1 = (typeof isDesktop === 'function' && isDesktop());
+
+  // Phase 4.2 — desktop sidebar rail (題目脈絡 + 上一步重點)
+  var _railHtml = '';
+  if (_isDesktopP1) {
+    var _prevKey = stepIdx > 0 ? CIRCLES_STEPS[stepIdx - 1].key : null;
+    var _prevDraft = _prevKey ? ((AppState.circlesStepDrafts && AppState.circlesStepDrafts[_prevKey]) || {}) : {};
+    var _prevSummary = '';
+    Object.keys(_prevDraft).slice(0, 3).forEach(function(k) {
+      var v = _prevDraft[k];
+      if (typeof v === 'string' && v.trim()) {
+        _prevSummary += '<div style="margin-bottom:6px"><div style="font-size:10.5px;color:var(--c-text-3);font-weight:600">' + escHtml(k) + '</div><div style="font-size:11.5px;color:var(--c-text-2);line-height:1.5">' + escHtml(v.slice(0, 80)) + (v.length > 80 ? '…' : '') + '</div></div>';
+      }
+    });
+    _railHtml = '<aside class="p1-rail">' +
+      '<div><h4>題目脈絡</h4>' +
+        '<div style="font-size:11.5px;color:var(--c-text-2);line-height:1.5">' + escHtml((q.company || '') + (q.product ? ' · ' + q.product : '')) + '</div>' +
+      '</div>' +
+      (_prevSummary ? '<div><h4>上一步重點</h4>' + _prevSummary + '</div>' : '') +
+    '</aside>';
+  }
+
+  // Phase 4.2 — S step split into 2 sub-pages on desktop
+  var _sStepTabs = '';
+  if (_isDesktopP1 && stepKey === 'S') {
+    var _sStep = AppState.circlesSStep || 1;
+    _sStepTabs = '<div class="s-step-tabs">' +
+      '<button class="s-step-tab ' + (_sStep === 1 ? 'active' : '') + '" data-s-step="1" type="button">S-1 摘要</button>' +
+      '<button class="s-step-tab ' + (_sStep === 2 ? 'active' : '') + '" data-s-step="2" type="button">S-2 追蹤指標</button>' +
+    '</div>';
+  }
+
+  if (_isDesktopP1) {
+    return '<div data-view="circles" class="phase1-desktop">' +
+      '<div class="circles-nav">' +
+        '<button class="circles-nav-back" id="circles-p1-nav-back" type="button"><i class="ph ph-arrow-left"></i></button>' +
+        '<div>' +
+          '<div class="circles-nav-title">' + escHtml(config.label) + '</div>' +
+          '<div class="circles-nav-sub">' + escHtml(q.company || '') + (q.product ? ' · ' + escHtml(q.product) : '') + '</div>' +
+        '</div>' +
+        '<button class="circles-nav-home" id="circles-p1-home" type="button">回首頁</button>' +
+      '</div>' +
+      '<div class="circles-progress">' + progressSegs + '<div class="circles-progress-label">' + escHtml(config.progressLabel) + '</div></div>' +
+      '<div class="p1-grid">' +
+        '<div class="p1-main circles-phase1-wrap">' +
+          pillsHtml +
+          _sStepTabs +
+          '<div class="problem-card">' + escHtml(q.problem_statement || '') + '</div>' +
+          (config.showPrevStepCard ? buildPrevStepCardHtml(stepKey) : '') +
+          (config.showNsmAnnotation ? '<div class="nsm-annotation">' +
+            '此步驟的北極星指標欄位是 NSM 訓練的濃縮版。想深入練習？' +
+            '<button id="circles-s-nsm-link" type="button">前往 NSM 訓練 →</button>' +
+          '</div>' : '') +
+          bodyHtml +
+        '</div>' +
+        _railHtml +
+      '</div>' +
+      submitBarHtml +
+    '</div>';
+  }
+
   return '<div data-view="circles">' +
     '<div class="circles-nav">' +
       '<button class="circles-nav-back" id="circles-p1-nav-back" type="button"><i class="ph ph-arrow-left"></i></button>' +
@@ -1875,6 +1937,14 @@ function bindCirclesPhase1() {
           body.dataset.loaded = '1';
         }
       }
+    });
+  });
+
+  // ── Phase 4.2 — S-step desktop sub-page tab switch
+  document.querySelectorAll('.s-step-tab').forEach(function(btn) {
+    btn.addEventListener('click', function() {
+      AppState.circlesSStep = parseInt(btn.dataset.sStep, 10) || 1;
+      render();
     });
   });
 
