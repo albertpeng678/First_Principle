@@ -4,18 +4,20 @@
 <meta charset="UTF-8">
 <title>Review · CIRCLES Field Examples</title>
 <meta name="viewport" content="width=device-width, initial-scale=1">
+<link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/@phosphor-icons/web@2.1.1/src/regular/style.css">
 <style>
   :root {
-    --bg: #F2F0EB; --card: #fff; --border: rgba(0,0,0,0.08);
-    --text: #1a1a1a; --text-2: #5a5a5a; --text-3: #8a8a8a;
-    --accent: #1A56DB; --accent-lt: rgba(26,86,219,0.08);
+    --c-bg: #F2F0EB; --card: #fff; --border: rgba(0,0,0,0.08);
+    --text: #1a1a1a; --text-2: #5a5a5a; --text-3: #666666;
+    --accent: var(--c-primary); --accent-lt: rgba(26,86,219,0.08);
     --warn-bg: #FFF7ED; --warn-border: #FED7AA;
+    --c-warn-bold: #B85C00;
   }
   * { box-sizing: border-box; }
   body {
     margin: 0; padding: 0;
     font-family: 'DM Sans', -apple-system, sans-serif;
-    background: var(--bg); color: var(--text);
+    background: var(--c-bg); color: var(--text);
     line-height: 1.6;
   }
   .topbar {
@@ -90,7 +92,7 @@
   .field-text { font-size: 13px; color: var(--text); }
   .field-text strong { color: var(--accent); font-weight: 700; }
   .field-meta { font-size: 11px; color: var(--text-3); margin-top: 4px; }
-  .missing { color: #B85C00; font-style: italic; }
+  .missing { color: var(--c-warn-bold); font-style: italic; }
 
   .problem-full {
     font-size: 13px; color: var(--text-2);
@@ -98,12 +100,14 @@
     border-bottom: 1px solid var(--border);
   }
 </style>
+<script src="/app.js" type="module"></script>
 </head>
 <body>
   <div class="topbar">
-    <h1>📝 CIRCLES 範例 Review</h1>
+    <h1><i class="ph ph-pencil-line"></i> CIRCLES 範例 Review</h1>
     <input id="search" placeholder="搜尋公司／產品／題目（例：Marketplace、Spotify、安全）...">
-    <select id="filter-step">
+    <label for="filter-step" style="font-size:13px; color:var(--text-2);">步驟篩選</label>
+    <select id="filter-step" aria-label="步驟篩選">
       <option value="">所有步驟</option>
       <option value="C1">C1 澄清情境</option>
       <option value="I">I 定義用戶</option>
@@ -117,7 +121,7 @@
     <button id="collapse-all">全收起</button>
     <span id="meta" class="meta">載入中…</span>
   </div>
-  <div class="container" id="container"></div>
+  <div class="container review-desktop" id="container"></div>
 
 <script>
 const STEP_FIELDS = {
@@ -137,6 +141,10 @@ function escHtml(s) {
   }[c]));
 }
 function renderText(s) {
+  // Prefer the shared bullet renderer from app.js when available.
+  if (typeof window !== 'undefined' && typeof window.renderBulletText === 'function') {
+    return window.renderBulletText(s);
+  }
   return escHtml(s).replace(/\*\*([^*]+?)\*\*/g, '<strong>$1</strong>');
 }
 
@@ -191,7 +199,7 @@ function render() {
         <span class="card-toggle"></span>
       </div>
       <div class="card-body">
-        <div class="problem-full">📋 ${escHtml(q.problem_statement || '')}</div>
+        <div class="problem-full"><i class="ph ph-clipboard-text"></i> ${escHtml(q.problem_statement || '')}</div>
         ${stepBlocks}
       </div>
     </div>`;

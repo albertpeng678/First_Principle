@@ -1,42 +1,53 @@
-:root,
-[data-theme="dark"] {
-  --bg-primary: #0f1117;
-  --bg-surface: #1a1d27;
-  --bg-surface-2: #252836;
-  --text-primary: #e8eaf0;
-  --text-secondary: #9399a6;
-  --text-tertiary: rgba(255,255,255,0.28);
-  --accent: #6c63ff;
-  --accent-hover: #5a52e0;
-  --success: #4caf7d;
-  --warning: #f0a04b;
-  --danger: #e05252;
-  --border: rgba(255,255,255,0.08);
-  --shadow: 0 4px 24px rgba(0,0,0,0.4);
-  --bubble-user-bg: #6c63ff;
-  --bubble-user-text: #ffffff;
-  --bubble-ai-bg: #252836;
-  --bubble-ai-text: #e8eaf0;
-}
+:root, [data-theme="light"] {
+  /* Primary */
+  --c-primary: #1A56DB;          /* 統一 (原 hardcode 109 處 + var 設紫色衝突) */
+  --c-primary-lt: rgba(26,86,219,0.08);
+  --c-primary-mid: rgba(26,86,219,0.18);
 
-[data-theme="light"] {
-  --bg-primary: #ffffff;
-  --bg-surface: #f5f5f5;
-  --bg-surface-2: #ebebeb;
-  --text-primary: #1a1d27;
-  --text-secondary: #5a5e6b;
-  --text-tertiary: rgba(0,0,0,0.28);
-  --accent: #5a52e0;
-  --accent-hover: #4840c8;
-  --success: #2e7d52;
-  --warning: #d4821a;
-  --danger: #c0392b;
-  --border: rgba(0,0,0,0.1);
-  --shadow: 0 4px 24px rgba(0,0,0,0.1);
-  --bubble-user-bg: #5a52e0;
-  --bubble-user-text: #ffffff;
-  --bubble-ai-bg: #ebebeb;
-  --bubble-ai-text: #1a1d27;
+  /* NSM secondary (purple, used only for NSM banners/labels) */
+  --c-nsm: #7C3AED;
+  --c-nsm-lt: rgba(124,58,237,0.06);
+
+  /* Surface */
+  --c-bg: #F2F0EB;               /* 主背景，已存在 */
+  --c-bg-alt: #F4F1EB;           /* desktop 細暖底 */
+  --c-card: #fff;
+  --c-surface: #fafaf8;
+
+  /* Text */
+  --c-text: #1F1D1B;             /* 暖深棕，比 #1a1a1a 更柔 */
+  --c-text-2: #5a5046;
+  --c-text-3: #8a7e6f;
+  --c-text-4: #a89d8e;
+  /* SIT-7 F5: secondary text token w/ AA-compliant contrast against cream bg (~7:1 vs #F2F0EB) */
+  --c-text-secondary: #5a5a5a;
+
+  /* Border */
+  --c-border: rgba(60,45,30,0.08);
+  --c-border-mid: rgba(60,45,30,0.12);
+  --c-border-strong: rgba(60,45,30,0.15);
+
+  /* Status */
+  --c-success: #10b981;
+  --c-success-lt: #D1FAE5;
+  --c-success-fg: #065F46;
+  --c-warn: #D97706;
+  --c-warn-lt: #FEF3C7;
+  --c-warn-fg: #92400E;
+  --c-danger: #DC2626;
+  --c-danger-lt: #FEE2E2;
+  --c-danger-fg: #991B1B;
+
+  /* Spec-3 bold report palette (used by NSM report and CIRCLES gate bars) */
+  --c-error: #D92020;
+  --c-warn-bold: #B85C00;
+  --c-ok-bold: #137A3D;
+
+  /* Score dim colors (固定，不改) */
+  --c-dim-reach: #3b82f6;
+  --c-dim-depth: #8b5cf6;
+  --c-dim-frequency: #10b981;
+  --c-dim-retention: #f59e0b;
 }
 
 * { box-sizing: border-box; margin: 0; padding: 0; -webkit-tap-highlight-color: transparent; }
@@ -53,15 +64,34 @@ body {
      and breaks mouse-wheel scroll on the document. */
   overscroll-behavior-y: none;
   font-family: 'DM Sans', -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
-  background: #F2F0EB;
+  background: var(--c-bg);
   color: #1a1a1a;
   min-height: 100dvh;
 }
 
 /* Layout */
-#app { max-width: 760px; margin: 0 auto; padding: 0 16px 16px; }
-body[data-view="report"]  #app { max-width: 1100px; }
-body[data-view="history"] #app { max-width: 860px; }
+#app { max-width: 100%; margin: 0 auto; padding: 0 16px 16px; }
+
+@media (min-width: 720px) and (max-width: 1023px) {
+  #app { max-width: 720px; padding: 0 24px 24px; }
+}
+
+@media (min-width: 1024px) {
+  /* overflow-x: clip prevents the navbar's negative margin (margin: 0 -16px)
+     from creating a horizontal scrollbar at desktop widths once page content
+     is tall enough to require a vertical scrollbar. */
+  #app { max-width: none; padding: 0; overflow-x: clip; }
+  .circles-home-desktop { max-width: 1180px; margin: 0 auto; padding: 24px 28px; }
+  .phase1-desktop { max-width: 1180px; margin: 0 auto; padding: 0 28px 100px; }
+  .phase2-desktop { max-width: 920px; margin: 0 auto; padding: 0 24px; }
+  .phase3-desktop { max-width: 920px; margin: 0 auto; padding: 0 24px 100px; }
+  .nsm-home-desktop { max-width: 920px; margin: 0 auto; padding: 18px 24px 100px; }
+  .nsm-step2-desktop { max-width: 720px; margin: 0 auto; padding: 18px 24px 100px; }
+  .nsm-step3-desktop { max-width: 920px; margin: 0 auto; padding: 18px 24px 100px; }
+  .nsm-step4-desktop { max-width: 920px; margin: 0 auto; padding: 18px 24px 100px; }
+  .review-desktop { max-width: 1180px; margin: 0 auto; padding: 24px; }
+  .login-desktop { max-width: 420px; margin: 60px auto 0; padding: 0 24px; }
+}
 
 /* Navbar — sticky glassmorphism (aistockmap pattern) */
 .navbar {
@@ -1116,6 +1146,64 @@ textarea::placeholder { white-space: nowrap; overflow: hidden; text-overflow: el
   .nsm-comparison { grid-template-columns: 1fr; }
 }
 
+/* ══════════════════════════════════════════════════
+   Phase 6 — NSM Step 4 對比 tab mobile vertical stack + bottom sheet
+   ══════════════════════════════════════════════════ */
+@media (max-width: 1023px) {
+  .nsm-compare-mobile-stack { display: flex; flex-direction: column; gap: 16px; padding: 4px 0 12px; }
+  .nsm-compare-dim-block { display: flex; flex-direction: column; gap: 8px; }
+  .nsm-compare-dim-title {
+    font-size: 12px; font-weight: 700; color: var(--text-secondary);
+    letter-spacing: 0.02em; padding-left: 2px;
+  }
+  .nsm-compare-mobile-stack .nsm-tree-node {
+    width: 100%; margin-bottom: 0;
+    display: flex; flex-direction: column; gap: 4px;
+  }
+  .nsm-compare-card-tag {
+    display: inline-block; align-self: flex-start;
+    font-size: 10px; font-weight: 700; letter-spacing: 0.04em;
+    padding: 2px 8px; border-radius: 999px;
+    background: var(--bg-surface-2, rgba(0,0,0,0.06));
+    color: var(--text-secondary);
+    margin-bottom: 4px;
+  }
+  .nsm-compare-card-tag.coach {
+    background: rgba(108,99,255,0.12); color: var(--accent);
+  }
+
+  /* Bottom sheet — slide up animation, max 70vh */
+  .nsm-detail-sheet {
+    position: fixed; bottom: 0; left: 0; right: 0;
+    background: var(--bg-surface, #fff);
+    border-radius: 16px 16px 0 0;
+    padding: 14px 20px 24px;
+    max-height: 70vh; overflow-y: auto;
+    box-shadow: 0 -8px 24px rgba(0,0,0,0.18);
+    z-index: 1100;
+    transform: translateY(100%);
+    transition: transform 0.25s ease;
+    -webkit-overflow-scrolling: touch;
+  }
+  .nsm-detail-sheet.open { transform: translateY(0); }
+  .nsm-detail-sheet-handle {
+    width: 40px; height: 4px;
+    background: var(--border, #d0d4db);
+    border-radius: 2px;
+    margin: 4px auto 14px;
+    cursor: pointer;
+  }
+  .nsm-detail-sheet-body { font-size: 13px; color: var(--text-primary); line-height: 1.6; }
+  .nsm-detail-sheet-backdrop {
+    position: fixed; inset: 0;
+    background: rgba(0,0,0,0.32);
+    opacity: 0; pointer-events: none;
+    transition: opacity 0.2s ease;
+    z-index: 1099;
+  }
+  .nsm-detail-sheet-backdrop.open { opacity: 1; pointer-events: auto; }
+}
+
 /* ── Print CSS ── */
 @media print {
   .navbar, .offcanvas, .offcanvas-overlay,
@@ -1160,7 +1248,7 @@ label[for] {
 body { -webkit-font-smoothing: antialiased; }
 
 /* ══════════════════════════════════════════════════
-   PERF — Task 2: Fix transition:all → scoped transitions
+   PERF -- Task 2: Fix transition:all to scoped transitions
    ══════════════════════════════════════════════════ */
 
 .home-tab-btn {
@@ -1191,19 +1279,13 @@ body { -webkit-font-smoothing: antialiased; }
 /* ═══════════════════════════════════════════════
    CIRCLES Training — Light Theme
    All styles scoped under [data-view="circles"]
-   Primary: #1A56DB  Surface: #F2F0EB  Card: #fff
+   Primary: var(--c-primary)  Surface: var(--c-bg)  Card: #fff
    ═══════════════════════════════════════════════ */
 
 [data-view="circles"] {
-  --c-primary:     #1A56DB;
-  --c-primary-lt:  rgba(26,86,219,0.08);
   --c-primary-dim: #C8D8FF;
-  --c-surface:    #F2F0EB;
+  --c-surface:    var(--c-bg);
   --c-card:       #ffffff;
-  --c-border:     rgba(0,0,0,0.08);
-  --c-text:       #1a1a1a;
-  --c-text-2:     #5a5a5a;
-  --c-text-3:     #8a8a8a;
   --c-error:      #D92020;
   --c-error-lt:   rgba(217,32,32,0.08);
   --c-warn:       #B85C00;
@@ -1435,7 +1517,7 @@ body { -webkit-font-smoothing: antialiased; }
 }
 .circles-q-card-more {
   font-size: 11px;
-  color: var(--c-primary, #1A56DB);
+  color: var(--c-primary);
   cursor: pointer;
   margin-top: 4px;
   font-family: 'DM Sans', sans-serif;
@@ -1650,7 +1732,7 @@ body { -webkit-font-smoothing: antialiased; }
   align-items: center;
 }
 [data-view="circles"] .gate-transition-bar.gate-pass .gate-transition-icon { color: #137A3D; }
-[data-view="circles"] .gate-transition-bar.gate-fail .gate-transition-icon { color: #D92020; }
+[data-view="circles"] .gate-transition-bar.gate-fail .gate-transition-icon { color: var(--c-error); }
 [data-view="circles"] .gate-transition-text {
   flex: 1;
   font-size: 12px;
@@ -1658,7 +1740,7 @@ body { -webkit-font-smoothing: antialiased; }
   font-family: 'DM Sans', sans-serif;
 }
 [data-view="circles"] .gate-transition-bar.gate-pass .gate-transition-text { color: #137A3D; }
-[data-view="circles"] .gate-transition-bar.gate-fail .gate-transition-text { color: #D92020; }
+[data-view="circles"] .gate-transition-bar.gate-fail .gate-transition-text { color: var(--c-error); }
 [data-view="circles"] .gate-continue-btn {
   background: var(--c-primary);
   color: #fff;
@@ -1720,7 +1802,7 @@ body { -webkit-font-smoothing: antialiased; }
 }
 [data-view="circles"] .gate-item-suggestion {
   font-size: 11px;
-  color: #B85C00;
+  color: var(--c-warn);
   margin-top: 4px;
   font-family: 'DM Sans', sans-serif;
   line-height: 1.5;
@@ -1806,7 +1888,7 @@ body { -webkit-font-smoothing: antialiased; }
 }
 
 .circles-conclusion-box {
-  border-top: 2px solid #1A56DB;
+  border-top: 2px solid var(--c-primary);
   background: #fff;
   padding: 14px;
   flex-shrink: 0;
@@ -3088,7 +3170,7 @@ body { -webkit-font-smoothing: antialiased; }
 .hint-overlay .hint-title {
   font-size: 13px;
   font-weight: 700;
-  color: #1A56DB;
+  color: var(--c-primary);
   margin: 0 0 4px;
   font-family: 'DM Sans', sans-serif;
   display: flex;
@@ -3113,7 +3195,7 @@ body { -webkit-font-smoothing: antialiased; }
   color: #1a1a1a;
   line-height: 1.7;
   background: #F6F8FF;
-  border-left: 3px solid #1A56DB;
+  border-left: 3px solid var(--c-primary);
   padding: 12px;
   border-radius: 0 8px 8px 0;
   font-family: 'DM Sans', sans-serif;
@@ -3126,3 +3208,379 @@ body { -webkit-font-smoothing: antialiased; }
   font-family: 'DM Sans', sans-serif;
 }
 @keyframes spin { to { transform: rotate(360deg); } }
+
+/* Navbar refresh (Phase 0 Task 0.5) */
+.navbar-favicon { width:22px; height:22px; border-radius:7px; background:var(--c-primary); display:inline-flex; align-items:center; justify-content:center; margin-right:8px; vertical-align:middle; }
+.navbar-favicon i { color:#fff; font-size:13px; }
+.navbar-tabs { display:flex; gap:2px; margin-left:24px; }
+.navbar-tab { padding:6px 12px; border-radius:7px; cursor:pointer; font-size:12.5px; color:var(--c-text-2); }
+.navbar-tab.active { background:#fff; color:var(--c-text); font-weight:500; border:1px solid var(--c-border); }
+@media (max-width: 1023px) { .hide-mobile { display:none !important; } }
+
+/* ── Bullet text renderer (spec 1 § 4.3) ── */
+.rt-bullet-list { list-style:disc; padding-left:18px; margin:0; font-size:13px; line-height:1.7; color:var(--c-text); }
+.rt-bullet-list > li { margin: 4px 0; }
+.rt-bullet-list .rt-bullet-sub { list-style:circle; padding-left:18px; margin:4px 0; }
+.rt-bullet-list strong { color:var(--c-primary); font-weight:700; }
+
+/* ── Phase 2 Spec 2: CIRCLES auto-save indicator ──────────────────── */
+.circles-progress { position:relative; }
+.save-indicator {
+  display:none;
+  align-items:center;
+  gap:5px;
+  font-size:10.5px;
+  font-family:'DM Sans', sans-serif;
+  margin-left:auto;
+  padding-left:10px;
+  user-select:none;
+  transition:opacity 200ms ease;
+}
+.save-indicator .dot {
+  width:6px; height:6px; border-radius:50%; display:inline-block;
+}
+.save-indicator.save-saving { color:var(--c-warn, #D97706); }
+.save-indicator.save-saving .dot { background:var(--c-warn, #D97706); }
+.save-indicator.save-saved { color:var(--c-success, #10b981); }
+.save-indicator.save-saved .dot { background:var(--c-success, #10b981); }
+.save-indicator.save-error {
+  color:var(--c-danger, #DC2626);
+  cursor:pointer;
+  text-decoration:underline;
+}
+.save-indicator.save-error .dot { background:var(--c-danger, #DC2626); }
+
+/* ── Phase 2 Spec 2: CIRCLES resume banner ──────────────────────── */
+.resume-banner {
+  display:flex;
+  align-items:center;
+  justify-content:space-between;
+  gap:12px;
+  background:#fff;
+  border:1px solid var(--c-border);
+  border-radius:12px;
+  padding:14px 16px;
+  margin-bottom:16px;
+  font-size:13px;
+}
+.resume-banner strong { font-weight:600; color:var(--c-text); }
+.resume-banner .resume-go {
+  color:var(--c-primary);
+  font-weight:600;
+  cursor:pointer;
+  margin-right:10px;
+}
+.resume-banner .dismiss {
+  cursor:pointer;
+  color:var(--c-text-3, #888);
+  font-size:14px;
+  padding:4px;
+}
+.resume-banner .dismiss:hover { color:var(--c-text); }
+
+/* ── Phase 2 Spec 2: offcanvas "進行中" warn badge ────────────────── */
+.offcanvas-item .badge.badge-warn {
+  background:var(--c-warn-lt, #FEF3C7);
+  color:var(--c-warn-fg, #92400E);
+}
+
+/* ── Rich-text toolbar (Phase 3 Spec 4) ────────────────────────────── */
+.rt-field { display:block; }
+.rt-toolbar {
+  display:flex;
+  gap:5px;
+  padding:5px 6px;
+  background:var(--c-surface, #fff);
+  border:1px solid var(--c-border-mid, #e2e2e2);
+  border-bottom:none;
+  border-radius:6px 6px 0 0;
+}
+.rt-tbtn {
+  padding:3px 8px;
+  font-size:10.5px;
+  border:1px solid var(--c-border-mid, #e2e2e2);
+  background:#fff;
+  border-radius:4px;
+  cursor:pointer;
+  color:var(--c-text-2, #4a4a4a);
+  min-width:24px;
+  display:inline-flex;
+  align-items:center;
+  justify-content:center;
+}
+.rt-tbtn:hover { background:var(--c-bg-alt, #f3f3f0); }
+.rt-tbtn.active {
+  background:var(--c-primary);
+  color:#fff;
+  border-color:var(--c-primary);
+}
+.rt-tbtn i { font-size:13px; }
+textarea.rt-textarea {
+  border-radius:0 0 6px 6px;
+  border-top:none;
+}
+
+/* Mobile sticky-bottom toolbar */
+.rt-toolbar-mobile {
+  position:fixed;
+  left:0; right:0;
+  bottom:0;
+  background:rgba(255,255,255,0.95);
+  -webkit-backdrop-filter:blur(8px);
+  backdrop-filter:blur(8px);
+  border-top:1px solid var(--c-border, #e2e2e2);
+  padding:8px 12px;
+  padding-bottom:max(8px, env(safe-area-inset-bottom));
+  gap:6px;
+  z-index:200;
+}
+.rt-mtbtn {
+  flex:1;
+  padding:8px 0;
+  background:#fff;
+  border:1px solid var(--c-border-mid, #e2e2e2);
+  border-radius:6px;
+  font-size:11px;
+  min-height:36px;
+  cursor:pointer;
+  color:var(--c-text, #1f1d1b);
+}
+.rt-mtbtn i { font-size:13px; }
+.rt-mtbtn:active { background:var(--c-bg-alt, #f3f3f0); }
+.rt-mtbtn.active {
+  background:var(--c-primary);
+  color:#fff;
+  border-color:var(--c-primary);
+}
+@media (min-width: 1024px) {
+  .rt-toolbar-mobile { display:none !important; }
+}
+@media (max-width: 1023px) {
+  .rt-toolbar { display:none; }
+}
+
+/* ─────────────────────────────────────────────
+   Phase 4: Desktop layouts (spec 2026-04-28-desktop-rwd-direction-c)
+   All wrapped in @media (min-width:1024px) so mobile is unaffected.
+   ───────────────────────────────────────────── */
+@media (min-width: 1024px) {
+
+  /* 4.1 CIRCLES home — 3-col grid */
+  .circles-home-desktop .ch-header { display:flex; align-items:flex-end; justify-content:space-between; padding:12px 0 18px; gap:24px; }
+  .circles-home-desktop .ch-header h1 { font-size:26px; font-weight:600; margin:0 0 4px; color:var(--c-text); font-family:'Instrument Serif', serif; letter-spacing:-0.5px; }
+  .circles-home-desktop .ch-header .ch-sub { font-size:13px; color:var(--c-text-2); }
+  .circles-home-desktop .ch-header .ch-meta { font-size:12px; color:var(--c-text-secondary); white-space:nowrap; }
+  .circles-home-desktop .ch-grid { display:grid; grid-template-columns:230px 1fr 240px; gap:24px; align-items:start; }
+  .circles-home-desktop .left-rail { position:sticky; top:72px; display:flex; flex-direction:column; gap:18px; }
+  .circles-home-desktop .right-rail { position:sticky; top:72px; display:flex; flex-direction:column; gap:18px; }
+  .circles-home-desktop .center-col { min-width:0; display:flex; flex-direction:column; gap:14px; }
+  .circles-home-desktop .mode-section,
+  .circles-home-desktop .type-section,
+  .circles-home-desktop .recent-section,
+  .circles-home-desktop .nsm-rec-section { background:var(--c-card,#fff); border:1px solid var(--c-border,rgba(0,0,0,0.08)); border-radius:10px; padding:14px; }
+  .circles-home-desktop .rail-label { font-size:10.5px; font-weight:600; letter-spacing:0.5px; text-transform:uppercase; color:var(--c-text-secondary); margin-bottom:8px; }
+  .circles-home-desktop .mode-list { display:flex; flex-direction:column; gap:6px; }
+  .circles-home-desktop .mode-list .circles-mode-card { width:100%; margin:0; padding:10px 12px; }
+  .circles-home-desktop .type-list { display:flex; flex-direction:column; gap:4px; }
+  .circles-home-desktop .type-list .circles-type-tab { width:100%; text-align:left; justify-content:space-between; display:flex; }
+  .circles-home-desktop .ch-q-list { display:flex; flex-direction:column; gap:8px; }
+  .circles-home-desktop .ch-q-list .circles-q-card { width:100%; }
+  .circles-home-desktop .ch-q-list .circles-q-card.expanded { grid-column:1 / -1; border:2px solid var(--c-primary); background:#fff; }
+  .circles-home-desktop .nsm-banner { margin-top:8px; }
+
+  /* 4.2 Phase 1 form rail */
+  .phase1-desktop .p1-grid { display:grid; grid-template-columns:1fr 280px; gap:14px; align-items:start; }
+  .phase1-desktop .p1-rail { position:sticky; top:72px; display:flex; flex-direction:column; gap:12px; background:var(--c-card,#fff); border:1px solid var(--c-border,rgba(0,0,0,0.08)); border-radius:10px; padding:14px; }
+  .phase1-desktop .p1-rail h4 { margin:0 0 6px; font-size:12px; font-weight:600; color:var(--c-text-2); text-transform:uppercase; letter-spacing:0.5px; }
+  .phase1-desktop .p1-main { min-width:0; display:flex; flex-direction:column; gap:14px; }
+  .phase1-desktop .s-step-tabs { display:flex; gap:6px; margin-bottom:10px; }
+  .phase1-desktop .s-step-tab { padding:6px 12px; font-size:12.5px; border-radius:7px; border:1px solid var(--c-border); background:#fff; cursor:pointer; color:var(--c-text-2); }
+  .phase1-desktop .s-step-tab.active { background:var(--c-primary-lt); color:var(--c-primary); border-color:var(--c-primary); font-weight:500; }
+  .phase1-desktop .e-grid-2x2 { display:grid; grid-template-columns:1fr 1fr; gap:10px; }
+  .phase1-desktop .s-dim-grid { display:grid; grid-template-columns:1fr 1fr; gap:10px; }
+
+  /* 4.3 Phase 2 chat */
+  .phase2-desktop .chat-body { padding:18px 24px; }
+
+  /* 4.4 Phase 3 score */
+  .phase3-desktop .score-total .score-number { font-size:84px; line-height:1; }
+  .phase3-desktop .highlights-grid { display:grid; grid-template-columns:1fr 1fr; gap:14px; }
+  .phase3-desktop .dim-rows { display:flex; flex-direction:column; gap:8px; }
+  .phase3-desktop .dim-row { display:flex; align-items:center; gap:12px; padding:8px 12px; border:1px solid var(--c-border); border-radius:8px; background:#fff; }
+  .phase3-desktop .dim-row .dim-bar { flex:0 0 100px; height:6px; background:var(--c-border); border-radius:3px; overflow:hidden; }
+  .phase3-desktop .dim-row .dim-bar-fill { height:100%; background:var(--c-primary); }
+  .phase3-desktop .dim-row .dim-score { flex:0 0 40px; text-align:right; font-weight:600; }
+  .phase3-desktop .submit-bar { display:flex; gap:10px; align-items:center; padding:12px 0; }
+
+  /* 4.5 NSM Step 1-3 */
+  .nsm-home-desktop .nsm-q-list { display:flex; flex-direction:column; gap:10px; }
+  .nsm-home-desktop .nsm-q-card { padding:14px 16px; max-width:920px; }
+  .nsm-step2-desktop .nsm-field { background:#fff; border:1px solid var(--c-border); border-radius:10px; padding:14px; margin-bottom:12px; }
+  .nsm-step2-desktop .nsm-field-head { display:flex; justify-content:space-between; align-items:center; margin-bottom:8px; }
+  .nsm-step2-desktop .nsm-field-hint-btn { background:none; border:1px solid var(--c-border); border-radius:6px; padding:4px 8px; cursor:pointer; font-size:11.5px; color:var(--c-text-2); }
+  .nsm-step3-desktop .dim-cards { display:flex; flex-direction:column; gap:14px; }
+  .nsm-step3-desktop .dim-card { background:#fff; border:1px solid var(--c-border); border-radius:10px; padding:14px; }
+  .nsm-step3-desktop .dim-card .dim-header { border-left:3px solid var(--c-primary); padding-left:10px; margin-bottom:8px; }
+  .nsm-step3-desktop .hint-btn-3state { display:inline-flex; align-items:center; gap:6px; padding:6px 12px; font-size:12px; border-radius:7px; border:1px dashed var(--c-border-mid); background:#fff; cursor:pointer; color:var(--c-text-2); }
+  .nsm-step3-desktop .hint-btn-3state.loading { opacity:0.6; cursor:wait; }
+  .nsm-step3-desktop .hint-btn-3state.revealed { border-style:solid; background:var(--c-primary-lt); color:var(--c-primary); }
+
+  /* 4.6 NSM Step 4 */
+  .nsm-step4-desktop .nsm-summary-bar { display:flex; align-items:baseline; gap:14px; padding:18px 0; border-bottom:1px solid var(--c-border); }
+  .nsm-step4-desktop .nsm-total-score { font-family:'Instrument Serif', serif; font-size:54px; line-height:1; color:var(--c-primary); }
+  .nsm-step4-desktop .nsm-tabs { display:flex; gap:2px; padding:8px 0; border-bottom:1px solid var(--c-border); }
+  .nsm-step4-desktop .nsm-tab { padding:8px 16px; font-size:13px; cursor:pointer; border:none; background:none; color:var(--c-text-2); border-bottom:2px solid transparent; }
+  .nsm-step4-desktop .nsm-tab.active { color:var(--c-primary); border-bottom-color:var(--c-primary); font-weight:500; }
+  .nsm-step4-desktop .compare-grid { display:grid; grid-template-columns:1fr 1fr; gap:12px; margin:10px 0; }
+  .nsm-step4-desktop .compare-card { background:#fff; border:1px solid var(--c-border); border-radius:8px; padding:12px; cursor:pointer; }
+  .nsm-step4-desktop .compare-card.yours { border-left:3px solid var(--c-text-3); }
+  .nsm-step4-desktop .compare-card.coach { border-left:3px solid var(--c-success); }
+  .nsm-step4-desktop .compare-card.active { box-shadow:0 0 0 2px var(--c-primary); }
+  .nsm-step4-desktop .compare-detail { background:#FFF8E7; border:1px solid var(--c-warn-lt); border-left:3px solid var(--c-primary); border-radius:8px; padding:14px; margin-top:10px; }
+  .nsm-step4-desktop .highlight-cards { display:grid; grid-template-columns:1fr 1fr 1fr; gap:14px; }
+  .nsm-step4-desktop .highlight-card { background:#fff; border:1px solid var(--c-border); border-radius:10px; padding:14px; }
+
+  /* 4.7 review-examples + login */
+  .review-desktop .review-grid { display:grid; grid-template-columns:300px 1fr; gap:14px; }
+  .review-desktop .review-list { max-height:600px; overflow-y:auto; display:flex; flex-direction:column; gap:6px; }
+  .review-desktop .review-list .q-list-item { padding:10px 12px; border:1px solid var(--c-border); border-radius:8px; cursor:pointer; background:#fff; }
+  .review-desktop .review-list .q-list-item.active { border:2px solid var(--c-primary); background:var(--c-primary-lt); }
+  .review-desktop .review-detail { background:#fff; border:1px solid var(--c-border); border-radius:10px; padding:18px; }
+  .review-desktop .review-step-section { margin-bottom:18px; padding-bottom:14px; border-bottom:1px solid var(--c-border); }
+  .review-desktop .review-step-chip { display:inline-block; padding:3px 9px; font-size:11.5px; font-weight:600; border-radius:6px; background:var(--c-primary-lt); color:var(--c-primary); margin-bottom:6px; }
+  .login-desktop .login-card { background:#fff; border:1px solid var(--c-border); border-radius:14px; padding:28px; box-shadow:0 4px 24px rgba(0,0,0,0.06); }
+  .login-desktop .login-card h2 { margin:0 0 6px; font-size:22px; font-family:'Instrument Serif', serif; }
+  .login-desktop .login-card .login-sub { font-size:13px; color:var(--c-text-2); margin-bottom:18px; }
+  .login-desktop .login-toggle { display:flex; gap:0; background:var(--c-bg-alt); border-radius:8px; padding:3px; margin-bottom:14px; }
+  .login-desktop .login-toggle button { flex:1; padding:7px; font-size:12.5px; border:none; border-radius:6px; background:transparent; cursor:pointer; color:var(--c-text-2); }
+  .login-desktop .login-toggle button.active { background:#fff; color:var(--c-text); font-weight:500; box-shadow:0 1px 2px rgba(0,0,0,0.06); }
+  .login-desktop .login-divider { text-align:center; font-size:11.5px; color:var(--c-text-3); margin:14px 0; position:relative; }
+  .login-desktop .login-divider::before,
+  .login-desktop .login-divider::after { content:''; position:absolute; top:50%; width:38%; height:1px; background:var(--c-border); }
+  .login-desktop .login-divider::before { left:0; }
+  .login-desktop .login-divider::after { right:0; }
+}
+
+/* ── Onboarding welcome card (Phase 5 Task 5.1) ──────────────────────
+   Spec: docs/superpowers/specs/2026-04-28-desktop-rwd-direction-c-design.md §4.1 */
+.onboarding-welcome {
+  background: #fff;
+  border: 1px solid var(--c-border, #e6e2da);
+  border-radius: 12px;
+  padding: 20px;
+  margin-bottom: 20px;
+  box-shadow: 0 2px 8px rgba(20,15,10,0.04);
+}
+.onboarding-welcome-icon {
+  width: 36px; height: 36px; border-radius: 10px;
+  background: var(--c-primary, #2D6BFF);
+  color: #fff;
+  display: inline-flex; align-items: center; justify-content: center;
+  margin-bottom: 10px;
+  font-size: 18px;
+}
+.onboarding-welcome h2 { margin: 0 0 6px; font-size: 18px; font-weight: 600; }
+.onboarding-welcome p {
+  margin: 0 0 14px;
+  font-size: 13px; line-height: 1.6;
+  color: var(--c-text-2, #5a5a5a);
+}
+.onboarding-welcome-actions { display: flex; gap: 10px; flex-wrap: wrap; }
+.onboarding-welcome-actions .btn-primary {
+  background: var(--c-primary, #2D6BFF);
+  color: #fff; border: none;
+  padding: 8px 16px; border-radius: 8px;
+  font-size: 13px; font-weight: 500; cursor: pointer;
+  font-family: 'DM Sans', sans-serif;
+}
+.onboarding-welcome-actions .btn-ghost {
+  background: transparent;
+  color: var(--c-text-2, #5a5a5a);
+  border: 1px solid var(--c-border, #e6e2da);
+  padding: 8px 16px; border-radius: 8px;
+  font-size: 13px; font-weight: 500; cursor: pointer;
+  font-family: 'DM Sans', sans-serif;
+}
+
+/* ── Coachmark overlay + spotlight + tooltip (Phase 5 Task 5.2) ──────
+   Spec §4.2: full-page overlay, cutout via box-shadow, dark tooltip with arrow. */
+.onboarding-overlay {
+  position: fixed; inset: 0;
+  background: rgba(20,15,10,0.45);
+  z-index: 9000;
+  pointer-events: auto;
+}
+.onboarding-spotlight {
+  position: fixed;
+  background: transparent;
+  border-radius: 10px;
+  box-shadow: 0 0 0 4px var(--c-primary, #2D6BFF), 0 0 0 9999px rgba(20,15,10,0.45);
+  z-index: 9001;
+  pointer-events: none;
+  transition: all 0.3s ease;
+}
+.onboarding-tooltip {
+  position: fixed;
+  background: #1F1D1B;
+  color: #fff;
+  padding: 14px 16px;
+  border-radius: 10px;
+  width: 300px;
+  box-shadow: 0 10px 30px rgba(20,15,10,0.25);
+  z-index: 9002;
+}
+.onboarding-tooltip[data-arrow="left"]::before {
+  content: ''; position: absolute; left: -7px; top: 24px;
+  border: 8px solid transparent; border-right-color: #1F1D1B;
+}
+.onboarding-tooltip[data-arrow="right"]::before {
+  content: ''; position: absolute; right: -7px; top: 24px;
+  border: 8px solid transparent; border-left-color: #1F1D1B;
+}
+.onboarding-tooltip[data-arrow="top"]::before {
+  content: ''; position: absolute; top: -7px; left: 24px;
+  border: 8px solid transparent; border-bottom-color: #1F1D1B;
+}
+.onboarding-tooltip[data-arrow="bottom"]::before {
+  content: ''; position: absolute; bottom: -7px; left: 24px;
+  border: 8px solid transparent; border-top-color: #1F1D1B;
+}
+.onb-step {
+  font-size: 10.5px; letter-spacing: 0.5px; text-transform: uppercase;
+  color: rgba(255,255,255,0.55); font-weight: 600; margin-bottom: 5px;
+  font-family: 'DM Sans', sans-serif;
+}
+.onboarding-tooltip h4 { margin: 0 0 5px; font-size: 13.5px; font-weight: 600; }
+.onboarding-tooltip p {
+  margin: 0 0 12px;
+  font-size: 12px; color: rgba(255,255,255,0.78); line-height: 1.6;
+}
+.onb-actions { display: flex; justify-content: space-between; align-items: center; }
+.onb-skip {
+  color: rgba(255,255,255,0.5); cursor: pointer; font-size: 11.5px;
+  font-family: 'DM Sans', sans-serif;
+}
+.onb-next {
+  background: #fff; color: #1F1D1B; border: none;
+  padding: 6px 14px; border-radius: 7px;
+  font-size: 11.5px; font-weight: 500; cursor: pointer;
+  font-family: 'DM Sans', sans-serif;
+}
+
+/* ── Mobile variant (Phase 5 Task 5.3) ───────────────────────────────
+   Spec §4.5: at ≤1023px the tooltip is fixed to the bottom of the viewport
+   (sticky bottom-sheet style), the overlay is hidden, and the spotlight
+   shows only as a 3px ring around the target — no full-page dim. */
+@media (max-width: 1023px) {
+  .onboarding-tooltip {
+    position: fixed;
+    left: 16px; right: 16px; bottom: 16px;
+    top: auto !important;
+    width: auto;
+  }
+  .onboarding-tooltip[data-arrow]::before { display: none; }
+  .onboarding-spotlight {
+    box-shadow: 0 0 0 3px var(--c-primary, #2D6BFF);
+  }
+  .onboarding-overlay { display: none; }
+}

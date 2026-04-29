@@ -67,7 +67,36 @@ const AppState = {
   nsmHints: null,
   nsmHintsLoading: false,
   offcanvasCache: null,  // cached offcanvas session list for instant render
+
+  // ── Phase 2 Spec 2: CIRCLES progress auto-save ──
+  circlesSaveStatus: 'idle',         // 'idle' | 'saving' | 'saved' | 'error'
+  circlesLastSavedAt: null,          // ms timestamp
+  circlesSavingDebounce: null,       // setTimeout handle
+  circlesSavingInFlight: false,
+  circlesSavingPending: false,       // queued change while inflight
+  circlesActiveDraft: null,          // for homepage resume banner
 };
+
+// Expose for tests + debugging.
+window.AppState = AppState;
+
+// ── isDesktop helper + cross-breakpoint re-render (Phase 0 Task 0.7) ──
+function isDesktop() { return window.innerWidth >= 1024; }
+AppState._lastIsDesktop = isDesktop();
+function debounce(fn, ms) {
+  let t;
+  return function(...args) { clearTimeout(t); t = setTimeout(() => fn.apply(this, args), ms); };
+}
+window.addEventListener('resize', debounce(() => {
+  const now = isDesktop();
+  if (now !== AppState._lastIsDesktop) {
+    AppState._lastIsDesktop = now;
+    if (typeof render === 'function') render();
+  }
+  if (AppState.onboardingActive && typeof showCoachmark === 'function') {
+    showCoachmark(AppState.onboardingStep);
+  }
+}, 100));
 
 // ── NSM 題庫（100 題 database + 3 計畫獨有）────────
 const NSM_QUESTIONS = [
@@ -337,7 +366,7 @@ var CIRCLES_TRACKING_DIMS = [
   { key: 'depth',     label: '互動深度', desc: '用戶與核心功能的互動品質',
     placeholder: '例：看到提示後點擊進入試用頁的轉化率', dotColor: '#8b5cf6', textColor: '#6d28d9' },
   { key: 'frequency', label: '習慣頻率', desc: '用戶回訪與重複觸發的頻率',
-    placeholder: '例：試用期內每週啟動 Premium 功能的平均天數', dotColor: '#10b981', textColor: '#065f46' },
+    placeholder: '例：試用期內每週啟動 Premium 功能的平均天數', dotColor: 'var(--c-success)', textColor: '#065f46' },
   { key: 'impact',    label: '留存驅力', desc: '推動用戶留下來的核心機制',
     placeholder: '例：試用到期後 30 日內完成訂閱的轉換率', dotColor: '#f59e0b', textColor: '#92400e' },
 ];
@@ -365,10 +394,123 @@ function pickRandom5(arr) {
   return copy.slice(0, Math.min(5, copy.length));
 }
 
+// Phase 2 Spec 2 § 6.1: relative-time formatter for "edited N min ago".
+// <5min → 剛剛; <60min → N 分鐘前; else absolute month-day-time.
+function formatRelativeEdit(ts) {
+  if (!ts) return '—';
+  const ms = Date.now() - new Date(ts).getTime();
+  if (Number.isNaN(ms)) return '—';
+  if (ms < 5 * 60 * 1000)  return '剛剛編輯';
+  if (ms < 60 * 60 * 1000) return Math.round(ms / 60000) + ' 分鐘前編輯';
+  return new Date(ts).toLocaleString('zh-TW', { month: 'numeric', day: 'numeric', hour: '2-digit', minute: '2-digit' });
+}
+window.formatRelativeEdit = formatRelativeEdit;
+
 function circlesRoute(id) {
   const base = AppState.accessToken ? '/api/circles-sessions' : '/api/guest-circles-sessions';
   return id ? base + '/' + id : base;
 }
+
+function getCirclesHeaders() {
+  return AppState.accessToken
+    ? { 'Content-Type': 'application/json', 'Authorization': 'Bearer ' + AppState.accessToken }
+    : { 'Content-Type': 'application/json', 'X-Guest-ID': AppState.guestId };
+}
+
+// ── Phase 2 Spec 2: triggerCirclesAutoSave ──────────────────────────────────
+// Called from Phase 1 textarea / sol-name input listeners. Debounces 1.5s,
+// lazy-creates session on first save, then PATCH /progress with all drafts.
+// In-flight queue ensures we never lose a change between requests.
+function triggerCirclesAutoSave() {
+  if (AppState.circlesSavingInFlight) {
+    AppState.circlesSavingPending = true;
+    return;
+  }
+  clearTimeout(AppState.circlesSavingDebounce);
+  AppState.circlesSavingDebounce = setTimeout(async function () {
+    AppState.circlesSavingInFlight = true;
+    AppState.circlesSaveStatus = 'saving';
+    updateSaveIndicator();
+    try {
+      // Lazy-create on first save
+      if (!AppState.circlesSession || !AppState.circlesSession.id) {
+        const q = AppState.circlesSelectedQuestion;
+        if (!q || !q.id) throw new Error('no_selected_question');
+        const route = AppState.accessToken ? '/api/circles-sessions/draft' : '/api/guest-circles-sessions/draft';
+        const r = await fetch(route, {
+          method: 'POST',
+          headers: getCirclesHeaders(),
+          body: JSON.stringify({
+            question_id: q.id,
+            mode: AppState.circlesMode,
+            drill_step: AppState.circlesDrillStep || null,
+            sim_step_index: AppState.circlesSimStep || 0,
+          }),
+        });
+        if (!r.ok) throw new Error('draft_create_failed_' + r.status);
+        const data = await r.json();
+        AppState.circlesSession = { id: data.id, mode: data.mode, drill_step: data.drill_step };
+      }
+      // PATCH /progress merges into existing row
+      const pr = await fetch(circlesRoute(AppState.circlesSession.id) + '/progress', {
+        method: 'PATCH',
+        headers: getCirclesHeaders(),
+        body: JSON.stringify({
+          stepDrafts:     AppState.circlesStepDrafts,
+          frameworkDraft: AppState.circlesFrameworkDraft,
+        }),
+      });
+      if (!pr.ok) throw new Error('progress_patch_failed_' + pr.status);
+      AppState.circlesSaveStatus = 'saved';
+      AppState.circlesLastSavedAt = Date.now();
+    } catch (e) {
+      console.warn('[circles auto-save] failed:', e && e.message);
+      AppState.circlesSaveStatus = 'error';
+    } finally {
+      AppState.circlesSavingInFlight = false;
+      updateSaveIndicator();
+      if (AppState.circlesSavingPending) {
+        AppState.circlesSavingPending = false;
+        triggerCirclesAutoSave();
+      }
+    }
+  }, 1500);
+}
+
+// Expose for tests/manual retry button.
+window.triggerCirclesAutoSave = triggerCirclesAutoSave;
+
+function updateSaveIndicator() {
+  const el = document.querySelector('.save-indicator');
+  if (!el) return;
+  const status = AppState.circlesSaveStatus;
+  if (status === 'idle') { el.style.display = 'none'; return; }
+  el.style.display = 'inline-flex';
+  el.className = 'save-indicator save-' + status;
+  let text = '';
+  if (status === 'saving') {
+    text = '<span class="dot"></span>儲存中…';
+  } else if (status === 'saved') {
+    const ago = Date.now() - (AppState.circlesLastSavedAt || Date.now());
+    if (ago < 5000) {
+      text = '<span class="dot"></span>已儲存';
+    } else if (ago < 60000) {
+      text = '<span class="dot"></span>已儲存 · 剛剛';
+    } else {
+      text = '<span class="dot"></span>已儲存 · ' + Math.round(ago / 60000) + ' 分鐘前';
+    }
+  } else if (status === 'error') {
+    text = '<span class="dot"></span>儲存失敗，重試';
+  }
+  el.innerHTML = text;
+}
+
+window.updateSaveIndicator = updateSaveIndicator;
+
+// Periodic re-render so "已儲存 · 剛剛 / N 分鐘前" stays current.
+setInterval(function () {
+  if (AppState.circlesSaveStatus === 'saved') updateSaveIndicator();
+}, 30000);
 
 function saveCirclesProgress(patch) {
   var session = AppState.circlesSession;
@@ -439,6 +581,8 @@ async function fetchCirclesRecentSessions() {
     }
   } catch (e) {}
   AppState.circlesRecentLoading = false;
+  // SIT-1 #5: mark sessions-fetch-complete so welcome card render gate can pass.
+  AppState.circlesSessionsFetched = true;
   // Don't trigger a full render — that would wipe out any UI state the user has
   // already interacted with (expanded question cards, dropdowns, etc.).
   // Only update the recent-sessions slot in place.
@@ -451,6 +595,23 @@ async function fetchCirclesRecentSessions() {
 // the entire view. Preserves any in-progress UI state (accordion expansion etc.).
 function updateRecentSessionsSlot() {
   var slot = document.getElementById('circles-recent-slot');
+  // SIT-1 #5: keep the welcome card and the resume/recent slot in sync.
+  //   - If sessions exist (or the card should otherwise be hidden),
+  //     remove .onboarding-welcome (race between first paint + async fetch).
+  //   - If no sessions and the card should now be shown but is missing
+  //     (was suppressed during initial paint due to SessionsFetched=false),
+  //     insert it now so the user sees the onboarding hand-waving card.
+  try {
+    var welcomeEl = document.getElementById('onboarding-welcome');
+    var shouldShow = (typeof shouldShowOnboardingWelcome === 'function') && shouldShowOnboardingWelcome();
+    if (!shouldShow && welcomeEl && welcomeEl.parentNode) {
+      welcomeEl.parentNode.removeChild(welcomeEl);
+    } else if (shouldShow && !welcomeEl && typeof renderOnboardingWelcomeHtml === 'function') {
+      var wrap = document.querySelector('[data-view="circles"] .circles-home-wrap');
+      if (wrap) wrap.insertAdjacentHTML('afterbegin', renderOnboardingWelcomeHtml());
+      if (typeof bindOnboardingWelcome === 'function') bindOnboardingWelcome();
+    }
+  } catch (_) {}
   if (!slot) return; // home not rendered (defensive)
   if (AppState.circlesRecentSessions.length === 0) {
     slot.innerHTML = '';
@@ -472,7 +633,7 @@ function updateRecentSessionsSlot() {
           '<div class="circles-q-card-company">' + escHtml(company) + ' — ' + modeLabel + '</div>' +
           '<div style="font-size:12px;color:var(--c-text-2,#5a5a5a);margin-top:2px;font-family:DM Sans,sans-serif">' + stepLabel + ' · ' + phaseLabel + '</div>' +
         '</div>' +
-        '<div style="font-size:12px;font-weight:600;color:var(--c-primary,#1A56DB);font-family:DM Sans,sans-serif;white-space:nowrap">繼續練習 →</div>' +
+        '<div style="font-size:12px;font-weight:600;color:var(--c-primary,var(--c-primary));font-family:DM Sans,sans-serif;white-space:nowrap">繼續練習 →</div>' +
       '</div>' +
     '</div>';
   }).join('');
@@ -507,7 +668,7 @@ function detectProductType(question) {
 
 const NSM_TYPE_META = {
   attention:   { label: '注意力型', color: '#8b5cf6', icon: 'ph-play-circle',    desc: '核心價值在於讓用戶在產品上花有意義的時間（社交、媒體、遊戲）' },
-  transaction: { label: '交易量型', color: '#10b981', icon: 'ph-shopping-cart',  desc: '核心價值在於撮合供需、促成高品質交易（電商、共享平台、O2O）' },
+  transaction: { label: '交易量型', color: 'var(--c-success)', icon: 'ph-shopping-cart',  desc: '核心價值在於撮合供需、促成高品質交易（電商、共享平台、O2O）' },
   creator:     { label: '創造力型', color: '#f59e0b', icon: 'ph-pencil-simple',  desc: '核心價值在於讓用戶產出高品質成果並被廣泛消費（UGC、知識平台）' },
   saas:        { label: 'SaaS 型',  color: '#3b82f6', icon: 'ph-buildings',      desc: '核心價值在於解決企業工作流程問題、讓團隊不可或缺地依賴產品（B2B）' },
 };
@@ -516,25 +677,25 @@ const NSM_DIMENSION_CONFIGS = {
   attention: [
     { key: 'reach',     label: '觸及廣度', subtitle: '有多少用戶真正觸碰到核心功能（非僅登入）',  color: '#3b82f6', coachQ: 'AHA 時刻是什麼動作？做到這個動作的人有多少？', placeholder: '例：每月至少播放 1 首歌的月活用戶數（不是登入數）' },
     { key: 'depth',     label: '互動深度', subtitle: '每位用戶每次使用的品質與投入程度',          color: '#8b5cf6', coachQ: '用戶停得夠深嗎？時長、完播率、互動次數哪個更能反映價值？', placeholder: '例：每個 session 平均聆聽時長（分鐘）' },
-    { key: 'frequency', label: '習慣頻率', subtitle: '用戶是否形成定期回訪的使用習慣',            color: '#10b981', coachQ: '每週/每月回來幾次？DAU/MAU 比越高代表黏性越強', placeholder: '例：每週平均使用天數 ≥ 3 的用戶佔比' },
+    { key: 'frequency', label: '習慣頻率', subtitle: '用戶是否形成定期回訪的使用習慣',            color: 'var(--c-success)', coachQ: '每週/每月回來幾次？DAU/MAU 比越高代表黏性越強', placeholder: '例：每週平均使用天數 ≥ 3 的用戶佔比' },
     { key: 'impact',    label: '留存驅力', subtitle: '什麼讓用戶持續回訪而非逐漸流失',            color: '#f59e0b', coachQ: '社交關係？個人化推薦？收藏習慣？找出最強的留存槓桿', placeholder: '例：擁有 ≥5 首收藏歌曲的用戶 30 日留存率' },
   ],
   transaction: [
     { key: 'reach',     label: '供給廣度', subtitle: '供給端（賣家/司機/商家）的活躍參與度',       color: '#3b82f6', coachQ: '沒有供給，需求無法被滿足——有多少活躍供給方存在？', placeholder: '例：過去 7 天完成過交易的活躍商家數' },
     { key: 'depth',     label: '需求深度', subtitle: '需求端用戶的活躍程度與使用品質',             color: '#8b5cf6', coachQ: '需求方有多活躍？每人每月下幾單？平均客單價？', placeholder: '例：每位活躍買家每月平均交易次數' },
-    { key: 'frequency', label: '匹配效率', subtitle: '供需成功撮合的漏斗轉化率',                   color: '#10b981', coachQ: '搜尋→瀏覽→下單的漏斗在哪裡漏最多？轉化率多高？', placeholder: '例：從搜尋到成交的整體轉化率' },
+    { key: 'frequency', label: '匹配效率', subtitle: '供需成功撮合的漏斗轉化率',                   color: 'var(--c-success)', coachQ: '搜尋→瀏覽→下單的漏斗在哪裡漏最多？轉化率多高？', placeholder: '例：從搜尋到成交的整體轉化率' },
     { key: 'impact',    label: '復購留存', subtitle: '用戶第二次以後繼續回來交易的比例',            color: '#f59e0b', coachQ: '獲取新用戶很貴——他有回來嗎？90 天復購率如何？', placeholder: '例：首單後 90 天內完成第二筆交易的用戶比例' },
   ],
   creator: [
     { key: 'reach',     label: '創造廣度', subtitle: '每月有多少用戶在主動產出內容/成果',          color: '#3b82f6', coachQ: '創造者才是平台核心——每月有多少活躍創作者？', placeholder: '例：每月至少發布 1 篇內容的活躍創作者數' },
     { key: 'depth',     label: '成果品質', subtitle: '創造物的品質、完整度與被消費程度',           color: '#8b5cf6', coachQ: '創造的東西被消費了嗎？閱讀完整度、互動次數？', placeholder: '例：每篇貼文平均獲得有效互動數（留言+收藏+分享）' },
-    { key: 'frequency', label: '採用廣度', subtitle: '創造物被消費者發現和深度閱讀的比例',         color: '#10b981', coachQ: '沒人看的創作平台沒有飛輪——有多少內容被廣泛閱讀？', placeholder: '例：被至少 3 人讀完的內容佔全部已發布內容比例' },
+    { key: 'frequency', label: '採用廣度', subtitle: '創造物被消費者發現和深度閱讀的比例',         color: 'var(--c-success)', coachQ: '沒人看的創作平台沒有飛輪——有多少內容被廣泛閱讀？', placeholder: '例：被至少 3 人讀完的內容佔全部已發布內容比例' },
     { key: 'impact',    label: '商業轉化', subtitle: '創造行為轉化為實際商業收益的效率',            color: '#f59e0b', coachQ: '創作者留下來的動力——他們能賺到錢或獲得真實影響力嗎？', placeholder: '例：創作者帳號的付費訂閱轉化率' },
   ],
   saas: [
     { key: 'reach',     label: '啟用廣度', subtitle: '新客戶中有多少真正完成啟用（Activation）',  color: '#3b82f6', coachQ: '注意是 activation，不是 signup——誰真正跑完了核心工作流？', placeholder: '例：完成首次核心任務的新帳號比例' },
     { key: 'depth',     label: '席次深度', subtitle: '每個帳號內有多少人在真正使用核心功能',       color: '#8b5cf6', coachQ: '企業付費，但有幾個人實際在用？席次利用率多高？', placeholder: '例：每個帳號每月平均活躍使用者數（席次利用率）' },
-    { key: 'frequency', label: '黏著頻率', subtitle: '使用頻率是否顯示產品已嵌入日常工作流',       color: '#10b981', coachQ: '每天都用 vs 偶爾用——是剛需工具嗎？DAU/MAU 比多高？', placeholder: '例：每週使用核心功能 ≥ 3 次的帳號佔比' },
+    { key: 'frequency', label: '黏著頻率', subtitle: '使用頻率是否顯示產品已嵌入日常工作流',       color: 'var(--c-success)', coachQ: '每天都用 vs 偶爾用——是剛需工具嗎？DAU/MAU 比多高？', placeholder: '例：每週使用核心功能 ≥ 3 次的帳號佔比' },
     { key: 'impact',    label: '擴張信號', subtitle: '現有客戶是否在增加使用（NRR 指標）',          color: '#f59e0b', coachQ: 'NRR > 100% 代表客戶在擴張——多少比例帳號在 90 天內擴展？', placeholder: '例：90 天內增加席次或升級方案的帳號比例' },
   ],
 };
@@ -575,6 +736,12 @@ function apiHeaders() {
 }
 
 function sessionRoute(path = '') {
+  // SIT-1 #6: /api/guest/sessions is defined in routes/guest-sessions.js but
+  // is NOT mounted in server.js (mount is /api/guest-circles-sessions). Auth
+  // path is mounted at /api/sessions. We keep the legacy guest path here so
+  // existing call sites continue compiling, but home-page call sites that
+  // fire on every load (loadRecentSessions, init resume-prompt) short-circuit
+  // in guest mode to avoid 404 noise.
   return (AppState.mode === 'auth' ? '/api/sessions' : '/api/guest/sessions') + path;
 }
 
@@ -634,6 +801,7 @@ function render() {
       }
       break;
   }
+  syncNavbarTab();
 }
 
 async function navigate(view) {
@@ -661,8 +829,28 @@ async function navigate(view) {
   }
 }
 
+// Sync active tab indicator with current AppState.view (Phase 0 Task 0.5).
+function syncNavbarTab() {
+  const view = AppState.view;
+  document.querySelectorAll('.navbar-tab').forEach(t => {
+    t.classList.toggle('active', t.dataset.nav === view);
+  });
+}
+
+// Attach navbar tab click handlers exactly once at boot.
+function bindNavbarTabs() {
+  document.querySelectorAll('.navbar-tab').forEach(t => {
+    t.addEventListener('click', () => {
+      document.querySelectorAll('.navbar-tab').forEach(x => x.classList.remove('active'));
+      t.classList.add('active');
+      navigate(t.dataset.nav);
+    });
+  });
+}
+
 function renderNavbar() {
   const el = document.getElementById('navbar-actions');
+  if (!el) return;
   const nsmLink = `<button class="btn btn-ghost" onclick="navigate('nsm')" style="font-size:13px;font-weight:500">北極星指標</button>`;
 
   if (AppState.mode === 'auth') {
@@ -768,13 +956,22 @@ function renderOffcanvasList(listEl, sessions) {
       : isCircles
         ? `CIRCLES · ${s.question_json?.company || ''}`
         : `${s.difficulty || ''}`;
-    // Fall back to updated_at when created_at is absent (older session rows or DB selects that omit it).
-    const _ts = s.created_at || s.updated_at;
-    const date = _ts ? new Date(_ts).toLocaleString('zh-TW', { month: 'numeric', day: 'numeric', hour: '2-digit', minute: '2-digit' }) : '—';
+    // Phase 2 Spec 2: prefer updated_at as the "edit recency" timestamp.
+    const _ts = s.updated_at || s.created_at;
+    // Active CIRCLES session with drafts → relative time; everything else keeps absolute date.
+    const hasCirclesDrafts = isCircles && s.status === 'active'
+      && s.step_drafts && Object.keys(s.step_drafts).length > 0;
+    const date = _ts
+      ? (hasCirclesDrafts ? formatRelativeEdit(_ts) : new Date(_ts).toLocaleString('zh-TW', { month: 'numeric', day: 'numeric', hour: '2-digit', minute: '2-digit' }))
+      : '—';
     let badge, badgeClass;
     if (s.status === 'completed') {
       badge = s.scores_json ? Math.round(s.scores_json.totalScore ?? s.scores_json.total ?? 0) + ' 分' : '完成';
       badgeClass = isCircles ? 'badge-circles' : 'badge-nsm';
+    } else if (hasCirclesDrafts) {
+      // Phase 2 Spec 2 § 6.1: yellow "進行中" badge for active CIRCLES with drafts.
+      badge = '進行中';
+      badgeClass = 'badge-warn';
     } else {
       badge = '進行中';
       badgeClass = 'badge-blue';
@@ -903,6 +1100,8 @@ async function init() {
   AppState.guestId = localStorage.getItem('guestId');
   document.body.dataset.view = AppState.view;
 
+  bindNavbarTabs();
+
   await initSupabase();
 
   const { data: { session } } = await supabase.auth.getSession();
@@ -910,7 +1109,11 @@ async function init() {
     AppState.mode = 'guest';
 
     const lastId = localStorage.getItem('lastSessionId');
-    if (lastId) {
+    // SIT-1 #6: skip legacy guest PM-Drill resume in guest mode — the
+    // /api/guest/sessions route isn't mounted (CIRCLES uses its own resume
+    // banner via fetchActiveDraft + /api/guest-circles-sessions). Auth users
+    // still get the legacy resume prompt because /api/sessions is mounted.
+    if (lastId && AppState.mode === 'auth') {
       const res = await fetch(sessionRoute(`/${lastId}`), { headers: apiHeaders() });
       if (res.ok) {
         const s = await res.json();
@@ -929,6 +1132,294 @@ async function init() {
 }
 
 init();
+
+// ── Rich-text toolbar (Phase 3 Spec 4) ──────────────────────────────
+// Class-based opt-in: textareas with `.rt-textarea` get bold/bullet/indent
+// keyboard shortcuts + auto-bullet on Enter + IME-safe handlers.
+// Toolbar (.rt-toolbar) is rendered inline above each textarea by buildRtField.
+// On mobile (<1024px), inline toolbar is hidden via CSS; a single shared
+// sticky-bottom toolbar (#rt-toolbar-mobile) follows focused textarea.
+(function rtInit() {
+  let _activeRt = null;
+
+  function getActive() {
+    if (_activeRt && document.contains(_activeRt)) return _activeRt;
+    if (document.activeElement && document.activeElement.classList?.contains('rt-textarea')) {
+      return document.activeElement;
+    }
+    return null;
+  }
+
+  function fire(ta) { ta.dispatchEvent(new Event('input', { bubbles: true })); }
+
+  function applyBold(ta) {
+    const s = ta.selectionStart, e = ta.selectionEnd;
+    const text = ta.value;
+    const selected = text.slice(s, e);
+    if (s === e) {
+      ta.value = text.slice(0, s) + '****' + text.slice(e);
+      ta.selectionStart = ta.selectionEnd = s + 2;
+    } else if (selected.startsWith('**') && selected.endsWith('**') && selected.length >= 4) {
+      ta.value = text.slice(0, s) + selected.slice(2, -2) + text.slice(e);
+      ta.selectionStart = s; ta.selectionEnd = e - 4;
+    } else {
+      ta.value = text.slice(0, s) + '**' + selected + '**' + text.slice(e);
+      ta.selectionStart = s + 2; ta.selectionEnd = e + 2;
+    }
+    fire(ta);
+  }
+
+  function applyBullet(ta) {
+    const s = ta.selectionStart;
+    const text = ta.value;
+    const lineStart = text.lastIndexOf('\n', s - 1) + 1;
+    let lineEnd = text.indexOf('\n', s); if (lineEnd < 0) lineEnd = text.length;
+    const line = text.slice(lineStart, lineEnd);
+    let newLine;
+    const m = line.match(/^( {0,2})- (.*)$/);
+    if (m) {
+      newLine = m[1] + m[2];
+    } else {
+      newLine = '- ' + line;
+    }
+    ta.value = text.slice(0, lineStart) + newLine + text.slice(lineEnd);
+    const diff = newLine.length - line.length;
+    ta.selectionStart = ta.selectionEnd = Math.max(lineStart, s + diff);
+    fire(ta);
+  }
+
+  function applyIndentDelta(ta, delta) {
+    const s = ta.selectionStart;
+    const text = ta.value;
+    const lineStart = text.lastIndexOf('\n', s - 1) + 1;
+    let lineEnd = text.indexOf('\n', s); if (lineEnd < 0) lineEnd = text.length;
+    const line = text.slice(lineStart, lineEnd);
+    const m = line.match(/^( *)- /);
+    if (!m) return;
+    const currentIndent = m[1].length;
+    let newIndent;
+    if (delta > 0) newIndent = Math.min(currentIndent + 2, 4);
+    else newIndent = Math.max(currentIndent - 2, 0);
+    if (newIndent === currentIndent) return;
+    const newLine = ' '.repeat(newIndent) + line.replace(/^ */, '');
+    ta.value = text.slice(0, lineStart) + newLine + text.slice(lineEnd);
+    ta.selectionStart = ta.selectionEnd = s + (newIndent - currentIndent);
+    fire(ta);
+  }
+
+  function applyIndent(ta) { applyIndentDelta(ta, +2); }
+  function applyOutdent(ta) { applyIndentDelta(ta, -2); }
+
+  // ── Active state: B button highlighted when caret inside **...** ──
+  function isPositionInsideBold(text, pos) {
+    // scan ** runs in order; toggle a flag
+    const re = /\*\*/g;
+    let m, runs = [];
+    while ((m = re.exec(text)) !== null) runs.push(m.index);
+    // pair them up
+    for (let i = 0; i + 1 < runs.length; i += 2) {
+      const open = runs[i] + 2;
+      const close = runs[i + 1];
+      if (pos >= open && pos <= close) return true;
+    }
+    return false;
+  }
+
+  function updateToolbarState() {
+    const ta = getActive();
+    document.querySelectorAll('.rt-tbtn[data-rt-action="bold"], .rt-mtbtn[data-rt-action="bold"]').forEach(btn => {
+      btn.classList.remove('active');
+    });
+    if (!ta) return;
+    const inBold = isPositionInsideBold(ta.value, ta.selectionStart);
+    if (!inBold) return;
+    // Activate the toolbar button(s) corresponding to active textarea's container
+    const field = ta.closest('.rt-field');
+    if (field) {
+      const b = field.querySelector('.rt-tbtn[data-rt-action="bold"]');
+      if (b) b.classList.add('active');
+    }
+    if (window.innerWidth < 1024) {
+      const mb = document.querySelector('#rt-toolbar-mobile .rt-mtbtn[data-rt-action="bold"]');
+      if (mb) mb.classList.add('active');
+    }
+  }
+
+  // ── keydown: shortcuts + IME guard + auto-bullet on Enter ──
+  function handleKeydown(e) {
+    const ta = e.currentTarget;
+    if (ta._rtComposing) return;  // IME suppression
+    // Browsers usually set isComposing on the event during composition
+    if (e.isComposing) return;
+
+    // Ctrl/Cmd+B
+    if ((e.ctrlKey || e.metaKey) && (e.key === 'b' || e.key === 'B')) {
+      e.preventDefault();
+      applyBold(ta);
+      return;
+    }
+    // Ctrl/Cmd+L
+    if ((e.ctrlKey || e.metaKey) && (e.key === 'l' || e.key === 'L')) {
+      e.preventDefault();
+      applyBullet(ta);
+      return;
+    }
+    // Tab / Shift+Tab on bullet lines
+    if (e.key === 'Tab') {
+      const s = ta.selectionStart;
+      const text = ta.value;
+      const lineStart = text.lastIndexOf('\n', s - 1) + 1;
+      let lineEnd = text.indexOf('\n', s); if (lineEnd < 0) lineEnd = text.length;
+      const line = text.slice(lineStart, lineEnd);
+      if (!/^ *- /.test(line)) return;
+      e.preventDefault();
+      applyIndentDelta(ta, e.shiftKey ? -2 : +2);
+      return;
+    }
+    // Enter — auto-bullet continuation / empty exit
+    if (e.key === 'Enter' && !e.shiftKey) {
+      const s = ta.selectionStart;
+      const text = ta.value;
+      const lineStart = text.lastIndexOf('\n', s - 1) + 1;
+      const linePrefix = text.slice(lineStart, s);
+      const m = linePrefix.match(/^( *)- /);
+      if (!m) return;
+      // empty bullet ("- " or "  - ") — remove the bullet, keep caret at line start
+      if (linePrefix.replace(/ /g, '') === '-') {
+        e.preventDefault();
+        ta.value = text.slice(0, lineStart) + text.slice(s);
+        ta.selectionStart = ta.selectionEnd = lineStart;
+        fire(ta);
+        return;
+      }
+      e.preventDefault();
+      const insert = '\n' + m[1] + '- ';
+      ta.value = text.slice(0, s) + insert + text.slice(s);
+      ta.selectionStart = ta.selectionEnd = s + insert.length;
+      fire(ta);
+    }
+  }
+
+  function initRichTextarea(ta) {
+    if (ta._rtInited) return;
+    ta._rtInited = true;
+    ta.addEventListener('compositionstart', () => { ta._rtComposing = true; });
+    ta.addEventListener('compositionend', () => { ta._rtComposing = false; });
+    ta.addEventListener('keydown', handleKeydown);
+    ta.addEventListener('input', updateToolbarState);
+    ta.addEventListener('keyup', updateToolbarState);
+    ta.addEventListener('click', updateToolbarState);
+    ta.addEventListener('focus', () => { _activeRt = ta; updateToolbarState(); });
+  }
+
+  // Toolbar click delegation (covers both inline desktop + mobile sticky)
+  document.addEventListener('click', (e) => {
+    const btn = e.target.closest('[data-rt-action]');
+    if (!btn) return;
+    const action = btn.dataset.rtAction;
+    let ta = null;
+    if (btn.classList.contains('rt-tbtn')) {
+      const field = btn.closest('.rt-field');
+      if (field) ta = field.querySelector('textarea.rt-textarea');
+    } else if (btn.classList.contains('rt-mtbtn')) {
+      ta = getActive();
+    }
+    if (!ta) return;
+    e.preventDefault();
+    // Prevent blur stealing focus from textarea on mobile button mousedown
+    ta.focus();
+    if (action === 'bold') applyBold(ta);
+    else if (action === 'bullet') applyBullet(ta);
+    else if (action === 'indent') applyIndent(ta);
+    else if (action === 'outdent') applyOutdent(ta);
+    updateToolbarState();
+  });
+
+  // Prevent mobile toolbar mousedown from stealing focus
+  document.addEventListener('mousedown', (e) => {
+    if (e.target.closest('#rt-toolbar-mobile')) {
+      e.preventDefault();
+    }
+  });
+
+  // ── Mobile sticky toolbar focus/blur + visualViewport ──
+  function attachMobile() {
+    const mobileToolbar = document.getElementById('rt-toolbar-mobile');
+    if (!mobileToolbar) return;
+    document.addEventListener('focusin', (e) => {
+      if (!e.target?.classList?.contains?.('rt-textarea')) return;
+      _activeRt = e.target;
+      initRichTextarea(e.target);
+      if (window.innerWidth >= 1024) return;
+      mobileToolbar.style.display = 'flex';
+    });
+    document.addEventListener('focusout', (e) => {
+      if (!e.target?.classList?.contains?.('rt-textarea')) return;
+      setTimeout(() => {
+        if (document.activeElement === e.target) return;
+        if (mobileToolbar.contains(document.activeElement)) return;
+        mobileToolbar.style.display = 'none';
+        _activeRt = null;
+      }, 200);
+    });
+    if (window.visualViewport) {
+      window.visualViewport.addEventListener('resize', () => {
+        if (mobileToolbar.style.display === 'flex') {
+          const offset = Math.max(0, window.innerHeight - window.visualViewport.height);
+          mobileToolbar.style.bottom = offset + 'px';
+        }
+      });
+    }
+    window.__rtMobileBound = true;
+  }
+
+  function bindAllRichTextareas() {
+    document.querySelectorAll('textarea.rt-textarea').forEach(initRichTextarea);
+  }
+
+  if (document.readyState === 'loading') {
+    document.addEventListener('DOMContentLoaded', () => { attachMobile(); bindAllRichTextareas(); });
+  } else {
+    attachMobile();
+    bindAllRichTextareas();
+  }
+
+  // Re-bind after every render() call (handles dynamic CIRCLES/NSM rerenders)
+  const origRender = window.render;
+  // render is reassigned later via `window.render = render` — use MutationObserver
+  // on #main as a robust hook so newly-rendered textareas are bound.
+  const main = document.getElementById('main');
+  if (main) {
+    const mo = new MutationObserver(() => bindAllRichTextareas());
+    mo.observe(main, { childList: true, subtree: true });
+  }
+
+  // Expose for buildRtField / external callers
+  window.buildRtField = function buildRtField(opts) {
+    opts = opts || {};
+    const key = opts.key != null ? opts.key : '';
+    const rows = opts.rows || 2;
+    const placeholder = opts.placeholder || '';
+    const value = opts.value || '';
+    const extraClass = opts.extraClass || '';
+    const dataAttrs = opts.dataAttrs || '';
+    const esc = (s) => String(s).replace(/[&<>"']/g, c => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
+    return (
+      '<div class="rt-field">' +
+        '<div class="rt-toolbar">' +
+          '<button type="button" class="rt-tbtn" data-rt-action="bold" title="粗體 (Ctrl+B)"><strong>B</strong></button>' +
+          '<button type="button" class="rt-tbtn" data-rt-action="bullet" title="列點 (Ctrl+L)"><i class="ph ph-list-bullets"></i></button>' +
+          '<button type="button" class="rt-tbtn" data-rt-action="indent" title="縮排 (Tab)"><i class="ph ph-text-indent"></i></button>' +
+          '<button type="button" class="rt-tbtn" data-rt-action="outdent" title="退縮 (Shift+Tab)"><i class="ph ph-text-outdent"></i></button>' +
+        '</div>' +
+        '<textarea class="rt-textarea ' + extraClass + '" data-field="' + esc(key) + '" rows="' + rows + '" placeholder="' + esc(placeholder) + '" ' + dataAttrs + '>' + esc(value) + '</textarea>' +
+      '</div>'
+    );
+  };
+
+  // Expose helpers for tests
+  window.__rtActions = { applyBold, applyBullet, applyIndent, applyOutdent, isPositionInsideBold };
+})();
 
 // 暴露至全域，讓 HTML inline onclick 可使用
 window.navigate = navigate;
@@ -999,7 +1490,303 @@ function collapseQCard(card) {
   card.style.borderColor = '';
 }
 
+// Phase 2 Spec 2 § 6.2: fetch most-recent active CIRCLES draft for the home
+// resume banner. Populates AppState.circlesActiveDraft (null if none).
+async function fetchActiveDraft() {
+  try {
+    const headers = AppState.accessToken
+      ? { 'Authorization': 'Bearer ' + AppState.accessToken }
+      : { 'X-Guest-ID': AppState.guestId };
+    const route = (AppState.accessToken ? '/api/circles-sessions' : '/api/guest-circles-sessions') + '?status=active&limit=5';
+    const r = await fetch(route, { headers });
+    if (!r.ok) { AppState.circlesActiveDraft = null; return; }
+    const list = await r.json();
+    // Most recent active session that actually has draft content (skip empties).
+    const found = (list || []).find(function (s) {
+      return s.step_drafts && Object.keys(s.step_drafts).length > 0;
+    }) || null;
+    AppState.circlesActiveDraft = found;
+  } catch (_e) {
+    AppState.circlesActiveDraft = null;
+  }
+}
+window.fetchActiveDraft = fetchActiveDraft;
+
+function renderResumeBanner() {
+  const d = AppState.circlesActiveDraft;
+  if (!d) return '';
+  if (localStorage.getItem('dismiss-resume-' + d.id)) return '';
+  const q = d.question_json || {};
+  const company = q.company || '練習';
+  const product = q.product || q.problem_statement || '';
+  return '<div class="resume-banner" data-resume-id="' + escHtml(d.id) + '">' +
+    '<span><strong>未完成練習</strong> · ' + escHtml(company) + (product ? ' · ' + escHtml(product) : '') + ' · ' + escHtml(formatRelativeEdit(d.updated_at)) + '</span>' +
+    '<span><a class="resume-go" data-id="' + escHtml(d.id) + '">繼續 →</a><i class="ph ph-x dismiss" data-id="' + escHtml(d.id) + '" role="button" aria-label="關閉"></i></span>' +
+  '</div>';
+}
+window.renderResumeBanner = renderResumeBanner;
+
+function bindResumeBanner() {
+  document.querySelectorAll('.resume-banner .resume-go').forEach(function (el) {
+    el.addEventListener('click', async function () {
+      const id = el.dataset.id;
+      if (!id) return;
+      await loadCirclesSession(id);
+      navigate('circles');
+    });
+  });
+  document.querySelectorAll('.resume-banner .dismiss').forEach(function (el) {
+    el.addEventListener('click', function (ev) {
+      ev.stopPropagation();
+      const id = el.dataset.id;
+      if (id) localStorage.setItem('dismiss-resume-' + id, '1');
+      const banner = el.closest('.resume-banner');
+      if (banner) banner.remove();
+    });
+  });
+}
+window.bindResumeBanner = bindResumeBanner;
+
+// ── Onboarding welcome card (Phase 5 Task 5.1) ───────────────────────
+// Spec: docs/superpowers/specs/2026-04-28-desktop-rwd-direction-c-design.md §4.1
+//
+// Trigger conditions for welcome card (State 1):
+//   - localStorage 'circles_onboarding_done' !== '1'
+//   - AND AppState.circlesRecentSessions.length === 0
+//   - AND no `?onboarding=0` query
+// Dev hook: `?onboarding=1` query forces display even with flag set.
+function getOnboardingQuery() {
+  try { return new URLSearchParams(window.location.search).get('onboarding'); }
+  catch (e) { return null; }
+}
+
+function shouldShowOnboardingWelcome() {
+  var q = getOnboardingQuery();
+  if (q === '1') return true;             // dev force-show
+  if (q === '0') return false;            // dev force-hide
+  try {
+    if (localStorage.getItem('circles_onboarding_done') === '1') return false;
+  } catch (e) {}
+  if (AppState.circlesRecentSessions && AppState.circlesRecentSessions.length > 0) return false;
+  // SIT-1 #5 (flash polish): gate first render until first sessions fetch
+  // resolves. If we have an active draft already, skip the welcome card.
+  if (AppState.circlesActiveDraft) return false;
+  if (!AppState.circlesSessionsFetched) return false;
+  return true;
+}
+
+function renderOnboardingWelcomeHtml() {
+  return '<div class="onboarding-welcome" id="onboarding-welcome">' +
+    '<div class="onboarding-welcome-icon"><i class="ph ph-hand-waving"></i></div>' +
+    '<h2>歡迎來到 PM Drill</h2>' +
+    '<p>CIRCLES 是 PM 面試常用的七步框架。第一次使用？建議跟著引導跑一輪，5 分鐘內了解整個流程。</p>' +
+    '<div class="onboarding-welcome-actions">' +
+      '<button class="btn-primary" id="onb-start">開始引導 →</button>' +
+      '<button class="btn-ghost" id="onb-skip">直接自己選題</button>' +
+    '</div>' +
+  '</div>';
+}
+
+function markOnboardingDone() {
+  try { localStorage.setItem('circles_onboarding_done', '1'); } catch (e) {}
+  var card = document.getElementById('onboarding-welcome');
+  if (card && card.parentNode) card.parentNode.removeChild(card);
+}
+
+// ── Coachmark tour engine (Phase 5 Task 5.2) ─────────────────────────
+// Spec: docs/superpowers/specs/2026-04-28-desktop-rwd-direction-c-design.md §4.2-4.4
+//
+// Targets per spec §4.3 are `.mode-section / .type-section / .q-list /
+// .q-row.expanded .btn-primary` — selectors introduced by Phase 4.1's
+// desktop CIRCLES-home renderer. After the Phase 4.1 desktop layout merge,
+// each step's selector matches BOTH the legacy mobile renderer (.circles-*)
+// AND the desktop renderer (.mode-section/.type-section) via comma list.
+// Steps 3-4 selectors already work on both layouts (verified by SIT-4).
+var ONBOARDING_TARGETS = [
+  '.circles-mode-row, .mode-section',           // step 1: 練習模式
+  '.circles-type-tabs, .type-section',          // step 2: 題型
+  '.circles-q-list',                            // step 3: 題目列表
+  '.circles-q-card.onb-expanded .circles-q-confirm-btn', // step 4: 展開卡內主按鈕
+];
+
+var ONBOARDING_STEPS = [
+  { title: '選擇練習模式', desc: '建議首次選「完整模擬」走完整流程，熟悉後再用「步驟加練」針對弱點刻意練習。', arrow: 'left',  pos: 'right'  },
+  { title: '選擇題型',     desc: '三種題型對應不同 PM 能力。新手建議從「產品設計」開始，題目較具體、容易上手。',         arrow: 'left',  pos: 'right'  },
+  { title: '挑一道題目',   desc: '每題標難度（Easy / Medium / Hard）。新手建議先挑 Easy。點題目會展開完整描述與「開始練習」。', arrow: 'top',   pos: 'bottom' },
+  { title: '開始練習',     desc: '點此進入 Phase 1 — 填寫框架。每個欄位都有「提示」與「查看範例」幫你思考。完成後會自動進入訪談階段。', arrow: 'left',  pos: 'right'  },
+];
+// Mobile-only override for step 4 (spec §4.5): on mobile the q-row
+// "expanded" state is a route change rather than an inline accordion, so
+// instead of pointing at .btn-primary, highlight the last q-card in the
+// list and explain "點任一題會展開".
+var ONBOARDING_STEPS_MOBILE_STEP4 = {
+  target: '.circles-q-list .circles-q-card:last-child',
+  title: '挑一道題目', desc: '點任一題會展開完整描述。展開後可看到難度、產品背景與「確認，開始練習」按鈕。',
+  arrow: 'top', pos: 'top',
+};
+
+function startOnboardingTour() {
+  // Hide welcome card immediately (we mark localStorage done at tour end).
+  var card = document.getElementById('onboarding-welcome');
+  if (card && card.parentNode) card.parentNode.removeChild(card);
+
+  AppState.onboardingStep = 1;
+
+  // Inject overlay + spotlight + tooltip per spec §4.2.
+  var overlay   = document.createElement('div'); overlay.className   = 'onboarding-overlay';   overlay.id   = 'onb-overlay';
+  var spotlight = document.createElement('div'); spotlight.className = 'onboarding-spotlight'; spotlight.id = 'onb-spotlight';
+  var tooltip   = document.createElement('div'); tooltip.className   = 'onboarding-tooltip';   tooltip.id   = 'onb-tooltip';
+  document.body.appendChild(overlay);
+  document.body.appendChild(spotlight);
+  document.body.appendChild(tooltip);
+
+  // Resize listener — reposition while a tour step is active (spec §4.4).
+  if (!AppState._onboardingResizeBound) {
+    window.addEventListener('resize', function() {
+      if (AppState.onboardingStep) showCoachmark(AppState.onboardingStep);
+    });
+    AppState._onboardingResizeBound = true;
+  }
+
+  showCoachmark(1);
+}
+
+function endOnboardingTour() {
+  AppState.onboardingStep = null;
+  ['onb-overlay','onb-spotlight','onb-tooltip'].forEach(function(id) {
+    var el = document.getElementById(id);
+    if (el && el.parentNode) el.parentNode.removeChild(el);
+  });
+  // Collapse any q-row we auto-expanded for step 4.
+  var auto = document.querySelector('.circles-q-card.onb-expanded');
+  if (auto) {
+    auto.classList.remove('onb-expanded');
+    if (typeof collapseQCard === 'function') {
+      try { collapseQCard(auto); } catch (e) {}
+    }
+  }
+  markOnboardingDone();
+}
+
+function showCoachmark(step) {
+  var isMobile = window.innerWidth <= 1023;
+  var cfg = ONBOARDING_STEPS[step - 1];
+  var targetSel = ONBOARDING_TARGETS[step - 1];
+
+  // Step 4 special handling
+  if (step === 4) {
+    if (isMobile) {
+      // Mobile: q-row expansion is a route change (spec §4.5). Highlight
+      // the last item of the list and explain "點任一題會展開" instead.
+      cfg = Object.assign({}, ONBOARDING_STEPS_MOBILE_STEP4);
+      targetSel = ONBOARDING_STEPS_MOBILE_STEP4.target;
+    } else {
+      // Desktop: target is the expanded q-row's primary button. Auto-expand
+      // the first q-card if no row is currently open so the button exists.
+      var alreadyExpanded = document.querySelector('.circles-q-card.onb-expanded');
+      if (!alreadyExpanded) {
+        var firstCard = document.querySelector('.circles-q-list .circles-q-card');
+        if (firstCard && typeof expandQCard === 'function') {
+          expandQCard(firstCard);
+          firstCard.classList.add('onb-expanded');
+        }
+      }
+    }
+  }
+
+  var el = document.querySelector(targetSel);
+  var spotlight = document.getElementById('onb-spotlight');
+  var tooltip   = document.getElementById('onb-tooltip');
+  if (!spotlight || !tooltip) return;
+
+  if (!el) {
+    // Selector missing — render tooltip without spotlight (fail-soft).
+    spotlight.style.display = 'none';
+  } else {
+    spotlight.style.display = '';
+    var rect = el.getBoundingClientRect();
+    spotlight.style.left   = (rect.left - 4) + 'px';
+    spotlight.style.top    = (rect.top  - 4) + 'px';
+    spotlight.style.width  = (rect.width  + 8) + 'px';
+    spotlight.style.height = (rect.height + 8) + 'px';
+  }
+
+  // Tooltip body
+  var totalSteps = ONBOARDING_STEPS.length;
+  tooltip.setAttribute('data-arrow', cfg.arrow);
+  tooltip.innerHTML =
+    '<div class="onb-step">第 ' + step + ' 步 / 共 ' + totalSteps + '</div>' +
+    '<h4>' + cfg.title + '</h4>' +
+    '<p>' + cfg.desc + '</p>' +
+    '<div class="onb-actions">' +
+      '<span class="onb-skip" id="onb-skip-tour">略過引導</span>' +
+      '<button class="onb-next" id="onb-next">' + (step === totalSteps ? '完成' : '下一步 →') + '</button>' +
+    '</div>' +
+    '<div class="onb-arrow"></div>';
+
+  // Position tooltip. On desktop we pin it to the target side; on mobile
+  // (≤1023px, spec §4.5) the CSS pins it sticky-bottom and we clear inline
+  // coords so the @media rule wins.
+  if (!isMobile && el) {
+    var TOOLTIP_W = 300;
+    var GAP = 16;
+    // Force layout to read tooltip height, then position by `pos`.
+    tooltip.style.left = '0px'; tooltip.style.top = '0px';
+    var th = tooltip.offsetHeight || 140;
+    var rect2 = el.getBoundingClientRect();
+    var x, y;
+    if (cfg.pos === 'right') {
+      x = rect2.right + GAP;
+      y = rect2.top + Math.max(0, (rect2.height - th) / 2);
+    } else if (cfg.pos === 'bottom') {
+      x = rect2.left + Math.max(0, (rect2.width - TOOLTIP_W) / 2);
+      y = rect2.bottom + GAP;
+    } else if (cfg.pos === 'top') {
+      x = rect2.left + Math.max(0, (rect2.width - TOOLTIP_W) / 2);
+      y = rect2.top - th - GAP;
+    } else { // left
+      x = rect2.left - TOOLTIP_W - GAP;
+      y = rect2.top + Math.max(0, (rect2.height - th) / 2);
+    }
+    // Clamp into viewport
+    x = Math.max(8, Math.min(x, window.innerWidth - TOOLTIP_W - 8));
+    y = Math.max(8, Math.min(y, window.innerHeight - th - 8));
+    tooltip.style.left = x + 'px';
+    tooltip.style.top  = y + 'px';
+  } else {
+    // Mobile: clear inline coords so the @media (max-width: 1023px) rule
+    // (left/right/bottom: 16px, top: auto) takes effect.
+    tooltip.style.left = '';
+    tooltip.style.top  = '';
+  }
+
+  // Wire buttons
+  var nextBtn = document.getElementById('onb-next');
+  var skipBtn = document.getElementById('onb-skip-tour');
+  if (nextBtn) nextBtn.onclick = function() {
+    if (step >= totalSteps) {
+      endOnboardingTour();
+    } else {
+      AppState.onboardingStep = step + 1;
+      showCoachmark(step + 1);
+    }
+  };
+  if (skipBtn) skipBtn.onclick = function() { endOnboardingTour(); };
+}
+
+function bindOnboardingWelcome() {
+  var startBtn = document.getElementById('onb-start');
+  var skipBtn  = document.getElementById('onb-skip');
+  if (startBtn) startBtn.addEventListener('click', function() { startOnboardingTour(); });
+  if (skipBtn)  skipBtn.addEventListener('click',  function() { markOnboardingDone(); });
+}
+
 function renderCirclesHome() {
+  if (typeof isDesktop === 'function' && isDesktop()) return renderCirclesHomeDesktop();
+  return renderCirclesHomeMobile();
+}
+
+function renderCirclesHomeMobile() {
   var mode = AppState.circlesMode;
   var type = AppState.circlesSelectedType;
   var drillStep = AppState.circlesDrillStep;
@@ -1052,7 +1839,7 @@ function renderCirclesHome() {
             '<div class="circles-q-card-company">' + escHtml(company) + ' — ' + modeLabel + '</div>' +
             '<div style="font-size:12px;color:var(--c-text-2,#5a5a5a);margin-top:2px;font-family:DM Sans,sans-serif">' + stepLabel + ' · ' + phaseLabel + '</div>' +
           '</div>' +
-          '<div style="font-size:12px;font-weight:600;color:var(--c-primary,#1A56DB);font-family:DM Sans,sans-serif;white-space:nowrap">繼續練習 →</div>' +
+          '<div style="font-size:12px;font-weight:600;color:var(--c-primary,var(--c-primary));font-family:DM Sans,sans-serif;white-space:nowrap">繼續練習 →</div>' +
         '</div>' +
       '</div>';
     }).join('');
@@ -1069,8 +1856,15 @@ function renderCirclesHome() {
     ? displayedQs.map(function(q) { return renderQCardHtml(q); }).join('')
     : '<div style="color:var(--c-text-3);font-size:13px;text-align:center;padding:24px 0">暫無題目，請先執行題庫生成腳本</div>';
 
+  // ── Onboarding welcome card (Phase 5 Task 5.1) ───────────────────────
+  // Show if: (a) flag not set, AND (b) no recent sessions, AND (c) not ?onboarding=0
+  // Or force-show if ?onboarding=1 (dev hook).
+  var welcomeHtml = shouldShowOnboardingWelcome() ? renderOnboardingWelcomeHtml() : '';
+
   return '<div data-view="circles">' +
     '<div class="circles-home-wrap">' +
+      welcomeHtml +
+      renderResumeBanner() +
       recentHtml +
       '<div class="circles-home-title">CIRCLES 訓練</div>' +
       '<div class="circles-home-sub">選題，按步驟填寫框架、訪談、拿到評分</div>' +
@@ -1141,6 +1935,120 @@ function renderCirclesHome() {
   '</div>';
 }
 
+// Phase 4.1 — desktop 3-col layout
+function renderCirclesHomeDesktop() {
+  var mode = AppState.circlesMode;
+  var type = AppState.circlesSelectedType;
+  var drillStep = AppState.circlesDrillStep;
+  var allQs = (typeof CIRCLES_QUESTIONS !== 'undefined' ? CIRCLES_QUESTIONS : []);
+  var filteredQs = allQs.filter(function(q) { return q.question_type === type; });
+  if (!AppState.circlesDisplayedQuestions || AppState.circlesDisplayedQuestions.length === 0 ||
+      (AppState.circlesDisplayedQuestions[0] && AppState.circlesDisplayedQuestions[0].question_type !== type)) {
+    AppState.circlesDisplayedQuestions = pickRandom5(filteredQs);
+  }
+  var displayedQs = AppState.circlesDisplayedQuestions;
+  var designCount = allQs.filter(function(q) { return q.question_type === 'design'; }).length;
+  var improveCount = allQs.filter(function(q) { return q.question_type === 'improve'; }).length;
+  var strategyCount = allQs.filter(function(q) { return q.question_type === 'strategy'; }).length;
+
+  var modeCardsHtml =
+    '<div class="circles-mode-card ' + (mode === 'simulation' ? 'selected' : '') + '" data-mode="simulation">' +
+      '<div class="circles-mode-card-title"><i class="ph ph-video-camera"></i> 完整模擬</div>' +
+      '<div class="circles-mode-card-desc">25-35 分鐘 · 全 7 步</div>' +
+    '</div>' +
+    '<div class="circles-mode-card ' + (mode === 'drill' ? 'selected' : '') + '" data-mode="drill">' +
+      '<div class="circles-mode-card-title"><i class="ph ph-target"></i> 步驟加練</div>' +
+      '<div class="circles-mode-card-desc">5-10 分鐘 · 單一步驟</div>' +
+    '</div>';
+
+  var typeListHtml =
+    '<button class="circles-type-tab ' + (type === 'design' ? 'active' : '') + '" data-type="design"><span>產品設計</span><span>×' + designCount + '</span></button>' +
+    '<button class="circles-type-tab ' + (type === 'improve' ? 'active' : '') + '" data-type="improve"><span>產品改進</span><span>×' + improveCount + '</span></button>' +
+    '<button class="circles-type-tab ' + (type === 'strategy' ? 'active' : '') + '" data-type="strategy"><span>產品策略</span><span>×' + strategyCount + '</span></button>';
+
+  var qCardsHtml = displayedQs.length > 0
+    ? displayedQs.map(function(q) { return renderQCardHtml(q); }).join('')
+    : '<div style="color:var(--c-text-3);font-size:13px;text-align:center;padding:24px 0">暫無題目</div>';
+
+  // recent rail (right)
+  var recentItemsHtml = '';
+  if (AppState.circlesRecentSessions && AppState.circlesRecentSessions.length > 0) {
+    var STEP_MAP = {};
+    CIRCLES_STEPS.forEach(function(s) { STEP_MAP[s.key] = s.label; });
+    recentItemsHtml = AppState.circlesRecentSessions.slice(0, 3).map(function(s) {
+      var company = (s.question_json || {}).company || '—';
+      var modeLabel = s.mode === 'drill' ? '步驟加練' : '完整模擬';
+      var stepLabel = s.mode === 'simulation'
+        ? 'Step ' + (s.sim_step_index + 1) + '/7'
+        : (STEP_MAP[s.drill_step] || s.drill_step);
+      return '<div class="circles-resume-card" data-resume-id="' + s.id + '" style="margin-bottom:6px">' +
+        '<div class="circles-q-card-company" style="font-size:12px">' + escHtml(company) + ' · ' + modeLabel + '</div>' +
+        '<div style="font-size:11px;color:var(--c-text-2);margin-top:2px">' + stepLabel + '</div>' +
+      '</div>';
+    }).join('');
+  } else {
+    recentItemsHtml = '<div style="color:var(--c-text-3);font-size:11.5px">尚無紀錄</div>';
+  }
+
+  // Phase 2 + 5 banner/welcome slots: render in the center column above the
+  // question list (spec 2 §7, spec 3 §4.1). The wrapper class circles-home-wrap
+  // is also kept so the bindCirclesHome post-render fetchActiveDraft re-render
+  // pass works identically on desktop + mobile.
+  var welcomeHtmlD = (typeof shouldShowOnboardingWelcome === 'function' && shouldShowOnboardingWelcome())
+    ? renderOnboardingWelcomeHtml() : '';
+  var bannerHtmlD = (typeof renderResumeBanner === 'function') ? renderResumeBanner() : '';
+
+  return '<div data-view="circles" class="circles-home-desktop">' +
+    '<div class="circles-home-wrap">' +
+    '<div class="ch-header">' +
+      '<div>' +
+        '<h1>CIRCLES 訓練</h1>' +
+        '<div class="ch-sub">選題，按步驟填寫框架、訪談、拿到評分</div>' +
+      '</div>' +
+      '<div class="ch-meta">100 題 · 7 步驟框架</div>' +
+    '</div>' +
+    welcomeHtmlD +
+    bannerHtmlD +
+    '<div class="ch-grid">' +
+      // Left rail
+      '<div class="left-rail">' +
+        '<div class="mode-section">' +
+          '<div class="rail-label">練習模式</div>' +
+          '<div class="mode-list">' + modeCardsHtml + '</div>' +
+        '</div>' +
+        '<div class="type-section">' +
+          '<div class="rail-label">題型</div>' +
+          '<div class="type-list">' + typeListHtml + '</div>' +
+        '</div>' +
+      '</div>' +
+      // Center
+      '<div class="center-col">' +
+        '<div style="display:flex;align-items:center;justify-content:space-between">' +
+          '<div class="rail-label">選擇題目</div>' +
+          '<button id="circles-random-btn" style="font-size:11px;color:var(--c-primary);background:none;border:none;cursor:pointer;padding:0">隨機選題</button>' +
+        '</div>' +
+        '<div class="circles-q-list ch-q-list" id="circles-q-list">' + qCardsHtml + '</div>' +
+        '<div class="nsm-banner">' +
+          '<div>' +
+            '<div class="nsm-banner-label">S 步驟含北極星指標練習</div>' +
+            '<div class="nsm-banner-sub">想做最完整的 NSM 定義訓練？</div>' +
+          '</div>' +
+          '<button class="nsm-banner-btn" id="circles-nsm-banner-btn">前往 NSM →</button>' +
+        '</div>' +
+      '</div>' +
+      // Right rail
+      '<div class="right-rail">' +
+        '<div class="recent-section" id="circles-recent-slot">' +
+          '<div class="rail-label">近期練習</div>' +
+          recentItemsHtml +
+        '</div>' +
+      '</div>' +
+    '</div>' +
+    '<div class="circles-pill-tooltip" id="circles-pill-tooltip"></div>' +
+    '</div>' + // close .circles-home-wrap
+  '</div>';
+}
+
 function renderQList() {
   var type = AppState.circlesSelectedType;
   var allQs = (typeof CIRCLES_QUESTIONS !== 'undefined' ? CIRCLES_QUESTIONS : []);
@@ -1158,6 +2066,39 @@ function bindCirclesHome() {
   if (AppState.circlesRecentSessions.length === 0 && !AppState.circlesRecentLoading) {
     fetchCirclesRecentSessions();
   }
+
+  // Phase 2 Spec 2 § 6.2: bind resume banner controls + fetch fresh active draft.
+  // First call: render whatever's currently in AppState (instant if cached);
+  // then fetch and re-render the slot only if the result changes.
+  bindResumeBanner();
+  fetchActiveDraft().then(function () {
+    const wrap = document.querySelector('[data-view="circles"] .circles-home-wrap');
+    if (!wrap) return;
+    // SIT-1 #5: if active draft exists, suppress welcome card to avoid
+    // simultaneous display of welcome card + resume banner.
+    if (AppState.circlesActiveDraft) {
+      const _w = wrap.querySelector('.onboarding-welcome');
+      if (_w) _w.remove();
+    }
+    const existing = wrap.querySelector('.resume-banner');
+    const newHtml = renderResumeBanner();
+    if (existing && !newHtml) { existing.remove(); return; }
+    if (!existing && newHtml) {
+      // Insert after the welcome card if present, else at top.
+      const welcome = wrap.querySelector('.onboarding-welcome');
+      if (welcome) welcome.insertAdjacentHTML('afterend', newHtml);
+      else wrap.insertAdjacentHTML('afterbegin', newHtml);
+      bindResumeBanner();
+      return;
+    }
+    if (existing && newHtml) {
+      existing.outerHTML = newHtml;
+      bindResumeBanner();
+    }
+  });
+
+  // Onboarding welcome card (Phase 5 Task 5.1)
+  bindOnboardingWelcome();
 
   document.getElementById('circles-nsm-banner-btn')?.addEventListener('click', function() { navigate('nsm'); });
 
@@ -1363,7 +2304,15 @@ function buildFieldGroupHtml(stepKey, field, draft, isSimulation, fieldIdx) {
       '</button>' +
     '</div>' +
     buildFieldExampleHtml(stepKey, key, '') +
-    '<textarea class="circles-field-input" data-field="' + escHtml(key) + '" rows="' + rows + '" placeholder="' + escHtml(field.placeholder || '填寫你的分析…') + '">' + escHtml(val) + '</textarea>' +
+    '<div class="rt-field">' +
+      '<div class="rt-toolbar">' +
+        '<button type="button" class="rt-tbtn" data-rt-action="bold" title="粗體 (Ctrl+B)"><strong>B</strong></button>' +
+        '<button type="button" class="rt-tbtn" data-rt-action="bullet" title="列點 (Ctrl+L)"><i class="ph ph-list-bullets"></i></button>' +
+        '<button type="button" class="rt-tbtn" data-rt-action="indent" title="縮排 (Tab)"><i class="ph ph-text-indent"></i></button>' +
+        '<button type="button" class="rt-tbtn" data-rt-action="outdent" title="退縮 (Shift+Tab)"><i class="ph ph-text-outdent"></i></button>' +
+      '</div>' +
+      '<textarea class="circles-field-input rt-textarea" data-field="' + escHtml(key) + '" rows="' + rows + '" placeholder="' + escHtml(field.placeholder || '填寫你的分析…') + '">' + escTextarea(val) + '</textarea>' +
+    '</div>' +
   '</div>';
 }
 
@@ -1389,7 +2338,15 @@ function buildSolutionFieldHtml(stepKey, field, draft, lDraft, isSimulation, fie
       '<input class="sol-name-input" type="text" maxlength="10" data-sol-name="' + solKey + '" placeholder="' + escHtml(field.namePlaceholder || '方案名稱（10 字內）') + '" value="' + escHtml(nameVal) + '">' +
     '</div>' +
     buildFieldExampleHtml(stepKey, key, '') +
-    '<textarea class="circles-field-input" data-field="' + escHtml(key) + '" rows="' + (field.rows || 2) + '" placeholder="' + escHtml(field.placeholder || '') + '">' + escHtml(bodyVal) + '</textarea>' +
+    '<div class="rt-field">' +
+      '<div class="rt-toolbar">' +
+        '<button type="button" class="rt-tbtn" data-rt-action="bold" title="粗體 (Ctrl+B)"><strong>B</strong></button>' +
+        '<button type="button" class="rt-tbtn" data-rt-action="bullet" title="列點 (Ctrl+L)"><i class="ph ph-list-bullets"></i></button>' +
+        '<button type="button" class="rt-tbtn" data-rt-action="indent" title="縮排 (Tab)"><i class="ph ph-text-indent"></i></button>' +
+        '<button type="button" class="rt-tbtn" data-rt-action="outdent" title="退縮 (Shift+Tab)"><i class="ph ph-text-outdent"></i></button>' +
+      '</div>' +
+      '<textarea class="circles-field-input rt-textarea" data-field="' + escHtml(key) + '" rows="' + (field.rows || 2) + '" placeholder="' + escHtml(field.placeholder || '') + '">' + escTextarea(bodyVal) + '</textarea>' +
+    '</div>' +
   '</div>';
 }
 
@@ -1406,7 +2363,15 @@ function buildTrackingBlockHtml(tracking) {
         '<span style="color:' + dim.textColor + '">' + escHtml(dim.label) + '</span>' +
       '</div>' +
       '<div class="tracking-dim-desc">' + escHtml(dim.desc) + '</div>' +
-      '<textarea class="tracking-dim-input' + (v ? ' filled' : '') + '" data-tracking-dim="' + dim.key + '" rows="1" placeholder="' + escHtml(dim.placeholder) + '">' + escHtml(v) + '</textarea>' +
+      '<div class="rt-field">' +
+        '<div class="rt-toolbar">' +
+          '<button type="button" class="rt-tbtn" data-rt-action="bold" title="粗體 (Ctrl+B)"><strong>B</strong></button>' +
+          '<button type="button" class="rt-tbtn" data-rt-action="bullet" title="列點 (Ctrl+L)"><i class="ph ph-list-bullets"></i></button>' +
+          '<button type="button" class="rt-tbtn" data-rt-action="indent" title="縮排 (Tab)"><i class="ph ph-text-indent"></i></button>' +
+          '<button type="button" class="rt-tbtn" data-rt-action="outdent" title="退縮 (Shift+Tab)"><i class="ph ph-text-outdent"></i></button>' +
+        '</div>' +
+        '<textarea class="tracking-dim-input rt-textarea' + (v ? ' filled' : '') + '" data-tracking-dim="' + dim.key + '" rows="1" placeholder="' + escHtml(dim.placeholder) + '">' + escTextarea(v) + '</textarea>' +
+      '</div>' +
     '</div>';
   }).join('');
   return '<div class="tracking-block">' +
@@ -1442,7 +2407,15 @@ function buildESolutionBlockHtml(solKey, solIdx, solName, perSolDraft, eFieldsCo
         '</button>' +
       '</div>' +
       (solIdx === 0 ? buildFieldExampleHtml('E', f.key, hint) : '') +
-      '<textarea class="e-sol-input" data-sol="' + solKey + '" data-field="' + escHtml(f.key) + '" rows="2" placeholder="' + escHtml(f.placeholder) + '">' + escHtml(v) + '</textarea>' +
+      '<div class="rt-field">' +
+        '<div class="rt-toolbar">' +
+          '<button type="button" class="rt-tbtn" data-rt-action="bold" title="粗體 (Ctrl+B)"><strong>B</strong></button>' +
+          '<button type="button" class="rt-tbtn" data-rt-action="bullet" title="列點 (Ctrl+L)"><i class="ph ph-list-bullets"></i></button>' +
+          '<button type="button" class="rt-tbtn" data-rt-action="indent" title="縮排 (Tab)"><i class="ph ph-text-indent"></i></button>' +
+          '<button type="button" class="rt-tbtn" data-rt-action="outdent" title="退縮 (Shift+Tab)"><i class="ph ph-text-outdent"></i></button>' +
+        '</div>' +
+        '<textarea class="e-sol-input rt-textarea" data-sol="' + solKey + '" data-field="' + escHtml(f.key) + '" rows="2" placeholder="' + escHtml(f.placeholder) + '">' + escTextarea(v) + '</textarea>' +
+      '</div>' +
     '</div>';
   }).join('');
   var blockId = solKey === 'sol3' ? ' id="e-sol3-block"' : '';
@@ -1543,6 +2516,70 @@ function renderCirclesPhase1() {
     '<button class="circles-btn-primary" id="circles-p1-submit" type="button">' + (isSimulation && isLastStep ? '提交審核' : '提交審核') + '</button>' +
   '</div>';
 
+  // Phase 4.2 — desktop wrapper class
+  var _isDesktopP1 = (typeof isDesktop === 'function' && isDesktop());
+
+  // Phase 4.2 — desktop sidebar rail (題目脈絡 + 上一步重點)
+  var _railHtml = '';
+  if (_isDesktopP1) {
+    var _prevKey = stepIdx > 0 ? CIRCLES_STEPS[stepIdx - 1].key : null;
+    var _prevDraft = _prevKey ? ((AppState.circlesStepDrafts && AppState.circlesStepDrafts[_prevKey]) || {}) : {};
+    var _prevSummary = '';
+    Object.keys(_prevDraft).slice(0, 3).forEach(function(k) {
+      var v = _prevDraft[k];
+      if (typeof v === 'string' && v.trim()) {
+        _prevSummary += '<div style="margin-bottom:6px"><div style="font-size:10.5px;color:var(--c-text-3);font-weight:600">' + escHtml(k) + '</div><div style="font-size:11.5px;color:var(--c-text-2);line-height:1.5">' + escHtml(v.slice(0, 80)) + (v.length > 80 ? '…' : '') + '</div></div>';
+      }
+    });
+    _railHtml = '<aside class="p1-rail">' +
+      '<div><h4>題目脈絡</h4>' +
+        '<div style="font-size:11.5px;color:var(--c-text-2);line-height:1.5">' + escHtml((q.company || '') + (q.product ? ' · ' + q.product : '')) + '</div>' +
+      '</div>' +
+      (_prevSummary ? '<div><h4>上一步重點</h4>' + _prevSummary + '</div>' : '') +
+    '</aside>';
+  }
+
+  // Phase 4.2 — S step split into 2 sub-pages on desktop
+  var _sStepTabs = '';
+  if (_isDesktopP1 && stepKey === 'S') {
+    var _sStep = AppState.circlesSStep || 1;
+    _sStepTabs = '<div class="s-step-tabs">' +
+      '<button class="s-step-tab ' + (_sStep === 1 ? 'active' : '') + '" data-s-step="1" type="button">S-1 摘要</button>' +
+      '<button class="s-step-tab ' + (_sStep === 2 ? 'active' : '') + '" data-s-step="2" type="button">S-2 追蹤指標</button>' +
+    '</div>';
+  }
+
+  if (_isDesktopP1) {
+    return '<div data-view="circles" class="phase1-desktop">' +
+      '<div class="circles-nav">' +
+        '<button class="circles-nav-back" id="circles-p1-nav-back" type="button"><i class="ph ph-arrow-left"></i></button>' +
+        '<div>' +
+          '<div class="circles-nav-title">' + escHtml(config.label) + '</div>' +
+          '<div class="circles-nav-sub">' + escHtml(q.company || '') + (q.product ? ' · ' + escHtml(q.product) : '') + '</div>' +
+        '</div>' +
+        '<button class="circles-nav-home" id="circles-p1-home" type="button">回首頁</button>' +
+      '</div>' +
+      '<div class="circles-progress">' + progressSegs + '<div class="circles-progress-label">' + escHtml(config.progressLabel) + '</div>' +
+        '<span class="save-indicator" aria-live="polite"></span>' +
+      '</div>' +
+      '<div class="p1-grid">' +
+        '<div class="p1-main circles-phase1-wrap">' +
+          pillsHtml +
+          _sStepTabs +
+          '<div class="problem-card">' + escHtml(q.problem_statement || '') + '</div>' +
+          (config.showPrevStepCard ? buildPrevStepCardHtml(stepKey) : '') +
+          (config.showNsmAnnotation ? '<div class="nsm-annotation">' +
+            '此步驟的北極星指標欄位是 NSM 訓練的濃縮版。想深入練習？' +
+            '<button id="circles-s-nsm-link" type="button">前往 NSM 訓練 →</button>' +
+          '</div>' : '') +
+          bodyHtml +
+        '</div>' +
+        _railHtml +
+      '</div>' +
+      submitBarHtml +
+    '</div>';
+  }
+
   return '<div data-view="circles">' +
     '<div class="circles-nav">' +
       '<button class="circles-nav-back" id="circles-p1-nav-back" type="button"><i class="ph ph-arrow-left"></i></button>' +
@@ -1552,7 +2589,9 @@ function renderCirclesPhase1() {
       '</div>' +
       '<button class="circles-nav-home" id="circles-p1-home" type="button">回首頁</button>' +
     '</div>' +
-    '<div class="circles-progress">' + progressSegs + '<div class="circles-progress-label">' + escHtml(config.progressLabel) + '</div></div>' +
+    '<div class="circles-progress">' + progressSegs + '<div class="circles-progress-label">' + escHtml(config.progressLabel) + '</div>' +
+      '<span class="save-indicator" aria-live="polite"></span>' +
+    '</div>' +
     '<div class="circles-phase1-wrap">' +
       pillsHtml +
       '<div class="problem-card">' + escHtml(q.problem_statement || '') + '</div>' +
@@ -1584,11 +2623,19 @@ function bindCirclesPhase1() {
     navigate('nsm');
   });
 
-  // ── Save standard textarea fields to circlesFrameworkDraft on every input
+  // ── Save standard textarea fields to circlesFrameworkDraft + step_drafts on every input
+  // Spec 2 § 3 requires step_drafts as canonical source of "has drafts" — keyed
+  // by step letter. framework_draft is kept as flat field map for gate/eval.
   document.querySelectorAll('.circles-field-input').forEach(function(el) {
     el.addEventListener('input', function() {
       AppState.circlesFrameworkDraft[el.dataset.field] = el.value;
-      saveCirclesProgress({ frameworkDraft: AppState.circlesFrameworkDraft });
+      var stepKey = AppState.circlesMode === 'drill'
+        ? AppState.circlesDrillStep
+        : (CIRCLES_STEPS[AppState.circlesSimStep || 0] || CIRCLES_STEPS[0]).key;
+      if (!AppState.circlesStepDrafts[stepKey]) AppState.circlesStepDrafts[stepKey] = {};
+      AppState.circlesStepDrafts[stepKey][el.dataset.field] = el.value;
+      // Phase 2 Spec 2: auto-save with lazy-create + debounce
+      triggerCirclesAutoSave();
     });
   });
 
@@ -1601,7 +2648,14 @@ function bindCirclesPhase1() {
       // Mirror in framework draft for gate evaluation
       if (!AppState.circlesFrameworkDraft.solutionNames) AppState.circlesFrameworkDraft.solutionNames = {};
       AppState.circlesFrameworkDraft.solutionNames[solKey] = el.value;
-      saveCirclesProgress({ frameworkDraft: AppState.circlesFrameworkDraft, stepDrafts: AppState.circlesStepDrafts });
+      triggerCirclesAutoSave();
+    });
+  });
+
+  // ── Save indicator: click on error → manual retry
+  document.querySelectorAll('.save-indicator').forEach(function(el) {
+    el.addEventListener('click', function() {
+      if (AppState.circlesSaveStatus === 'error') triggerCirclesAutoSave();
     });
   });
 
@@ -1682,7 +2736,7 @@ function bindCirclesPhase1() {
         return;
       }
       if (cached) {
-        body.innerHTML = '例：' + escHtml(cached);
+        body.innerHTML = renderBulletText(cached);
         body.dataset.loaded = '1';
         return;
       }
@@ -1714,9 +2768,7 @@ function bindCirclesPhase1() {
         if (!resp.ok || !data.example) throw new Error(data.error || 'failed');
         AppState.circlesExamplesCache[cacheKey] = data.example;
         if (body.classList.contains('open')) {
-          // Render **bold** markdown to <strong> after escaping HTML.
-          var rendered = escHtml(data.example).replace(/\*\*([^*]+?)\*\*/g, '<strong>$1</strong>');
-          body.innerHTML = '例：' + rendered;
+          body.innerHTML = renderBulletText(data.example);
           body.dataset.loaded = '1';
         }
       } catch (e) {
@@ -1725,6 +2777,14 @@ function bindCirclesPhase1() {
           body.dataset.loaded = '1';
         }
       }
+    });
+  });
+
+  // ── Phase 4.2 — S-step desktop sub-page tab switch
+  document.querySelectorAll('.s-step-tab').forEach(function(btn) {
+    btn.addEventListener('click', function() {
+      AppState.circlesSStep = parseInt(btn.dataset.sStep, 10) || 1;
+      render();
     });
   });
 
@@ -1911,7 +2971,7 @@ function renderCirclesGate() {
     return '<div class="circles-progress-seg ' + cls + '"></div>';
   }).join('');
 
-  var homeBtn = '<button style="font-size:12px;color:#1A56DB;border-bottom:1px solid #1A56DB;background:none;border-top:none;border-left:none;border-right:none;padding:2px 0;cursor:pointer;font-family:DM Sans,sans-serif;white-space:nowrap;flex-shrink:0" id="circles-gate-home">回首頁</button>';
+  var homeBtn = '<button style="font-size:12px;color:var(--c-primary);border-bottom:1px solid var(--c-primary);background:none;border-top:none;border-left:none;border-right:none;padding:2px 0;cursor:pointer;font-family:DM Sans,sans-serif;white-space:nowrap;flex-shrink:0" id="circles-gate-home">回首頁</button>';
 
   if (loading || !result) {
     return '<div data-view="circles">' +
@@ -1926,7 +2986,7 @@ function renderCirclesGate() {
 
   // New schema render: gate-item with icon + title + reason + suggestion
   var STATUS_ICON = { ok: 'ph-check-circle', warn: 'ph-warning', error: 'ph-x-circle' };
-  var STATUS_COLOR = { ok: '#137A3D', warn: '#B85C00', error: '#D92020' };
+  var STATUS_COLOR = { ok: 'var(--c-ok-bold)', warn: 'var(--c-warn-bold)', error: 'var(--c-error)' };
   var items = (result.items || []).map(function(item) {
     var safeStatus = (item.status || '').replace(/[^a-z]/g, '');
     var icon = STATUS_ICON[safeStatus] || 'ph-circle';
@@ -2073,10 +3133,10 @@ function renderCirclesPhase2() {
   var pinnedCard = q ? (
     '<div class="circles-pinned-card" id="circles-pinned-card">' +
       '<div style="display:flex;align-items:center;gap:6px;margin-bottom:4px">' +
-        '<span style="background:#EEF3FF;color:#1A56DB;border-radius:4px;padding:1px 6px;font-size:9px;font-weight:700">' + escHtml(q.company) + '</span>' +
+        '<span style="background:#EEF3FF;color:var(--c-primary);border-radius:4px;padding:1px 6px;font-size:9px;font-weight:700">' + escHtml(q.company) + '</span>' +
       '</div>' +
       '<div style="font-size:11px;color:#1a1a1a;font-weight:600;line-height:1.4" id="circles-pinned-stmt">' + escHtml(q.problem_statement.slice(0, 80)) + (q.problem_statement.length > 80 ? '…' : '') + '</div>' +
-      (q.problem_statement.length > 80 ? '<div id="circles-pinned-toggle" style="font-size:10px;color:#1A56DB;cursor:pointer;margin-top:2px">展開 ▾</div>' : '') +
+      (q.problem_statement.length > 80 ? '<div id="circles-pinned-toggle" style="font-size:10px;color:var(--c-primary);cursor:pointer;margin-top:2px">展開 ▾</div>' : '') +
     '</div>'
   ) : '';
 
@@ -2098,7 +3158,15 @@ function renderCirclesPhase2() {
         '</div>' +
         '<div class="conclusion-example-content" id="circles-example-content" style="display:none">' + escHtml(exampleText) + '</div>' +
       '</div>' +
-      '<textarea id="circles-conclusion-input" class="conclusion-textarea" rows="5" placeholder="' + escHtml(placeholder) + '">' + escHtml(conclusionText) + '</textarea>' +
+      '<div class="rt-field">' +
+        '<div class="rt-toolbar">' +
+          '<button type="button" class="rt-tbtn" data-rt-action="bold" title="粗體 (Ctrl+B)"><strong>B</strong></button>' +
+          '<button type="button" class="rt-tbtn" data-rt-action="bullet" title="列點 (Ctrl+L)"><i class="ph ph-list-bullets"></i></button>' +
+          '<button type="button" class="rt-tbtn" data-rt-action="indent" title="縮排 (Tab)"><i class="ph ph-text-indent"></i></button>' +
+          '<button type="button" class="rt-tbtn" data-rt-action="outdent" title="退縮 (Shift+Tab)"><i class="ph ph-text-outdent"></i></button>' +
+        '</div>' +
+        '<textarea id="circles-conclusion-input" class="conclusion-textarea rt-textarea" rows="5" placeholder="' + escHtml(placeholder) + '">' + escTextarea(conclusionText) + '</textarea>' +
+      '</div>' +
       detectionHtml +
       '<div class="conclusion-actions">' +
         '<button id="circles-conclusion-back" class="conclusion-back-btn">← 繼續對話</button>' +
@@ -2132,7 +3200,10 @@ function renderCirclesPhase2() {
     ? ' style="opacity:0.45;pointer-events:none"'
     : '';
 
-  return '<div data-view="circles" class="circles-chat-wrap">' +
+  // Phase 4.3 — desktop wrapper class (max-width 920 from CSS)
+  var _phase2DesktopCls = (typeof isDesktop === 'function' && isDesktop()) ? ' phase2-desktop' : '';
+
+  return '<div data-view="circles" class="circles-chat-wrap' + _phase2DesktopCls + '">' +
     '<div class="circles-nav">' +
       '<button class="circles-nav-back" id="circles-p2-back"><i class="ph ph-arrow-left"></i></button>' +
       '<div>' +
@@ -2158,7 +3229,7 @@ function toggleCoachHint(btn) {
   content.style.display = isOpen ? 'none' : 'block';
   var icon = btn.querySelector('i');
   if (icon) icon.className = isOpen ? 'ph ph-caret-right' : 'ph ph-caret-down';
-  btn.style.color = isOpen ? 'var(--c-text-3,#8a8a8a)' : 'var(--c-primary,#1A56DB)';
+  btn.style.color = isOpen ? 'var(--c-text-3,#8a8a8a)' : 'var(--c-primary,var(--c-primary))';
 }
 
 function bindCirclesPhase2() {
@@ -2288,10 +3359,10 @@ function bindCirclesPhase2() {
         var hintEl2 = document.getElementById('circles-conclusion-hint');
         var submitBtn2 = document.getElementById('circles-conclusion-submit');
         if (data.ok) {
-          if (hintEl2) { hintEl2.textContent = '✓ ' + (data.message || '結論完整，可以提交'); hintEl2.className = 'conclusion-hint pass'; }
+          if (hintEl2) { hintEl2.innerHTML = '<i class="ph ph-check-circle"></i> ' + (data.message || '結論完整，可以提交'); hintEl2.className = 'conclusion-hint pass'; }
           if (submitBtn2) { submitBtn2.disabled = false; submitBtn2.classList.remove('disabled'); }
         } else {
-          if (hintEl2) { hintEl2.textContent = '⚠ ' + (data.message || '結論尚未涵蓋關鍵維度'); hintEl2.className = 'conclusion-hint warn'; }
+          if (hintEl2) { hintEl2.innerHTML = '<i class="ph ph-warning"></i> ' + (data.message || '結論尚未涵蓋關鍵維度'); hintEl2.className = 'conclusion-hint warn'; }
         }
       } catch (_) {
         var hintEl3 = document.getElementById('circles-conclusion-hint');
@@ -2523,7 +3594,10 @@ function renderCirclesStepScore() {
   // One-line summary subtext under big score
   var summaryLine = step.short + ' — ' + step.label + ' 步驟得分';
 
-  return '<div data-view="circles">' +
+  // Phase 4.4 — desktop wrapper class
+  var _phase3DesktopCls = (typeof isDesktop === 'function' && isDesktop()) ? ' phase3-desktop' : '';
+
+  return '<div data-view="circles" class="' + _phase3DesktopCls.trim() + '">' +
     '<div class="circles-nav">' +
       '<button class="circles-nav-back" id="circles-score-back"><i class="ph ph-arrow-left"></i></button>' +
       '<div style="flex:1;min-width:0">' +
@@ -2671,19 +3745,19 @@ function renderCirclesFinalReport() {
   if (report._error) {
     return '<div data-view="circles">' + navBar +
       '<div style="text-align:center;padding:48px 16px;font-family:DM Sans,sans-serif">' +
-        '<div style="font-size:32px;margin-bottom:12px">⚠️</div>' +
-        '<div style="color:#D92020;font-size:14px;margin-bottom:16px">報告生成失敗，請稍後重試</div>' +
+        '<i class="ph ph-warning-circle" style="font-size:32px;color:#D97706;display:block;margin-bottom:12px"></i>' +
+        '<div style="color:var(--c-error);font-size:14px;margin-bottom:16px">報告生成失敗，請稍後重試</div>' +
         '<button class="circles-btn-ghost" id="circles-final-retry">重試</button>' +
       '</div></div>';
   }
 
-  var gradeColor = ({ A: '#137A3D', B: '#1A56DB', C: '#B85C00', D: '#D92020' })[report.grade] || '#1a1a1a';
+  var gradeColor = ({ A: 'var(--c-ok-bold)', B: 'var(--c-primary)', C: 'var(--c-warn-bold)', D: 'var(--c-error)' })[report.grade] || '#1a1a1a';
 
   var stepLabels = { C1:'澄清', I:'用戶', R:'需求', C2:'排序', L:'方案', E:'取捨', S:'總結' };
   var stepRows = ['C1','I','R','C2','L','E','S'].filter(function(k) { return stepScores[k]; }).map(function(k) {
     var s = stepScores[k];
     var scoreNum = Math.round(s.totalScore || 0);
-    var color = scoreNum >= 70 ? '#137A3D' : scoreNum >= 50 ? '#B85C00' : '#D92020';
+    var color = scoreNum >= 70 ? 'var(--c-ok-bold)' : scoreNum >= 50 ? 'var(--c-warn-bold)' : 'var(--c-error)';
     return '<div style="display:flex;justify-content:space-between;align-items:center;padding:8px 0;border-bottom:1px solid #eee;font-family:DM Sans,sans-serif">' +
       '<span style="font-size:13px;color:#1a1a1a">' + escHtml(stepLabels[k] || k) + '</span>' +
       '<span style="font-size:13px;font-weight:600;color:' + color + '">' + scoreNum + '</span>' +
@@ -2711,15 +3785,15 @@ function renderCirclesFinalReport() {
         stepRows +
       '</div>' +
       '<div style="background:#F0FFF4;border-radius:16px;padding:16px;margin-bottom:12px;border:1px solid #BBF7D0">' +
-        '<div style="font-size:12px;font-weight:600;color:#137A3D;margin-bottom:8px;font-family:DM Sans,sans-serif">✓ 表現優秀</div>' +
+        '<div style="font-size:12px;font-weight:600;color:#137A3D;margin-bottom:8px;font-family:DM Sans,sans-serif"><i class="ph ph-check-circle"></i> 表現優秀</div>' +
         '<ul style="padding-left:18px;margin:0">' + strengths + '</ul>' +
       '</div>' +
       '<div style="background:#FFF7ED;border-radius:16px;padding:16px;margin-bottom:12px;border:1px solid #FED7AA">' +
-        '<div style="font-size:12px;font-weight:600;color:#B85C00;margin-bottom:8px;font-family:DM Sans,sans-serif">△ 需要改進</div>' +
+        '<div style="font-size:12px;font-weight:600;color:var(--c-warn-bold);margin-bottom:8px;font-family:DM Sans,sans-serif">△ 需要改進</div>' +
         '<ul style="padding-left:18px;margin:0">' + improvements + '</ul>' +
       '</div>' +
       '<div style="background:#EEF3FF;border-radius:16px;padding:16px;margin-bottom:12px;border:1px solid #C5D5FF">' +
-        '<div style="font-size:12px;font-weight:600;color:#1A56DB;margin-bottom:8px;font-family:DM Sans,sans-serif">教練總評</div>' +
+        '<div style="font-size:12px;font-weight:600;color:var(--c-primary);margin-bottom:8px;font-family:DM Sans,sans-serif">教練總評</div>' +
         '<div style="font-size:13px;color:#1a1a1a;line-height:1.7;font-family:DM Sans,sans-serif">' + escHtml(report.coachVerdict || '') + '</div>' +
       '</div>' +
       (report.nextSteps ? '<div style="background:#fff;border-radius:12px;padding:14px;margin-bottom:16px;border:1px solid rgba(0,0,0,0.08);font-size:13px;color:#5a5a5a;font-family:DM Sans,sans-serif;line-height:1.6"><span style="font-weight:600;color:#1a1a1a">建議下一步：</span>' + escHtml(report.nextSteps) + '</div>' : '') +
@@ -2982,13 +4056,18 @@ function bindHome() {
 async function loadRecentSessions() {
   try {
     const headers = AppState.accessToken ? { 'Authorization': `Bearer ${AppState.accessToken}` } : { 'X-Guest-ID': AppState.guestId };
-    const pmUrl = AppState.accessToken ? '/api/sessions' : '/api/guest/sessions';
+    // SIT-1 #6: /api/guest/sessions is not mounted (route file exists but
+    // server.js doesn't wire it). Guest users get a 404 on every home load.
+    // Auth path (/api/sessions) is mounted and works. NSM endpoints work in
+    // both modes. So in guest mode we simply skip the PM call — the legacy
+    // PM-Drill recent-sessions list is unused on this CIRCLES-first branch.
+    const pmUrl = AppState.accessToken ? '/api/sessions' : null;
     const nsmUrl = AppState.accessToken ? '/api/nsm-sessions' : '/api/guest/nsm-sessions';
     const [pmRes, nsmRes] = await Promise.all([
-      fetch(pmUrl, { headers }),
+      pmUrl ? fetch(pmUrl, { headers }) : Promise.resolve(null),
       fetch(nsmUrl, { headers })
     ]);
-    const pmSessions = pmRes.ok ? await pmRes.json() : [];
+    const pmSessions = (pmRes && pmRes.ok) ? await pmRes.json() : [];
     const nsmSessions = nsmRes.ok ? await nsmRes.json() : [];
     const mixed = [
       ...pmSessions.map(s => ({ ...s, type: 'pm' })),
@@ -3000,9 +4079,11 @@ async function loadRecentSessions() {
 
 // ── Task 16: Login / Register View ─────────────────
 function renderAuth(isLogin) {
+  // Phase 4.7 — desktop wrapper class
+  var _loginDesktopCls = (typeof isDesktop === 'function' && isDesktop()) ? 'login-desktop' : '';
   return `
-    <div style="max-width:400px;margin:60px auto">
-      <div class="card">
+    <div class="${_loginDesktopCls}" style="max-width:400px;margin:60px auto">
+      <div class="card login-card">
         <div style="display:flex;gap:8px;margin-bottom:24px">
           <button class="btn ${isLogin?'btn-primary':'btn-ghost'}" onclick="navigate('login')">登入</button>
           <button class="btn ${!isLogin?'btn-primary':'btn-ghost'}" onclick="navigate('register')">註冊</button>
@@ -3270,6 +4351,66 @@ function formatCoachReply(coachReply) {
 
 function escHtml(str) {
   return (str || '').replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;').replace(/\n/g,'<br>');
+}
+
+// SIT-1 #11: HTML-escape for <textarea> RCDATA content (and other contexts where
+// literal newlines must survive as \n). Unlike escHtml(), does NOT replace \n with
+// <br> — textareas don't parse HTML, so <br> would appear as literal text on resume.
+function escTextarea(str) {
+  return (str || '').replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;');
+}
+
+// ── Bullet text parser (spec 1 § 4.2) ───────────────────────────────────────
+// Renders "markdown-ish" nested bullets into <ul class="rt-bullet-list">.
+// Top bullets:  ^- text
+// Sub bullets:  ^  - text  (2-space indent)
+// Bold:         **x** → <strong>x</strong>
+// Lines without "- " prefix fall back to top-level <li> (legacy prose tolerance).
+function renderBulletInlineEsc(s) {
+  // Escape HTML but preserve raw text (no \n → <br> conversion).
+  return String(s == null ? '' : s)
+    .replace(/&/g, '&amp;')
+    .replace(/</g, '&lt;')
+    .replace(/>/g, '&gt;')
+    .replace(/"/g, '&quot;');
+}
+function renderBoldInline(s) {
+  return renderBulletInlineEsc(s).replace(/\*\*([^*]+?)\*\*/g, '<strong>$1</strong>');
+}
+function renderBulletText(text) {
+  if (!text) return '';
+  const lines = String(text).split('\n').filter(function (l) { return l.trim(); });
+  const tree = []; // [{ text, children: [] }]
+  let lastTop = null;
+  for (const line of lines) {
+    const subM = line.match(/^  - (.*)$/);
+    const topM = line.match(/^- (.*)$/);
+    if (subM && lastTop) {
+      lastTop.children.push(subM[1]);
+    } else if (topM) {
+      lastTop = { text: topM[1], children: [] };
+      tree.push(lastTop);
+    } else {
+      // legacy fallback: treat as a top-level bullet
+      lastTop = { text: line, children: [] };
+      tree.push(lastTop);
+    }
+  }
+  let html = '<ul class="rt-bullet-list">';
+  for (const node of tree) {
+    html += '<li>' + renderBoldInline(node.text);
+    if (node.children.length) {
+      html += '<ul class="rt-bullet-sub">';
+      for (const c of node.children) html += '<li>' + renderBoldInline(c) + '</li>';
+      html += '</ul>';
+    }
+    html += '</li>';
+  }
+  html += '</ul>';
+  return html;
+}
+if (typeof window !== 'undefined') {
+  window.renderBulletText = renderBulletText;
 }
 
 function scrollChatToBottom() {
@@ -3893,8 +5034,11 @@ function renderNSMStep1() {
 
   var cardsHtml = AppState.nsmDisplayedQuestions.map(createNSMQuestionCardHtml).join('');
 
+  // Phase 4.5 — desktop wrapper class
+  var _nsmHomeDesktopCls = (typeof isDesktop === 'function' && isDesktop()) ? ' nsm-home-desktop' : '';
+
   return `
-    <div class="nsm-view">
+    <div class="nsm-view${_nsmHomeDesktopCls}">
       <div class="nsm-navbar">
         <button class="btn-icon" id="btn-nsm-back" aria-label="返回"><i class="ph ph-arrow-left"></i></button>
         <span class="nsm-title">選擇情境</span>
@@ -4037,8 +5181,11 @@ function renderNSMStep2() {
       </div>
     </div>` : '';
 
+  // Phase 4.5 — desktop wrapper class
+  var _nsmStep2DesktopCls = (typeof isDesktop === 'function' && isDesktop()) ? ' nsm-step2-desktop' : '';
+
   return `
-    <div class="nsm-view">
+    <div class="nsm-view${_nsmStep2DesktopCls}">
       <div class="nsm-navbar">
         <button class="btn-icon" id="btn-nsm-back" aria-label="返回上一步"><i class="ph ph-arrow-left"></i></button>
         <span class="nsm-title">定義 NSM</span>
@@ -4099,7 +5246,15 @@ function renderNSMStep2() {
           <div class="nsm-example-body" style="display:none">
             <div class="nsm-example-text">例 (Spotify)：區分「被動背景播放」與「主動完整聆聽」，後者才代表用戶真正得到價值，避免被播放次數虛高誤導</div>
           </div>
-          <textarea id="nsm-definition-input" class="nsm-textarea-sm" placeholder="解釋為什麼要這樣定義，避免哪些虛榮陷阱..." rows="3">${escHtml(definitionDraft)}</textarea>
+          <div class="rt-field">
+            <div class="rt-toolbar">
+              <button type="button" class="rt-tbtn" data-rt-action="bold" title="粗體 (Ctrl+B)"><strong>B</strong></button>
+              <button type="button" class="rt-tbtn" data-rt-action="bullet" title="列點 (Ctrl+L)"><i class="ph ph-list-bullets"></i></button>
+              <button type="button" class="rt-tbtn" data-rt-action="indent" title="縮排 (Tab)"><i class="ph ph-text-indent"></i></button>
+              <button type="button" class="rt-tbtn" data-rt-action="outdent" title="退縮 (Shift+Tab)"><i class="ph ph-text-outdent"></i></button>
+            </div>
+            <textarea id="nsm-definition-input" class="nsm-textarea-sm rt-textarea" placeholder="解釋為什麼要這樣定義，避免哪些虛榮陷阱..." rows="3">${escTextarea(definitionDraft)}</textarea>
+          </div>
         </div>
 
         <div class="nsm-field-group">
@@ -4108,7 +5263,15 @@ function renderNSMStep2() {
           <div class="nsm-example-body" style="display:none">
             <div class="nsm-example-text">例 (Spotify)：Spotify 的收入來自 Premium 訂閱與廣告，深度聆聽的用戶更容易感受到廣告干擾進而付費升級，且留存率較高代表獲客成本（CAC）被更多用戶週期攤薄。NSM 若能捕捉「真正在聽音樂」的行為，就能同時作為訂閱轉化與廣告效益的領先指標</div>
           </div>
-          <textarea id="nsm-business-link-input" class="nsm-textarea-sm" placeholder="這個 NSM 如何驅動營收/留存/獲利..." rows="3">${escHtml(businessLinkDraft)}</textarea>
+          <div class="rt-field">
+            <div class="rt-toolbar">
+              <button type="button" class="rt-tbtn" data-rt-action="bold" title="粗體 (Ctrl+B)"><strong>B</strong></button>
+              <button type="button" class="rt-tbtn" data-rt-action="bullet" title="列點 (Ctrl+L)"><i class="ph ph-list-bullets"></i></button>
+              <button type="button" class="rt-tbtn" data-rt-action="indent" title="縮排 (Tab)"><i class="ph ph-text-indent"></i></button>
+              <button type="button" class="rt-tbtn" data-rt-action="outdent" title="退縮 (Shift+Tab)"><i class="ph ph-text-outdent"></i></button>
+            </div>
+            <textarea id="nsm-business-link-input" class="nsm-textarea-sm rt-textarea" placeholder="這個 NSM 如何驅動營收/留存/獲利..." rows="3">${escTextarea(businessLinkDraft)}</textarea>
+          </div>
         </div>
 
         ${warningHtml}
@@ -4171,7 +5334,7 @@ function renderNSMGate() {
       </div>`;
   }
 
-  const STATUS_LABEL = { error: '× 需修正', warn: '△ 建議補充', ok: '✓ 通過' };
+  const STATUS_LABEL = { error: '<i class="ph ph-x-circle"></i> 需修正', warn: '<i class="ph ph-warning-circle"></i> 建議補充', ok: '<i class="ph ph-check-circle"></i> 通過' };
   const items = (result.items || []).map(function(item) {
     const safeStatus = (item.status || '').replace(/[^a-z]/g, '');
     const criterion = item.criterion || item.field || '';
@@ -4237,12 +5400,23 @@ function renderNSMStep3() {
       <div class="nsm-hint-content" id="nsm-hint-${d.key}" style="display:none">
         ${hint ? `<div class="nsm-hint-revealed">${escHtml(hint)}</div>` : ''}
       </div>
-      <textarea class="nsm-textarea nsm-dim-input" id="nsm-dim-${d.key}" placeholder="${escHtml(d.placeholder)}" rows="2">${escHtml(breakdown[d.key] || '')}</textarea>
+      <div class="rt-field">
+        <div class="rt-toolbar">
+          <button type="button" class="rt-tbtn" data-rt-action="bold" title="粗體 (Ctrl+B)"><strong>B</strong></button>
+          <button type="button" class="rt-tbtn" data-rt-action="bullet" title="列點 (Ctrl+L)"><i class="ph ph-list-bullets"></i></button>
+          <button type="button" class="rt-tbtn" data-rt-action="indent" title="縮排 (Tab)"><i class="ph ph-text-indent"></i></button>
+          <button type="button" class="rt-tbtn" data-rt-action="outdent" title="退縮 (Shift+Tab)"><i class="ph ph-text-outdent"></i></button>
+        </div>
+        <textarea class="nsm-textarea nsm-dim-input rt-textarea" id="nsm-dim-${d.key}" placeholder="${escHtml(d.placeholder)}" rows="2">${escTextarea(breakdown[d.key] || '')}</textarea>
+      </div>
     </div>`;
   }).join('');
 
+  // Phase 4.5 — desktop wrapper class
+  var _nsmStep3DesktopCls = (typeof isDesktop === 'function' && isDesktop()) ? ' nsm-step3-desktop' : '';
+
   return `
-    <div class="nsm-view">
+    <div class="nsm-view${_nsmStep3DesktopCls}">
       <div class="nsm-navbar">
         <button class="btn-icon" id="btn-nsm-back" aria-label="返回上一步"><i class="ph ph-arrow-left"></i></button>
         <span class="nsm-title">拆解輸入指標</span>
@@ -4302,9 +5476,9 @@ function renderNSMStep4() {
   }
 
   const dims = [
-    { key: 'alignment',     label: '價值關聯', color: '#6c63ff' },
+    { key: 'alignment',     label: '價值關聯', color: 'var(--c-primary)' },
     { key: 'leading',       label: '領先指標', color: '#3b82f6' },
-    { key: 'actionability', label: '操作性',   color: '#10b981' },
+    { key: 'actionability', label: '操作性',   color: 'var(--c-success)' },
     { key: 'simplicity',    label: '可理解性', color: '#f59e0b' },
     { key: 'sensitivity',   label: '週期敏感', color: '#ef4444' },
   ];
@@ -4333,7 +5507,38 @@ function renderNSMStep4() {
   const cmpType = detectProductType(q);
   const cmpDims = NSM_DIMENSION_CONFIGS[cmpType];
 
-  const comparisonTab = `
+  // Phase 6 — mobile vertical stack: 維度標題 + 你的卡 + 教練卡（直堆）
+  // Cards remain `.nsm-tree-node` so the existing click handler / styles stay reused.
+  const _isMobileCmp = !(typeof isDesktop === 'function' && isDesktop());
+  const mobileCompareStack = `
+    <div class="nsm-compare-mobile-stack">
+      <div class="nsm-compare-dim-block">
+        <div class="nsm-compare-dim-title">北極星指標 (NSM)</div>
+        <div class="nsm-tree-node nsm-tree-root" data-node="user-nsm" data-label="NSM" role="button" tabindex="0">
+          <span class="nsm-compare-card-tag">你的</span>${escHtml(userNsm || '（未填寫）')}
+        </div>
+        <div class="nsm-tree-node nsm-tree-root nsm-tree-coach" data-node="coach-nsm" data-label="NSM" data-is-coach="1" role="button" tabindex="0">
+          <span class="nsm-compare-card-tag coach">教練版</span>${escHtml(coachTree.nsm || '')}
+        </div>
+      </div>
+      ${cmpDims.map(d => `
+      <div class="nsm-compare-dim-block">
+        <div class="nsm-compare-dim-title">${escHtml(d.label)}</div>
+        <div class="nsm-tree-node" data-node="user-${d.key}" data-label="${escHtml(d.label)}" role="button" tabindex="0">
+          <span class="nsm-compare-card-tag">你的</span>${escHtml(userBreakdown[d.key] || '（未填寫）')}
+        </div>
+        <div class="nsm-tree-node nsm-tree-coach" data-node="coach-${d.key}" data-label="${escHtml(d.label)}" data-is-coach="1" role="button" tabindex="0">
+          <span class="nsm-compare-card-tag coach">教練版</span>${escHtml(coachTree[d.key] || '')}
+        </div>
+      </div>`).join('')}
+    </div>
+    <div class="nsm-detail-sheet-backdrop" id="nsm-detail-sheet-backdrop"></div>
+    <div class="nsm-detail-sheet" id="nsm-detail-sheet" role="dialog" aria-modal="true" aria-hidden="true">
+      <div class="nsm-detail-sheet-handle" id="nsm-detail-sheet-handle" role="button" tabindex="0" aria-label="關閉"></div>
+      <div class="nsm-detail-sheet-body" id="nsm-detail-sheet-body"></div>
+    </div>`;
+
+  const desktopCompare = `
     <div class="nsm-comparison">
       <div class="nsm-tree-col">
         <div class="nsm-tree-title"><i class="ph ph-user"></i> 你的拆解</div>
@@ -4347,6 +5552,8 @@ function renderNSMStep4() {
       </div>
     </div>
     <div class="nsm-node-detail" id="nsm-node-detail" style="display:none"></div>`;
+
+  const comparisonTab = _isMobileCmp ? mobileCompareStack : desktopCompare;
 
   const highlightsTab = `
     <div class="nsm-highlights">
@@ -4376,8 +5583,11 @@ function renderNSMStep4() {
 
   const tabContent = { overview: overviewTab, comparison: comparisonTab, highlights: highlightsTab, export: exportTab };
 
+  // Phase 4.6 — desktop wrapper class
+  var _nsmStep4DesktopCls = (typeof isDesktop === 'function' && isDesktop()) ? ' nsm-step4-desktop' : '';
+
   return `
-    <div class="nsm-view">
+    <div class="nsm-view${_nsmStep4DesktopCls}">
       <div class="nsm-navbar">
         <button class="btn-icon" id="btn-nsm-back" aria-label="回首頁"><i class="ph ph-house"></i></button>
         <span class="nsm-title">NSM 報告</span>
@@ -4610,11 +5820,47 @@ function bindNSM() {
   // Step 3: dimension inputs — driven by detected product type, not hardcoded
   var _step3Q = AppState.nsmSelectedQuestion || {};
   var _step3Dims = NSM_DIMENSION_CONFIGS[detectProductType(_step3Q)] || [];
+  // SIT-1 #3: NSM lacks a PATCH /progress endpoint (only POST /, /evaluate,
+  // /gate, /context, /hints exist in routes/nsm-sessions.js + guest variant).
+  // Stopgap: persist the breakdown draft to localStorage, debounced 1.5s, so
+  // tab close / navigation doesn't lose the user's dim text. On Step 3 mount
+  // we hydrate AppState.nsmBreakdownDraft from localStorage if empty.
+  var _nsmDimDebounce = null;
+  function _nsmDimLocalSaveKey() {
+    var sid = (AppState.nsmSession && AppState.nsmSession.id) || 'pending';
+    return 'nsm-breakdown-draft-' + sid;
+  }
+  // Hydrate from localStorage on mount (only if AppState draft is empty —
+  // server-loaded draft always wins).
+  try {
+    var _hadDraft = AppState.nsmBreakdownDraft && Object.keys(AppState.nsmBreakdownDraft).some(function (k) { return AppState.nsmBreakdownDraft[k]; });
+    if (!_hadDraft) {
+      var _stored = localStorage.getItem(_nsmDimLocalSaveKey());
+      if (_stored) {
+        var _parsed = JSON.parse(_stored);
+        if (_parsed && typeof _parsed === 'object') {
+          AppState.nsmBreakdownDraft = _parsed;
+          // Reflect into DOM if inputs are empty.
+          _step3Dims.forEach(function (d) {
+            var el = document.getElementById('nsm-dim-' + d.key);
+            if (el && !el.value && _parsed[d.key]) el.value = _parsed[d.key];
+          });
+        }
+      }
+    }
+  } catch (_) {}
   _step3Dims.forEach(function(d) {
     var inp = document.getElementById('nsm-dim-' + d.key);
     if (inp) inp.addEventListener('input', function() {
       if (!AppState.nsmBreakdownDraft) AppState.nsmBreakdownDraft = {};
       AppState.nsmBreakdownDraft[d.key] = inp.value;
+      // Debounced localStorage save (1.5s, matching CIRCLES auto-save cadence).
+      clearTimeout(_nsmDimDebounce);
+      _nsmDimDebounce = setTimeout(function () {
+        try {
+          localStorage.setItem(_nsmDimLocalSaveKey(), JSON.stringify(AppState.nsmBreakdownDraft || {}));
+        } catch (_) {}
+      }, 1500);
     });
   });
 
@@ -4732,26 +5978,67 @@ function bindNSM() {
     btn.addEventListener('click', function() { AppState.nsmReportTab = btn.dataset.nsmTab; render(); });
   });
 
-  // Step 4: comparison tree tap
+  // Step 4: comparison tree tap — desktop opens inline detail, mobile opens bottom sheet (Phase 6)
+  var _nsmIsMobileCmp = !(typeof isDesktop === 'function' && isDesktop());
+  var _nsmSheetEl = document.getElementById('nsm-detail-sheet');
+  var _nsmSheetBody = document.getElementById('nsm-detail-sheet-body');
+  var _nsmSheetBackdrop = document.getElementById('nsm-detail-sheet-backdrop');
+  var _nsmSheetHandle = document.getElementById('nsm-detail-sheet-handle');
+
+  function _nsmCloseSheet() {
+    if (!_nsmSheetEl) return;
+    _nsmSheetEl.classList.remove('open');
+    _nsmSheetEl.setAttribute('aria-hidden', 'true');
+    if (_nsmSheetBackdrop) _nsmSheetBackdrop.classList.remove('open');
+    AppState.nsmOpenNode = null;
+  }
+  function _nsmBuildDetailHTML(dim, dimLabel, isCoach) {
+    var sc = AppState.nsmSession ? (AppState.nsmSession.scores_json || {}) : {};
+    var ctree = sc.coachTree || {};
+    var rationale = sc.coachRationale || {};
+    var bd = (AppState.nsmSession && AppState.nsmSession.user_breakdown) || AppState.nsmBreakdownDraft || {};
+    var metricText = isCoach
+      ? (ctree[dim] || '—')
+      : (dim === 'nsm' ? (AppState.nsmNsmDraft || '（未填寫）') : (bd[dim] || '（未填寫）'));
+    var prefix = isCoach ? '教練版 ' : '你的 ';
+    var rationaleText = isCoach ? (rationale[dim] || '') : '';
+    return '<div class="nsm-detail-metric">' +
+        '<span class="nsm-detail-prefix">' + escHtml(prefix + dimLabel) + '</span>' +
+        '<p class="nsm-detail-value">' + escHtml(metricText) + '</p>' +
+      '</div>' +
+      (rationaleText
+        ? '<div class="nsm-rationale">' +
+            '<div class="nsm-rationale-head"><i class="ph ph-lightbulb"></i> 教練設計思路</div>' +
+            '<p class="nsm-rationale-body">' + escHtml(rationaleText) + '</p>' +
+          '</div>'
+        : '');
+  }
+
   document.querySelectorAll('.nsm-tree-node[data-node]').forEach(function(node) {
     node.addEventListener('click', function() {
-      var detailEl = document.getElementById('nsm-node-detail');
-      if (!detailEl) return;
       var key = node.dataset.node;
       var isCoach = node.dataset.isCoach === '1';
       var dim = key.replace('coach-','').replace('user-','');
       var dimLabel = node.dataset.label || dim;
-      var sc = AppState.nsmSession ? (AppState.nsmSession.scores_json || {}) : {};
-      var ctree = sc.coachTree || {};
-      var rationale = sc.coachRationale || {};
-      var bd = (AppState.nsmSession && AppState.nsmSession.user_breakdown) || AppState.nsmBreakdownDraft || {};
+      var html = _nsmBuildDetailHTML(dim, dimLabel, isCoach);
 
-      var metricText = isCoach
-        ? (ctree[dim] || '—')
-        : (dim === 'nsm' ? (AppState.nsmNsmDraft || '（未填寫）') : (bd[dim] || '（未填寫）'));
-      var prefix = isCoach ? '教練版 ' : '你的 ';
-      var rationaleText = isCoach ? (rationale[dim] || '') : '';
+      if (_nsmIsMobileCmp && _nsmSheetEl && _nsmSheetBody) {
+        // Mobile: bottom sheet
+        if (AppState.nsmOpenNode === key && _nsmSheetEl.classList.contains('open')) {
+          _nsmCloseSheet();
+        } else {
+          AppState.nsmOpenNode = key;
+          _nsmSheetBody.innerHTML = html;
+          _nsmSheetEl.classList.add('open');
+          _nsmSheetEl.setAttribute('aria-hidden', 'false');
+          if (_nsmSheetBackdrop) _nsmSheetBackdrop.classList.add('open');
+        }
+        return;
+      }
 
+      // Desktop: inline detail panel
+      var detailEl = document.getElementById('nsm-node-detail');
+      if (!detailEl) return;
       if (AppState.nsmOpenNode === key) {
         AppState.nsmOpenNode = null;
         detailEl.style.display = 'none';
@@ -4759,22 +6046,27 @@ function bindNSM() {
       } else {
         AppState.nsmOpenNode = key;
         detailEl.style.display = 'block';
-        detailEl.innerHTML =
-          '<div class="nsm-detail-metric">' +
-            '<span class="nsm-detail-prefix">' + escHtml(prefix + dimLabel) + '</span>' +
-            '<p class="nsm-detail-value">' + escHtml(metricText) + '</p>' +
-          '</div>' +
-          (rationaleText
-            ? '<div class="nsm-rationale">' +
-                '<div class="nsm-rationale-head"><i class="ph ph-lightbulb"></i> 教練設計思路</div>' +
-                '<p class="nsm-rationale-body">' + escHtml(rationaleText) + '</p>' +
-              '</div>'
-            : '');
+        detailEl.innerHTML = html;
       }
     });
   });
-  // Restore open node if any
-  if (AppState.nsmOpenNode) {
+
+  // Mobile sheet close handlers (backdrop / handle / ESC)
+  if (_nsmIsMobileCmp && _nsmSheetEl) {
+    if (_nsmSheetBackdrop) _nsmSheetBackdrop.addEventListener('click', _nsmCloseSheet);
+    if (_nsmSheetHandle) {
+      _nsmSheetHandle.addEventListener('click', _nsmCloseSheet);
+      _nsmSheetHandle.addEventListener('keydown', function(e) {
+        if (e.key === 'Enter' || e.key === ' ') { e.preventDefault(); _nsmCloseSheet(); }
+      });
+    }
+    document.addEventListener('keydown', function _nsmEscClose(e) {
+      if (e.key === 'Escape' && _nsmSheetEl.classList.contains('open')) _nsmCloseSheet();
+    });
+  }
+
+  // Restore open node if any (desktop only — mobile sheet doesn't need restore on render)
+  if (AppState.nsmOpenNode && !_nsmIsMobileCmp) {
     var openNode = document.querySelector('.nsm-tree-node[data-node="' + AppState.nsmOpenNode + '"]');
     if (openNode) openNode.click();
   }

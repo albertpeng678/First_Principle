@@ -6,6 +6,17 @@ const path = require('path');
 const app = express();
 app.use(cors());
 app.use(express.json());
+
+// Handle malformed JSON bodies before they reach route handlers. Without this,
+// Express's default error handler returns an HTML stack trace that leaks
+// absolute filesystem paths.
+app.use((err, req, res, next) => {
+  if (err && (err.type === 'entity.parse.failed' || err instanceof SyntaxError)) {
+    return res.status(400).json({ error: 'invalid_json' });
+  }
+  return next(err);
+});
+
 app.use(express.static(path.join(__dirname, 'public')));
 
 app.use('/api/auth', require('./routes/auth'));

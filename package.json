@@ -7,7 +7,9 @@
     "start": "node server.js",
     "dev": "node --watch server.js",
     "test": "jest",
-    "test:e2e": "npx playwright test --config=tests/playwright/playwright.config.js"
+    "test:e2e": "npx playwright test --config=tests/playwright/playwright.config.js",
+    "cleanup:empty-sessions": "node scripts/cleanup-empty-sessions.js",
+    "cleanup:empty-sessions:dry-run": "node scripts/cleanup-empty-sessions.js --dry-run"
   },
   "keywords": [],
   "author": "",

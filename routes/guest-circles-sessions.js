@@ -1,5 +1,7 @@
 const express = require('express');
 const router = express.Router();
+const fs = require('fs');
+const path = require('path');
 const db = require('../db/client');
 const { requireGuestId } = require('../middleware/guest');
 const { reviewFramework } = require('../prompts/circles-gate');
@@ -10,11 +12,16 @@ const { generateFinalReport } = require('../prompts/circles-final-report');
 const { generateCirclesHint } = require('../prompts/circles-hint');
 const { generateCirclesExample } = require('../prompts/circles-example');
 
+const QUESTION_BY_ID = Object.fromEntries(
+  JSON.parse(fs.readFileSync(path.join(__dirname, '..', 'circles_plan', 'circles_database.json'), 'utf8'))
+    .map(q => [q.id, q])
+);
+
 // GET /api/guest-circles-sessions
 router.get('/', requireGuestId, async (req, res) => {
   let query = db
     .from('circles_sessions')
-    .select('id, question_id, question_json, mode, drill_step, current_phase, sim_step_index, status, step_scores, created_at, updated_at')
+    .select('id, question_id, question_json, mode, drill_step, current_phase, sim_step_index, status, step_scores, step_drafts, framework_draft, created_at, updated_at')
     .eq('guest_id', req.guestId)
     .order('updated_at', { ascending: false })
     .limit(Math.min(Math.max(parseInt(req.query.limit) || 20, 1), 50));
@@ -22,6 +29,34 @@ router.get('/', requireGuestId, async (req, res) => {
   const { data, error } = await query;
   if (error) return res.status(500).json({ error: error.message });
   res.json(data || []);
+});
+
+// POST /api/guest-circles-sessions/draft — Lazy-create endpoint (Spec 2 § 3.1)
+router.post('/draft', requireGuestId, async (req, res) => {
+  const { question_id, mode, drill_step, sim_step_index } = req.body;
+  if (!question_id || !mode) return res.status(400).json({ error: 'missing_fields' });
+  const q = QUESTION_BY_ID[question_id];
+  if (!q) return res.status(404).json({ error: 'question_not_found' });
+  try {
+    const { data, error } = await db
+      .from('circles_sessions')
+      .insert({
+        guest_id: req.guestId,
+        question_id,
+        question_json: q,
+        mode,
+        drill_step: drill_step || null,
+        sim_step_index: sim_step_index || 0,
+        current_phase: 1,
+        status: 'active',
+        step_drafts: {},
+        framework_draft: {},
+      })
+      .select()
+      .single();
+    if (error) throw error;
+    res.json(data);
+  } catch (e) { res.status(500).json({ error: e.message }); }
 });
 
 // POST /api/guest-circles-sessions
@@ -172,33 +207,50 @@ router.post('/:id/conclusion-check', requireGuestId, async (req, res) => {
 
 // PATCH /api/guest-circles-sessions/:id/progress
 router.patch('/:id/progress', requireGuestId, async (req, res) => {
-  const { currentPhase, simStepIndex, frameworkDraft, gateResult } = req.body;
+  const { currentPhase, simStepIndex, frameworkDraft, gateResult, stepDrafts } = req.body;
   const patch = {};
   if (currentPhase   !== undefined) patch.current_phase    = currentPhase;
   if (simStepIndex   !== undefined) patch.sim_step_index   = simStepIndex;
   if (frameworkDraft !== undefined) patch.framework_draft  = frameworkDraft;
   if (gateResult     !== undefined) patch.gate_result      = gateResult;
+  if (stepDrafts     !== undefined) patch.step_drafts      = stepDrafts;
   if (Object.keys(patch).length === 0) return res.status(400).json({ error: 'nothing_to_update' });
 
-  const { error } = await db
+  // Chain .select() so Supabase reports the affected row. If 0 rows match
+  // (wrong owner / wrong id), data will be null — return 404 to avoid
+  // tenant enumeration.
+  const { data, error } = await db
     .from('circles_sessions')
     .update(patch)
     .eq('id', req.params.id)
-    .eq('guest_id', req.guestId);
-  if (error) return res.status(500).json({ error: error.message });
+    .eq('guest_id', req.guestId)
+    .select('id')
+    .maybeSingle();
+  if (error) {
+    console.error('[guest-circles-sessions] PATCH /progress db error:', error);
+    return res.status(500).json({ error: 'db_error' });
+  }
+  if (!data) return res.status(404).json({ error: 'not_found' });
   res.json({ ok: true });
 });
 
 // POST /api/guest-circles-sessions/:id/final-report
 router.post('/:id/final-report', requireGuestId, async (req, res) => {
+  // NOTE: `final_report` column does not exist in the live circles_sessions
+  // schema, so we don't SELECT or persist it here — final report is
+  // re-computed on every call. Use .maybeSingle() so we can distinguish
+  // "row not found" (404) from a real DB error (500).
   const { data: session, error } = await db
     .from('circles_sessions')
-    .select('question_json, step_scores, final_report')
+    .select('question_json, step_scores')
     .eq('id', req.params.id)
     .eq('guest_id', req.guestId)
-    .single();
-  if (error || !session) return res.status(404).json({ error: 'not_found' });
-  if (session.final_report) return res.json(session.final_report);
+    .maybeSingle();
+  if (error) {
+    console.error('[guest-circles-sessions] POST /final-report db error:', error);
+    return res.status(500).json({ error: 'db_error' });
+  }
+  if (!session) return res.status(404).json({ error: 'not_found' });
   if (!session.step_scores || Object.keys(session.step_scores).length < 7) {
     return res.status(400).json({ error: 'incomplete_steps' });
   }
@@ -208,11 +260,13 @@ router.post('/:id/final-report', requireGuestId, async (req, res) => {
       questionJson: session.question_json,
     });
     await db.from('circles_sessions').update({
-      final_report: report,
       status: 'completed',
     }).eq('id', req.params.id).eq('guest_id', req.guestId);
     res.json(report);
-  } catch (e) { res.status(500).json({ error: 'report_generation_failed' }); }
+  } catch (e) {
+    console.error('[guest-circles-sessions] POST /final-report generation error:', e);
+    res.status(500).json({ error: 'report_generation_failed' });
+  }
 });
 
 // POST /api/guest/circles-sessions/:id/hint

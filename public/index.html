@@ -4,7 +4,7 @@
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
   <title>PM Drill — 第一性原理訓練器</title>
-  <link rel="icon" href="data:,">
+  <link rel="icon" type="image/svg+xml" href="/favicon.svg">
   <link rel="stylesheet" href="/style.css" />
   <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/@phosphor-icons/web@2.1.1/src/regular/style.css">
   <meta name="mobile-web-app-capable" content="yes">
@@ -13,6 +13,9 @@
   <meta name="theme-color" content="#F2F0EB">
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <!-- SIT-7 F4: preload font CSS to trigger font fetch earlier (cheaper than woff2 hash hunting) -->
+  <link rel="preload" as="style" href="https://fonts.googleapis.com/css2?family=DM+Sans:ital,opsz,wght@0,9..40,400;0,9..40,500;0,9..40,600&display=swap">
+  <link rel="preload" as="style" href="https://fonts.googleapis.com/css2?family=Instrument+Serif&display=swap">
   <link href="https://fonts.googleapis.com/css2?family=Instrument+Serif&family=DM+Sans:ital,opsz,wght@0,9..40,400;0,9..40,500;0,9..40,600&display=swap" rel="stylesheet">
 </head>
 <body>
@@ -20,7 +23,14 @@
     <nav class="navbar">
       <div class="navbar-left">
         <button class="btn-icon" id="btn-hamburger" aria-label="開啟選單"><i class="ph ph-list"></i></button>
-        <span class="navbar-logo">PM Drill</span>
+        <span class="navbar-logo">
+          <span class="navbar-favicon"><i class="ph ph-circles-three"></i></span>
+          PM Drill
+        </span>
+        <div class="navbar-tabs hide-mobile" id="navbar-tabs">
+          <span class="navbar-tab" data-nav="circles">CIRCLES</span>
+          <span class="navbar-tab" data-nav="nsm">北極星指標</span>
+        </div>
       </div>
       <div class="navbar-actions" id="navbar-actions"></div>
     </nav>
@@ -33,6 +43,13 @@
       <div id="offcanvas-list" class="offcanvas-list">載入中…</div>
     </div>
     <main id="main"></main>
+    <!-- Rich-text mobile sticky toolbar (Phase 3 Spec 4) -->
+    <div class="rt-toolbar-mobile" id="rt-toolbar-mobile" style="display:none">
+      <button type="button" class="rt-mtbtn" data-rt-action="bold"><strong>B</strong></button>
+      <button type="button" class="rt-mtbtn" data-rt-action="bullet" aria-label="列點"><i class="ph ph-list-bullets"></i></button>
+      <button type="button" class="rt-mtbtn" data-rt-action="indent" aria-label="增加縮排"><i class="ph ph-text-indent"></i></button>
+      <button type="button" class="rt-mtbtn" data-rt-action="outdent" aria-label="減少縮排"><i class="ph ph-text-outdent"></i></button>
+    </div>
   </div>
   <script src="/circles-db.js"></script>
   <script type="module" src="/app.js"></script>

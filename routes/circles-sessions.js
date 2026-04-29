@@ -1,5 +1,7 @@
 const express = require('express');
 const router = express.Router();
+const fs = require('fs');
+const path = require('path');
 const db = require('../db/client');
 const { requireAuth } = require('../middleware/auth');
 const { reviewFramework } = require('../prompts/circles-gate');
@@ -9,6 +11,11 @@ const { checkConclusion } = require('../prompts/circles-conclusion-check');
 const { generateFinalReport } = require('../prompts/circles-final-report');
 const { generateCirclesHint } = require('../prompts/circles-hint');
 const { generateCirclesExample } = require('../prompts/circles-example');
+
+const QUESTION_BY_ID = Object.fromEntries(
+  JSON.parse(fs.readFileSync(path.join(__dirname, '..', 'circles_plan', 'circles_database.json'), 'utf8'))
+    .map(q => [q.id, q])
+);
 
 // POST /api/circles-sessions
 router.post('/', requireAuth, async (req, res) => {
@@ -25,11 +32,42 @@ router.post('/', requireAuth, async (req, res) => {
   } catch (e) { res.status(500).json({ error: e.message }); }
 });
 
+// POST /api/circles-sessions/draft — Lazy-create endpoint (Spec 2 § 3.1)
+// Used by Phase 1 auto-save to mint an active session on first textarea input.
+// Returns the inserted row (not just `{ sessionId }`) so the front-end can
+// hydrate AppState.circlesSession in one round-trip.
+router.post('/draft', requireAuth, async (req, res) => {
+  const { question_id, mode, drill_step, sim_step_index } = req.body;
+  if (!question_id || !mode) return res.status(400).json({ error: 'missing_fields' });
+  const q = QUESTION_BY_ID[question_id];
+  if (!q) return res.status(404).json({ error: 'question_not_found' });
+  try {
+    const { data, error } = await db
+      .from('circles_sessions')
+      .insert({
+        user_id: req.user.id,
+        question_id,
+        question_json: q,
+        mode,
+        drill_step: drill_step || null,
+        sim_step_index: sim_step_index || 0,
+        current_phase: 1,
+        status: 'active',
+        step_drafts: {},
+        framework_draft: {},
+      })
+      .select()
+      .single();
+    if (error) throw error;
+    res.json(data);
+  } catch (e) { res.status(500).json({ error: e.message }); }
+});
+
 // GET /api/circles-sessions
 router.get('/', requireAuth, async (req, res) => {
   let query = db
     .from('circles_sessions')
-    .select('id, question_id, question_json, mode, drill_step, current_phase, sim_step_index, status, step_scores, created_at, updated_at')
+    .select('id, question_id, question_json, mode, drill_step, current_phase, sim_step_index, status, step_scores, step_drafts, framework_draft, created_at, updated_at')
     .eq('user_id', req.user.id)
     .order('updated_at', { ascending: false })
     .limit(Math.min(Math.max(parseInt(req.query.limit) || 20, 1), 50));
@@ -177,12 +215,13 @@ router.post('/:id/conclusion-check', requireAuth, async (req, res) => {
 // PATCH /api/circles-sessions/:id/progress — save phase/step without AI call
 // Called on every phase transition so the session can be resumed after page close.
 router.patch('/:id/progress', requireAuth, async (req, res) => {
-  const { currentPhase, simStepIndex, frameworkDraft, gateResult } = req.body;
+  const { currentPhase, simStepIndex, frameworkDraft, gateResult, stepDrafts } = req.body;
   const patch = {};
   if (currentPhase   !== undefined) patch.current_phase    = currentPhase;
   if (simStepIndex   !== undefined) patch.sim_step_index   = simStepIndex;
   if (frameworkDraft !== undefined) patch.framework_draft  = frameworkDraft;
   if (gateResult     !== undefined) patch.gate_result      = gateResult;
+  if (stepDrafts     !== undefined) patch.step_drafts      = stepDrafts;
   if (Object.keys(patch).length === 0) return res.status(400).json({ error: 'nothing_to_update' });
 
   const { error } = await db
