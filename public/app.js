@@ -1106,6 +1106,15 @@ var ONBOARDING_STEPS = [
   { title: '挑一道題目',   desc: '每題標難度（Easy / Medium / Hard）。新手建議先挑 Easy。點題目會展開完整描述與「開始練習」。', arrow: 'top',   pos: 'bottom' },
   { title: '開始練習',     desc: '點此進入 Phase 1 — 填寫框架。每個欄位都有「提示」與「查看範例」幫你思考。完成後會自動進入訪談階段。', arrow: 'left',  pos: 'right'  },
 ];
+// Mobile-only override for step 4 (spec §4.5): on mobile the q-row
+// "expanded" state is a route change rather than an inline accordion, so
+// instead of pointing at .btn-primary, highlight the last q-card in the
+// list and explain "點任一題會展開".
+var ONBOARDING_STEPS_MOBILE_STEP4 = {
+  target: '.circles-q-list .circles-q-card:last-child',
+  title: '挑一道題目', desc: '點任一題會展開完整描述。展開後可看到難度、產品背景與「確認，開始練習」按鈕。',
+  arrow: 'top', pos: 'top',
+};
 
 function startOnboardingTour() {
   // Hide welcome card immediately (we mark localStorage done at tour end).
@@ -1151,18 +1160,27 @@ function endOnboardingTour() {
 }
 
 function showCoachmark(step) {
+  var isMobile = window.innerWidth <= 1023;
   var cfg = ONBOARDING_STEPS[step - 1];
   var targetSel = ONBOARDING_TARGETS[step - 1];
 
-  // Step 4: target is the expanded q-row's primary button. Auto-expand the
-  // first q-card if no row is currently open so the button exists.
+  // Step 4 special handling
   if (step === 4) {
-    var alreadyExpanded = document.querySelector('.circles-q-card.onb-expanded');
-    if (!alreadyExpanded) {
-      var firstCard = document.querySelector('.circles-q-list .circles-q-card');
-      if (firstCard && typeof expandQCard === 'function') {
-        expandQCard(firstCard);
-        firstCard.classList.add('onb-expanded');
+    if (isMobile) {
+      // Mobile: q-row expansion is a route change (spec §4.5). Highlight
+      // the last item of the list and explain "點任一題會展開" instead.
+      cfg = Object.assign({}, ONBOARDING_STEPS_MOBILE_STEP4);
+      targetSel = ONBOARDING_STEPS_MOBILE_STEP4.target;
+    } else {
+      // Desktop: target is the expanded q-row's primary button. Auto-expand
+      // the first q-card if no row is currently open so the button exists.
+      var alreadyExpanded = document.querySelector('.circles-q-card.onb-expanded');
+      if (!alreadyExpanded) {
+        var firstCard = document.querySelector('.circles-q-list .circles-q-card');
+        if (firstCard && typeof expandQCard === 'function') {
+          expandQCard(firstCard);
+          firstCard.classList.add('onb-expanded');
+        }
       }
     }
   }
@@ -1197,8 +1215,10 @@ function showCoachmark(step) {
     '</div>' +
     '<div class="onb-arrow"></div>';
 
-  // Position tooltip (desktop). Tooltip width is fixed at 300px per spec §4.2.
-  if (el) {
+  // Position tooltip. On desktop we pin it to the target side; on mobile
+  // (≤1023px, spec §4.5) the CSS pins it sticky-bottom and we clear inline
+  // coords so the @media rule wins.
+  if (!isMobile && el) {
     var TOOLTIP_W = 300;
     var GAP = 16;
     // Force layout to read tooltip height, then position by `pos`.
@@ -1224,6 +1244,11 @@ function showCoachmark(step) {
     y = Math.max(8, Math.min(y, window.innerHeight - th - 8));
     tooltip.style.left = x + 'px';
     tooltip.style.top  = y + 'px';
+  } else {
+    // Mobile: clear inline coords so the @media (max-width: 1023px) rule
+    // (left/right/bottom: 16px, top: auto) takes effect.
+    tooltip.style.left = '';
+    tooltip.style.top  = '';
   }
 
   // Wire buttons
