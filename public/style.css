@@ -1380,25 +1380,25 @@ body { -webkit-font-smoothing: antialiased; }
 
 /* Home — question picker */
 [data-view="circles"] .circles-home-wrap {
-  padding: 20px 16px 32px;
+  padding: 16px 16px 96px;
   max-width: 680px;
   margin: 0 auto;
 }
-[data-view="circles"] .circles-home-title {
+/* Per strict audit: heading is redundant with active navbar tab.
+   Hide both legacy nodes if any template still emits them. */
+[data-view="circles"] .circles-home-title,
+[data-view="circles"] .circles-home-sub { display: none; }
+/* Promote the section labels (繼續上次練習 / 練習模式 / 練習步驟 / 選擇題目)
+   to a proper page section header — same weight/size, real text color
+   (was 13px/600 muted gray uppercase, looked decorative). */
+[data-view="circles"] .circles-step-select-label {
   font-family: 'DM Sans', sans-serif;
   font-size: 13px;
   font-weight: 600;
-  color: var(--c-text-2);
-  letter-spacing: 0.04em;
-  text-transform: uppercase;
-  margin-bottom: 6px;
-}
-[data-view="circles"] .circles-home-sub {
-  font-size: 14px;
   color: var(--c-text);
-  font-weight: 500;
-  margin-bottom: 20px;
-  font-family: 'DM Sans', sans-serif;
+  letter-spacing: 0;
+  text-transform: none;
+  margin: 0 0 12px;
 }
 
 /* Mode selector */
@@ -1462,14 +1462,17 @@ body { -webkit-font-smoothing: antialiased; }
   border-color: var(--c-primary);
 }
 
-/* Drill step selector */
+/* Drill step selector — section label (promoted per strict audit:
+   was 11px uppercase muted gray decorative; now 13px sentence-case
+   real text — proper page section header). */
 [data-view="circles"] .circles-step-select-label {
-  font-size: 11px;
-  color: var(--c-text-3);
-  margin-bottom: 8px;
+  font-size: 13px;
+  color: var(--c-text);
+  margin-bottom: 12px;
   font-family: 'DM Sans', sans-serif;
-  text-transform: uppercase;
-  letter-spacing: 0.06em;
+  text-transform: none;
+  letter-spacing: 0;
+  font-weight: 600;
 }
 [data-view="circles"] .circles-step-pills {
   display: flex;
@@ -3665,7 +3668,8 @@ textarea.rt-textarea {
 .nsm-industry { color: var(--c-text-2) !important; }
 [data-view="circles"] .circles-nav-sub { color: var(--c-text-2); }
 [data-view="circles"] .circles-nav-right { color: var(--c-text-2); }
-[data-view="circles"] .circles-step-select-label { color: var(--c-text-2); }
+/* (Note: prior --c-text-2 contrast bump dropped — section label
+   now uses --c-text per strict audit; see line ~1466.) */
 [data-view="circles"] .circles-mode-card-desc { color: var(--c-text-2); }
 [data-view="circles"] .circles-mode-card.selected .circles-mode-card-desc { color: var(--c-text-2); }
 @media (min-width: 1024px) {

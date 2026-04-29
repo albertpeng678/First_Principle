@@ -1890,8 +1890,6 @@ function renderCirclesHomeMobile() {
       welcomeHtml +
       renderResumeBanner() +
       recentHtml +
-      '<div class="circles-home-title">CIRCLES 訓練</div>' +
-      '<div class="circles-home-sub">選題，按步驟填寫框架、訪談、拿到評分</div>' +
 
       // Info card — collapsed by default
       '<div class="circles-info-card" style="padding:0;overflow:hidden;margin-bottom:20px">' +
