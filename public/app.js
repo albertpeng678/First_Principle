@@ -2746,7 +2746,10 @@ function renderCirclesStepScore() {
   // One-line summary subtext under big score
   var summaryLine = step.short + ' — ' + step.label + ' 步驟得分';
 
-  return '<div data-view="circles">' +
+  // Phase 4.4 — desktop wrapper class
+  var _phase3DesktopCls = (typeof isDesktop === 'function' && isDesktop()) ? ' phase3-desktop' : '';
+
+  return '<div data-view="circles" class="' + _phase3DesktopCls.trim() + '">' +
     '<div class="circles-nav">' +
       '<button class="circles-nav-back" id="circles-score-back"><i class="ph ph-arrow-left"></i></button>' +
       '<div style="flex:1;min-width:0">' +
