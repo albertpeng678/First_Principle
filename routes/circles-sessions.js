@@ -188,6 +188,15 @@ router.post('/:id/message', requireAuth, async (req, res) => {
     const coaching   = fullText.match(/【教練點評】[ \t]*\r?\n([\s\S]*?)(?=【教練提示】|$)/)?.[1]?.trim() || '';
     const hint       = fullText.match(/【教練提示】[ \t]*\r?\n([\s\S]*?)$/)?.[1]?.trim() || '';
 
+    // B1-1 guard: if model output is unparseable (no 【...】 markers at all),
+    // surface a parse_failed error instead of persisting an empty turn that
+    // looks like a silent success on the client.
+    if (!interviewee && !coaching && !hint) {
+      res.write('data: ' + JSON.stringify({ error: 'parse_failed', raw: fullText.slice(0, 500) }) + '\n\n');
+      res.end();
+      return;
+    }
+
     const newTurn = { userMessage, interviewee, coaching, hint };
     const updated = [...(session.conversation || []), newTurn];
     await db.from('circles_sessions').update({ conversation: updated }).eq('id', req.params.id).eq('user_id', req.user.id);
