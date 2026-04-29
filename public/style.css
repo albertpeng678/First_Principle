@@ -19,6 +19,8 @@
   --c-text-2: #5a5046;
   --c-text-3: #8a7e6f;
   --c-text-4: #a89d8e;
+  /* SIT-7 F5: secondary text token w/ AA-compliant contrast against cream bg (~7:1 vs #F2F0EB) */
+  --c-text-secondary: #5a5a5a;
 
   /* Border */
   --c-border: rgba(60,45,30,0.08);
@@ -3367,7 +3369,7 @@ textarea.rt-textarea {
   .circles-home-desktop .ch-header { display:flex; align-items:flex-end; justify-content:space-between; padding:12px 0 18px; gap:24px; }
   .circles-home-desktop .ch-header h1 { font-size:26px; font-weight:600; margin:0 0 4px; color:var(--c-text); font-family:'Instrument Serif', serif; letter-spacing:-0.5px; }
   .circles-home-desktop .ch-header .ch-sub { font-size:13px; color:var(--c-text-2); }
-  .circles-home-desktop .ch-header .ch-meta { font-size:12px; color:var(--c-text-3); white-space:nowrap; }
+  .circles-home-desktop .ch-header .ch-meta { font-size:12px; color:var(--c-text-secondary); white-space:nowrap; }
   .circles-home-desktop .ch-grid { display:grid; grid-template-columns:230px 1fr 240px; gap:24px; align-items:start; }
   .circles-home-desktop .left-rail { position:sticky; top:72px; display:flex; flex-direction:column; gap:18px; }
   .circles-home-desktop .right-rail { position:sticky; top:72px; display:flex; flex-direction:column; gap:18px; }
@@ -3376,7 +3378,7 @@ textarea.rt-textarea {
   .circles-home-desktop .type-section,
   .circles-home-desktop .recent-section,
   .circles-home-desktop .nsm-rec-section { background:var(--c-card,#fff); border:1px solid var(--c-border,rgba(0,0,0,0.08)); border-radius:10px; padding:14px; }
-  .circles-home-desktop .rail-label { font-size:10.5px; font-weight:600; letter-spacing:0.5px; text-transform:uppercase; color:var(--c-text-3); margin-bottom:8px; }
+  .circles-home-desktop .rail-label { font-size:10.5px; font-weight:600; letter-spacing:0.5px; text-transform:uppercase; color:var(--c-text-secondary); margin-bottom:8px; }
   .circles-home-desktop .mode-list { display:flex; flex-direction:column; gap:6px; }
   .circles-home-desktop .mode-list .circles-mode-card { width:100%; margin:0; padding:10px 12px; }
   .circles-home-desktop .type-list { display:flex; flex-direction:column; gap:4px; }
