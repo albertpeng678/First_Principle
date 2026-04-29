@@ -100,12 +100,14 @@
     border-bottom: 1px solid var(--border);
   }
 </style>
+<script src="/app.js" type="module"></script>
 </head>
 <body>
   <div class="topbar">
     <h1><i class="ph ph-pencil-line"></i> CIRCLES 範例 Review</h1>
     <input id="search" placeholder="搜尋公司／產品／題目（例：Marketplace、Spotify、安全）...">
-    <select id="filter-step">
+    <label for="filter-step" style="font-size:13px; color:var(--text-2);">步驟篩選</label>
+    <select id="filter-step" aria-label="步驟篩選">
       <option value="">所有步驟</option>
       <option value="C1">C1 澄清情境</option>
       <option value="I">I 定義用戶</option>
