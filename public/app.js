@@ -1956,7 +1956,16 @@ function renderCirclesHomeDesktop() {
     recentItemsHtml = '<div style="color:var(--c-text-3);font-size:11.5px">尚無紀錄</div>';
   }
 
+  // Phase 2 + 5 banner/welcome slots: render in the center column above the
+  // question list (spec 2 §7, spec 3 §4.1). The wrapper class circles-home-wrap
+  // is also kept so the bindCirclesHome post-render fetchActiveDraft re-render
+  // pass works identically on desktop + mobile.
+  var welcomeHtmlD = (typeof shouldShowOnboardingWelcome === 'function' && shouldShowOnboardingWelcome())
+    ? renderOnboardingWelcomeHtml() : '';
+  var bannerHtmlD = (typeof renderResumeBanner === 'function') ? renderResumeBanner() : '';
+
   return '<div data-view="circles" class="circles-home-desktop">' +
+    '<div class="circles-home-wrap">' +
     '<div class="ch-header">' +
       '<div>' +
         '<h1>CIRCLES 訓練</h1>' +
@@ -1964,6 +1973,8 @@ function renderCirclesHomeDesktop() {
       '</div>' +
       '<div class="ch-meta">100 題 · 7 步驟框架</div>' +
     '</div>' +
+    welcomeHtmlD +
+    bannerHtmlD +
     '<div class="ch-grid">' +
       // Left rail
       '<div class="left-rail">' +
@@ -2000,6 +2011,7 @@ function renderCirclesHomeDesktop() {
       '</div>' +
     '</div>' +
     '<div class="circles-pill-tooltip" id="circles-pill-tooltip"></div>' +
+    '</div>' + // close .circles-home-wrap
   '</div>';
 }
 
@@ -2507,7 +2519,9 @@ function renderCirclesPhase1() {
         '</div>' +
         '<button class="circles-nav-home" id="circles-p1-home" type="button">回首頁</button>' +
       '</div>' +
-      '<div class="circles-progress">' + progressSegs + '<div class="circles-progress-label">' + escHtml(config.progressLabel) + '</div></div>' +
+      '<div class="circles-progress">' + progressSegs + '<div class="circles-progress-label">' + escHtml(config.progressLabel) + '</div>' +
+        '<span class="save-indicator" aria-live="polite"></span>' +
+      '</div>' +
       '<div class="p1-grid">' +
         '<div class="p1-main circles-phase1-wrap">' +
           pillsHtml +
