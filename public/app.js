@@ -1725,7 +1725,7 @@ function bindCirclesPhase1() {
         return;
       }
       if (cached) {
-        body.innerHTML = '例：' + escHtml(cached);
+        body.innerHTML = renderBulletText(cached);
         body.dataset.loaded = '1';
         return;
       }
@@ -1757,9 +1757,7 @@ function bindCirclesPhase1() {
         if (!resp.ok || !data.example) throw new Error(data.error || 'failed');
         AppState.circlesExamplesCache[cacheKey] = data.example;
         if (body.classList.contains('open')) {
-          // Render **bold** markdown to <strong> after escaping HTML.
-          var rendered = escHtml(data.example).replace(/\*\*([^*]+?)\*\*/g, '<strong>$1</strong>');
-          body.innerHTML = '例：' + rendered;
+          body.innerHTML = renderBulletText(data.example);
           body.dataset.loaded = '1';
         }
       } catch (e) {
@@ -3313,6 +3311,59 @@ function formatCoachReply(coachReply) {
 
 function escHtml(str) {
   return (str || '').replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;').replace(/\n/g,'<br>');
+}
+
+// ── Bullet text parser (spec 1 § 4.2) ───────────────────────────────────────
+// Renders "markdown-ish" nested bullets into <ul class="rt-bullet-list">.
+// Top bullets:  ^- text
+// Sub bullets:  ^  - text  (2-space indent)
+// Bold:         **x** → <strong>x</strong>
+// Lines without "- " prefix fall back to top-level <li> (legacy prose tolerance).
+function renderBulletInlineEsc(s) {
+  // Escape HTML but preserve raw text (no \n → <br> conversion).
+  return String(s == null ? '' : s)
+    .replace(/&/g, '&amp;')
+    .replace(/</g, '&lt;')
+    .replace(/>/g, '&gt;')
+    .replace(/"/g, '&quot;');
+}
+function renderBoldInline(s) {
+  return renderBulletInlineEsc(s).replace(/\*\*([^*]+?)\*\*/g, '<strong>$1</strong>');
+}
+function renderBulletText(text) {
+  if (!text) return '';
+  const lines = String(text).split('\n').filter(function (l) { return l.trim(); });
+  const tree = []; // [{ text, children: [] }]
+  let lastTop = null;
+  for (const line of lines) {
+    const subM = line.match(/^  - (.*)$/);
+    const topM = line.match(/^- (.*)$/);
+    if (subM && lastTop) {
+      lastTop.children.push(subM[1]);
+    } else if (topM) {
+      lastTop = { text: topM[1], children: [] };
+      tree.push(lastTop);
+    } else {
+      // legacy fallback: treat as a top-level bullet
+      lastTop = { text: line, children: [] };
+      tree.push(lastTop);
+    }
+  }
+  let html = '<ul class="rt-bullet-list">';
+  for (const node of tree) {
+    html += '<li>' + renderBoldInline(node.text);
+    if (node.children.length) {
+      html += '<ul class="rt-bullet-sub">';
+      for (const c of node.children) html += '<li>' + renderBoldInline(c) + '</li>';
+      html += '</ul>';
+    }
+    html += '</li>';
+  }
+  html += '</ul>';
+  return html;
+}
+if (typeof window !== 'undefined') {
+  window.renderBulletText = renderBulletText;
 }
 
 function scrollChatToBottom() {
