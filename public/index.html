@@ -4,7 +4,7 @@
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
   <title>PM Drill — 第一性原理訓練器</title>
-  <link rel="icon" href="data:,">
+  <link rel="icon" type="image/svg+xml" href="/favicon.svg">
   <link rel="stylesheet" href="/style.css" />
   <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/@phosphor-icons/web@2.1.1/src/regular/style.css">
   <meta name="mobile-web-app-capable" content="yes">
@@ -20,7 +20,14 @@
     <nav class="navbar">
       <div class="navbar-left">
         <button class="btn-icon" id="btn-hamburger" aria-label="開啟選單"><i class="ph ph-list"></i></button>
-        <span class="navbar-logo">PM Drill</span>
+        <span class="navbar-logo">
+          <span class="navbar-favicon"><i class="ph ph-circles-three"></i></span>
+          PM Drill
+        </span>
+        <div class="navbar-tabs hide-mobile" id="navbar-tabs">
+          <span class="navbar-tab" data-nav="circles">CIRCLES</span>
+          <span class="navbar-tab" data-nav="nsm">北極星指標</span>
+        </div>
       </div>
       <div class="navbar-actions" id="navbar-actions"></div>
     </nav>

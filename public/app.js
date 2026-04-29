@@ -69,6 +69,27 @@ const AppState = {
   offcanvasCache: null,  // cached offcanvas session list for instant render
 };
 
+// Expose for tests + debugging.
+window.AppState = AppState;
+
+// ── isDesktop helper + cross-breakpoint re-render (Phase 0 Task 0.7) ──
+function isDesktop() { return window.innerWidth >= 1024; }
+AppState._lastIsDesktop = isDesktop();
+function debounce(fn, ms) {
+  let t;
+  return function(...args) { clearTimeout(t); t = setTimeout(() => fn.apply(this, args), ms); };
+}
+window.addEventListener('resize', debounce(() => {
+  const now = isDesktop();
+  if (now !== AppState._lastIsDesktop) {
+    AppState._lastIsDesktop = now;
+    if (typeof render === 'function') render();
+  }
+  if (AppState.onboardingActive && typeof showCoachmark === 'function') {
+    showCoachmark(AppState.onboardingStep);
+  }
+}, 100));
+
 // ── NSM 題庫（100 題 database + 3 計畫獨有）────────
 const NSM_QUESTIONS = [
   { id:'q1',  company:'Netflix',   industry:'內容訂閱制',   scenario:'影音串流平台競爭激烈，必須確保用戶持續感受到內容價值以維持自動扣款。',  coach_nsm:'訂閱用戶每月活躍觀看時長', anti_patterns:['App下載數','註冊數'] },
@@ -337,7 +358,7 @@ var CIRCLES_TRACKING_DIMS = [
   { key: 'depth',     label: '互動深度', desc: '用戶與核心功能的互動品質',
     placeholder: '例：看到提示後點擊進入試用頁的轉化率', dotColor: '#8b5cf6', textColor: '#6d28d9' },
   { key: 'frequency', label: '習慣頻率', desc: '用戶回訪與重複觸發的頻率',
-    placeholder: '例：試用期內每週啟動 Premium 功能的平均天數', dotColor: '#10b981', textColor: '#065f46' },
+    placeholder: '例：試用期內每週啟動 Premium 功能的平均天數', dotColor: 'var(--c-success)', textColor: '#065f46' },
   { key: 'impact',    label: '留存驅力', desc: '推動用戶留下來的核心機制',
     placeholder: '例：試用到期後 30 日內完成訂閱的轉換率', dotColor: '#f59e0b', textColor: '#92400e' },
 ];
@@ -472,7 +493,7 @@ function updateRecentSessionsSlot() {
           '<div class="circles-q-card-company">' + escHtml(company) + ' — ' + modeLabel + '</div>' +
           '<div style="font-size:12px;color:var(--c-text-2,#5a5a5a);margin-top:2px;font-family:DM Sans,sans-serif">' + stepLabel + ' · ' + phaseLabel + '</div>' +
         '</div>' +
-        '<div style="font-size:12px;font-weight:600;color:var(--c-primary,#1A56DB);font-family:DM Sans,sans-serif;white-space:nowrap">繼續練習 →</div>' +
+        '<div style="font-size:12px;font-weight:600;color:var(--c-primary,var(--c-primary));font-family:DM Sans,sans-serif;white-space:nowrap">繼續練習 →</div>' +
       '</div>' +
     '</div>';
   }).join('');
@@ -507,7 +528,7 @@ function detectProductType(question) {
 
 const NSM_TYPE_META = {
   attention:   { label: '注意力型', color: '#8b5cf6', icon: 'ph-play-circle',    desc: '核心價值在於讓用戶在產品上花有意義的時間（社交、媒體、遊戲）' },
-  transaction: { label: '交易量型', color: '#10b981', icon: 'ph-shopping-cart',  desc: '核心價值在於撮合供需、促成高品質交易（電商、共享平台、O2O）' },
+  transaction: { label: '交易量型', color: 'var(--c-success)', icon: 'ph-shopping-cart',  desc: '核心價值在於撮合供需、促成高品質交易（電商、共享平台、O2O）' },
   creator:     { label: '創造力型', color: '#f59e0b', icon: 'ph-pencil-simple',  desc: '核心價值在於讓用戶產出高品質成果並被廣泛消費（UGC、知識平台）' },
   saas:        { label: 'SaaS 型',  color: '#3b82f6', icon: 'ph-buildings',      desc: '核心價值在於解決企業工作流程問題、讓團隊不可或缺地依賴產品（B2B）' },
 };
@@ -516,25 +537,25 @@ const NSM_DIMENSION_CONFIGS = {
   attention: [
     { key: 'reach',     label: '觸及廣度', subtitle: '有多少用戶真正觸碰到核心功能（非僅登入）',  color: '#3b82f6', coachQ: 'AHA 時刻是什麼動作？做到這個動作的人有多少？', placeholder: '例：每月至少播放 1 首歌的月活用戶數（不是登入數）' },
     { key: 'depth',     label: '互動深度', subtitle: '每位用戶每次使用的品質與投入程度',          color: '#8b5cf6', coachQ: '用戶停得夠深嗎？時長、完播率、互動次數哪個更能反映價值？', placeholder: '例：每個 session 平均聆聽時長（分鐘）' },
-    { key: 'frequency', label: '習慣頻率', subtitle: '用戶是否形成定期回訪的使用習慣',            color: '#10b981', coachQ: '每週/每月回來幾次？DAU/MAU 比越高代表黏性越強', placeholder: '例：每週平均使用天數 ≥ 3 的用戶佔比' },
+    { key: 'frequency', label: '習慣頻率', subtitle: '用戶是否形成定期回訪的使用習慣',            color: 'var(--c-success)', coachQ: '每週/每月回來幾次？DAU/MAU 比越高代表黏性越強', placeholder: '例：每週平均使用天數 ≥ 3 的用戶佔比' },
     { key: 'impact',    label: '留存驅力', subtitle: '什麼讓用戶持續回訪而非逐漸流失',            color: '#f59e0b', coachQ: '社交關係？個人化推薦？收藏習慣？找出最強的留存槓桿', placeholder: '例：擁有 ≥5 首收藏歌曲的用戶 30 日留存率' },
   ],
   transaction: [
     { key: 'reach',     label: '供給廣度', subtitle: '供給端（賣家/司機/商家）的活躍參與度',       color: '#3b82f6', coachQ: '沒有供給，需求無法被滿足——有多少活躍供給方存在？', placeholder: '例：過去 7 天完成過交易的活躍商家數' },
     { key: 'depth',     label: '需求深度', subtitle: '需求端用戶的活躍程度與使用品質',             color: '#8b5cf6', coachQ: '需求方有多活躍？每人每月下幾單？平均客單價？', placeholder: '例：每位活躍買家每月平均交易次數' },
-    { key: 'frequency', label: '匹配效率', subtitle: '供需成功撮合的漏斗轉化率',                   color: '#10b981', coachQ: '搜尋→瀏覽→下單的漏斗在哪裡漏最多？轉化率多高？', placeholder: '例：從搜尋到成交的整體轉化率' },
+    { key: 'frequency', label: '匹配效率', subtitle: '供需成功撮合的漏斗轉化率',                   color: 'var(--c-success)', coachQ: '搜尋→瀏覽→下單的漏斗在哪裡漏最多？轉化率多高？', placeholder: '例：從搜尋到成交的整體轉化率' },
     { key: 'impact',    label: '復購留存', subtitle: '用戶第二次以後繼續回來交易的比例',            color: '#f59e0b', coachQ: '獲取新用戶很貴——他有回來嗎？90 天復購率如何？', placeholder: '例：首單後 90 天內完成第二筆交易的用戶比例' },
   ],
   creator: [
     { key: 'reach',     label: '創造廣度', subtitle: '每月有多少用戶在主動產出內容/成果',          color: '#3b82f6', coachQ: '創造者才是平台核心——每月有多少活躍創作者？', placeholder: '例：每月至少發布 1 篇內容的活躍創作者數' },
     { key: 'depth',     label: '成果品質', subtitle: '創造物的品質、完整度與被消費程度',           color: '#8b5cf6', coachQ: '創造的東西被消費了嗎？閱讀完整度、互動次數？', placeholder: '例：每篇貼文平均獲得有效互動數（留言+收藏+分享）' },
-    { key: 'frequency', label: '採用廣度', subtitle: '創造物被消費者發現和深度閱讀的比例',         color: '#10b981', coachQ: '沒人看的創作平台沒有飛輪——有多少內容被廣泛閱讀？', placeholder: '例：被至少 3 人讀完的內容佔全部已發布內容比例' },
+    { key: 'frequency', label: '採用廣度', subtitle: '創造物被消費者發現和深度閱讀的比例',         color: 'var(--c-success)', coachQ: '沒人看的創作平台沒有飛輪——有多少內容被廣泛閱讀？', placeholder: '例：被至少 3 人讀完的內容佔全部已發布內容比例' },
     { key: 'impact',    label: '商業轉化', subtitle: '創造行為轉化為實際商業收益的效率',            color: '#f59e0b', coachQ: '創作者留下來的動力——他們能賺到錢或獲得真實影響力嗎？', placeholder: '例：創作者帳號的付費訂閱轉化率' },
   ],
   saas: [
     { key: 'reach',     label: '啟用廣度', subtitle: '新客戶中有多少真正完成啟用（Activation）',  color: '#3b82f6', coachQ: '注意是 activation，不是 signup——誰真正跑完了核心工作流？', placeholder: '例：完成首次核心任務的新帳號比例' },
     { key: 'depth',     label: '席次深度', subtitle: '每個帳號內有多少人在真正使用核心功能',       color: '#8b5cf6', coachQ: '企業付費，但有幾個人實際在用？席次利用率多高？', placeholder: '例：每個帳號每月平均活躍使用者數（席次利用率）' },
-    { key: 'frequency', label: '黏著頻率', subtitle: '使用頻率是否顯示產品已嵌入日常工作流',       color: '#10b981', coachQ: '每天都用 vs 偶爾用——是剛需工具嗎？DAU/MAU 比多高？', placeholder: '例：每週使用核心功能 ≥ 3 次的帳號佔比' },
+    { key: 'frequency', label: '黏著頻率', subtitle: '使用頻率是否顯示產品已嵌入日常工作流',       color: 'var(--c-success)', coachQ: '每天都用 vs 偶爾用——是剛需工具嗎？DAU/MAU 比多高？', placeholder: '例：每週使用核心功能 ≥ 3 次的帳號佔比' },
     { key: 'impact',    label: '擴張信號', subtitle: '現有客戶是否在增加使用（NRR 指標）',          color: '#f59e0b', coachQ: 'NRR > 100% 代表客戶在擴張——多少比例帳號在 90 天內擴展？', placeholder: '例：90 天內增加席次或升級方案的帳號比例' },
   ],
 };
@@ -634,6 +655,7 @@ function render() {
       }
       break;
   }
+  syncNavbarTab();
 }
 
 async function navigate(view) {
@@ -659,6 +681,25 @@ async function navigate(view) {
   } else {
     render();
   }
+}
+
+// Sync active tab indicator with current AppState.view (Phase 0 Task 0.5).
+function syncNavbarTab() {
+  const view = AppState.view;
+  document.querySelectorAll('.navbar-tab').forEach(t => {
+    t.classList.toggle('active', t.dataset.nav === view);
+  });
+}
+
+// Attach navbar tab click handlers exactly once at boot.
+function bindNavbarTabs() {
+  document.querySelectorAll('.navbar-tab').forEach(t => {
+    t.addEventListener('click', () => {
+      document.querySelectorAll('.navbar-tab').forEach(x => x.classList.remove('active'));
+      t.classList.add('active');
+      navigate(t.dataset.nav);
+    });
+  });
 }
 
 function renderNavbar() {
@@ -903,6 +944,8 @@ async function init() {
   AppState.guestId = localStorage.getItem('guestId');
   document.body.dataset.view = AppState.view;
 
+  bindNavbarTabs();
+
   await initSupabase();
 
   const { data: { session } } = await supabase.auth.getSession();
@@ -1052,7 +1095,7 @@ function renderCirclesHome() {
             '<div class="circles-q-card-company">' + escHtml(company) + ' — ' + modeLabel + '</div>' +
             '<div style="font-size:12px;color:var(--c-text-2,#5a5a5a);margin-top:2px;font-family:DM Sans,sans-serif">' + stepLabel + ' · ' + phaseLabel + '</div>' +
           '</div>' +
-          '<div style="font-size:12px;font-weight:600;color:var(--c-primary,#1A56DB);font-family:DM Sans,sans-serif;white-space:nowrap">繼續練習 →</div>' +
+          '<div style="font-size:12px;font-weight:600;color:var(--c-primary,var(--c-primary));font-family:DM Sans,sans-serif;white-space:nowrap">繼續練習 →</div>' +
         '</div>' +
       '</div>';
     }).join('');
@@ -1911,7 +1954,7 @@ function renderCirclesGate() {
     return '<div class="circles-progress-seg ' + cls + '"></div>';
   }).join('');
 
-  var homeBtn = '<button style="font-size:12px;color:#1A56DB;border-bottom:1px solid #1A56DB;background:none;border-top:none;border-left:none;border-right:none;padding:2px 0;cursor:pointer;font-family:DM Sans,sans-serif;white-space:nowrap;flex-shrink:0" id="circles-gate-home">回首頁</button>';
+  var homeBtn = '<button style="font-size:12px;color:var(--c-primary);border-bottom:1px solid var(--c-primary);background:none;border-top:none;border-left:none;border-right:none;padding:2px 0;cursor:pointer;font-family:DM Sans,sans-serif;white-space:nowrap;flex-shrink:0" id="circles-gate-home">回首頁</button>';
 
   if (loading || !result) {
     return '<div data-view="circles">' +
@@ -1926,7 +1969,7 @@ function renderCirclesGate() {
 
   // New schema render: gate-item with icon + title + reason + suggestion
   var STATUS_ICON = { ok: 'ph-check-circle', warn: 'ph-warning', error: 'ph-x-circle' };
-  var STATUS_COLOR = { ok: '#137A3D', warn: '#B85C00', error: '#D92020' };
+  var STATUS_COLOR = { ok: 'var(--c-ok-bold)', warn: 'var(--c-warn-bold)', error: 'var(--c-error)' };
   var items = (result.items || []).map(function(item) {
     var safeStatus = (item.status || '').replace(/[^a-z]/g, '');
     var icon = STATUS_ICON[safeStatus] || 'ph-circle';
@@ -2073,10 +2116,10 @@ function renderCirclesPhase2() {
   var pinnedCard = q ? (
     '<div class="circles-pinned-card" id="circles-pinned-card">' +
       '<div style="display:flex;align-items:center;gap:6px;margin-bottom:4px">' +
-        '<span style="background:#EEF3FF;color:#1A56DB;border-radius:4px;padding:1px 6px;font-size:9px;font-weight:700">' + escHtml(q.company) + '</span>' +
+        '<span style="background:#EEF3FF;color:var(--c-primary);border-radius:4px;padding:1px 6px;font-size:9px;font-weight:700">' + escHtml(q.company) + '</span>' +
       '</div>' +
       '<div style="font-size:11px;color:#1a1a1a;font-weight:600;line-height:1.4" id="circles-pinned-stmt">' + escHtml(q.problem_statement.slice(0, 80)) + (q.problem_statement.length > 80 ? '…' : '') + '</div>' +
-      (q.problem_statement.length > 80 ? '<div id="circles-pinned-toggle" style="font-size:10px;color:#1A56DB;cursor:pointer;margin-top:2px">展開 ▾</div>' : '') +
+      (q.problem_statement.length > 80 ? '<div id="circles-pinned-toggle" style="font-size:10px;color:var(--c-primary);cursor:pointer;margin-top:2px">展開 ▾</div>' : '') +
     '</div>'
   ) : '';
 
@@ -2158,7 +2201,7 @@ function toggleCoachHint(btn) {
   content.style.display = isOpen ? 'none' : 'block';
   var icon = btn.querySelector('i');
   if (icon) icon.className = isOpen ? 'ph ph-caret-right' : 'ph ph-caret-down';
-  btn.style.color = isOpen ? 'var(--c-text-3,#8a8a8a)' : 'var(--c-primary,#1A56DB)';
+  btn.style.color = isOpen ? 'var(--c-text-3,#8a8a8a)' : 'var(--c-primary,var(--c-primary))';
 }
 
 function bindCirclesPhase2() {
@@ -2288,10 +2331,10 @@ function bindCirclesPhase2() {
         var hintEl2 = document.getElementById('circles-conclusion-hint');
         var submitBtn2 = document.getElementById('circles-conclusion-submit');
         if (data.ok) {
-          if (hintEl2) { hintEl2.textContent = '✓ ' + (data.message || '結論完整，可以提交'); hintEl2.className = 'conclusion-hint pass'; }
+          if (hintEl2) { hintEl2.innerHTML = '<i class="ph ph-check-circle"></i> ' + (data.message || '結論完整，可以提交'); hintEl2.className = 'conclusion-hint pass'; }
           if (submitBtn2) { submitBtn2.disabled = false; submitBtn2.classList.remove('disabled'); }
         } else {
-          if (hintEl2) { hintEl2.textContent = '⚠ ' + (data.message || '結論尚未涵蓋關鍵維度'); hintEl2.className = 'conclusion-hint warn'; }
+          if (hintEl2) { hintEl2.innerHTML = '<i class="ph ph-warning"></i> ' + (data.message || '結論尚未涵蓋關鍵維度'); hintEl2.className = 'conclusion-hint warn'; }
         }
       } catch (_) {
         var hintEl3 = document.getElementById('circles-conclusion-hint');
@@ -2671,19 +2714,19 @@ function renderCirclesFinalReport() {
   if (report._error) {
     return '<div data-view="circles">' + navBar +
       '<div style="text-align:center;padding:48px 16px;font-family:DM Sans,sans-serif">' +
-        '<div style="font-size:32px;margin-bottom:12px">⚠️</div>' +
-        '<div style="color:#D92020;font-size:14px;margin-bottom:16px">報告生成失敗，請稍後重試</div>' +
+        '<i class="ph ph-warning-circle" style="font-size:32px;color:#D97706;display:block;margin-bottom:12px"></i>' +
+        '<div style="color:var(--c-error);font-size:14px;margin-bottom:16px">報告生成失敗，請稍後重試</div>' +
         '<button class="circles-btn-ghost" id="circles-final-retry">重試</button>' +
       '</div></div>';
   }
 
-  var gradeColor = ({ A: '#137A3D', B: '#1A56DB', C: '#B85C00', D: '#D92020' })[report.grade] || '#1a1a1a';
+  var gradeColor = ({ A: 'var(--c-ok-bold)', B: 'var(--c-primary)', C: 'var(--c-warn-bold)', D: 'var(--c-error)' })[report.grade] || '#1a1a1a';
 
   var stepLabels = { C1:'澄清', I:'用戶', R:'需求', C2:'排序', L:'方案', E:'取捨', S:'總結' };
   var stepRows = ['C1','I','R','C2','L','E','S'].filter(function(k) { return stepScores[k]; }).map(function(k) {
     var s = stepScores[k];
     var scoreNum = Math.round(s.totalScore || 0);
-    var color = scoreNum >= 70 ? '#137A3D' : scoreNum >= 50 ? '#B85C00' : '#D92020';
+    var color = scoreNum >= 70 ? 'var(--c-ok-bold)' : scoreNum >= 50 ? 'var(--c-warn-bold)' : 'var(--c-error)';
     return '<div style="display:flex;justify-content:space-between;align-items:center;padding:8px 0;border-bottom:1px solid #eee;font-family:DM Sans,sans-serif">' +
       '<span style="font-size:13px;color:#1a1a1a">' + escHtml(stepLabels[k] || k) + '</span>' +
       '<span style="font-size:13px;font-weight:600;color:' + color + '">' + scoreNum + '</span>' +
@@ -2711,15 +2754,15 @@ function renderCirclesFinalReport() {
         stepRows +
       '</div>' +
       '<div style="background:#F0FFF4;border-radius:16px;padding:16px;margin-bottom:12px;border:1px solid #BBF7D0">' +
-        '<div style="font-size:12px;font-weight:600;color:#137A3D;margin-bottom:8px;font-family:DM Sans,sans-serif">✓ 表現優秀</div>' +
+        '<div style="font-size:12px;font-weight:600;color:#137A3D;margin-bottom:8px;font-family:DM Sans,sans-serif"><i class="ph ph-check-circle"></i> 表現優秀</div>' +
         '<ul style="padding-left:18px;margin:0">' + strengths + '</ul>' +
       '</div>' +
       '<div style="background:#FFF7ED;border-radius:16px;padding:16px;margin-bottom:12px;border:1px solid #FED7AA">' +
-        '<div style="font-size:12px;font-weight:600;color:#B85C00;margin-bottom:8px;font-family:DM Sans,sans-serif">△ 需要改進</div>' +
+        '<div style="font-size:12px;font-weight:600;color:var(--c-warn-bold);margin-bottom:8px;font-family:DM Sans,sans-serif">△ 需要改進</div>' +
         '<ul style="padding-left:18px;margin:0">' + improvements + '</ul>' +
       '</div>' +
       '<div style="background:#EEF3FF;border-radius:16px;padding:16px;margin-bottom:12px;border:1px solid #C5D5FF">' +
-        '<div style="font-size:12px;font-weight:600;color:#1A56DB;margin-bottom:8px;font-family:DM Sans,sans-serif">教練總評</div>' +
+        '<div style="font-size:12px;font-weight:600;color:var(--c-primary);margin-bottom:8px;font-family:DM Sans,sans-serif">教練總評</div>' +
         '<div style="font-size:13px;color:#1a1a1a;line-height:1.7;font-family:DM Sans,sans-serif">' + escHtml(report.coachVerdict || '') + '</div>' +
       '</div>' +
       (report.nextSteps ? '<div style="background:#fff;border-radius:12px;padding:14px;margin-bottom:16px;border:1px solid rgba(0,0,0,0.08);font-size:13px;color:#5a5a5a;font-family:DM Sans,sans-serif;line-height:1.6"><span style="font-weight:600;color:#1a1a1a">建議下一步：</span>' + escHtml(report.nextSteps) + '</div>' : '') +
@@ -4171,7 +4214,7 @@ function renderNSMGate() {
       </div>`;
   }
 
-  const STATUS_LABEL = { error: '× 需修正', warn: '△ 建議補充', ok: '✓ 通過' };
+  const STATUS_LABEL = { error: '<i class="ph ph-x-circle"></i> 需修正', warn: '<i class="ph ph-warning-circle"></i> 建議補充', ok: '<i class="ph ph-check-circle"></i> 通過' };
   const items = (result.items || []).map(function(item) {
     const safeStatus = (item.status || '').replace(/[^a-z]/g, '');
     const criterion = item.criterion || item.field || '';
@@ -4302,9 +4345,9 @@ function renderNSMStep4() {
   }
 
   const dims = [
-    { key: 'alignment',     label: '價值關聯', color: '#6c63ff' },
+    { key: 'alignment',     label: '價值關聯', color: 'var(--c-primary)' },
     { key: 'leading',       label: '領先指標', color: '#3b82f6' },
-    { key: 'actionability', label: '操作性',   color: '#10b981' },
+    { key: 'actionability', label: '操作性',   color: 'var(--c-success)' },
     { key: 'simplicity',    label: '可理解性', color: '#f59e0b' },
     { key: 'sensitivity',   label: '週期敏感', color: '#ef4444' },
   ];
