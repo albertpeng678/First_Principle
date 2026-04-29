@@ -156,10 +156,10 @@ async function load() {
   const res = await fetch('/api/circles-public/all-examples');
   DATA = await res.json();
   document.getElementById('meta').textContent = `${DATA.length} 題`;
-  render();
+  renderReview();
 }
 
-function render() {
+function renderReview() {
   const container = document.getElementById('container');
   const term = searchTerm.toLowerCase();
   const filtered = DATA.filter(q => {
@@ -214,11 +214,11 @@ function render() {
 
 document.getElementById('search').addEventListener('input', e => {
   searchTerm = e.target.value;
-  render();
+  renderReview();
 });
 document.getElementById('filter-step').addEventListener('change', e => {
   stepFilter = e.target.value;
-  render();
+  renderReview();
 });
 document.getElementById('expand-all').addEventListener('click', () => {
   document.querySelectorAll('.card').forEach(c => c.classList.add('open'));
