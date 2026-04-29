@@ -2352,7 +2352,10 @@ function renderCirclesPhase2() {
     ? ' style="opacity:0.45;pointer-events:none"'
     : '';
 
-  return '<div data-view="circles" class="circles-chat-wrap">' +
+  // Phase 4.3 — desktop wrapper class (max-width 920 from CSS)
+  var _phase2DesktopCls = (typeof isDesktop === 'function' && isDesktop()) ? ' phase2-desktop' : '';
+
+  return '<div data-view="circles" class="circles-chat-wrap' + _phase2DesktopCls + '">' +
     '<div class="circles-nav">' +
       '<button class="circles-nav-back" id="circles-p2-back"><i class="ph ph-arrow-left"></i></button>' +
       '<div>' +
