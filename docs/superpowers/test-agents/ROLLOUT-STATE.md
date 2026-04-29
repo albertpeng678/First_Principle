@@ -45,8 +45,13 @@ d8cf823 fix(style): login form contrast (cream-on-cream → AA)
 | 1 | SIT-1, SIT-2, SIT-3, SIT-4 | ✅ 4/4 PASS |
 | 2 | SIT-5, SIT-6, SIT-7, SIT-8 | SIT-5/6/8 ✅; SIT-7 ❌ → fixed in `0c72b0f`; needs re-verify |
 | 3 | UAT-1, UAT-2, UAT-3, UAT-4 | ✅ 4/4 PASS — UAT-1 5/5, UAT-2 5/5, UAT-3 4/4, UAT-4 5/5 |
-| 4 (not dispatched) | UAT-5, UAT-6, UAT-7, UI/UX-1 | pending |
-| 5 (not dispatched) | UI/UX-2 | pending |
+| 4 | UAT-5, UAT-6, UAT-7, UI/UX-1 | ✅ 4/4 PASS |
+| 5 | UI/UX-2 | ✅ PASS |
+
+## ✅ Round 4 regression: 17/17 PASS
+- All Round 1 SIT (8) + Round 2 UAT (7) + Round 3 UI/UX (2) verified.
+- 2 fix-up commits during regression: `0c72b0f` (SIT-7 dead refs) + `4edaf3f` (login label for=) + `7f70b89` (CSS token aliases for offcanvas) + `2ba2195` (CIRCLES heading demotion).
+- Pending DB migrations are still open (parallel-race autosave + NSM /progress) — flagged migration-dependent, not blocking.
 
 ### Friction summary (consolidated bug ledger from session 2)
 **Round 2 UAT (7 personas):**
