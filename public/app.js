@@ -1319,16 +1319,20 @@ init();
       prev.setAttribute('tabindex', '0');
       prev.setAttribute('aria-label', '點擊以編輯');
       // Click preview → focus textarea to re-enter edit mode.
+      // CRITICAL on iOS Safari: focus() on a display:none element silently
+      // fails to open the soft keyboard. Must remove .rt-rendered FIRST so
+      // the textarea is visible BEFORE focus() is called — and both must
+      // happen synchronously inside the same user gesture.
       const reFocus = (e) => {
-        e.preventDefault();
+        const field = ta.closest('.rt-field');
+        if (field) field.classList.remove('rt-rendered');
         ta.focus();
-        // place caret at end so user can keep typing
         const len = ta.value.length;
         try { ta.setSelectionRange(len, len); } catch(_) {}
       };
       prev.addEventListener('click', reFocus);
       prev.addEventListener('keydown', (e) => {
-        if (e.key === 'Enter' || e.key === ' ') reFocus(e);
+        if (e.key === 'Enter' || e.key === ' ') { e.preventDefault(); reFocus(e); }
       });
       field.appendChild(prev);
     }
