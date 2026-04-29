@@ -48,6 +48,17 @@
   --c-dim-depth: #8b5cf6;
   --c-dim-frequency: #10b981;
   --c-dim-retention: #f59e0b;
+
+  /* Legacy token aliases — keep ~202 callsites compiling without per-line edits.
+     Root-cause: pre-rollout CSS used --accent/--bg-surface/--border/--text-secondary
+     which were never defined in :root. Symptoms: offcanvas transparent, login
+     cream-on-cream, mode-card invisible borders, etc. Map to --c-* equivalents. */
+  --accent: var(--c-primary);
+  --accent-hover: #144bbf;
+  --bg-surface: var(--c-card);
+  --bg-surface-2: var(--c-surface);
+  --border: var(--c-border);
+  --text-secondary: var(--c-text-secondary);
 }
 
 * { box-sizing: border-box; margin: 0; padding: 0; -webkit-tap-highlight-color: transparent; }
