@@ -3159,3 +3159,64 @@ body { -webkit-font-smoothing: antialiased; }
 .rt-bullet-list > li { margin: 4px 0; }
 .rt-bullet-list .rt-bullet-sub { list-style:circle; padding-left:18px; margin:4px 0; }
 .rt-bullet-list strong { color:var(--c-primary); font-weight:700; }
+
+/* ── Phase 2 Spec 2: CIRCLES auto-save indicator ──────────────────── */
+.circles-progress { position:relative; }
+.save-indicator {
+  display:none;
+  align-items:center;
+  gap:5px;
+  font-size:10.5px;
+  font-family:'DM Sans', sans-serif;
+  margin-left:auto;
+  padding-left:10px;
+  user-select:none;
+  transition:opacity 200ms ease;
+}
+.save-indicator .dot {
+  width:6px; height:6px; border-radius:50%; display:inline-block;
+}
+.save-indicator.save-saving { color:var(--c-warn, #D97706); }
+.save-indicator.save-saving .dot { background:var(--c-warn, #D97706); }
+.save-indicator.save-saved { color:var(--c-success, #10b981); }
+.save-indicator.save-saved .dot { background:var(--c-success, #10b981); }
+.save-indicator.save-error {
+  color:var(--c-danger, #DC2626);
+  cursor:pointer;
+  text-decoration:underline;
+}
+.save-indicator.save-error .dot { background:var(--c-danger, #DC2626); }
+
+/* ── Phase 2 Spec 2: CIRCLES resume banner ──────────────────────── */
+.resume-banner {
+  display:flex;
+  align-items:center;
+  justify-content:space-between;
+  gap:12px;
+  background:#fff;
+  border:1px solid var(--c-border);
+  border-radius:12px;
+  padding:14px 16px;
+  margin-bottom:16px;
+  font-size:13px;
+}
+.resume-banner strong { font-weight:600; color:var(--c-text); }
+.resume-banner .resume-go {
+  color:var(--c-primary);
+  font-weight:600;
+  cursor:pointer;
+  margin-right:10px;
+}
+.resume-banner .dismiss {
+  cursor:pointer;
+  color:var(--c-text-3, #888);
+  font-size:14px;
+  padding:4px;
+}
+.resume-banner .dismiss:hover { color:var(--c-text); }
+
+/* ── Phase 2 Spec 2: offcanvas "進行中" warn badge ────────────────── */
+.offcanvas-item .badge.badge-warn {
+  background:var(--c-warn-lt, #FEF3C7);
+  color:var(--c-warn-fg, #92400E);
+}

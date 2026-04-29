@@ -67,6 +67,14 @@ const AppState = {
   nsmHints: null,
   nsmHintsLoading: false,
   offcanvasCache: null,  // cached offcanvas session list for instant render
+
+  // ── Phase 2 Spec 2: CIRCLES progress auto-save ──
+  circlesSaveStatus: 'idle',         // 'idle' | 'saving' | 'saved' | 'error'
+  circlesLastSavedAt: null,          // ms timestamp
+  circlesSavingDebounce: null,       // setTimeout handle
+  circlesSavingInFlight: false,
+  circlesSavingPending: false,       // queued change while inflight
+  circlesActiveDraft: null,          // for homepage resume banner
 };
 
 // Expose for tests + debugging.
@@ -386,10 +394,123 @@ function pickRandom5(arr) {
   return copy.slice(0, Math.min(5, copy.length));
 }
 
+// Phase 2 Spec 2 § 6.1: relative-time formatter for "edited N min ago".
+// <5min → 剛剛; <60min → N 分鐘前; else absolute month-day-time.
+function formatRelativeEdit(ts) {
+  if (!ts) return '—';
+  const ms = Date.now() - new Date(ts).getTime();
+  if (Number.isNaN(ms)) return '—';
+  if (ms < 5 * 60 * 1000)  return '剛剛編輯';
+  if (ms < 60 * 60 * 1000) return Math.round(ms / 60000) + ' 分鐘前編輯';
+  return new Date(ts).toLocaleString('zh-TW', { month: 'numeric', day: 'numeric', hour: '2-digit', minute: '2-digit' });
+}
+window.formatRelativeEdit = formatRelativeEdit;
+
 function circlesRoute(id) {
   const base = AppState.accessToken ? '/api/circles-sessions' : '/api/guest-circles-sessions';
   return id ? base + '/' + id : base;
 }
+
+function getCirclesHeaders() {
+  return AppState.accessToken
+    ? { 'Content-Type': 'application/json', 'Authorization': 'Bearer ' + AppState.accessToken }
+    : { 'Content-Type': 'application/json', 'X-Guest-ID': AppState.guestId };
+}
+
+// ── Phase 2 Spec 2: triggerCirclesAutoSave ──────────────────────────────────
+// Called from Phase 1 textarea / sol-name input listeners. Debounces 1.5s,
+// lazy-creates session on first save, then PATCH /progress with all drafts.
+// In-flight queue ensures we never lose a change between requests.
+function triggerCirclesAutoSave() {
+  if (AppState.circlesSavingInFlight) {
+    AppState.circlesSavingPending = true;
+    return;
+  }
+  clearTimeout(AppState.circlesSavingDebounce);
+  AppState.circlesSavingDebounce = setTimeout(async function () {
+    AppState.circlesSavingInFlight = true;
+    AppState.circlesSaveStatus = 'saving';
+    updateSaveIndicator();
+    try {
+      // Lazy-create on first save
+      if (!AppState.circlesSession || !AppState.circlesSession.id) {
+        const q = AppState.circlesSelectedQuestion;
+        if (!q || !q.id) throw new Error('no_selected_question');
+        const route = AppState.accessToken ? '/api/circles-sessions/draft' : '/api/guest-circles-sessions/draft';
+        const r = await fetch(route, {
+          method: 'POST',
+          headers: getCirclesHeaders(),
+          body: JSON.stringify({
+            question_id: q.id,
+            mode: AppState.circlesMode,
+            drill_step: AppState.circlesDrillStep || null,
+            sim_step_index: AppState.circlesSimStep || 0,
+          }),
+        });
+        if (!r.ok) throw new Error('draft_create_failed_' + r.status);
+        const data = await r.json();
+        AppState.circlesSession = { id: data.id, mode: data.mode, drill_step: data.drill_step };
+      }
+      // PATCH /progress merges into existing row
+      const pr = await fetch(circlesRoute(AppState.circlesSession.id) + '/progress', {
+        method: 'PATCH',
+        headers: getCirclesHeaders(),
+        body: JSON.stringify({
+          stepDrafts:     AppState.circlesStepDrafts,
+          frameworkDraft: AppState.circlesFrameworkDraft,
+        }),
+      });
+      if (!pr.ok) throw new Error('progress_patch_failed_' + pr.status);
+      AppState.circlesSaveStatus = 'saved';
+      AppState.circlesLastSavedAt = Date.now();
+    } catch (e) {
+      console.warn('[circles auto-save] failed:', e && e.message);
+      AppState.circlesSaveStatus = 'error';
+    } finally {
+      AppState.circlesSavingInFlight = false;
+      updateSaveIndicator();
+      if (AppState.circlesSavingPending) {
+        AppState.circlesSavingPending = false;
+        triggerCirclesAutoSave();
+      }
+    }
+  }, 1500);
+}
+
+// Expose for tests/manual retry button.
+window.triggerCirclesAutoSave = triggerCirclesAutoSave;
+
+function updateSaveIndicator() {
+  const el = document.querySelector('.save-indicator');
+  if (!el) return;
+  const status = AppState.circlesSaveStatus;
+  if (status === 'idle') { el.style.display = 'none'; return; }
+  el.style.display = 'inline-flex';
+  el.className = 'save-indicator save-' + status;
+  let text = '';
+  if (status === 'saving') {
+    text = '<span class="dot"></span>儲存中…';
+  } else if (status === 'saved') {
+    const ago = Date.now() - (AppState.circlesLastSavedAt || Date.now());
+    if (ago < 5000) {
+      text = '<span class="dot"></span>已儲存';
+    } else if (ago < 60000) {
+      text = '<span class="dot"></span>已儲存 · 剛剛';
+    } else {
+      text = '<span class="dot"></span>已儲存 · ' + Math.round(ago / 60000) + ' 分鐘前';
+    }
+  } else if (status === 'error') {
+    text = '<span class="dot"></span>儲存失敗，重試';
+  }
+  el.innerHTML = text;
+}
+
+window.updateSaveIndicator = updateSaveIndicator;
+
+// Periodic re-render so "已儲存 · 剛剛 / N 分鐘前" stays current.
+setInterval(function () {
+  if (AppState.circlesSaveStatus === 'saved') updateSaveIndicator();
+}, 30000);
 
 function saveCirclesProgress(patch) {
   var session = AppState.circlesSession;
@@ -809,13 +930,22 @@ function renderOffcanvasList(listEl, sessions) {
       : isCircles
         ? `CIRCLES · ${s.question_json?.company || ''}`
         : `${s.difficulty || ''}`;
-    // Fall back to updated_at when created_at is absent (older session rows or DB selects that omit it).
-    const _ts = s.created_at || s.updated_at;
-    const date = _ts ? new Date(_ts).toLocaleString('zh-TW', { month: 'numeric', day: 'numeric', hour: '2-digit', minute: '2-digit' }) : '—';
+    // Phase 2 Spec 2: prefer updated_at as the "edit recency" timestamp.
+    const _ts = s.updated_at || s.created_at;
+    // Active CIRCLES session with drafts → relative time; everything else keeps absolute date.
+    const hasCirclesDrafts = isCircles && s.status === 'active'
+      && s.step_drafts && Object.keys(s.step_drafts).length > 0;
+    const date = _ts
+      ? (hasCirclesDrafts ? formatRelativeEdit(_ts) : new Date(_ts).toLocaleString('zh-TW', { month: 'numeric', day: 'numeric', hour: '2-digit', minute: '2-digit' }))
+      : '—';
     let badge, badgeClass;
     if (s.status === 'completed') {
       badge = s.scores_json ? Math.round(s.scores_json.totalScore ?? s.scores_json.total ?? 0) + ' 分' : '完成';
       badgeClass = isCircles ? 'badge-circles' : 'badge-nsm';
+    } else if (hasCirclesDrafts) {
+      // Phase 2 Spec 2 § 6.1: yellow "進行中" badge for active CIRCLES with drafts.
+      badge = '進行中';
+      badgeClass = 'badge-warn';
     } else {
       badge = '進行中';
       badgeClass = 'badge-blue';
@@ -1042,6 +1172,63 @@ function collapseQCard(card) {
   card.style.borderColor = '';
 }
 
+// Phase 2 Spec 2 § 6.2: fetch most-recent active CIRCLES draft for the home
+// resume banner. Populates AppState.circlesActiveDraft (null if none).
+async function fetchActiveDraft() {
+  try {
+    const headers = AppState.accessToken
+      ? { 'Authorization': 'Bearer ' + AppState.accessToken }
+      : { 'X-Guest-ID': AppState.guestId };
+    const route = (AppState.accessToken ? '/api/circles-sessions' : '/api/guest-circles-sessions') + '?status=active&limit=5';
+    const r = await fetch(route, { headers });
+    if (!r.ok) { AppState.circlesActiveDraft = null; return; }
+    const list = await r.json();
+    // Most recent active session that actually has draft content (skip empties).
+    const found = (list || []).find(function (s) {
+      return s.step_drafts && Object.keys(s.step_drafts).length > 0;
+    }) || null;
+    AppState.circlesActiveDraft = found;
+  } catch (_e) {
+    AppState.circlesActiveDraft = null;
+  }
+}
+window.fetchActiveDraft = fetchActiveDraft;
+
+function renderResumeBanner() {
+  const d = AppState.circlesActiveDraft;
+  if (!d) return '';
+  if (localStorage.getItem('dismiss-resume-' + d.id)) return '';
+  const q = d.question_json || {};
+  const company = q.company || '練習';
+  const product = q.product || q.problem_statement || '';
+  return '<div class="resume-banner" data-resume-id="' + escHtml(d.id) + '">' +
+    '<span><strong>未完成練習</strong> · ' + escHtml(company) + (product ? ' · ' + escHtml(product) : '') + ' · ' + escHtml(formatRelativeEdit(d.updated_at)) + '</span>' +
+    '<span><a class="resume-go" data-id="' + escHtml(d.id) + '">繼續 →</a><i class="ph ph-x dismiss" data-id="' + escHtml(d.id) + '" role="button" aria-label="關閉"></i></span>' +
+  '</div>';
+}
+window.renderResumeBanner = renderResumeBanner;
+
+function bindResumeBanner() {
+  document.querySelectorAll('.resume-banner .resume-go').forEach(function (el) {
+    el.addEventListener('click', async function () {
+      const id = el.dataset.id;
+      if (!id) return;
+      await loadCirclesSession(id);
+      navigate('circles');
+    });
+  });
+  document.querySelectorAll('.resume-banner .dismiss').forEach(function (el) {
+    el.addEventListener('click', function (ev) {
+      ev.stopPropagation();
+      const id = el.dataset.id;
+      if (id) localStorage.setItem('dismiss-resume-' + id, '1');
+      const banner = el.closest('.resume-banner');
+      if (banner) banner.remove();
+    });
+  });
+}
+window.bindResumeBanner = bindResumeBanner;
+
 function renderCirclesHome() {
   var mode = AppState.circlesMode;
   var type = AppState.circlesSelectedType;
@@ -1114,6 +1301,7 @@ function renderCirclesHome() {
 
   return '<div data-view="circles">' +
     '<div class="circles-home-wrap">' +
+      renderResumeBanner() +
       recentHtml +
       '<div class="circles-home-title">CIRCLES 訓練</div>' +
       '<div class="circles-home-sub">選題，按步驟填寫框架、訪談、拿到評分</div>' +
@@ -1201,6 +1389,27 @@ function bindCirclesHome() {
   if (AppState.circlesRecentSessions.length === 0 && !AppState.circlesRecentLoading) {
     fetchCirclesRecentSessions();
   }
+
+  // Phase 2 Spec 2 § 6.2: bind resume banner controls + fetch fresh active draft.
+  // First call: render whatever's currently in AppState (instant if cached);
+  // then fetch and re-render the slot only if the result changes.
+  bindResumeBanner();
+  fetchActiveDraft().then(function () {
+    const wrap = document.querySelector('[data-view="circles"] .circles-home-wrap');
+    if (!wrap) return;
+    const existing = wrap.querySelector('.resume-banner');
+    const newHtml = renderResumeBanner();
+    if (existing && !newHtml) { existing.remove(); return; }
+    if (!existing && newHtml) {
+      wrap.insertAdjacentHTML('afterbegin', newHtml);
+      bindResumeBanner();
+      return;
+    }
+    if (existing && newHtml) {
+      existing.outerHTML = newHtml;
+      bindResumeBanner();
+    }
+  });
 
   document.getElementById('circles-nsm-banner-btn')?.addEventListener('click', function() { navigate('nsm'); });
 
@@ -1595,7 +1804,9 @@ function renderCirclesPhase1() {
       '</div>' +
       '<button class="circles-nav-home" id="circles-p1-home" type="button">回首頁</button>' +
     '</div>' +
-    '<div class="circles-progress">' + progressSegs + '<div class="circles-progress-label">' + escHtml(config.progressLabel) + '</div></div>' +
+    '<div class="circles-progress">' + progressSegs + '<div class="circles-progress-label">' + escHtml(config.progressLabel) + '</div>' +
+      '<span class="save-indicator" aria-live="polite"></span>' +
+    '</div>' +
     '<div class="circles-phase1-wrap">' +
       pillsHtml +
       '<div class="problem-card">' + escHtml(q.problem_statement || '') + '</div>' +
@@ -1627,11 +1838,19 @@ function bindCirclesPhase1() {
     navigate('nsm');
   });
 
-  // ── Save standard textarea fields to circlesFrameworkDraft on every input
+  // ── Save standard textarea fields to circlesFrameworkDraft + step_drafts on every input
+  // Spec 2 § 3 requires step_drafts as canonical source of "has drafts" — keyed
+  // by step letter. framework_draft is kept as flat field map for gate/eval.
   document.querySelectorAll('.circles-field-input').forEach(function(el) {
     el.addEventListener('input', function() {
       AppState.circlesFrameworkDraft[el.dataset.field] = el.value;
-      saveCirclesProgress({ frameworkDraft: AppState.circlesFrameworkDraft });
+      var stepKey = AppState.circlesMode === 'drill'
+        ? AppState.circlesDrillStep
+        : (CIRCLES_STEPS[AppState.circlesSimStep || 0] || CIRCLES_STEPS[0]).key;
+      if (!AppState.circlesStepDrafts[stepKey]) AppState.circlesStepDrafts[stepKey] = {};
+      AppState.circlesStepDrafts[stepKey][el.dataset.field] = el.value;
+      // Phase 2 Spec 2: auto-save with lazy-create + debounce
+      triggerCirclesAutoSave();
     });
   });
 
@@ -1644,7 +1863,14 @@ function bindCirclesPhase1() {
       // Mirror in framework draft for gate evaluation
       if (!AppState.circlesFrameworkDraft.solutionNames) AppState.circlesFrameworkDraft.solutionNames = {};
       AppState.circlesFrameworkDraft.solutionNames[solKey] = el.value;
-      saveCirclesProgress({ frameworkDraft: AppState.circlesFrameworkDraft, stepDrafts: AppState.circlesStepDrafts });
+      triggerCirclesAutoSave();
+    });
+  });
+
+  // ── Save indicator: click on error → manual retry
+  document.querySelectorAll('.save-indicator').forEach(function(el) {
+    el.addEventListener('click', function() {
+      if (AppState.circlesSaveStatus === 'error') triggerCirclesAutoSave();
     });
   });
 
