@@ -17,6 +17,10 @@ app.use((err, req, res, next) => {
   return next(err);
 });
 
+// Legacy URL: /login.html is rendered as a SPA view by app.js, not a real file.
+// Redirect so shared links don't 404. (B3 from UAT-3.)
+app.get('/login.html', (req, res) => res.redirect(302, '/?view=login'));
+
 app.use(express.static(path.join(__dirname, 'public')));
 
 app.use('/api/auth', require('./routes/auth'));
