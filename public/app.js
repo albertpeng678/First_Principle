@@ -4119,8 +4119,11 @@ function renderNSMStep1() {
 
   var cardsHtml = AppState.nsmDisplayedQuestions.map(createNSMQuestionCardHtml).join('');
 
+  // Phase 4.5 — desktop wrapper class
+  var _nsmHomeDesktopCls = (typeof isDesktop === 'function' && isDesktop()) ? ' nsm-home-desktop' : '';
+
   return `
-    <div class="nsm-view">
+    <div class="nsm-view${_nsmHomeDesktopCls}">
       <div class="nsm-navbar">
         <button class="btn-icon" id="btn-nsm-back" aria-label="返回"><i class="ph ph-arrow-left"></i></button>
         <span class="nsm-title">選擇情境</span>
@@ -4263,8 +4266,11 @@ function renderNSMStep2() {
       </div>
     </div>` : '';
 
+  // Phase 4.5 — desktop wrapper class
+  var _nsmStep2DesktopCls = (typeof isDesktop === 'function' && isDesktop()) ? ' nsm-step2-desktop' : '';
+
   return `
-    <div class="nsm-view">
+    <div class="nsm-view${_nsmStep2DesktopCls}">
       <div class="nsm-navbar">
         <button class="btn-icon" id="btn-nsm-back" aria-label="返回上一步"><i class="ph ph-arrow-left"></i></button>
         <span class="nsm-title">定義 NSM</span>
@@ -4467,8 +4473,11 @@ function renderNSMStep3() {
     </div>`;
   }).join('');
 
+  // Phase 4.5 — desktop wrapper class
+  var _nsmStep3DesktopCls = (typeof isDesktop === 'function' && isDesktop()) ? ' nsm-step3-desktop' : '';
+
   return `
-    <div class="nsm-view">
+    <div class="nsm-view${_nsmStep3DesktopCls}">
       <div class="nsm-navbar">
         <button class="btn-icon" id="btn-nsm-back" aria-label="返回上一步"><i class="ph ph-arrow-left"></i></button>
         <span class="nsm-title">拆解輸入指標</span>
