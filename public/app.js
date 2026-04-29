@@ -1389,17 +1389,16 @@ init();
     updateToolbarState();
   });
 
-  // Prevent toolbar mousedown/touchstart from blurring the textarea —
+  // Prevent toolbar pointerdown from blurring the textarea —
   // critical for the mobile :focus-within visibility model: if the
-  // textarea blurs, .rt-toolbar becomes display:none before the click
-  // can fire on the button.
-  const _preventBlur = (e) => {
+  // textarea blurs, .rt-toolbar becomes display:none before click fires.
+  // Use pointerdown only (works for mouse + touch + pen). DO NOT add
+  // touchstart preventDefault — iOS Safari then suppresses the click.
+  document.addEventListener('pointerdown', (e) => {
     if (e.target.closest('.rt-toolbar, #rt-toolbar-mobile')) {
       e.preventDefault();
     }
-  };
-  document.addEventListener('mousedown', _preventBlur);
-  document.addEventListener('touchstart', _preventBlur, { passive: false });
+  });
 
   // ── Mobile sticky toolbar focus/blur + visualViewport ──
   function attachMobile() {
