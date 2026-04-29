@@ -1084,10 +1084,160 @@ function markOnboardingDone() {
   if (card && card.parentNode) card.parentNode.removeChild(card);
 }
 
-// Stub — fleshed out in Task 5.2 (coachmark tour engine).
+// ── Coachmark tour engine (Phase 5 Task 5.2) ─────────────────────────
+// Spec: docs/superpowers/specs/2026-04-28-desktop-rwd-direction-c-design.md §4.2-4.4
+//
+// Targets per spec §4.3 are `.mode-section / .type-section / .q-list /
+// .q-row.expanded .btn-primary` — selectors introduced by Phase 4.1's
+// desktop CIRCLES-home renderer. This branch is forked off Phase 0, so we
+// map those names to the existing mobile/SPA selectors and re-target after
+// the Phase 4.1 desktop layout merges.
+// TODO(integration): re-target after Phase 4.1 desktop merge.
+var ONBOARDING_TARGETS = [
+  '.circles-mode-row',           // step 1: 練習模式 (≡ .mode-section)
+  '.circles-type-tabs',          // step 2: 題型 (≡ .type-section)
+  '.circles-q-list',             // step 3: 題目列表 (≡ .q-list)
+  '.circles-q-card.onb-expanded .circles-q-confirm-btn', // step 4: 展開卡內主按鈕
+];
+
+var ONBOARDING_STEPS = [
+  { title: '選擇練習模式', desc: '建議首次選「完整模擬」走完整流程，熟悉後再用「步驟加練」針對弱點刻意練習。', arrow: 'left',  pos: 'right'  },
+  { title: '選擇題型',     desc: '三種題型對應不同 PM 能力。新手建議從「產品設計」開始，題目較具體、容易上手。',         arrow: 'left',  pos: 'right'  },
+  { title: '挑一道題目',   desc: '每題標難度（Easy / Medium / Hard）。新手建議先挑 Easy。點題目會展開完整描述與「開始練習」。', arrow: 'top',   pos: 'bottom' },
+  { title: '開始練習',     desc: '點此進入 Phase 1 — 填寫框架。每個欄位都有「提示」與「查看範例」幫你思考。完成後會自動進入訪談階段。', arrow: 'left',  pos: 'right'  },
+];
+
 function startOnboardingTour() {
-  // Tour engine lands in Task 5.2; until then, "開始引導" simply dismisses the card.
+  // Hide welcome card immediately (we mark localStorage done at tour end).
+  var card = document.getElementById('onboarding-welcome');
+  if (card && card.parentNode) card.parentNode.removeChild(card);
+
+  AppState.onboardingStep = 1;
+
+  // Inject overlay + spotlight + tooltip per spec §4.2.
+  var overlay   = document.createElement('div'); overlay.className   = 'onboarding-overlay';   overlay.id   = 'onb-overlay';
+  var spotlight = document.createElement('div'); spotlight.className = 'onboarding-spotlight'; spotlight.id = 'onb-spotlight';
+  var tooltip   = document.createElement('div'); tooltip.className   = 'onboarding-tooltip';   tooltip.id   = 'onb-tooltip';
+  document.body.appendChild(overlay);
+  document.body.appendChild(spotlight);
+  document.body.appendChild(tooltip);
+
+  // Resize listener — reposition while a tour step is active (spec §4.4).
+  if (!AppState._onboardingResizeBound) {
+    window.addEventListener('resize', function() {
+      if (AppState.onboardingStep) showCoachmark(AppState.onboardingStep);
+    });
+    AppState._onboardingResizeBound = true;
+  }
+
+  showCoachmark(1);
+}
+
+function endOnboardingTour() {
+  AppState.onboardingStep = null;
+  ['onb-overlay','onb-spotlight','onb-tooltip'].forEach(function(id) {
+    var el = document.getElementById(id);
+    if (el && el.parentNode) el.parentNode.removeChild(el);
+  });
+  // Collapse any q-row we auto-expanded for step 4.
+  var auto = document.querySelector('.circles-q-card.onb-expanded');
+  if (auto) {
+    auto.classList.remove('onb-expanded');
+    if (typeof collapseQCard === 'function') {
+      try { collapseQCard(auto); } catch (e) {}
+    }
+  }
   markOnboardingDone();
+}
+
+function showCoachmark(step) {
+  var cfg = ONBOARDING_STEPS[step - 1];
+  var targetSel = ONBOARDING_TARGETS[step - 1];
+
+  // Step 4: target is the expanded q-row's primary button. Auto-expand the
+  // first q-card if no row is currently open so the button exists.
+  if (step === 4) {
+    var alreadyExpanded = document.querySelector('.circles-q-card.onb-expanded');
+    if (!alreadyExpanded) {
+      var firstCard = document.querySelector('.circles-q-list .circles-q-card');
+      if (firstCard && typeof expandQCard === 'function') {
+        expandQCard(firstCard);
+        firstCard.classList.add('onb-expanded');
+      }
+    }
+  }
+
+  var el = document.querySelector(targetSel);
+  var spotlight = document.getElementById('onb-spotlight');
+  var tooltip   = document.getElementById('onb-tooltip');
+  if (!spotlight || !tooltip) return;
+
+  if (!el) {
+    // Selector missing — render tooltip without spotlight (fail-soft).
+    spotlight.style.display = 'none';
+  } else {
+    spotlight.style.display = '';
+    var rect = el.getBoundingClientRect();
+    spotlight.style.left   = (rect.left - 4) + 'px';
+    spotlight.style.top    = (rect.top  - 4) + 'px';
+    spotlight.style.width  = (rect.width  + 8) + 'px';
+    spotlight.style.height = (rect.height + 8) + 'px';
+  }
+
+  // Tooltip body
+  var totalSteps = ONBOARDING_STEPS.length;
+  tooltip.setAttribute('data-arrow', cfg.arrow);
+  tooltip.innerHTML =
+    '<div class="onb-step">第 ' + step + ' 步 / 共 ' + totalSteps + '</div>' +
+    '<h4>' + cfg.title + '</h4>' +
+    '<p>' + cfg.desc + '</p>' +
+    '<div class="onb-actions">' +
+      '<span class="onb-skip" id="onb-skip-tour">略過引導</span>' +
+      '<button class="onb-next" id="onb-next">' + (step === totalSteps ? '完成' : '下一步 →') + '</button>' +
+    '</div>' +
+    '<div class="onb-arrow"></div>';
+
+  // Position tooltip (desktop). Tooltip width is fixed at 300px per spec §4.2.
+  if (el) {
+    var TOOLTIP_W = 300;
+    var GAP = 16;
+    // Force layout to read tooltip height, then position by `pos`.
+    tooltip.style.left = '0px'; tooltip.style.top = '0px';
+    var th = tooltip.offsetHeight || 140;
+    var rect2 = el.getBoundingClientRect();
+    var x, y;
+    if (cfg.pos === 'right') {
+      x = rect2.right + GAP;
+      y = rect2.top + Math.max(0, (rect2.height - th) / 2);
+    } else if (cfg.pos === 'bottom') {
+      x = rect2.left + Math.max(0, (rect2.width - TOOLTIP_W) / 2);
+      y = rect2.bottom + GAP;
+    } else if (cfg.pos === 'top') {
+      x = rect2.left + Math.max(0, (rect2.width - TOOLTIP_W) / 2);
+      y = rect2.top - th - GAP;
+    } else { // left
+      x = rect2.left - TOOLTIP_W - GAP;
+      y = rect2.top + Math.max(0, (rect2.height - th) / 2);
+    }
+    // Clamp into viewport
+    x = Math.max(8, Math.min(x, window.innerWidth - TOOLTIP_W - 8));
+    y = Math.max(8, Math.min(y, window.innerHeight - th - 8));
+    tooltip.style.left = x + 'px';
+    tooltip.style.top  = y + 'px';
+  }
+
+  // Wire buttons
+  var nextBtn = document.getElementById('onb-next');
+  var skipBtn = document.getElementById('onb-skip-tour');
+  if (nextBtn) nextBtn.onclick = function() {
+    if (step >= totalSteps) {
+      endOnboardingTour();
+    } else {
+      AppState.onboardingStep = step + 1;
+      showCoachmark(step + 1);
+    }
+  };
+  if (skipBtn) skipBtn.onclick = function() { endOnboardingTour(); };
 }
 
 function bindOnboardingWelcome() {
