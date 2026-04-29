@@ -5005,26 +5005,67 @@ function bindNSM() {
     btn.addEventListener('click', function() { AppState.nsmReportTab = btn.dataset.nsmTab; render(); });
   });
 
-  // Step 4: comparison tree tap
+  // Step 4: comparison tree tap — desktop opens inline detail, mobile opens bottom sheet (Phase 6)
+  var _nsmIsMobileCmp = !(typeof isDesktop === 'function' && isDesktop());
+  var _nsmSheetEl = document.getElementById('nsm-detail-sheet');
+  var _nsmSheetBody = document.getElementById('nsm-detail-sheet-body');
+  var _nsmSheetBackdrop = document.getElementById('nsm-detail-sheet-backdrop');
+  var _nsmSheetHandle = document.getElementById('nsm-detail-sheet-handle');
+
+  function _nsmCloseSheet() {
+    if (!_nsmSheetEl) return;
+    _nsmSheetEl.classList.remove('open');
+    _nsmSheetEl.setAttribute('aria-hidden', 'true');
+    if (_nsmSheetBackdrop) _nsmSheetBackdrop.classList.remove('open');
+    AppState.nsmOpenNode = null;
+  }
+  function _nsmBuildDetailHTML(dim, dimLabel, isCoach) {
+    var sc = AppState.nsmSession ? (AppState.nsmSession.scores_json || {}) : {};
+    var ctree = sc.coachTree || {};
+    var rationale = sc.coachRationale || {};
+    var bd = (AppState.nsmSession && AppState.nsmSession.user_breakdown) || AppState.nsmBreakdownDraft || {};
+    var metricText = isCoach
+      ? (ctree[dim] || '—')
+      : (dim === 'nsm' ? (AppState.nsmNsmDraft || '（未填寫）') : (bd[dim] || '（未填寫）'));
+    var prefix = isCoach ? '教練版 ' : '你的 ';
+    var rationaleText = isCoach ? (rationale[dim] || '') : '';
+    return '<div class="nsm-detail-metric">' +
+        '<span class="nsm-detail-prefix">' + escHtml(prefix + dimLabel) + '</span>' +
+        '<p class="nsm-detail-value">' + escHtml(metricText) + '</p>' +
+      '</div>' +
+      (rationaleText
+        ? '<div class="nsm-rationale">' +
+            '<div class="nsm-rationale-head"><i class="ph ph-lightbulb"></i> 教練設計思路</div>' +
+            '<p class="nsm-rationale-body">' + escHtml(rationaleText) + '</p>' +
+          '</div>'
+        : '');
+  }
+
   document.querySelectorAll('.nsm-tree-node[data-node]').forEach(function(node) {
     node.addEventListener('click', function() {
-      var detailEl = document.getElementById('nsm-node-detail');
-      if (!detailEl) return;
       var key = node.dataset.node;
       var isCoach = node.dataset.isCoach === '1';
       var dim = key.replace('coach-','').replace('user-','');
       var dimLabel = node.dataset.label || dim;
-      var sc = AppState.nsmSession ? (AppState.nsmSession.scores_json || {}) : {};
-      var ctree = sc.coachTree || {};
-      var rationale = sc.coachRationale || {};
-      var bd = (AppState.nsmSession && AppState.nsmSession.user_breakdown) || AppState.nsmBreakdownDraft || {};
+      var html = _nsmBuildDetailHTML(dim, dimLabel, isCoach);
 
-      var metricText = isCoach
-        ? (ctree[dim] || '—')
-        : (dim === 'nsm' ? (AppState.nsmNsmDraft || '（未填寫）') : (bd[dim] || '（未填寫）'));
-      var prefix = isCoach ? '教練版 ' : '你的 ';
-      var rationaleText = isCoach ? (rationale[dim] || '') : '';
+      if (_nsmIsMobileCmp && _nsmSheetEl && _nsmSheetBody) {
+        // Mobile: bottom sheet
+        if (AppState.nsmOpenNode === key && _nsmSheetEl.classList.contains('open')) {
+          _nsmCloseSheet();
+        } else {
+          AppState.nsmOpenNode = key;
+          _nsmSheetBody.innerHTML = html;
+          _nsmSheetEl.classList.add('open');
+          _nsmSheetEl.setAttribute('aria-hidden', 'false');
+          if (_nsmSheetBackdrop) _nsmSheetBackdrop.classList.add('open');
+        }
+        return;
+      }
 
+      // Desktop: inline detail panel
+      var detailEl = document.getElementById('nsm-node-detail');
+      if (!detailEl) return;
       if (AppState.nsmOpenNode === key) {
         AppState.nsmOpenNode = null;
         detailEl.style.display = 'none';
@@ -5032,22 +5073,27 @@ function bindNSM() {
       } else {
         AppState.nsmOpenNode = key;
         detailEl.style.display = 'block';
-        detailEl.innerHTML =
-          '<div class="nsm-detail-metric">' +
-            '<span class="nsm-detail-prefix">' + escHtml(prefix + dimLabel) + '</span>' +
-            '<p class="nsm-detail-value">' + escHtml(metricText) + '</p>' +
-          '</div>' +
-          (rationaleText
-            ? '<div class="nsm-rationale">' +
-                '<div class="nsm-rationale-head"><i class="ph ph-lightbulb"></i> 教練設計思路</div>' +
-                '<p class="nsm-rationale-body">' + escHtml(rationaleText) + '</p>' +
-              '</div>'
-            : '');
+        detailEl.innerHTML = html;
       }
     });
   });
-  // Restore open node if any
-  if (AppState.nsmOpenNode) {
+
+  // Mobile sheet close handlers (backdrop / handle / ESC)
+  if (_nsmIsMobileCmp && _nsmSheetEl) {
+    if (_nsmSheetBackdrop) _nsmSheetBackdrop.addEventListener('click', _nsmCloseSheet);
+    if (_nsmSheetHandle) {
+      _nsmSheetHandle.addEventListener('click', _nsmCloseSheet);
+      _nsmSheetHandle.addEventListener('keydown', function(e) {
+        if (e.key === 'Enter' || e.key === ' ') { e.preventDefault(); _nsmCloseSheet(); }
+      });
+    }
+    document.addEventListener('keydown', function _nsmEscClose(e) {
+      if (e.key === 'Escape' && _nsmSheetEl.classList.contains('open')) _nsmCloseSheet();
+    });
+  }
+
+  // Restore open node if any (desktop only — mobile sheet doesn't need restore on render)
+  if (AppState.nsmOpenNode && !_nsmIsMobileCmp) {
     var openNode = document.querySelector('.nsm-tree-node[data-node="' + AppState.nsmOpenNode + '"]');
     if (openNode) openNode.click();
   }
