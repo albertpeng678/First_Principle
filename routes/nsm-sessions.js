@@ -127,6 +127,35 @@ router.post('/:id/context', requireAuth, async (req, res) => {
   } catch (e) { res.status(500).json({ error: e.message }); }
 });
 
+// PATCH /api/nsm-sessions/:id/progress — auth sibling of guest variant.
+// Requires migrations/2026-04-29-nsm-progress-json.sql.
+router.patch('/:id/progress', requireAuth, async (req, res) => {
+  const { currentStep, userNsm, userBreakdown, gateResult, progress } = req.body || {};
+  const patch = {};
+  if (userNsm       !== undefined) patch.user_nsm       = userNsm;
+  if (userBreakdown !== undefined) patch.user_breakdown = userBreakdown;
+  const merged = { ...(progress && typeof progress === 'object' ? progress : {}) };
+  if (currentStep !== undefined) merged.currentStep = currentStep;
+  if (gateResult  !== undefined) merged.gateResult  = gateResult;
+  if (Object.keys(merged).length > 0) patch.progress_json = merged;
+  if (Object.keys(patch).length === 0) return res.status(400).json({ error: 'nothing_to_update' });
+  patch.updated_at = new Date().toISOString();
+
+  const { data, error } = await db
+    .from('nsm_sessions')
+    .update(patch)
+    .eq('id', req.params.id)
+    .eq('user_id', req.user.id)
+    .select('id')
+    .maybeSingle();
+  if (error) {
+    console.error('[nsm-sessions] PATCH /progress db error:', error);
+    return res.status(500).json({ error: 'db_error' });
+  }
+  if (!data) return res.status(404).json({ error: 'not_found' });
+  res.json({ ok: true });
+});
+
 // POST /api/nsm-sessions/:id/hints
 router.post('/:id/hints', requireAuth, async (req, res) => {
   const { userNsm } = req.body;
