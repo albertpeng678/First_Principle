@@ -1386,14 +1386,17 @@ body { -webkit-font-smoothing: antialiased; }
 }
 [data-view="circles"] .circles-home-title {
   font-family: 'DM Sans', sans-serif;
-  font-size: 22px;
-  font-weight: 700;
-  color: var(--c-text);
-  margin-bottom: 4px;
+  font-size: 13px;
+  font-weight: 600;
+  color: var(--c-text-2);
+  letter-spacing: 0.04em;
+  text-transform: uppercase;
+  margin-bottom: 6px;
 }
 [data-view="circles"] .circles-home-sub {
-  font-size: 13px;
-  color: var(--c-text-2);
+  font-size: 14px;
+  color: var(--c-text);
+  font-weight: 500;
   margin-bottom: 20px;
   font-family: 'DM Sans', sans-serif;
 }
