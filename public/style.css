@@ -26,6 +26,9 @@
   --c-border: rgba(60,45,30,0.08);
   --c-border-mid: rgba(60,45,30,0.12);
   --c-border-strong: rgba(60,45,30,0.15);
+  /* C-M7 — border style tokens (future PRs use these to reduce style variance) */
+  --border-hairline: 1px solid rgba(60,45,30,0.08);
+  --border-emphasis: 2px solid var(--c-primary);
 
   /* Status */
   --c-success: #10b981;
@@ -132,7 +135,9 @@ body {
   display: inline-flex; align-items: center; gap: 6px; font-family: inherit;
   border-radius: 8px; min-height: 36px;
 }
-.navbar-logo:hover { background: var(--c-card); }
+@media (hover: hover) and (pointer: fine) {
+  .navbar-logo:hover { background: var(--c-card); }
+}
 .navbar-logo:focus-visible { outline: 2px solid var(--c-primary); outline-offset: 2px; }
 .navbar-actions { display: flex; gap: 8px; align-items: center; min-width: 0; }
 .navbar-email {
@@ -919,7 +924,9 @@ textarea::placeholder { white-space: nowrap; overflow: hidden; text-overflow: el
   font-family: 'DM Sans', sans-serif;
   display: inline-flex; align-items: center; gap: 4px;
 }
-.nsm-shuffle-btn:hover { text-decoration: underline; }
+@media (hover: hover) and (pointer: fine) {
+  .nsm-shuffle-btn:hover { text-decoration: underline; }
+}
 .nsm-shuffle-btn:active { opacity: 0.7; }
 .nsm-question-card {
   background: var(--bg-surface); border: 2px solid var(--border);
@@ -1206,8 +1213,8 @@ textarea::placeholder { white-space: nowrap; overflow: hidden; text-overflow: el
     position: fixed; bottom: 0; left: 0; right: 0;
     background: var(--bg-surface, #fff);
     border-radius: 16px 16px 0 0;
-    padding: 14px 20px 24px;
-    max-height: 70vh; overflow-y: auto;
+    padding: 14px 20px max(24px, env(safe-area-inset-bottom));
+    max-height: 70vh; max-height: 70dvh; overflow-y: auto;
     box-shadow: 0 -8px 24px rgba(0,0,0,0.18);
     z-index: 1100;
     transform: translateY(100%);
@@ -1511,9 +1518,11 @@ body { -webkit-font-smoothing: antialiased; }
   cursor: pointer;
   min-height: 32px;
 }
-[data-view="circles"] .circles-q-random-btn:hover {
-  border-color: var(--c-text-3);
-  background: var(--c-card);
+@media (hover: hover) and (pointer: fine) {
+  [data-view="circles"] .circles-q-random-btn:hover {
+    border-color: var(--c-text-3);
+    background: var(--c-card);
+  }
 }
 [data-view="circles"] .circles-step-pills {
   display: flex;
@@ -3334,7 +3343,9 @@ body { -webkit-font-smoothing: antialiased; }
   font-size:14px;
   padding:4px;
 }
-.resume-banner .dismiss:hover { color:var(--c-text); }
+@media (hover: hover) and (pointer: fine) {
+  .resume-banner .dismiss:hover { color:var(--c-text); }
+}
 
 /* ── Phase 2 Spec 2: offcanvas "進行中" warn badge ────────────────── */
 .offcanvas-item .badge.badge-warn {
@@ -3366,7 +3377,9 @@ body { -webkit-font-smoothing: antialiased; }
   align-items:center;
   justify-content:center;
 }
-.rt-tbtn:hover { background:var(--c-bg-alt, #f3f3f0); }
+@media (hover: hover) and (pointer: fine) {
+  .rt-tbtn:hover { background:var(--c-bg-alt, #f3f3f0); }
+}
 .rt-tbtn.active {
   background:var(--c-primary);
   color:#fff;

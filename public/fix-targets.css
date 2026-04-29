@@ -42,3 +42,24 @@
 body:not([data-onboarding-checked]) .onboarding-welcome {
   visibility: hidden;
 }
+
+/* C-M3 — tap target reinforcement (44px) */
+.nsm-shuffle-btn { min-height: 44px; padding: 10px 14px; }
+.onb-next { min-height: 44px; padding: 10px 16px; }
+.link-button {
+  background: none; border: none; color: var(--c-primary);
+  cursor: pointer; padding: 8px 0; font-size: 14px; min-height: 44px;
+}
+#review-examples-search, #filter-step { min-height: 44px; }
+
+/* A-M4/A-M5 — resume-banner control sizing */
+.resume-banner .dismiss {
+  background: none; border: none; cursor: pointer;
+  padding: 8px; min-width: 44px; min-height: 44px;
+  color: var(--c-text-3);
+}
+.resume-banner .resume-go {
+  background: none; border: none; cursor: pointer;
+  color: var(--c-primary); font-size: 14px;
+  padding: 8px 10px; min-height: 44px;
+}
