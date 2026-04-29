@@ -1042,6 +1042,61 @@ function collapseQCard(card) {
   card.style.borderColor = '';
 }
 
+// ── Onboarding welcome card (Phase 5 Task 5.1) ───────────────────────
+// Spec: docs/superpowers/specs/2026-04-28-desktop-rwd-direction-c-design.md §4.1
+//
+// Trigger conditions for welcome card (State 1):
+//   - localStorage 'circles_onboarding_done' !== '1'
+//   - AND AppState.circlesRecentSessions.length === 0
+//   - AND no `?onboarding=0` query
+// Dev hook: `?onboarding=1` query forces display even with flag set.
+function getOnboardingQuery() {
+  try { return new URLSearchParams(window.location.search).get('onboarding'); }
+  catch (e) { return null; }
+}
+
+function shouldShowOnboardingWelcome() {
+  var q = getOnboardingQuery();
+  if (q === '1') return true;             // dev force-show
+  if (q === '0') return false;            // dev force-hide
+  try {
+    if (localStorage.getItem('circles_onboarding_done') === '1') return false;
+  } catch (e) {}
+  if (AppState.circlesRecentSessions && AppState.circlesRecentSessions.length > 0) return false;
+  return true;
+}
+
+function renderOnboardingWelcomeHtml() {
+  return '<div class="onboarding-welcome" id="onboarding-welcome">' +
+    '<div class="onboarding-welcome-icon"><i class="ph ph-hand-waving"></i></div>' +
+    '<h2>歡迎來到 PM Drill</h2>' +
+    '<p>CIRCLES 是 PM 面試常用的七步框架。第一次使用？建議跟著引導跑一輪，5 分鐘內了解整個流程。</p>' +
+    '<div class="onboarding-welcome-actions">' +
+      '<button class="btn-primary" id="onb-start">開始引導 →</button>' +
+      '<button class="btn-ghost" id="onb-skip">直接自己選題</button>' +
+    '</div>' +
+  '</div>';
+}
+
+function markOnboardingDone() {
+  try { localStorage.setItem('circles_onboarding_done', '1'); } catch (e) {}
+  var card = document.getElementById('onboarding-welcome');
+  if (card && card.parentNode) card.parentNode.removeChild(card);
+}
+
+// Stub — fleshed out in Task 5.2 (coachmark tour engine).
+function startOnboardingTour() {
+  // Tour engine lands in Task 5.2; until then, "開始引導" simply dismisses the card.
+  markOnboardingDone();
+}
+
+function bindOnboardingWelcome() {
+  var startBtn = document.getElementById('onb-start');
+  var skipBtn  = document.getElementById('onb-skip');
+  if (startBtn) startBtn.addEventListener('click', function() { startOnboardingTour(); });
+  if (skipBtn)  skipBtn.addEventListener('click',  function() { markOnboardingDone(); });
+}
+
 function renderCirclesHome() {
   var mode = AppState.circlesMode;
   var type = AppState.circlesSelectedType;
@@ -1112,8 +1167,14 @@ function renderCirclesHome() {
     ? displayedQs.map(function(q) { return renderQCardHtml(q); }).join('')
     : '<div style="color:var(--c-text-3);font-size:13px;text-align:center;padding:24px 0">暫無題目，請先執行題庫生成腳本</div>';
 
+  // ── Onboarding welcome card (Phase 5 Task 5.1) ───────────────────────
+  // Show if: (a) flag not set, AND (b) no recent sessions, AND (c) not ?onboarding=0
+  // Or force-show if ?onboarding=1 (dev hook).
+  var welcomeHtml = shouldShowOnboardingWelcome() ? renderOnboardingWelcomeHtml() : '';
+
   return '<div data-view="circles">' +
     '<div class="circles-home-wrap">' +
+      welcomeHtml +
       recentHtml +
       '<div class="circles-home-title">CIRCLES 訓練</div>' +
       '<div class="circles-home-sub">選題，按步驟填寫框架、訪談、拿到評分</div>' +
@@ -1201,6 +1262,9 @@ function bindCirclesHome() {
   if (AppState.circlesRecentSessions.length === 0 && !AppState.circlesRecentLoading) {
     fetchCirclesRecentSessions();
   }
+
+  // Onboarding welcome card (Phase 5 Task 5.1)
+  bindOnboardingWelcome();
 
   document.getElementById('circles-nsm-banner-btn')?.addEventListener('click', function() { navigate('nsm'); });
 
