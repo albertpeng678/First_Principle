@@ -868,6 +868,9 @@ function renderNavbar() {
 
   const hamburger = document.getElementById('btn-hamburger');
   if (hamburger) hamburger.onclick = openOffcanvas;
+  // Brand → always home (universal escape hatch from any phase / view)
+  const brandBtn = document.getElementById('navbar-home-btn');
+  if (brandBtn) brandBtn.onclick = () => navigate('circles');
 }
 
 function openOffcanvas() {
