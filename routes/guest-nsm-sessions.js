@@ -94,6 +94,7 @@ const NSM_GATE_MAX = 2000; // protect against runaway token cost
 router.post('/:id/gate', requireGuestId, async (req, res) => {
   const { nsm, rationale } = req.body;
   if (typeof nsm !== 'string' || typeof rationale !== 'string') return res.status(400).json({ error: 'invalid_body' });
+  if (!nsm.trim() || !rationale.trim()) return res.status(400).json({ error: 'empty_body' });
   if (nsm.length > NSM_GATE_MAX || rationale.length > NSM_GATE_MAX) return res.status(400).json({ error: 'input_too_long' });
   const { data: session, error } = await db
     .from('nsm_sessions')

@@ -53,6 +53,9 @@ router.get('/:id', requireAuth, async (req, res) => {
 // POST /api/sessions/:id/chat — 對話（SSE 串流）
 router.post('/:id/chat', requireAuth, async (req, res) => {
   const { message } = req.body;
+  if (!message || typeof message !== 'string' || !message.trim()) {
+    return res.status(400).json({ error: 'empty_user_message' });
+  }
   const { data: session, error } = await db
     .from('practice_sessions')
     .select('*')

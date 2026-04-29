@@ -67,6 +67,9 @@ router.delete('/:id', requireGuestId, async (req, res) => {
 // POST /api/guest/sessions/:id/chat
 router.post('/:id/chat', requireGuestId, async (req, res) => {
   const { message } = req.body;
+  if (!message || typeof message !== 'string' || !message.trim()) {
+    return res.status(400).json({ error: 'empty_user_message' });
+  }
   const { data: session, error } = await db
     .from('guest_sessions')
     .select('*')

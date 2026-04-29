@@ -163,7 +163,9 @@ router.post('/:id/gate', requireGuestId, async (req, res) => {
 // POST /api/guest-circles-sessions/:id/message — Phase 2 SSE streaming
 router.post('/:id/message', requireGuestId, async (req, res) => {
   const { userMessage } = req.body;
-  if (!userMessage) return res.status(400).json({ error: 'missing userMessage' });
+  if (!userMessage || typeof userMessage !== 'string' || !userMessage.trim()) {
+    return res.status(400).json({ error: 'empty_user_message' });
+  }
   const { data: session, error } = await db
     .from('circles_sessions')
     .select('*')

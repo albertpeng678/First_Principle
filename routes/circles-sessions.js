@@ -163,7 +163,9 @@ router.post('/:id/gate', requireAuth, async (req, res) => {
 // POST /api/circles-sessions/:id/message — Phase 2 SSE streaming
 router.post('/:id/message', requireAuth, async (req, res) => {
   const { userMessage } = req.body;
-  if (!userMessage) return res.status(400).json({ error: 'missing userMessage' });
+  if (!userMessage || typeof userMessage !== 'string' || !userMessage.trim()) {
+    return res.status(400).json({ error: 'empty_user_message' });
+  }
   const { data: session, error } = await db
     .from('circles_sessions')
     .select('*')
