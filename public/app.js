@@ -1305,6 +1305,52 @@ init();
     }
   }
 
+  function ensurePreviewEl(ta) {
+    const field = ta.closest('.rt-field');
+    if (!field) return null;
+    let prev = field.querySelector('.rt-preview');
+    if (!prev) {
+      prev = document.createElement('div');
+      prev.className = 'rt-preview';
+      prev.setAttribute('role', 'button');
+      prev.setAttribute('tabindex', '0');
+      prev.setAttribute('aria-label', '點擊以編輯');
+      // Click preview → focus textarea to re-enter edit mode.
+      const reFocus = (e) => {
+        e.preventDefault();
+        ta.focus();
+        // place caret at end so user can keep typing
+        const len = ta.value.length;
+        try { ta.setSelectionRange(len, len); } catch(_) {}
+      };
+      prev.addEventListener('click', reFocus);
+      prev.addEventListener('keydown', (e) => {
+        if (e.key === 'Enter' || e.key === ' ') reFocus(e);
+      });
+      field.appendChild(prev);
+    }
+    return prev;
+  }
+  function syncPreview(ta) {
+    const prev = ensurePreviewEl(ta);
+    if (!prev) return;
+    const v = ta.value || '';
+    const focused = (document.activeElement === ta);
+    // Editing: textarea visible, preview hidden.
+    // Blurred: if there's content (any), preview visible with rendered HTML;
+    // textarea hidden via CSS rule (.rt-field.rt-rendered .rt-textarea).
+    const field = ta.closest('.rt-field');
+    if (!field) return;
+    if (focused || !v.trim()) {
+      field.classList.remove('rt-rendered');
+      prev.innerHTML = '';
+      return;
+    }
+    field.classList.add('rt-rendered');
+    prev.innerHTML = (typeof window.renderBulletText === 'function')
+      ? window.renderBulletText(v)
+      : v.replace(/\*\*([^*]+)\*\*/g, '<strong>$1</strong>');
+  }
   function initRichTextarea(ta) {
     if (ta._rtInited) return;
     ta._rtInited = true;
@@ -1314,7 +1360,10 @@ init();
     ta.addEventListener('input', updateToolbarState);
     ta.addEventListener('keyup', updateToolbarState);
     ta.addEventListener('click', updateToolbarState);
-    ta.addEventListener('focus', () => { _activeRt = ta; updateToolbarState(); });
+    ta.addEventListener('focus', () => { _activeRt = ta; updateToolbarState(); syncPreview(ta); });
+    ta.addEventListener('blur', () => { syncPreview(ta); });
+    // initial render: if loaded with prior content, show preview state
+    syncPreview(ta);
   }
 
   // Toolbar click delegation (covers both inline desktop + mobile sticky)
@@ -1935,9 +1984,9 @@ function renderCirclesHomeMobile() {
       '</div>' +
 
       // Question list header
-      '<div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:8px">' +
-        '<div style="font-size:11px;font-weight:600;color:var(--c-text-2);font-family:DM Sans,sans-serif">選擇題目</div>' +
-        '<button id="circles-random-btn" style="font-size:11px;color:var(--c-primary);background:none;border:none;cursor:pointer;font-family:DM Sans,sans-serif;padding:0">隨機選題</button>' +
+      '<div class="circles-q-list-header">' +
+        '<div class="circles-step-select-label" style="margin-bottom:0">選擇題目</div>' +
+        '<button id="circles-random-btn" class="circles-q-random-btn" type="button">隨機選題</button>' +
       '</div>' +
 
       '<div class="circles-q-list" id="circles-q-list">' + qCardsHtml + '</div>' +

@@ -1474,6 +1474,29 @@ body { -webkit-font-smoothing: antialiased; }
   letter-spacing: 0;
   font-weight: 600;
 }
+/* Question list header row — left section label, right "隨機選題"
+   ghost button (was a raw blue text-link; auditor flagged competing
+   with the section header). */
+[data-view="circles"] .circles-q-list-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  margin-bottom: 12px;
+}
+[data-view="circles"] .circles-q-random-btn {
+  font: 500 12px/1 'DM Sans', sans-serif;
+  color: var(--c-text);
+  background: transparent;
+  border: 1px solid var(--c-border);
+  border-radius: 8px;
+  padding: 6px 10px;
+  cursor: pointer;
+  min-height: 32px;
+}
+[data-view="circles"] .circles-q-random-btn:hover {
+  border-color: var(--c-text-3);
+  background: var(--c-card);
+}
 [data-view="circles"] .circles-step-pills {
   display: flex;
   flex-wrap: wrap;
@@ -3383,6 +3406,32 @@ textarea.rt-textarea {
   .rt-field .rt-toolbar { display:none; }
   .rt-field:focus-within .rt-toolbar { display:flex; }
 }
+
+/* Rendered preview: when textarea blurs and has content, hide raw textarea
+   and show the rendered HTML instead. Click preview to re-enter editing.
+   Single-surface model — no side-by-side comparison clutter. */
+.rt-preview {
+  display: none;
+  font: 400 14px/1.55 'DM Sans', system-ui, sans-serif;
+  color: var(--c-text);
+  padding: 10px 12px;
+  border: 1px solid var(--c-border);
+  border-radius: 8px;
+  background: #fff;
+  cursor: text;
+  min-height: 44px;
+  white-space: normal;
+  word-break: break-word;
+}
+.rt-preview:focus { outline: 2px solid var(--c-primary); outline-offset: 1px; }
+.rt-preview ul { margin: 4px 0; padding-left: 20px; }
+.rt-preview ul ul { margin: 2px 0; }
+.rt-preview li { margin: 2px 0; }
+.rt-preview strong { font-weight: 600; color: var(--c-text); }
+.rt-preview:empty { display: none !important; }
+.rt-field.rt-rendered .rt-textarea { display: none; }
+.rt-field.rt-rendered .rt-toolbar { display: none !important; }
+.rt-field.rt-rendered .rt-preview { display: block; }
 
 /* ─────────────────────────────────────────────
    Phase 4: Desktop layouts (spec 2026-04-28-desktop-rwd-direction-c)
