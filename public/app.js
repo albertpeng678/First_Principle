@@ -777,6 +777,7 @@ function render() {
   document.body.dataset.view = AppState.view;
   renderNavbar();
   const main = document.getElementById('main');
+  if (!main) return;
   switch (AppState.view) {
     case 'home':     main.innerHTML = renderHome(); bindHome(); break;
     case 'login':    main.innerHTML = renderLogin(); bindLogin(); break;
