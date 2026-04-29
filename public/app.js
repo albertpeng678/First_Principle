@@ -889,6 +889,14 @@ function openOffcanvas() {
   const closeBtn = document.getElementById('btn-offcanvas-close');
   if (closeBtn) closeBtn.onclick = closeOffcanvas;
   overlay.addEventListener('click', closeOffcanvas, { once: true });
+  // Esc key to close (modal close path #3 — was missing per audit)
+  const onEsc = (e) => { if (e.key === 'Escape') closeOffcanvas(); };
+  document.addEventListener('keydown', onEsc);
+  offcanvas._escHandler = onEsc;
+  // Move focus into the drawer for keyboard nav
+  if (closeBtn && typeof closeBtn.focus === 'function') {
+    requestAnimationFrame(() => closeBtn.focus());
+  }
 }
 
 function closeOffcanvas() {
@@ -903,6 +911,13 @@ function closeOffcanvas() {
   offcanvas.addEventListener('transitionend', () => { offcanvas.style.willChange = 'auto'; }, { once: true });
   overlay.addEventListener('transitionend', () => { overlay.style.willChange = 'auto'; }, { once: true });
   document.body.style.overflow = '';
+  if (offcanvas._escHandler) {
+    document.removeEventListener('keydown', offcanvas._escHandler);
+    offcanvas._escHandler = null;
+  }
+  // Restore focus to the trigger
+  const hamburger = document.getElementById('btn-hamburger');
+  if (hamburger) hamburger.focus();
 }
 
 function attachOffcanvasDeleteListeners(listEl) {
@@ -3553,6 +3568,9 @@ function bindCirclesPhase2() {
   // Normal send message
   document.getElementById('circles-send-btn')?.addEventListener('click', sendCirclesMessage);
   document.getElementById('circles-msg-input')?.addEventListener('keydown', function(e) {
+    // B1-4 — iOS / 注音 IME composition: keyCode 229 + isComposing should not
+    // submit the half-formed Chinese input. Bail before sending.
+    if (e.isComposing || e.keyCode === 229) return;
     if (e.key === 'Enter' && !e.shiftKey) { e.preventDefault(); sendCirclesMessage(); }
   });
 }
@@ -3614,6 +3632,7 @@ async function sendCirclesMessage() {
     var decoder = new TextDecoder();
     var buffer = '';
     var fullText = '';
+    var sawError = false;
 
     while (true) {
       var readResult = await reader.read();
@@ -3626,6 +3645,16 @@ async function sendCirclesMessage() {
         if (!line.startsWith('data: ')) continue;
         try {
           var parsed = JSON.parse(line.slice(6));
+          // B1-2 — server may surface { error: 'parse_failed' | ... } when the
+          // model output cannot be split into the 3 roles. Replace the
+          // streaming bubble with a retry message and stop reading.
+          if (parsed.error) {
+            if (streamingBubble) {
+              streamingBubble.innerHTML = '<div class="circles-bubble-ai">回應失敗：' + escHtml(String(parsed.error)) + '，請重試</div>';
+            }
+            sawError = true;
+            break;
+          }
           if (parsed.delta) {
             fullText += parsed.delta;
             // Section markers tolerate trailing whitespace (incl. markdown's
@@ -3660,6 +3689,10 @@ async function sendCirclesMessage() {
           }
         } catch (_) {}
       }
+      if (sawError) break;
+    }
+    if (sawError) {
+      AppState.isStreaming = false;
     }
   } catch (e) {
     if (streamingBubble) streamingBubble.innerHTML = '<div class="circles-bubble-ai">連線錯誤，請重試。</div>';

@@ -49,16 +49,28 @@
   --c-dim-frequency: #10b981;
   --c-dim-retention: #f59e0b;
 
-  /* Legacy token aliases — keep ~202 callsites compiling without per-line edits.
-     Root-cause: pre-rollout CSS used --accent/--bg-surface/--border/--text-secondary
-     which were never defined in :root. Symptoms: offcanvas transparent, login
-     cream-on-cream, mode-card invisible borders, etc. Map to --c-* equivalents. */
+  /* Legacy token aliases — keep all undefined callsites compiling without
+     per-line edits. Root-cause: pre-rollout CSS used multiple legacy token
+     names that were never defined in :root. Symptoms: offcanvas transparent,
+     login cream-on-cream, NSM panels with no bg, missing shadows.
+     Aliased to --c-* equivalents. */
   --accent: var(--c-primary);
   --accent-hover: #144bbf;
+  --bg-primary: var(--c-bg);
   --bg-surface: var(--c-card);
   --bg-surface-2: var(--c-surface);
   --border: var(--c-border);
+  --text-primary: var(--c-text);
   --text-secondary: var(--c-text-secondary);
+  --text-tertiary: var(--c-text-3);
+  --shadow: 0 1px 2px rgba(0,0,0,0.04), 0 4px 12px rgba(60,45,30,0.06);
+  --danger: var(--c-danger);
+  --success: var(--c-success);
+  --warning: var(--c-warn);
+  --bubble-ai-bg: var(--c-card);
+  --bubble-ai-text: var(--c-text);
+  --bubble-user-bg: var(--c-primary);
+  --bubble-user-text: #fff;
 }
 
 * { box-sizing: border-box; margin: 0; padding: 0; -webkit-tap-highlight-color: transparent; }
