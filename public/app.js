@@ -4164,11 +4164,11 @@ function renderAuth(isLogin) {
         </div>
         <form id="auth-form">
           <div style="margin-bottom:12px">
-            <label style="font-size:0.85rem;color:var(--text-secondary)">Email</label>
+            <label for="email" style="font-size:0.85rem;color:var(--text-secondary)">Email</label>
             <input id="email" type="email" name="email" autocomplete="email" required class="chat-input" style="width:100%;margin-top:4px" />
           </div>
           <div style="margin-bottom:20px">
-            <label style="font-size:0.85rem;color:var(--text-secondary)">密碼</label>
+            <label for="password" style="font-size:0.85rem;color:var(--text-secondary)">密碼</label>
             <input id="password" type="password" name="password" autocomplete="${isLogin?'current-password':'new-password'}" required class="chat-input" style="width:100%;margin-top:4px" />
           </div>
           <p id="auth-error" style="color:var(--danger);font-size:0.85rem;margin-bottom:12px;display:none"></p>
