@@ -230,7 +230,10 @@ router.post('/:id/evaluate-step', requireAuth, async (req, res) => {
     });
     const stepKey = session.drill_step || 'C1';
     const updatedScores = { ...(session.step_scores || {}), [stepKey]: result };
-    const isLastStep = session.sim_step_index === 6;
+    // B4-1 — derive completion from the post-merge step_scores rather than
+    // a client-controlled sim_step_index. Otherwise a malicious client can
+    // POST sim_step_index=6 on the very first step and flip status=completed.
+    const isLastStep = Object.keys(updatedScores).length === 7;
     await db.from('circles_sessions').update({
       step_scores: updatedScores,
       current_phase: 3,

@@ -224,7 +224,8 @@ router.post('/:id/evaluate-step', requireGuestId, async (req, res) => {
     });
     const stepKey = session.drill_step || 'C1';
     const updatedScores = { ...(session.step_scores || {}), [stepKey]: result };
-    const isLastStep = session.sim_step_index === 6;
+    // B4-1 — derive completion from server-side scores, not client step idx.
+    const isLastStep = Object.keys(updatedScores).length === 7;
     await db.from('circles_sessions').update({
       step_scores: updatedScores,
       current_phase: 3,
