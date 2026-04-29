@@ -76,6 +76,9 @@ router.post('/:id/evaluate', requireAuth, async (req, res) => {
       user_nsm: userNsm,
       user_breakdown: userBreakdown
     });
+    // B6-1 — defense-in-depth: scope the UPDATE to the authenticated owner
+    // so a TOCTOU race or future regression in the SELECT guard above can't
+    // let one user mutate another's session row.
     const { error: upErr } = await db.from('nsm_sessions').update({
       user_nsm: userNsm,
       user_breakdown: userBreakdown,
@@ -83,7 +86,7 @@ router.post('/:id/evaluate', requireAuth, async (req, res) => {
       coach_tree_json: result.coachTree,
       status: 'completed',
       updated_at: new Date().toISOString()
-    }).eq('id', req.params.id);
+    }).eq('id', req.params.id).eq('user_id', req.user.id);
     if (upErr) throw upErr;
     res.json(result);
   } catch (e) { res.status(500).json({ error: e.message }); }

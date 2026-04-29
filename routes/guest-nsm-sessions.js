@@ -76,6 +76,7 @@ router.post('/:id/evaluate', requireGuestId, async (req, res) => {
       user_nsm: userNsm,
       user_breakdown: userBreakdown
     });
+    // B6-1 — defense-in-depth: scope to guest owner.
     const { error: upErr } = await db.from('nsm_sessions').update({
       user_nsm: userNsm,
       user_breakdown: userBreakdown,
@@ -83,7 +84,7 @@ router.post('/:id/evaluate', requireGuestId, async (req, res) => {
       coach_tree_json: result.coachTree,
       status: 'completed',
       updated_at: new Date().toISOString()
-    }).eq('id', req.params.id);
+    }).eq('id', req.params.id).eq('guest_id', req.guestId);
     if (upErr) throw upErr;
     res.json(result);
   } catch (e) { res.status(500).json({ error: e.message }); }
