@@ -1518,6 +1518,11 @@ function bindResumeBanner() {
 window.bindResumeBanner = bindResumeBanner;
 
 function renderCirclesHome() {
+  if (typeof isDesktop === 'function' && isDesktop()) return renderCirclesHomeDesktop();
+  return renderCirclesHomeMobile();
+}
+
+function renderCirclesHomeMobile() {
   var mode = AppState.circlesMode;
   var type = AppState.circlesSelectedType;
   var drillStep = AppState.circlesDrillStep;
@@ -1656,6 +1661,108 @@ function renderCirclesHome() {
     '</div>' +
 
     // Tooltip for step pills
+    '<div class="circles-pill-tooltip" id="circles-pill-tooltip"></div>' +
+  '</div>';
+}
+
+// Phase 4.1 — desktop 3-col layout
+function renderCirclesHomeDesktop() {
+  var mode = AppState.circlesMode;
+  var type = AppState.circlesSelectedType;
+  var drillStep = AppState.circlesDrillStep;
+  var allQs = (typeof CIRCLES_QUESTIONS !== 'undefined' ? CIRCLES_QUESTIONS : []);
+  var filteredQs = allQs.filter(function(q) { return q.question_type === type; });
+  if (!AppState.circlesDisplayedQuestions || AppState.circlesDisplayedQuestions.length === 0 ||
+      (AppState.circlesDisplayedQuestions[0] && AppState.circlesDisplayedQuestions[0].question_type !== type)) {
+    AppState.circlesDisplayedQuestions = pickRandom5(filteredQs);
+  }
+  var displayedQs = AppState.circlesDisplayedQuestions;
+  var designCount = allQs.filter(function(q) { return q.question_type === 'design'; }).length;
+  var improveCount = allQs.filter(function(q) { return q.question_type === 'improve'; }).length;
+  var strategyCount = allQs.filter(function(q) { return q.question_type === 'strategy'; }).length;
+
+  var modeCardsHtml =
+    '<div class="circles-mode-card ' + (mode === 'simulation' ? 'selected' : '') + '" data-mode="simulation">' +
+      '<div class="circles-mode-card-title"><i class="ph ph-video-camera"></i> 完整模擬</div>' +
+      '<div class="circles-mode-card-desc">25-35 分鐘 · 全 7 步</div>' +
+    '</div>' +
+    '<div class="circles-mode-card ' + (mode === 'drill' ? 'selected' : '') + '" data-mode="drill">' +
+      '<div class="circles-mode-card-title"><i class="ph ph-target"></i> 步驟加練</div>' +
+      '<div class="circles-mode-card-desc">5-10 分鐘 · 單一步驟</div>' +
+    '</div>';
+
+  var typeListHtml =
+    '<button class="circles-type-tab ' + (type === 'design' ? 'active' : '') + '" data-type="design"><span>產品設計</span><span>×' + designCount + '</span></button>' +
+    '<button class="circles-type-tab ' + (type === 'improve' ? 'active' : '') + '" data-type="improve"><span>產品改進</span><span>×' + improveCount + '</span></button>' +
+    '<button class="circles-type-tab ' + (type === 'strategy' ? 'active' : '') + '" data-type="strategy"><span>產品策略</span><span>×' + strategyCount + '</span></button>';
+
+  var qCardsHtml = displayedQs.length > 0
+    ? displayedQs.map(function(q) { return renderQCardHtml(q); }).join('')
+    : '<div style="color:var(--c-text-3);font-size:13px;text-align:center;padding:24px 0">暫無題目</div>';
+
+  // recent rail (right)
+  var recentItemsHtml = '';
+  if (AppState.circlesRecentSessions && AppState.circlesRecentSessions.length > 0) {
+    var STEP_MAP = {};
+    CIRCLES_STEPS.forEach(function(s) { STEP_MAP[s.key] = s.label; });
+    recentItemsHtml = AppState.circlesRecentSessions.slice(0, 3).map(function(s) {
+      var company = (s.question_json || {}).company || '—';
+      var modeLabel = s.mode === 'drill' ? '步驟加練' : '完整模擬';
+      var stepLabel = s.mode === 'simulation'
+        ? 'Step ' + (s.sim_step_index + 1) + '/7'
+        : (STEP_MAP[s.drill_step] || s.drill_step);
+      return '<div class="circles-resume-card" data-resume-id="' + s.id + '" style="margin-bottom:6px">' +
+        '<div class="circles-q-card-company" style="font-size:12px">' + escHtml(company) + ' · ' + modeLabel + '</div>' +
+        '<div style="font-size:11px;color:var(--c-text-2);margin-top:2px">' + stepLabel + '</div>' +
+      '</div>';
+    }).join('');
+  } else {
+    recentItemsHtml = '<div style="color:var(--c-text-3);font-size:11.5px">尚無紀錄</div>';
+  }
+
+  return '<div data-view="circles" class="circles-home-desktop">' +
+    '<div class="ch-header">' +
+      '<div>' +
+        '<h1>CIRCLES 訓練</h1>' +
+        '<div class="ch-sub">選題，按步驟填寫框架、訪談、拿到評分</div>' +
+      '</div>' +
+      '<div class="ch-meta">100 題 · 7 步驟框架</div>' +
+    '</div>' +
+    '<div class="ch-grid">' +
+      // Left rail
+      '<div class="left-rail">' +
+        '<div class="mode-section">' +
+          '<div class="rail-label">練習模式</div>' +
+          '<div class="mode-list">' + modeCardsHtml + '</div>' +
+        '</div>' +
+        '<div class="type-section">' +
+          '<div class="rail-label">題型</div>' +
+          '<div class="type-list">' + typeListHtml + '</div>' +
+        '</div>' +
+      '</div>' +
+      // Center
+      '<div class="center-col">' +
+        '<div style="display:flex;align-items:center;justify-content:space-between">' +
+          '<div class="rail-label">選擇題目</div>' +
+          '<button id="circles-random-btn" style="font-size:11px;color:var(--c-primary);background:none;border:none;cursor:pointer;padding:0">隨機選題</button>' +
+        '</div>' +
+        '<div class="circles-q-list ch-q-list" id="circles-q-list">' + qCardsHtml + '</div>' +
+        '<div class="nsm-banner">' +
+          '<div>' +
+            '<div class="nsm-banner-label">S 步驟含北極星指標練習</div>' +
+            '<div class="nsm-banner-sub">想做最完整的 NSM 定義訓練？</div>' +
+          '</div>' +
+          '<button class="nsm-banner-btn" id="circles-nsm-banner-btn">前往 NSM →</button>' +
+        '</div>' +
+      '</div>' +
+      // Right rail
+      '<div class="right-rail">' +
+        '<div class="recent-section" id="circles-recent-slot">' +
+          '<div class="rail-label">近期練習</div>' +
+          recentItemsHtml +
+        '</div>' +
+      '</div>' +
+    '</div>' +
     '<div class="circles-pill-tooltip" id="circles-pill-tooltip"></div>' +
   '</div>';
 }
@@ -2115,6 +2222,68 @@ function renderCirclesPhase1() {
     '<button class="circles-btn-primary" id="circles-p1-submit" type="button">' + (isSimulation && isLastStep ? '提交審核' : '提交審核') + '</button>' +
   '</div>';
 
+  // Phase 4.2 — desktop wrapper class
+  var _isDesktopP1 = (typeof isDesktop === 'function' && isDesktop());
+
+  // Phase 4.2 — desktop sidebar rail (題目脈絡 + 上一步重點)
+  var _railHtml = '';
+  if (_isDesktopP1) {
+    var _prevKey = stepIdx > 0 ? CIRCLES_STEPS[stepIdx - 1].key : null;
+    var _prevDraft = _prevKey ? ((AppState.circlesStepDrafts && AppState.circlesStepDrafts[_prevKey]) || {}) : {};
+    var _prevSummary = '';
+    Object.keys(_prevDraft).slice(0, 3).forEach(function(k) {
+      var v = _prevDraft[k];
+      if (typeof v === 'string' && v.trim()) {
+        _prevSummary += '<div style="margin-bottom:6px"><div style="font-size:10.5px;color:var(--c-text-3);font-weight:600">' + escHtml(k) + '</div><div style="font-size:11.5px;color:var(--c-text-2);line-height:1.5">' + escHtml(v.slice(0, 80)) + (v.length > 80 ? '…' : '') + '</div></div>';
+      }
+    });
+    _railHtml = '<aside class="p1-rail">' +
+      '<div><h4>題目脈絡</h4>' +
+        '<div style="font-size:11.5px;color:var(--c-text-2);line-height:1.5">' + escHtml((q.company || '') + (q.product ? ' · ' + q.product : '')) + '</div>' +
+      '</div>' +
+      (_prevSummary ? '<div><h4>上一步重點</h4>' + _prevSummary + '</div>' : '') +
+    '</aside>';
+  }
+
+  // Phase 4.2 — S step split into 2 sub-pages on desktop
+  var _sStepTabs = '';
+  if (_isDesktopP1 && stepKey === 'S') {
+    var _sStep = AppState.circlesSStep || 1;
+    _sStepTabs = '<div class="s-step-tabs">' +
+      '<button class="s-step-tab ' + (_sStep === 1 ? 'active' : '') + '" data-s-step="1" type="button">S-1 摘要</button>' +
+      '<button class="s-step-tab ' + (_sStep === 2 ? 'active' : '') + '" data-s-step="2" type="button">S-2 追蹤指標</button>' +
+    '</div>';
+  }
+
+  if (_isDesktopP1) {
+    return '<div data-view="circles" class="phase1-desktop">' +
+      '<div class="circles-nav">' +
+        '<button class="circles-nav-back" id="circles-p1-nav-back" type="button"><i class="ph ph-arrow-left"></i></button>' +
+        '<div>' +
+          '<div class="circles-nav-title">' + escHtml(config.label) + '</div>' +
+          '<div class="circles-nav-sub">' + escHtml(q.company || '') + (q.product ? ' · ' + escHtml(q.product) : '') + '</div>' +
+        '</div>' +
+        '<button class="circles-nav-home" id="circles-p1-home" type="button">回首頁</button>' +
+      '</div>' +
+      '<div class="circles-progress">' + progressSegs + '<div class="circles-progress-label">' + escHtml(config.progressLabel) + '</div></div>' +
+      '<div class="p1-grid">' +
+        '<div class="p1-main circles-phase1-wrap">' +
+          pillsHtml +
+          _sStepTabs +
+          '<div class="problem-card">' + escHtml(q.problem_statement || '') + '</div>' +
+          (config.showPrevStepCard ? buildPrevStepCardHtml(stepKey) : '') +
+          (config.showNsmAnnotation ? '<div class="nsm-annotation">' +
+            '此步驟的北極星指標欄位是 NSM 訓練的濃縮版。想深入練習？' +
+            '<button id="circles-s-nsm-link" type="button">前往 NSM 訓練 →</button>' +
+          '</div>' : '') +
+          bodyHtml +
+        '</div>' +
+        _railHtml +
+      '</div>' +
+      submitBarHtml +
+    '</div>';
+  }
+
   return '<div data-view="circles">' +
     '<div class="circles-nav">' +
       '<button class="circles-nav-back" id="circles-p1-nav-back" type="button"><i class="ph ph-arrow-left"></i></button>' +
@@ -2312,6 +2481,14 @@ function bindCirclesPhase1() {
           body.dataset.loaded = '1';
         }
       }
+    });
+  });
+
+  // ── Phase 4.2 — S-step desktop sub-page tab switch
+  document.querySelectorAll('.s-step-tab').forEach(function(btn) {
+    btn.addEventListener('click', function() {
+      AppState.circlesSStep = parseInt(btn.dataset.sStep, 10) || 1;
+      render();
     });
   });
 
@@ -2727,7 +2904,10 @@ function renderCirclesPhase2() {
     ? ' style="opacity:0.45;pointer-events:none"'
     : '';
 
-  return '<div data-view="circles" class="circles-chat-wrap">' +
+  // Phase 4.3 — desktop wrapper class (max-width 920 from CSS)
+  var _phase2DesktopCls = (typeof isDesktop === 'function' && isDesktop()) ? ' phase2-desktop' : '';
+
+  return '<div data-view="circles" class="circles-chat-wrap' + _phase2DesktopCls + '">' +
     '<div class="circles-nav">' +
       '<button class="circles-nav-back" id="circles-p2-back"><i class="ph ph-arrow-left"></i></button>' +
       '<div>' +
@@ -3118,7 +3298,10 @@ function renderCirclesStepScore() {
   // One-line summary subtext under big score
   var summaryLine = step.short + ' — ' + step.label + ' 步驟得分';
 
-  return '<div data-view="circles">' +
+  // Phase 4.4 — desktop wrapper class
+  var _phase3DesktopCls = (typeof isDesktop === 'function' && isDesktop()) ? ' phase3-desktop' : '';
+
+  return '<div data-view="circles" class="' + _phase3DesktopCls.trim() + '">' +
     '<div class="circles-nav">' +
       '<button class="circles-nav-back" id="circles-score-back"><i class="ph ph-arrow-left"></i></button>' +
       '<div style="flex:1;min-width:0">' +
@@ -3595,9 +3778,11 @@ async function loadRecentSessions() {
 
 // ── Task 16: Login / Register View ─────────────────
 function renderAuth(isLogin) {
+  // Phase 4.7 — desktop wrapper class
+  var _loginDesktopCls = (typeof isDesktop === 'function' && isDesktop()) ? 'login-desktop' : '';
   return `
-    <div style="max-width:400px;margin:60px auto">
-      <div class="card">
+    <div class="${_loginDesktopCls}" style="max-width:400px;margin:60px auto">
+      <div class="card login-card">
         <div style="display:flex;gap:8px;margin-bottom:24px">
           <button class="btn ${isLogin?'btn-primary':'btn-ghost'}" onclick="navigate('login')">登入</button>
           <button class="btn ${!isLogin?'btn-primary':'btn-ghost'}" onclick="navigate('register')">註冊</button>
@@ -4541,8 +4726,11 @@ function renderNSMStep1() {
 
   var cardsHtml = AppState.nsmDisplayedQuestions.map(createNSMQuestionCardHtml).join('');
 
+  // Phase 4.5 — desktop wrapper class
+  var _nsmHomeDesktopCls = (typeof isDesktop === 'function' && isDesktop()) ? ' nsm-home-desktop' : '';
+
   return `
-    <div class="nsm-view">
+    <div class="nsm-view${_nsmHomeDesktopCls}">
       <div class="nsm-navbar">
         <button class="btn-icon" id="btn-nsm-back" aria-label="返回"><i class="ph ph-arrow-left"></i></button>
         <span class="nsm-title">選擇情境</span>
@@ -4685,8 +4873,11 @@ function renderNSMStep2() {
       </div>
     </div>` : '';
 
+  // Phase 4.5 — desktop wrapper class
+  var _nsmStep2DesktopCls = (typeof isDesktop === 'function' && isDesktop()) ? ' nsm-step2-desktop' : '';
+
   return `
-    <div class="nsm-view">
+    <div class="nsm-view${_nsmStep2DesktopCls}">
       <div class="nsm-navbar">
         <button class="btn-icon" id="btn-nsm-back" aria-label="返回上一步"><i class="ph ph-arrow-left"></i></button>
         <span class="nsm-title">定義 NSM</span>
@@ -4913,8 +5104,11 @@ function renderNSMStep3() {
     </div>`;
   }).join('');
 
+  // Phase 4.5 — desktop wrapper class
+  var _nsmStep3DesktopCls = (typeof isDesktop === 'function' && isDesktop()) ? ' nsm-step3-desktop' : '';
+
   return `
-    <div class="nsm-view">
+    <div class="nsm-view${_nsmStep3DesktopCls}">
       <div class="nsm-navbar">
         <button class="btn-icon" id="btn-nsm-back" aria-label="返回上一步"><i class="ph ph-arrow-left"></i></button>
         <span class="nsm-title">拆解輸入指標</span>
@@ -5048,8 +5242,11 @@ function renderNSMStep4() {
 
   const tabContent = { overview: overviewTab, comparison: comparisonTab, highlights: highlightsTab, export: exportTab };
 
+  // Phase 4.6 — desktop wrapper class
+  var _nsmStep4DesktopCls = (typeof isDesktop === 'function' && isDesktop()) ? ' nsm-step4-desktop' : '';
+
   return `
-    <div class="nsm-view">
+    <div class="nsm-view${_nsmStep4DesktopCls}">
       <div class="nsm-navbar">
         <button class="btn-icon" id="btn-nsm-back" aria-label="回首頁"><i class="ph ph-house"></i></button>
         <span class="nsm-title">NSM 報告</span>
