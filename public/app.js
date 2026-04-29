@@ -850,6 +850,7 @@ function bindNavbarTabs() {
 
 function renderNavbar() {
   const el = document.getElementById('navbar-actions');
+  if (!el) return;
   const nsmLink = `<button class="btn btn-ghost" onclick="navigate('nsm')" style="font-size:13px;font-weight:500">北極星指標</button>`;
 
   if (AppState.mode === 'auth') {
