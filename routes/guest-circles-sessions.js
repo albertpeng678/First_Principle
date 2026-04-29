@@ -216,25 +216,41 @@ router.patch('/:id/progress', requireGuestId, async (req, res) => {
   if (stepDrafts     !== undefined) patch.step_drafts      = stepDrafts;
   if (Object.keys(patch).length === 0) return res.status(400).json({ error: 'nothing_to_update' });
 
-  const { error } = await db
+  // Chain .select() so Supabase reports the affected row. If 0 rows match
+  // (wrong owner / wrong id), data will be null — return 404 to avoid
+  // tenant enumeration.
+  const { data, error } = await db
     .from('circles_sessions')
     .update(patch)
     .eq('id', req.params.id)
-    .eq('guest_id', req.guestId);
-  if (error) return res.status(500).json({ error: error.message });
+    .eq('guest_id', req.guestId)
+    .select('id')
+    .maybeSingle();
+  if (error) {
+    console.error('[guest-circles-sessions] PATCH /progress db error:', error);
+    return res.status(500).json({ error: 'db_error' });
+  }
+  if (!data) return res.status(404).json({ error: 'not_found' });
   res.json({ ok: true });
 });
 
 // POST /api/guest-circles-sessions/:id/final-report
 router.post('/:id/final-report', requireGuestId, async (req, res) => {
+  // NOTE: `final_report` column does not exist in the live circles_sessions
+  // schema, so we don't SELECT or persist it here — final report is
+  // re-computed on every call. Use .maybeSingle() so we can distinguish
+  // "row not found" (404) from a real DB error (500).
   const { data: session, error } = await db
     .from('circles_sessions')
-    .select('question_json, step_scores, final_report')
+    .select('question_json, step_scores')
     .eq('id', req.params.id)
     .eq('guest_id', req.guestId)
-    .single();
-  if (error || !session) return res.status(404).json({ error: 'not_found' });
-  if (session.final_report) return res.json(session.final_report);
+    .maybeSingle();
+  if (error) {
+    console.error('[guest-circles-sessions] POST /final-report db error:', error);
+    return res.status(500).json({ error: 'db_error' });
+  }
+  if (!session) return res.status(404).json({ error: 'not_found' });
   if (!session.step_scores || Object.keys(session.step_scores).length < 7) {
     return res.status(400).json({ error: 'incomplete_steps' });
   }
@@ -244,11 +260,13 @@ router.post('/:id/final-report', requireGuestId, async (req, res) => {
       questionJson: session.question_json,
     });
     await db.from('circles_sessions').update({
-      final_report: report,
       status: 'completed',
     }).eq('id', req.params.id).eq('guest_id', req.guestId);
     res.json(report);
-  } catch (e) { res.status(500).json({ error: 'report_generation_failed' }); }
+  } catch (e) {
+    console.error('[guest-circles-sessions] POST /final-report generation error:', e);
+    res.status(500).json({ error: 'report_generation_failed' });
+  }
 });
 
 // POST /api/guest/circles-sessions/:id/hint
