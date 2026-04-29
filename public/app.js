@@ -3621,9 +3621,12 @@ async function sendCirclesMessage() {
           var parsed = JSON.parse(line.slice(6));
           if (parsed.delta) {
             fullText += parsed.delta;
-            var interviewee = fullText.match(/【被訪談者】\n([\s\S]*?)(?=【教練點評】|$)/)?.[1]?.trim() || '';
-            var coaching = fullText.match(/【教練點評】\n([\s\S]*?)(?=【教練提示】|$)/)?.[1]?.trim() || '';
-            var hint = fullText.match(/【教練提示】\n([\s\S]*?)$/)?.[1]?.trim() || '';
+            // Section markers tolerate trailing whitespace (incl. markdown's
+            // 2-space hard-break) and CRLF — OpenAI sometimes emits "】  \n"
+            // which broke the strict "】\n" anchor and rendered an empty bubble.
+            var interviewee = fullText.match(/【被訪談者】[ \t]*\r?\n([\s\S]*?)(?=【教練點評】|$)/)?.[1]?.trim() || '';
+            var coaching = fullText.match(/【教練點評】[ \t]*\r?\n([\s\S]*?)(?=【教練提示】|$)/)?.[1]?.trim() || '';
+            var hint = fullText.match(/【教練提示】[ \t]*\r?\n([\s\S]*?)$/)?.[1]?.trim() || '';
             if (streamingBubble) {
               var coachingHtml = '';
               if (coaching || hint) {

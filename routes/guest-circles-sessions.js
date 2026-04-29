@@ -182,9 +182,9 @@ router.post('/:id/message', requireGuestId, async (req, res) => {
       fullText += chunk;
       res.write(`data: ${JSON.stringify({ delta: chunk })}\n\n`);
     }
-    const interviewee = fullText.match(/【被訪談者】\n([\s\S]*?)(?=【教練點評】|$)/)?.[1]?.trim() || '';
-    const coaching   = fullText.match(/【教練點評】\n([\s\S]*?)(?=【教練提示】|$)/)?.[1]?.trim() || '';
-    const hint       = fullText.match(/【教練提示】\n([\s\S]*?)$/)?.[1]?.trim() || '';
+    const interviewee = fullText.match(/【被訪談者】[ \t]*\r?\n([\s\S]*?)(?=【教練點評】|$)/)?.[1]?.trim() || '';
+    const coaching   = fullText.match(/【教練點評】[ \t]*\r?\n([\s\S]*?)(?=【教練提示】|$)/)?.[1]?.trim() || '';
+    const hint       = fullText.match(/【教練提示】[ \t]*\r?\n([\s\S]*?)$/)?.[1]?.trim() || '';
     const newTurn = { userMessage, interviewee, coaching, hint };
     const updated = [...(session.conversation || []), newTurn];
     await db.from('circles_sessions').update({ conversation: updated }).eq('id', req.params.id).eq('guest_id', req.guestId);

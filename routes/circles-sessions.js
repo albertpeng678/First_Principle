@@ -184,9 +184,9 @@ router.post('/:id/message', requireAuth, async (req, res) => {
     }
 
     // Parse 3-role reply
-    const interviewee = fullText.match(/【被訪談者】\n([\s\S]*?)(?=【教練點評】|$)/)?.[1]?.trim() || '';
-    const coaching   = fullText.match(/【教練點評】\n([\s\S]*?)(?=【教練提示】|$)/)?.[1]?.trim() || '';
-    const hint       = fullText.match(/【教練提示】\n([\s\S]*?)$/)?.[1]?.trim() || '';
+    const interviewee = fullText.match(/【被訪談者】[ \t]*\r?\n([\s\S]*?)(?=【教練點評】|$)/)?.[1]?.trim() || '';
+    const coaching   = fullText.match(/【教練點評】[ \t]*\r?\n([\s\S]*?)(?=【教練提示】|$)/)?.[1]?.trim() || '';
+    const hint       = fullText.match(/【教練提示】[ \t]*\r?\n([\s\S]*?)$/)?.[1]?.trim() || '';
 
     const newTurn = { userMessage, interviewee, coaching, hint };
     const updated = [...(session.conversation || []), newTurn];
