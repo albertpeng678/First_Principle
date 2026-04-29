@@ -3584,3 +3584,47 @@ textarea.rt-textarea {
   }
   .onboarding-overlay { display: none; }
 }
+
+/* ─────────────────────────────────────────────────────────────
+   Fix-Style: C1 — Login form contrast (cream-on-cream → AA).
+   The auth markup in app.js renderAuth() uses legacy tokens
+   (--accent, --text-secondary, --border, --bg-surface) that are
+   not defined in :root, so labels/inputs/submit render transparent
+   on the cream backdrop. Scoped backstops below restore AA.
+   ───────────────────────────────────────────────────────────── */
+.card.login-card {
+  background: #ffffff;
+  border: 1px solid rgba(60,45,30,0.18);
+  color: var(--c-text);
+  box-shadow: 0 4px 24px rgba(0,0,0,0.06);
+}
+.card.login-card label {
+  color: var(--c-text) !important;        /* was var(--text-secondary) → undefined */
+  font-weight: 500;
+}
+.card.login-card input,
+.card.login-card .chat-input {
+  background: #ffffff !important;
+  color: var(--c-text) !important;
+  border: 1px solid rgba(60,45,30,0.25) !important;
+  caret-color: var(--c-text);
+}
+.card.login-card input:focus,
+.card.login-card .chat-input:focus {
+  outline: none;
+  border-color: var(--c-primary) !important;
+  box-shadow: 0 0 0 3px rgba(26,86,219,0.15);
+}
+.card.login-card input::placeholder { color: #8a7e6f; }
+.card.login-card .btn-primary {
+  background: var(--c-primary) !important;  /* cobalt blue, white-on-blue ~7.4:1 */
+  color: #ffffff !important;
+  border: 1px solid var(--c-primary);
+}
+.card.login-card .btn-ghost {
+  background: transparent;
+  color: var(--c-text) !important;
+  border: 1px solid rgba(60,45,30,0.25);
+}
+.card.login-card a { color: var(--c-primary) !important; }
+.card.login-card #auth-error { color: var(--c-danger) !important; }
