@@ -1,9 +1,17 @@
 # PM Drill Mega Rollout — Live State Checkpoint
 
-**Last updated:** 2026-04-29 — Phases 0-6 ✅ DONE + pushed. Phase 7 integration ✅ MERGED + pushed. **Direction B chosen.** Round 1 SIT ✅ **8/8 PASS after fix-loop** (tip `cbd9bbb`, NOT YET pushed). Now ready for Round 2 UAT.
+**Last updated:** 2026-04-29 — Phases 0-6 ✅ DONE. Phase 7 integration + Round 1 SIT fix loop ✅ **MERGED to main + pushed** per user direction (chose to ship Round 1 + defer UAT/UI-UX to next session).
 
-> 📍 **Current integration tip:** `phase-X-integration` @ `cbd9bbb` (local only, not pushed yet — push before next session if you want backup).
-> 📍 **Server state:** running on `http://localhost:4001` from this worktree with all fixes loaded. PID owned by parent shell session. If lost, restart with: `cd "C:/side/first_principle/pm-drill/.worktrees/phase-X-integration" && PORT=4001 nohup node server.js > "C:/side/first_principle/pm-drill/sit-server-3.log" 2>&1 & disown`
+> 📍 **origin/main tip:** `5acb37c` (merge of phase-X-integration follow-up render guard)
+> 📍 **origin/phase-X-integration tip:** `f14ec9f` (also pushed, identical content)
+> 📍 **Server state at session end:** running on `http://localhost:4001` from `.worktrees/phase-X-integration`. To restart in next session: `cd "C:/side/first_principle/pm-drill/.worktrees/phase-X-integration" && PORT=4001 nohup node server.js > "C:/side/first_principle/pm-drill/sit-server-4.log" 2>&1 & disown`
+> ⚠️ **Round 2 UAT + Round 3 UI/UX + Round 4 regression were SKIPPED** per user 2026-04-29 token-budget call. Optional to revisit; main is shipped state.
+
+## Open follow-ups (not blocking — see merge gate doc for full list)
+1. SIT-1 review-examples.html bullet rendering: was FAILING in last verification (a208f2f0bdad162a1) — fixed by `f14ec9f` (`render()` null guard). Quick re-verify in next session: `curl http://localhost:4001/review-examples.html` then check `<ul class="rt-bullet-list">` count > 0 in browser.
+2. `routes/circles-sessions.js` (auth version) has same #8/#9 bug pattern as guest variant — not patched.
+3. NSM PATCH `/progress` backend endpoint missing — Fix-A used localStorage stopgap; cross-device persistence missing.
+4. `data-rt-action="bold"` button still lacks aria-label.
 
 ---
 
