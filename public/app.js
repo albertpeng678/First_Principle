@@ -566,6 +566,7 @@ async function loadCirclesSession(sessionId) {
     return true;
   } catch (e) { return false; }
 }
+window.loadCirclesSession = loadCirclesSession;
 
 async function fetchCirclesRecentSessions() {
   if (AppState.circlesRecentLoading) return;
@@ -774,27 +775,28 @@ function render() {
   renderNavbar();
   const main = document.getElementById('main');
   if (!main) return;
+  const H1 = '<h1 class="visually-hidden">PM Drill — 第一性原理訓練器</h1>';
   switch (AppState.view) {
-    case 'home':     main.innerHTML = renderHome(); bindHome(); break;
-    case 'login':    main.innerHTML = renderLogin(); bindLogin(); break;
-    case 'register': main.innerHTML = renderRegister(); bindRegister(); break;
-    case 'practice': main.innerHTML = renderPractice(); bindPractice(); break;
-    case 'report':   main.innerHTML = renderReport(); bindReport(); break;
-    case 'history':  main.innerHTML = renderHistory(); bindHistory(); break;
-    case 'nsm':      main.innerHTML = renderNSM(); bindNSM(); break;
+    case 'home':     main.innerHTML = H1 + renderHome(); bindHome(); break;
+    case 'login':    main.innerHTML = H1 + renderLogin(); bindLogin(); break;
+    case 'register': main.innerHTML = H1 + renderRegister(); bindRegister(); break;
+    case 'practice': main.innerHTML = H1 + renderPractice(); bindPractice(); break;
+    case 'report':   main.innerHTML = H1 + renderReport(); bindReport(); break;
+    case 'history':  main.innerHTML = H1 + renderHistory(); bindHistory(); break;
+    case 'nsm':      main.innerHTML = H1 + renderNSM(); bindNSM(); break;
     case 'circles':
       if (!AppState.circlesSelectedQuestion) {
-        main.innerHTML = renderCirclesHome(); bindCirclesHome();
+        main.innerHTML = H1 + renderCirclesHome(); bindCirclesHome();
       } else if (AppState.circlesPhase === 1) {
-        main.innerHTML = renderCirclesPhase1(); bindCirclesPhase1();
+        main.innerHTML = H1 + renderCirclesPhase1(); bindCirclesPhase1();
       } else if (AppState.circlesPhase === 1.5) {
-        main.innerHTML = renderCirclesGate(); bindCirclesGate();
+        main.innerHTML = H1 + renderCirclesGate(); bindCirclesGate();
       } else if (AppState.circlesPhase === 2) {
-        main.innerHTML = renderCirclesPhase2(); bindCirclesPhase2();
+        main.innerHTML = H1 + renderCirclesPhase2(); bindCirclesPhase2();
       } else if (AppState.circlesPhase === 3) {
-        main.innerHTML = renderCirclesStepScore(); bindCirclesStepScore();
+        main.innerHTML = H1 + renderCirclesStepScore(); bindCirclesStepScore();
       } else if (AppState.circlesPhase === 4) {
-        main.innerHTML = renderCirclesFinalReport(); bindCirclesFinalReport();
+        main.innerHTML = H1 + renderCirclesFinalReport(); bindCirclesFinalReport();
       }
       break;
   }

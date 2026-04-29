@@ -2,7 +2,7 @@
 <html lang="zh-TW" data-theme="light">
 <head>
   <meta charset="UTF-8" />
-  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, interactive-widget=resizes-visual, viewport-fit=cover" />
   <title>PM Drill — 第一性原理訓練器</title>
   <link rel="icon" type="image/svg+xml" href="/favicon.svg">
   <link rel="stylesheet" href="/style.css" />
@@ -21,7 +21,6 @@
 </head>
 <body>
   <div id="app">
-    <h1 class="visually-hidden">PM Drill — 第一性原理訓練器</h1>
     <nav class="navbar">
       <div class="navbar-left">
         <button class="btn-icon" id="btn-hamburger" aria-label="開啟選單"><i class="ph ph-list"></i></button>
@@ -44,7 +43,9 @@
       </div>
       <div id="offcanvas-list" class="offcanvas-list">載入中…</div>
     </div>
-    <main id="main"></main>
+    <main id="main">
+      <h1 class="visually-hidden">PM Drill — 第一性原理訓練器</h1>
+    </main>
     <!-- Rich-text mobile sticky toolbar (Phase 3 Spec 4) -->
     <div class="rt-toolbar-mobile" id="rt-toolbar-mobile" style="display:none">
       <button type="button" class="rt-mtbtn" data-rt-action="bold" aria-label="粗體"><strong>B</strong></button>
