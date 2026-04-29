@@ -4611,8 +4611,11 @@ function renderNSMStep4() {
 
   const tabContent = { overview: overviewTab, comparison: comparisonTab, highlights: highlightsTab, export: exportTab };
 
+  // Phase 4.6 — desktop wrapper class
+  var _nsmStep4DesktopCls = (typeof isDesktop === 'function' && isDesktop()) ? ' nsm-step4-desktop' : '';
+
   return `
-    <div class="nsm-view">
+    <div class="nsm-view${_nsmStep4DesktopCls}">
       <div class="nsm-navbar">
         <button class="btn-icon" id="btn-nsm-back" aria-label="回首頁"><i class="ph ph-house"></i></button>
         <span class="nsm-title">NSM 報告</span>
