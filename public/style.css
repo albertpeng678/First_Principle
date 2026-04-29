@@ -3650,3 +3650,23 @@ textarea.rt-textarea {
   .circles-home-desktop .ch-header .ch-meta { color: var(--c-text-secondary); }
   .circles-home-desktop .rail-label { color: var(--c-text-secondary); }
 }
+
+/* ─────────────────────────────────────────────────────────────
+   Fix-Style: A6 — "帶著風險繼續 →" CTA vertical clip.
+   In gate result simulation-with-error state the submit-bar
+   buttons collapsed to one Chinese char per row at the viewport
+   edge. Force horizontal layout: nowrap text + max-content min
+   width on every submit-bar primary/ghost button.
+   ───────────────────────────────────────────────────────────── */
+[data-view="circles"] .circles-submit-bar {
+  flex-wrap: nowrap;
+  align-items: stretch;
+}
+[data-view="circles"] .circles-submit-bar .circles-btn-primary,
+[data-view="circles"] .circles-submit-bar .circles-btn-ghost,
+[data-view="circles"] .circles-submit-bar-row .circles-btn-primary,
+[data-view="circles"] .circles-submit-bar-row .circles-btn-ghost {
+  white-space: nowrap;
+  min-width: max-content;
+  width: auto;
+}
