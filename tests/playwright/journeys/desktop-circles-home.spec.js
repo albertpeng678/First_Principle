@@ -4,9 +4,10 @@ const { test, expect } = require('@playwright/test');
 
 const DESKTOP = { width: 1280, height: 800 };
 const MOBILE = { width: 375, height: 667 };
+const BASE_URL = process.env.PMD_BASE_URL || 'http://localhost:4000';
 
 async function gotoCirclesHome(page) {
-  await page.goto('http://localhost:4000/?guest=1');
+  await page.goto(BASE_URL + '/?guest=1');
   await page.waitForSelector('#app', { state: 'attached' });
   // Wait for circles render
   await page.waitForFunction(() => {
