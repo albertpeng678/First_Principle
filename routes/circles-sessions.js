@@ -266,7 +266,22 @@ router.patch('/:id/progress', requireAuth, async (req, res) => {
   if (simStepIndex   !== undefined) patch.sim_step_index   = simStepIndex;
   if (frameworkDraft !== undefined) patch.framework_draft  = frameworkDraft;
   if (gateResult     !== undefined) patch.gate_result      = gateResult;
-  if (stepDrafts     !== undefined) patch.step_drafts      = stepDrafts;
+  // B2-2 — shallow-merge step_drafts so two tabs each editing a different
+  // step key don't last-write-wins each other's keys. Read-modify-write is
+  // protected by the (id, user_id) ownership guard.
+  if (stepDrafts !== undefined) {
+    if (stepDrafts && typeof stepDrafts === 'object' && !Array.isArray(stepDrafts)) {
+      const { data: prior } = await db
+        .from('circles_sessions')
+        .select('step_drafts')
+        .eq('id', req.params.id)
+        .eq('user_id', req.user.id)
+        .maybeSingle();
+      patch.step_drafts = { ...(prior?.step_drafts || {}), ...stepDrafts };
+    } else {
+      patch.step_drafts = stepDrafts;
+    }
+  }
   if (Object.keys(patch).length === 0) return res.status(400).json({ error: 'nothing_to_update' });
 
   const { data, error } = await db
