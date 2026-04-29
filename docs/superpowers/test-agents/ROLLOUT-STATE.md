@@ -1,6 +1,44 @@
 # PM Drill Mega Rollout — Live State Checkpoint
 
-**Last updated:** 2026-04-29 — Phase 0 ✅ done. Phases 1-4 partial: org monthly usage limit hit on all 4 background agents.
+**Last updated:** 2026-04-29 — Phases 0-6 ✅ all DONE + pushed. Phase 7 integration ✅ branch pushed (`phase-X-integration` @ `1681c72`). Test rounds (SIT/UAT/UI-UX) **NOT YET RUN** — next session pick up from there.
+
+### 2026-04-29 controller progress
+
+| Phase | Status | Branch | Tip |
+|---|---|---|---|
+| 0 Foundation | ✅ DONE | `phase-0-foundation` | `06acaa8` |
+| 1 Bullet examples | ✅ DONE | `phase-1-bullet-examples` | `628a3ae` (audit 0.6%) |
+| 2 Progress save | ✅ DONE | `phase-2-progress-save` | `5dae023` (16/16 e2e) |
+| 3 Rich text | ✅ DONE | `phase-3-rich-text` | `b3aa48f` (23/23 specs) |
+| 4 Desktop layouts | ✅ DONE | `phase-4-desktop-layouts` | `a632180` (27 desktop) |
+| 5 Onboarding | ✅ DONE | `phase-5-onboarding` | `2fa3205` (7 tour specs) |
+| 6 NSM mobile sheet | ✅ DONE | `phase-6-nsm-mobile-sheet` | `8086905` (16 specs) |
+| 7 Integration | ✅ MERGED + tests | `phase-X-integration` | `1681c72` |
+
+**Phase 7 integration details:**
+- Worktree: `.worktrees/phase-X-integration` (off `origin/main`)
+- All 7 phase branches merged in dependency order. Conflicts resolved in `public/style.css` (Phase 4↔5) and `public/app.js` (Phase 2↔5 — banner/welcome card slot, fetchActiveDraft binding) and `tests/playwright/playwright.config.js` (baseURL env var precedence).
+- **Cross-phase regressions found and fixed during integration** (commit `1681c72`):
+  1. `renderCirclesPhase1` desktop branch (Phase 4.2) closed `.circles-progress` without the `.save-indicator` span that Phase 2 added on the mobile branch. Fix: mirror it into desktop too.
+  2. `renderCirclesHomeDesktop` (Phase 4.1) doesn't include `.circles-home-wrap` that Phase 2 banner + Phase 5 welcome target. Fix: wrap the desktop home content in `.circles-home-wrap` and inject welcomeHtml + renderResumeBanner() at top.
+- Verification:
+  - `npx playwright test --project=Desktop` → **55 passed, 6 skipped, 0 failures**
+  - `npx playwright test --project=iPhone-15-Pro` (critical specs subset) → **4 passed, 0 failures**
+
+**Pre-test-round Supabase state:**
+- Migration `migrations/2026-04-28-circles-step-drafts.sql` was applied to project `klvlizxmvzfpvfgswmfk` on 2026-04-29 by user. `step_drafts` + `framework_draft` JSONB columns confirmed via PostgREST schema dump. Indexes for resume-banner query exist.
+
+**What's NOT done yet (Phase 7 test rounds):**
+- Round 1 SIT: 8 agents (per `docs/superpowers/test-agents/sit-prompts.md`). Heads-up: prompt files have Mac paths (`/Users/albertpeng/Desktop/...`) — substitute `C:\side\first_principle\pm-drill\.worktrees\phase-X-integration` at dispatch.
+- Round 2 UAT: 7 persona agents.
+- Round 3 UI/UX: 2 auditors.
+- Fix round (zero deferral).
+- Round 4 regression: re-run all 17.
+
+**Worktrees on disk (post-integration):**
+- `.worktrees/phase-{1,2,3,4,5,6}` — phase branches (kept for hotfixes if needed)
+- `.worktrees/phase-X-integration` — integration branch (next session works here)
+- `.worktrees/circles-feature`, `circles-training`, `mobile-smooth` — pre-existing, unrelated
 
 This file is the source of truth if my conversation context is lost. **New sessions: read this end-to-end first**, then read the plan, then resume.
 
