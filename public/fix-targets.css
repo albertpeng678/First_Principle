@@ -1,0 +1,44 @@
+/* fix-targets.css — A11y / tap-target overrides (J6, J13, J14)
+ * Loaded AFTER style.css so these rules win on specificity ties.
+ * Owned by Fix-AppJS agent; do NOT merge into style.css (parallel agent owns it).
+ */
+
+/* J6 — visually-hidden helper for off-screen <h1> headings */
+.visually-hidden {
+  position: absolute !important;
+  width: 1px !important;
+  height: 1px !important;
+  padding: 0 !important;
+  margin: -1px !important;
+  overflow: hidden !important;
+  clip: rect(0, 0, 0, 0) !important;
+  white-space: nowrap !important;
+  border: 0 !important;
+}
+
+/* J13/J14 — minimum tap-target sizing (WCAG 2.5.5 / 2.5.8) */
+.circles-hint-trigger,
+.field-example-toggle,
+#circles-p1-home,
+#circles-random-btn,
+#circles-nsm-banner-btn {
+  min-height: 40px;
+  min-width: 40px;
+  padding: 8px 12px;
+}
+
+/* Mode card — keyboard focus ring + ensure tappable */
+.circles-mode-card {
+  min-height: 40px;
+}
+.circles-mode-card:focus-visible {
+  outline: 2px solid var(--c-primary, #4a6cf7);
+  outline-offset: 2px;
+}
+
+/* J7 — pre-flag-check default-hide of the welcome card to prevent flash.
+ * JS sets body.dataset.onboardingChecked = '1' once the localStorage flag
+ * + sessions fetch have resolved; only then is the welcome card painted. */
+body:not([data-onboarding-checked]) .onboarding-welcome {
+  visibility: hidden;
+}
