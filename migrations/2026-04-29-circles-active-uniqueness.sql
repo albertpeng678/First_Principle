@@ -13,9 +13,13 @@
 -- ──────────────────────────────────────────────────────────────────────
 -- Step 1 — Dedupe pre-existing dup rows (else CREATE UNIQUE INDEX errors).
 -- Strategy: per (owner, question, mode, drill_step), keep the row with the
--- MOST data (largest step_drafts payload) and the most recent updated_at;
--- mark older/lighter siblings as 'abandoned' so they fall out of the
--- partial unique index (WHERE status='active').
+-- MOST data (largest step_drafts payload) and the most recent updated_at.
+-- DELETE the losers — they are race-condition orphans with empty/minimal
+-- step_drafts (the parallel-autosave bug this index targets). Cannot use
+-- a sentinel status because circles_sessions_status_check only permits
+-- 'active' and 'completed'; setting losers to 'completed' would lie about
+-- user progress. DELETE is honest and the losers carry no real data
+-- (winner row preserves all meaningful step_drafts).
 -- Safe to re-run: only touches rows that share a key with a winner.
 -- ──────────────────────────────────────────────────────────────────────
 WITH ranked AS (
@@ -28,9 +32,8 @@ WITH ranked AS (
   FROM circles_sessions
   WHERE status = 'active' AND user_id IS NOT NULL
 )
-UPDATE circles_sessions s
-SET status = 'abandoned'
-FROM ranked r
+DELETE FROM circles_sessions s
+USING ranked r
 WHERE s.id = r.id AND r.rn > 1;
 
 WITH ranked AS (
@@ -43,9 +46,8 @@ WITH ranked AS (
   FROM circles_sessions
   WHERE status = 'active' AND guest_id IS NOT NULL
 )
-UPDATE circles_sessions s
-SET status = 'abandoned'
-FROM ranked r
+DELETE FROM circles_sessions s
+USING ranked r
 WHERE s.id = r.id AND r.rn > 1;
 
 -- ──────────────────────────────────────────────────────────────────────
