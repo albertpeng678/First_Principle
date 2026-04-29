@@ -3226,9 +3226,11 @@ async function loadRecentSessions() {
 
 // ── Task 16: Login / Register View ─────────────────
 function renderAuth(isLogin) {
+  // Phase 4.7 — desktop wrapper class
+  var _loginDesktopCls = (typeof isDesktop === 'function' && isDesktop()) ? 'login-desktop' : '';
   return `
-    <div style="max-width:400px;margin:60px auto">
-      <div class="card">
+    <div class="${_loginDesktopCls}" style="max-width:400px;margin:60px auto">
+      <div class="card login-card">
         <div style="display:flex;gap:8px;margin-bottom:24px">
           <button class="btn ${isLogin?'btn-primary':'btn-ghost'}" onclick="navigate('login')">登入</button>
           <button class="btn ${!isLogin?'btn-primary':'btn-ghost'}" onclick="navigate('register')">註冊</button>
