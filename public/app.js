@@ -1617,7 +1617,7 @@ function renderResumeBanner() {
   const product = q.product || q.problem_statement || '';
   return '<div class="resume-banner" data-resume-id="' + escHtml(d.id) + '">' +
     '<span><strong>未完成練習</strong> · ' + escHtml(company) + (product ? ' · ' + escHtml(product) : '') + ' · ' + escHtml(formatRelativeEdit(d.updated_at)) + '</span>' +
-    '<span><a class="resume-go" data-id="' + escHtml(d.id) + '">繼續 →</a><i class="ph ph-x dismiss" data-id="' + escHtml(d.id) + '" role="button" aria-label="關閉"></i></span>' +
+    '<span><button class="resume-go" type="button" data-id="' + escHtml(d.id) + '">繼續 →</button><button class="dismiss btn-icon" data-id="' + escHtml(d.id) + '" type="button" aria-label="關閉"><i class="ph ph-x"></i></button></span>' +
   '</div>';
 }
 window.renderResumeBanner = renderResumeBanner;
@@ -1812,7 +1812,7 @@ function showCoachmark(step) {
   tooltip.setAttribute('data-arrow', cfg.arrow);
   tooltip.innerHTML =
     '<div class="onb-step">第 ' + step + ' 步 / 共 ' + totalSteps + '</div>' +
-    '<h4>' + cfg.title + '</h4>' +
+    '<h3>' + cfg.title + '</h3>' +
     '<p>' + cfg.desc + '</p>' +
     '<div class="onb-actions">' +
       '<span class="onb-skip" id="onb-skip-tour">略過引導</span>' +
@@ -1846,7 +1846,7 @@ function showCoachmark(step) {
     }
     // Clamp into viewport
     x = Math.max(8, Math.min(x, window.innerWidth - TOOLTIP_W - 8));
-    y = Math.max(8, Math.min(y, window.innerHeight - th - 8));
+    y = Math.max(8, Math.min(y, (window.visualViewport?.height || window.innerHeight) - th - 8));
     tooltip.style.left = x + 'px';
     tooltip.style.top  = y + 'px';
   } else {
@@ -4275,17 +4275,17 @@ function renderAuth(isLogin) {
         <form id="auth-form">
           <div style="margin-bottom:12px">
             <label for="email" style="font-size:0.85rem;color:var(--text-secondary)">Email</label>
-            <input id="email" type="email" name="email" autocomplete="email" required class="chat-input" style="width:100%;margin-top:4px" />
+            <input id="email" type="email" name="email" autocomplete="email" inputmode="email" enterkeyhint="next" required class="chat-input" style="width:100%;margin-top:4px" />
           </div>
           <div style="margin-bottom:20px">
             <label for="password" style="font-size:0.85rem;color:var(--text-secondary)">密碼</label>
-            <input id="password" type="password" name="password" autocomplete="${isLogin?'current-password':'new-password'}" required class="chat-input" style="width:100%;margin-top:4px" />
+            <input id="password" type="password" name="password" autocomplete="${isLogin?'current-password':'new-password'}" enterkeyhint="go" required class="chat-input" style="width:100%;margin-top:4px" />
           </div>
           <p id="auth-error" style="color:var(--danger);font-size:0.85rem;margin-bottom:12px;display:none"></p>
           <button type="submit" class="btn btn-primary" style="width:100%">${isLogin?'登入':'建立帳號'}</button>
         </form>
         <p style="margin-top:16px;text-align:center">
-          <a href="#" style="color:var(--accent)" onclick="navigate('circles')">← 返回首頁</a>
+          <button type="button" class="link-button" onclick="navigate('circles')">← 返回首頁</button>
         </p>
       </div>
     </div>
@@ -5416,7 +5416,7 @@ function renderNSMStep2() {
         </div>
 
         <div class="nsm-field-group">
-          <div class="nsm-field-label-sm">北極星指標 (NSM)</div>
+          <label class="nsm-field-label-sm" for="nsm-nsm-input">北極星指標 (NSM)</label>
           <button onclick="toggleFieldHint(this)" class="nsm-example-toggle" type="button"><i class="ph ph-caret-right"></i> 查看範例</button>
           <div class="nsm-example-body" style="display:none">
             <div class="nsm-example-text">例 (Spotify)：每月完成至少一首完整曲目播放的活躍月用戶數 — 反映真正的聆聽行為，非背景播放</div>
@@ -5425,7 +5425,7 @@ function renderNSMStep2() {
         </div>
 
         <div class="nsm-field-group">
-          <div class="nsm-field-label-sm">定義說明</div>
+          <label class="nsm-field-label-sm" for="nsm-definition-input">定義說明</label>
           <button onclick="toggleFieldHint(this)" class="nsm-example-toggle" type="button"><i class="ph ph-caret-right"></i> 查看範例</button>
           <div class="nsm-example-body" style="display:none">
             <div class="nsm-example-text">例 (Spotify)：區分「被動背景播放」與「主動完整聆聽」，後者才代表用戶真正得到價值，避免被播放次數虛高誤導</div>
@@ -5442,7 +5442,7 @@ function renderNSMStep2() {
         </div>
 
         <div class="nsm-field-group">
-          <div class="nsm-field-label-sm">與業務目標的連結</div>
+          <label class="nsm-field-label-sm" for="nsm-business-link-input">與業務目標的連結</label>
           <button onclick="toggleFieldHint(this)" class="nsm-example-toggle" type="button"><i class="ph ph-caret-right"></i> 查看範例</button>
           <div class="nsm-example-body" style="display:none">
             <div class="nsm-example-text">例 (Spotify)：Spotify 的收入來自 Premium 訂閱與廣告，深度聆聽的用戶更容易感受到廣告干擾進而付費升級，且留存率較高代表獲客成本（CAC）被更多用戶週期攤薄。NSM 若能捕捉「真正在聽音樂」的行為，就能同時作為訂閱轉化與廣告效益的領先指標</div>
