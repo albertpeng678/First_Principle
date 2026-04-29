@@ -1,5 +1,7 @@
 const express = require('express');
 const router = express.Router();
+const fs = require('fs');
+const path = require('path');
 const db = require('../db/client');
 const { requireGuestId } = require('../middleware/guest');
 const { reviewFramework } = require('../prompts/circles-gate');
@@ -9,6 +11,11 @@ const { checkConclusion } = require('../prompts/circles-conclusion-check');
 const { generateFinalReport } = require('../prompts/circles-final-report');
 const { generateCirclesHint } = require('../prompts/circles-hint');
 const { generateCirclesExample } = require('../prompts/circles-example');
+
+const QUESTION_BY_ID = Object.fromEntries(
+  JSON.parse(fs.readFileSync(path.join(__dirname, '..', 'circles_plan', 'circles_database.json'), 'utf8'))
+    .map(q => [q.id, q])
+);
 
 // GET /api/guest-circles-sessions
 router.get('/', requireGuestId, async (req, res) => {
@@ -28,12 +35,15 @@ router.get('/', requireGuestId, async (req, res) => {
 router.post('/draft', requireGuestId, async (req, res) => {
   const { question_id, mode, drill_step, sim_step_index } = req.body;
   if (!question_id || !mode) return res.status(400).json({ error: 'missing_fields' });
+  const q = QUESTION_BY_ID[question_id];
+  if (!q) return res.status(404).json({ error: 'question_not_found' });
   try {
     const { data, error } = await db
       .from('circles_sessions')
       .insert({
         guest_id: req.guestId,
         question_id,
+        question_json: q,
         mode,
         drill_step: drill_step || null,
         sim_step_index: sim_step_index || 0,
