@@ -1,81 +1,38 @@
 # PM Drill Mega Rollout — Live State Checkpoint
 
-**Last updated:** 2026-04-29 — Phases 0-6 ✅ all DONE + pushed. Phase 7 integration ✅ branch pushed (`phase-X-integration` @ `1681c72`). Test rounds (SIT/UAT/UI-UX) **NOT YET RUN** — next session pick up from there.
-
-### 2026-04-29 controller progress
-
-| Phase | Status | Branch | Tip |
-|---|---|---|---|
-| 0 Foundation | ✅ DONE | `phase-0-foundation` | `06acaa8` |
-| 1 Bullet examples | ✅ DONE | `phase-1-bullet-examples` | `628a3ae` (audit 0.6%) |
-| 2 Progress save | ✅ DONE | `phase-2-progress-save` | `5dae023` (16/16 e2e) |
-| 3 Rich text | ✅ DONE | `phase-3-rich-text` | `b3aa48f` (23/23 specs) |
-| 4 Desktop layouts | ✅ DONE | `phase-4-desktop-layouts` | `a632180` (27 desktop) |
-| 5 Onboarding | ✅ DONE | `phase-5-onboarding` | `2fa3205` (7 tour specs) |
-| 6 NSM mobile sheet | ✅ DONE | `phase-6-nsm-mobile-sheet` | `8086905` (16 specs) |
-| 7 Integration | ✅ MERGED + tests | `phase-X-integration` | `1681c72` |
-
-**Phase 7 integration details:**
-- Worktree: `.worktrees/phase-X-integration` (off `origin/main`)
-- All 7 phase branches merged in dependency order. Conflicts resolved in `public/style.css` (Phase 4↔5) and `public/app.js` (Phase 2↔5 — banner/welcome card slot, fetchActiveDraft binding) and `tests/playwright/playwright.config.js` (baseURL env var precedence).
-- **Cross-phase regressions found and fixed during integration** (commit `1681c72`):
-  1. `renderCirclesPhase1` desktop branch (Phase 4.2) closed `.circles-progress` without the `.save-indicator` span that Phase 2 added on the mobile branch. Fix: mirror it into desktop too.
-  2. `renderCirclesHomeDesktop` (Phase 4.1) doesn't include `.circles-home-wrap` that Phase 2 banner + Phase 5 welcome target. Fix: wrap the desktop home content in `.circles-home-wrap` and inject welcomeHtml + renderResumeBanner() at top.
-- Verification:
-  - `npx playwright test --project=Desktop` → **55 passed, 6 skipped, 0 failures**
-  - `npx playwright test --project=iPhone-15-Pro` (critical specs subset) → **4 passed, 0 failures**
-
-**Pre-test-round Supabase state:**
-- Migration `migrations/2026-04-28-circles-step-drafts.sql` was applied to project `klvlizxmvzfpvfgswmfk` on 2026-04-29 by user. `step_drafts` + `framework_draft` JSONB columns confirmed via PostgREST schema dump. Indexes for resume-banner query exist.
-
-**What's NOT done yet (Phase 7 test rounds):**
-- Round 1 SIT: 8 agents (per `docs/superpowers/test-agents/sit-prompts.md`). Heads-up: prompt files have Mac paths (`/Users/albertpeng/Desktop/...`) — substitute `C:\side\first_principle\pm-drill\.worktrees\phase-X-integration` at dispatch.
-- Round 2 UAT: 7 persona agents.
-- Round 3 UI/UX: 2 auditors.
-- Fix round (zero deferral).
-- Round 4 regression: re-run all 17.
-
-**Worktrees on disk (post-integration):**
-- `.worktrees/phase-{1,2,3,4,5,6}` — phase branches (kept for hotfixes if needed)
-- `.worktrees/phase-X-integration` — integration branch (next session works here)
-- `.worktrees/circles-feature`, `circles-training`, `mobile-smooth` — pre-existing, unrelated
-
-This file is the source of truth if my conversation context is lost. **New sessions: read this end-to-end first**, then read the plan, then resume.
+**Last updated:** 2026-04-29 — Phases 0-6 ✅ DONE + pushed. Phase 7 integration ✅ MERGED + pushed (`phase-X-integration` @ `1681c72`). **Direction chosen: B (run full 17-agent test gate before merging to main).** SIT/UAT/UI-UX rounds NOT YET RUN.
 
 ---
 
-## 🔁 Resume prompt (copy-paste this to start a new session)
+## 🔁 Resume prompt for next session — copy-paste this verbatim
 
 ```
-請接手 PM Drill 全面 rollout 計畫的 controller 工作。
+請接手 PM Drill 全面 rollout 計畫的 controller 工作。整合已完成、現在要進入 17-agent test gate（user 已選 direction B）。
 
 第一步：讀以下檔案（按順序）—
 1. docs/superpowers/test-agents/ROLLOUT-STATE.md（本檔，live state checkpoint）
-2. docs/superpowers/plans/2026-04-28-pm-drill-mega-rollout.md（完整計畫）
+2. docs/superpowers/plans/2026-04-28-pm-drill-mega-rollout.md（完整計畫，§Phase 7 + 17 agents）
 
-第二步：用 superpowers:subagent-driven-development skill 接手繼續執行。
+第二步：用 superpowers:subagent-driven-development + dispatching-parallel-agents skill 接手執行。
 
-四個背景 agent 還在跑（如果還在）：
-- Phase 1 bullet examples: ae6fce19502b1ffc0
-- Phase 2 progress save: a3f5decccb375d40d
-- Phase 3 rich text toolbar: aa288be19d65b5224
-- Phase 4 desktop layouts: a6df15d1e67ff466e
+當前狀態：
+- 整合 worktree：`.worktrees/phase-X-integration`，branch `phase-X-integration`，tip `1681c72`，已 push 到 origin
+- 7 個 phase branch 全 push 完，全 merge 進整合 branch
+- Supabase migration 已 apply（step_drafts + framework_draft + 兩個索引）
+- 整合層 desktop test 55 pass / 0 fail，iPhone-15-Pro 關鍵 spec 4 pass / 0 fail
+- gh CLI 已裝（auth as Albert-eland，但 repo 是 albertpeng678 個人 repo，不需要 PR — 直接 push main 即可，這是 single-maintainer private repo）
 
-用 SendMessage 查詢它們狀態。如果已完成或不可達，從各自 worktree 看 git log：
-- ../pm-drill-phase-1
-- ../pm-drill-phase-2
-- ../pm-drill-phase-3
-- ../pm-drill-phase-4
-
-接續流程：
-1. 每個 Phase agent 回報 DONE → 跑 spec compliance review subagent → 跑 code quality review subagent → fix loop 直到 APPROVED → push branch
-2. Phase 4 在 4.1 完成時要 dispatch Phase 5（onboarding tour）平行；4.6 完成時 dispatch Phase 6（NSM 對比 mobile bottom sheet）平行
-3. 全 6 個 phase APPROVED 後 → Phase 7 integration（建 ../pm-drill-phase-X-integration worktree off main，按依賴順序 merge 所有 phase branch，解 conflict）
-4. Round 1 SIT：dispatch 8 個 SIT agent 平行（用 docs/superpowers/test-agents/sit-prompts.md），loop 修到 8/8 PASS
-5. Round 2 UAT：dispatch 7 個 UAT persona agent（用 uat-prompts.md）
-6. Round 3 UI/UX：dispatch 2 個 auditor agent（用 uiux-prompts.md）
-7. Fix Round（零延後）：所有 SIT failure + UAT 摩擦 + UI/UX 痛點全部修完
-8. Round 4 regression：17 agents 全跑，全 PASS 才 merge to main
+執行流程（從這裡開始）：
+1. **Round 1 SIT**：dispatch 8 個 SIT agent 平行（用 docs/superpowers/test-agents/sit-prompts.md）。每個 agent 的 prompt 都要把 prompts file 裡的 Mac 路徑 `/Users/albertpeng/Desktop/claude_project/pm-drill-phase-X-integration` 換成 `C:\side\first_principle\pm-drill\.worktrees\phase-X-integration`。Server 統一跑在 port 4001（用 `PORT=4001 node server.js` 啟動）；告訴每個 agent 用 `PMDRILL_BASE_URL=http://localhost:4001` 跑 playwright。Loop 修到 8/8 PASS。
+2. **Round 2 UAT**：dispatch 7 個 UAT persona agent（用 docs/superpowers/test-agents/uat-prompts.md，同樣換路徑 + 用 4001 port）。收集 friction point。
+3. **Round 3 UI/UX**：dispatch 2 個 auditor agent（用 docs/superpowers/test-agents/uiux-prompts.md，同樣換路徑 + 用 4001 port）。收集 BLOCKER/MAJOR/MINOR pain point。
+4. **Fix Round（零延後）**：所有 SIT failure + UAT 摩擦 + UI/UX 痛點全部修完，commit 到 phase-X-integration branch。
+5. **Round 4 regression**：17 agents 全跑，全 PASS 才 merge。
+6. **Final merge**：在這個 single-maintainer private repo，跳過 PR 儀式，直接：
+   ```
+   cd C:\side\first_principle\pm-drill
+   git checkout main && git merge phase-X-integration && git push
+   ```
 
 最終 merge gate（all must hold）：
 - 8/8 SIT PASS
@@ -86,121 +43,125 @@ This file is the source of truth if my conversation context is lost. **New sessi
 - console 0 errors
 - Round 4 regression 全 PASS
 
-過程嚴格使用所有 superpower skill（subagent-driven-development、using-git-worktrees、test-driven-development、systematic-debugging、code-reviewer、verification-before-completion、dispatching-parallel-agents、finishing-a-development-branch）。
+過程嚴格使用所有 superpower skill（subagent-driven-development、dispatching-parallel-agents、systematic-debugging、verification-before-completion、finishing-a-development-branch）。
 
 模式：auto mode，繼續自主執行，遇到衝突或設計判斷再問我。
 
 備註：
-- gh CLI 沒裝，PR 要從 GitHub 網頁開
-- step_drafts JSONB column 可能要 migration（Phase 2 agent 應該已處理，review 時確認）
-- 隨時更新 ROLLOUT-STATE.md
+- 每跑完一輪 round 就 update ROLLOUT-STATE.md
+- 失敗的 agent 要 dispatch fix subagent 修，不要在 main controller 裡手寫修正（context pollution）
+- Background agent 有時會「假性 done」（短時間零 tool use 就回報），看到這種情況用 git 檢查實際 commit 狀態，不要相信 agent 自我報告
 ```
 
 ---
 
-## Plan source-of-truth
+## Where we are now
 
-`docs/superpowers/plans/2026-04-28-pm-drill-mega-rollout.md` (1512 lines, 7 phases + 17 test agents).
-
-## Specs
-
-- `docs/superpowers/specs/2026-04-28-circles-examples-bullet-format-design.md`
-- `docs/superpowers/specs/2026-04-28-circles-progress-save-design.md`
-- `docs/superpowers/specs/2026-04-28-desktop-rwd-direction-c-design.md`
-- `docs/superpowers/specs/2026-04-28-rich-text-input-design.md`
-
-## Test agent prompts (pre-written)
-
-- `docs/superpowers/test-agents/sit-prompts.md` (8 SIT)
-- `docs/superpowers/test-agents/uat-prompts.md` (7 UAT)
-- `docs/superpowers/test-agents/uiux-prompts.md` (2 UI/UX)
-
----
-
-## Current state (as of last update)
-
-### Worktrees on disk
-
-| Path | Branch | Pushed | Commits done | Status |
+| Phase | Status | Branch | Tip | Validation |
 |---|---|---|---|---|
-| `pm-drill-phase-0` | `phase-0-foundation` | ✅ | 11 | ✅ COMPLETE — both reviews APPROVED |
-| `pm-drill-phase-1` | `phase-1-bullet-examples` | ✅ | 4 | 🟠 PARTIAL — Tasks 1.1, 1.2, 1.3, 1.5 done. Task 1.4 (regenerate 99 questions via Claude API) **NOT done**. Task 1.6 push **DONE by controller**. Uncommitted: `circles_plan/circles_database.json` modified, `tmp/update-circles-002.js` untracked — likely mid-Task-1.2/1.4 state, do NOT commit blindly, inspect first. |
-| `pm-drill-phase-2` | `phase-2-progress-save` | ✅ | 4 | 🟠 PARTIAL — Tasks 2.1 (POST /draft), 2.2 (auto-save), 2.3 (indicator), 2.4 (badge), 2.5 (banner) done. Tests **NOT done** (Task 2.6) — `tests/playwright/journeys/circles-progress-save.spec.js` is untracked but unfinished. Push **DONE by controller**. Migration for `step_drafts` JSONB column status: agent's last commit accepts `stepDrafts` in PATCH — verify column exists in Supabase before merge. |
-| `pm-drill-phase-3` | `phase-3-rich-text` | ✅ | 3 | 🟠 PARTIAL — Tasks 3.1 (CSS), 3.2 (actions), 3.3 (IME-safe shortcuts) done. Tasks 3.4 (mobile visualViewport), 3.5 (`.rt-textarea` opt-in across forms), 3.6 (test pass-through) **NOT done**. 5 test specs are written but failing (TDD red state). Modified test files uncommitted. Push **DONE by controller**. |
-| `pm-drill-phase-4` | `phase-4-desktop-layouts` | ✅ | 1 | 🟠 PARTIAL — Only Task 4.1 (CIRCLES home desktop) done. Tasks 4.2-4.7 **NOT done**. Uncommitted Task 4.2 work in progress: `public/app.js` modified, `tests/playwright/journeys/desktop-phase1.spec.js` untracked. Push **DONE by controller**. |
+| 0 Foundation | ✅ DONE | `phase-0-foundation` | `06acaa8` | 11 commits, both reviews APPROVED |
+| 1 Bullet examples | ✅ DONE | `phase-1-bullet-examples` | `628a3ae` | audit 0.6% violation rate (target <1%) |
+| 2 Progress save | ✅ DONE | `phase-2-progress-save` | `5dae023` | 16/16 e2e (4 case × 4 viewport) |
+| 3 Rich text | ✅ DONE | `phase-3-rich-text` | `b3aa48f` | 23/23 specs |
+| 4 Desktop layouts | ✅ DONE | `phase-4-desktop-layouts` | `a632180` | 27 desktop tests |
+| 5 Onboarding | ✅ DONE | `phase-5-onboarding` | `2fa3205` | 7 tour specs |
+| 6 NSM mobile sheet | ✅ DONE | `phase-6-nsm-mobile-sheet` | `8086905` | 16 specs |
+| 7 Integration | ✅ MERGED | `phase-X-integration` | `1681c72` | desktop 55/0, mobile critical 4/0 |
 
-### Background agent IDs (NO LONGER ALIVE — all hit org monthly usage limit)
+**Phase 7 integration details:**
+- Worktree: `.worktrees/phase-X-integration` (off `origin/main`)
+- All 7 phase branches merged in dependency order: `0 → 1 → 2 → 3 → 4 → 5 → 6`
+- Conflicts resolved in:
+  - `public/style.css` — Phase 4 desktop layouts ↔ Phase 5 onboarding (additive, both kept)
+  - `public/app.js` — Phase 2 ↔ Phase 5 (banner + welcome card slot stacking, fetchActiveDraft binding ordering)
+  - `tests/playwright/playwright.config.js` — baseURL env var precedence (`PMDRILL_BASE_URL` wins, fallback to `PLAYWRIGHT_BASE_URL` then `BASE_URL`)
+- **Cross-phase regressions found and fixed during integration** (commit `1681c72`):
+  1. `renderCirclesPhase1` desktop branch (Phase 4.2) closed `.circles-progress` without the `.save-indicator` span Phase 2 added on the mobile branch → mirrored span into desktop branch.
+  2. `renderCirclesHomeDesktop` (Phase 4.1) doesn't include `.circles-home-wrap` that Phase 2 (resume banner) and Phase 5 (onboarding welcome) target → wrapped desktop home in `.circles-home-wrap` and injected `welcomeHtml` + `renderResumeBanner()` above `.ch-grid`.
 
-These agents stopped on 2026-04-29 with `You've hit your org's monthly usage limit`. They are **not resumable**. New session must dispatch fresh agents (after billing resets) to finish each phase.
-
-| Phase | Old Agent ID (dead) |
-|---|---|
-| Phase 1 | `ae6fce19502b1ffc0` (1422s, 70 tool uses) |
-| Phase 2 | `a3f5decccb375d40d` (1085s, 82 tool uses) |
-| Phase 3 | `aa288be19d65b5224` (996s, 63 tool uses) |
-| Phase 4 | `a6df15d1e67ff466e` (953s, 55 tool uses) |
-
-### Phase 0 commit hashes (Phase 1-4 are branched off this)
-
-Tip of `phase-0-foundation` branch: `06acaa8 test(tokens): assert navbar favicon resolves to primary blue at runtime`
-
-11 commits on `phase-0-foundation` (already pushed to origin). PR not opened (no `gh` CLI installed) — open manually at https://github.com/albertpeng678/First_Principle/pull/new/phase-0-foundation.
+**Verification at integration tip:**
+- `PMDRILL_BASE_URL=http://localhost:4001 npx playwright test --config=tests/playwright/playwright.config.js --project=Desktop` → **55 passed, 6 skipped, 0 failures**
+- iPhone-15-Pro on critical specs (`circles-progress-save`, `onboarding-tour`, `nsm-step4-mobile-compare`, `foundation-tokens`) → **4 passed, 0 failures**
 
 ---
 
-## Next steps (in order) — UPDATED for partial state
+## What's NOT done yet (Phase 7 test gate — direction B chosen)
 
-1. **Resume Phase 1** (when budget restored): dispatch new agent on worktree `../pm-drill-phase-1`. Inspect uncommitted state first (`circles_plan/circles_database.json` + `tmp/update-circles-002.js`); decide whether to keep or discard. Then complete Task 1.4 (regenerate 99 questions via Claude API, ~10 min), iterate audit until <1% violations, commit, push.
-2. **Resume Phase 2**: dispatch new agent on `../pm-drill-phase-2`. Complete Task 2.6 (Playwright test for end-to-end auto-save). Verify Supabase `step_drafts` column exists or write migration. Push.
-3. **Resume Phase 3**: dispatch new agent on `../pm-drill-phase-3`. Complete Tasks 3.4 (mobile visualViewport), 3.5 (`.rt-textarea` opt-in on Phase 1 + NSM 2/3 + E + S 4-dim textareas), 3.6 (make 5 failing TDD tests pass). Push.
-4. **Resume Phase 4**: dispatch new agent on `../pm-drill-phase-4`. Inspect uncommitted Task 4.2 work first. Then complete 4.2 (Phase 1 form desktop), 4.3 (Phase 2 chat desktop, easy), 4.4 (Phase 3 score desktop), 4.5 (NSM Step 1-3 desktop), 4.6 (NSM Step 4 + 對比 tab), 4.7 (review-examples + login desktop). After 4.6, dispatch Phase 6.
-5. **After Phase 4.1 already done** → dispatch Phase 5 onboarding agent in parallel (worktree `../pm-drill-phase-5` off `phase-0-foundation`).
-6. **After Phase 4 reports 4.6 done** → dispatch Phase 6 NSM 對比 mobile bottom-sheet agent (worktree `../pm-drill-phase-6` off Phase 4 branch).
-7. **Per phase DONE** → spec compliance review subagent → code quality review subagent → fix loop → APPROVED.
-4. **Phase 7 integration**: create worktree `../pm-drill-phase-X-integration` off `main`, merge `phase-0-foundation` → `phase-1-bullet-examples` → `phase-2-progress-save` → `phase-3-rich-text` → `phase-4-desktop-layouts` → `phase-5-onboarding` → `phase-6-nsm-mobile-sheet`. Resolve conflicts (highest concentration in `public/app.js` + `public/style.css`).
-5. **Round 1 SIT**: dispatch 8 SIT agents in parallel using `docs/superpowers/test-agents/sit-prompts.md`. Loop fix until 8/8 PASS.
-6. **Round 2 UAT**: dispatch 7 UAT personas in parallel using `uat-prompts.md`. Collect friction points.
-7. **Round 3 UI/UX**: dispatch 2 auditors using `uiux-prompts.md`. Collect BLOCKER/MAJOR/MINOR pain points.
-8. **Fix round (zero deferral)**: Fix all SIT failures + UAT friction + UI/UX pain points. No "next sprint" allowed.
-9. **Round 4 regression**: re-run all 17 agents. Merge to main only when all green.
+1. **Round 1 SIT** — 8 parallel agents per `docs/superpowers/test-agents/sit-prompts.md`
+   - Heads-up: prompt files have Mac paths (`/Users/albertpeng/Desktop/claude_project/pm-drill-phase-X-integration`) — substitute `C:\side\first_principle\pm-drill\.worktrees\phase-X-integration` at dispatch.
+   - Tell every agent to target `PMDRILL_BASE_URL=http://localhost:4001` (single integration server).
+2. **Round 2 UAT** — 7 persona agents per `docs/superpowers/test-agents/uat-prompts.md`
+3. **Round 3 UI/UX** — 2 auditors per `docs/superpowers/test-agents/uiux-prompts.md`
+4. **Fix round (zero deferral)** — fix every SIT failure + UAT friction + UI/UX pain point on `phase-X-integration` branch
+5. **Round 4 regression** — re-run all 17 agents
+6. **Final merge** — `git checkout main && git merge phase-X-integration && git push` (single-maintainer private repo, no PR ceremony per user 2026-04-29)
+
+---
 
 ## Final merge gate (all must hold)
 
 - 8/8 SIT PASS
 - 7/7 UAT mission complete + friction = 0
 - 2/2 UI/UX BLOCKER + MAJOR + MINOR = 0
-- Lighthouse mobile + desktop ≥ 90 (a11y/best practices), ≥ 85 (perf)
+- Lighthouse mobile + desktop ≥ 90 (a11y / best practices), ≥ 85 (perf)
 - axe-core 0 critical
 - Console 0 errors during 17-agent e2e
 - Round 4 regression all PASS
 
 ---
 
-## Recovery procedure (if controller session crashes)
+## Plan + spec source-of-truth
+
+- Plan: `docs/superpowers/plans/2026-04-28-pm-drill-mega-rollout.md` (1512 lines, 7 phases + 17 test agents)
+- Specs:
+  - `docs/superpowers/specs/2026-04-28-circles-examples-bullet-format-design.md` (Phase 1)
+  - `docs/superpowers/specs/2026-04-28-circles-progress-save-design.md` (Phase 2)
+  - `docs/superpowers/specs/2026-04-28-rich-text-input-design.md` (Phase 3)
+  - `docs/superpowers/specs/2026-04-28-desktop-rwd-direction-c-design.md` (Phase 4 + 5 + 6)
+- Test agent prompts (pre-written):
+  - `docs/superpowers/test-agents/sit-prompts.md` (8 SIT)
+  - `docs/superpowers/test-agents/uat-prompts.md` (7 UAT)
+  - `docs/superpowers/test-agents/uiux-prompts.md` (2 UI/UX)
+
+---
+
+## Worktrees on disk
+
+- `.worktrees/phase-X-integration` — **integration branch (next session works here)**
+- `.worktrees/phase-{1,2,3,4,5,6}` — phase branches (kept; can be discarded if no hotfix needed)
+- `.worktrees/circles-feature`, `circles-training`, `mobile-smooth` — pre-existing, unrelated to this rollout
+
+---
+
+## Supabase migration state
+
+`migrations/2026-04-28-circles-step-drafts.sql` was applied to project `klvlizxmvzfpvfgswmfk` on 2026-04-29 by user. Verified via PostgREST schema dump: `step_drafts` + `framework_draft` JSONB columns exist with NOT NULL DEFAULT `'{}'::jsonb`, plus two partial indexes (`idx_circles_sessions_active_user`, `idx_circles_sessions_active_guest`) for the resume-banner query.
+
+---
+
+## Recovery procedure (if controller session crashes mid-round)
 
 1. Read this file end-to-end.
-2. Read `docs/superpowers/plans/2026-04-28-pm-drill-mega-rollout.md`.
-3. Check `git worktree list` — confirm worktrees still present.
-4. Check each phase branch: `cd ../pm-drill-phase-N && git log --oneline | head -10` — see how far the agent got.
-5. If agent IDs above are still queryable: `SendMessage to: <agent-id>` to retrieve last status.
-6. If agents not queryable, re-inspect each worktree's `git status` + last commit time. If working tree is clean and last commit message matches the plan's expected final message for that phase, the phase is DONE — proceed to review.
-7. Resume from the appropriate "Next steps" item above.
+2. Read `docs/superpowers/plans/2026-04-28-pm-drill-mega-rollout.md` (especially §Phase 7 + 17 agents).
+3. `git -C C:\side\first_principle\pm-drill\.worktrees\phase-X-integration log --oneline` — see how far we got.
+4. `git -C C:\side\first_principle\pm-drill\.worktrees\phase-X-integration status` — uncommitted work?
+5. Check this file's "rounds done" section (added below as we progress).
+6. Resume from the appropriate next round.
 
-## Risk notes
+---
 
-- `gh` CLI not installed — PRs can only be opened via GitHub web UI.
-- `step_drafts` JSONB column may not exist in Supabase yet — Phase 2 agent will write a migration; review the migration before merge.
-- Phase 1 Task 1.4 calls Claude API (regenerate 99 questions, ~10 min, costs API budget).
-- Phases 1-4 all touch `public/app.js` + `public/style.css` — Phase 7 will have significant merge conflicts.
-- `.env` is symlinked into Phase 1-4 worktrees from `First_Principle/.env`.
-- `node_modules` is symlinked from `pm-drill-phase-0/node_modules` into Phase 1-4 worktrees.
-- Auto mode is active (continuous autonomous execution).
+## Rounds completion log (update as rounds complete)
 
-## Phase 0 fix history (already resolved, for reference only)
+- 2026-04-29 — Phases 0-6 + Phase 7 integration ✅ DONE. SIT/UAT/UI-UX **not yet started**.
+- _(future rounds get appended here)_
 
-Phase 0 implementer reported DONE_WITH_CONCERNS. Spec reviewer found 1 defect (`[data-view="circles"]` block at `public/style.css:1217+` was reverting the spec-3 palette inside the CIRCLES surface) — fixed by trimming the scoped overrides to only what's actually needed. Code quality reviewer found 3 Important issues — all fixed:
-1. `var(--c-primary, var(--c-primary))` self-fallback dead code → removed
-2. `scripts/audit-hardcoded-colors.js` regex narrow → expanded to full spec-3 palette (added `#7C3AED #1F1D1B #10b981 #F2F0EB #D92020 #B85C00`); side-effect: replaced literal hex usage in app.js dimension data, STATUS_COLOR, gradeColor with `var(--c-success/--c-warn-bold/--c-error/--c-ok-bold)`. Added 3 new `:root` tokens: `--c-error`, `--c-warn-bold`, `--c-ok-bold`.
-3. `tests/playwright/journeys/foundation-tokens.spec.js` only checked CSS vars existence → added a runtime DOM color assertion on `.navbar-favicon`
+---
 
-Tip of `phase-0-foundation` after all fixes: 11 commits, all pushed to origin.
+## Risk + ops notes
+
+- gh CLI is installed and auth'd as `Albert-eland`, but repo is `albertpeng678/First_Principle` (private). PR creation via API fails (must be collaborator). Per user direction (2026-04-29): this is single-maintainer private repo with only `main` long-lived branch — skip PR ceremony, just merge + push directly.
+- `.env` and `node_modules` are symlinked into every phase + integration worktree from `C:\side\first_principle\pm-drill\.env` and `C:\side\first_principle\pm-drill\node_modules`.
+- Port 4000 is pinned to a different process (the original main worktree's dev server). Phase-X-integration server runs on **port 4001**.
+- Background agent failure mode observed in this session: a "Monitor-armed" agent re-fires on every event but does no real work — wastes notifications. Detect via `tool_uses: 0` + short `duration_ms` in completion result; `TaskStop` to silence.
+- Background agent "假性 done" (silent early exit) — always verify with `git log` on the worktree, not the agent's self-report.
+- Phase 1 Task 1.4 (regenerate questions via OpenAI / `node scripts/generate-circles-examples.js`) consumes API budget. Already done; no need to re-run unless audit drift.
