@@ -1,11 +1,81 @@
 # PM Drill Mega Rollout — Live State Checkpoint
 
-**Last updated:** 2026-04-29 — Phases 0-6 ✅ DONE. Phase 7 integration + Round 1 SIT fix loop ✅ **MERGED to main + pushed** per user direction (chose to ship Round 1 + defer UAT/UI-UX to next session).
+**Last updated:** 2026-04-29 (session 2 — Mac, different machine). Round 1 SIT 8/8 PASS shipped previously. **Round 2 UAT + Round 3 UI/UX + Fix Round + Round 4 regression (partial) all completed this session.**
 
-> 📍 **origin/main tip:** `5acb37c` (merge of phase-X-integration follow-up render guard)
-> 📍 **origin/phase-X-integration tip:** `f14ec9f` (also pushed, identical content)
-> 📍 **Server state at session end:** running on `http://localhost:4001` from `.worktrees/phase-X-integration`. To restart in next session: `cd "C:/side/first_principle/pm-drill/.worktrees/phase-X-integration" && PORT=4001 nohup node server.js > "C:/side/first_principle/pm-drill/sit-server-4.log" 2>&1 & disown`
-> ⚠️ **Round 2 UAT + Round 3 UI/UX + Round 4 regression were SKIPPED** per user 2026-04-29 token-budget call. Optional to revisit; main is shipped state.
+> 📍 **Local main tip:** `0c72b0f` (12 commits ahead of origin/main `0897483`). NOT YET PUSHED.
+> 📍 **origin/main tip:** `0897483` (unchanged from end of session 1).
+> 📍 **Machine note:** Now on Mac (`/Users/albertpeng/Desktop/claude_project/First_Principle`). Session 1 was on Windows.
+> 📍 **Server:** running on `http://localhost:4001` from main repo dir. Restart cmd: `pkill -f "node server.js" || true; PORT=4001 nohup node server.js > /tmp/sit-server-mac.log 2>&1 & disown`
+> ⚠️ **2 SQL migrations pending user manual apply to Supabase** (see "Pending DB migrations" section below) — without them, B2 parallel-race uniqueness + NSM /progress endpoint will not fully work.
+
+---
+
+## Session 2 Summary (2026-04-29 Mac)
+
+### What was done
+1. **Sanity check (SIT-1 follow-up)** — found real bug: `app.js:1427 window.render = render` was clobbering review-examples.html's inline `render()`. Renamed local to `renderReview()`. Fixed in `9427a21`. Verified: 100 cards, 2700 `<ul class="rt-bullet-list">`, 0 errors.
+2. **Round 2 UAT** — 7 persona agents in 2 waves. Found ~25 friction points (BLOCKER/HIGH/MAJOR/MINOR).
+3. **Round 3 UI/UX** — 2 auditors (美學總監 + 痛點獵人). 美學總監 gave REWORK rec; 痛點獵人 found 20+ pain points incl. blocker tap-targets and login autocomplete missing.
+4. **Fix Round** — 3 parallel agents (Fix-Backend, Fix-Style, Fix-AppJS). Plus 1 manual fix (SIT-7 follow-up). **12 fix commits** total.
+5. **Round 4 regression — partial** (token budget): Wave 1+2 SIT (8/8 PASS after SIT-7 manual fix), Wave 3 UAT-3 PASS, Wave 3 UAT-1/2/4 still in-flight at session end.
+
+### 12 commits applied to main (since origin/main `0897483`)
+```
+0c72b0f fix(a11y): remove dead /api/guest/sessions refs (SIT-7 F1)
+e700056 fix(a11y/ux): J1-J18 frontend fix bundle in app.js
+d8658e4 fix(a11y): tap-targets, visually-hidden h1, rt-mtbtn aria-labels (J2/J6/J13/J14)
+f8b6735 fix(style): "帶著風險繼續" button width + flow
+36dbd17 feat(api): PATCH /progress for NSM sessions (auth + guest)
+896ca2d fix(style): axe-core color-contrast bumps
+d864628 fix(api): redirect /login.html to SPA login view (B3)
+d9d45d7 fix(api): idempotent CIRCLES draft autosave + auth final-report parity (B2)
+1b776de fix(style): review-examples 2-column grid at >=1100px
+400817a fix(api): migrate guest CIRCLES + NSM sessions on register (B1)
+d8cf823 fix(style): login form contrast (cream-on-cream → AA)
+9427a21 fix(review-examples): rename render() to renderReview() to avoid app.js clobber
+```
+
+### Pending DB migrations (apply manually via Supabase SQL editor)
+- `migrations/2026-04-29-circles-active-uniqueness.sql` — partial UNIQUE indexes for parallel-race autosave protection (B2). Without it, JS-level select-before-insert handles sequential dedup but parallel race can still slip 2 rows past.
+- `migrations/2026-04-29-nsm-progress-json.sql` — adds `nsm_sessions.progress_json JSONB DEFAULT '{}'`. Without it, `PATCH /api/guest/nsm-sessions/:id/progress` returns 500 `db_error` (PGRST204 column missing). Frontend has localStorage stopgap; cross-device persistence broken until applied.
+
+### Round 4 regression status (in-flight at session end)
+| Wave | Agents | Result |
+|---|---|---|
+| 1 | SIT-1, SIT-2, SIT-3, SIT-4 | ✅ 4/4 PASS |
+| 2 | SIT-5, SIT-6, SIT-7, SIT-8 | SIT-5/6/8 ✅; SIT-7 ❌ → fixed in `0c72b0f`; needs re-verify |
+| 3 | UAT-1, UAT-2, UAT-3, UAT-4 | UAT-2 ✅ 5/5, UAT-3 ✅ 4/4, UAT-4 ✅ 5/5; **UAT-1 still in-flight at session end** (agentId `a71319c39c423bffd`, may have completed since — check task output) |
+| 4 (not dispatched) | UAT-5, UAT-6, UAT-7, UI/UX-1 | pending |
+| 5 (not dispatched) | UI/UX-2 | pending |
+
+### Friction summary (consolidated bug ledger from session 2)
+**Round 2 UAT (7 personas):**
+- UAT-1 Alice: 1 BLOCKER (cross-device resume), 3 MAJOR (hint Esc, rt-mtbtn aria, no difficulty filter)
+- UAT-2 Ben: 5 HIGH (welcome flag, Tab focus, no submit gate, vertical button, Phase 2 no loader), 4 MEDIUM
+- UAT-3 Cathy: 2 HIGH (CIRCLES not migrated on register, Phase 1→2 frozen), 2 MED (resume banner UI silent, /login.html 404)
+- UAT-4 David: ✅ ALL PASS (5/5)
+- UAT-5 Emma: 3 MAJOR (?view=nsm, 對比 tab gating, parallel autosave dupes), 1 MINOR (1440 single-col)
+- UAT-6 Frank: 1 axe CRITICAL (p1-nav-back aria), confirmed hint Esc trap, mode-card unreachable, no <h1>
+- UAT-7 Grace: ✅ resume banner works in clean path, but delete with no confirm = MODERATE
+
+**Round 3 UI/UX:**
+- UI/UX-1 美學總監: REWORK rec — login cream-on-cream catastrophe, undefined CSS tokens (`--accent` etc.), no elevation system. (Note: agent saw "Phase 1 not loading" + "北極星指標 dead" — these were agent's selector issues; UAT-1/2/3/5 reached both.)
+- UI/UX-2 痛點獵人: 20 pain points. Top: login autocomplete missing, hint Esc, no submit gate, tap-targets too small.
+
+**Fixes applied (~30 items across 12 commits):**
+- Backend: B1 migrate guest CIRCLES+NSM, B2 idempotent draft, B3 /login.html redirect, NSM /progress endpoint, auth circles-sessions parity (final_report SELECT + maybeSingle).
+- Style: C1 login contrast (root-caused undefined CSS tokens), C2 review-examples 2-col grid, C3 axe contrast bumps, C4 帶著風險繼續 width.
+- AppJS J1-J18: aria-label back button, hint Esc + backdrop, Tab indent, mode-card focusable, h1 visually-hidden, welcome flag race fix, client submit gate, gate loading spinner, delete confirm, ?view=nsm honored, login autocomplete, tap-target CSS, aria-expanded, NSM Esc cascade, enterkeyhint, "提交審核"→"送出評分".
+
+### Open follow-ups (not blocking, but track)
+- Round 1 SIT-2 #14: cron `cleanup-empty-sessions.js` exists but not yet wired to a scheduler.
+- UAT-1: no difficulty filter / search box (design ask).
+- UAT-2: Ctrl+B inserts markdown not WYSIWYG (acceptable per design intent).
+- UAT-2: `返回修改` button no styling (cosmetic).
+- UAT-2: Sidebar `載入中…` infinite (root cause unclear — defer).
+- UAT-5: 對比 tab requires Step-4 LLM call to reach (design ask).
+- UAT-5: No live cross-tab sync (out of scope).
+- UI/UX agent contradictions: UI/UX-1 reported Phase-1-not-loading + 北極星指標-dead — likely agent's own click-target issue; multiple UAT agents reached both. To re-verify in next session if doubt remains.
 
 ## Open follow-ups (not blocking — see merge gate doc for full list)
 1. SIT-1 review-examples.html bullet rendering: was FAILING in last verification (a208f2f0bdad162a1) — fixed by `f14ec9f` (`render()` null guard). Quick re-verify in next session: `curl http://localhost:4001/review-examples.html` then check `<ul class="rt-bullet-list">` count > 0 in browser.
