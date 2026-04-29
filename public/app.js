@@ -4570,7 +4570,38 @@ function renderNSMStep4() {
   const cmpType = detectProductType(q);
   const cmpDims = NSM_DIMENSION_CONFIGS[cmpType];
 
-  const comparisonTab = `
+  // Phase 6 — mobile vertical stack: 維度標題 + 你的卡 + 教練卡（直堆）
+  // Cards remain `.nsm-tree-node` so the existing click handler / styles stay reused.
+  const _isMobileCmp = !(typeof isDesktop === 'function' && isDesktop());
+  const mobileCompareStack = `
+    <div class="nsm-compare-mobile-stack">
+      <div class="nsm-compare-dim-block">
+        <div class="nsm-compare-dim-title">北極星指標 (NSM)</div>
+        <div class="nsm-tree-node nsm-tree-root" data-node="user-nsm" data-label="NSM" role="button" tabindex="0">
+          <span class="nsm-compare-card-tag">你的</span>${escHtml(userNsm || '（未填寫）')}
+        </div>
+        <div class="nsm-tree-node nsm-tree-root nsm-tree-coach" data-node="coach-nsm" data-label="NSM" data-is-coach="1" role="button" tabindex="0">
+          <span class="nsm-compare-card-tag coach">教練版</span>${escHtml(coachTree.nsm || '')}
+        </div>
+      </div>
+      ${cmpDims.map(d => `
+      <div class="nsm-compare-dim-block">
+        <div class="nsm-compare-dim-title">${escHtml(d.label)}</div>
+        <div class="nsm-tree-node" data-node="user-${d.key}" data-label="${escHtml(d.label)}" role="button" tabindex="0">
+          <span class="nsm-compare-card-tag">你的</span>${escHtml(userBreakdown[d.key] || '（未填寫）')}
+        </div>
+        <div class="nsm-tree-node nsm-tree-coach" data-node="coach-${d.key}" data-label="${escHtml(d.label)}" data-is-coach="1" role="button" tabindex="0">
+          <span class="nsm-compare-card-tag coach">教練版</span>${escHtml(coachTree[d.key] || '')}
+        </div>
+      </div>`).join('')}
+    </div>
+    <div class="nsm-detail-sheet-backdrop" id="nsm-detail-sheet-backdrop"></div>
+    <div class="nsm-detail-sheet" id="nsm-detail-sheet" role="dialog" aria-modal="true" aria-hidden="true">
+      <div class="nsm-detail-sheet-handle" id="nsm-detail-sheet-handle" role="button" tabindex="0" aria-label="關閉"></div>
+      <div class="nsm-detail-sheet-body" id="nsm-detail-sheet-body"></div>
+    </div>`;
+
+  const desktopCompare = `
     <div class="nsm-comparison">
       <div class="nsm-tree-col">
         <div class="nsm-tree-title"><i class="ph ph-user"></i> 你的拆解</div>
@@ -4584,6 +4615,8 @@ function renderNSMStep4() {
       </div>
     </div>
     <div class="nsm-node-detail" id="nsm-node-detail" style="display:none"></div>`;
+
+  const comparisonTab = _isMobileCmp ? mobileCompareStack : desktopCompare;
 
   const highlightsTab = `
     <div class="nsm-highlights">
