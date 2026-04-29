@@ -583,6 +583,8 @@ async function fetchCirclesRecentSessions() {
   AppState.circlesRecentLoading = false;
   // SIT-1 #5: mark sessions-fetch-complete so welcome card render gate can pass.
   AppState.circlesSessionsFetched = true;
+  // J7: signal CSS that onboarding decision is settled — un-hides .onboarding-welcome
+  try { document.body.dataset.onboardingChecked = '1'; } catch (_) {}
   // Don't trigger a full render — that would wipe out any UI state the user has
   // already interacted with (expanded question cards, dropdowns, etc.).
   // Only update the recent-sessions slot in place.
@@ -910,6 +912,8 @@ function attachOffcanvasDeleteListeners(listEl) {
   listEl.querySelectorAll('.offcanvas-delete-btn').forEach(btn => {
     btn.addEventListener('click', async (e) => {
       e.stopPropagation();
+      // J10 — confirm before destructive delete (matches history-delete-btn UX)
+      if (!confirm('確定刪除這次練習？此操作無法復原。')) return;
       const id = btn.dataset.id;
       const type = btn.dataset.type;
 
@@ -1099,6 +1103,16 @@ async function init() {
     localStorage.setItem('guestId', crypto.randomUUID());
   }
   AppState.guestId = localStorage.getItem('guestId');
+
+  // J11 — honor ?view=<viewName> URL param for direct deep-links
+  try {
+    var _viewParam = new URLSearchParams(location.search).get('view');
+    var _knownViews = ['circles', 'nsm', 'practice', 'report', 'login', 'register', 'home'];
+    if (_viewParam && _knownViews.indexOf(_viewParam) >= 0) {
+      AppState.view = _viewParam;
+    }
+  } catch (_) {}
+
   document.body.dataset.view = AppState.view;
 
   bindNavbarTabs();
@@ -1408,10 +1422,10 @@ init();
     return (
       '<div class="rt-field">' +
         '<div class="rt-toolbar">' +
-          '<button type="button" class="rt-tbtn" data-rt-action="bold" title="粗體 (Ctrl+B)"><strong>B</strong></button>' +
-          '<button type="button" class="rt-tbtn" data-rt-action="bullet" title="列點 (Ctrl+L)"><i class="ph ph-list-bullets"></i></button>' +
-          '<button type="button" class="rt-tbtn" data-rt-action="indent" title="縮排 (Tab)"><i class="ph ph-text-indent"></i></button>' +
-          '<button type="button" class="rt-tbtn" data-rt-action="outdent" title="退縮 (Shift+Tab)"><i class="ph ph-text-outdent"></i></button>' +
+          '<button type="button" class="rt-tbtn" data-rt-action="bold" title="粗體 (Ctrl+B)" aria-label="粗體"><strong>B</strong></button>' +
+          '<button type="button" class="rt-tbtn" data-rt-action="bullet" title="列點 (Ctrl+L)" aria-label="列點"><i class="ph ph-list-bullets"></i></button>' +
+          '<button type="button" class="rt-tbtn" data-rt-action="indent" title="縮排 (Tab)" aria-label="增加縮排"><i class="ph ph-text-indent"></i></button>' +
+          '<button type="button" class="rt-tbtn" data-rt-action="outdent" title="退縮 (Shift+Tab)" aria-label="減少縮排"><i class="ph ph-text-outdent"></i></button>' +
         '</div>' +
         '<textarea class="rt-textarea ' + extraClass + '" data-field="' + esc(key) + '" rows="' + rows + '" placeholder="' + esc(placeholder) + '" ' + dataAttrs + '>' + esc(value) + '</textarea>' +
       '</div>'
@@ -1893,11 +1907,11 @@ function renderCirclesHomeMobile() {
       // Mode selector
       '<div class="circles-step-select-label">練習模式</div>' +
       '<div class="circles-mode-row">' +
-        '<div class="circles-mode-card ' + (mode === 'simulation' ? 'selected' : '') + '" data-mode="simulation">' +
+        '<div class="circles-mode-card ' + (mode === 'simulation' ? 'selected' : '') + '" data-mode="simulation" role="button" tabindex="0" aria-label="完整模擬">' +
           '<div class="circles-mode-card-title"><i class="ph ph-video-camera"></i> 完整模擬</div>' +
           '<div class="circles-mode-card-desc">25-35 分鐘 · 全 7 步 · 無提示</div>' +
         '</div>' +
-        '<div class="circles-mode-card ' + (mode === 'drill' ? 'selected' : '') + '" data-mode="drill">' +
+        '<div class="circles-mode-card ' + (mode === 'drill' ? 'selected' : '') + '" data-mode="drill" role="button" tabindex="0" aria-label="步驟加練">' +
           '<div class="circles-mode-card-title"><i class="ph ph-target"></i> 步驟加練</div>' +
           '<div class="circles-mode-card-desc">5-10 分鐘 · 單一步驟 · 全引導</div>' +
         '</div>' +
@@ -1953,11 +1967,11 @@ function renderCirclesHomeDesktop() {
   var strategyCount = allQs.filter(function(q) { return q.question_type === 'strategy'; }).length;
 
   var modeCardsHtml =
-    '<div class="circles-mode-card ' + (mode === 'simulation' ? 'selected' : '') + '" data-mode="simulation">' +
+    '<div class="circles-mode-card ' + (mode === 'simulation' ? 'selected' : '') + '" data-mode="simulation" role="button" tabindex="0" aria-label="完整模擬">' +
       '<div class="circles-mode-card-title"><i class="ph ph-video-camera"></i> 完整模擬</div>' +
       '<div class="circles-mode-card-desc">25-35 分鐘 · 全 7 步</div>' +
     '</div>' +
-    '<div class="circles-mode-card ' + (mode === 'drill' ? 'selected' : '') + '" data-mode="drill">' +
+    '<div class="circles-mode-card ' + (mode === 'drill' ? 'selected' : '') + '" data-mode="drill" role="button" tabindex="0" aria-label="步驟加練">' +
       '<div class="circles-mode-card-title"><i class="ph ph-target"></i> 步驟加練</div>' +
       '<div class="circles-mode-card-desc">5-10 分鐘 · 單一步驟</div>' +
     '</div>';
@@ -2121,12 +2135,16 @@ function bindCirclesHome() {
     });
   });
 
-  // Mode selector
+  // Mode selector (J5: keyboard reachable via role=button + Enter/Space)
   document.querySelectorAll('.circles-mode-card').forEach(function(el) {
-    el.addEventListener('click', function() {
+    function activate() {
       AppState.circlesMode = el.dataset.mode;
       localStorage.setItem('circlesMode', AppState.circlesMode);
       render();
+    }
+    el.addEventListener('click', activate);
+    el.addEventListener('keydown', function(e) {
+      if (e.key === 'Enter' || e.key === ' ') { e.preventDefault(); activate(); }
     });
   });
 
@@ -2287,7 +2305,7 @@ function buildPrevStepCardHtml(stepKey) {
 function buildFieldExampleHtml(stepKey, field, fallbackHint) {
   // Suppress entirely when there's no fallback hint AND no step (defensive)
   if (!stepKey || !field) return '';
-  return '<button class="field-example-toggle" type="button" data-example-step="' + stepKey + '" data-example-field="' + escHtml(field) + '">' +
+  return '<button class="field-example-toggle" type="button" aria-expanded="false" data-example-step="' + stepKey + '" data-example-field="' + escHtml(field) + '">' +
       '<i class="ph ph-caret-right"></i> 查看範例' +
     '</button>' +
     '<div class="field-example-body" data-fallback="' + escHtml(fallbackHint || '') + '"></div>';
@@ -2307,12 +2325,12 @@ function buildFieldGroupHtml(stepKey, field, draft, isSimulation, fieldIdx) {
     buildFieldExampleHtml(stepKey, key, '') +
     '<div class="rt-field">' +
       '<div class="rt-toolbar">' +
-        '<button type="button" class="rt-tbtn" data-rt-action="bold" title="粗體 (Ctrl+B)"><strong>B</strong></button>' +
-        '<button type="button" class="rt-tbtn" data-rt-action="bullet" title="列點 (Ctrl+L)"><i class="ph ph-list-bullets"></i></button>' +
-        '<button type="button" class="rt-tbtn" data-rt-action="indent" title="縮排 (Tab)"><i class="ph ph-text-indent"></i></button>' +
-        '<button type="button" class="rt-tbtn" data-rt-action="outdent" title="退縮 (Shift+Tab)"><i class="ph ph-text-outdent"></i></button>' +
+        '<button type="button" class="rt-tbtn" data-rt-action="bold" title="粗體 (Ctrl+B)" aria-label="粗體"><strong>B</strong></button>' +
+        '<button type="button" class="rt-tbtn" data-rt-action="bullet" title="列點 (Ctrl+L)" aria-label="列點"><i class="ph ph-list-bullets"></i></button>' +
+        '<button type="button" class="rt-tbtn" data-rt-action="indent" title="縮排 (Tab)" aria-label="增加縮排"><i class="ph ph-text-indent"></i></button>' +
+        '<button type="button" class="rt-tbtn" data-rt-action="outdent" title="退縮 (Shift+Tab)" aria-label="減少縮排"><i class="ph ph-text-outdent"></i></button>' +
       '</div>' +
-      '<textarea class="circles-field-input rt-textarea" data-field="' + escHtml(key) + '" rows="' + rows + '" placeholder="' + escHtml(field.placeholder || '填寫你的分析…') + '">' + escTextarea(val) + '</textarea>' +
+      '<textarea class="circles-field-input rt-textarea" data-field="' + escHtml(key) + '" rows="' + rows + '" enterkeyhint="enter" placeholder="' + escHtml(field.placeholder || '填寫你的分析…') + '">' + escTextarea(val) + '</textarea>' +
     '</div>' +
   '</div>';
 }
@@ -2341,12 +2359,12 @@ function buildSolutionFieldHtml(stepKey, field, draft, lDraft, isSimulation, fie
     buildFieldExampleHtml(stepKey, key, '') +
     '<div class="rt-field">' +
       '<div class="rt-toolbar">' +
-        '<button type="button" class="rt-tbtn" data-rt-action="bold" title="粗體 (Ctrl+B)"><strong>B</strong></button>' +
-        '<button type="button" class="rt-tbtn" data-rt-action="bullet" title="列點 (Ctrl+L)"><i class="ph ph-list-bullets"></i></button>' +
-        '<button type="button" class="rt-tbtn" data-rt-action="indent" title="縮排 (Tab)"><i class="ph ph-text-indent"></i></button>' +
-        '<button type="button" class="rt-tbtn" data-rt-action="outdent" title="退縮 (Shift+Tab)"><i class="ph ph-text-outdent"></i></button>' +
+        '<button type="button" class="rt-tbtn" data-rt-action="bold" title="粗體 (Ctrl+B)" aria-label="粗體"><strong>B</strong></button>' +
+        '<button type="button" class="rt-tbtn" data-rt-action="bullet" title="列點 (Ctrl+L)" aria-label="列點"><i class="ph ph-list-bullets"></i></button>' +
+        '<button type="button" class="rt-tbtn" data-rt-action="indent" title="縮排 (Tab)" aria-label="增加縮排"><i class="ph ph-text-indent"></i></button>' +
+        '<button type="button" class="rt-tbtn" data-rt-action="outdent" title="退縮 (Shift+Tab)" aria-label="減少縮排"><i class="ph ph-text-outdent"></i></button>' +
       '</div>' +
-      '<textarea class="circles-field-input rt-textarea" data-field="' + escHtml(key) + '" rows="' + (field.rows || 2) + '" placeholder="' + escHtml(field.placeholder || '') + '">' + escTextarea(bodyVal) + '</textarea>' +
+      '<textarea class="circles-field-input rt-textarea" data-field="' + escHtml(key) + '" rows="' + (field.rows || 2) + '" enterkeyhint="enter" placeholder="' + escHtml(field.placeholder || '') + '">' + escTextarea(bodyVal) + '</textarea>' +
     '</div>' +
   '</div>';
 }
@@ -2366,12 +2384,12 @@ function buildTrackingBlockHtml(tracking) {
       '<div class="tracking-dim-desc">' + escHtml(dim.desc) + '</div>' +
       '<div class="rt-field">' +
         '<div class="rt-toolbar">' +
-          '<button type="button" class="rt-tbtn" data-rt-action="bold" title="粗體 (Ctrl+B)"><strong>B</strong></button>' +
-          '<button type="button" class="rt-tbtn" data-rt-action="bullet" title="列點 (Ctrl+L)"><i class="ph ph-list-bullets"></i></button>' +
-          '<button type="button" class="rt-tbtn" data-rt-action="indent" title="縮排 (Tab)"><i class="ph ph-text-indent"></i></button>' +
-          '<button type="button" class="rt-tbtn" data-rt-action="outdent" title="退縮 (Shift+Tab)"><i class="ph ph-text-outdent"></i></button>' +
+          '<button type="button" class="rt-tbtn" data-rt-action="bold" title="粗體 (Ctrl+B)" aria-label="粗體"><strong>B</strong></button>' +
+          '<button type="button" class="rt-tbtn" data-rt-action="bullet" title="列點 (Ctrl+L)" aria-label="列點"><i class="ph ph-list-bullets"></i></button>' +
+          '<button type="button" class="rt-tbtn" data-rt-action="indent" title="縮排 (Tab)" aria-label="增加縮排"><i class="ph ph-text-indent"></i></button>' +
+          '<button type="button" class="rt-tbtn" data-rt-action="outdent" title="退縮 (Shift+Tab)" aria-label="減少縮排"><i class="ph ph-text-outdent"></i></button>' +
         '</div>' +
-        '<textarea class="tracking-dim-input rt-textarea' + (v ? ' filled' : '') + '" data-tracking-dim="' + dim.key + '" rows="1" placeholder="' + escHtml(dim.placeholder) + '">' + escTextarea(v) + '</textarea>' +
+        '<textarea class="tracking-dim-input rt-textarea' + (v ? ' filled' : '') + '" data-tracking-dim="' + dim.key + '" rows="1" enterkeyhint="enter" placeholder="' + escHtml(dim.placeholder) + '">' + escTextarea(v) + '</textarea>' +
       '</div>' +
     '</div>';
   }).join('');
@@ -2410,12 +2428,12 @@ function buildESolutionBlockHtml(solKey, solIdx, solName, perSolDraft, eFieldsCo
       (solIdx === 0 ? buildFieldExampleHtml('E', f.key, hint) : '') +
       '<div class="rt-field">' +
         '<div class="rt-toolbar">' +
-          '<button type="button" class="rt-tbtn" data-rt-action="bold" title="粗體 (Ctrl+B)"><strong>B</strong></button>' +
-          '<button type="button" class="rt-tbtn" data-rt-action="bullet" title="列點 (Ctrl+L)"><i class="ph ph-list-bullets"></i></button>' +
-          '<button type="button" class="rt-tbtn" data-rt-action="indent" title="縮排 (Tab)"><i class="ph ph-text-indent"></i></button>' +
-          '<button type="button" class="rt-tbtn" data-rt-action="outdent" title="退縮 (Shift+Tab)"><i class="ph ph-text-outdent"></i></button>' +
+          '<button type="button" class="rt-tbtn" data-rt-action="bold" title="粗體 (Ctrl+B)" aria-label="粗體"><strong>B</strong></button>' +
+          '<button type="button" class="rt-tbtn" data-rt-action="bullet" title="列點 (Ctrl+L)" aria-label="列點"><i class="ph ph-list-bullets"></i></button>' +
+          '<button type="button" class="rt-tbtn" data-rt-action="indent" title="縮排 (Tab)" aria-label="增加縮排"><i class="ph ph-text-indent"></i></button>' +
+          '<button type="button" class="rt-tbtn" data-rt-action="outdent" title="退縮 (Shift+Tab)" aria-label="減少縮排"><i class="ph ph-text-outdent"></i></button>' +
         '</div>' +
-        '<textarea class="e-sol-input rt-textarea" data-sol="' + solKey + '" data-field="' + escHtml(f.key) + '" rows="2" placeholder="' + escHtml(f.placeholder) + '">' + escTextarea(v) + '</textarea>' +
+        '<textarea class="e-sol-input rt-textarea" data-sol="' + solKey + '" data-field="' + escHtml(f.key) + '" rows="2" enterkeyhint="enter" placeholder="' + escHtml(f.placeholder) + '">' + escTextarea(v) + '</textarea>' +
       '</div>' +
     '</div>';
   }).join('');
@@ -2514,7 +2532,7 @@ function renderCirclesPhase1() {
   var isLastStep = stepIdx === CIRCLES_STEPS.length - 1;
   var submitBarHtml = '<div class="circles-submit-bar">' +
     '<button class="circles-btn-secondary" id="circles-p1-back" type="button">返回選題</button>' +
-    '<button class="circles-btn-primary" id="circles-p1-submit" type="button">' + (isSimulation && isLastStep ? '提交審核' : '提交審核') + '</button>' +
+    '<button class="circles-btn-primary" id="circles-p1-submit" type="button">' + (isSimulation && isLastStep ? '送出評分' : '送出評分') + '</button>' +
   '</div>';
 
   // Phase 4.2 — desktop wrapper class
@@ -2553,7 +2571,7 @@ function renderCirclesPhase1() {
   if (_isDesktopP1) {
     return '<div data-view="circles" class="phase1-desktop">' +
       '<div class="circles-nav">' +
-        '<button class="circles-nav-back" id="circles-p1-nav-back" type="button"><i class="ph ph-arrow-left"></i></button>' +
+        '<button class="circles-nav-back" id="circles-p1-nav-back" type="button" aria-label="返回"><i class="ph ph-arrow-left"></i></button>' +
         '<div>' +
           '<div class="circles-nav-title">' + escHtml(config.label) + '</div>' +
           '<div class="circles-nav-sub">' + escHtml(q.company || '') + (q.product ? ' · ' + escHtml(q.product) : '') + '</div>' +
@@ -2583,7 +2601,7 @@ function renderCirclesPhase1() {
 
   return '<div data-view="circles">' +
     '<div class="circles-nav">' +
-      '<button class="circles-nav-back" id="circles-p1-nav-back" type="button"><i class="ph ph-arrow-left"></i></button>' +
+      '<button class="circles-nav-back" id="circles-p1-nav-back" type="button" aria-label="返回"><i class="ph ph-arrow-left"></i></button>' +
       '<div>' +
         '<div class="circles-nav-title">' + escHtml(config.label) + '</div>' +
         '<div class="circles-nav-sub">' + escHtml(q.company || '') + (q.product ? ' · ' + escHtml(q.product) : '') + '</div>' +
@@ -2627,6 +2645,21 @@ function bindCirclesPhase1() {
   // ── Save standard textarea fields to circlesFrameworkDraft + step_drafts on every input
   // Spec 2 § 3 requires step_drafts as canonical source of "has drafts" — keyed
   // by step letter. framework_draft is kept as flat field map for gate/eval.
+  // J4 — Tab key inserts 2 spaces in Phase-1 textareas (don't shift focus)
+  function _circlesTabHandler(e) {
+    if (e.key !== 'Tab' || e.shiftKey) return;
+    if (e.defaultPrevented) return; // rt-textarea bullet handler already handled it
+    e.preventDefault();
+    var ta = e.target;
+    var s = ta.selectionStart, en = ta.selectionEnd;
+    ta.value = ta.value.slice(0, s) + '  ' + ta.value.slice(en);
+    ta.selectionStart = ta.selectionEnd = s + 2;
+    ta.dispatchEvent(new Event('input', { bubbles: true }));
+  }
+  document.querySelectorAll('.circles-field-input, .e-sol-input, .tracking-dim-input').forEach(function(el) {
+    el.addEventListener('keydown', _circlesTabHandler);
+  });
+
   document.querySelectorAll('.circles-field-input').forEach(function(el) {
     el.addEventListener('input', function() {
       AppState.circlesFrameworkDraft[el.dataset.field] = el.value;
@@ -2719,6 +2752,7 @@ function bindCirclesPhase1() {
       var fieldKey = btn.dataset.exampleField;
       var question = AppState.circlesSelectedQuestion;
       var isOpen = body.classList.toggle('open');
+      btn.setAttribute('aria-expanded', isOpen ? 'true' : 'false');
       btn.innerHTML = isOpen
         ? '<i class="ph ph-caret-down"></i> 收起範例'
         : '<i class="ph ph-caret-right"></i> 查看範例';
@@ -2830,6 +2864,27 @@ function bindCirclesPhase1() {
 
   document.getElementById('circles-p1-submit')?.addEventListener('click', async function() {
     var btn = this;
+
+    // J8 — client-side pre-flight: at least 2 non-empty fields before calling /gate.
+    var _fieldEls = Array.prototype.slice.call(
+      document.querySelectorAll('.circles-field-input, .e-sol-input, .tracking-dim-input, .sol-name-input')
+    );
+    var _filled = _fieldEls.filter(function(el) { return (el.value || '').trim().length > 0; });
+    var _MIN = 2;
+    if (_fieldEls.length > 0 && _filled.length < _MIN) {
+      var existingErr = document.getElementById('circles-p1-preflight-err');
+      if (existingErr) existingErr.remove();
+      var errEl = document.createElement('div');
+      errEl.id = 'circles-p1-preflight-err';
+      errEl.setAttribute('role', 'alert');
+      errEl.style.cssText = 'color:var(--c-error,#d33);font-size:12px;padding:8px 12px;margin-top:6px';
+      errEl.textContent = '請至少填寫 ' + _MIN + ' 個欄位再送出評分。';
+      btn.parentNode && btn.parentNode.insertBefore(errEl, btn);
+      var firstEmpty = _fieldEls.find(function(el) { return !(el.value || '').trim(); });
+      if (firstEmpty) firstEmpty.focus();
+      return;
+    }
+
     btn.disabled = true;
     btn.textContent = 'AI 審核中...';
 
@@ -2921,7 +2976,14 @@ async function showCirclesHint(step, field) {
   '</div>';
   document.body.appendChild(overlay);
 
-  function close() { overlay.remove(); }
+  function close() {
+    overlay.remove();
+    document.removeEventListener('keydown', _onEsc);
+  }
+  function _onEsc(e) {
+    if (e.key === 'Escape') { e.preventDefault(); close(); }
+  }
+  document.addEventListener('keydown', _onEsc);
   document.getElementById('hint-close-btn')?.addEventListener('click', close);
   overlay.addEventListener('click', function(e) { if (e.target === overlay) close(); });
 
@@ -2981,7 +3043,7 @@ function renderCirclesGate() {
         homeBtn +
       '</div>' +
       '<div class="circles-progress">' + progressSegs + '<div class="circles-progress-label">' + step.short + ' · ' + step.label + '</div></div>' +
-      '<div class="circles-gate-loading"><i class="ph ph-circle-notch" style="font-size:28px;animation:spin 0.8s linear infinite;display:block;margin-bottom:12px"></i>AI 正在審核你的框架...</div>' +
+      '<div class="circles-gate-loading" id="circles-gate-loading"><i class="ph ph-circle-notch" style="font-size:28px;animation:spin 0.8s linear infinite;display:block;margin-bottom:12px"></i>AI 正在審核你的框架...<div style="font-size:12px;color:var(--c-text-3);margin-top:8px">通常需要 8-15 秒</div><div id="circles-gate-slow" style="font-size:12px;color:var(--c-warn-bold,#a60);margin-top:10px;display:none">回應較慢，請稍候 ‧ <button type="button" id="circles-gate-retry" style="background:none;border:none;color:var(--c-primary);text-decoration:underline;cursor:pointer;font-size:12px">重試</button></div></div>' +
     '</div>';
   }
 
@@ -3062,6 +3124,20 @@ function renderCirclesGate() {
 }
 
 function bindCirclesGate() {
+  // J9 — show "slow" affordance after 20s while gate is still loading
+  if (AppState.circlesGateLoading) {
+    var _slowTimer = setTimeout(function() {
+      var slowEl = document.getElementById('circles-gate-slow');
+      if (slowEl && AppState.circlesGateLoading) slowEl.style.display = 'block';
+    }, 20000);
+    var _loadingEl = document.getElementById('circles-gate-loading');
+    if (_loadingEl) _loadingEl._slowTimer = _slowTimer;
+    document.getElementById('circles-gate-retry')?.addEventListener('click', function() {
+      AppState.circlesGateLoading = false;
+      AppState.circlesPhase = 1;
+      render();
+    });
+  }
   document.getElementById('circles-gate-back')?.addEventListener('click', function() {
     AppState.circlesPhase = 1;
     render();
@@ -3161,10 +3237,10 @@ function renderCirclesPhase2() {
       '</div>' +
       '<div class="rt-field">' +
         '<div class="rt-toolbar">' +
-          '<button type="button" class="rt-tbtn" data-rt-action="bold" title="粗體 (Ctrl+B)"><strong>B</strong></button>' +
-          '<button type="button" class="rt-tbtn" data-rt-action="bullet" title="列點 (Ctrl+L)"><i class="ph ph-list-bullets"></i></button>' +
-          '<button type="button" class="rt-tbtn" data-rt-action="indent" title="縮排 (Tab)"><i class="ph ph-text-indent"></i></button>' +
-          '<button type="button" class="rt-tbtn" data-rt-action="outdent" title="退縮 (Shift+Tab)"><i class="ph ph-text-outdent"></i></button>' +
+          '<button type="button" class="rt-tbtn" data-rt-action="bold" title="粗體 (Ctrl+B)" aria-label="粗體"><strong>B</strong></button>' +
+          '<button type="button" class="rt-tbtn" data-rt-action="bullet" title="列點 (Ctrl+L)" aria-label="列點"><i class="ph ph-list-bullets"></i></button>' +
+          '<button type="button" class="rt-tbtn" data-rt-action="indent" title="縮排 (Tab)" aria-label="增加縮排"><i class="ph ph-text-indent"></i></button>' +
+          '<button type="button" class="rt-tbtn" data-rt-action="outdent" title="退縮 (Shift+Tab)" aria-label="減少縮排"><i class="ph ph-text-outdent"></i></button>' +
         '</div>' +
         '<textarea id="circles-conclusion-input" class="conclusion-textarea rt-textarea" rows="5" placeholder="' + escHtml(placeholder) + '">' + escTextarea(conclusionText) + '</textarea>' +
       '</div>' +
@@ -3443,7 +3519,18 @@ async function sendCirclesMessage() {
     if (streamingBubble) chatBody.appendChild(streamingBubble);
     chatBody.scrollTop = chatBody.scrollHeight;
   }
-  if (streamingBubble) { streamingBubble.innerHTML = '<div class="circles-bubble-ai"><i class="ph ph-circle-notch" style="animation:spin 0.8s linear infinite"></i></div>'; }
+  if (streamingBubble) {
+    streamingBubble.innerHTML = '<div class="circles-bubble-ai"><i class="ph ph-circle-notch" style="animation:spin 0.8s linear infinite"></i> <span style="font-size:11px;color:var(--c-text-3)">通常需要 8-15 秒</span></div>';
+  }
+  // J9 — after 20s, show "回應較慢" with retry hint inside the streaming bubble
+  var _chatSlowTimer = setTimeout(function() {
+    if (!AppState.isStreaming) return;
+    var sb = document.getElementById('circles-streaming-bubble');
+    if (!sb) return;
+    // Only show if no AI text has rendered yet (still spinner)
+    if (sb.querySelector('.circles-bubble-section')) return;
+    sb.innerHTML = '<div class="circles-bubble-ai"><i class="ph ph-circle-notch" style="animation:spin 0.8s linear infinite"></i> <span style="font-size:11px;color:var(--c-warn-bold,#a60)">回應較慢，請稍候…</span></div>';
+  }, 20000);
 
   var session = AppState.circlesSession;
   if (!session || !session.id) { AppState.isStreaming = false; return; }
@@ -3515,6 +3602,7 @@ async function sendCirclesMessage() {
 
   AppState.isStreaming = false;
   if (sendBtn) sendBtn.disabled = false;
+  clearTimeout(_chatSlowTimer);
 }
 function renderCirclesStepScore() {
   var result = AppState.circlesScoreResult;
@@ -4092,11 +4180,11 @@ function renderAuth(isLogin) {
         <form id="auth-form">
           <div style="margin-bottom:12px">
             <label style="font-size:0.85rem;color:var(--text-secondary)">Email</label>
-            <input id="email" type="email" required class="chat-input" style="width:100%;margin-top:4px" />
+            <input id="email" type="email" name="email" autocomplete="email" required class="chat-input" style="width:100%;margin-top:4px" />
           </div>
           <div style="margin-bottom:20px">
             <label style="font-size:0.85rem;color:var(--text-secondary)">密碼</label>
-            <input id="password" type="password" required class="chat-input" style="width:100%;margin-top:4px" />
+            <input id="password" type="password" name="password" autocomplete="${isLogin?'current-password':'new-password'}" required class="chat-input" style="width:100%;margin-top:4px" />
           </div>
           <p id="auth-error" style="color:var(--danger);font-size:0.85rem;margin-bottom:12px;display:none"></p>
           <button type="submit" class="btn btn-primary" style="width:100%">${isLogin?'登入':'建立帳號'}</button>
@@ -6062,8 +6150,14 @@ function bindNSM() {
       });
     }
     document.addEventListener('keydown', function _nsmEscClose(e) {
-      if (e.key === 'Escape' && _nsmSheetEl.classList.contains('open')) _nsmCloseSheet();
-    });
+      // J16 — Esc closes the detail sheet first; stopPropagation prevents
+      // any outer listener (e.g. parent NSM panel) from also closing on the
+      // same keystroke. User must press Esc a second time to close outer.
+      if (e.key === 'Escape' && _nsmSheetEl.classList.contains('open')) {
+        e.stopPropagation();
+        _nsmCloseSheet();
+      }
+    }, true);
   }
 
   // Restore open node if any (desktop only — mobile sheet doesn't need restore on render)
