@@ -1368,10 +1368,24 @@ init();
       }, 200);
     });
     if (window.visualViewport) {
-      window.visualViewport.addEventListener('resize', () => {
-        if (mobileToolbar.style.display === 'flex') {
-          const offset = Math.max(0, window.innerHeight - window.visualViewport.height);
-          mobileToolbar.style.bottom = offset + 'px';
+      const reposition = () => {
+        if (mobileToolbar.style.display !== 'flex') return;
+        const vv = window.visualViewport;
+        // pin toolbar bottom to keyboard top using visualViewport coords
+        // (window.innerHeight shrinks with keyboard on iOS — unreliable;
+        //  documentElement.clientHeight stays = layout viewport height)
+        const layoutH = document.documentElement.clientHeight;
+        const kbTopInLayout = vv.offsetTop + vv.height;
+        const offset = Math.max(0, layoutH - kbTopInLayout);
+        mobileToolbar.style.bottom = offset + 'px';
+      };
+      window.visualViewport.addEventListener('resize', reposition);
+      window.visualViewport.addEventListener('scroll', reposition);
+      // also reposition on focus (initial keyboard open) after a tick
+      document.addEventListener('focusin', (e) => {
+        if (e.target?.classList?.contains?.('rt-textarea')) {
+          requestAnimationFrame(() => requestAnimationFrame(reposition));
+          setTimeout(reposition, 350);
         }
       });
     }
