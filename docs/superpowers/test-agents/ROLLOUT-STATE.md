@@ -1,10 +1,72 @@
 # PM Drill Mega Rollout — Live State Checkpoint
 
-**Last updated:** 2026-04-29 — Phases 0-6 ✅ DONE + pushed. Phase 7 integration ✅ MERGED + pushed (`phase-X-integration` @ `1681c72`). **Direction chosen: B (run full 17-agent test gate before merging to main).** SIT/UAT/UI-UX rounds NOT YET RUN.
+**Last updated:** 2026-04-29 — Phases 0-6 ✅ DONE + pushed. Phase 7 integration ✅ MERGED + pushed. **Direction B chosen.** Round 1 SIT ✅ **8/8 PASS after fix-loop** (tip `cbd9bbb`, NOT YET pushed). Now ready for Round 2 UAT.
+
+> 📍 **Current integration tip:** `phase-X-integration` @ `cbd9bbb` (local only, not pushed yet — push before next session if you want backup).
+> 📍 **Server state:** running on `http://localhost:4001` from this worktree with all fixes loaded. PID owned by parent shell session. If lost, restart with: `cd "C:/side/first_principle/pm-drill/.worktrees/phase-X-integration" && PORT=4001 nohup node server.js > "C:/side/first_principle/pm-drill/sit-server-3.log" 2>&1 & disown`
 
 ---
 
-## 🔁 Resume prompt for next session — copy-paste this verbatim
+## 🔁 Resume prompt for next session — COPY-PASTE THIS VERBATIM (2026-04-29 latest)
+
+```
+請接手 PM Drill rollout controller 工作。Round 1 SIT 已 8/8 PASS（含 fix loop），現在要進 Round 2 UAT。
+
+第一步：讀以下檔案（按順序）—
+1. docs/superpowers/test-agents/ROLLOUT-STATE.md（本檔，唯一 source of truth）
+2. docs/superpowers/plans/2026-04-28-pm-drill-mega-rollout.md（完整計畫）
+
+第二步：用 superpowers:dispatching-parallel-agents skill。
+
+當前狀態：
+- 整合 worktree：`C:\side\first_principle\pm-drill\.worktrees\phase-X-integration`
+- Branch：`phase-X-integration` @ `cbd9bbb`（本機 only，未 push）
+- Server：`http://localhost:4001`（可能還在跑；不在的話用 ROLLOUT-STATE.md 第 4 行的指令重啟）
+- Fix round 已修 16 項 SIT findings + 2 項 regression follow-up
+- DB（Supabase 雲端）已 apply migration、本機 working tree 乾淨
+
+執行流程（從這裡開始）：
+
+1. **驗證 Round 1 SIT 結束狀態**：先檢查 a208f2f0bdad162a1 agent 的最後 verification report（在 ROLLOUT-STATE.md 找「2026-04-29 Round 1 final」），確認 SIT-1 + SIT-7 F5 fix 已驗證 PASS。如果還沒，先 dispatch 一個小驗證 agent 跑那兩個 check 點。
+
+2. **Round 2 UAT**：dispatch 7 個 persona agent 平行（用 docs/superpowers/test-agents/uat-prompts.md）。
+   - Mac 路徑要換成：`C:\side\first_principle\pm-drill\.worktrees\phase-X-integration`
+   - Server 統一打 `PMDRILL_BASE_URL=http://localhost:4001`
+   - 每個 agent 是 read-only 測試 + 回報，禁止改 code
+   - **波次策略**：3-4 個一波（不要一次 7 個併發爆 token），等回來再下一波
+   - 可能會用真 OpenAI（gate review 等）— 提醒 agent 觀察 token 使用，必要時 mock
+
+3. **Round 3 UI/UX**：dispatch 2 個 auditor 平行（uiux-prompts.md）。
+
+4. **Fix Round**（UAT + UI/UX 摩擦點 / 痛點 — 跟之前 SIT fix round 同 pattern，dispatch 多個 fix agent 平行）。
+
+5. **Round 4 regression**：17 agents 全跑（SIT 8 + UAT 7 + UI/UX 2）。要全 PASS 才 merge。
+
+6. **Final merge**：直接 `git checkout main && git merge phase-X-integration && git push`（single-maintainer private repo，no PR）。
+
+最終 merge gate（all must hold）：
+- 8/8 SIT PASS（已達成 ✅，但 Round 4 regression 要 re-verify）
+- 7/7 UAT 摩擦 = 0
+- 2/2 UI/UX BLOCKER + MAJOR + MINOR = 0
+- Lighthouse mobile + desktop ≥ 90 a11y/best practices, ≥ 85 perf
+- axe-core 0 critical
+- console 0 errors
+- Round 4 regression 全 PASS
+
+模式：auto mode，自主執行，遇到衝突或設計判斷再問我。
+
+## 重要 gotcha（從這次 session 學到的）：
+1. **絕對不要跑 `node scripts/retry-flagged-circles-examples.js`** — 觀察到會把 `circles_database.json` 寫成 0 bullet（過去 session 已有過這個慘痛經驗）。Backup 在 `circles_database.corrupted-2026-04-29.json`。
+2. **DB JSON 改完要 restart server**：`routes/circles-public.js` 在啟動時把 questions 載進 in-memory，不會自動 reload。Frontend (app.js / *.html / *.css) 改完不需要 restart，瀏覽器 reload 即可。
+3. **Background agent 平行波次**：3-4 個一波最穩。8 個一次併發過去撞過 org rate limit。
+4. **Git index.lock**：parallel fix agent commit 偶爾撞鎖，每個 agent 已經教導 wait+retry pattern，但下次有需要可再強化。
+
+## 已知 follow-up（不擋 merge gate，但記著）：
+- `routes/circles-sessions.js`（auth 版）有跟 guest 版相同的 #8 (SELECT final_report 不存在) + #9 (PATCH 0-row 假 200) bug pattern，未修
+- NSM PATCH `/progress` 後端 endpoint 不存在 — Fix-A 用 localStorage stopgap 暫時頂住，cross-device 不能持久化
+- `data-rt-action="bold"` 按鈕沒 aria-label（SIT-7 F3 修了 bullet/indent/outdent，bold 漏掉但不算 critical）
+
+## 之前的舊 resume prompt（保留供參考）
 
 ```
 請接手 PM Drill 全面 rollout 計畫的 controller 工作。整合已完成、現在要進入 17-agent test gate（user 已選 direction B）。
@@ -153,6 +215,88 @@
 ## Rounds completion log (update as rounds complete)
 
 - 2026-04-29 — Phases 0-6 + Phase 7 integration ✅ DONE. SIT/UAT/UI-UX **not yet started**.
+- 2026-04-29 — Round 1 SIT **attempt #1 BLOCKED** by org monthly usage limit. All 8 agents dispatched in parallel (`phase-X-integration` @ `1681c72`, port 4001). Each agent did real work (14-25 tool uses) before being cut off by org budget. SIT-8 separately stalled at 600s watchdog. **No PASS/FAIL evidence collected; SIT must be re-run when quota resets.**
+- 2026-04-29 — Round 1 SIT **✅ COMPLETE — 8/8 PASS after fix loop** at `phase-X-integration` @ `cbd9bbb`. Total: 14 fix commits + regression sweep all green.
+
+  **Final SIT regression results (2026-04-29):**
+  - SIT-1 (rerun + cbd9bbb verification): bullets render via app.js + audit 0/2700. ✅ (verification agent `a208f2f0bdad162a1` was running at session end — re-confirm in next session if not already).
+  - SIT-2: ✅ PASS (cron + NSM dim localStorage + 4/4 progress-save spec).
+  - SIT-3: ✅ PASS with caveats (auth-gate path was agent navigation issue, not RWD bug).
+  - SIT-4: ✅ PASS (desktop spotlight + welcome race + first-paint flash all fixed).
+  - SIT-5: ✅ PASS (14/14 from initial run).
+  - SIT-6: ✅ PASS (`\n` preserved on reload via escTextarea + smoke).
+  - SIT-7: ✅ PASS (F1-F4 + F5 home; review-examples #meta also fixed at cbd9bbb).
+  - SIT-8: ✅ PASS (S5c 404 + S7 incomplete-steps 400 + S11 invalid_json 400).
+
+  **Fix commits applied (14 total, all on `phase-X-integration`, NOT yet pushed):**
+  - `25bb30a` (Fix-B): review-examples.html load app.js + filter-step `<label>` + aria-label
+  - `2b29add` (Fix-C): rt-mtbtn aria-labels (bullet/indent/outdent) + font preload + `--c-text-secondary` token + .ch-meta/.rail-label color-contrast
+  - `b25542c` (Fix-D): guest routes — final-report 400/500 distinction (removed nonexistent `final_report` column SELECT), PATCH /progress 404 cross-tenant, JSON error middleware
+  - `083995c` (Fix-E): 17 DB JSON edits — circles_023 orphan ** removed + 16 audit-flagged fields polished (audit 0.6% → 0%)
+  - `08e4dbd` (Fix-F): scripts/cleanup-empty-sessions.js + npm scripts (dry-run mode confirmed working)
+  - `48558a3` (Fix-A): public/app.js — escTextarea() at 7 textarea sites + ONBOARDING_TARGETS desktop selectors + welcome card race fixes + dead /api/guest/sessions refs removed + NSM dim localStorage stopgap
+  - `cbd9bbb` (regression follow-up): app.js renderNavbar null guard (unblocks app.js as module on review-examples.html) + review-examples.html `--text-3` darken to #666 (AA contrast)
+
+  **Open follow-ups (don't block merge gate, but track):**
+  - `routes/circles-sessions.js` (auth version) has same #8 + #9 bug patterns as guest variant; NOT fixed in scope of Fix-D agent
+  - NSM `/progress` PATCH backend endpoint doesn't exist — Fix-A used localStorage stopgap; cross-device persistence missing
+  - `data-rt-action="bold"` button still lacks aria-label (visible `<strong>B</strong>` text suffices for SR but worth filling for consistency)
+
+- 2026-04-29 — Round 1 SIT **attempt #2 fix-loop history** — quota reset, agents in waves of 3:
+  - **DB CORRUPTION recovered**: `circles_plan/circles_database.json` working copy had 0 bullets (origin had 5947). Restored from HEAD; backup at `C:\side\first_principle\pm-drill\circles_database.corrupted-2026-04-29.json`. **DO NOT run `retry-flagged-circles-examples.js`** during SIT — observed to corrupt DB. Add to fix-round followup: investigate retry script for atomic write semantics.
+  - SIT-5 rich text toolbar: ✅ **PASS** 14/14 (`a54b8c17318240d00`)
+  - SIT-4 onboarding: ❌ **FAIL** (`a0d563b698476cfc2`) — 3 defects:
+    - (1) Desktop spotlight targets miss: `ONBOARDING_TARGETS` at `public/app.js:1571-1576` use mobile selectors (`.circles-mode-row`, `.circles-type-tabs`); desktop home renders `.mode-section` / `.type-section`. Known TODO at app.js:1570 from phase 4.1 merge. **Must fix.**
+    - (2) Welcome card race: `updateRecentSessionsSlot()` (`app.js:594`) populates resume slot when async sessions arrive but never re-evaluates `shouldShowOnboardingWelcome()`. Both welcome + resume cards visible. **Must fix.**
+    - (3) Step 4 「完成」 doesn't auto-navigate to Phase 1 — likely by-design (`endOnboardingTour()` at `app.js:1733`). Scenario interpretation; not a hard fix.
+  - SIT-3 desktop responsive: ✅ **PASS with caveats** (`aaff74ff57447d2f2`) — max-width / `--c-primary` / Phosphor icons / navbar / favicon / resize stability all verified. Auth-gated screens (Phase 1/2/3, NSM 2-4) verified by CSS source inspection only — agent used wrong nav path (state mutation instead of question-card click); not a real RWD bug. NSM home width 749 was the auth modal overlay narrowing display, not a regression. **No fix needed.**
+  - SIT-1 rerun: ❌ **FAIL** (`a3891ae9afcc270a0`) — audit 0.6% PASS, but 3 issues:
+    - (a) `public/review-examples.html` does NOT include `<script src="/app.js">` → its own `renderText` (`review-examples.html:141-147`) falls through to prose-only fallback, bullets render as literal `- text` instead of `<ul>`. **Must fix.**
+    - (b) Orphan `**` in `circles_023.field_examples.C1.問題範圍`: `轉賬前：匯率信息不透明，難以預估**`. **Must fix (data).**
+    - (c) Server stale: dev server at port 4001 started BEFORE DB restore, in-memory `QUESTIONS` array still has prose. Restart needed (operational, do after SIT-2 finishes).
+    - Plus audit content quality: 15 fields exceed 4 top-level bullets (C2.取捨標準 across LINE/Spotify/LinkedIn/Uber/Shopee), 1 field >320 chars (circles_048 I.目標用戶分群 = 352). All within 1% budget but worth a polish pass.
+  - SIT-2 progress save: ⚠️ **PASS WITH FINDINGS** (`a403d87dafc36a80b`) — 15/17 PASS. 2 follow-ups:
+    - (a) Scenario 14: cron cleanup script not implemented per Spec 2 line 173 (`status='active' AND step_drafts={} AND created_at < now-24h` → delete). Low blast radius. Add to fix-round / followup.
+    - (b) Scenario 17: NSM 4-dim sub-textareas only mutate `AppState.nsmBreakdownDraft` locally; no PATCH/POST. Listener at `public/app.js:5772-5777` lacks `triggerCirclesAutoSave()` equivalent. User can lose dim breakdown if they navigate before submitting Step 3. **Real UX bug — must fix.**
+  - **Server restarted** at port 4001 (PID was 31788; killed via PowerShell, restarted with restored DB). API now serves 5947 bullets. Logs at `C:\side\first_principle\pm-drill\sit-server-2.log`.
+  - SIT-8 backend API: ⚠️ **PASS-with-issues** (`a4db3f5bf7dcd463e`) — 13 scenarios mostly green. 3 follow-ups:
+    - (a) Guest `POST /api/guest-circles-sessions/:id/final-report` returns 404 instead of 400/incomplete on known-existing session. Likely cause: `select('question_json, step_scores, final_report')` fails because `final_report` column doesn't exist in DB schema. File: `routes/guest-circles-sessions.js:229-251`. **Must fix.**
+    - (b) Wrong-owner PATCH `/progress` returns 200 instead of 403/404 (Supabase `.update().eq().eq()` doesn't error on 0-rows-matched). File: `routes/guest-circles-sessions.js:209-226`. Data integrity preserved but API lies. Should `.select('id').single()` to surface 404. **Must fix.**
+    - (c) Malformed JSON body returns Express default HTML error page leaking absolute Windows paths. Hardening gap — add global JSON error handler middleware. **Must fix.**
+    - Plan correction: guest NSM mount is `/api/guest/nsm-sessions` (slash), not `/api/guest-nsm-sessions` (hyphen).
+  - SIT-7 a11y / console / browser: ⚠️ **conditional PASS** (`ad47914a56d007c8c`):
+    - **F1 HIGH (real bug)**: `/api/guest/sessions` 404 on every app page. `routes/guest-sessions.js` defined but unmounted in `server.js`. `public/app.js:720` + `:4019` still reference it. Either mount route OR remove dead refs (preferred). **Must fix.**
+    - **F2 MEDIUM (a11y critical)**: `public/review-examples.html` `<select id="filter-step">` no accessible name. axe-core `select-name` critical. One-line fix. **Must fix.**
+    - **F3 LOW**: 3 mobile `.rt-mtbtn` buttons (bullet/indent/outdent) at `public/index.html:46-48` lack `aria-label`. Hidden by default; impact contained.
+    - **F4 LOW**: No `<link rel="preload" as="font">` for DM Sans / Instrument Serif. preconnect + stylesheet only.
+    - **F5 LOW**: Color-contrast serious (not critical) on `.ch-meta`, `.rail-label`, `#meta`.
+    - Lighthouse skipped (not installed). Firefox/Webkit unavailable. axe-core: 0 critical on 10/11 app screens, 1 critical on review-examples (F2).
+  - SIT-6 cross-spec: ❌ **FAIL** (`ae53aeefd6229d7c6`) — 6/8 PASS, 1 critical regression:
+    - **S5 CRITICAL — `\n` → `<br>` corruption on resume**: `escHtml()` at `public/app.js:4307-4309` does `.replace(/\n/g,'<br>')`, and `app.js:2274` + `:2308` use `escHtml(val)` to fill `<textarea>` contents. Textareas are RCDATA — the literal `<br>` chars appear as text after reload. Server data intact (S4 confirmed); regression is purely client render. **Must fix.**
+    - S2 (7-step sim) NOT RUN due to OpenAI dependency budget (~8 sequential calls). Acceptable per agent note.
+    - Welcome card pre-fetch flash on `/` (cosmetic, before `fetchActiveDraft` resolves) — folds into SIT-4 #5 fix.
+
+## Round 1 SIT — consolidated fix list (16 items, all to be fixed per user 2026-04-29)
+
+**Real bugs (must fix):**
+1. `public/review-examples.html` missing `<script src="/app.js">` → bullets render as prose (SIT-1)
+2. `circles_023.field_examples.C1.問題範圍` orphan `**` (SIT-1)
+3. NSM 4-dim sub-textareas (`public/app.js:5772-5777`) lack `triggerCirclesAutoSave` (SIT-2)
+4. ONBOARDING_TARGETS (`public/app.js:1571-1576`) use mobile selectors; desktop home renders `.mode-section`/`.type-section` (SIT-4)
+5. Welcome card race + pre-fetch flash: `updateRecentSessionsSlot()` (`app.js:594`) doesn't re-evaluate `shouldShowOnboardingWelcome()` (SIT-4 + SIT-6 cosmetic flash)
+6. `/api/guest/sessions` 404: `routes/guest-sessions.js` defined but unmounted in `server.js`; `app.js:720` + `:4019` still reference (SIT-7 F1) — preferred fix: remove dead refs
+7. `public/review-examples.html` `<select id="filter-step">` missing accessible name (SIT-7 F2)
+8. Guest `POST /api/guest-circles-sessions/:id/final-report` returns 404 instead of 400/incomplete; SELECT includes nonexistent `final_report` column (`routes/guest-circles-sessions.js:229-251`) (SIT-8 a)
+9. Wrong-owner PATCH `/progress` returns 200 not 403/404 (`routes/guest-circles-sessions.js:209-226`) — needs `.select('id').single()` (SIT-8 b)
+10. Malformed JSON returns Express HTML error page leaking Windows file paths — needs global JSON error handler middleware (SIT-8 c)
+11. **CRITICAL**: `escHtml()` `\n→<br>` substitution corrupts textarea content on resume (`app.js:4307-4309` + `:2274`/`:2308`) — needs textarea-safe escape variant (SIT-6 S5)
+
+**Nice-to-have (also fix per user instruction):**
+12. Cron cleanup script for empty orphan sessions per Spec 2 §173 (SIT-2 #14)
+13. 3 mobile `.rt-mtbtn` buttons (`public/index.html:46-48`) lack aria-label (SIT-7 F3)
+14. Add `<link rel="preload" as="font">` for DM Sans + Instrument Serif (SIT-7 F4)
+15. Color-contrast on `.ch-meta` / `.rail-label` / `#meta` (SIT-7 F5)
+16. 15 audit-flagged fields exceed 4 top-level bullets + 1 field >320 chars (circles_048 I.目標用戶分群 = 352) (SIT-1 audit polish)
 - _(future rounds get appended here)_
 
 ---
