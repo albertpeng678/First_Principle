@@ -44,7 +44,7 @@ d8cf823 fix(style): login form contrast (cream-on-cream → AA)
 |---|---|---|
 | 1 | SIT-1, SIT-2, SIT-3, SIT-4 | ✅ 4/4 PASS |
 | 2 | SIT-5, SIT-6, SIT-7, SIT-8 | SIT-5/6/8 ✅; SIT-7 ❌ → fixed in `0c72b0f`; needs re-verify |
-| 3 | UAT-1, UAT-2, UAT-3, UAT-4 | UAT-2 ✅ 5/5, UAT-3 ✅ 4/4, UAT-4 ✅ 5/5; **UAT-1 still in-flight at session end** (agentId `a71319c39c423bffd`, may have completed since — check task output) |
+| 3 | UAT-1, UAT-2, UAT-3, UAT-4 | ✅ 4/4 PASS — UAT-1 5/5, UAT-2 5/5, UAT-3 4/4, UAT-4 5/5 |
 | 4 (not dispatched) | UAT-5, UAT-6, UAT-7, UI/UX-1 | pending |
 | 5 (not dispatched) | UI/UX-2 | pending |
 
