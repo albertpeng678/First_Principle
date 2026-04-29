@@ -738,13 +738,7 @@ function apiHeaders() {
 }
 
 function sessionRoute(path = '') {
-  // SIT-1 #6: /api/guest/sessions is defined in routes/guest-sessions.js but
-  // is NOT mounted in server.js (mount is /api/guest-circles-sessions). Auth
-  // path is mounted at /api/sessions. We keep the legacy guest path here so
-  // existing call sites continue compiling, but home-page call sites that
-  // fire on every load (loadRecentSessions, init resume-prompt) short-circuit
-  // in guest mode to avoid 404 noise.
-  return (AppState.mode === 'auth' ? '/api/sessions' : '/api/guest/sessions') + path;
+  return '/api/sessions' + path;
 }
 
 async function migrateGuestSessions() {
@@ -1124,10 +1118,6 @@ async function init() {
     AppState.mode = 'guest';
 
     const lastId = localStorage.getItem('lastSessionId');
-    // SIT-1 #6: skip legacy guest PM-Drill resume in guest mode — the
-    // /api/guest/sessions route isn't mounted (CIRCLES uses its own resume
-    // banner via fetchActiveDraft + /api/guest-circles-sessions). Auth users
-    // still get the legacy resume prompt because /api/sessions is mounted.
     if (lastId && AppState.mode === 'auth') {
       const res = await fetch(sessionRoute(`/${lastId}`), { headers: apiHeaders() });
       if (res.ok) {
@@ -4145,11 +4135,6 @@ function bindHome() {
 async function loadRecentSessions() {
   try {
     const headers = AppState.accessToken ? { 'Authorization': `Bearer ${AppState.accessToken}` } : { 'X-Guest-ID': AppState.guestId };
-    // SIT-1 #6: /api/guest/sessions is not mounted (route file exists but
-    // server.js doesn't wire it). Guest users get a 404 on every home load.
-    // Auth path (/api/sessions) is mounted and works. NSM endpoints work in
-    // both modes. So in guest mode we simply skip the PM call — the legacy
-    // PM-Drill recent-sessions list is unused on this CIRCLES-first branch.
     const pmUrl = AppState.accessToken ? '/api/sessions' : null;
     const nsmUrl = AppState.accessToken ? '/api/nsm-sessions' : '/api/guest/nsm-sessions';
     const [pmRes, nsmRes] = await Promise.all([
