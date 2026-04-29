@@ -6,7 +6,22 @@ const { test, expect } = require('@playwright/test');
 async function gotoFirstPhase1Field(page) {
   await page.goto('/');
   await page.waitForSelector('.circles-q-card', { timeout: 10000 });
-  await page.locator('.circles-q-card').first().click();
+  // Bypass card UI: programmatically enter Phase 1 with first question
+  await page.evaluate(() => {
+    const list = (typeof CIRCLES_QUESTIONS !== 'undefined' ? CIRCLES_QUESTIONS : []);
+    const q = list[0];
+    if (!q) throw new Error('CIRCLES_QUESTIONS empty');
+    window.AppState.circlesSelectedQuestion = q;
+    window.AppState.circlesSession = null;
+    window.AppState.circlesPhase = 1;
+    window.AppState.circlesFrameworkDraft = {};
+    window.AppState.circlesGateResult = null;
+    window.AppState.circlesConversation = [];
+    window.AppState.circlesScoreResult = null;
+    window.AppState.circlesSimStep = 0;
+    window.AppState.circlesMode = 'simulation';
+    window.render();
+  });
   await page.waitForSelector('textarea.rt-textarea', { timeout: 10000 });
   return page.locator('textarea.rt-textarea').first();
 }

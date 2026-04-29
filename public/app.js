@@ -1124,11 +1124,11 @@ init();
       const linePrefix = text.slice(lineStart, s);
       const m = linePrefix.match(/^( *)- /);
       if (!m) return;
-      // empty bullet ("- " or "  - ")
+      // empty bullet ("- " or "  - ") — remove the bullet, keep caret at line start
       if (linePrefix.replace(/ /g, '') === '-') {
         e.preventDefault();
-        ta.value = text.slice(0, lineStart) + '\n' + text.slice(s);
-        ta.selectionStart = ta.selectionEnd = lineStart + 1;
+        ta.value = text.slice(0, lineStart) + text.slice(s);
+        ta.selectionStart = ta.selectionEnd = lineStart;
         fire(ta);
         return;
       }

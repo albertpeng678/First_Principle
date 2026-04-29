@@ -14,7 +14,7 @@ module.exports = defineConfig({
   retries: 1,
   reporter: [['list'], ['json', { outputFile: '../../test-results.json' }]],
   use: {
-    baseURL: 'http://localhost:4000',
+    baseURL: process.env.PLAYWRIGHT_BASE_URL || 'http://localhost:4000',
     headless: true,
     channel: 'chrome',
   },
