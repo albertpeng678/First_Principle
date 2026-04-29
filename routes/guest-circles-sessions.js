@@ -38,6 +38,25 @@ router.post('/draft', requireGuestId, async (req, res) => {
   const q = QUESTION_BY_ID[question_id];
   if (!q) return res.status(404).json({ error: 'question_not_found' });
   try {
+    // Idempotency: if an active session already exists for this
+    // (guest_id, question_id, mode, drill_step) tuple, return it instead of
+    // creating a duplicate. Protects against parallel autosave races.
+    let existingQuery = db
+      .from('circles_sessions')
+      .select('*')
+      .eq('guest_id', req.guestId)
+      .eq('question_id', question_id)
+      .eq('mode', mode)
+      .eq('status', 'active');
+    existingQuery = drill_step
+      ? existingQuery.eq('drill_step', drill_step)
+      : existingQuery.is('drill_step', null);
+    const { data: existing } = await existingQuery
+      .order('updated_at', { ascending: false })
+      .limit(1)
+      .maybeSingle();
+    if (existing) return res.json(existing);
+
     const { data, error } = await db
       .from('circles_sessions')
       .insert({
@@ -54,7 +73,25 @@ router.post('/draft', requireGuestId, async (req, res) => {
       })
       .select()
       .single();
-    if (error) throw error;
+    if (error) {
+      // Race: another concurrent insert won. Re-read and return that row.
+      let retryQuery = db
+        .from('circles_sessions')
+        .select('*')
+        .eq('guest_id', req.guestId)
+        .eq('question_id', question_id)
+        .eq('mode', mode)
+        .eq('status', 'active');
+      retryQuery = drill_step
+        ? retryQuery.eq('drill_step', drill_step)
+        : retryQuery.is('drill_step', null);
+      const { data: raced } = await retryQuery
+        .order('updated_at', { ascending: false })
+        .limit(1)
+        .maybeSingle();
+      if (raced) return res.json(raced);
+      throw error;
+    }
     res.json(data);
   } catch (e) { res.status(500).json({ error: e.message }); }
 });

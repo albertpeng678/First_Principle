@@ -42,6 +42,23 @@ router.post('/draft', requireAuth, async (req, res) => {
   const q = QUESTION_BY_ID[question_id];
   if (!q) return res.status(404).json({ error: 'question_not_found' });
   try {
+    // Idempotency: see guest-circles-sessions.js draft endpoint.
+    let existingQuery = db
+      .from('circles_sessions')
+      .select('*')
+      .eq('user_id', req.user.id)
+      .eq('question_id', question_id)
+      .eq('mode', mode)
+      .eq('status', 'active');
+    existingQuery = drill_step
+      ? existingQuery.eq('drill_step', drill_step)
+      : existingQuery.is('drill_step', null);
+    const { data: existing } = await existingQuery
+      .order('updated_at', { ascending: false })
+      .limit(1)
+      .maybeSingle();
+    if (existing) return res.json(existing);
+
     const { data, error } = await db
       .from('circles_sessions')
       .insert({
@@ -58,7 +75,24 @@ router.post('/draft', requireAuth, async (req, res) => {
       })
       .select()
       .single();
-    if (error) throw error;
+    if (error) {
+      let retryQuery = db
+        .from('circles_sessions')
+        .select('*')
+        .eq('user_id', req.user.id)
+        .eq('question_id', question_id)
+        .eq('mode', mode)
+        .eq('status', 'active');
+      retryQuery = drill_step
+        ? retryQuery.eq('drill_step', drill_step)
+        : retryQuery.is('drill_step', null);
+      const { data: raced } = await retryQuery
+        .order('updated_at', { ascending: false })
+        .limit(1)
+        .maybeSingle();
+      if (raced) return res.json(raced);
+      throw error;
+    }
     res.json(data);
   } catch (e) { res.status(500).json({ error: e.message }); }
 });
@@ -224,25 +258,37 @@ router.patch('/:id/progress', requireAuth, async (req, res) => {
   if (stepDrafts     !== undefined) patch.step_drafts      = stepDrafts;
   if (Object.keys(patch).length === 0) return res.status(400).json({ error: 'nothing_to_update' });
 
-  const { error } = await db
+  const { data, error } = await db
     .from('circles_sessions')
     .update(patch)
     .eq('id', req.params.id)
-    .eq('user_id', req.user.id);
-  if (error) return res.status(500).json({ error: error.message });
+    .eq('user_id', req.user.id)
+    .select('id')
+    .maybeSingle();
+  if (error) {
+    console.error('[circles-sessions] PATCH /progress db error:', error);
+    return res.status(500).json({ error: 'db_error' });
+  }
+  if (!data) return res.status(404).json({ error: 'not_found' });
   res.json({ ok: true });
 });
 
 // POST /api/circles-sessions/:id/final-report
 router.post('/:id/final-report', requireAuth, async (req, res) => {
+  // NOTE: `final_report` column does not exist in the live circles_sessions
+  // schema, so we don't SELECT or persist it here — final report is
+  // re-computed on every call. Mirror of guest variant.
   const { data: session, error } = await db
     .from('circles_sessions')
-    .select('question_json, step_scores, final_report')
+    .select('question_json, step_scores')
     .eq('id', req.params.id)
     .eq('user_id', req.user.id)
-    .single();
-  if (error || !session) return res.status(404).json({ error: 'not_found' });
-  if (session.final_report) return res.json(session.final_report);
+    .maybeSingle();
+  if (error) {
+    console.error('[circles-sessions] POST /final-report db error:', error);
+    return res.status(500).json({ error: 'db_error' });
+  }
+  if (!session) return res.status(404).json({ error: 'not_found' });
   if (!session.step_scores || Object.keys(session.step_scores).length < 7) {
     return res.status(400).json({ error: 'incomplete_steps' });
   }
@@ -252,11 +298,13 @@ router.post('/:id/final-report', requireAuth, async (req, res) => {
       questionJson: session.question_json,
     });
     await db.from('circles_sessions').update({
-      final_report: report,
       status: 'completed',
     }).eq('id', req.params.id).eq('user_id', req.user.id);
     res.json(report);
-  } catch (e) { res.status(500).json({ error: 'report_generation_failed' }); }
+  } catch (e) {
+    console.error('[circles-sessions] POST /final-report generation error:', e);
+    res.status(500).json({ error: 'report_generation_failed' });
+  }
 });
 
 // POST /api/circles-sessions/:id/hint
