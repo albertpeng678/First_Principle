@@ -5,32 +5,74 @@ const { requireAuth } = require('../middleware/auth');
 const { requireGuestId } = require('../middleware/guest');
 
 // POST /api/migrate-guest
+// Migrates ALL guest data tied to req.guestId into req.user.id:
+//   1. Legacy practice sessions (guest_sessions → practice_sessions, copy + delete)
+//   2. CIRCLES sessions (circles_sessions: guest_id → user_id, in-place)
+//   3. NSM sessions     (nsm_sessions:     guest_id → user_id, in-place)
+//
+// Body: { guestSessionIds?: string[] }   // optional — controls legacy migration only
+// Returns: { circles, nsm, legacy }      // counts migrated for each bucket
 router.post('/', requireAuth, requireGuestId, async (req, res) => {
-  const { guestSessionIds } = req.body;
-  if (!Array.isArray(guestSessionIds) || guestSessionIds.length === 0) {
-    return res.status(400).json({ error: 'invalid_session_ids' });
+  const { guestSessionIds } = req.body || {};
+  const result = { circles: 0, nsm: 0, legacy: 0 };
+
+  // -------- 1) Legacy practice sessions (copy then delete) --------
+  if (Array.isArray(guestSessionIds) && guestSessionIds.length > 0) {
+    const { data: guestSessions, error: fetchError } = await db
+      .from('guest_sessions')
+      .select('*')
+      .eq('guest_id', req.guestId)
+      .in('id', guestSessionIds);
+    if (fetchError) return res.status(500).json({ error: fetchError.message });
+
+    if (guestSessions && guestSessions.length) {
+      const toInsert = guestSessions.map(({ id: _id, guest_id: _gid, expires_at: _exp, ...rest }) => ({
+        ...rest,
+        user_id: req.user.id
+      }));
+      const { error: insertError } = await db.from('practice_sessions').insert(toInsert);
+      if (insertError) return res.status(500).json({ error: insertError.message });
+      await db.from('guest_sessions').delete().in('id', guestSessionIds);
+      result.legacy = guestSessions.length;
+    }
   }
 
-  const { data: guestSessions, error: fetchError } = await db
-    .from('guest_sessions')
-    .select('*')
-    .eq('guest_id', req.guestId)
-    .in('id', guestSessionIds);
+  // -------- 2) CIRCLES sessions (claim in-place) --------
+  // circles_sessions has both guest_id + user_id columns; flip ownership.
+  try {
+    const { data: circlesRows, error: cErr } = await db
+      .from('circles_sessions')
+      .update({ guest_id: null, user_id: req.user.id })
+      .eq('guest_id', req.guestId)
+      .is('user_id', null)
+      .select('id');
+    if (cErr) {
+      console.error('[migrate-guest] circles_sessions update error:', cErr);
+    } else {
+      result.circles = (circlesRows || []).length;
+    }
+  } catch (e) {
+    console.error('[migrate-guest] circles_sessions exception:', e);
+  }
 
-  if (fetchError) return res.status(500).json({ error: fetchError.message });
-  if (!guestSessions.length) return res.json({ migratedCount: 0 });
+  // -------- 3) NSM sessions (claim in-place) --------
+  try {
+    const { data: nsmRows, error: nErr } = await db
+      .from('nsm_sessions')
+      .update({ guest_id: null, user_id: req.user.id })
+      .eq('guest_id', req.guestId)
+      .is('user_id', null)
+      .select('id');
+    if (nErr) {
+      console.error('[migrate-guest] nsm_sessions update error:', nErr);
+    } else {
+      result.nsm = (nsmRows || []).length;
+    }
+  } catch (e) {
+    console.error('[migrate-guest] nsm_sessions exception:', e);
+  }
 
-  const toInsert = guestSessions.map(({ id: _id, guest_id: _gid, expires_at: _exp, ...rest }) => ({
-    ...rest,
-    user_id: req.user.id
-  }));
-
-  const { error: insertError } = await db.from('practice_sessions').insert(toInsert);
-  if (insertError) return res.status(500).json({ error: insertError.message });
-
-  await db.from('guest_sessions').delete().in('id', guestSessionIds);
-
-  res.json({ migratedCount: guestSessions.length });
+  res.json({ ...result, migratedCount: result.legacy }); // keep legacy field for back-compat
 });
 
 module.exports = router;
