@@ -581,6 +581,8 @@ async function fetchCirclesRecentSessions() {
     }
   } catch (e) {}
   AppState.circlesRecentLoading = false;
+  // SIT-1 #5: mark sessions-fetch-complete so welcome card render gate can pass.
+  AppState.circlesSessionsFetched = true;
   // Don't trigger a full render — that would wipe out any UI state the user has
   // already interacted with (expanded question cards, dropdowns, etc.).
   // Only update the recent-sessions slot in place.
@@ -593,6 +595,23 @@ async function fetchCirclesRecentSessions() {
 // the entire view. Preserves any in-progress UI state (accordion expansion etc.).
 function updateRecentSessionsSlot() {
   var slot = document.getElementById('circles-recent-slot');
+  // SIT-1 #5: keep the welcome card and the resume/recent slot in sync.
+  //   - If sessions exist (or the card should otherwise be hidden),
+  //     remove .onboarding-welcome (race between first paint + async fetch).
+  //   - If no sessions and the card should now be shown but is missing
+  //     (was suppressed during initial paint due to SessionsFetched=false),
+  //     insert it now so the user sees the onboarding hand-waving card.
+  try {
+    var welcomeEl = document.getElementById('onboarding-welcome');
+    var shouldShow = (typeof shouldShowOnboardingWelcome === 'function') && shouldShowOnboardingWelcome();
+    if (!shouldShow && welcomeEl && welcomeEl.parentNode) {
+      welcomeEl.parentNode.removeChild(welcomeEl);
+    } else if (shouldShow && !welcomeEl && typeof renderOnboardingWelcomeHtml === 'function') {
+      var wrap = document.querySelector('[data-view="circles"] .circles-home-wrap');
+      if (wrap) wrap.insertAdjacentHTML('afterbegin', renderOnboardingWelcomeHtml());
+      if (typeof bindOnboardingWelcome === 'function') bindOnboardingWelcome();
+    }
+  } catch (_) {}
   if (!slot) return; // home not rendered (defensive)
   if (AppState.circlesRecentSessions.length === 0) {
     slot.innerHTML = '';
@@ -717,6 +736,12 @@ function apiHeaders() {
 }
 
 function sessionRoute(path = '') {
+  // SIT-1 #6: /api/guest/sessions is defined in routes/guest-sessions.js but
+  // is NOT mounted in server.js (mount is /api/guest-circles-sessions). Auth
+  // path is mounted at /api/sessions. We keep the legacy guest path here so
+  // existing call sites continue compiling, but home-page call sites that
+  // fire on every load (loadRecentSessions, init resume-prompt) short-circuit
+  // in guest mode to avoid 404 noise.
   return (AppState.mode === 'auth' ? '/api/sessions' : '/api/guest/sessions') + path;
 }
 
@@ -1083,7 +1108,11 @@ async function init() {
     AppState.mode = 'guest';
 
     const lastId = localStorage.getItem('lastSessionId');
-    if (lastId) {
+    // SIT-1 #6: skip legacy guest PM-Drill resume in guest mode — the
+    // /api/guest/sessions route isn't mounted (CIRCLES uses its own resume
+    // banner via fetchActiveDraft + /api/guest-circles-sessions). Auth users
+    // still get the legacy resume prompt because /api/sessions is mounted.
+    if (lastId && AppState.mode === 'auth') {
       const res = await fetch(sessionRoute(`/${lastId}`), { headers: apiHeaders() });
       if (res.ok) {
         const s = await res.json();
@@ -1538,6 +1567,10 @@ function shouldShowOnboardingWelcome() {
     if (localStorage.getItem('circles_onboarding_done') === '1') return false;
   } catch (e) {}
   if (AppState.circlesRecentSessions && AppState.circlesRecentSessions.length > 0) return false;
+  // SIT-1 #5 (flash polish): gate first render until first sessions fetch
+  // resolves. If we have an active draft already, skip the welcome card.
+  if (AppState.circlesActiveDraft) return false;
+  if (!AppState.circlesSessionsFetched) return false;
   return true;
 }
 
@@ -1564,14 +1597,14 @@ function markOnboardingDone() {
 //
 // Targets per spec §4.3 are `.mode-section / .type-section / .q-list /
 // .q-row.expanded .btn-primary` — selectors introduced by Phase 4.1's
-// desktop CIRCLES-home renderer. This branch is forked off Phase 0, so we
-// map those names to the existing mobile/SPA selectors and re-target after
-// the Phase 4.1 desktop layout merges.
-// TODO(integration): re-target after Phase 4.1 desktop merge.
+// desktop CIRCLES-home renderer. After the Phase 4.1 desktop layout merge,
+// each step's selector matches BOTH the legacy mobile renderer (.circles-*)
+// AND the desktop renderer (.mode-section/.type-section) via comma list.
+// Steps 3-4 selectors already work on both layouts (verified by SIT-4).
 var ONBOARDING_TARGETS = [
-  '.circles-mode-row',           // step 1: 練習模式 (≡ .mode-section)
-  '.circles-type-tabs',          // step 2: 題型 (≡ .type-section)
-  '.circles-q-list',             // step 3: 題目列表 (≡ .q-list)
+  '.circles-mode-row, .mode-section',           // step 1: 練習模式
+  '.circles-type-tabs, .type-section',          // step 2: 題型
+  '.circles-q-list',                            // step 3: 題目列表
   '.circles-q-card.onb-expanded .circles-q-confirm-btn', // step 4: 展開卡內主按鈕
 ];
 
@@ -2040,6 +2073,12 @@ function bindCirclesHome() {
   fetchActiveDraft().then(function () {
     const wrap = document.querySelector('[data-view="circles"] .circles-home-wrap');
     if (!wrap) return;
+    // SIT-1 #5: if active draft exists, suppress welcome card to avoid
+    // simultaneous display of welcome card + resume banner.
+    if (AppState.circlesActiveDraft) {
+      const _w = wrap.querySelector('.onboarding-welcome');
+      if (_w) _w.remove();
+    }
     const existing = wrap.querySelector('.resume-banner');
     const newHtml = renderResumeBanner();
     if (existing && !newHtml) { existing.remove(); return; }
@@ -2271,7 +2310,7 @@ function buildFieldGroupHtml(stepKey, field, draft, isSimulation, fieldIdx) {
         '<button type="button" class="rt-tbtn" data-rt-action="indent" title="縮排 (Tab)"><i class="ph ph-text-indent"></i></button>' +
         '<button type="button" class="rt-tbtn" data-rt-action="outdent" title="退縮 (Shift+Tab)"><i class="ph ph-text-outdent"></i></button>' +
       '</div>' +
-      '<textarea class="circles-field-input rt-textarea" data-field="' + escHtml(key) + '" rows="' + rows + '" placeholder="' + escHtml(field.placeholder || '填寫你的分析…') + '">' + escHtml(val) + '</textarea>' +
+      '<textarea class="circles-field-input rt-textarea" data-field="' + escHtml(key) + '" rows="' + rows + '" placeholder="' + escHtml(field.placeholder || '填寫你的分析…') + '">' + escTextarea(val) + '</textarea>' +
     '</div>' +
   '</div>';
 }
@@ -2305,7 +2344,7 @@ function buildSolutionFieldHtml(stepKey, field, draft, lDraft, isSimulation, fie
         '<button type="button" class="rt-tbtn" data-rt-action="indent" title="縮排 (Tab)"><i class="ph ph-text-indent"></i></button>' +
         '<button type="button" class="rt-tbtn" data-rt-action="outdent" title="退縮 (Shift+Tab)"><i class="ph ph-text-outdent"></i></button>' +
       '</div>' +
-      '<textarea class="circles-field-input rt-textarea" data-field="' + escHtml(key) + '" rows="' + (field.rows || 2) + '" placeholder="' + escHtml(field.placeholder || '') + '">' + escHtml(bodyVal) + '</textarea>' +
+      '<textarea class="circles-field-input rt-textarea" data-field="' + escHtml(key) + '" rows="' + (field.rows || 2) + '" placeholder="' + escHtml(field.placeholder || '') + '">' + escTextarea(bodyVal) + '</textarea>' +
     '</div>' +
   '</div>';
 }
@@ -2330,7 +2369,7 @@ function buildTrackingBlockHtml(tracking) {
           '<button type="button" class="rt-tbtn" data-rt-action="indent" title="縮排 (Tab)"><i class="ph ph-text-indent"></i></button>' +
           '<button type="button" class="rt-tbtn" data-rt-action="outdent" title="退縮 (Shift+Tab)"><i class="ph ph-text-outdent"></i></button>' +
         '</div>' +
-        '<textarea class="tracking-dim-input rt-textarea' + (v ? ' filled' : '') + '" data-tracking-dim="' + dim.key + '" rows="1" placeholder="' + escHtml(dim.placeholder) + '">' + escHtml(v) + '</textarea>' +
+        '<textarea class="tracking-dim-input rt-textarea' + (v ? ' filled' : '') + '" data-tracking-dim="' + dim.key + '" rows="1" placeholder="' + escHtml(dim.placeholder) + '">' + escTextarea(v) + '</textarea>' +
       '</div>' +
     '</div>';
   }).join('');
@@ -2374,7 +2413,7 @@ function buildESolutionBlockHtml(solKey, solIdx, solName, perSolDraft, eFieldsCo
           '<button type="button" class="rt-tbtn" data-rt-action="indent" title="縮排 (Tab)"><i class="ph ph-text-indent"></i></button>' +
           '<button type="button" class="rt-tbtn" data-rt-action="outdent" title="退縮 (Shift+Tab)"><i class="ph ph-text-outdent"></i></button>' +
         '</div>' +
-        '<textarea class="e-sol-input rt-textarea" data-sol="' + solKey + '" data-field="' + escHtml(f.key) + '" rows="2" placeholder="' + escHtml(f.placeholder) + '">' + escHtml(v) + '</textarea>' +
+        '<textarea class="e-sol-input rt-textarea" data-sol="' + solKey + '" data-field="' + escHtml(f.key) + '" rows="2" placeholder="' + escHtml(f.placeholder) + '">' + escTextarea(v) + '</textarea>' +
       '</div>' +
     '</div>';
   }).join('');
@@ -3125,7 +3164,7 @@ function renderCirclesPhase2() {
           '<button type="button" class="rt-tbtn" data-rt-action="indent" title="縮排 (Tab)"><i class="ph ph-text-indent"></i></button>' +
           '<button type="button" class="rt-tbtn" data-rt-action="outdent" title="退縮 (Shift+Tab)"><i class="ph ph-text-outdent"></i></button>' +
         '</div>' +
-        '<textarea id="circles-conclusion-input" class="conclusion-textarea rt-textarea" rows="5" placeholder="' + escHtml(placeholder) + '">' + escHtml(conclusionText) + '</textarea>' +
+        '<textarea id="circles-conclusion-input" class="conclusion-textarea rt-textarea" rows="5" placeholder="' + escHtml(placeholder) + '">' + escTextarea(conclusionText) + '</textarea>' +
       '</div>' +
       detectionHtml +
       '<div class="conclusion-actions">' +
@@ -4016,13 +4055,18 @@ function bindHome() {
 async function loadRecentSessions() {
   try {
     const headers = AppState.accessToken ? { 'Authorization': `Bearer ${AppState.accessToken}` } : { 'X-Guest-ID': AppState.guestId };
-    const pmUrl = AppState.accessToken ? '/api/sessions' : '/api/guest/sessions';
+    // SIT-1 #6: /api/guest/sessions is not mounted (route file exists but
+    // server.js doesn't wire it). Guest users get a 404 on every home load.
+    // Auth path (/api/sessions) is mounted and works. NSM endpoints work in
+    // both modes. So in guest mode we simply skip the PM call — the legacy
+    // PM-Drill recent-sessions list is unused on this CIRCLES-first branch.
+    const pmUrl = AppState.accessToken ? '/api/sessions' : null;
     const nsmUrl = AppState.accessToken ? '/api/nsm-sessions' : '/api/guest/nsm-sessions';
     const [pmRes, nsmRes] = await Promise.all([
-      fetch(pmUrl, { headers }),
+      pmUrl ? fetch(pmUrl, { headers }) : Promise.resolve(null),
       fetch(nsmUrl, { headers })
     ]);
-    const pmSessions = pmRes.ok ? await pmRes.json() : [];
+    const pmSessions = (pmRes && pmRes.ok) ? await pmRes.json() : [];
     const nsmSessions = nsmRes.ok ? await nsmRes.json() : [];
     const mixed = [
       ...pmSessions.map(s => ({ ...s, type: 'pm' })),
@@ -4306,6 +4350,13 @@ function formatCoachReply(coachReply) {
 
 function escHtml(str) {
   return (str || '').replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;').replace(/\n/g,'<br>');
+}
+
+// SIT-1 #11: HTML-escape for <textarea> RCDATA content (and other contexts where
+// literal newlines must survive as \n). Unlike escHtml(), does NOT replace \n with
+// <br> — textareas don't parse HTML, so <br> would appear as literal text on resume.
+function escTextarea(str) {
+  return (str || '').replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;');
 }
 
 // ── Bullet text parser (spec 1 § 4.2) ───────────────────────────────────────
@@ -5201,7 +5252,7 @@ function renderNSMStep2() {
               <button type="button" class="rt-tbtn" data-rt-action="indent" title="縮排 (Tab)"><i class="ph ph-text-indent"></i></button>
               <button type="button" class="rt-tbtn" data-rt-action="outdent" title="退縮 (Shift+Tab)"><i class="ph ph-text-outdent"></i></button>
             </div>
-            <textarea id="nsm-definition-input" class="nsm-textarea-sm rt-textarea" placeholder="解釋為什麼要這樣定義，避免哪些虛榮陷阱..." rows="3">${escHtml(definitionDraft)}</textarea>
+            <textarea id="nsm-definition-input" class="nsm-textarea-sm rt-textarea" placeholder="解釋為什麼要這樣定義，避免哪些虛榮陷阱..." rows="3">${escTextarea(definitionDraft)}</textarea>
           </div>
         </div>
 
@@ -5218,7 +5269,7 @@ function renderNSMStep2() {
               <button type="button" class="rt-tbtn" data-rt-action="indent" title="縮排 (Tab)"><i class="ph ph-text-indent"></i></button>
               <button type="button" class="rt-tbtn" data-rt-action="outdent" title="退縮 (Shift+Tab)"><i class="ph ph-text-outdent"></i></button>
             </div>
-            <textarea id="nsm-business-link-input" class="nsm-textarea-sm rt-textarea" placeholder="這個 NSM 如何驅動營收/留存/獲利..." rows="3">${escHtml(businessLinkDraft)}</textarea>
+            <textarea id="nsm-business-link-input" class="nsm-textarea-sm rt-textarea" placeholder="這個 NSM 如何驅動營收/留存/獲利..." rows="3">${escTextarea(businessLinkDraft)}</textarea>
           </div>
         </div>
 
@@ -5355,7 +5406,7 @@ function renderNSMStep3() {
           <button type="button" class="rt-tbtn" data-rt-action="indent" title="縮排 (Tab)"><i class="ph ph-text-indent"></i></button>
           <button type="button" class="rt-tbtn" data-rt-action="outdent" title="退縮 (Shift+Tab)"><i class="ph ph-text-outdent"></i></button>
         </div>
-        <textarea class="nsm-textarea nsm-dim-input rt-textarea" id="nsm-dim-${d.key}" placeholder="${escHtml(d.placeholder)}" rows="2">${escHtml(breakdown[d.key] || '')}</textarea>
+        <textarea class="nsm-textarea nsm-dim-input rt-textarea" id="nsm-dim-${d.key}" placeholder="${escHtml(d.placeholder)}" rows="2">${escTextarea(breakdown[d.key] || '')}</textarea>
       </div>
     </div>`;
   }).join('');
@@ -5768,11 +5819,47 @@ function bindNSM() {
   // Step 3: dimension inputs — driven by detected product type, not hardcoded
   var _step3Q = AppState.nsmSelectedQuestion || {};
   var _step3Dims = NSM_DIMENSION_CONFIGS[detectProductType(_step3Q)] || [];
+  // SIT-1 #3: NSM lacks a PATCH /progress endpoint (only POST /, /evaluate,
+  // /gate, /context, /hints exist in routes/nsm-sessions.js + guest variant).
+  // Stopgap: persist the breakdown draft to localStorage, debounced 1.5s, so
+  // tab close / navigation doesn't lose the user's dim text. On Step 3 mount
+  // we hydrate AppState.nsmBreakdownDraft from localStorage if empty.
+  var _nsmDimDebounce = null;
+  function _nsmDimLocalSaveKey() {
+    var sid = (AppState.nsmSession && AppState.nsmSession.id) || 'pending';
+    return 'nsm-breakdown-draft-' + sid;
+  }
+  // Hydrate from localStorage on mount (only if AppState draft is empty —
+  // server-loaded draft always wins).
+  try {
+    var _hadDraft = AppState.nsmBreakdownDraft && Object.keys(AppState.nsmBreakdownDraft).some(function (k) { return AppState.nsmBreakdownDraft[k]; });
+    if (!_hadDraft) {
+      var _stored = localStorage.getItem(_nsmDimLocalSaveKey());
+      if (_stored) {
+        var _parsed = JSON.parse(_stored);
+        if (_parsed && typeof _parsed === 'object') {
+          AppState.nsmBreakdownDraft = _parsed;
+          // Reflect into DOM if inputs are empty.
+          _step3Dims.forEach(function (d) {
+            var el = document.getElementById('nsm-dim-' + d.key);
+            if (el && !el.value && _parsed[d.key]) el.value = _parsed[d.key];
+          });
+        }
+      }
+    }
+  } catch (_) {}
   _step3Dims.forEach(function(d) {
     var inp = document.getElementById('nsm-dim-' + d.key);
     if (inp) inp.addEventListener('input', function() {
       if (!AppState.nsmBreakdownDraft) AppState.nsmBreakdownDraft = {};
       AppState.nsmBreakdownDraft[d.key] = inp.value;
+      // Debounced localStorage save (1.5s, matching CIRCLES auto-save cadence).
+      clearTimeout(_nsmDimDebounce);
+      _nsmDimDebounce = setTimeout(function () {
+        try {
+          localStorage.setItem(_nsmDimLocalSaveKey(), JSON.stringify(AppState.nsmBreakdownDraft || {}));
+        } catch (_) {}
+      }, 1500);
     });
   });
 
