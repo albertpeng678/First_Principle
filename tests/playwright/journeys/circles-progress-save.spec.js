@@ -8,14 +8,14 @@
 //   §4 auto-save (debounce 1.5s, lazy-create), §6 offcanvas badge,
 //   §7 home resume banner, §10 test scenarios.
 
-const { test: base, expect } = require('@playwright/test');
+const { test, expect } = require('@playwright/test');
 
 // The shared dev server (port 4000) may be pinned to a different worktree.
 // Allow `PMDRILL_BASE_URL=http://localhost:NNNN` to target a worktree-local
 // server when this spec is run from a parallel worktree branch.
-const test = process.env.PMDRILL_BASE_URL
-  ? base.extend({ baseURL: [process.env.PMDRILL_BASE_URL, { option: true }] })
-  : base;
+if (process.env.PMDRILL_BASE_URL) {
+  test.use({ baseURL: process.env.PMDRILL_BASE_URL });
+}
 
 // Auto-save debounce is 1500ms; allow margin for network + lazy-create POST.
 const AUTOSAVE_WAIT_MS = 4000;
@@ -30,12 +30,18 @@ async function gotoCirclesPractice(page) {
     try { localStorage.clear(); } catch (_e) {}
   });
   await page.goto('/');
+  // Wait for question cards to render AND list to stabilize (re-renders happen
+  // when fetchActiveDraft / sessions resolve). Poll until count is steady.
   await page.waitForSelector('.circles-q-card', { timeout: 15000 });
-  // Card click expands the accordion; need to then click "確認，開始練習" to enter Phase 1.
-  // The confirm button is scoped to the clicked card (others stay collapsed).
+  await page.waitForFunction(() => {
+    const n = document.querySelectorAll('.circles-q-card').length;
+    return n >= 3 && !window.__circlesRendering;
+  }, { timeout: 10000 }).catch(() => {});
+  await page.waitForTimeout(500);
+  // Click the first card — avoid the inner expand area. Playwright auto-waits
+  // for stability so we don't need scrollIntoViewIfNeeded (which races against
+  // re-renders).
   const card = page.locator('.circles-q-card').first();
-  await card.scrollIntoViewIfNeeded();
-  // Click the card body — avoid the inner expand area which would re-toggle.
   await card.click({ position: { x: 20, y: 20 } });
   // Wait for the expand area to actually render visible (display flips from none).
   const expandArea = card.locator('.circles-q-card-expand-area');
@@ -89,8 +95,8 @@ test.describe('CIRCLES Progress Save (Phase 2 Spec 2)', () => {
     const sessionId = await page.evaluate(() => window.AppState?.circlesSession?.id || null);
     expect(sessionId).toBeTruthy();
 
-    // Navigate back to CIRCLES home.
-    await page.evaluate(() => window.navigate && window.navigate('circles'));
+    // Navigate back to CIRCLES home via the home button (resets active question).
+    await page.locator('#circles-p1-home').click();
     // Wait for the banner — fetchActiveDraft is async, then DOM is patched.
     const banner = page.locator('.resume-banner');
     await expect(banner).toBeVisible({ timeout: 10000 });
@@ -107,7 +113,7 @@ test.describe('CIRCLES Progress Save (Phase 2 Spec 2)', () => {
     const sessionId = await page.evaluate(() => window.AppState?.circlesSession?.id || null);
     expect(sessionId).toBeTruthy();
 
-    await page.evaluate(() => window.navigate && window.navigate('circles'));
+    await page.locator('#circles-p1-home').click();
     const banner = page.locator('.resume-banner');
     await expect(banner).toBeVisible({ timeout: 10000 });
 

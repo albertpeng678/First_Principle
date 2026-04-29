@@ -1838,10 +1838,17 @@ function bindCirclesPhase1() {
     navigate('nsm');
   });
 
-  // ── Save standard textarea fields to circlesFrameworkDraft on every input
+  // ── Save standard textarea fields to circlesFrameworkDraft + step_drafts on every input
+  // Spec 2 § 3 requires step_drafts as canonical source of "has drafts" — keyed
+  // by step letter. framework_draft is kept as flat field map for gate/eval.
   document.querySelectorAll('.circles-field-input').forEach(function(el) {
     el.addEventListener('input', function() {
       AppState.circlesFrameworkDraft[el.dataset.field] = el.value;
+      var stepKey = AppState.circlesMode === 'drill'
+        ? AppState.circlesDrillStep
+        : (CIRCLES_STEPS[AppState.circlesSimStep || 0] || CIRCLES_STEPS[0]).key;
+      if (!AppState.circlesStepDrafts[stepKey]) AppState.circlesStepDrafts[stepKey] = {};
+      AppState.circlesStepDrafts[stepKey][el.dataset.field] = el.value;
       // Phase 2 Spec 2: auto-save with lazy-create + debounce
       triggerCirclesAutoSave();
     });

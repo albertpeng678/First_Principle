@@ -21,7 +21,7 @@ const QUESTION_BY_ID = Object.fromEntries(
 router.get('/', requireGuestId, async (req, res) => {
   let query = db
     .from('circles_sessions')
-    .select('id, question_id, question_json, mode, drill_step, current_phase, sim_step_index, status, step_scores, step_drafts, created_at, updated_at')
+    .select('id, question_id, question_json, mode, drill_step, current_phase, sim_step_index, status, step_scores, step_drafts, framework_draft, created_at, updated_at')
     .eq('guest_id', req.guestId)
     .order('updated_at', { ascending: false })
     .limit(Math.min(Math.max(parseInt(req.query.limit) || 20, 1), 50));
