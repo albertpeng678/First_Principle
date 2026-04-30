@@ -898,6 +898,14 @@ function openOffcanvas() {
   overlay.addEventListener('transitionend', () => { overlay.style.willChange = 'auto'; }, { once: true });
   document.body.style.overflow = 'hidden';
   loadOffcanvasSessions();
+  // AUD-008 — wire nav links inside offcanvas to navigate then close
+  document.querySelectorAll('.offcanvas-nav-link').forEach(function(btn) {
+    btn.onclick = function() {
+      var v = btn.getAttribute('data-nav');
+      closeOffcanvas();
+      if (v && typeof navigate === 'function') navigate(v);
+    };
+  });
   const closeBtn = document.getElementById('btn-offcanvas-close');
   if (closeBtn) closeBtn.onclick = closeOffcanvas;
   overlay.addEventListener('click', closeOffcanvas, { once: true });
@@ -2205,6 +2213,14 @@ function bindCirclesHome() {
   bindOnboardingWelcome();
 
   document.getElementById('circles-nsm-banner-btn')?.addEventListener('click', function() { navigate('nsm'); });
+  // AUD-008 — make the whole nsm banner navigate to NSM (so any 北極星指標 text inside it acts as a link)
+  document.querySelectorAll('.nsm-banner').forEach(function(b) {
+    b.style.cursor = 'pointer';
+    b.addEventListener('click', function(e) {
+      if (e.target && e.target.closest && e.target.closest('button#circles-nsm-banner-btn')) return;
+      navigate('nsm');
+    });
+  });
 
   document.querySelectorAll('.circles-resume-card').forEach(function(el) {
     el.addEventListener('click', async function() {
@@ -5233,6 +5249,26 @@ function renderNSM() {
 }
 
 // Builds the innerHTML for a single NSM question card.
+// AUD-016 — NSM 4-step progress with text labels under each circle
+var NSM_STEP_LABELS = ['情境', '指標', '拆解', '總結'];
+function buildNsmProgressBar(activeIdx) {
+  var html = '<div class="nsm-progress" role="list" aria-label="NSM 訓練進度">';
+  for (var i = 0; i < 4; i++) {
+    var cls = i < activeIdx ? 'done' : (i === activeIdx ? 'active' : '');
+    var label = NSM_STEP_LABELS[i];
+    html += '<div class="nsm-progress-step-wrap" role="listitem" aria-label="第 ' + (i+1) + ' 步 ' + label + '" style="display:flex;flex-direction:column;align-items:center;gap:4px">' +
+      '<div class="nsm-progress-step ' + cls + '">' + (i+1) + '</div>' +
+      '<div class="nsm-progress-step-label" style="font-size:11px;color:var(--c-text-2,#5a5a5a);font-weight:' + (i === activeIdx ? '600' : '400') + '">' + label + '</div>' +
+    '</div>';
+    if (i < 3) {
+      var lineStyle = i < activeIdx ? 'background:var(--accent)' : '';
+      html += '<div class="nsm-progress-line" style="' + lineStyle + ';align-self:center;margin-top:-14px"></div>';
+    }
+  }
+  html += '</div>';
+  return html;
+}
+
 function createNSMQuestionCardHtml(q) {
   var isSelected = AppState.nsmSelectedQuestion && AppState.nsmSelectedQuestion.id === q.id;
   var productType = detectProductType(q);
@@ -5280,16 +5316,7 @@ function renderNSMStep1() {
     AppState.nsmDisplayedQuestions = pickRandom5(NSM_QUESTIONS);
   }
 
-  var progressBar = `
-    <div class="nsm-progress">
-      <div class="nsm-progress-step active">1</div>
-      <div class="nsm-progress-line"></div>
-      <div class="nsm-progress-step">2</div>
-      <div class="nsm-progress-line"></div>
-      <div class="nsm-progress-step">3</div>
-      <div class="nsm-progress-line"></div>
-      <div class="nsm-progress-step">4</div>
-    </div>`;
+  var progressBar = buildNsmProgressBar(0);
 
   var cardsHtml = AppState.nsmDisplayedQuestions.map(createNSMQuestionCardHtml).join('');
 
@@ -5317,6 +5344,7 @@ function renderNSMStep1() {
       </div>
       <div class="nsm-fixed-bottom">
         <div id="nsm-step1-error" class="nsm-inline-error" role="alert" style="display:none"></div>
+        ${ctaDisabled ? '<div id="nsm-step1-helper" class="nsm-step1-helper" style="font-size:13px;color:var(--c-text-2,#5a5a5a);text-align:center;margin-bottom:6px">請先選擇一個情境再開始</div>' : ''}
         <button class="btn btn-primary nsm-next-btn" id="btn-nsm-step1-next" ${ctaDisabled ? 'disabled' : ''}>
           開始 NSM 訓練 <i class="ph ph-arrow-right"></i>
         </button>
@@ -5336,6 +5364,8 @@ function refreshNSMStep1List() {
   var contextLoaded = !!(AppState.nsmContext && selected && AppState.nsmContextQuestionId === selected.id);
   var btn = document.getElementById('btn-nsm-step1-next');
   if (btn) btn.disabled = !selected || !contextLoaded;
+  var helper = document.getElementById('nsm-step1-helper');
+  if (helper) helper.style.display = (!selected || !contextLoaded) ? 'block' : 'none';
 }
 
 // Wires click/keyboard handlers to every NSM question card currently in the DOM.
@@ -5451,15 +5481,7 @@ function renderNSMStep2() {
         <button class="btn-icon" id="btn-nsm-home-nav" aria-label="回首頁" title="回首頁"><i class="ph ph-house"></i></button>
       </div>
       ${renderNSMSubTabs()}
-      <div class="nsm-progress">
-        <div class="nsm-progress-step done">1</div>
-        <div class="nsm-progress-line" style="background:var(--accent)"></div>
-        <div class="nsm-progress-step active">2</div>
-        <div class="nsm-progress-line"></div>
-        <div class="nsm-progress-step">3</div>
-        <div class="nsm-progress-line"></div>
-        <div class="nsm-progress-step">4</div>
-      </div>
+      ${buildNsmProgressBar(1)}
       <div class="nsm-body">
         <div class="nsm-context-card">
           <div class="nsm-context-top">
@@ -5682,15 +5704,7 @@ function renderNSMStep3() {
         <button class="btn-icon" id="btn-nsm-home-nav" aria-label="回首頁" title="回首頁"><i class="ph ph-house"></i></button>
       </div>
       ${renderNSMSubTabs()}
-      <div class="nsm-progress">
-        <div class="nsm-progress-step done">1</div>
-        <div class="nsm-progress-line" style="background:var(--accent)"></div>
-        <div class="nsm-progress-step done">2</div>
-        <div class="nsm-progress-line" style="background:var(--accent)"></div>
-        <div class="nsm-progress-step active">3</div>
-        <div class="nsm-progress-line"></div>
-        <div class="nsm-progress-step">4</div>
-      </div>
+      ${buildNsmProgressBar(2)}
       <div class="nsm-body">
         <div style="background:#EEF3FF;border-radius:10px;border:1px solid #C5D5FF;padding:12px 14px;margin-bottom:16px;font-size:13px;color:var(--accent)">
           <strong>你的 NSM：</strong>${escHtml(AppState.nsmNsmDraft || '（未填寫）')}
