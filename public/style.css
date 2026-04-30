@@ -1771,6 +1771,11 @@ body { -webkit-font-smoothing: antialiased; }
   width: auto;
   margin-top: 0;
 }
+/* Wave A fix-A3 (M-012): drill prev-step button shouldn't dominate the bar. */
+[data-view="circles"] .circles-submit-bar #circles-p1-prev {
+  flex: 0 0 auto;
+  white-space: nowrap;
+}
 /* row variant: two buttons side by side (used by step-score screen) */
 [data-view="circles"] .circles-submit-bar-row {
   display: flex;
