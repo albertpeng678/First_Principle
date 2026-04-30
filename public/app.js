@@ -2964,8 +2964,9 @@ function bindCirclesPhase1() {
   // First open: fetch + cache. Subsequent toggles: instant from cache.
   document.querySelectorAll('.field-example-toggle').forEach(function(btn) {
     btn.addEventListener('click', async function() {
-      var body = btn.nextElementSibling;
-      if (!body || !body.classList.contains('field-example-body')) return;
+      var group = btn.closest('.circles-field-group');
+      var body = group ? group.querySelector('.field-example-body') : null;
+      if (!body) return;
       var stepKey = btn.dataset.exampleStep;
       var fieldKey = btn.dataset.exampleField;
       var question = AppState.circlesSelectedQuestion;
