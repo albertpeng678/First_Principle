@@ -684,18 +684,129 @@ test.describe('CLUSTER-G — Copy consistency', () => {
 // CLUSTER-H — Progress bar labels & a11y
 // ────────────────────────────────────────────────────────────────────────────
 test.describe('CLUSTER-H — Progress bar labels & a11y', () => {
-  test('AUD-015 [P1] CIRCLES progress segments have C/I/R/U/T/L/E/S labels', async ({ page }) => {
+  test('AUD-015 [P1] CIRCLES progress steps render 7 circles with C/I/R/C/L/E/S letters', async ({ page }) => {
     await gotoCirclesStepC(page);
-    const ok = await page.evaluate(() => {
-      const segs = Array.from(document.querySelectorAll('.circles-progress-seg'));
-      if (segs.length === 0) return false;
-      return segs.every(s => {
-        const aria = s.getAttribute('aria-label') || '';
-        const txt = (s.textContent || '').trim();
-        return /[CIRUTLES]/.test(txt) || /[CIRUTLES]/.test(aria) || /澄清|定義|發掘|優先|提出|評估|總結/.test(aria + txt);
-      });
+    const data = await page.evaluate(() => {
+      const steps = Array.from(document.querySelectorAll('.circles-progress-step'));
+      const lines = Array.from(document.querySelectorAll('.circles-progress-line'));
+      const letters = steps.map(s => (s.textContent || '').trim());
+      const arias = steps.map(s => s.getAttribute('aria-label') || '');
+      const labelsHit = arias.every(a => /澄清情境|定義用戶|發掘需求|優先排序|提出方案|評估取捨|總結推薦/.test(a));
+      return { count: steps.length, lineCount: lines.length, letters, labelsHit };
     });
-    expect(ok, 'each segment has letter or step label').toBe(true);
+    expect(data.count, '7 progress circles').toBe(7);
+    expect(data.lineCount, '6 connecting lines').toBe(6);
+    expect(data.letters, 'circles spell CIRCLES (C/I/R/C/L/E/S)').toEqual(['C','I','R','C','L','E','S']);
+    expect(data.labelsHit, 'each circle has Chinese step label in aria-label').toBe(true);
+  });
+
+  test('AUD-015b [P1] active CIRCLES step has aria-current=step + current-line shows letter · label · n/7', async ({ page }) => {
+    await gotoCirclesStepC(page);
+    const data = await page.evaluate(() => {
+      const active = document.querySelector('.circles-progress-step.active');
+      const letter = document.querySelector('.circles-progress-current-letter');
+      const meta = document.querySelector('.circles-progress-current-meta');
+      return {
+        ariaCurrent: active && active.getAttribute('aria-current'),
+        activeText: active && (active.textContent || '').trim(),
+        currentLetter: letter && (letter.textContent || '').trim(),
+        meta: meta && (meta.textContent || '').trim(),
+      };
+    });
+    expect(data.ariaCurrent, 'aria-current=step on active circle').toBe('step');
+    expect(data.activeText, 'active circle shows letter').toMatch(/^[CIRLES]$/);
+    expect(data.currentLetter, 'current-line shows letter · Chinese label').toMatch(/[CIRLES]\s*·\s*\S+/);
+    expect(data.meta, 'current-line shows n/7').toMatch(/^\d\/7$/);
+  });
+
+  test('AUD-054 [P1] field affordance row contains both 查看範例 and 提示 with Phosphor icons (no emoji)', async ({ page }) => {
+    await gotoCirclesStepC(page);
+    const data = await page.evaluate(() => {
+      const row = document.querySelector('.circles-field-affordances');
+      if (!row) return { hasRow: false };
+      const example = row.querySelector('.field-example-toggle');
+      const hint = row.querySelector('.circles-hint-trigger');
+      const exampleIcon = example && example.querySelector('i.ph');
+      const hintIcon = hint && hint.querySelector('i.ph');
+      const text = (row.textContent || '');
+      const cs = getComputedStyle(row);
+      return {
+        hasRow: true,
+        bothPresent: !!example && !!hint,
+        exampleHasPhIcon: !!exampleIcon,
+        hintHasPhIcon: !!hintIcon,
+        // crude emoji guard — common 💡 / 💬 / lightbulb-emoji codepoints
+        emojiPresent: /[\u{1F4A1}\u{1F4AC}\u{1F4DD}]/u.test(text),
+        flexRow: cs.display === 'flex',
+      };
+    });
+    expect(data.hasRow, 'affordance row exists above textarea').toBe(true);
+    expect(data.bothPresent, 'both 查看範例 and 提示 buttons present in row').toBe(true);
+    expect(data.exampleHasPhIcon, '查看範例 uses Phosphor <i class="ph"> icon').toBe(true);
+    expect(data.hintHasPhIcon, '提示 uses Phosphor <i class="ph"> icon').toBe(true);
+    expect(data.emojiPresent, 'no lightbulb / chat emoji in affordance row').toBe(false);
+    expect(data.flexRow, 'affordance row is a flex row').toBe(true);
+  });
+
+  test('AUD-057 [P1] Phase 2 "繼續對話" returns to chat input bar (not the 整理結論 strip)', async ({ page }) => {
+    await page.goto('/');
+    await page.waitForLoadState('networkidle');
+    // Force into Phase 2 expanded state so we can click 繼續對話 directly.
+    await page.evaluate(() => {
+      if (typeof AppState === 'undefined') return;
+      AppState.view = 'circles';
+      AppState.circlesPhase = 2;
+      AppState.circlesSelectedQuestion = (typeof CIRCLES_QUESTIONS !== 'undefined' ? CIRCLES_QUESTIONS[0] : null);
+      AppState.circlesMode = 'drill';
+      AppState.circlesDrillStep = 'C1';
+      AppState.circlesSubmitState = 'expanded';
+      if (typeof render === 'function') render();
+    });
+    await page.waitForTimeout(300);
+    const back = page.locator('#circles-conclusion-back');
+    if (!(await back.count())) test.skip();
+    await back.click();
+    await page.waitForTimeout(300);
+    const data = await page.evaluate(() => ({
+      hasInputBar: !!document.getElementById('circles-input-bar'),
+      hasInput: !!document.getElementById('circles-msg-input'),
+      hasStrip: !!document.getElementById('circles-submit-strip'),
+      submitState: typeof AppState !== 'undefined' ? AppState.circlesSubmitState : 'no-app',
+    }));
+    expect(data.hasInputBar, 'chat input bar restored').toBe(true);
+    expect(data.hasInput, 'chat textarea restored').toBe(true);
+    expect(data.hasStrip, '整理結論 strip should NOT be shown').toBe(false);
+    expect(data.submitState, 'circlesSubmitState reset to null').toBeNull();
+  });
+
+  test('AUD-056 [P1] window.toggleCoachHint is exported (inline onclick handler must resolve)', async ({ page }) => {
+    await page.goto('/');
+    await page.waitForLoadState('networkidle');
+    const has = await page.evaluate(() => typeof window.toggleCoachHint === 'function');
+    expect(has, 'toggleCoachHint must be on window for inline onclick to work').toBe(true);
+  });
+
+  test('AUD-055 [P1] navbar logout right-edge gap is identical in CIRCLES vs NSM mode', async ({ page }) => {
+    async function rightGap() {
+      // Measure relative to navbar's right edge, not window — at narrow mobile
+      // viewports CIRCLES mode gets a scrollbar (overflow visible) while NSM
+      // forces overflow:hidden, so window.innerWidth reports differently
+      // between modes. The user's complaint was about visual alignment within
+      // the navbar — that's what we lock down here.
+      return await page.evaluate(() => {
+        const navbar = document.querySelector('.navbar');
+        const right = document.querySelector('.navbar-actions');
+        if (!navbar || !right) return -1;
+        return Math.round(navbar.getBoundingClientRect().right - right.getBoundingClientRect().right);
+      });
+    }
+    await page.goto('/');
+    await page.waitForLoadState('networkidle');
+    const circlesGap = await rightGap();
+    await page.evaluate(() => window.navigate && window.navigate('nsm'));
+    await page.waitForTimeout(500);
+    const nsmGap = await rightGap();
+    expect(Math.abs(circlesGap - nsmGap), `gap CIRCLES=${circlesGap} vs NSM=${nsmGap}`).toBeLessThanOrEqual(1);
   });
 
   test('AUD-052 [P1] Step C header shows time-estimate + save reassurance', async ({ page }) => {

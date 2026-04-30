@@ -1574,6 +1574,9 @@ function toggleInfoCard(btn) {
   if (icon) icon.className = open ? 'ph ph-caret-right' : 'ph ph-caret-down';
 }
 window.toggleInfoCard = toggleInfoCard;
+// toggleCoachHint is referenced inline via onclick="toggleCoachHint(this)" on
+// the 查看教練提示 button — must be exported for the inline handler to find it.
+if (typeof toggleCoachHint === 'function') window.toggleCoachHint = toggleCoachHint;
 
 // ── View stubs（後續 Task 填入）────────────────────
 // CIRCLES stubs — replaced by Tasks 14-18
@@ -2463,13 +2466,39 @@ function buildPrevStepCardHtml(stepKey) {
 // Body content is lazily fetched from AI on first expand (question-specific), with the
 // static fallback shown immediately as a placeholder while AI loads.
 // stepKey and field are stamped on the toggle so the click handler can fetch the right content.
-function buildFieldExampleHtml(stepKey, field, fallbackHint) {
-  // Suppress entirely when there's no fallback hint AND no step (defensive)
+// Spec 2026-04-30 redesign — split the example into (toggle) + (body) so the
+// toggle can sit on the same affordance row as 提示, while the body still
+// expands directly above the textarea.
+function buildFieldExampleToggleHtml(stepKey, field) {
   if (!stepKey || !field) return '';
   return '<button class="field-example-toggle" type="button" aria-expanded="false" data-example-step="' + stepKey + '" data-example-field="' + escHtml(field) + '">' +
-      '<i class="ph ph-caret-right"></i> 查看範例' +
-    '</button>' +
-    '<div class="field-example-body" data-fallback="' + escHtml(fallbackHint || '') + '"></div>';
+      '<i class="ph ph-caret-right" aria-hidden="true"></i> 查看範例' +
+    '</button>';
+}
+
+function buildFieldExampleBodyHtml(stepKey, field, fallbackHint) {
+  if (!stepKey || !field) return '';
+  return '<div class="field-example-body" data-fallback="' + escHtml(fallbackHint || '') + '"></div>';
+}
+
+function buildFieldHintTriggerHtml(stepKey, fieldKey) {
+  return '<button class="circles-hint-trigger" type="button" data-hint-step="' + stepKey + '" data-hint-field="' + escHtml(fieldKey) + '">' +
+    '<i class="ph ph-lightbulb" aria-hidden="true"></i> 提示' +
+  '</button>';
+}
+
+function buildFieldAffordancesRowHtml(stepKey, fieldKey) {
+  return '<div class="circles-field-affordances">' +
+    buildFieldExampleToggleHtml(stepKey, fieldKey) +
+    '<span class="circles-field-affordance-spacer"></span>' +
+    buildFieldHintTriggerHtml(stepKey, fieldKey) +
+  '</div>';
+}
+
+// Backwards-compat: keep buildFieldExampleHtml returning toggle+body in case
+// any unmigrated caller still uses the combined form.
+function buildFieldExampleHtml(stepKey, field, fallbackHint) {
+  return buildFieldExampleToggleHtml(stepKey, field) + buildFieldExampleBodyHtml(stepKey, field, fallbackHint);
 }
 
 function buildFieldGroupHtml(stepKey, field, draft, isSimulation, fieldIdx) {
@@ -2479,11 +2508,9 @@ function buildFieldGroupHtml(stepKey, field, draft, isSimulation, fieldIdx) {
   return '<div class="circles-field-group">' +
     '<div class="circles-field-label-row">' +
       '<div class="circles-field-label">' + escHtml(key) + '</div>' +
-      '<button class="circles-hint-trigger" type="button" data-hint-step="' + stepKey + '" data-hint-field="' + escHtml(key) + '">' +
-        '<i class="ph ph-lightbulb"></i> 提示' +
-      '</button>' +
     '</div>' +
-    buildFieldExampleHtml(stepKey, key, '') +
+    buildFieldAffordancesRowHtml(stepKey, key) +
+    buildFieldExampleBodyHtml(stepKey, key, '') +
     '<div class="rt-field">' +
       '<div class="rt-toolbar">' +
         '<button type="button" class="rt-tbtn" data-rt-action="bold" title="粗體 (Ctrl+B)" aria-label="粗體"><strong>B</strong></button>' +
@@ -2509,15 +2536,13 @@ function buildSolutionFieldHtml(stepKey, field, draft, lDraft, isSimulation, fie
   return '<div class="circles-field-group"' + groupId + '>' +
     '<div class="circles-field-label-row">' +
       '<div class="circles-field-label">' + escHtml(key) + '</div>' +
-      '<button class="circles-hint-trigger" type="button" data-hint-step="' + stepKey + '" data-hint-field="' + escHtml(key) + '">' +
-        '<i class="ph ph-lightbulb"></i> 提示' +
-      '</button>' +
     '</div>' +
     '<div class="sol-name-row">' +
       '<i class="ph ph-tag"></i>' +
       '<input class="sol-name-input" type="text" maxlength="10" data-sol-name="' + solKey + '" placeholder="' + escHtml(field.namePlaceholder || '方案名稱（10 字內）') + '" value="' + escHtml(nameVal) + '">' +
     '</div>' +
-    buildFieldExampleHtml(stepKey, key, '') +
+    buildFieldAffordancesRowHtml(stepKey, key) +
+    buildFieldExampleBodyHtml(stepKey, key, '') +
     '<div class="rt-field">' +
       '<div class="rt-toolbar">' +
         '<button type="button" class="rt-tbtn" data-rt-action="bold" title="粗體 (Ctrl+B)" aria-label="粗體"><strong>B</strong></button>' +
@@ -2582,11 +2607,9 @@ function buildESolutionBlockHtml(solKey, solIdx, solName, perSolDraft, eFieldsCo
     return '<div class="circles-field-group">' +
       '<div class="circles-field-label-row">' +
         '<div class="circles-field-label">' + escHtml(f.key) + '</div>' +
-        '<button class="circles-hint-trigger" type="button" data-hint-step="E" data-hint-field="' + escHtml(f.key) + '">' +
-          '<i class="ph ph-lightbulb"></i> 提示' +
-        '</button>' +
       '</div>' +
-      (solIdx === 0 ? buildFieldExampleHtml('E', f.key, hint) : '') +
+      buildFieldAffordancesRowHtml('E', f.key) +
+      (solIdx === 0 ? buildFieldExampleBodyHtml('E', f.key, hint) : '') +
       '<div class="rt-field">' +
         '<div class="rt-toolbar">' +
           '<button type="button" class="rt-tbtn" data-rt-action="bold" title="粗體 (Ctrl+B)" aria-label="粗體"><strong>B</strong></button>' +
@@ -2642,12 +2665,7 @@ function renderCirclesPhase1() {
   var draft = AppState.circlesFrameworkDraft || {};
   var isSimulation = mode === 'simulation';
 
-  // Progress segments (current step active, prior steps done) — AUD-015 letter labels
-  var progressSegs = CIRCLES_STEPS.map(function(s, i) {
-    var cls = i < stepIdx ? 'done' : i === stepIdx ? 'active' : '';
-    var aria = (s.short || '') + ' ' + (s.label || '');
-    return '<div class="circles-progress-seg ' + cls + '" role="listitem" aria-label="' + escHtml(aria) + '"><span class="circles-progress-seg-letter">' + escHtml(s.short || '') + '</span></div>';
-  }).join('');
+  var progressBarHtml = buildCirclesProgressBar(stepIdx, { includeSaveIndicator: true });
 
   // Step pills (only in drill mode for visual nav cue; click on pills NOT navigation per current Phase 1 requirement)
   var pillsHtml = '';
@@ -2759,9 +2777,7 @@ function renderCirclesPhase1() {
         '</div>' +
         '<button class="circles-nav-home" id="circles-p1-home" type="button">回首頁</button>' +
       '</div>' +
-      '<div class="circles-progress">' + progressSegs + '<div class="circles-progress-label">' + escHtml(config.progressLabel) + '</div>' +
-        '<span class="save-indicator" aria-live="polite" style="font-size:14px"></span>' +
-      '</div>' +
+      progressBarHtml +
       buildCirclesStepHeaderMeta(stepKey) +
       '<div class="p1-grid">' +
         '<div class="p1-main circles-phase1-wrap">' +
@@ -2790,9 +2806,7 @@ function renderCirclesPhase1() {
       '</div>' +
       '<button class="circles-nav-home" id="circles-p1-home" type="button">回首頁</button>' +
     '</div>' +
-    '<div class="circles-progress">' + progressSegs + '<div class="circles-progress-label">' + escHtml(config.progressLabel) + '</div>' +
-      '<span class="save-indicator" aria-live="polite" style="font-size:14px"></span>' +
-    '</div>' +
+    progressBarHtml +
     buildCirclesStepHeaderMeta(stepKey) +
     '<div class="circles-phase1-wrap">' +
       pillsHtml +
@@ -3222,12 +3236,7 @@ function renderCirclesGate() {
   var step = CIRCLES_STEPS[stepIdx];
   var q = AppState.circlesSelectedQuestion;
 
-  var progressSegs = CIRCLES_STEPS.map(function(s, i) {
-    var cls = i < stepIdx ? 'done' : i === stepIdx ? 'done' : '';
-    var aria = (s.short || '') + ' ' + (s.label || '');
-    return '<div class="circles-progress-seg ' + cls + '" role="listitem" aria-label="' + escHtml(aria) + '"><span class="circles-progress-seg-letter">' + escHtml(s.short || '') + '</span></div>';
-  }).join('');
-
+  var progressBarHtml = buildCirclesProgressBar(stepIdx);
   var homeBtn = '<button style="font-size:12px;color:var(--c-primary);border-bottom:1px solid var(--c-primary);background:none;border-top:none;border-left:none;border-right:none;padding:2px 0;cursor:pointer;font-family:DM Sans,sans-serif;white-space:nowrap;flex-shrink:0" id="circles-gate-home">回首頁</button>';
 
   if (loading || !result) {
@@ -3236,7 +3245,7 @@ function renderCirclesGate() {
         '<div><div class="circles-nav-title">框架審核中</div><div class="circles-nav-sub">' + (q ? q.company : '') + '</div></div>' +
         homeBtn +
       '</div>' +
-      '<div class="circles-progress">' + progressSegs + '<div class="circles-progress-label">' + step.short + ' · ' + step.label + '</div></div>' +
+      progressBarHtml +
       '<div class="circles-gate-loading" id="circles-gate-loading"><i class="ph ph-circle-notch" style="font-size:28px;animation:spin 0.8s linear infinite;display:block;margin-bottom:12px"></i>AI 正在審核你的框架...<div style="font-size:12px;color:var(--c-text-3);margin-top:8px">通常需要 8-15 秒</div><div id="circles-gate-slow" style="font-size:12px;color:var(--c-warn-bold,#a60);margin-top:10px;display:none">回應較慢，請稍候 ‧ <button type="button" id="circles-gate-retry" style="background:none;border:none;color:var(--c-primary);text-decoration:underline;cursor:pointer;font-size:12px">重試</button></div></div>' +
     '</div>';
   }
@@ -3308,7 +3317,7 @@ function renderCirclesGate() {
       '</div>' +
       homeBtn +
     '</div>' +
-    '<div class="circles-progress">' + progressSegs + '<div class="circles-progress-label">' + step.short + ' · ' + step.label + '</div></div>' +
+    progressBarHtml +
     '<div class="circles-gate-wrap">' +
       transitionBar +
       items +
@@ -3361,11 +3370,7 @@ function renderCirclesPhase2() {
   var conclusionText = AppState.circlesConclusionText || '';
   var stepConfig = (CIRCLES_STEP_CONFIG && CIRCLES_STEP_CONFIG[stepKey]) || {};
 
-  var progressSegs = CIRCLES_STEPS.map(function(s, i) {
-    var cls = i < stepIdx ? 'done' : i === stepIdx ? 'active' : '';
-    var aria = (s.short || '') + ' ' + (s.label || '');
-    return '<div class="circles-progress-seg ' + cls + '" role="listitem" aria-label="' + escHtml(aria) + '"><span class="circles-progress-seg-letter">' + escHtml(s.short || '') + '</span></div>';
-  }).join('');
+  var progressBarHtml = buildCirclesProgressBar(stepIdx);
 
   // Icebreaker card (first element in chat body, all steps)
   var icebreakerHtml = stepConfig.icebreaker
@@ -3485,7 +3490,7 @@ function renderCirclesPhase2() {
       (turnCount > 0 && !submitState ? '<div class="circles-nav-right">' + turnCount + ' 輪</div>' : '') +
       '<button class="circles-nav-home-btn" id="circles-p2-home">回首頁</button>' +
     '</div>' +
-    '<div class="circles-progress">' + progressSegs + '<div class="circles-progress-label">' + step.short + ' · ' + step.label + ' · ' + (stepIdx + 1) + '/7</div></div>' +
+    progressBarHtml +
     pinnedCard +
     '<div class="circles-chat-body" id="circles-chat-body"' + chatBodyAttrs + '>' + icebreakerHtml + bubbles + '<div id="circles-streaming-bubble"></div></div>' +
     bottomSection +
@@ -3586,9 +3591,14 @@ function bindCirclesPhase2() {
     render();
   });
 
-  // Back to chat (conclusion box → collapsed)
+  // Back to chat (conclusion box → null/input-bar). User reported (2026-04-30
+   // session 4) that clicking "← 繼續對話" left them on a 整理結論 strip with
+   // no chat input — the previous behaviour set state to 'collapsed' instead
+   // of clearing it. "繼續對話" literally means "continue the conversation",
+   // which should restore the chat input bar (null state) so the user can
+   // actually type, not a different summary affordance.
   document.getElementById('circles-conclusion-back')?.addEventListener('click', function() {
-    AppState.circlesSubmitState = 'collapsed';
+    AppState.circlesSubmitState = null;
     render();
   });
 
@@ -3833,11 +3843,7 @@ function renderCirclesStepScore() {
     return '<div data-view="circles"><div style="text-align:center;padding:48px 16px;font-family:DM Sans,sans-serif">評分結果載入中...</div></div>';
   }
 
-  var progressSegs = CIRCLES_STEPS.map(function(s, i) {
-    var cls = i <= stepIdx ? 'done' : '';
-    var aria = (s.short || '') + ' ' + (s.label || '');
-    return '<div class="circles-progress-seg ' + cls + '" role="listitem" aria-label="' + escHtml(aria) + '"><span class="circles-progress-seg-letter">' + escHtml(s.short || '') + '</span></div>';
-  }).join('');
+  var progressBarHtml = buildCirclesProgressBar(stepIdx);
 
   // 4-dimension breakdown with visual bars (0-5 fill)
   var dims = (result.dimensions || []).map(function(d) {
@@ -3913,7 +3919,7 @@ function renderCirclesStepScore() {
       '<button class="circles-nav-home-btn" id="circles-score-home-btn">回首頁</button>' +
     '</div>' +
     scoreNavRow +
-    '<div class="circles-progress">' + progressSegs + '<div class="circles-progress-label">' + step.short + ' · ' + step.label + ' · ' + (stepIdx + 1) + '/7</div></div>' +
+    progressBarHtml +
     '<div class="circles-score-wrap">' +
       '<div class="circles-score-total">' +
         '<div class="circles-score-number">' + Math.round(result.totalScore || 0) + '</div>' +
@@ -5307,6 +5313,39 @@ function renderNSM() {
 // Builds the innerHTML for a single NSM question card.
 // AUD-016 — NSM 4-step progress with text labels under each circle
 var NSM_STEP_LABELS = ['情境', '指標', '拆解', '總結'];
+// ──────────────────────────────────────────────────────────────────────
+// CIRCLES progress bar — NSM-style 7 circles + 6 lines + active-step line
+// (replaces the old 7-bar strip; see spec 2026-04-30-circles-progress-redesign)
+// `opts.includeSaveIndicator` adds the autosave span (Phase 1 only — gate /
+// Phase 2 / Phase 3 don't autosave so the span stays out of their progress).
+// ──────────────────────────────────────────────────────────────────────
+function buildCirclesProgressBar(stepIdx, opts) {
+  opts = opts || {};
+  var step = CIRCLES_STEPS[stepIdx] || CIRCLES_STEPS[0];
+  var trackHtml = '<div class="circles-progress-track" role="list" aria-label="CIRCLES 訓練進度">';
+  for (var i = 0; i < CIRCLES_STEPS.length; i++) {
+    var s = CIRCLES_STEPS[i];
+    var cls = i < stepIdx ? 'done' : (i === stepIdx ? 'active' : '');
+    var ariaLabel = '第 ' + (i + 1) + ' 步 ' + (s.label || '') + (cls === 'done' ? ' 已完成' : cls === 'active' ? ' 進行中' : '');
+    var current = cls === 'active' ? ' aria-current="step"' : '';
+    trackHtml += '<div class="circles-progress-step ' + cls + '" role="listitem" aria-label="' + escHtml(ariaLabel) + '"' + current + '>' + escHtml(s.short || '') + '</div>';
+    if (i < CIRCLES_STEPS.length - 1) {
+      var lineCls = i < stepIdx ? 'circles-progress-line done' : 'circles-progress-line';
+      trackHtml += '<div class="' + lineCls + '"></div>';
+    }
+  }
+  trackHtml += '</div>';
+
+  var currentLine =
+    '<div class="circles-progress-current">' +
+      '<span class="circles-progress-current-letter">' + escHtml(step.short || '') + ' · ' + escHtml(step.label || '') + '</span>' +
+      '<span class="circles-progress-current-meta">' + (stepIdx + 1) + '/7</span>' +
+      (opts.includeSaveIndicator ? '<span class="save-indicator" aria-live="polite"></span>' : '') +
+    '</div>';
+
+  return '<div class="circles-progress">' + trackHtml + currentLine + '</div>';
+}
+
 function buildNsmProgressBar(activeIdx) {
   var html = '<div class="nsm-progress" role="list" aria-label="NSM 訓練進度">';
   for (var i = 0; i < 4; i++) {
