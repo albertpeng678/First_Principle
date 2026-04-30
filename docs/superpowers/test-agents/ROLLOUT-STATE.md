@@ -2,10 +2,46 @@
 
 **Last updated:** 2026-04-30 (session 3 — Mac). **7-Agent Audit Cycle: Phase D (TDD fix loop) COMPLETE; Phase E/F/G PENDING.**
 
-> 📍 **Local main tip:** `5a84e48` — 7-Agent audit Phase A→D done (15 commits ahead of session 2's `0c72b0f`).
-> 📍 **Server:** running on `http://localhost:4000` (different from session 2's :4001). Background ID `bs6o7uyqq`. Restart cmd: `pkill -f "node server.js" || true; PORT=4000 npm run dev`
-> 📍 **Machine:** Mac (`/Users/albertpeng/Desktop/claude_project/First_Principle`).
+> 📍 **Local main tip after session 3:** `03eba66` — 7-Agent audit Phase A→D + this state-file update done. **NOT YET PUSHED to origin** at end of session 3.
+> 📍 **Session 4 will likely run on a different machine** — use the "Cold-resume on a new machine" checklist below before continuing work.
+> 📍 **Dev server in session 3 ran on `:4000`** (note: session 2 used `:4001`). Either is fine — just be consistent within a session.
 > ⚠️ **Session 2's 2 SQL migrations still pending user apply** (see § "Pending DB migrations" further down).
+
+### Cold-resume on a new machine (session 4)
+
+If `git log --oneline -1` shows anything older than `03eba66`, run this first:
+
+```bash
+# 1. Get session 3's commits onto this machine.
+#    If session 3 commits were pushed before machine switch:
+git fetch origin && git checkout main && git pull --ff-only origin main
+#    If they were NOT pushed (most likely — session 3 ended without push):
+#    The session 3 commits live only on the previous machine. Either:
+#      a) push from the old machine first, then pull here, OR
+#      b) cherry-pick / rebuild — but the easier path is (a).
+#    Confirm tip is `03eba66` before proceeding.
+
+# 2. Install deps + Playwright browsers (idempotent).
+npm install
+npx playwright install chromium
+
+# 3. Verify .env has SUPABASE_URL / SUPABASE_ANON_KEY / OPENAI_API_KEY.
+node -e "require('dotenv').config(); console.log('SUPABASE_URL', !!process.env.SUPABASE_URL, 'SUPABASE_ANON_KEY', !!process.env.SUPABASE_ANON_KEY, 'OPENAI_API_KEY', !!process.env.OPENAI_API_KEY)"
+# Expected: all three `true`. If any false, populate .env from secret store before continuing.
+
+# 4. Boot dev server.
+pkill -f "node server.js" 2>/dev/null || true
+PORT=4000 npm run dev &
+sleep 3 && curl -fsS http://localhost:4000/ -o /dev/null -w "HTTP %{http_code}\n"
+# Expected: HTTP 200.
+
+# 5. Sanity: audit-master should still be 282 pass / 1 flaky / 230 skip.
+PMDRILL_BASE_URL=http://localhost:4000 npx playwright test \
+  --config=tests/playwright/playwright.config.js \
+  journeys/audit/audit-master.spec.js --workers=4 --reporter=list 2>&1 | tail -5
+```
+
+If step 5 shows substantially more failures than 1, something drifted — diagnose before charging into Phase E. Common causes: missing `npm install`, wrong Node version, stale browser channel, or session 3 commits not actually present locally.
 
 ---
 
