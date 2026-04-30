@@ -109,6 +109,28 @@ const ROUTES = [
     contentSel: ['.circles-home-desktop', '[data-view="circles"]', 'main'],
   },
   {
+    name: '09-phase2-conclusion-expanded',
+    desc: 'Phase 2 conclusion box expanded — sticky bottom action row',
+    setup: async (page) => {
+      await page.goto('/');
+      await page.waitForLoadState('domcontentloaded');
+      await page.waitForTimeout(700);
+      await page.evaluate(() => {
+        if (typeof AppState === 'undefined') return;
+        AppState.view = 'circles';
+        AppState.circlesPhase = 2;
+        AppState.circlesSelectedQuestion = (typeof CIRCLES_QUESTIONS !== 'undefined' ? CIRCLES_QUESTIONS[0] : null);
+        AppState.circlesMode = 'drill';
+        AppState.circlesDrillStep = 'C1';
+        AppState.circlesSubmitState = 'expanded';
+        if (typeof render === 'function') render();
+      });
+      await page.waitForTimeout(700);
+    },
+    contentSel: ['.circles-conclusion-box', '.phase2-desktop', 'main'],
+    skipRatio: true, // box is fixed-bottom by design; ratio not meaningful
+  },
+  {
     name: '08-search-active',
     desc: 'Home — search input focused with query',
     setup: async (page) => {
