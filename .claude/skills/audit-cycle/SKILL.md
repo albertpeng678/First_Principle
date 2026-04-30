@@ -41,90 +41,120 @@ If any of these is absent at the moment of need, invoke it explicitly via the `S
 
 ## User scenarios universe (ground truth — must all be covered)
 
-This is the canonical list of every user-facing scenario in PM Drill. Each step
-agent picks the rows that touch their step; the two UI/UX auditors apply their
-lens to every row. The director cross-checks at consolidation that every row
-has at least one piece of evidence (screenshot, console log, Playwright run).
+Every row below was verified against the **current** code (`public/app.js`,
+`server.js`, `routes/*`, `public/style.css`, `public/review-examples.html`,
+`tests/playwright/**`) on the date the skill was last updated. Removed:
+legacy `home` view + `practice` / `report` views (default view is `circles`,
+home view is never set, server no longer mounts `/api/sessions` or
+`/api/guest-sessions`); dark mode (deleted from CSS); "沒有更多題目" copy
+(no longer in code). If you find a row here that no longer matches code,
+fix the universe in the same audit cycle — do not silently skip.
+
+Each step agent picks the rows that touch their step; the two UI/UX
+auditors apply their lens to every row. The director cross-checks at
+consolidation that every row has at least one piece of evidence
+(screenshot, console log, Playwright run).
 
 ### A. Identity & session
-- A1. Guest first-visit lands on `/` with `x-guest-id` cookie minted; no login wall.
-- A2. Register via `POST /api/register` (email + password) — happy path + invalid email + weak password + duplicate email.
-- A3. Login via Supabase auth — success, wrong password, unknown email.
-- A4. Logout from navbar — clears state, returns to `/` as guest, no half-saved drafts visible.
-- A5. Guest → Auth migration: guest with progress signs in → `migrateGuestSessions()` calls `/api/migrate-guest` → all guest CIRCLES + NSM sessions appear under the auth account, no duplicate, no data loss.
-- A6. Session-expired (401) mid-typing — UI surfaces a non-destructive prompt, draft not lost.
+- A1. Guest first-visit lands on `/` (default `AppState.view = 'circles'`); `x-guest-id` UUIDv4 minted client-side and sent in the `X-Guest-ID` header. Middleware at `middleware/guest.js` rejects missing/invalid IDs with 400.
+- A2. Register via `POST /api/auth/register` (email + password). `routes/auth.js` calls Supabase `admin.createUser({ email_confirm: true })` — there is **no email-verification step**; happy path returns `{ ok:true, userId }`, errors return `{ error: <supabase msg> }` with 400.
+- A3. Login via Supabase client SDK — success, wrong password, unknown email.
+- A4. Logout: `#btn-logout` calls `supabase.auth.signOut()` → `SIGNED_OUT` event → state cleared, returns to `/` as guest.
+- A5. Guest → Auth migration: `SIGNED_IN` event triggers `migrateGuestSessions()` → `POST /api/migrate-guest` with `Authorization: Bearer …` + `X-Guest-ID: <guestId>`. Body sends `{ guestSessionIds: [lastSessionId] }`. Verify all three buckets:
+  - **CIRCLES** (`circles_sessions`): rows with `guest_id=<gid>` and `user_id IS NULL` are claimed in-place (`guest_id → null`, `user_id → req.user.id`).
+  - **NSM** (`nsm_sessions`): same in-place claim.
+  - **Legacy** (`guest_sessions` → `practice_sessions`): rows in `guestSessionIds` are copied (without `id`/`guest_id`/`expires_at`) and the original guest rows deleted.
+- A5-conflict. **23505 path**: when the auth user already has an active row for the same `(question_id, mode, drill_step)` tuple, the per-row claim swallows the unique-violation, deletes the guest orphan, and increments `result.conflicts`. Confirm a follow-up audit shows no orphan guest row and no duplicate auth row.
+- A6. Mid-call 401: app.js currently has no 401 interceptor — exercise this path and **file a P1 if a fetch fails silently and the draft is lost**. Director should treat any silent loss as a real bug.
 
 ### B. Onboarding & navigation
-- B1. First-time user (localStorage `circles_onboarding_done` unset) sees onboarding welcome card on `/`.
-- B2. Coachmark tour walks through CIRCLES home → step list → submit; user can skip / complete.
-- B3. `?onboarding=1` query forces replay even after the flag is set (dev hook).
-- B4. `?onboarding=0` query suppresses welcome.
-- B5. Navbar logo (`#navbar-home-btn`) from any phase returns to question picker, wiping practice state.
-- B6. Navbar tabs (CIRCLES / 北極星指標) switch view with active state synced.
-- B7. Hamburger opens offcanvas (`#offcanvas`); overlay click + close button + Esc close it.
+- B1. First-time visit (localStorage `circles_onboarding_done` !== '1' AND no `?onboarding=0`) injects the onboarding welcome card into the CIRCLES home wrap.
+- B2. Multi-step coachmark tour with arrow positions (`top` / `bottom`) walks: 挑題目 → 開始練習 → … `#onb-skip` aborts; `#onb-start` advances. After completion, `circles_onboarding_done` flips to `'1'`.
+- B3. `?onboarding=1` forces replay even after the flag is set (dev hook).
+- B4. `?onboarding=0` suppresses welcome (used by Playwright fixtures).
+- B5. Navbar logo (`#navbar-home-btn`) from any phase wipes `circlesSession`, `circlesSelectedQuestion`, `circlesPhase=1` and returns to the question picker.
+- B6. Navbar tabs (`CIRCLES` / `北極星指標`) switch view; `aria-current="page"` synced via `syncNavbarTab()`.
+- B7. Hamburger (`#btn-hamburger`) opens offcanvas (`#offcanvas`); overlay click + `#btn-offcanvas-close` close it.
+- B8. Legacy URL relink: `GET /login.html` returns `302 → /?view=login` (server.js line ~22). `?view=<X>` query is read at boot and applied to `AppState.view`.
 
-### C. Question picker & resume
-- C1. CIRCLES home renders question cards: tags row, company / product / difficulty, line-clamped brief, **看完整題目** expand-in-place, **確認，開始練習** sticky submit at bottom.
-- C2. Pick a question → land on Phase 1 step C1 with empty fields.
-- C3. Resume banner: returning user with an unfinished session sees a banner on `/` with **繼續上次練習** CTA → restores phase + step + drafts.
-- C4. **沒有更多題目** state when all questions exhausted (or filtered out).
+### C. Question picker & resume (CIRCLES home)
+- C1. Mode picker: two `.circles-mode-card[data-mode]` cards (`drill` / `simulation`) on home — clicking persists `localStorage.circlesMode`, default `'simulation'`.
+- C2. Question-type tabs: `.circles-type-tab[data-type]` × 3 — `產品設計` / `產品改進` / `產品策略` with live counts (`×N`). Active tab persists in `AppState.circlesSelectedType` (default `'design'`).
+- C3. Random-5 + 換一批: `pickRandom5(filteredQs)` shows 5 cards; refresh button announces `'已隨機重新選 5 題'` to an `aria-live="polite"` region (AUD-039).
+- C4. Question card: tag row, company / product, difficulty badge (`DIFF_LABEL`: `easy → 簡單` / `medium → 中等難度` / `hard → 困難`), line-clamped brief, **看完整題目** expand-in-place, **確認，開始練習** sticky submit at the bottom.
+- C5. Pick a question → Phase 1 step C1 (drill) or simulation step 0, fields empty.
+- C6. Resume banner: when active drafts exist, `renderResumeBanner()` shows one card per session (CIRCLES + NSM mixed). Each card has `.resume-go` (繼續 →) and `.dismiss` (X). Confirm a session is dismissable without deleting the row in DB.
+- C7. Boot-time auto-resume prompt: if `lastSessionId` is set and a draft exists, `confirm('繼續上次的練習？')` is shown; OK → `AppState.view='practice'` is set on the legacy path **but** for CIRCLES drafts the resume banner is the live path. Verify CIRCLES does not regress into the legacy practice view.
 
 ### D. CIRCLES Phase 1 (drill mode, per step C1/I/R/C2/L/E/S)
-- D1. Each field renders: label, 提示 button, 查看範例 button, textarea / rich-text editor.
-- D2. Rich-text toolbar: Bold, bullet list, indent, outdent — both desktop top toolbar and mobile sticky bottom toolbar (`.rt-toolbar-mobile`).
-- D3. Rich-text **IME 組字** (Chinese composition): typing zhuyin / pinyin does not commit half-formed text; toolbar buttons disabled mid-composition; commits on Enter.
-- D4. Hint button → calls `/hint` (auth) or `/api/circles-public/hint` (guest), renders hint card; same field again returns cached.
-- D5. 查看範例 button → calls `/example` or `/api/circles-public/example`, renders example card.
-- D6. Autosave: every keystroke debounced → `PATCH /:id/progress`; save indicator transitions saving → saved.
-- D7. Mid-step refresh restores all field text + caret position acceptably.
-- D8. **下一步** advances; **上一步** returns; progress bar reflects current step.
+- D1. Each field renders: label, **提示** button, **查看範例** button, textarea / rich-text editor.
+- D2. Rich-text toolbar: bold (`Ctrl+B`), bullet list (`Ctrl+L`), indent (`Tab`), outdent — desktop top toolbar (`.rt-tbtn`) AND mobile sticky bottom toolbar (`.rt-toolbar-mobile` `.rt-mtbtn`, hidden via CSS on ≥1024px).
+- D3. IME 組字: textarea has `compositionstart` / `compositionend` listeners that flip `ta._rtComposing`; events with `e.isComposing` (or keyCode 229) are skipped. Verify zhuyin / pinyin composition does not commit partial text and toolbar shortcuts no-op mid-composition.
+- D4. Hint button → `POST /api/circles-sessions/:id/hint` (auth) or `POST /api/circles-public/hint` (guest); response cached in-memory per field; second click on same field reuses cache without network.
+- D5. 查看範例 → same auth/guest split (`/example` vs `/api/circles-public/example`); cached.
+- D6. Autosave: debounced `PATCH /:id/progress` on every textarea input; save indicator (`.save-indicator`, `aria-live="polite"`) transitions saving → saved.
+- D7. Mid-step refresh: text content restored. (Caret position is **not** restored — do not file P1 for that.)
+- D8. **下一步** advances; **上一步** returns; progress bar reflects current step (`buildCirclesProgressBar(stepIdx, { includeSaveIndicator })`).
+- D9. Hint card toggle: collapsed shows `查看教練提示`; expanded shows `收起提示`.
+- D10. Loading & retry: gate / evaluate / final-report show `'AI 審核中...'` while in flight; on failure the bottom bar surfaces a `.btn-retry` (`重試`) button.
 
 ### E. CIRCLES Phase 1.5 — gate review
-- E1. From step C1 click **送出** → `POST /:id/gate` → renders pass / warn / error card with rationale.
+- E1. From step C1 click **送出** → `POST /:id/gate` → pass / warn / error card with rationale.
 - E2. **修改** returns to Phase 1 with drafts intact; **繼續** advances to Phase 2.
+- E3. Simulation override: in simulation mode a fail-state gate **still** shows a bottom-bar `#circles-gate-continue` (繼續) so the run is not blocked. In drill mode, fail blocks the advance — verify both branches.
 
 ### F. CIRCLES Phase 2 — chat (interview practice on R)
-- F1. Render conversation bubbles (user / 被訪談者 / 教練點評).
-- F2. Send message → `POST /:id/message` → both interviewee + coaching bubbles append.
-- F3. Phase 2 結論 expanded view (route `09-phase2-conclusion-expanded`) renders correctly.
-- F4. **繼續對話** stays in Phase 2; **進入下一階段** runs `conclusion-check` then advances.
+- F1. Render bubbles: user message → 被訪談者 reply → 教練點評 reply (single LLM response is parsed by matching `【被訪談者】` and `【教練點評】` headers — see `app.js:3812`).
+- F2. Send message → `POST /:id/message` → all three bubbles append.
+- F3. **Conclusion-expanded** state: when `AppState.circlesSubmitState = 'expanded'` (Playwright fixture `09-phase2-conclusion-expanded`), the conclusion box expands and the sticky action row (← 繼續對話 / 確認提交) must remain reachable on every desktop height.
+- F4. **繼續對話** stays in Phase 2; **進入下一階段** runs `POST /:id/conclusion-check` then advances.
 
 ### G. CIRCLES Phase 3 — per-step score
-- G1. `POST /:id/evaluate-step` returns score breakdown; radar chart renders correctly.
+- G1. `POST /:id/evaluate-step` → score breakdown card; radar chart (`renderRadar`) renders.
 - G2. Re-evaluate path works (no stale render).
+- G3. Simulation only: score nav `◀` / `▶` switches displayed score for prev/next step using the in-memory cache without re-fetching.
 
 ### H. CIRCLES Phase 4 — final report
-- H1. From step S **送出最終報告** → `POST /:id/final-report` → final report renders.
-- H2. Radar (per CIRCLES letter) + NSM dimension scores correct.
+- H1. From step S **送出最終報告** → `POST /:id/final-report` → renders `renderCirclesFinalReport`.
+- H2. CIRCLES radar (per letter) + NSM 4-dimension scores correct.
 - H3. **回首頁** returns to `/`; session marked completed in offcanvas + history.
+- H4. Step S sub-tabs: `S-1 摘要` and `S-2 追蹤指標` (4-dim NSM tracking-block) — both must render and switch correctly via `.s-step-tab[data-s-step]`.
+- H5. **匯出 PNG** (`#btn-export-png`): dynamic-import `html2canvas@1.4.1` from esm.sh, capture the report, download as PNG. Verify produces a non-blank image at every viewport (esm.sh CDN may be blocked → expect a graceful failure with no console explosion).
+- H6. Simulation last-step S also offers `看完整總結報告` to enter Phase 4.
 
 ### I. CIRCLES simulation mode
-- I1. Simulation starts from a different entry → walks through the same step set with mode-specific copy.
-- I2. Simulation final state lands somewhere sane (per current spec) — no broken transitions.
+- I1. Simulation walks all 7 letters via `circlesSimStep` (0-6), advancing through `saveCirclesProgress({ currentPhase:1, simStepIndex: stepIdx + 1 })` instead of phase transitions.
+- I2. Simulation final state lands on `H6` (Phase 4 final report) without broken transitions.
 
 ### J. NSM workshop (北極星指標)
-- J1. NSM home → step 1 (情境) → step 2 (指標) → **gate** (`POST /:id/gate`) → step 3 (拆解, 4 dim) → step 4 (總結).
-- J2. NSM hints API `POST /:id/hints` per step.
-- J3. NSM context API (`POST /api/nsm-context`) for context generation.
-- J4. NSM evaluate API `POST /:id/evaluate` produces the dimension breakdown radar.
-- J5. Step 4 mobile vs desktop layout parity (subtabs render on mobile).
+- J1. Sub-tab nav (`AppState.nsmSubTab`): `nsm-step2` (定義 NSM) → gate → `nsm-step3` (拆解指標, disabled until `gatePassed`). Step 4 (總結) is its own screen.
+- J2. NSM home → step 1 (情境) → step 2 → **gate** (`POST /api/nsm-sessions/:id/gate` or `…/guest/nsm-sessions/:id/gate`) → step 3 (4 dim) → step 4.
+- J3. Step 2 has `#btn-nsm-redefine` (重新定義 NSM) — clicking resets step 3 state.
+- J4. NSM hints API: `POST /:id/hints` (plural) per dimension.
+- J5. NSM context API: `POST /api/nsm-context` for context generation.
+- J6. NSM evaluate API: `POST /:id/evaluate` produces the 4-dim breakdown for the radar.
+- J7. Step 4 mobile vs desktop layout parity (NSM-specific subtab row + radar size).
+- J8. Per-screen back / home: `#btn-nsm-back` (← 返回上一步) and `#btn-nsm-home-nav` (回首頁) appear on steps 2/3/4.
 
 ### K. History & offcanvas
-- K1. Offcanvas list: shows recent sessions (CIRCLES + NSM mixed), correct timestamps, click loads the session into the right view.
-- K2. Offcanvas delete: confirm dialog (`確定刪除這次練習？`) → `DELETE /:id` → row vanishes, no console error.
-- K3. Offcanvas empty state: `尚無練習記錄`.
-- K4. History view: chart over time + list, delete with inline confirm (`確定刪除嗎？`), empty state `還沒有練習記錄`.
+- K1. Offcanvas list shows CIRCLES + NSM sessions interleaved with correct timestamps; click loads the session into the right view (CIRCLES → `circles`, NSM → `nsm` step 4).
+- K2. Offcanvas delete: `.offcanvas-delete-btn` → `confirm('確定刪除這次練習？此操作無法復原。')` → `DELETE /:id` → row removed locally; no console error.
+- K3. Offcanvas empty state: `'尚無練習記錄'`.
+- K4. History view (`renderHistory`): list with `.history-delete-btn` → inline `'確定刪除嗎？'` confirm + `.btn-danger.history-confirm-delete`. Empty list shows `'還沒有練習記錄'`.
+- K5. History chart (`renderHistoryChart`): only renders 總分趨勢 once **≥2 completed** sessions exist; otherwise shows `'完成至少 2 次練習後顯示進步曲線'`. Loading errors show `'載入失敗'`.
 
 ### L. review-examples (standalone)
-- L1. `/review-examples.html` loads, lists all CIRCLES letter examples, search / filter works, no JS errors.
+- L1. `/review-examples.html` loads as a static SPA with its own search input (`#review-examples-search` / `#search`) and step filter (`#filter-step` select). `#filter-step` is `aria-label="步驟篩選"`. Verify keyword filter (公司／產品／題目) and step filter both narrow the list with no JS errors.
 
 ### M. Cross-cutting
-- M1. Network / error: 401 → re-auth prompt; 500 from LLM → user-facing retry; offline → queued or surfaced.
+- M1. Network / error envelope: server returns `{ error: 'invalid_json' }` 400 on malformed JSON bodies (`server.js`); LLM 500 surfaces `重試` (D10); 401 path is currently uninstrumented — file gaps as P1 if drafts are lost.
 - M2. Console: zero errors / zero unhandled rejections on every audited route.
-- M3. Mobile keyboard (interactive-widget=resizes-visual): focusing textarea does not push sticky elements off-screen.
-- M4. iOS safe-area-insets respected on iPhone-SE / iPhone-14 / iPhone-15-Pro projects.
+- M3. Mobile keyboard (`interactive-widget=resizes-visual` in `<meta name=viewport>`): focusing a textarea must not push the sticky `.rt-toolbar-mobile` or sticky **確認，開始練習** off-screen.
+- M4. iOS safe-area-insets: `env(safe-area-inset-bottom)` is consumed in style.css (sticky bottom bars, mobile rt-toolbar, etc.); confirm rendering on iPhone-SE / iPhone-14 / iPhone-15-Pro.
 - M5. Tap targets ≥44×44 logical px on every touch viewport.
 - M6. Focus rings visible on keyboard nav; tab order sane; no focus traps.
+- M7. aria-live announcements: save-indicator (`polite`), hint loader (`polite`), shuffle counter (`'已隨機重新選 5 題'`).
+- M8. Server hardening: malformed JSON body returns the JSON error envelope, not the HTML stack trace (would leak filesystem paths).
 
 ---
 
@@ -194,38 +224,51 @@ the gate between step 2 and step 3 + hints API end-to-end.
 Pull every row from § "User scenarios universe" that touches your step and
 exercise it. Required minimum (do not skip):
 
-- Identity: guest reaches this step from `/`; auth user resumes a session
-  that was on this step; logout while on this step returns to `/` with no
-  half-saved state visible.
-- Step-c1 also owns: register flow (A2), login flow (A3), guest→auth
-  migration (A5) — confirm a guest with drafts at C1 successfully migrates
-  on sign-in.
-- Onboarding & resume: first-time user (B1, B2) and resume banner (C3) when
-  the unfinished session was on your step.
-- Question card on `/`: tags row, line-clamped brief, **看完整題目** expand,
-  **確認，開始練習** sticky submit (C1, C2). Use `?onboarding=0` to suppress
-  welcome when not testing onboarding.
-- Walk to your step (click 下一步 from earlier steps as needed).
-- Every field on your step: label, **提示** button (D4), **查看範例** button
-  (D5), textarea / rich-text editor (D2), rich-text **IME 組字** at least
-  once (D3). Fill each, watch autosave indicator (D6), then **mid-step
-  refresh** to confirm restore (D7).
-- Step-c1 also exercises Phase 1.5 gate (E1, E2): click **送出**, observe
-  pass / warn / error, take both **修改** and **繼續** branches.
-- Step-r also exercises Phase 2 chat (F1-F4) including conclusion-expanded.
-- Step-s also exercises Phase 3 step score (G1) AND Phase 4 final report
-  (H1-H3) — radar correctness, NSM dim scores, **回首頁** post-submit.
-- STEP_KEY=NSM exercises J1-J5 (NSM home → 1 → 2 → gate → 3 → 4, hints,
-  context, evaluate, mobile/desktop step-4 parity).
-- Offcanvas (K1-K3) and History (K4) reachable from your step: open
-  offcanvas, click an old session, delete one with confirm, observe empty
-  state by deleting all.
-- Network / error (M1): with devtools, simulate 500 on `/hint` and
-  `/example`, confirm UI surfaces a non-destructive retry. Confirm zero
-  console errors (M2).
+- Identity (A): guest reaches this step from `/`; auth user resumes a
+  session that was on this step; logout while on this step returns to `/`
+  with no half-saved state visible.
+- **Step-c1 also owns**: register (A2 — `POST /api/auth/register`, no email
+  confirmation); login (A3); guest→auth migration (A5 + A5-conflict +
+  legacy `practice_sessions` bucket) — confirm a guest with drafts at C1
+  successfully migrates and the 23505-conflict path deletes the orphan +
+  increments `conflicts`. Also `/login.html` 302 redirect (B8).
+- Onboarding & navigation (B): first-time user (B1, B2) including the
+  multi-step coachmark tour skip path; `?onboarding=1` replay (B3) and
+  `?onboarding=0` suppression (B4); navbar logo escape (B5); navbar tabs
+  + offcanvas open/close (B6, B7).
+- Picker (C): mode picker drill ↔ simulation persists (C1); type tabs
+  產品設計/改進/策略 with counts (C2); 換一批 + aria-live (C3); difficulty
+  badge mapping (C4); resume banner with multiple cards + dismiss + 繼續 →
+  (C6); boot `confirm('繼續上次的練習？')` happy + cancel (C7).
+- Phase 1 fields (D): 提示 + 查看範例 + caching (D4, D5); rich-text
+  toolbar desktop + mobile sticky (D2); IME 組字 (D3); autosave indicator
+  saving → saved (D6); mid-step refresh restores TEXT (D7 — caret not
+  expected); hint card 查看 ↔ 收起 toggle (D9); `AI 審核中...` + `重試`
+  on API failure (D10).
+- **Step-c1 also** exercises Phase 1.5 gate (E1, E2) in BOTH drill and
+  simulation; verify simulation `繼續` override on fail (E3).
+- **Step-r also** exercises Phase 2 chat (F1-F4): bubble parsing
+  【被訪談者】+【教練點評】(F1, F5), conclusion-expanded sticky action row
+  (F3), conclusion-check + advance (F4).
+- **Step-s also** exercises Phase 3 (G1, G2) AND Phase 4 final report
+  (H1-H6): both sub-tabs `S-1 摘要` / `S-2 追蹤指標` (H4), 匯出 PNG happy
+  path + esm.sh failure tolerance (H5), simulation `看完整總結報告` (H6).
+- **Step-c1 / step-i / step-r / step-c2 / step-l / step-e / step-s** in
+  simulation mode also exercise score nav ◀ ▶ cache (G3) when applicable.
+- **STEP_KEY=NSM** exercises J1-J8: sub-tab nav with disabled step 3 (J1),
+  full path 1→2→gate→3→4 (J2), 重新定義 NSM reset (J3), hints plural API
+  (J4), context API (J5), evaluate radar (J6), step-4 mobile/desktop
+  parity (J7), back / home buttons (J8).
+- History & offcanvas (K): open offcanvas (K1), delete with confirm (K2),
+  empty state by deleting all (K3), history view chart + list + delete
+  + ≥2-session threshold (K4, K5).
+- review-examples (L1): standalone page search + step filter, no JS
+  errors.
+- Cross-cutting (M): zero console errors (M2), mobile keyboard sticky
+  preserved (M3), safe-area on iPhone projects (M4), tap targets ≥44px
+  (M5), focus rings + tab order (M6), aria-live announcements fire (M7),
+  malformed JSON returns the envelope, not stack trace (M8).
 - 回首頁 / navbar logo from your step → question picker.
-
-## Cross-viewport coverage
 
 ## Cross-viewport coverage
 Run Playwright against your step at every project listed in
