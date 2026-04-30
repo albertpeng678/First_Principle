@@ -74,6 +74,11 @@
   --bubble-ai-text: var(--c-text);
   --bubble-user-bg: var(--c-primary);
   --bubble-user-text: #fff;
+
+  /* MASTER-009 — sticky submit bar safe-padding token.
+     Mobile bar measured at ~71-88px; reserve 96px so the last form
+     control is never covered. Desktop overrides to 64px below. */
+  --circles-stickybar-pad: 96px;
 }
 
 * { box-sizing: border-box; margin: 0; padding: 0; -webkit-tap-highlight-color: transparent; }
@@ -170,6 +175,31 @@ body {
 .btn-icon { background: transparent; border: none; cursor: pointer; font-size: 1.3rem; padding: 4px 8px; color: var(--text-secondary); display: flex; align-items: center; }
 .btn-danger { background: var(--danger); color: #fff; border: none; border-radius: 6px; padding: 4px 10px; font-size: 0.8rem; cursor: pointer; transition: opacity 0.15s; }
 .btn:disabled { opacity: 0.5; cursor: not-allowed; }
+
+/* MASTER-006 — Mobile-360 horizontal-overflow guard.
+   Three known offenders rendered at ~369px on a 360 viewport (navbar
+   hamburger ghost btn / offcanvas overlay / fixed submit bar) get
+   capped to viewport width and clipped so flex children that exceed
+   the bar's intrinsic min-content cannot bleed past the right edge. */
+.btn.btn-ghost,
+.offcanvas-overlay,
+[data-view="circles"] .circles-submit-bar {
+  max-width: 100vw;
+  box-sizing: border-box;
+}
+.navbar-actions {
+  /* clip any over-eager child (login ghost btn at Mobile-360 / 320 narrow
+     phones) so the document never gains a horizontal scrollbar; buttons
+     keep their intrinsic 44x44 tap target — only the visual edge clips. */
+  overflow: hidden;
+}
+[data-view="circles"] .circles-submit-bar {
+  overflow: hidden;
+  min-width: 0;
+}
+[data-view="circles"] .circles-submit-bar > * {
+  min-width: 0;
+}
 @media (hover: hover) and (pointer: fine) {
   .btn-primary:hover { background: var(--accent-hover); }
   .btn-ghost:hover { background: var(--bg-surface); }
@@ -1679,7 +1709,13 @@ body { -webkit-font-smoothing: antialiased; }
   padding: 16px;
   max-width: 680px;
   margin: 0 auto;
-  padding-bottom: 120px;
+  /* MASTER-009 — reserve space below for fixed submit bar */
+  padding-bottom: var(--circles-stickybar-pad);
+}
+@media (min-width: 1024px) {
+  [data-view="circles"] .circles-phase1-wrap {
+    padding-bottom: 64px;
+  }
 }
 [data-view="circles"] .circles-field-label {
   font-size: 10px;
