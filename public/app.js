@@ -923,14 +923,6 @@ function openOffcanvas() {
   overlay.addEventListener('transitionend', () => { overlay.style.willChange = 'auto'; }, { once: true });
   document.body.style.overflow = 'hidden';
   loadOffcanvasSessions();
-  // AUD-008 — wire nav links inside offcanvas to navigate then close
-  document.querySelectorAll('.offcanvas-nav-link').forEach(function(btn) {
-    btn.onclick = function() {
-      var v = btn.getAttribute('data-nav');
-      closeOffcanvas();
-      if (v && typeof navigate === 'function') navigate(v);
-    };
-  });
   const closeBtn = document.getElementById('btn-offcanvas-close');
   if (closeBtn) closeBtn.onclick = closeOffcanvas;
   overlay.addEventListener('click', closeOffcanvas, { once: true });
@@ -2014,12 +2006,6 @@ function renderCirclesHomeMobile() {
       renderResumeBanner() +
       recentHtml +
 
-      // AUD-011 — above-fold glossary line: spell out CIRCLES + NSM
-      '<div class="circles-glossary-line" style="font-size:12.5px;color:var(--c-text-2,#5a5a5a);margin:0 0 12px;line-height:1.6">' +
-        '<strong>CIRCLES</strong>: Comprehend / Clarify · Identify · Report needs · Cut · List · Evaluate · Summarise · ' +
-        '<strong>NSM</strong> (North Star Metric): 北極星指標代表用戶獲得核心價值的可量化行為。' +
-      '</div>' +
-
       // Info card — collapsed by default
       '<div class="circles-info-card" style="padding:0;overflow:hidden;margin-bottom:20px">' +
         '<button onclick="toggleInfoCard(this)" style="width:100%;display:flex;align-items:center;justify-content:space-between;background:none;border:none;cursor:pointer;padding:12px 14px;text-align:left">' +
@@ -2160,11 +2146,6 @@ function renderCirclesHomeDesktop() {
     '</div>' +
     welcomeHtmlD +
     bannerHtmlD +
-    // AUD-011 — above-fold glossary line: spell out CIRCLES + NSM
-    '<div class="circles-glossary-line" style="font-size:12.5px;color:var(--c-text-2,#5a5a5a);margin:0 0 12px;line-height:1.6">' +
-      '<strong>CIRCLES</strong>: Comprehend / Clarify · Identify · Report needs · Cut · List · Evaluate · Summarise · ' +
-      '<strong>NSM</strong> (North Star Metric): 北極星指標代表用戶獲得核心價值的可量化行為。' +
-    '</div>' +
     '<div class="ch-grid">' +
       // Left rail
       '<div class="left-rail">' +

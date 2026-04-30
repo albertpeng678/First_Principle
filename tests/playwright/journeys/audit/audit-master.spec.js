@@ -477,16 +477,7 @@ test.describe('CLUSTER-D — NSM mode routing & headers', () => {
 // CLUSTER-E — Jargon expansion
 // ────────────────────────────────────────────────────────────────────────────
 test.describe('CLUSTER-E — Jargon expansion', () => {
-  test('AUD-011 [P0] home expands CIRCLES letters and NSM acronym', async ({ page }) => {
-    await gotoHome(page);
-    const txt = await page.evaluate(() => document.body.innerText || '');
-    // CIRCLES letters: at minimum letter list expanded
-    const hasCircles = /Comprehend|Clarif|Identif|Report|Cut|Trade|List|Evaluate|Summari/i.test(txt) ||
-      /[Cc]\s*[—=:].*?[Ii]\s*[—=:].*?[Rr]/.test(txt);
-    const hasNSM = /North\s*Star|N\s*[—=:].*?S\s*[—=:].*?M/i.test(txt) || /北極星指標.*(代表|是|意思)/.test(txt);
-    expect(hasCircles, 'CIRCLES letters expanded above fold').toBe(true);
-    expect(hasNSM, 'NSM expansion above fold').toBe(true);
-  });
+  test.skip('AUD-011 [P0] home expands CIRCLES letters and NSM acronym (removed by user 2026-04-30)', async () => {});
 
   test('AUD-012 [P0] CIRCLES Step C shows letter expansion (Comprehend / Clarify + 澄清情境)', async ({ page }) => {
     await gotoCirclesStepC(page);
