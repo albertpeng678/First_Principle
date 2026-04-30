@@ -2868,9 +2868,9 @@ function renderCirclesPhase1() {
     '</aside>';
   }
 
-  // Phase 4.2 — S step split into 2 sub-pages on desktop
+  // Phase 4.2 — S step split into 2 sub-pages (mobile + desktop, fix-A5 M-019)
   var _sStepTabs = '';
-  if (_isDesktopP1 && stepKey === 'S') {
+  if (stepKey === 'S') {
     var _sStep = AppState.circlesSStep || 1;
     _sStepTabs = '<div class="s-step-tabs">' +
       '<button class="s-step-tab ' + (_sStep === 1 ? 'active' : '') + '" data-s-step="1" type="button">S-1 摘要</button>' +
@@ -2921,6 +2921,7 @@ function renderCirclesPhase1() {
     buildCirclesStepHeaderMeta(stepKey) +
     '<div class="circles-phase1-wrap">' +
       pillsHtml +
+      _sStepTabs +
       '<div class="problem-card">' + escHtml(q.problem_statement || '') + '</div>' +
       (config.showPrevStepCard ? buildPrevStepCardHtml(stepKey) : '') +
       (config.showNsmAnnotation ? '<div class="nsm-annotation">' +
@@ -4218,7 +4219,7 @@ function renderCirclesFinalReport() {
 
   return '<div data-view="circles">' +
     navBar +
-    '<div style="padding:16px 0 80px">' +
+    '<div class="circles-final-report" style="padding:16px 0 80px">' +
       '<div style="background:#fff;border-radius:16px;padding:20px;text-align:center;margin-bottom:16px;border:1px solid rgba(0,0,0,0.08)">' +
         '<div style="font-size:56px;font-weight:800;color:' + gradeColor + ';font-family:Instrument Serif,serif;line-height:1">' + escHtml(report.grade || '') + '</div>' +
         '<div style="font-size:18px;color:#1a1a1a;margin:8px 0 4px;font-family:DM Sans,sans-serif;font-weight:600">' + Math.round(report.overallScore || 0) + ' 分</div>' +
@@ -4243,6 +4244,7 @@ function renderCirclesFinalReport() {
       (report.nextSteps ? '<div style="background:#fff;border-radius:12px;padding:14px;margin-bottom:16px;border:1px solid rgba(0,0,0,0.08);font-size:13px;color:#5a5a5a;font-family:DM Sans,sans-serif;line-height:1.6"><span style="font-weight:600;color:#1a1a1a">建議下一步：</span>' + escHtml(report.nextSteps) + '</div>' : '') +
       '<div class="circles-submit-bar">' +
         '<button class="circles-btn-primary" id="circles-final-again">重練這道題</button>' +
+        '<button class="circles-btn-secondary" id="btn-export-png" type="button"><i class="ph ph-download-simple"></i> 匯出 PNG</button>' +
         homeIconBtn('circles-final-home') +
       '</div>' +
     '</div>' +
@@ -4303,6 +4305,31 @@ function bindCirclesFinalReport() {
     AppState.circlesStepConclusions = {};
     AppState.circlesStepScores = {};
     navigate('circles');
+  });
+
+  // fix-A5 M-020 — Phase-4 final-report PNG export
+  document.getElementById('btn-export-png')?.addEventListener('click', async function() {
+    var btn = document.getElementById('btn-export-png');
+    if (!btn) return;
+    var prevHtml = btn.innerHTML;
+    btn.disabled = true;
+    btn.textContent = '截圖中…';
+    try {
+      var mod = await import('https://esm.sh/html2canvas@1.4.1');
+      var html2canvas = mod.default || mod;
+      var el = document.querySelector('.circles-final-report');
+      if (!el) throw new Error('no .circles-final-report element');
+      var bg = (getComputedStyle(document.documentElement).getPropertyValue('--bg-primary') || '#fff').trim() || '#fff';
+      var canvas = await html2canvas(el, { backgroundColor: bg });
+      var a = document.createElement('a');
+      a.href = canvas.toDataURL('image/png');
+      a.download = 'pm-drill-circles-report-' + Date.now() + '.png';
+      a.click();
+    } catch (e) {
+      console.warn('[circles] PNG export failed:', e);
+    }
+    btn.disabled = false;
+    btn.innerHTML = prevHtml;
   });
 }
 
