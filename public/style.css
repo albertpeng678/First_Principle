@@ -414,8 +414,6 @@ body[data-view="nsm"] .navbar { margin-bottom: 0; }
   color: #7a5c1a; font-size: 0.9rem;
   display: flex; align-items: flex-start; gap: 8px;
 }
-[data-theme="dark"] .hint-card { background: rgba(240,160,75,0.1); color: var(--warning); }
-
 .practice-bottom-bar {
   position: sticky; bottom: 0;
   background: var(--bg-surface);
@@ -802,8 +800,6 @@ textarea::placeholder { white-space: nowrap; overflow: hidden; text-overflow: el
   display: flex; align-items: center; justify-content: center;
   z-index: 10;
 }
-[data-theme="dark"] .card-overlay { background: rgba(0,0,0,0.4); }
-
 /* ══════════════════════════════════════════════════
    Phase 2: Home Tab Toggle + Difficulty List
    ══════════════════════════════════════════════════ */
