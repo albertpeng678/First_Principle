@@ -831,8 +831,18 @@ async function navigate(view) {
 // Sync active tab indicator with current AppState.view (Phase 0 Task 0.5).
 function syncNavbarTab() {
   const view = AppState.view;
+  // CIRCLES tab is active for circles, practice, framework views; NSM tab for nsm
+  const tabKey = (view === 'nsm') ? 'nsm'
+               : (view === 'circles' || view === 'practice' || view === 'framework' || view === 'home') ? 'circles'
+               : null;
   document.querySelectorAll('.navbar-tab').forEach(t => {
-    t.classList.toggle('active', t.dataset.nav === view);
+    const isActive = t.dataset.nav === tabKey;
+    t.classList.toggle('active', isActive);
+    if (isActive) {
+      t.setAttribute('aria-current', 'page');
+    } else {
+      t.removeAttribute('aria-current');
+    }
   });
 }
 
@@ -850,20 +860,20 @@ function bindNavbarTabs() {
 function renderNavbar() {
   const el = document.getElementById('navbar-actions');
   if (!el) return;
-  const nsmLink = `<button class="btn btn-ghost" onclick="navigate('nsm')" style="font-size:13px;font-weight:500">北極星指標</button>`;
 
+  // AUD-034 — on login page, hide primary "登入" CTA (relabel to 建立帳號)
+  const onLogin = AppState.view === 'login';
+  // AUD-000-B — `北極星指標` should appear only once in top nav (kept as the .navbar-tab).
   if (AppState.mode === 'auth') {
     el.innerHTML = `
-      ${nsmLink}
       <span class="navbar-email" title="${AppState.user?.email || ''}">${AppState.user?.email || ''}</span>
       <button class="btn-icon" id="btn-logout" aria-label="登出" title="登出"><i class="ph ph-sign-out"></i></button>
     `;
     document.getElementById('btn-logout')?.addEventListener('click', () => supabase.auth.signOut());
   } else if (AppState.mode === 'guest') {
-    el.innerHTML = `
-      ${nsmLink}
-      <button class="btn btn-ghost" onclick="navigate('login')">登入</button>
-    `;
+    el.innerHTML = onLogin
+      ? `<button class="btn btn-ghost" onclick="navigate('signup')">建立帳號</button>`
+      : `<button class="btn btn-ghost" onclick="navigate('login')">登入</button>`;
   } else {
     el.innerHTML = '';
   }
