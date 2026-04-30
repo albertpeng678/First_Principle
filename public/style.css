@@ -4124,3 +4124,53 @@ textarea.rt-textarea {
 
 /* AUD-050 superseded by spec 2026-04-30: brief is always 2 lines clamp on
    every viewport for uniform card height. Mobile 1-line rule removed. */
+
+/* MASTER-015 — unified 回首頁 icon button (44×44 token).
+   Sits next to .btn-icon back buttons; replaces text "回首頁" everywhere
+   in CIRCLES + NSM navigation. Click handlers are bound by id, so the
+   class only carries visuals. */
+.btn-home-icon {
+  width: 44px;
+  height: 44px;
+  min-width: 44px;
+  min-height: 44px;
+  padding: 0;
+  border: none;
+  background: transparent;
+  cursor: pointer;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  color: var(--text-primary, #1f2937);
+  border-radius: 8px;
+  transition: background 0.15s ease;
+  flex-shrink: 0;
+}
+.btn-home-icon:hover { background: var(--bg-surface-2, #f3f4f6); }
+.btn-home-icon:focus-visible { outline: 2px solid var(--c-primary, #5b21b6); outline-offset: 2px; }
+.btn-home-icon i { font-size: 22px; line-height: 1; }
+
+/* MASTER-021 — offcanvas loading + error states. */
+.offcanvas-loading,
+.offcanvas-error {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  padding: 32px 16px;
+  color: var(--text-secondary, #6b7280);
+  text-align: center;
+}
+.offcanvas-loading p,
+.offcanvas-error p { margin: 0 0 12px; font-size: 14px; }
+.offcanvas-loading .spinner {
+  width: 32px;
+  height: 32px;
+  border: 3px solid var(--bg-surface-2, #e5e7eb);
+  border-top-color: var(--c-primary, #5b21b6);
+  border-radius: 50%;
+  animation: offc-spin 0.8s linear infinite;
+  margin-bottom: 12px;
+}
+@keyframes offc-spin { to { transform: rotate(360deg); } }
+
