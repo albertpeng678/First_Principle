@@ -83,12 +83,14 @@ app.use('/api/circles-sessions', router);
 
 function resetDbChain() {
   // Reset all chain methods to return the chain again
-  ['from', 'select', 'insert', 'update', 'delete', 'eq', 'order', 'limit'].forEach(m => {
+  ['from', 'select', 'insert', 'update', 'delete', 'eq', 'is', 'order', 'limit'].forEach(m => {
     db[m].mockReset();
     db[m].mockReturnValue(db);
   });
   db.single.mockReset();
   db.single.mockResolvedValue({ data: null, error: null });
+  db.maybeSingle.mockReset();
+  db.maybeSingle.mockResolvedValue({ data: { id: 'mock-id' }, error: null });
   db.then.mockReset();
   // Reset state and restore the thenable implementation
   db.__state.chainResult = { data: null, error: null };
@@ -453,7 +455,8 @@ describe('POST /api/circles-sessions/:id/message', () => {
       .send({});
 
     expect(res.status).toBe(400);
-    expect(res.body.error).toContain('userMessage');
+    // Route returns snake_case error code 'empty_user_message'.
+    expect(res.body.error).toMatch(/user_message|userMessage/);
   });
 
   test('returns 404 when session not found', async () => {
@@ -640,7 +643,16 @@ describe('POST /api/circles-sessions/:id/evaluate-step', () => {
   });
 
   test('sets status to completed for simulation mode at last step (sim_step_index 6)', async () => {
-    const session = makeSession({ mode: 'simulation', sim_step_index: 6 });
+    // Route security model (B4-1) derives completion from the post-merge
+    // step_scores having all 7 entries — NOT from client-controlled
+    // sim_step_index. So pre-populate 6 prior step_scores and let this eval
+    // fill the 7th (drill_step 'S').
+    const session = makeSession({
+      mode: 'simulation',
+      drill_step: 'S',
+      sim_step_index: 6,
+      step_scores: { C1: {}, I: {}, R: {}, C2: {}, L: {}, E: {} },
+    });
     db.single.mockResolvedValue({ data: session, error: null });
     evaluateCirclesStep.mockResolvedValue({ totalScore: 90 });
 
@@ -798,7 +810,8 @@ describe('PATCH /api/circles-sessions/:id/progress', () => {
   });
 
   test('returns 500 when DB update fails', async () => {
-    setChainResult({ error: { message: 'update failed' } });
+    // Route ends with `.maybeSingle()` — override that specifically.
+    db.maybeSingle.mockResolvedValue({ data: null, error: { message: 'update failed' } });
 
     const res = await request(app)
       .patch('/api/circles-sessions/session-abc/progress')
