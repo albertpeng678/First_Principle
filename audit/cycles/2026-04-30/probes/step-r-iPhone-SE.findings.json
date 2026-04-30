@@ -1,0 +1,26 @@
+{
+  "viewport": "iPhone-SE",
+  "findings": [
+    {
+      "label": "M5-tap-target",
+      "severity": "P1",
+      "detail": "1 sub-44px touch targets on step R: [{\"tag\":\"BUTTON\",\"text\":\"回首頁\",\"w\":60,\"h\":40}]"
+    },
+    {
+      "label": "F3-back-not-reachable",
+      "severity": "P0",
+      "detail": "繼續對話 outside viewport: rect={\"x\":224.3125,\"y\":740.28125,\"width\":52.6875,\"height\":14,\"top\":740.28125,\"right\":277,\"bottom\":754.28125,\"left\":224.3125} vh=667"
+    },
+    {
+      "label": "F3-back-tiny",
+      "severity": "P1",
+      "detail": "繼續對話 height 14px < 44 mobile"
+    },
+    {
+      "label": "F3-submit-not-reachable",
+      "severity": "P0",
+      "detail": "確認提交 outside viewport: rect={\"x\":285,\"y\":730.78125,\"width\":76,\"height\":33,\"top\":730.78125,\"right\":361,\"bottom\":763.78125,\"left\":285} vh=667"
+    }
+  ],
+  "consoleErrs": []
+}

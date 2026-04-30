@@ -1,6 +1,58 @@
 # PM Drill Mega Rollout — Live State Checkpoint
 
-**Last updated:** 2026-04-30 (session 4 — Windows). **7-Agent Audit Cycle: Phases D→G complete after a second pass against user-reported real-world bugs. audit-master 283 pass / 0 fail; rwd-visual-gate 64 pass / 0 fail; jest 104 pass / 0 fail.**
+**Last updated:** 2026-04-30 (session 5 — Mac). **11-Agent audit-cycle dispatched + consolidated; 24 master issues filed; Wave A 修復尚未派發前 token 用盡，需下次 session 接手。**
+
+---
+
+## ⚠️ Session 5 (2026-04-30) — paused mid-cycle, resume below
+
+### 完成
+- Phase 0 環境檢查 / Phase 1 派 10 個 audit agent / Phase 2 issues-master 整併。
+- Triage 三件已決：
+  - **MASTER-007** → universe drift（L 只有 3 欄位，code 沒問題）→ 改 `.claude/skills/audit-cycle/SKILL.md`。
+  - **MASTER-017** → P2 probe drift（NSM step-4 用 `renderNSMRadar` SVG，不是 canvas）。
+  - **MASTER-018** → universe drift（Phase-3 用 bars 是 by design，universe G1 改文字）。
+- Baseline Playwright：434 passed / 0 failed / 292 skipped。
+- 唯一 spec failure：`AUD-026 [P1] offcanvas empty skeleton` on iPhone-14（已收進 MASTER-021）。
+
+### 24 個 master issue（最終 P0:6 / P1:12 / DOC:4）
+完整內容在 `audit/cycles/2026-04-30/issues-master.md`。10 份子 agent log 在 `audit/cycles/2026-04-30/logs/`。
+
+### Wave A（功能修復，免設計）— **尚未派發**
+- **M-001**：`public/app.js:2967` 查看範例 handler 改用 `btn.closest('.circles-field-group').querySelector('.field-example-body')`（一行修，解封 7 個 step）。
+- **M-006**：Mobile-360 水平 9px 溢出 — `.btn.btn-ghost`、`.offcanvas-overlay`、`.circles-submit-bar`。
+- **M-009**：sticky 下一步 bottom bar 與 form 重疊 — 加 `padding-bottom: var(--circles-stickybar-h)`。
+- **M-010**：`.rt-toolbar-mobile` focus 時仍 `display:none`；`.rt-mtbtn` 0×0 hit area。
+- **M-011**：`[circles auto-save] failed: Failed to fetch` 被吞，guest mode `.save-indicator` 永遠空字串、refresh 後 textarea 內容遺失。
+- **M-012**：step I drill mode 沒有「上一步」按鈕。
+- **M-015**：NSM step 4 + gate sub-tab 缺 `#btn-nsm-home-nav`。
+- **M-016**：`#btn-nsm-redefine` handler 沒重置 `nsmBreakdownDraft / nsmGateResult / nsmHints`。
+- **M-019**：Phase-4 `S-1 摘要 / S-2 追蹤指標` 兩個 sub-tab 在 `_isDesktopP1` gate 下，touch viewport 看不到 — 移除 gate。
+- **M-020**：CIRCLES Phase-4 submit-bar 沒有 `#btn-export-png`（只有 legacy `renderReport` 留著）— 把 PNG export 加回 CIRCLES 路徑。
+- **M-021**：offcanvas 空 skeleton race（race vs list fetch）— 等 fetch 完才切視圖，或用條件 render。
+- **DOC drifts**：`.claude/skills/audit-cycle/SKILL.md` step-L 改 3 欄位、G1 改 bars、J2 改 1 input + 2 textareas、D 行 step-E 拿掉「方案」前綴。
+
+### Wave B（UI/UX，需 mockup 放行）— **尚未開始**
+- **M-002**：iPhone-SE 展開的題目卡 sticky 確認鈕被推到 fold 下 9px。
+- **M-003**：Phase-2 conclusion-expanded 的 ← 繼續對話 / 確認提交 sticky 失效（Desktop-1280 在 fold 下 14.4px、iPhone-SE 96.8px）。
+- **M-004**：Phase-4 final report 缺 per-letter CIRCLES radar。
+- **M-005**：Phase-4 final report 缺 NSM 4-dim tracking-block 呈現。
+- **M-008**：tap target tokens 一次設計過 — 列表在 issues-master.md MASTER-008 段。
+- **M-013**：3 處 WCAG AA 對比失敗（chip 1.27、pill labels 3.48、`--c-text-3` 3.97）。
+- **M-014**：focus-visible rings 缺：`.circles-q-card / .circles-mode-card / type tabs / navbar tabs / offcanvas / history items`。
+
+### Phase 進度
+- TaskList 現況：#1 ✅ #2 ✅ #3 in_progress（待派 Wave A）#4-#7 pending。
+- Dev server `:4000` 仍背景跑（process bphvn8l1t，可能在新 session 被回收，重啟用 `npm run dev`）。
+
+### 下次 session 接手指令
+> 「讀 `audit/cycles/2026-04-30/issues-master.md` 跟 `docs/superpowers/test-agents/ROLLOUT-STATE.md` 的 Session 5 段，接手 audit cycle Wave A：派 5 個 fix agent 並行修 M-001 / M-006+009 / M-010+011+012 / M-015+016+021 / M-019+020，每個用 superpowers:test-driven-development + verification-before-completion，commit 後叫原 test agent 重驗。然後做 DOC drift 更新（SKILL.md 4 處）。Wave A 全綠後做 Wave B mockup 放行流程。dev server 沒在跑就先 `npm run dev`。」
+
+---
+
+## Historic state (session 4 and earlier preserved below)
+
+**Previous header:** 7-Agent Audit Cycle: Phases D→G complete after a second pass against user-reported real-world bugs. audit-master 283 pass / 0 fail; rwd-visual-gate 64 pass / 0 fail; jest 104 pass / 0 fail.
 
 > 📍 **Local main tip after session 4:** `699127b` (Phase E jest fixes). 5 fix commits added on top of session 3 (`098a673`).
 > 📍 **Session 4 ran on Windows** continuing from session 3's Mac work.

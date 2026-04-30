@@ -1,0 +1,93 @@
+{
+  "fontFamilies": [
+    "\"PingFang TC\"",
+    "\"DM Sans\", -apple-system, sans-serif",
+    "Phosphor",
+    "Arial",
+    "monospace"
+  ],
+  "fontSizes": [
+    11,
+    12,
+    13,
+    14,
+    16
+  ],
+  "buttonsCount": 6,
+  "undersizeTaps": [
+    {
+      "tag": "a",
+      "cls": "navbar-logo",
+      "text": "PM Drill",
+      "w": 84,
+      "h": 26
+    },
+    {
+      "tag": "a",
+      "cls": "navbar-tab",
+      "text": "CIRCLES",
+      "w": 68,
+      "h": 22
+    },
+    {
+      "tag": "a",
+      "cls": "navbar-tab",
+      "text": "北極星指標",
+      "w": 80,
+      "h": 22
+    },
+    {
+      "tag": "button",
+      "cls": "",
+      "text": "全展開",
+      "w": 65,
+      "h": 36
+    },
+    {
+      "tag": "button",
+      "cls": "",
+      "text": "全收起",
+      "w": 65,
+      "h": 36
+    }
+  ],
+  "lowContrast": [],
+  "hardHex": [],
+  "tokens": {
+    "--c-bg": "#F2F0EB",
+    "--c-warn-bold": "#B85C00"
+  },
+  "focusSamples": [
+    {
+      "outline": "",
+      "outlineWidth": "",
+      "boxShadow": ""
+    },
+    {
+      "outline": "",
+      "outlineWidth": "",
+      "boxShadow": ""
+    },
+    {
+      "outline": "",
+      "outlineWidth": "",
+      "boxShadow": ""
+    },
+    {
+      "outline": "",
+      "outlineWidth": "",
+      "boxShadow": ""
+    },
+    {
+      "outline": "",
+      "outlineWidth": "",
+      "boxShadow": ""
+    }
+  ],
+  "docW": 430,
+  "vw": 430,
+  "horizScroll": false,
+  "consoleErrors": [],
+  "viewport": "iPhone-15-Pro",
+  "route": "08-review-examples"
+}

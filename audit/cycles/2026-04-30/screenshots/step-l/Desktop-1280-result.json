@@ -1,0 +1,128 @@
+{
+  "viewport": "Desktop-1280",
+  "base": "http://localhost:4000",
+  "started": "2026-04-30T13-39-20-258Z",
+  "steps": {
+    "home": "/Users/albertpeng/Desktop/claude_project/First_Principle/audit/cycles/2026-04-30/screenshots/step-l/Desktop-1280-01-home.png",
+    "stepC1": "/Users/albertpeng/Desktop/claude_project/First_Principle/audit/cycles/2026-04-30/screenshots/step-l/Desktop-1280-02-step-c1.png",
+    "stepL": "/Users/albertpeng/Desktop/claude_project/First_Principle/audit/cycles/2026-04-30/screenshots/step-l/Desktop-1280-03-step-l.png",
+    "stepLWithSol3": "/Users/albertpeng/Desktop/claude_project/First_Principle/audit/cycles/2026-04-30/screenshots/step-l/Desktop-1280-04-step-l-sol3.png",
+    "stepLAfterTyping": "/Users/albertpeng/Desktop/claude_project/First_Principle/audit/cycles/2026-04-30/screenshots/step-l/Desktop-1280-05-step-l-typed.png"
+  },
+  "inspect": {
+    "stepHeader": "L — 提出方案",
+    "fields": [
+      {
+        "name": "方案一",
+        "present": true
+      },
+      {
+        "name": "方案二",
+        "present": true
+      },
+      {
+        "name": "方案三（可選）",
+        "present": true
+      },
+      {
+        "name": "各方案特性",
+        "present": false
+      }
+    ],
+    "labels": [
+      "方案一",
+      "方案二",
+      "方案三（可選）"
+    ],
+    "sol3AddVisible": true,
+    "sol3AddRect": {
+      "x": 70.40625,
+      "y": 853.796875,
+      "w": 845.1875,
+      "h": 44
+    },
+    "submitBar": {
+      "x": 0,
+      "y": 729,
+      "w": 1280,
+      "h": 71
+    },
+    "submitBtn": {
+      "x": 114,
+      "y": 742,
+      "w": 1150,
+      "h": 46
+    },
+    "backBtn": {
+      "x": 16,
+      "y": 742,
+      "w": 88,
+      "h": 46
+    },
+    "hintBtns": 3,
+    "exampleBtns": 3,
+    "textareas": [
+      {
+        "tag": "textarea",
+        "w": 845,
+        "h": 60
+      },
+      {
+        "tag": "textarea",
+        "w": 845,
+        "h": 60
+      },
+      {
+        "tag": "textarea",
+        "w": 0,
+        "h": 0
+      }
+    ],
+    "docHeight": 1012,
+    "vh": 800,
+    "vw": 1280,
+    "hScroll": false
+  },
+  "tapTargets": null,
+  "sticky": {
+    "barTop": 729,
+    "barH": 71,
+    "overlapped": 0,
+    "vh": 800
+  },
+  "sol3": {
+    "found": true,
+    "visibleBefore": true,
+    "sol3FieldVisible": true
+  },
+  "typing": {
+    "typed": true,
+    "indicator": ""
+  },
+  "hintCache": {
+    "found": true,
+    "firstShown": true,
+    "firstMs": 1214,
+    "secondShown": true,
+    "secondMs": 30408
+  },
+  "console": [
+    {
+      "type": "warning",
+      "text": "The resource https://fonts.googleapis.com/css2?family=Instrument+Serif&display=swap was preloaded using link preload but not used within a few seconds from the window's load event. Please make sure it has an appropriate `as` value and it is preloaded intentionally."
+    },
+    {
+      "type": "warning",
+      "text": "The resource https://fonts.googleapis.com/css2?family=DM+Sans:ital,opsz,wght@0,9..40,400;0,9..40,500;0,9..40,600&display=swap was preloaded using link preload but not used within a few seconds from the window's load event. Please make sure it has an appropriate `as` value and it is preloaded intentionally."
+    },
+    {
+      "type": "warning",
+      "text": "The resource https://fonts.googleapis.com/css2?family=Instrument+Serif&display=swap was preloaded using link preload but not used within a few seconds from the window's load event. Please make sure it has an appropriate `as` value and it is preloaded intentionally."
+    },
+    {
+      "type": "warning",
+      "text": "The resource https://fonts.googleapis.com/css2?family=DM+Sans:ital,opsz,wght@0,9..40,400;0,9..40,500;0,9..40,600&display=swap was preloaded using link preload but not used within a few seconds from the window's load event. Please make sure it has an appropriate `as` value and it is preloaded intentionally."
+    }
+  ],
+  "finished": "2026-04-30T13-40-27-407Z"
+}

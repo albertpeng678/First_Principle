@@ -1,0 +1,317 @@
+[
+  {
+    "viewport": "Mobile-360",
+    "route": "home",
+    "severity": "P1",
+    "title": "Tap-target <44px: 3 hits",
+    "detail": "button.# 294x42 \"什麼是 CIRCLES 實戰訓練？\" | button.circles-q-random-btn#circles-random-btn 74x40 \"隨機選題\" | button.nsm-banner-btn#circles-nsm-banner-btn 92x40 \"前往 NSM →\""
+  },
+  {
+    "viewport": "Mobile-360",
+    "route": "home-onboarding",
+    "severity": "P1",
+    "title": "Tap-target <44px: 3 hits",
+    "detail": "button.# 294x42 \"什麼是 CIRCLES 實戰訓練？\" | button.circles-q-random-btn#circles-random-btn 74x40 \"隨機選題\" | button.nsm-banner-btn#circles-nsm-banner-btn 92x40 \"前往 NSM →\""
+  },
+  {
+    "viewport": "Mobile-360",
+    "route": "circles-step-c1",
+    "severity": "P1",
+    "title": "Tap-target <44px: 1 hits",
+    "detail": "button.circles-nav-home#circles-p1-home 60x40 \"回首頁\""
+  },
+  {
+    "viewport": "Mobile-360",
+    "route": "circles-step-c1-keyboard",
+    "severity": "P1",
+    "title": "Tap-target <44px: 1 hits",
+    "detail": "button.circles-nav-home#circles-p1-home 60x40 \"回首頁\""
+  },
+  {
+    "viewport": "Mobile-360",
+    "route": "phase2-conclusion-expanded",
+    "severity": "P1",
+    "title": "Tap-target <44px: 3 hits",
+    "detail": "button.# 294x42 \"什麼是 CIRCLES 實戰訓練？\" | button.circles-q-random-btn#circles-random-btn 74x40 \"隨機選題\" | button.nsm-banner-btn#circles-nsm-banner-btn 92x40 \"前往 NSM →\""
+  },
+  {
+    "viewport": "Mobile-360",
+    "route": "nsm-home",
+    "severity": "P1",
+    "title": "Tap-target <44px: 1 hits",
+    "detail": "button.btn#btn-nsm-step1-next 328x36 \"開始 NSM 訓練\""
+  },
+  {
+    "viewport": "Mobile-360",
+    "route": "login",
+    "severity": "P1",
+    "title": "Tap-target <44px: 2 hits",
+    "detail": "button.btn# 286x38 \"登入\" | a.#forgot-password-link 68x17 \"忘記密碼？\""
+  },
+  {
+    "viewport": "Mobile-360",
+    "route": "review-examples",
+    "severity": "P1",
+    "title": "Tap-target <44px: 5 hits",
+    "detail": "button.#expand-all 65x36 \"全展開\" | button.#collapse-all 65x36 \"全收起\" | a.navbar-logo# 84x26 \"PM Drill\" | a.navbar-tab# 68x22 \"CIRCLES\" | a.navbar-tab# 80x22 \"北極星指標\""
+  },
+  {
+    "viewport": "Mobile-360",
+    "route": "offcanvas",
+    "severity": "P1",
+    "title": "Tap-target <44px: 3 hits",
+    "detail": "button.# 294x42 \"什麼是 CIRCLES 實戰訓練？\" | button.circles-q-random-btn#circles-random-btn 74x40 \"隨機選題\" | button.nsm-banner-btn#circles-nsm-banner-btn 92x40 \"前往 NSM →\""
+  },
+  {
+    "viewport": "iPhone-SE",
+    "route": "home",
+    "severity": "P1",
+    "title": "Tap-target <44px: 3 hits",
+    "detail": "button.# 309x42 \"什麼是 CIRCLES 實戰訓練？\" | button.circles-q-random-btn#circles-random-btn 74x40 \"隨機選題\" | button.nsm-banner-btn#circles-nsm-banner-btn 92x40 \"前往 NSM →\""
+  },
+  {
+    "viewport": "iPhone-SE",
+    "route": "home-onboarding",
+    "severity": "P1",
+    "title": "Tap-target <44px: 3 hits",
+    "detail": "button.# 309x42 \"什麼是 CIRCLES 實戰訓練？\" | button.circles-q-random-btn#circles-random-btn 74x40 \"隨機選題\" | button.nsm-banner-btn#circles-nsm-banner-btn 92x40 \"前往 NSM →\""
+  },
+  {
+    "viewport": "iPhone-SE",
+    "route": "circles-step-c1",
+    "severity": "P1",
+    "title": "Tap-target <44px: 1 hits",
+    "detail": "button.circles-nav-home#circles-p1-home 60x40 \"回首頁\""
+  },
+  {
+    "viewport": "iPhone-SE",
+    "route": "circles-step-c1-keyboard",
+    "severity": "P1",
+    "title": "Tap-target <44px: 1 hits",
+    "detail": "button.circles-nav-home#circles-p1-home 60x40 \"回首頁\""
+  },
+  {
+    "viewport": "iPhone-SE",
+    "route": "phase2-conclusion-expanded",
+    "severity": "P1",
+    "title": "Tap-target <44px: 3 hits",
+    "detail": "button.# 309x42 \"什麼是 CIRCLES 實戰訓練？\" | button.circles-q-random-btn#circles-random-btn 74x40 \"隨機選題\" | button.nsm-banner-btn#circles-nsm-banner-btn 92x40 \"前往 NSM →\""
+  },
+  {
+    "viewport": "iPhone-SE",
+    "route": "nsm-home",
+    "severity": "P1",
+    "title": "Tap-target <44px: 1 hits",
+    "detail": "button.btn#btn-nsm-step1-next 343x36 \"開始 NSM 訓練\""
+  },
+  {
+    "viewport": "iPhone-SE",
+    "route": "login",
+    "severity": "P1",
+    "title": "Tap-target <44px: 2 hits",
+    "detail": "button.btn# 301x38 \"登入\" | a.#forgot-password-link 68x17 \"忘記密碼？\""
+  },
+  {
+    "viewport": "iPhone-SE",
+    "route": "review-examples",
+    "severity": "P1",
+    "title": "Tap-target <44px: 5 hits",
+    "detail": "button.#expand-all 65x36 \"全展開\" | button.#collapse-all 65x36 \"全收起\" | a.navbar-logo# 84x26 \"PM Drill\" | a.navbar-tab# 68x22 \"CIRCLES\" | a.navbar-tab# 80x22 \"北極星指標\""
+  },
+  {
+    "viewport": "iPhone-SE",
+    "route": "offcanvas",
+    "severity": "P1",
+    "title": "Tap-target <44px: 3 hits",
+    "detail": "button.# 309x42 \"什麼是 CIRCLES 實戰訓練？\" | button.circles-q-random-btn#circles-random-btn 74x40 \"隨機選題\" | button.nsm-banner-btn#circles-nsm-banner-btn 92x40 \"前往 NSM →\""
+  },
+  {
+    "viewport": "iPhone-14",
+    "route": "home",
+    "severity": "P1",
+    "title": "Tap-target <44px: 3 hits",
+    "detail": "button.# 324x42 \"什麼是 CIRCLES 實戰訓練？\" | button.circles-q-random-btn#circles-random-btn 74x40 \"隨機選題\" | button.nsm-banner-btn#circles-nsm-banner-btn 92x40 \"前往 NSM →\""
+  },
+  {
+    "viewport": "iPhone-14",
+    "route": "home-onboarding",
+    "severity": "P1",
+    "title": "Tap-target <44px: 3 hits",
+    "detail": "button.# 324x42 \"什麼是 CIRCLES 實戰訓練？\" | button.circles-q-random-btn#circles-random-btn 74x40 \"隨機選題\" | button.nsm-banner-btn#circles-nsm-banner-btn 92x40 \"前往 NSM →\""
+  },
+  {
+    "viewport": "iPhone-14",
+    "route": "circles-step-c1",
+    "severity": "P1",
+    "title": "Tap-target <44px: 1 hits",
+    "detail": "button.circles-nav-home#circles-p1-home 60x40 \"回首頁\""
+  },
+  {
+    "viewport": "iPhone-14",
+    "route": "circles-step-c1-keyboard",
+    "severity": "P1",
+    "title": "Tap-target <44px: 1 hits",
+    "detail": "button.circles-nav-home#circles-p1-home 60x40 \"回首頁\""
+  },
+  {
+    "viewport": "iPhone-14",
+    "route": "phase2-conclusion-expanded",
+    "severity": "P1",
+    "title": "Tap-target <44px: 3 hits",
+    "detail": "button.# 324x42 \"什麼是 CIRCLES 實戰訓練？\" | button.circles-q-random-btn#circles-random-btn 74x40 \"隨機選題\" | button.nsm-banner-btn#circles-nsm-banner-btn 92x40 \"前往 NSM →\""
+  },
+  {
+    "viewport": "iPhone-14",
+    "route": "nsm-home",
+    "severity": "P1",
+    "title": "Tap-target <44px: 1 hits",
+    "detail": "button.btn#btn-nsm-step1-next 358x36 \"開始 NSM 訓練\""
+  },
+  {
+    "viewport": "iPhone-14",
+    "route": "login",
+    "severity": "P1",
+    "title": "Tap-target <44px: 2 hits",
+    "detail": "button.btn# 316x38 \"登入\" | a.#forgot-password-link 68x17 \"忘記密碼？\""
+  },
+  {
+    "viewport": "iPhone-14",
+    "route": "review-examples",
+    "severity": "P1",
+    "title": "Tap-target <44px: 5 hits",
+    "detail": "button.#expand-all 65x36 \"全展開\" | button.#collapse-all 65x36 \"全收起\" | a.navbar-logo# 84x26 \"PM Drill\" | a.navbar-tab# 68x22 \"CIRCLES\" | a.navbar-tab# 80x22 \"北極星指標\""
+  },
+  {
+    "viewport": "iPhone-14",
+    "route": "offcanvas",
+    "severity": "P1",
+    "title": "Tap-target <44px: 3 hits",
+    "detail": "button.# 324x42 \"什麼是 CIRCLES 實戰訓練？\" | button.circles-q-random-btn#circles-random-btn 74x40 \"隨機選題\" | button.nsm-banner-btn#circles-nsm-banner-btn 92x40 \"前往 NSM →\""
+  },
+  {
+    "viewport": "iPhone-15-Pro",
+    "route": "home",
+    "severity": "P1",
+    "title": "Tap-target <44px: 3 hits",
+    "detail": "button.# 364x42 \"什麼是 CIRCLES 實戰訓練？\" | button.circles-q-random-btn#circles-random-btn 74x40 \"隨機選題\" | button.nsm-banner-btn#circles-nsm-banner-btn 92x40 \"前往 NSM →\""
+  },
+  {
+    "viewport": "iPhone-15-Pro",
+    "route": "home-onboarding",
+    "severity": "P1",
+    "title": "Tap-target <44px: 3 hits",
+    "detail": "button.# 364x42 \"什麼是 CIRCLES 實戰訓練？\" | button.circles-q-random-btn#circles-random-btn 74x40 \"隨機選題\" | button.nsm-banner-btn#circles-nsm-banner-btn 92x40 \"前往 NSM →\""
+  },
+  {
+    "viewport": "iPhone-15-Pro",
+    "route": "circles-step-c1",
+    "severity": "P1",
+    "title": "Tap-target <44px: 1 hits",
+    "detail": "button.circles-nav-home#circles-p1-home 60x40 \"回首頁\""
+  },
+  {
+    "viewport": "iPhone-15-Pro",
+    "route": "circles-step-c1-keyboard",
+    "severity": "P1",
+    "title": "Tap-target <44px: 1 hits",
+    "detail": "button.circles-nav-home#circles-p1-home 60x40 \"回首頁\""
+  },
+  {
+    "viewport": "iPhone-15-Pro",
+    "route": "phase2-conclusion-expanded",
+    "severity": "P1",
+    "title": "Tap-target <44px: 3 hits",
+    "detail": "button.# 364x42 \"什麼是 CIRCLES 實戰訓練？\" | button.circles-q-random-btn#circles-random-btn 74x40 \"隨機選題\" | button.nsm-banner-btn#circles-nsm-banner-btn 92x40 \"前往 NSM →\""
+  },
+  {
+    "viewport": "iPhone-15-Pro",
+    "route": "nsm-home",
+    "severity": "P1",
+    "title": "Tap-target <44px: 1 hits",
+    "detail": "button.btn#btn-nsm-step1-next 398x36 \"開始 NSM 訓練\""
+  },
+  {
+    "viewport": "iPhone-15-Pro",
+    "route": "login",
+    "severity": "P1",
+    "title": "Tap-target <44px: 2 hits",
+    "detail": "button.btn# 356x38 \"登入\" | a.#forgot-password-link 68x17 \"忘記密碼？\""
+  },
+  {
+    "viewport": "iPhone-15-Pro",
+    "route": "review-examples",
+    "severity": "P1",
+    "title": "Tap-target <44px: 5 hits",
+    "detail": "button.#expand-all 65x36 \"全展開\" | button.#collapse-all 65x36 \"全收起\" | a.navbar-logo# 84x26 \"PM Drill\" | a.navbar-tab# 68x22 \"CIRCLES\" | a.navbar-tab# 80x22 \"北極星指標\""
+  },
+  {
+    "viewport": "iPhone-15-Pro",
+    "route": "offcanvas",
+    "severity": "P1",
+    "title": "Tap-target <44px: 3 hits",
+    "detail": "button.# 364x42 \"什麼是 CIRCLES 實戰訓練？\" | button.circles-q-random-btn#circles-random-btn 74x40 \"隨機選題\" | button.nsm-banner-btn#circles-nsm-banner-btn 92x40 \"前往 NSM →\""
+  },
+  {
+    "viewport": "iPad",
+    "route": "home",
+    "severity": "P1",
+    "title": "Tap-target <44px: 3 hits",
+    "detail": "button.# 638x42 \"什麼是 CIRCLES 實戰訓練？\" | button.circles-q-random-btn#circles-random-btn 74x40 \"隨機選題\" | button.nsm-banner-btn#circles-nsm-banner-btn 92x40 \"前往 NSM →\""
+  },
+  {
+    "viewport": "iPad",
+    "route": "home-onboarding",
+    "severity": "P1",
+    "title": "Tap-target <44px: 3 hits",
+    "detail": "button.# 638x42 \"什麼是 CIRCLES 實戰訓練？\" | button.circles-q-random-btn#circles-random-btn 74x40 \"隨機選題\" | button.nsm-banner-btn#circles-nsm-banner-btn 92x40 \"前往 NSM →\""
+  },
+  {
+    "viewport": "iPad",
+    "route": "circles-step-c1",
+    "severity": "P1",
+    "title": "Tap-target <44px: 1 hits",
+    "detail": "button.circles-nav-home#circles-p1-home 60x40 \"回首頁\""
+  },
+  {
+    "viewport": "iPad",
+    "route": "circles-step-c1-keyboard",
+    "severity": "P1",
+    "title": "Tap-target <44px: 1 hits",
+    "detail": "button.circles-nav-home#circles-p1-home 60x40 \"回首頁\""
+  },
+  {
+    "viewport": "iPad",
+    "route": "phase2-conclusion-expanded",
+    "severity": "P1",
+    "title": "Tap-target <44px: 3 hits",
+    "detail": "button.# 638x42 \"什麼是 CIRCLES 實戰訓練？\" | button.circles-q-random-btn#circles-random-btn 74x40 \"隨機選題\" | button.nsm-banner-btn#circles-nsm-banner-btn 92x40 \"前往 NSM →\""
+  },
+  {
+    "viewport": "iPad",
+    "route": "nsm-home",
+    "severity": "P1",
+    "title": "Tap-target <44px: 1 hits",
+    "detail": "button.btn#btn-nsm-step1-next 736x36 \"開始 NSM 訓練\""
+  },
+  {
+    "viewport": "iPad",
+    "route": "login",
+    "severity": "P1",
+    "title": "Tap-target <44px: 2 hits",
+    "detail": "button.btn# 358x38 \"登入\" | a.#forgot-password-link 68x17 \"忘記密碼？\""
+  },
+  {
+    "viewport": "iPad",
+    "route": "review-examples",
+    "severity": "P1",
+    "title": "Tap-target <44px: 5 hits",
+    "detail": "button.#expand-all 65x36 \"全展開\" | button.#collapse-all 65x36 \"全收起\" | a.navbar-logo# 84x26 \"PM Drill\" | a.navbar-tab# 68x22 \"CIRCLES\" | a.navbar-tab# 80x22 \"北極星指標\""
+  },
+  {
+    "viewport": "iPad",
+    "route": "offcanvas",
+    "severity": "P1",
+    "title": "Tap-target <44px: 3 hits",
+    "detail": "button.# 638x42 \"什麼是 CIRCLES 實戰訓練？\" | button.circles-q-random-btn#circles-random-btn 74x40 \"隨機選題\" | button.nsm-banner-btn#circles-nsm-banner-btn 92x40 \"前往 NSM →\""
+  }
+]

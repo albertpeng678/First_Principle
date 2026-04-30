@@ -1,0 +1,166 @@
+{
+  "viewport": "Desktop-1440",
+  "console": [
+    {
+      "type": "warning",
+      "text": "The resource https://fonts.googleapis.com/css2?family=Instrument+Serif&display=swap was preloaded using link preload but not used within a few seconds from the window's load event. Please make sure it has an appropriate `as` value and it is preloaded intentionally."
+    },
+    {
+      "type": "warning",
+      "text": "The resource https://fonts.googleapis.com/css2?family=DM+Sans:ital,opsz,wght@0,9..40,400;0,9..40,500;0,9..40,600&display=swap was preloaded using link preload but not used within a few seconds from the window's load event. Please make sure it has an appropriate `as` value and it is preloaded intentionally."
+    }
+  ],
+  "layout": {
+    "fields": [
+      {
+        "name": "取捨標準",
+        "top": 333.796875,
+        "left": 75.203125,
+        "w": 42.8125,
+        "h": 14,
+        "visible": true
+      },
+      {
+        "name": "最優先項目",
+        "top": 526.796875,
+        "left": 75.203125,
+        "w": 53.5,
+        "h": 14,
+        "visible": true
+      },
+      {
+        "name": "暫緩項目",
+        "top": 719.796875,
+        "left": 75.203125,
+        "w": 42.8125,
+        "h": 14,
+        "visible": true
+      },
+      {
+        "name": "排序理由",
+        "top": 912.796875,
+        "left": 75.203125,
+        "w": 42.8125,
+        "h": 14,
+        "visible": true
+      }
+    ],
+    "stickyBars": [
+      {
+        "cls": "rt-toolbar-mobile",
+        "top": 0,
+        "left": 0,
+        "w": 0,
+        "h": 0,
+        "position": "fixed",
+        "zIndex": "200"
+      }
+    ],
+    "horizontalScroll": false,
+    "body": {
+      "scrollWidth": 1440,
+      "clientWidth": 1440
+    },
+    "smallTaps": [
+      {
+        "text": "PM Drill",
+        "w": 111,
+        "h": 36
+      },
+      {
+        "text": "回首頁",
+        "w": 60,
+        "h": 40
+      },
+      {
+        "text": "B",
+        "w": 26,
+        "h": 21
+      },
+      {
+        "text": "",
+        "w": 31,
+        "h": 21
+      },
+      {
+        "text": "",
+        "w": 31,
+        "h": 21
+      },
+      {
+        "text": "",
+        "w": 31,
+        "h": 21
+      },
+      {
+        "text": "B",
+        "w": 26,
+        "h": 21
+      },
+      {
+        "text": "",
+        "w": 31,
+        "h": 21
+      },
+      {
+        "text": "",
+        "w": 31,
+        "h": 21
+      },
+      {
+        "text": "",
+        "w": 31,
+        "h": 21
+      },
+      {
+        "text": "B",
+        "w": 26,
+        "h": 21
+      },
+      {
+        "text": "",
+        "w": 31,
+        "h": 21
+      }
+    ],
+    "hintBtns": 4,
+    "exampleBtns": 4,
+    "progressTexts": [
+      "CIRCLESC · 優先排序4/7",
+      "C",
+      "I",
+      "R",
+      "C",
+      "L",
+      "E",
+      "S",
+      "Cut · 優先排序預估 25-35 分鐘隨時可暫停 · 自動儲存",
+      "Cut · 優先排序",
+      "預估 25-35 分鐘",
+      "隨時可暫停 · 自動儲存"
+    ]
+  },
+  "advanced": {
+    "ok": true,
+    "q": "circles_001"
+  },
+  "hintOverlay": {
+    "visible": true,
+    "cardW": 360,
+    "cardH": 148.703125,
+    "vpW": 1440,
+    "vpH": 900,
+    "hasClose": true
+  },
+  "exampleInline": {
+    "opened": false,
+    "collapseBtnCount": 0,
+    "visibleBlocks": 0
+  },
+  "focusMetrics": {
+    "top": 0,
+    "height": 0,
+    "vh": 900,
+    "offset": 900
+  }
+}

@@ -1,0 +1,175 @@
+{
+  "fontFamilies": [
+    "Times",
+    "\"DM Sans\", -apple-system, \"system-ui\", \"Segoe UI\", sans-serif",
+    "Arial",
+    "Phosphor",
+    "\"Instrument Serif\", serif",
+    "\"DM Sans\", sans-serif"
+  ],
+  "fontSizes": [
+    9,
+    10,
+    11,
+    11.5,
+    12,
+    13,
+    14.4,
+    16,
+    32
+  ],
+  "buttonsCount": 8,
+  "undersizeTaps": [
+    {
+      "tag": "button",
+      "cls": "circles-nav-home-btn",
+      "text": "回首頁",
+      "w": 62,
+      "h": 36
+    },
+    {
+      "tag": "button",
+      "cls": "conclusion-back-btn",
+      "text": "← 繼續對話",
+      "w": 53,
+      "h": 14
+    },
+    {
+      "tag": "button",
+      "cls": "conclusion-submit-btn disabled",
+      "text": "確認提交",
+      "w": 76,
+      "h": 33
+    }
+  ],
+  "lowContrast": [
+    {
+      "tag": "div",
+      "cls": "circles-icebreaker-text",
+      "text": "先與被訪談者澄清題目本身的邊界——具體在問什麼問題、涵蓋哪些功能或場景、有哪些業",
+      "fontSize": "12px",
+      "fontWeight": "400",
+      "fg": "rgb(90, 80, 70)",
+      "bg": "rgba(26,86,219,0.05)",
+      "ratio": 1.27
+    },
+    {
+      "tag": "div",
+      "cls": "conclusion-sub",
+      "text": "說明問題範圍、時間框架、業務約束，以及你確認或待確認的假設",
+      "fontSize": "10px",
+      "fontWeight": "400",
+      "fg": "rgb(138, 126, 111)",
+      "bg": "rgba(255,255,255,1)",
+      "ratio": 3.97
+    },
+    {
+      "tag": "div",
+      "cls": "conclusion-example-label",
+      "text": "範例（不同題目）",
+      "fontSize": "9px",
+      "fontWeight": "700",
+      "fg": "rgb(138, 126, 111)",
+      "bg": "rgba(240,237,230,1)",
+      "ratio": 3.39
+    },
+    {
+      "tag": "div",
+      "cls": "conclusion-example-toggle",
+      "text": "展開 ▾",
+      "fontSize": "10px",
+      "fontWeight": "400",
+      "fg": "rgb(138, 126, 111)",
+      "bg": "rgba(240,237,230,1)",
+      "ratio": 3.39
+    },
+    {
+      "tag": "button",
+      "cls": "conclusion-back-btn",
+      "text": "← 繼續對話",
+      "fontSize": "10px",
+      "fontWeight": "400",
+      "fg": "rgb(138, 126, 111)",
+      "bg": "rgba(255,255,255,1)",
+      "ratio": 3.97
+    }
+  ],
+  "hardHex": [
+    {
+      "cls": "",
+      "style": "background:#EEF3FF;color:var(--c-primary);border-radius:4px;padding:1px 6px;font-size:9px;font-weight:700"
+    },
+    {
+      "cls": "",
+      "style": "font-size:11px;color:#1a1a1a;font-weight:600;line-height:1.4"
+    }
+  ],
+  "tokens": {
+    "--c-nsm-lt": "rgba(124,58,237,0.06)",
+    "--c-bg-alt": "#F4F1EB",
+    "--c-success-fg": "#065F46",
+    "--c-danger-fg": "#991B1B",
+    "--c-surface": "#fafaf8",
+    "--c-nsm": "#7C3AED",
+    "--c-primary-mid": "rgba(26,86,219,0.18)",
+    "--c-dim-depth": "#8b5cf6",
+    "--c-dim-retention": "#f59e0b",
+    "--c-border-mid": "rgba(60,45,30,0.12)",
+    "--c-primary": "#1A56DB",
+    "--c-text-3": "#8a7e6f",
+    "--c-warn": "#D97706",
+    "--c-primary-lt": "rgba(26,86,219,0.08)",
+    "--c-danger": "#DC2626",
+    "--c-bg": "#F2F0EB",
+    "--c-text-secondary": "#5a5a5a",
+    "--c-dim-frequency": "#10b981",
+    "--c-ok-bold": "#137A3D",
+    "--c-error": "#D92020",
+    "--c-warn-fg": "#92400E",
+    "--c-text-2": "#5a5046",
+    "--c-text": "#1F1D1B",
+    "--c-warn-bold": "#B85C00",
+    "--c-text-4": "#a89d8e",
+    "--c-border-strong": "rgba(60,45,30,0.15)",
+    "--c-success": "#10b981",
+    "--c-border": "rgba(60,45,30,0.08)",
+    "--c-card": "#fff",
+    "--c-dim-reach": "#3b82f6",
+    "--c-success-lt": "#D1FAE5",
+    "--c-danger-lt": "#FEE2E2",
+    "--c-warn-lt": "#FEF3C7"
+  },
+  "focusSamples": [
+    {
+      "outline": "",
+      "outlineWidth": "",
+      "boxShadow": ""
+    },
+    {
+      "outline": "",
+      "outlineWidth": "",
+      "boxShadow": ""
+    },
+    {
+      "outline": "",
+      "outlineWidth": "",
+      "boxShadow": ""
+    },
+    {
+      "outline": "",
+      "outlineWidth": "",
+      "boxShadow": ""
+    },
+    {
+      "outline": "",
+      "outlineWidth": "",
+      "boxShadow": ""
+    }
+  ],
+  "docW": 430,
+  "vw": 430,
+  "horizScroll": false,
+  "consoleErrors": [],
+  "viewport": "iPhone-15-Pro",
+  "route": "04-phase2-conclusion-expanded"
+}

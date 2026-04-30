@@ -1,0 +1,135 @@
+{
+  "viewport": "Mobile-360",
+  "base": "http://localhost:4000",
+  "started": "2026-04-30T13-39-20-242Z",
+  "steps": {
+    "home": "/Users/albertpeng/Desktop/claude_project/First_Principle/audit/cycles/2026-04-30/screenshots/step-l/Mobile-360-01-home.png",
+    "stepC1": "/Users/albertpeng/Desktop/claude_project/First_Principle/audit/cycles/2026-04-30/screenshots/step-l/Mobile-360-02-step-c1.png",
+    "stepL": "/Users/albertpeng/Desktop/claude_project/First_Principle/audit/cycles/2026-04-30/screenshots/step-l/Mobile-360-03-step-l.png",
+    "stepLWithSol3": "/Users/albertpeng/Desktop/claude_project/First_Principle/audit/cycles/2026-04-30/screenshots/step-l/Mobile-360-04-step-l-sol3.png",
+    "stepLAfterTyping": "/Users/albertpeng/Desktop/claude_project/First_Principle/audit/cycles/2026-04-30/screenshots/step-l/Mobile-360-05-step-l-typed.png",
+    "stepLFocus": "/Users/albertpeng/Desktop/claude_project/First_Principle/audit/cycles/2026-04-30/screenshots/step-l/Mobile-360-06-step-l-focus.png"
+  },
+  "inspect": {
+    "stepHeader": "L — 提出方案",
+    "fields": [
+      {
+        "name": "方案一",
+        "present": true
+      },
+      {
+        "name": "方案二",
+        "present": true
+      },
+      {
+        "name": "方案三（可選）",
+        "present": true
+      },
+      {
+        "name": "各方案特性",
+        "present": false
+      }
+    ],
+    "labels": [
+      "方案一",
+      "方案二",
+      "方案三（可選）"
+    ],
+    "sol3AddVisible": true,
+    "sol3AddRect": {
+      "x": 32,
+      "y": 906.59375,
+      "w": 296,
+      "h": 44
+    },
+    "submitBar": {
+      "x": 0,
+      "y": 709,
+      "w": 369,
+      "h": 71
+    },
+    "submitBtn": {
+      "x": 114,
+      "y": 722,
+      "w": 239,
+      "h": 46
+    },
+    "backBtn": {
+      "x": 16,
+      "y": 722,
+      "w": 88,
+      "h": 46
+    },
+    "hintBtns": 3,
+    "exampleBtns": 3,
+    "textareas": [
+      {
+        "tag": "textarea",
+        "w": 296,
+        "h": 60
+      },
+      {
+        "tag": "textarea",
+        "w": 296,
+        "h": 60
+      },
+      {
+        "tag": "textarea",
+        "w": 0,
+        "h": 0
+      }
+    ],
+    "docHeight": 1101,
+    "vh": 800,
+    "vw": 369,
+    "hScroll": true
+  },
+  "tapTargets": [],
+  "sticky": {
+    "barTop": 709,
+    "barH": 71,
+    "overlapped": 1,
+    "vh": 780
+  },
+  "sol3": {
+    "found": true,
+    "visibleBefore": true,
+    "sol3FieldVisible": true
+  },
+  "typing": {
+    "typed": true,
+    "indicator": ""
+  },
+  "hintCache": {
+    "found": true,
+    "firstShown": true,
+    "firstMs": 1215,
+    "secondShown": true,
+    "secondMs": 30407
+  },
+  "stickyOnFocus": {
+    "barTop": 709,
+    "barH": 71,
+    "overlapped": 0,
+    "vh": 780
+  },
+  "console": [
+    {
+      "type": "warning",
+      "text": "The resource https://fonts.googleapis.com/css2?family=Instrument+Serif&display=swap was preloaded using link preload but not used within a few seconds from the window's load event. Please make sure it has an appropriate `as` value and it is preloaded intentionally."
+    },
+    {
+      "type": "warning",
+      "text": "The resource https://fonts.googleapis.com/css2?family=DM+Sans:ital,opsz,wght@0,9..40,400;0,9..40,500;0,9..40,600&display=swap was preloaded using link preload but not used within a few seconds from the window's load event. Please make sure it has an appropriate `as` value and it is preloaded intentionally."
+    },
+    {
+      "type": "warning",
+      "text": "The resource https://fonts.googleapis.com/css2?family=Instrument+Serif&display=swap was preloaded using link preload but not used within a few seconds from the window's load event. Please make sure it has an appropriate `as` value and it is preloaded intentionally."
+    },
+    {
+      "type": "warning",
+      "text": "The resource https://fonts.googleapis.com/css2?family=DM+Sans:ital,opsz,wght@0,9..40,400;0,9..40,500;0,9..40,600&display=swap was preloaded using link preload but not used within a few seconds from the window's load event. Please make sure it has an appropriate `as` value and it is preloaded intentionally."
+    }
+  ],
+  "finished": "2026-04-30T13-40-30-364Z"
+}

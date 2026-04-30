@@ -1,0 +1,846 @@
+[
+  {
+    "vp": "Mobile-360",
+    "findings": {
+      "confirm_box": {
+        "x": 49,
+        "y": 762.1875,
+        "width": 220,
+        "height": 36
+      },
+      "form": {
+        "labels": [
+          "目標用戶分群",
+          "選定焦點對象",
+          "用戶動機假設",
+          "排除對象"
+        ],
+        "missing_fields": [],
+        "hasDefineUser": true,
+        "step_label": "PM Drill — 第一性原理訓練器",
+        "hint_btn_count": 4,
+        "example_btn_count": 4,
+        "sticky": null,
+        "submit_present": true,
+        "back_present": true,
+        "taps": [
+          {
+            "sel": "#circles-p1-submit",
+            "w": 239,
+            "h": 46,
+            "present": true
+          },
+          {
+            "sel": "#circles-p1-back",
+            "w": 88,
+            "h": 46,
+            "present": true
+          },
+          {
+            "sel": ".rt-mtbtn",
+            "w": 0,
+            "h": 0,
+            "present": true
+          },
+          {
+            "sel": ".hint-card-toggle",
+            "present": false
+          },
+          {
+            "sel": ".circles-step-pill",
+            "w": 86,
+            "h": 44,
+            "present": true
+          },
+          {
+            "sel": "button.rt-tbtn",
+            "w": 0,
+            "h": 0,
+            "present": true
+          }
+        ],
+        "save_indicator": {
+          "tag": "SPAN",
+          "cls": "save-indicator",
+          "ariaLive": "polite",
+          "text": ""
+        },
+        "rt_toolbar_desktop": 4,
+        "rt_toolbar_mobile": 1,
+        "rt_mobile_buttons": 4,
+        "rt_desktop_buttons": 16,
+        "textareas": 4,
+        "editors": 0,
+        "progress": {
+          "tag": "DIV",
+          "cls": "circles-progress"
+        },
+        "vw": 369,
+        "vh": 800
+      },
+      "focus_state": {
+        "mobile_toolbar": {
+          "top": 0,
+          "bottom": 0,
+          "h": 0,
+          "display": "none",
+          "visibility": "visible",
+          "position": "fixed"
+        }
+      },
+      "save_indicator_after_typing": {
+        "text": "儲存中…",
+        "ariaLive": "polite",
+        "cls": "save-indicator save-saving"
+      },
+      "offcanvas": {
+        "visible": false,
+        "hasStepI": false,
+        "snippet": "練習記錄"
+      },
+      "resume_banner": null,
+      "console_errors": []
+    },
+    "console": []
+  },
+  {
+    "vp": "iPhone-SE",
+    "findings": {
+      "confirm_box": {
+        "x": 49,
+        "y": 750.1875,
+        "width": 235,
+        "height": 36
+      },
+      "form": {
+        "labels": [
+          "目標用戶分群",
+          "選定焦點對象",
+          "用戶動機假設",
+          "排除對象"
+        ],
+        "missing_fields": [],
+        "hasDefineUser": true,
+        "step_label": "PM Drill — 第一性原理訓練器",
+        "hint_btn_count": 4,
+        "example_btn_count": 4,
+        "sticky": null,
+        "submit_present": true,
+        "back_present": true,
+        "taps": [
+          {
+            "sel": "#circles-p1-submit",
+            "w": 245,
+            "h": 46,
+            "present": true
+          },
+          {
+            "sel": "#circles-p1-back",
+            "w": 88,
+            "h": 46,
+            "present": true
+          },
+          {
+            "sel": ".rt-mtbtn",
+            "w": 0,
+            "h": 0,
+            "present": true
+          },
+          {
+            "sel": ".hint-card-toggle",
+            "present": false
+          },
+          {
+            "sel": ".circles-step-pill",
+            "w": 86,
+            "h": 44,
+            "present": true
+          },
+          {
+            "sel": "button.rt-tbtn",
+            "w": 0,
+            "h": 0,
+            "present": true
+          }
+        ],
+        "save_indicator": {
+          "tag": "SPAN",
+          "cls": "save-indicator",
+          "ariaLive": "polite",
+          "text": ""
+        },
+        "rt_toolbar_desktop": 4,
+        "rt_toolbar_mobile": 1,
+        "rt_mobile_buttons": 4,
+        "rt_desktop_buttons": 16,
+        "textareas": 4,
+        "editors": 0,
+        "progress": {
+          "tag": "DIV",
+          "cls": "circles-progress"
+        },
+        "vw": 375,
+        "vh": 667
+      },
+      "focus_state": {
+        "mobile_toolbar": {
+          "top": 0,
+          "bottom": 0,
+          "h": 0,
+          "display": "none",
+          "visibility": "visible",
+          "position": "fixed"
+        }
+      },
+      "save_indicator_after_typing": {
+        "text": "儲存中…",
+        "ariaLive": "polite",
+        "cls": "save-indicator save-saving"
+      },
+      "offcanvas": {
+        "visible": false,
+        "hasStepI": false,
+        "snippet": "練習記錄\n尚無練習記錄"
+      },
+      "resume_banner": null,
+      "console_errors": []
+    },
+    "console": []
+  },
+  {
+    "vp": "iPhone-14",
+    "findings": {
+      "confirm_box": {
+        "x": 49,
+        "y": 759.1875,
+        "width": 250,
+        "height": 36
+      },
+      "form": {
+        "labels": [
+          "目標用戶分群",
+          "選定焦點對象",
+          "用戶動機假設",
+          "排除對象"
+        ],
+        "missing_fields": [],
+        "hasDefineUser": true,
+        "step_label": "PM Drill — 第一性原理訓練器",
+        "hint_btn_count": 4,
+        "example_btn_count": 4,
+        "sticky": null,
+        "submit_present": true,
+        "back_present": true,
+        "taps": [
+          {
+            "sel": "#circles-p1-submit",
+            "w": 260,
+            "h": 46,
+            "present": true
+          },
+          {
+            "sel": "#circles-p1-back",
+            "w": 88,
+            "h": 46,
+            "present": true
+          },
+          {
+            "sel": ".rt-mtbtn",
+            "w": 0,
+            "h": 0,
+            "present": true
+          },
+          {
+            "sel": ".hint-card-toggle",
+            "present": false
+          },
+          {
+            "sel": ".circles-step-pill",
+            "w": 86,
+            "h": 44,
+            "present": true
+          },
+          {
+            "sel": "button.rt-tbtn",
+            "w": 0,
+            "h": 0,
+            "present": true
+          }
+        ],
+        "save_indicator": {
+          "tag": "SPAN",
+          "cls": "save-indicator",
+          "ariaLive": "polite",
+          "text": ""
+        },
+        "rt_toolbar_desktop": 4,
+        "rt_toolbar_mobile": 1,
+        "rt_mobile_buttons": 4,
+        "rt_desktop_buttons": 16,
+        "textareas": 4,
+        "editors": 0,
+        "progress": {
+          "tag": "DIV",
+          "cls": "circles-progress"
+        },
+        "vw": 390,
+        "vh": 844
+      },
+      "focus_state": {
+        "mobile_toolbar": {
+          "top": 0,
+          "bottom": 0,
+          "h": 0,
+          "display": "none",
+          "visibility": "visible",
+          "position": "fixed"
+        }
+      },
+      "save_indicator_after_typing": {
+        "text": "儲存中…",
+        "ariaLive": "polite",
+        "cls": "save-indicator save-saving"
+      },
+      "offcanvas": {
+        "visible": false,
+        "hasStepI": false,
+        "snippet": "練習記錄"
+      },
+      "resume_banner": {
+        "sel": "[class*=\"resume\"]",
+        "text": "Amazon — 步驟加練\n定義用戶 · 填寫框架\n繼續練習 →",
+        "cls": "circles-resume-card"
+      },
+      "console_errors": []
+    },
+    "console": []
+  },
+  {
+    "vp": "iPhone-15-Pro",
+    "findings": {
+      "confirm_box": {
+        "x": 49,
+        "y": 711.390625,
+        "width": 290,
+        "height": 36
+      },
+      "form": {
+        "labels": [
+          "目標用戶分群",
+          "選定焦點對象",
+          "用戶動機假設",
+          "排除對象"
+        ],
+        "missing_fields": [],
+        "hasDefineUser": true,
+        "step_label": "PM Drill — 第一性原理訓練器",
+        "hint_btn_count": 4,
+        "example_btn_count": 4,
+        "sticky": null,
+        "submit_present": true,
+        "back_present": true,
+        "taps": [
+          {
+            "sel": "#circles-p1-submit",
+            "w": 300,
+            "h": 46,
+            "present": true
+          },
+          {
+            "sel": "#circles-p1-back",
+            "w": 88,
+            "h": 46,
+            "present": true
+          },
+          {
+            "sel": ".rt-mtbtn",
+            "w": 0,
+            "h": 0,
+            "present": true
+          },
+          {
+            "sel": ".hint-card-toggle",
+            "present": false
+          },
+          {
+            "sel": ".circles-step-pill",
+            "w": 86,
+            "h": 44,
+            "present": true
+          },
+          {
+            "sel": "button.rt-tbtn",
+            "w": 0,
+            "h": 0,
+            "present": true
+          }
+        ],
+        "save_indicator": {
+          "tag": "SPAN",
+          "cls": "save-indicator",
+          "ariaLive": "polite",
+          "text": ""
+        },
+        "rt_toolbar_desktop": 4,
+        "rt_toolbar_mobile": 1,
+        "rt_mobile_buttons": 4,
+        "rt_desktop_buttons": 16,
+        "textareas": 4,
+        "editors": 0,
+        "progress": {
+          "tag": "DIV",
+          "cls": "circles-progress"
+        },
+        "vw": 430,
+        "vh": 932
+      },
+      "focus_state": {
+        "mobile_toolbar": {
+          "top": 0,
+          "bottom": 0,
+          "h": 0,
+          "display": "none",
+          "visibility": "visible",
+          "position": "fixed"
+        }
+      },
+      "save_indicator_after_typing": {
+        "text": "儲存中…",
+        "ariaLive": "polite",
+        "cls": "save-indicator save-saving"
+      },
+      "offcanvas": {
+        "visible": false,
+        "hasStepI": false,
+        "snippet": "練習記錄"
+      },
+      "resume_banner": null,
+      "console_errors": []
+    },
+    "console": []
+  },
+  {
+    "vp": "iPad",
+    "findings": {
+      "confirm_box": {
+        "x": 81,
+        "y": 711.390625,
+        "width": 239,
+        "height": 36
+      },
+      "form": {
+        "labels": [
+          "目標用戶分群",
+          "選定焦點對象",
+          "用戶動機假設",
+          "排除對象"
+        ],
+        "missing_fields": [],
+        "hasDefineUser": true,
+        "step_label": "PM Drill — 第一性原理訓練器",
+        "hint_btn_count": 4,
+        "example_btn_count": 4,
+        "sticky": null,
+        "submit_present": true,
+        "back_present": true,
+        "taps": [
+          {
+            "sel": "#circles-p1-submit",
+            "w": 638,
+            "h": 46,
+            "present": true
+          },
+          {
+            "sel": "#circles-p1-back",
+            "w": 88,
+            "h": 46,
+            "present": true
+          },
+          {
+            "sel": ".rt-mtbtn",
+            "w": 0,
+            "h": 0,
+            "present": true
+          },
+          {
+            "sel": ".hint-card-toggle",
+            "present": false
+          },
+          {
+            "sel": ".circles-step-pill",
+            "w": 86,
+            "h": 44,
+            "present": true
+          },
+          {
+            "sel": "button.rt-tbtn",
+            "w": 0,
+            "h": 0,
+            "present": true
+          }
+        ],
+        "save_indicator": {
+          "tag": "SPAN",
+          "cls": "save-indicator",
+          "ariaLive": "polite",
+          "text": ""
+        },
+        "rt_toolbar_desktop": 4,
+        "rt_toolbar_mobile": 1,
+        "rt_mobile_buttons": 4,
+        "rt_desktop_buttons": 16,
+        "textareas": 4,
+        "editors": 0,
+        "progress": {
+          "tag": "DIV",
+          "cls": "circles-progress"
+        },
+        "vw": 768,
+        "vh": 1024
+      },
+      "focus_state": {
+        "mobile_toolbar": {
+          "top": 0,
+          "bottom": 0,
+          "h": 0,
+          "display": "none",
+          "visibility": "visible",
+          "position": "fixed"
+        }
+      },
+      "save_indicator_after_typing": {
+        "text": "儲存中…",
+        "ariaLive": "polite",
+        "cls": "save-indicator save-saving"
+      },
+      "offcanvas": {
+        "visible": false,
+        "hasStepI": false,
+        "snippet": "練習記錄\n尚無練習記錄"
+      },
+      "resume_banner": null,
+      "console_errors": []
+    },
+    "console": []
+  },
+  {
+    "vp": "Desktop-1280",
+    "findings": {
+      "confirm_box": {
+        "x": 341.40625,
+        "y": 470.59375,
+        "width": 545.1875,
+        "height": 36
+      },
+      "form": {
+        "labels": [
+          "目標用戶分群",
+          "選定焦點對象",
+          "用戶動機假設",
+          "排除對象"
+        ],
+        "missing_fields": [],
+        "hasDefineUser": true,
+        "step_label": "PM Drill — 第一性原理訓練器",
+        "hint_btn_count": 4,
+        "example_btn_count": 4,
+        "sticky": null,
+        "submit_present": true,
+        "back_present": true,
+        "taps": [
+          {
+            "sel": "#circles-p1-submit",
+            "w": 1150,
+            "h": 46,
+            "present": true
+          },
+          {
+            "sel": "#circles-p1-back",
+            "w": 88,
+            "h": 46,
+            "present": true
+          },
+          {
+            "sel": ".rt-mtbtn",
+            "w": 0,
+            "h": 0,
+            "present": true
+          },
+          {
+            "sel": ".hint-card-toggle",
+            "present": false
+          },
+          {
+            "sel": ".circles-step-pill",
+            "w": 86,
+            "h": 44,
+            "present": true
+          },
+          {
+            "sel": "button.rt-tbtn",
+            "w": 26,
+            "h": 21,
+            "present": true
+          }
+        ],
+        "save_indicator": {
+          "tag": "SPAN",
+          "cls": "save-indicator",
+          "ariaLive": "polite",
+          "text": ""
+        },
+        "rt_toolbar_desktop": 4,
+        "rt_toolbar_mobile": 1,
+        "rt_mobile_buttons": 4,
+        "rt_desktop_buttons": 16,
+        "textareas": 4,
+        "editors": 0,
+        "progress": {
+          "tag": "DIV",
+          "cls": "circles-progress"
+        },
+        "vw": 1280,
+        "vh": 800
+      },
+      "focus_state": {
+        "mobile_toolbar": {
+          "top": 0,
+          "bottom": 0,
+          "h": 0,
+          "display": "none",
+          "visibility": "visible",
+          "position": "fixed"
+        }
+      },
+      "save_indicator_after_typing": {
+        "text": "儲存中…",
+        "ariaLive": "polite",
+        "cls": "save-indicator save-saving"
+      },
+      "offcanvas": {
+        "visible": false,
+        "hasStepI": false,
+        "snippet": "練習記錄\n尚無練習記錄"
+      },
+      "resume_banner": null,
+      "console_errors": []
+    },
+    "console": []
+  },
+  {
+    "vp": "Desktop-1440",
+    "findings": {
+      "confirm_box": {
+        "x": 346.203125,
+        "y": 470.59375,
+        "width": 695.59375,
+        "height": 36
+      },
+      "form": {
+        "labels": [
+          "目標用戶分群",
+          "選定焦點對象",
+          "用戶動機假設",
+          "排除對象"
+        ],
+        "missing_fields": [],
+        "hasDefineUser": true,
+        "step_label": "PM Drill — 第一性原理訓練器",
+        "hint_btn_count": 4,
+        "example_btn_count": 4,
+        "sticky": null,
+        "submit_present": true,
+        "back_present": true,
+        "taps": [
+          {
+            "sel": "#circles-p1-submit",
+            "w": 1310,
+            "h": 46,
+            "present": true
+          },
+          {
+            "sel": "#circles-p1-back",
+            "w": 88,
+            "h": 46,
+            "present": true
+          },
+          {
+            "sel": ".rt-mtbtn",
+            "w": 0,
+            "h": 0,
+            "present": true
+          },
+          {
+            "sel": ".hint-card-toggle",
+            "present": false
+          },
+          {
+            "sel": ".circles-step-pill",
+            "w": 86,
+            "h": 44,
+            "present": true
+          },
+          {
+            "sel": "button.rt-tbtn",
+            "w": 26,
+            "h": 21,
+            "present": true
+          }
+        ],
+        "save_indicator": {
+          "tag": "SPAN",
+          "cls": "save-indicator",
+          "ariaLive": "polite",
+          "text": ""
+        },
+        "rt_toolbar_desktop": 4,
+        "rt_toolbar_mobile": 1,
+        "rt_mobile_buttons": 4,
+        "rt_desktop_buttons": 16,
+        "textareas": 4,
+        "editors": 0,
+        "progress": {
+          "tag": "DIV",
+          "cls": "circles-progress"
+        },
+        "vw": 1440,
+        "vh": 900
+      },
+      "focus_state": {
+        "mobile_toolbar": {
+          "top": 0,
+          "bottom": 0,
+          "h": 0,
+          "display": "none",
+          "visibility": "visible",
+          "position": "fixed"
+        }
+      },
+      "save_indicator_after_typing": {
+        "text": "儲存中…",
+        "ariaLive": "polite",
+        "cls": "save-indicator save-saving"
+      },
+      "offcanvas": {
+        "visible": false,
+        "hasStepI": false,
+        "snippet": "練習記錄"
+      },
+      "resume_banner": {
+        "sel": "[class*=\"resume\"]",
+        "text": "Spotify — 步驟加練\n定義用戶 · 填寫框架\n繼續練習 →",
+        "cls": "circles-resume-card"
+      },
+      "console_errors": []
+    },
+    "console": []
+  },
+  {
+    "vp": "Desktop-2560",
+    "findings": {
+      "confirm_box": {
+        "x": 441.796875,
+        "y": 470.59375,
+        "width": 763.1875,
+        "height": 36
+      },
+      "form": {
+        "labels": [
+          "目標用戶分群",
+          "選定焦點對象",
+          "用戶動機假設",
+          "排除對象"
+        ],
+        "missing_fields": [],
+        "hasDefineUser": true,
+        "step_label": "PM Drill — 第一性原理訓練器",
+        "hint_btn_count": 4,
+        "example_btn_count": 4,
+        "sticky": null,
+        "submit_present": true,
+        "back_present": true,
+        "taps": [
+          {
+            "sel": "#circles-p1-submit",
+            "w": 2430,
+            "h": 46,
+            "present": true
+          },
+          {
+            "sel": "#circles-p1-back",
+            "w": 88,
+            "h": 46,
+            "present": true
+          },
+          {
+            "sel": ".rt-mtbtn",
+            "w": 0,
+            "h": 0,
+            "present": true
+          },
+          {
+            "sel": ".hint-card-toggle",
+            "present": false
+          },
+          {
+            "sel": ".circles-step-pill",
+            "w": 86,
+            "h": 44,
+            "present": true
+          },
+          {
+            "sel": "button.rt-tbtn",
+            "w": 26,
+            "h": 21,
+            "present": true
+          }
+        ],
+        "save_indicator": {
+          "tag": "SPAN",
+          "cls": "save-indicator",
+          "ariaLive": "polite",
+          "text": ""
+        },
+        "rt_toolbar_desktop": 4,
+        "rt_toolbar_mobile": 1,
+        "rt_mobile_buttons": 4,
+        "rt_desktop_buttons": 16,
+        "textareas": 4,
+        "editors": 0,
+        "progress": {
+          "tag": "DIV",
+          "cls": "circles-progress"
+        },
+        "vw": 2560,
+        "vh": 1440
+      },
+      "focus_state": {
+        "mobile_toolbar": {
+          "top": 0,
+          "bottom": 0,
+          "h": 0,
+          "display": "none",
+          "visibility": "visible",
+          "position": "fixed"
+        }
+      },
+      "save_indicator_after_typing": {
+        "text": "儲存中…",
+        "ariaLive": "polite",
+        "cls": "save-indicator save-saving"
+      },
+      "offcanvas": {
+        "visible": false,
+        "hasStepI": false,
+        "snippet": "練習記錄"
+      },
+      "resume_banner": {
+        "sel": ".resume-banner",
+        "text": "未完成練習 · LINE · LINE Stickers · 剛剛編輯\n繼續 →",
+        "cls": "resume-banner"
+      },
+      "console_errors": []
+    },
+    "console": []
+  }
+]

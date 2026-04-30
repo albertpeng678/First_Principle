@@ -1,0 +1,16 @@
+{
+  "viewport": "Desktop-1280",
+  "findings": [
+    {
+      "label": "F3-back-not-reachable",
+      "severity": "P0",
+      "detail": "繼續對話 outside viewport: rect={\"x\":925.3125,\"y\":790.890625,\"width\":52.6875,\"height\":14,\"top\":790.890625,\"right\":978,\"bottom\":804.890625,\"left\":925.3125} vh=800"
+    },
+    {
+      "label": "F3-submit-not-reachable",
+      "severity": "P0",
+      "detail": "確認提交 outside viewport: rect={\"x\":986,\"y\":781.390625,\"width\":76,\"height\":33,\"top\":781.390625,\"right\":1062,\"bottom\":814.390625,\"left\":986} vh=800"
+    }
+  ],
+  "consoleErrs": []
+}

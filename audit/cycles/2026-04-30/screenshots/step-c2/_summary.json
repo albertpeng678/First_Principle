@@ -1,0 +1,172 @@
+[
+  {
+    "viewport": "Mobile-360",
+    "console": [
+      {
+        "type": "warning",
+        "text": "The resource https://fonts.googleapis.com/css2?family=Instrument+Serif&display=swap was preloaded using link preload but not used within a few seconds from the window's load event. Please make sure it has an appropriate `as` value and it is preloaded intentionally."
+      },
+      {
+        "type": "warning",
+        "text": "The resource https://fonts.googleapis.com/css2?family=DM+Sans:ital,opsz,wght@0,9..40,400;0,9..40,500;0,9..40,600&display=swap was preloaded using link preload but not used within a few seconds from the window's load event. Please make sure it has an appropriate `as` value and it is preloaded intentionally."
+      }
+    ],
+    "layout": {
+      "fields": [
+        {
+          "name": "取捨標準",
+          "top": 392.59375,
+          "left": 32,
+          "w": 42.8125,
+          "h": 14,
+          "visible": true
+        },
+        {
+          "name": "最優先項目",
+          "top": 539.59375,
+          "left": 32,
+          "w": 53.5,
+          "h": 14,
+          "visible": true
+        },
+        {
+          "name": "暫緩項目",
+          "top": 686.59375,
+          "left": 32,
+          "w": 42.8125,
+          "h": 14,
+          "visible": true
+        },
+        {
+          "name": "排序理由",
+          "top": 833.59375,
+          "left": 32,
+          "w": 42.8125,
+          "h": 14,
+          "visible": true
+        }
+      ],
+      "stickyBars": [
+        {
+          "cls": "rt-toolbar-mobile",
+          "top": 0,
+          "left": 0,
+          "w": 0,
+          "h": 0,
+          "position": "fixed",
+          "zIndex": "200"
+        }
+      ],
+      "horizontalScroll": true,
+      "body": {
+        "scrollWidth": 369,
+        "clientWidth": 360
+      },
+      "overflowCulprits": [
+        {
+          "tag": "BUTTON",
+          "cls": "btn btn-ghost",
+          "left": 325,
+          "right": 369,
+          "w": 44
+        },
+        {
+          "tag": "DIV",
+          "cls": "offcanvas-overlay",
+          "left": 0,
+          "right": 369,
+          "w": 369
+        },
+        {
+          "tag": "DIV",
+          "cls": "offcanvas",
+          "left": -280,
+          "right": 0,
+          "w": 280
+        },
+        {
+          "tag": "DIV",
+          "cls": "offcanvas-header",
+          "left": -280,
+          "right": -1,
+          "w": 279
+        },
+        {
+          "tag": "SPAN",
+          "cls": "",
+          "left": -264,
+          "right": -200,
+          "w": 64
+        },
+        {
+          "tag": "BUTTON",
+          "cls": "btn-icon",
+          "left": -61,
+          "right": -17,
+          "w": 44
+        },
+        {
+          "tag": "I",
+          "cls": "ph ph-x",
+          "left": -49,
+          "right": -29,
+          "w": 21
+        },
+        {
+          "tag": "DIV",
+          "cls": "offcanvas-list",
+          "left": -280,
+          "right": -1,
+          "w": 279
+        }
+      ],
+      "smallTaps": [
+        {
+          "text": "回首頁",
+          "w": 60,
+          "h": 40
+        }
+      ],
+      "hintBtns": 4,
+      "exampleBtns": 4,
+      "progressTexts": [
+        "CIRCLESC · 優先排序4/7",
+        "C",
+        "I",
+        "R",
+        "C",
+        "L",
+        "E",
+        "S",
+        "Cut · 優先排序預估 25-35 分鐘隨時可暫停 · 自動儲存",
+        "Cut · 優先排序",
+        "預估 25-35 分鐘",
+        "隨時可暫停 · 自動儲存"
+      ]
+    },
+    "advanced": {
+      "ok": true,
+      "q": "circles_001"
+    },
+    "hintOverlay": {
+      "visible": true,
+      "cardW": 321,
+      "cardH": 148.703125,
+      "vpW": 369,
+      "vpH": 800,
+      "hasClose": true
+    },
+    "exampleInline": {
+      "opened": false,
+      "collapseBtnCount": 0,
+      "openBodyCount": 0,
+      "bodyText": []
+    },
+    "focusMetrics": {
+      "top": 0,
+      "height": 0,
+      "vh": 800,
+      "offset": 800
+    }
+  }
+]

@@ -1,0 +1,100 @@
+[
+  {
+    "viewport": "Mobile-360",
+    "scenario": "M5-tap",
+    "severity": "P1",
+    "summary": "confirm btn 220x36 < 44",
+    "detail": ""
+  },
+  {
+    "viewport": "Mobile-360",
+    "scenario": "C6-banner",
+    "severity": "INFO",
+    "summary": "resume-banner cards: 0",
+    "detail": ""
+  },
+  {
+    "viewport": "iPhone-SE",
+    "scenario": "M5-tap",
+    "severity": "P1",
+    "summary": "confirm btn 235x36 < 44",
+    "detail": ""
+  },
+  {
+    "viewport": "iPhone-SE",
+    "scenario": "C4-sticky-offscreen",
+    "severity": "P0",
+    "summary": "sticky button bottom 676.1875 vs vh 667",
+    "detail": ""
+  },
+  {
+    "viewport": "iPhone-SE",
+    "scenario": "C6-banner",
+    "severity": "INFO",
+    "summary": "resume-banner cards: 0",
+    "detail": ""
+  },
+  {
+    "viewport": "iPhone-14",
+    "scenario": "M5-tap",
+    "severity": "P1",
+    "summary": "confirm btn 250x36 < 44",
+    "detail": ""
+  },
+  {
+    "viewport": "iPhone-14",
+    "scenario": "C6-banner",
+    "severity": "INFO",
+    "summary": "resume-banner cards: 0",
+    "detail": ""
+  },
+  {
+    "viewport": "iPhone-15-Pro",
+    "scenario": "M5-tap",
+    "severity": "P1",
+    "summary": "confirm btn 290x36 < 44",
+    "detail": ""
+  },
+  {
+    "viewport": "iPhone-15-Pro",
+    "scenario": "C6-banner",
+    "severity": "INFO",
+    "summary": "resume-banner cards: 0",
+    "detail": ""
+  },
+  {
+    "viewport": "iPad",
+    "scenario": "M5-tap",
+    "severity": "P1",
+    "summary": "confirm btn 239x36 < 44",
+    "detail": ""
+  },
+  {
+    "viewport": "iPad",
+    "scenario": "C6-banner",
+    "severity": "INFO",
+    "summary": "resume-banner cards: 0",
+    "detail": ""
+  },
+  {
+    "viewport": "Desktop-1280",
+    "scenario": "C6-banner",
+    "severity": "INFO",
+    "summary": "resume-banner cards: 0",
+    "detail": ""
+  },
+  {
+    "viewport": "Desktop-1440",
+    "scenario": "C6-banner",
+    "severity": "INFO",
+    "summary": "resume-banner cards: 0",
+    "detail": ""
+  },
+  {
+    "viewport": "Desktop-2560",
+    "scenario": "C6-banner",
+    "severity": "INFO",
+    "summary": "resume-banner cards: 0",
+    "detail": ""
+  }
+]

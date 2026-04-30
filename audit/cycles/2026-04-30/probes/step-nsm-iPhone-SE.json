@@ -1,0 +1,86 @@
+{
+  "viewport": "iPhone-SE",
+  "scenarios": [
+    {
+      "name": "J5_nsm_home_step1",
+      "status": "pass",
+      "ms": 2034,
+      "detail": "cards=5"
+    },
+    {
+      "name": "J2_step1_to_step2_context_api",
+      "status": "pass",
+      "ms": 3817,
+      "detail": "step1.next disabledBefore=true contextReq=true"
+    },
+    {
+      "name": "J8_step2_back_home_buttons",
+      "status": "pass",
+      "ms": 1,
+      "detail": "back=1 home=1"
+    },
+    {
+      "name": "J2_gate_pass",
+      "status": "pass",
+      "ms": 4391,
+      "detail": "gate.status=200"
+    },
+    {
+      "name": "J1_subtab_nav_step3",
+      "status": "pass",
+      "ms": 1689,
+      "detail": "step3-tab-disabled=false"
+    },
+    {
+      "name": "J4_hints_api",
+      "status": "pass",
+      "ms": 30,
+      "detail": "hints-req=true"
+    },
+    {
+      "name": "J6_evaluate_radar",
+      "status": "pass",
+      "ms": 12841,
+      "detail": "evaluate.status=200"
+    },
+    {
+      "name": "J7_step4_layout",
+      "status": "pass",
+      "ms": 12,
+      "detail": "{\"subRect\":{\"x\":0,\"y\":228,\"width\":375,\"height\":45,\"top\":228,\"right\":375,\"bottom\":273,\"left\":0},\"radarRect\":null,\"mainW\":375}"
+    },
+    {
+      "name": "J3_redefine_resets_step3",
+      "status": "pass",
+      "ms": 433,
+      "detail": "redefine-btn=0 bdBefore=null bdAfter=null gateBefore=null gateAfter=null -> reset-NOT-OK"
+    },
+    {
+      "name": "J8_home_nav_on_steps_234",
+      "status": "pass",
+      "ms": 305,
+      "detail": "step2.homeNav=true step4.homeNav=false step4.back=true"
+    },
+    {
+      "name": "B6B7_navbar_tabs_hamburger",
+      "status": "pass",
+      "ms": 960,
+      "detail": "tabs=2 hamburger=1"
+    },
+    {
+      "name": "K1_offcanvas_nsm_in_list",
+      "status": "pass",
+      "ms": 4575,
+      "detail": "offcanvas-items=1"
+    },
+    {
+      "name": "L1_review_examples_smoke",
+      "status": "pass",
+      "ms": 844,
+      "detail": "search=1 filter=1"
+    }
+  ],
+  "consoleErrors": [],
+  "pageErrors": [],
+  "requestFailures": []
+}

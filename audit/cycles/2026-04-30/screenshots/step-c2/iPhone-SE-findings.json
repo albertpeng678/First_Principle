@@ -1,0 +1,102 @@
+{
+  "viewport": "iPhone-SE",
+  "console": [],
+  "layout": {
+    "fields": [
+      {
+        "name": "取捨標準",
+        "top": 368.59375,
+        "left": 32,
+        "w": 42.8125,
+        "h": 14,
+        "visible": true
+      },
+      {
+        "name": "最優先項目",
+        "top": 515.59375,
+        "left": 32,
+        "w": 53.5,
+        "h": 14,
+        "visible": true
+      },
+      {
+        "name": "暫緩項目",
+        "top": 662.59375,
+        "left": 32,
+        "w": 42.8125,
+        "h": 14,
+        "visible": true
+      },
+      {
+        "name": "排序理由",
+        "top": 809.59375,
+        "left": 32,
+        "w": 42.8125,
+        "h": 14,
+        "visible": true
+      }
+    ],
+    "stickyBars": [
+      {
+        "cls": "rt-toolbar-mobile",
+        "top": 0,
+        "left": 0,
+        "w": 0,
+        "h": 0,
+        "position": "fixed",
+        "zIndex": "200"
+      }
+    ],
+    "horizontalScroll": false,
+    "body": {
+      "scrollWidth": 375,
+      "clientWidth": 375
+    },
+    "smallTaps": [
+      {
+        "text": "回首頁",
+        "w": 60,
+        "h": 40
+      }
+    ],
+    "hintBtns": 4,
+    "exampleBtns": 4,
+    "progressTexts": [
+      "CIRCLESC · 優先排序4/7",
+      "C",
+      "I",
+      "R",
+      "C",
+      "L",
+      "E",
+      "S",
+      "Cut · 優先排序預估 25-35 分鐘隨時可暫停 · 自動儲存",
+      "Cut · 優先排序",
+      "預估 25-35 分鐘",
+      "隨時可暫停 · 自動儲存"
+    ]
+  },
+  "advanced": {
+    "ok": true,
+    "q": "circles_001"
+  },
+  "hintOverlay": {
+    "visible": true,
+    "cardW": 327,
+    "cardH": 148.703125,
+    "vpW": 375,
+    "vpH": 667,
+    "hasClose": true
+  },
+  "exampleInline": {
+    "opened": false,
+    "collapseBtnCount": 0,
+    "visibleBlocks": 0
+  },
+  "focusMetrics": {
+    "top": 0,
+    "height": 0,
+    "vh": 667,
+    "offset": 667
+  }
+}

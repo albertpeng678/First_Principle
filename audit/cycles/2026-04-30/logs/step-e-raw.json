@@ -1,0 +1,1102 @@
+[
+  {
+    "viewport": "Mobile-360",
+    "consoleErrors": [
+      "Failed to load resource: the server responded with a status of 500 (Internal Server Error)",
+      "Failed to load resource: the server responded with a status of 500 (Internal Server Error)"
+    ],
+    "consoleWarnings": [],
+    "pageErrors": [],
+    "failedRequests": [
+      "http://localhost:4000/api/circles-public/hint net::ERR_ABORTED"
+    ],
+    "stepEFields": {
+      "labels": [
+        "優點",
+        "缺點",
+        "風險與依賴",
+        "成功指標",
+        "優點",
+        "缺點",
+        "風險與依賴",
+        "成功指標",
+        "優點",
+        "缺點",
+        "風險與依賴",
+        "成功指標"
+      ],
+      "textareaCount": 12,
+      "keyTerms": [
+        {
+          "k": "優點",
+          "present": true
+        },
+        {
+          "k": "缺點",
+          "present": true
+        },
+        {
+          "k": "風險與依賴",
+          "present": true
+        },
+        {
+          "k": "成功指標",
+          "present": true
+        }
+      ],
+      "hasNextBtn": true,
+      "submitText": "下一步",
+      "hasPrevStepCard": true,
+      "bodyTextSnippet": "PM Drill\nCIRCLES\n北極星指標\n登入\n練習記錄\n載入中…\nPM Drill — 第一性原理訓練器\nE — 評估取捨\nAmazon · Amazon Echo\n回首頁\nC\nI\nR\nC\nL\nE\nS\nE · 評估取捨\n6/7\nEvaluate · 評估取捨\n預估 25-35 分鐘\n隨時可暫停 · 自動儲存\nC 澄清情境\nI 定義用戶\nR 發掘需求\nC 優先排序\nL 提出方案\nE 評估取捨\nS 總結推薦\n設計一個新功能，增加 Amazon Echo 在智能家居中的互操作性和用戶便利性。\n前步驟重點參考\nC1 業務約束\n—\nR 核心痛點\n—\nL 方案\n① 方案A 推薦演算法 ② 方案B 用戶兌換時段\n方案一\n方案A 推薦演算法\n優點\n查看範例\n提示\n缺點\n查看範例\n提示\n風險與依賴\n查看範例\n提示\n成功指標\n查看範例\n提示\n方案二\n方案B 用戶兌換時段\n優點\n查看範例\n提示\n缺點\n查看範例\n提示\n風險與依賴\n查看範例\n提示\n成功指標\n查看範例\n提示\n新增方案三（可選）\n返回選題\n下一步"
+    },
+    "hScroll": {
+      "docW": 369,
+      "winW": 369,
+      "overflowX": false
+    },
+    "hintRes": {
+      "found": true,
+      "afterText": "提示"
+    },
+    "examplePresent": 12,
+    "imeRes": {
+      "ok": true,
+      "composingFlag": true,
+      "finalValue": "組字結果"
+    },
+    "stickyCheck": {
+      "hasSaveIndicator": true,
+      "ariaLive": "polite"
+    },
+    "rtToolbar": {
+      "found": true,
+      "display": "none",
+      "position": "fixed",
+      "bottom": "0px"
+    },
+    "navBtns": {
+      "hasPrev": false,
+      "hasNext": false
+    },
+    "reviewState": {
+      "hasFilter": true,
+      "filterAria": "步驟篩選",
+      "hasSearch": true,
+      "options": [
+        {
+          "value": "",
+          "label": "所有步驟"
+        },
+        {
+          "value": "C1",
+          "label": "C1 澄清情境"
+        },
+        {
+          "value": "I",
+          "label": "I 定義用戶"
+        },
+        {
+          "value": "R",
+          "label": "R 發掘需求"
+        },
+        {
+          "value": "C2",
+          "label": "C2 優先排序"
+        },
+        {
+          "value": "L",
+          "label": "L 提出方案"
+        },
+        {
+          "value": "E",
+          "label": "E 評估取捨"
+        },
+        {
+          "value": "S",
+          "label": "S 總結推薦"
+        }
+      ],
+      "eOptionValue": "E"
+    },
+    "reviewVisibleCount": 100,
+    "m8": null,
+    "findings": [
+      {
+        "id": "TAP-TARGET",
+        "msg": "2 tiny targets",
+        "samples": [
+          {
+            "txt": "回首頁",
+            "w": 60,
+            "h": 40,
+            "cls": "circles-nav-home"
+          },
+          {
+            "txt": "前步驟重點參考",
+            "w": 294,
+            "h": 36,
+            "cls": "prev-step-toggle"
+          }
+        ],
+        "severity": "P1"
+      }
+    ]
+  },
+  {
+    "viewport": "iPhone-SE",
+    "consoleErrors": [
+      "Failed to load resource: the server responded with a status of 500 (Internal Server Error)",
+      "Failed to load resource: the server responded with a status of 500 (Internal Server Error)"
+    ],
+    "consoleWarnings": [],
+    "pageErrors": [],
+    "failedRequests": [
+      "http://localhost:4000/api/circles-public/hint net::ERR_ABORTED"
+    ],
+    "stepEFields": {
+      "labels": [
+        "優點",
+        "缺點",
+        "風險與依賴",
+        "成功指標",
+        "優點",
+        "缺點",
+        "風險與依賴",
+        "成功指標",
+        "優點",
+        "缺點",
+        "風險與依賴",
+        "成功指標"
+      ],
+      "textareaCount": 12,
+      "keyTerms": [
+        {
+          "k": "優點",
+          "present": true
+        },
+        {
+          "k": "缺點",
+          "present": true
+        },
+        {
+          "k": "風險與依賴",
+          "present": true
+        },
+        {
+          "k": "成功指標",
+          "present": true
+        }
+      ],
+      "hasNextBtn": true,
+      "submitText": "下一步",
+      "hasPrevStepCard": true,
+      "bodyTextSnippet": "PM Drill\nCIRCLES\n北極星指標\n登入\n練習記錄\n載入中…\nPM Drill — 第一性原理訓練器\nE — 評估取捨\nTikTok · TikTok\n回首頁\nC\nI\nR\nC\nL\nE\nS\nE · 評估取捨\n6/7\nEvaluate · 評估取捨\n預估 25-35 分鐘\n隨時可暫停 · 自動儲存\nC 澄清情境\nI 定義用戶\nR 發掘需求\nC 優先排序\nL 提出方案\nE 評估取捨\nS 總結推薦\n設計一個新功能，提高 TikTok 用戶在創建和分享內容時的隱私控制。\n前步驟重點參考\nC1 業務約束\n—\nR 核心痛點\n—\nL 方案\n① 方案A 推薦演算法 ② 方案B 用戶兌換時段\n方案一\n方案A 推薦演算法\n優點\n查看範例\n提示\n缺點\n查看範例\n提示\n風險與依賴\n查看範例\n提示\n成功指標\n查看範例\n提示\n方案二\n方案B 用戶兌換時段\n優點\n查看範例\n提示\n缺點\n查看範例\n提示\n風險與依賴\n查看範例\n提示\n成功指標\n查看範例\n提示\n新增方案三（可選）\n返回選題\n下一步"
+    },
+    "hScroll": {
+      "docW": 375,
+      "winW": 375,
+      "overflowX": false
+    },
+    "hintRes": {
+      "found": true,
+      "afterText": "提示"
+    },
+    "examplePresent": 12,
+    "imeRes": {
+      "ok": true,
+      "composingFlag": true,
+      "finalValue": "組字結果"
+    },
+    "stickyCheck": {
+      "hasSaveIndicator": true,
+      "ariaLive": "polite"
+    },
+    "rtToolbar": {
+      "found": true,
+      "display": "none",
+      "position": "fixed",
+      "bottom": "0px"
+    },
+    "navBtns": {
+      "hasPrev": false,
+      "hasNext": false
+    },
+    "reviewState": {
+      "hasFilter": true,
+      "filterAria": "步驟篩選",
+      "hasSearch": true,
+      "options": [
+        {
+          "value": "",
+          "label": "所有步驟"
+        },
+        {
+          "value": "C1",
+          "label": "C1 澄清情境"
+        },
+        {
+          "value": "I",
+          "label": "I 定義用戶"
+        },
+        {
+          "value": "R",
+          "label": "R 發掘需求"
+        },
+        {
+          "value": "C2",
+          "label": "C2 優先排序"
+        },
+        {
+          "value": "L",
+          "label": "L 提出方案"
+        },
+        {
+          "value": "E",
+          "label": "E 評估取捨"
+        },
+        {
+          "value": "S",
+          "label": "S 總結推薦"
+        }
+      ],
+      "eOptionValue": "E"
+    },
+    "reviewVisibleCount": 100,
+    "m8": null,
+    "findings": [
+      {
+        "id": "TAP-TARGET",
+        "msg": "2 tiny targets",
+        "samples": [
+          {
+            "txt": "回首頁",
+            "w": 60,
+            "h": 40,
+            "cls": "circles-nav-home"
+          },
+          {
+            "txt": "前步驟重點參考",
+            "w": 309,
+            "h": 36,
+            "cls": "prev-step-toggle"
+          }
+        ],
+        "severity": "P1"
+      }
+    ]
+  },
+  {
+    "viewport": "iPhone-14",
+    "consoleErrors": [
+      "Failed to load resource: the server responded with a status of 500 (Internal Server Error)"
+    ],
+    "consoleWarnings": [],
+    "pageErrors": [],
+    "failedRequests": [
+      "http://localhost:4000/api/circles-public/hint net::ERR_ABORTED",
+      "http://localhost:4000/api/guest-circles-sessions/probe-fake-id/progress net::ERR_ABORTED"
+    ],
+    "stepEFields": {
+      "labels": [
+        "優點",
+        "缺點",
+        "風險與依賴",
+        "成功指標",
+        "優點",
+        "缺點",
+        "風險與依賴",
+        "成功指標",
+        "優點",
+        "缺點",
+        "風險與依賴",
+        "成功指標"
+      ],
+      "textareaCount": 12,
+      "keyTerms": [
+        {
+          "k": "優點",
+          "present": true
+        },
+        {
+          "k": "缺點",
+          "present": true
+        },
+        {
+          "k": "風險與依賴",
+          "present": true
+        },
+        {
+          "k": "成功指標",
+          "present": true
+        }
+      ],
+      "hasNextBtn": true,
+      "submitText": "下一步",
+      "hasPrevStepCard": true,
+      "bodyTextSnippet": "PM Drill\nCIRCLES\n北極星指標\n登入\n練習記錄\n載入中…\nPM Drill — 第一性原理訓練器\nE — 評估取捨\nSpotify · Spotify Podcast\n回首頁\nC\nI\nR\nC\nL\nE\nS\nE · 評估取捨\n6/7\nEvaluate · 評估取捨\n預估 25-35 分鐘\n隨時可暫停 · 自動儲存\nC 澄清情境\nI 定義用戶\nR 發掘需求\nC 優先排序\nL 提出方案\nE 評估取捨\nS 總結推薦\n設計一個新功能，讓 Spotify Podcast 的使用者可以更輕鬆地發現符合其興趣的新節目。\n前步驟重點參考\nC1 業務約束\n—\nR 核心痛點\n—\nL 方案\n① 方案A 推薦演算法 ② 方案B 用戶兌換時段\n方案一\n方案A 推薦演算法\n優點\n查看範例\n提示\n缺點\n查看範例\n提示\n風險與依賴\n查看範例\n提示\n成功指標\n查看範例\n提示\n方案二\n方案B 用戶兌換時段\n優點\n查看範例\n提示\n缺點\n查看範例\n提示\n風險與依賴\n查看範例\n提示\n成功指標\n查看範例\n提示\n新增方案三（可選）\n返回選題\n下一步"
+    },
+    "hScroll": {
+      "docW": 390,
+      "winW": 390,
+      "overflowX": false
+    },
+    "hintRes": {
+      "found": true,
+      "afterText": "提示"
+    },
+    "examplePresent": 12,
+    "imeRes": {
+      "ok": true,
+      "composingFlag": true,
+      "finalValue": "組字結果"
+    },
+    "stickyCheck": {
+      "hasSaveIndicator": true,
+      "ariaLive": "polite"
+    },
+    "rtToolbar": {
+      "found": true,
+      "display": "none",
+      "position": "fixed",
+      "bottom": "0px"
+    },
+    "navBtns": {
+      "hasPrev": false,
+      "hasNext": false
+    },
+    "reviewState": {
+      "hasFilter": true,
+      "filterAria": "步驟篩選",
+      "hasSearch": true,
+      "options": [
+        {
+          "value": "",
+          "label": "所有步驟"
+        },
+        {
+          "value": "C1",
+          "label": "C1 澄清情境"
+        },
+        {
+          "value": "I",
+          "label": "I 定義用戶"
+        },
+        {
+          "value": "R",
+          "label": "R 發掘需求"
+        },
+        {
+          "value": "C2",
+          "label": "C2 優先排序"
+        },
+        {
+          "value": "L",
+          "label": "L 提出方案"
+        },
+        {
+          "value": "E",
+          "label": "E 評估取捨"
+        },
+        {
+          "value": "S",
+          "label": "S 總結推薦"
+        }
+      ],
+      "eOptionValue": "E"
+    },
+    "reviewVisibleCount": 100,
+    "m8": null,
+    "findings": [
+      {
+        "id": "TAP-TARGET",
+        "msg": "2 tiny targets",
+        "samples": [
+          {
+            "txt": "回首頁",
+            "w": 60,
+            "h": 40,
+            "cls": "circles-nav-home"
+          },
+          {
+            "txt": "前步驟重點參考",
+            "w": 324,
+            "h": 36,
+            "cls": "prev-step-toggle"
+          }
+        ],
+        "severity": "P1"
+      }
+    ]
+  },
+  {
+    "viewport": "iPhone-15-Pro",
+    "consoleErrors": [
+      "Failed to load resource: the server responded with a status of 500 (Internal Server Error)",
+      "Failed to load resource: the server responded with a status of 500 (Internal Server Error)"
+    ],
+    "consoleWarnings": [],
+    "pageErrors": [],
+    "failedRequests": [
+      "http://localhost:4000/api/circles-public/hint net::ERR_ABORTED"
+    ],
+    "stepEFields": {
+      "labels": [
+        "優點",
+        "缺點",
+        "風險與依賴",
+        "成功指標",
+        "優點",
+        "缺點",
+        "風險與依賴",
+        "成功指標",
+        "優點",
+        "缺點",
+        "風險與依賴",
+        "成功指標"
+      ],
+      "textareaCount": 12,
+      "keyTerms": [
+        {
+          "k": "優點",
+          "present": true
+        },
+        {
+          "k": "缺點",
+          "present": true
+        },
+        {
+          "k": "風險與依賴",
+          "present": true
+        },
+        {
+          "k": "成功指標",
+          "present": true
+        }
+      ],
+      "hasNextBtn": true,
+      "submitText": "下一步",
+      "hasPrevStepCard": true,
+      "bodyTextSnippet": "PM Drill\nCIRCLES\n北極星指標\n登入\n練習記錄\n載入中…\nPM Drill — 第一性原理訓練器\nE — 評估取捨\nMeta · Facebook Marketplace\n回首頁\nC\nI\nR\nC\nL\nE\nS\nE · 評估取捨\n6/7\nEvaluate · 評估取捨\n預估 25-35 分鐘\n隨時可暫停 · 自動儲存\nC 澄清情境\nI 定義用戶\nR 發掘需求\nC 優先排序\nL 提出方案\nE 評估取捨\nS 總結推薦\n設計一個功能以提高 Facebook Marketplace 上二手貨品的交易安全性。\n前步驟重點參考\nC1 業務約束\n—\nR 核心痛點\n—\nL 方案\n① 方案A 推薦演算法 ② 方案B 用戶兌換時段\n方案一\n方案A 推薦演算法\n優點\n查看範例\n提示\n缺點\n查看範例\n提示\n風險與依賴\n查看範例\n提示\n成功指標\n查看範例\n提示\n方案二\n方案B 用戶兌換時段\n優點\n查看範例\n提示\n缺點\n查看範例\n提示\n風險與依賴\n查看範例\n提示\n成功指標\n查看範例\n提示\n新增方案三（可選）\n返回選題\n下一步"
+    },
+    "hScroll": {
+      "docW": 430,
+      "winW": 430,
+      "overflowX": false
+    },
+    "hintRes": {
+      "found": true,
+      "afterText": "提示"
+    },
+    "examplePresent": 12,
+    "imeRes": {
+      "ok": true,
+      "composingFlag": true,
+      "finalValue": "組字結果"
+    },
+    "stickyCheck": {
+      "hasSaveIndicator": true,
+      "ariaLive": "polite"
+    },
+    "rtToolbar": {
+      "found": true,
+      "display": "none",
+      "position": "fixed",
+      "bottom": "0px"
+    },
+    "navBtns": {
+      "hasPrev": false,
+      "hasNext": false
+    },
+    "reviewState": {
+      "hasFilter": true,
+      "filterAria": "步驟篩選",
+      "hasSearch": true,
+      "options": [
+        {
+          "value": "",
+          "label": "所有步驟"
+        },
+        {
+          "value": "C1",
+          "label": "C1 澄清情境"
+        },
+        {
+          "value": "I",
+          "label": "I 定義用戶"
+        },
+        {
+          "value": "R",
+          "label": "R 發掘需求"
+        },
+        {
+          "value": "C2",
+          "label": "C2 優先排序"
+        },
+        {
+          "value": "L",
+          "label": "L 提出方案"
+        },
+        {
+          "value": "E",
+          "label": "E 評估取捨"
+        },
+        {
+          "value": "S",
+          "label": "S 總結推薦"
+        }
+      ],
+      "eOptionValue": "E"
+    },
+    "reviewVisibleCount": 100,
+    "m8": null,
+    "findings": [
+      {
+        "id": "TAP-TARGET",
+        "msg": "2 tiny targets",
+        "samples": [
+          {
+            "txt": "回首頁",
+            "w": 60,
+            "h": 40,
+            "cls": "circles-nav-home"
+          },
+          {
+            "txt": "前步驟重點參考",
+            "w": 364,
+            "h": 36,
+            "cls": "prev-step-toggle"
+          }
+        ],
+        "severity": "P1"
+      }
+    ]
+  },
+  {
+    "viewport": "iPad",
+    "consoleErrors": [
+      "Failed to load resource: the server responded with a status of 500 (Internal Server Error)",
+      "Failed to load resource: the server responded with a status of 500 (Internal Server Error)"
+    ],
+    "consoleWarnings": [],
+    "pageErrors": [],
+    "failedRequests": [
+      "http://localhost:4000/api/circles-public/hint net::ERR_ABORTED"
+    ],
+    "stepEFields": {
+      "labels": [
+        "優點",
+        "缺點",
+        "風險與依賴",
+        "成功指標",
+        "優點",
+        "缺點",
+        "風險與依賴",
+        "成功指標",
+        "優點",
+        "缺點",
+        "風險與依賴",
+        "成功指標"
+      ],
+      "textareaCount": 12,
+      "keyTerms": [
+        {
+          "k": "優點",
+          "present": true
+        },
+        {
+          "k": "缺點",
+          "present": true
+        },
+        {
+          "k": "風險與依賴",
+          "present": true
+        },
+        {
+          "k": "成功指標",
+          "present": true
+        }
+      ],
+      "hasNextBtn": true,
+      "submitText": "下一步",
+      "hasPrevStepCard": true,
+      "bodyTextSnippet": "PM Drill\nCIRCLES\n北極星指標\n登入\n練習記錄\n載入中…\nPM Drill — 第一性原理訓練器\nE — 評估取捨\nLINE · LINE Pay\n回首頁\nC\nI\nR\nC\nL\nE\nS\nE · 評估取捨\n6/7\nEvaluate · 評估取捨\n預估 25-35 分鐘\n隨時可暫停 · 自動儲存\nC 澄清情境\nI 定義用戶\nR 發掘需求\nC 優先排序\nL 提出方案\nE 評估取捨\nS 總結推薦\n設計一個功能強化 LINE Pay 用戶在轉賬時的體驗，特別是針對跨國界的交易。\n前步驟重點參考\nC1 業務約束\n—\nR 核心痛點\n—\nL 方案\n① 方案A 推薦演算法 ② 方案B 用戶兌換時段\n方案一\n方案A 推薦演算法\n優點\n查看範例\n提示\n缺點\n查看範例\n提示\n風險與依賴\n查看範例\n提示\n成功指標\n查看範例\n提示\n方案二\n方案B 用戶兌換時段\n優點\n查看範例\n提示\n缺點\n查看範例\n提示\n風險與依賴\n查看範例\n提示\n成功指標\n查看範例\n提示\n新增方案三（可選）\n返回選題\n下一步"
+    },
+    "hScroll": {
+      "docW": 768,
+      "winW": 768,
+      "overflowX": false
+    },
+    "hintRes": {
+      "found": true,
+      "afterText": "提示"
+    },
+    "examplePresent": 12,
+    "imeRes": {
+      "ok": true,
+      "composingFlag": true,
+      "finalValue": "組字結果"
+    },
+    "stickyCheck": {
+      "hasSaveIndicator": true,
+      "ariaLive": "polite"
+    },
+    "rtToolbar": {
+      "found": true,
+      "display": "none",
+      "position": "fixed",
+      "bottom": "0px"
+    },
+    "navBtns": {
+      "hasPrev": false,
+      "hasNext": false
+    },
+    "reviewState": {
+      "hasFilter": true,
+      "filterAria": "步驟篩選",
+      "hasSearch": true,
+      "options": [
+        {
+          "value": "",
+          "label": "所有步驟"
+        },
+        {
+          "value": "C1",
+          "label": "C1 澄清情境"
+        },
+        {
+          "value": "I",
+          "label": "I 定義用戶"
+        },
+        {
+          "value": "R",
+          "label": "R 發掘需求"
+        },
+        {
+          "value": "C2",
+          "label": "C2 優先排序"
+        },
+        {
+          "value": "L",
+          "label": "L 提出方案"
+        },
+        {
+          "value": "E",
+          "label": "E 評估取捨"
+        },
+        {
+          "value": "S",
+          "label": "S 總結推薦"
+        }
+      ],
+      "eOptionValue": "E"
+    },
+    "reviewVisibleCount": 100,
+    "m8": null,
+    "findings": [
+      {
+        "id": "TAP-TARGET",
+        "msg": "2 tiny targets",
+        "samples": [
+          {
+            "txt": "回首頁",
+            "w": 60,
+            "h": 40,
+            "cls": "circles-nav-home"
+          },
+          {
+            "txt": "前步驟重點參考",
+            "w": 638,
+            "h": 36,
+            "cls": "prev-step-toggle"
+          }
+        ],
+        "severity": "P1"
+      }
+    ]
+  },
+  {
+    "viewport": "Desktop-1280",
+    "consoleErrors": [
+      "Failed to load resource: the server responded with a status of 500 (Internal Server Error)",
+      "Failed to load resource: the server responded with a status of 500 (Internal Server Error)",
+      "Failed to load resource: the server responded with a status of 400 (Bad Request)"
+    ],
+    "consoleWarnings": [
+      "The resource https://fonts.googleapis.com/css2?family=Instrument+Serif&display=swap was preloaded using link preload but not used within a few seconds from the window's load event. Please make sure it has an appropriate `as` value and it is preloaded intentionally.",
+      "The resource https://fonts.googleapis.com/css2?family=DM+Sans:ital,opsz,wght@0,9..40,400;0,9..40,500;0,9..40,600&display=swap was preloaded using link preload but not used within a few seconds from the window's load event. Please make sure it has an appropriate `as` value and it is preloaded intentionally.",
+      "The resource https://fonts.googleapis.com/css2?family=Instrument+Serif&display=swap was preloaded using link preload but not used within a few seconds from the window's load event. Please make sure it has an appropriate `as` value and it is preloaded intentionally.",
+      "The resource https://fonts.googleapis.com/css2?family=DM+Sans:ital,opsz,wght@0,9..40,400;0,9..40,500;0,9..40,600&display=swap was preloaded using link preload but not used within a few seconds from the window's load event. Please make sure it has an appropriate `as` value and it is preloaded intentionally."
+    ],
+    "pageErrors": [],
+    "failedRequests": [
+      "http://localhost:4000/api/circles-public/hint net::ERR_ABORTED"
+    ],
+    "stepEFields": {
+      "labels": [
+        "優點",
+        "缺點",
+        "風險與依賴",
+        "成功指標",
+        "優點",
+        "缺點",
+        "風險與依賴",
+        "成功指標",
+        "優點",
+        "缺點",
+        "風險與依賴",
+        "成功指標"
+      ],
+      "textareaCount": 12,
+      "keyTerms": [
+        {
+          "k": "優點",
+          "present": true
+        },
+        {
+          "k": "缺點",
+          "present": true
+        },
+        {
+          "k": "風險與依賴",
+          "present": true
+        },
+        {
+          "k": "成功指標",
+          "present": true
+        }
+      ],
+      "hasNextBtn": true,
+      "submitText": "下一步",
+      "hasPrevStepCard": true,
+      "bodyTextSnippet": "PM Drill\nCIRCLES\n北極星指標\n登入\n練習記錄\n載入中…\nPM Drill — 第一性原理訓練器\nE — 評估取捨\nAmazon · Amazon Kindle\n回首頁\nC\nI\nR\nC\nL\nE\nS\nE · 評估取捨\n6/7\nEvaluate · 評估取捨\n預估 25-35 分鐘\n隨時可暫停 · 自動儲存\nC 澄清情境\nI 定義用戶\nR 發掘需求\nC 優先排序\nL 提出方案\nE 評估取捨\nS 總結推薦\n設計一項新功能，提升 Kindle 在聽書功能上的使用體驗。\n前步驟重點參考\nC1 業務約束\n—\nR 核心痛點\n—\nL 方案\n① 方案A 推薦演算法 ② 方案B 用戶兌換時段\n方案一\n方案A 推薦演算法\n優點\n查看範例\n提示\nB\n缺點\n查看範例\n提示\nB\n風險與依賴\n查看範例\n提示\nB\n成功指標\n查看範例\n提示\nB\n方案二\n方案B 用戶兌換時段\n優點\n查看範例\n提示\nB\n缺點\n查看範例\n提示\nB\n風險與依賴\n查看範例\n提示\nB\n成功指標\n查看範例\n提示\nB\n新增方案三（可選）\n題目脈絡\nAmazon · Amazon Kindle\n上一步重點\nsol1\n方案A 推薦演算法\nsol2\n方案B 用戶兌換時段\n返回選題\n下一步"
+    },
+    "hScroll": {
+      "docW": 1280,
+      "winW": 1280,
+      "overflowX": false
+    },
+    "hintRes": {
+      "found": true,
+      "afterText": "提示"
+    },
+    "examplePresent": 12,
+    "imeRes": {
+      "ok": true,
+      "composingFlag": true,
+      "finalValue": "組字結果"
+    },
+    "stickyCheck": {
+      "hasSaveIndicator": true,
+      "ariaLive": "polite"
+    },
+    "rtToolbar": {
+      "found": true,
+      "display": "none",
+      "position": "fixed",
+      "bottom": "0px"
+    },
+    "navBtns": {
+      "hasPrev": false,
+      "hasNext": false
+    },
+    "reviewState": {
+      "hasFilter": true,
+      "filterAria": "步驟篩選",
+      "hasSearch": true,
+      "options": [
+        {
+          "value": "",
+          "label": "所有步驟"
+        },
+        {
+          "value": "C1",
+          "label": "C1 澄清情境"
+        },
+        {
+          "value": "I",
+          "label": "I 定義用戶"
+        },
+        {
+          "value": "R",
+          "label": "R 發掘需求"
+        },
+        {
+          "value": "C2",
+          "label": "C2 優先排序"
+        },
+        {
+          "value": "L",
+          "label": "L 提出方案"
+        },
+        {
+          "value": "E",
+          "label": "E 評估取捨"
+        },
+        {
+          "value": "S",
+          "label": "S 總結推薦"
+        }
+      ],
+      "eOptionValue": "E"
+    },
+    "reviewVisibleCount": 100,
+    "m8": {
+      "status": 400,
+      "body": "{\"error\":\"invalid_json\"}",
+      "ct": "application/json; charset=utf-8"
+    },
+    "findings": []
+  },
+  {
+    "viewport": "Desktop-1440",
+    "consoleErrors": [
+      "Failed to load resource: the server responded with a status of 500 (Internal Server Error)",
+      "Failed to load resource: the server responded with a status of 500 (Internal Server Error)"
+    ],
+    "consoleWarnings": [
+      "The resource https://fonts.googleapis.com/css2?family=Instrument+Serif&display=swap was preloaded using link preload but not used within a few seconds from the window's load event. Please make sure it has an appropriate `as` value and it is preloaded intentionally.",
+      "The resource https://fonts.googleapis.com/css2?family=DM+Sans:ital,opsz,wght@0,9..40,400;0,9..40,500;0,9..40,600&display=swap was preloaded using link preload but not used within a few seconds from the window's load event. Please make sure it has an appropriate `as` value and it is preloaded intentionally."
+    ],
+    "pageErrors": [],
+    "failedRequests": [
+      "http://localhost:4000/api/circles-public/hint net::ERR_ABORTED"
+    ],
+    "stepEFields": {
+      "labels": [
+        "優點",
+        "缺點",
+        "風險與依賴",
+        "成功指標",
+        "優點",
+        "缺點",
+        "風險與依賴",
+        "成功指標",
+        "優點",
+        "缺點",
+        "風險與依賴",
+        "成功指標"
+      ],
+      "textareaCount": 12,
+      "keyTerms": [
+        {
+          "k": "優點",
+          "present": true
+        },
+        {
+          "k": "缺點",
+          "present": true
+        },
+        {
+          "k": "風險與依賴",
+          "present": true
+        },
+        {
+          "k": "成功指標",
+          "present": true
+        }
+      ],
+      "hasNextBtn": true,
+      "submitText": "下一步",
+      "hasPrevStepCard": true,
+      "bodyTextSnippet": "PM Drill\nCIRCLES\n北極星指標\n登入\n練習記錄\n載入中…\nPM Drill — 第一性原理訓練器\nE — 評估取捨\nSpotify · Spotify Podcast\n回首頁\nC\nI\nR\nC\nL\nE\nS\nE · 評估取捨\n6/7\nEvaluate · 評估取捨\n預估 25-35 分鐘\n隨時可暫停 · 自動儲存\nC 澄清情境\nI 定義用戶\nR 發掘需求\nC 優先排序\nL 提出方案\nE 評估取捨\nS 總結推薦\n設計一個新功能，提升用戶在 Spotify 上的 Podcast 體驗，並增加用戶的黏著度。\n前步驟重點參考\nC1 業務約束\n—\nR 核心痛點\n—\nL 方案\n① 方案A 推薦演算法 ② 方案B 用戶兌換時段\n方案一\n方案A 推薦演算法\n優點\n查看範例\n提示\nB\n缺點\n查看範例\n提示\nB\n風險與依賴\n查看範例\n提示\nB\n成功指標\n查看範例\n提示\nB\n方案二\n方案B 用戶兌換時段\n優點\n查看範例\n提示\nB\n缺點\n查看範例\n提示\nB\n風險與依賴\n查看範例\n提示\nB\n成功指標\n查看範例\n提示\nB\n新增方案三（可選）\n題目脈絡\nSpotify · Spotify Podcast\n上一步重點\nsol1\n方案A 推薦演算法\nsol2\n方案B 用戶兌換時段\n返回選題\n下一步"
+    },
+    "hScroll": {
+      "docW": 1440,
+      "winW": 1440,
+      "overflowX": false
+    },
+    "hintRes": {
+      "found": true,
+      "afterText": "提示"
+    },
+    "examplePresent": 12,
+    "imeRes": {
+      "ok": true,
+      "composingFlag": true,
+      "finalValue": "組字結果"
+    },
+    "stickyCheck": {
+      "hasSaveIndicator": true,
+      "ariaLive": "polite"
+    },
+    "rtToolbar": {
+      "found": true,
+      "display": "none",
+      "position": "fixed",
+      "bottom": "0px"
+    },
+    "navBtns": {
+      "hasPrev": false,
+      "hasNext": false
+    },
+    "reviewState": {
+      "hasFilter": true,
+      "filterAria": "步驟篩選",
+      "hasSearch": true,
+      "options": [
+        {
+          "value": "",
+          "label": "所有步驟"
+        },
+        {
+          "value": "C1",
+          "label": "C1 澄清情境"
+        },
+        {
+          "value": "I",
+          "label": "I 定義用戶"
+        },
+        {
+          "value": "R",
+          "label": "R 發掘需求"
+        },
+        {
+          "value": "C2",
+          "label": "C2 優先排序"
+        },
+        {
+          "value": "L",
+          "label": "L 提出方案"
+        },
+        {
+          "value": "E",
+          "label": "E 評估取捨"
+        },
+        {
+          "value": "S",
+          "label": "S 總結推薦"
+        }
+      ],
+      "eOptionValue": "E"
+    },
+    "reviewVisibleCount": 100,
+    "m8": null,
+    "findings": []
+  },
+  {
+    "viewport": "Desktop-2560",
+    "consoleErrors": [
+      "Failed to load resource: the server responded with a status of 500 (Internal Server Error)",
+      "Failed to load resource: the server responded with a status of 500 (Internal Server Error)"
+    ],
+    "consoleWarnings": [
+      "The resource https://fonts.googleapis.com/css2?family=Instrument+Serif&display=swap was preloaded using link preload but not used within a few seconds from the window's load event. Please make sure it has an appropriate `as` value and it is preloaded intentionally.",
+      "The resource https://fonts.googleapis.com/css2?family=DM+Sans:ital,opsz,wght@0,9..40,400;0,9..40,500;0,9..40,600&display=swap was preloaded using link preload but not used within a few seconds from the window's load event. Please make sure it has an appropriate `as` value and it is preloaded intentionally."
+    ],
+    "pageErrors": [],
+    "failedRequests": [
+      "http://localhost:4000/api/circles-public/hint net::ERR_ABORTED"
+    ],
+    "stepEFields": {
+      "labels": [
+        "優點",
+        "缺點",
+        "風險與依賴",
+        "成功指標",
+        "優點",
+        "缺點",
+        "風險與依賴",
+        "成功指標",
+        "優點",
+        "缺點",
+        "風險與依賴",
+        "成功指標"
+      ],
+      "textareaCount": 12,
+      "keyTerms": [
+        {
+          "k": "優點",
+          "present": true
+        },
+        {
+          "k": "缺點",
+          "present": true
+        },
+        {
+          "k": "風險與依賴",
+          "present": true
+        },
+        {
+          "k": "成功指標",
+          "present": true
+        }
+      ],
+      "hasNextBtn": true,
+      "submitText": "下一步",
+      "hasPrevStepCard": true,
+      "bodyTextSnippet": "PM Drill\nCIRCLES\n北極星指標\n登入\n練習記錄\n載入中…\nPM Drill — 第一性原理訓練器\nE — 評估取捨\nMeta · Facebook Marketplace\n回首頁\nC\nI\nR\nC\nL\nE\nS\nE · 評估取捨\n6/7\nEvaluate · 評估取捨\n預估 25-35 分鐘\n隨時可暫停 · 自動儲存\nC 澄清情境\nI 定義用戶\nR 發掘需求\nC 優先排序\nL 提出方案\nE 評估取捨\nS 總結推薦\n設計一個功能以提高 Facebook Marketplace 上二手貨品的交易安全性。\n前步驟重點參考\nC1 業務約束\n—\nR 核心痛點\n—\nL 方案\n① 方案A 推薦演算法 ② 方案B 用戶兌換時段\n方案一\n方案A 推薦演算法\n優點\n查看範例\n提示\nB\n缺點\n查看範例\n提示\nB\n風險與依賴\n查看範例\n提示\nB\n成功指標\n查看範例\n提示\nB\n方案二\n方案B 用戶兌換時段\n優點\n查看範例\n提示\nB\n缺點\n查看範例\n提示\nB\n風險與依賴\n查看範例\n提示\nB\n成功指標\n查看範例\n提示\nB\n新增方案三（可選）\n題目脈絡\nMeta · Facebook Marketplace\n上一步重點\nsol1\n方案A 推薦演算法\nsol2\n方案B 用戶兌換時段\n返回選題\n下一步"
+    },
+    "hScroll": {
+      "docW": 2560,
+      "winW": 2560,
+      "overflowX": false
+    },
+    "hintRes": {
+      "found": true,
+      "afterText": "提示"
+    },
+    "examplePresent": 12,
+    "imeRes": {
+      "ok": true,
+      "composingFlag": true,
+      "finalValue": "組字結果"
+    },
+    "stickyCheck": {
+      "hasSaveIndicator": true,
+      "ariaLive": "polite"
+    },
+    "rtToolbar": {
+      "found": true,
+      "display": "none",
+      "position": "fixed",
+      "bottom": "0px"
+    },
+    "navBtns": {
+      "hasPrev": false,
+      "hasNext": false
+    },
+    "reviewState": {
+      "hasFilter": true,
+      "filterAria": "步驟篩選",
+      "hasSearch": true,
+      "options": [
+        {
+          "value": "",
+          "label": "所有步驟"
+        },
+        {
+          "value": "C1",
+          "label": "C1 澄清情境"
+        },
+        {
+          "value": "I",
+          "label": "I 定義用戶"
+        },
+        {
+          "value": "R",
+          "label": "R 發掘需求"
+        },
+        {
+          "value": "C2",
+          "label": "C2 優先排序"
+        },
+        {
+          "value": "L",
+          "label": "L 提出方案"
+        },
+        {
+          "value": "E",
+          "label": "E 評估取捨"
+        },
+        {
+          "value": "S",
+          "label": "S 總結推薦"
+        }
+      ],
+      "eOptionValue": "E"
+    },
+    "reviewVisibleCount": 100,
+    "m8": null,
+    "findings": []
+  }
+]

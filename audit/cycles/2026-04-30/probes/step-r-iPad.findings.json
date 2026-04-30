@@ -1,0 +1,16 @@
+{
+  "viewport": "iPad",
+  "findings": [
+    {
+      "label": "M5-tap-target",
+      "severity": "P1",
+      "detail": "1 sub-44px touch targets on step R: [{\"tag\":\"BUTTON\",\"text\":\"回首頁\",\"w\":60,\"h\":40}]"
+    },
+    {
+      "label": "F3-back-tiny",
+      "severity": "P1",
+      "detail": "繼續對話 height 14px < 44 mobile"
+    }
+  ],
+  "consoleErrs": []
+}
