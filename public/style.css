@@ -3891,3 +3891,40 @@ textarea.rt-textarea {
     gap: 18px;
   }
 }
+
+/* AUD-020/021/022/051 — Mobile/touch tap target enforcement (>=44x44) */
+@media (max-width: 1023px) {
+  .rt-mtbtn,
+  .rt-toolbar button,
+  [data-rt-action] {
+    min-width: 44px !important;
+    min-height: 44px !important;
+  }
+  [data-view="circles"] .circles-hint-trigger,
+  [data-view="circles"] .field-example-toggle {
+    min-height: 44px;
+    padding: 10px 8px;
+    font-size: 13px;
+    border: 1px solid var(--c-border, rgba(0,0,0,0.1));
+    border-radius: 8px;
+    background: #fff;
+  }
+  .circles-field-label-row {
+    gap: 8px;
+    flex-wrap: wrap;
+  }
+  .nav-tab,
+  .navbar-tab,
+  .navbar-actions button,
+  .navbar-actions a,
+  .navbar .btn-icon,
+  .navbar .navbar-logo,
+  .navbar button,
+  .navbar a {
+    min-height: 44px !important;
+    min-width: 44px;
+  }
+  .navbar { min-height: 56px; }
+  .circles-mode-card { min-height: 44px !important; }
+  .resume-card .dismiss { min-width: 44px; min-height: 44px; }
+}
