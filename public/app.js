@@ -417,6 +417,39 @@ function getCirclesHeaders() {
     : { 'Content-Type': 'application/json', 'X-Guest-ID': AppState.guestId };
 }
 
+// ── Wave A fix-A3 (M-011) — local-draft helpers ─────────────────────────────
+// When the autosave network call fails (offline / server error), we still
+// persist the current step's draft to localStorage so the user does not lose
+// work. On session load (or first render), we merge any local draft into
+// AppState. Cleared once a server save succeeds.
+function _circlesLocalDraftKey(questionId, stepKey) {
+  if (!questionId || !stepKey) return null;
+  return 'circles_local_draft_' + questionId + '_' + stepKey;
+}
+function _circlesSaveLocalDraft(questionId, stepKey, draftObj) {
+  var key = _circlesLocalDraftKey(questionId, stepKey);
+  if (!key) return;
+  try { localStorage.setItem(key, JSON.stringify(draftObj || {})); } catch (e) {}
+}
+function _circlesLoadLocalDraft(questionId, stepKey) {
+  var key = _circlesLocalDraftKey(questionId, stepKey);
+  if (!key) return null;
+  try {
+    var raw = localStorage.getItem(key);
+    if (!raw) return null;
+    return JSON.parse(raw);
+  } catch (e) { return null; }
+}
+function _circlesClearLocalDraft(questionId, stepKey) {
+  var key = _circlesLocalDraftKey(questionId, stepKey);
+  if (!key) return;
+  try { localStorage.removeItem(key); } catch (e) {}
+}
+window._circlesLocalDraftKey = _circlesLocalDraftKey;
+window._circlesSaveLocalDraft = _circlesSaveLocalDraft;
+window._circlesLoadLocalDraft = _circlesLoadLocalDraft;
+window._circlesClearLocalDraft = _circlesClearLocalDraft;
+
 // ── Phase 2 Spec 2: triggerCirclesAutoSave ──────────────────────────────────
 // Called from Phase 1 textarea / sol-name input listeners. Debounces 1.5s,
 // lazy-creates session on first save, then PATCH /progress with all drafts.
@@ -463,9 +496,29 @@ function triggerCirclesAutoSave() {
       if (!pr.ok) throw new Error('progress_patch_failed_' + pr.status);
       AppState.circlesSaveStatus = 'saved';
       AppState.circlesLastSavedAt = Date.now();
+      // M-011: server save succeeded — clear any stale local-draft fallback
+      // so we don't keep stale data around for the next reload.
+      try {
+        var _qOk = AppState.circlesSelectedQuestion;
+        var _stepOk = AppState.circlesMode === 'drill'
+          ? AppState.circlesDrillStep
+          : (CIRCLES_STEPS[AppState.circlesSimStep || 0] || CIRCLES_STEPS[0]).key;
+        if (_qOk && _qOk.id && _stepOk) _circlesClearLocalDraft(_qOk.id, _stepOk);
+      } catch (_) {}
     } catch (e) {
       console.warn('[circles auto-save] failed:', e && e.message);
       AppState.circlesSaveStatus = 'error';
+      // M-011: fall back to localStorage so work isn't lost while offline.
+      try {
+        var _qFb = AppState.circlesSelectedQuestion;
+        var _stepFb = AppState.circlesMode === 'drill'
+          ? AppState.circlesDrillStep
+          : (CIRCLES_STEPS[AppState.circlesSimStep || 0] || CIRCLES_STEPS[0]).key;
+        if (_qFb && _qFb.id && _stepFb) {
+          var _draftFb = (AppState.circlesStepDrafts && AppState.circlesStepDrafts[_stepFb]) || AppState.circlesFrameworkDraft || {};
+          _circlesSaveLocalDraft(_qFb.id, _stepFb, _draftFb);
+        }
+      } catch (_) {}
     } finally {
       AppState.circlesSavingInFlight = false;
       updateSaveIndicator();
@@ -500,7 +553,9 @@ function updateSaveIndicator() {
       text = '<span class="dot"></span>已儲存 · ' + Math.round(ago / 60000) + ' 分鐘前';
     }
   } else if (status === 'error') {
-    text = '<span class="dot"></span>儲存失敗，重試';
+    // M-011: communicate the offline / fallback state — work is still
+    // safe in localStorage on this device.
+    text = '<span class="dot"></span>離線中 · 已存於本機，點擊重試';
   }
   el.innerHTML = text;
 }
@@ -546,6 +601,22 @@ async function loadCirclesSession(sessionId) {
     AppState.circlesSimStep           = s.sim_step_index || 0;
     AppState.circlesFrameworkDraft    = s.framework_draft || {};
     AppState.circlesStepDrafts        = s.step_drafts || {};
+    // M-011: prefer localStorage fallback when present and richer than the
+    // server payload (i.e. the last successful state was an offline save).
+    try {
+      var _curStepKey = s.mode === 'simulation'
+        ? (CIRCLES_STEPS[s.sim_step_index || 0] || CIRCLES_STEPS[0]).key
+        : (s.drill_step || 'C1');
+      var _local = _circlesLoadLocalDraft(s.question_id, _curStepKey);
+      if (_local && Object.keys(_local).length) {
+        AppState.circlesStepDrafts[_curStepKey] = Object.assign(
+          {}, AppState.circlesStepDrafts[_curStepKey] || {}, _local
+        );
+        AppState.circlesFrameworkDraft = Object.assign(
+          {}, AppState.circlesFrameworkDraft || {}, _local
+        );
+      }
+    } catch (_) {}
     AppState.circlesGateResult        = s.gate_result || null;
     AppState.circlesConversation      = s.conversation || [];
     AppState.circlesStepScores        = s.step_scores || {};
@@ -2750,8 +2821,19 @@ function renderCirclesPhase1() {
 
   // Submit bar (Simulation last step shows "查看完整報告 →" instead)
   var isLastStep = stepIdx === CIRCLES_STEPS.length - 1;
+  // Wave A fix-A3 (M-012): drill mode adds an "上一步" button to navigate
+  // backwards through drill steps without leaving the session. Hidden on the
+  // first drill step (C1) where there is nowhere to go back to.
+  var _drillIdx = mode === 'drill'
+    ? CIRCLES_STEPS.findIndex(function(s) { return s.key === stepKey; })
+    : -1;
+  var _showPrev = mode === 'drill' && _drillIdx > 0;
+  var prevBtnHtml = _showPrev
+    ? '<button class="circles-btn-secondary" id="circles-p1-prev" type="button">上一步</button>'
+    : '';
   var submitBarHtml = '<div class="circles-submit-bar">' +
     '<button class="circles-btn-secondary" id="circles-p1-back" type="button">返回選題</button>' +
+    prevBtnHtml +
     '<button class="circles-btn-primary" id="circles-p1-submit" type="button">' + (isLastStep ? '送出評分' : '下一步') + '</button>' +
   '</div>';
 
@@ -2854,6 +2936,26 @@ function bindCirclesPhase1() {
   document.getElementById('circles-p1-nav-back')?.addEventListener('click', backToHome);
   document.getElementById('circles-p1-back')?.addEventListener('click', backToHome);
   document.getElementById('circles-p1-home')?.addEventListener('click', backToHome);
+
+  // Wave A fix-A3 (M-012): drill mode prev-step button.
+  document.getElementById('circles-p1-prev')?.addEventListener('click', function() {
+    if (AppState.circlesMode !== 'drill') return;
+    var idx = CIRCLES_STEPS.findIndex(function(s) { return s.key === AppState.circlesDrillStep; });
+    if (idx <= 0) return;
+    // Snapshot current draft into per-step store before navigating away.
+    var curKey = AppState.circlesDrillStep;
+    if (curKey) {
+      AppState.circlesStepDrafts[curKey] = Object.assign(
+        {}, AppState.circlesStepDrafts[curKey] || {}, AppState.circlesFrameworkDraft || {}
+      );
+    }
+    AppState.circlesDrillStep = CIRCLES_STEPS[idx - 1].key;
+    // Restore the previous step's draft into the active framework draft.
+    AppState.circlesFrameworkDraft = Object.assign(
+      {}, AppState.circlesStepDrafts[AppState.circlesDrillStep] || {}
+    );
+    render();
+  });
 
   // ── NSM annotation link (S step only)
   document.getElementById('circles-s-nsm-link')?.addEventListener('click', function() {
