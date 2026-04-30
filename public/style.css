@@ -3479,6 +3479,14 @@ textarea.rt-textarea {
   .circles-home-desktop .ch-header h1 { font-size:26px; font-weight:600; margin:0 0 4px; color:var(--c-text); font-family:'Instrument Serif', serif; letter-spacing:-0.5px; }
   .circles-home-desktop .ch-header .ch-sub { font-size:13px; color:var(--c-text-2); }
   .circles-home-desktop .ch-header .ch-meta { font-size:12px; color:var(--c-text-secondary); white-space:nowrap; }
+  /* AUD-000-A2 — mobile .circles-home-wrap caps content at 680px which collapses
+     the desktop ch-grid middle column to ~130px on 1280-1366 viewports. Reset
+     across the entire desktop layer (was previously only inside >=1440). */
+  .circles-home-desktop .circles-home-wrap,
+  [data-view="circles"] .circles-home-desktop .circles-home-wrap {
+    max-width: none;
+    padding: 0;
+  }
   .circles-home-desktop .ch-grid { display:grid; grid-template-columns:230px 1fr 240px; gap:24px; align-items:start; }
   .circles-home-desktop .left-rail { position:sticky; top:72px; display:flex; flex-direction:column; gap:18px; }
   .circles-home-desktop .right-rail { position:sticky; top:72px; display:flex; flex-direction:column; gap:18px; }

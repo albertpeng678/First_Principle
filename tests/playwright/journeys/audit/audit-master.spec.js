@@ -69,6 +69,45 @@ test.describe('CLUSTER-A — Wide-monitor layout', () => {
     expect(ratio, 'home content/viewport ratio at >=1440').toBeGreaterThanOrEqual(0.70);
   });
 
+  test('AUD-000-A2 [P0] desktop home inner-wrap fills container at 1280 (no mobile-680 squeeze)', async ({ page }, testInfo) => {
+    only(testInfo, ['Desktop-1280']);
+    await gotoHome(page);
+    const data = await page.evaluate(() => {
+      const wrap = document.querySelector('.circles-home-desktop .circles-home-wrap');
+      const grid = document.querySelector('.circles-home-desktop .ch-grid');
+      return {
+        wrapW: wrap ? wrap.getBoundingClientRect().width : 0,
+        gridW: grid ? grid.getBoundingClientRect().width : 0,
+        vw: window.innerWidth,
+      };
+    });
+    // Mobile rule caps .circles-home-wrap at 680px; desktop must override.
+    expect(data.wrapW, 'inner wrap width at 1280 desktop').toBeGreaterThanOrEqual(1000);
+    expect(data.gridW / data.vw, 'home grid/viewport ratio at 1280').toBeGreaterThanOrEqual(0.80);
+  });
+
+  test('AUD-000-A3 [P0] desktop right-rail recent-section is not empty bordered card when no sessions', async ({ page }, testInfo) => {
+    only(testInfo, ['Desktop-1280', 'Desktop-1440', 'Desktop-2560']);
+    await gotoHome(page);
+    await page.waitForTimeout(900); // let async fetchRecentSessions settle (it wipes the slot when empty)
+    const data = await page.evaluate(() => {
+      const slot = document.getElementById('circles-recent-slot');
+      if (!slot) return { exists: false };
+      const text = (slot.textContent || '').trim();
+      const cs = getComputedStyle(slot);
+      const hasBorder = parseFloat(cs.borderTopWidth) > 0 || parseFloat(cs.borderLeftWidth) > 0;
+      const hasPad = parseFloat(cs.paddingTop) > 0;
+      const isHidden = cs.display === 'none' || cs.visibility === 'hidden';
+      return { exists: true, text, hasBorder, hasPad, isHidden };
+    });
+    expect(data.exists, 'recent-slot exists').toBeTruthy();
+    // If the slot is rendered as a desktop card (has border + padding) and visible,
+    // it must contain placeholder text — not be a hollow bordered box.
+    if (!data.isHidden && data.hasBorder && data.hasPad) {
+      expect(data.text.length, 'desktop right-rail card must show placeholder text when empty').toBeGreaterThan(0);
+    }
+  });
+
   test('AUD-003 [P0] CIRCLES step C uses >=1600px content area at 2560', async ({ page }, testInfo) => {
     only(testInfo, ULTRA);
     await gotoCirclesStepC(page);

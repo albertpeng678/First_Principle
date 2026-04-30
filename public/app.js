@@ -617,7 +617,17 @@ function updateRecentSessionsSlot() {
   } catch (_) {}
   if (!slot) return; // home not rendered (defensive)
   if (AppState.circlesRecentSessions.length === 0) {
-    slot.innerHTML = '';
+    // AUD-000-A3 — Desktop renders this slot as the .recent-section card (right
+    // rail) with border+padding. Wiping innerHTML leaves an empty bordered box.
+    // Restore the placeholder so the card carries meaning (or is invisible on
+    // mobile where the slot has no card chrome).
+    if (slot.classList && slot.classList.contains('recent-section')) {
+      slot.innerHTML =
+        '<div class="rail-label">近期練習</div>' +
+        '<div style="color:var(--c-text-3);font-size:11.5px">尚無紀錄</div>';
+    } else {
+      slot.innerHTML = '';
+    }
     return;
   }
   var PHASE_LABELS = { 1: '填寫框架', 1.5: '等待審核', 2: '對話進行中', 3: '查看評分' };
