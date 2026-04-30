@@ -80,6 +80,15 @@ const AppState = {
 // Expose for tests + debugging.
 window.AppState = AppState;
 
+// ── Home icon button helper (MASTER-015) ──
+// Returns a 44×44 icon-only "回首頁" button. Caller supplies the id used by
+// existing click handlers; visual styling lives in .btn-home-icon CSS.
+function homeIconBtn(id, opts) {
+  opts = opts || {};
+  var cls = opts.cls || 'btn-home-icon';
+  return '<button class="' + cls + '" id="' + id + '" type="button" aria-label="回首頁" title="回首頁"><i class="ph ph-house"></i></button>';
+}
+
 // ── isDesktop helper + cross-breakpoint re-render (Phase 0 Task 0.7) ──
 function isDesktop() { return window.innerWidth >= 1024; }
 AppState._lastIsDesktop = isDesktop();
@@ -1101,11 +1110,8 @@ async function loadOffcanvasSessions() {
   if (AppState.offcanvasCache && AppState.offcanvasCache.length) {
     renderOffcanvasList(listEl, AppState.offcanvasCache);
   } else {
-    listEl.innerHTML = '<div class="offcanvas-skeleton">' +
-      ['80%','60%','70%'].map(w =>
-        `<div style="height:48px;width:${w};background:var(--bg-surface-2);border-radius:8px;margin-bottom:8px;opacity:0.6;animation:pulse 1.2s ease-in-out infinite"></div>`
-      ).join('') +
-    '</div>';
+    // MASTER-021: spinner + 載入文字 (no race with empty/skeleton)
+    listEl.innerHTML = '<div class="offcanvas-loading"><div class="spinner" aria-hidden="true"></div><p>載入練習記錄中…</p></div>';
   }
 
   // Background fetch — silently update
@@ -1139,7 +1145,9 @@ async function loadOffcanvasSessions() {
     renderOffcanvasList(listEl, all);
   } catch (_) {
     if (!AppState.offcanvasCache) {
-      listEl.innerHTML = '<div style="padding:16px;color:var(--text-secondary)">載入失敗</div>';
+      listEl.innerHTML = '<div class="offcanvas-error"><p>載入失敗，請稍後再試</p><button id="offcanvas-retry" class="circles-btn-secondary" type="button">重試</button></div>';
+      const retry = document.getElementById('offcanvas-retry');
+      if (retry) retry.addEventListener('click', () => loadOffcanvasSessions());
     }
   }
 }
@@ -2796,7 +2804,7 @@ function renderCirclesPhase1() {
           '<div class="circles-nav-title">' + escHtml(config.label) + '</div>' +
           '<div class="circles-nav-sub">' + escHtml(q.company || '') + (q.product ? ' · ' + escHtml(q.product) : '') + '</div>' +
         '</div>' +
-        '<button class="circles-nav-home" id="circles-p1-home" type="button">回首頁</button>' +
+        homeIconBtn('circles-p1-home') +
       '</div>' +
       progressBarHtml +
       buildCirclesStepHeaderMeta(stepKey) +
@@ -2825,7 +2833,7 @@ function renderCirclesPhase1() {
         '<div class="circles-nav-title">' + escHtml(config.label) + '</div>' +
         '<div class="circles-nav-sub">' + escHtml(q.company || '') + (q.product ? ' · ' + escHtml(q.product) : '') + '</div>' +
       '</div>' +
-      '<button class="circles-nav-home" id="circles-p1-home" type="button">回首頁</button>' +
+      homeIconBtn('circles-p1-home') +
     '</div>' +
     progressBarHtml +
     buildCirclesStepHeaderMeta(stepKey) +
@@ -3258,7 +3266,7 @@ function renderCirclesGate() {
   var q = AppState.circlesSelectedQuestion;
 
   var progressBarHtml = buildCirclesProgressBar(stepIdx);
-  var homeBtn = '<button style="font-size:12px;color:var(--c-primary);border-bottom:1px solid var(--c-primary);background:none;border-top:none;border-left:none;border-right:none;padding:2px 0;cursor:pointer;font-family:DM Sans,sans-serif;white-space:nowrap;flex-shrink:0" id="circles-gate-home">回首頁</button>';
+  var homeBtn = homeIconBtn('circles-gate-home');
 
   if (loading || !result) {
     return '<div data-view="circles">' +
@@ -3509,7 +3517,7 @@ function renderCirclesPhase2() {
         '<div class="circles-nav-sub">' + (q ? escHtml(q.company) : '') + '</div>' +
       '</div>' +
       (turnCount > 0 && !submitState ? '<div class="circles-nav-right">' + turnCount + ' 輪</div>' : '') +
-      '<button class="circles-nav-home-btn" id="circles-p2-home">回首頁</button>' +
+      homeIconBtn('circles-p2-home') +
     '</div>' +
     progressBarHtml +
     pinnedCard +
@@ -3910,17 +3918,17 @@ function renderCirclesStepScore() {
   var submitBar;
   if (mode === 'simulation' && isLastStep) {
     submitBar =
-      '<button class="circles-btn-ghost" id="circles-score-home">回首頁</button>' +
+      homeIconBtn('circles-score-home') +
       '<button class="circles-btn-primary" id="circles-score-final">看完整總結報告</button>';
   } else if (mode === 'simulation') {
     var nxt = CIRCLES_STEPS[stepIdx + 1];
     submitBar =
-      '<button class="circles-btn-ghost" id="circles-score-home">回首頁</button>' +
+      homeIconBtn('circles-score-home') +
       '<button class="circles-btn-primary" id="circles-score-next">繼續下一步：' + escHtml(nxt.label) + ' →</button>';
   } else {
     // drill mode (any step) — 再練一次
     submitBar =
-      '<button class="circles-btn-ghost" id="circles-score-home">回首頁</button>' +
+      homeIconBtn('circles-score-home') +
       '<button class="circles-btn-primary" id="circles-score-again">再練一次</button>';
   }
 
@@ -3937,7 +3945,7 @@ function renderCirclesStepScore() {
         '<div class="circles-nav-title">' + escHtml(step.label) + ' 評分結果</div>' +
         '<div class="circles-nav-sub">' + escHtml(q ? (q.company + (q.product ? ' · ' + q.product : '')) : '') + '</div>' +
       '</div>' +
-      '<button class="circles-nav-home-btn" id="circles-score-home-btn">回首頁</button>' +
+      homeIconBtn('circles-score-home-btn') +
     '</div>' +
     scoreNavRow +
     progressBarHtml +
@@ -4132,7 +4140,7 @@ function renderCirclesFinalReport() {
       (report.nextSteps ? '<div style="background:#fff;border-radius:12px;padding:14px;margin-bottom:16px;border:1px solid rgba(0,0,0,0.08);font-size:13px;color:#5a5a5a;font-family:DM Sans,sans-serif;line-height:1.6"><span style="font-weight:600;color:#1a1a1a">建議下一步：</span>' + escHtml(report.nextSteps) + '</div>' : '') +
       '<div class="circles-submit-bar">' +
         '<button class="circles-btn-primary" id="circles-final-again">重練這道題</button>' +
-        '<button class="circles-btn-ghost" id="circles-final-home">回首頁</button>' +
+        homeIconBtn('circles-final-home') +
       '</div>' +
     '</div>' +
   '</div>';
@@ -5853,7 +5861,8 @@ function renderNSMStep4() {
   if (!scores.scores) {
     return `<div class="nsm-view">
       <div class="nsm-navbar">
-        <button class="btn-icon" id="btn-nsm-back" aria-label="回首頁"><i class="ph ph-house"></i></button>
+        <button class="btn-icon" id="btn-nsm-back" aria-label="返回上一步" title="返回上一步"><i class="ph ph-arrow-left"></i></button>
+        <button class="btn-home-icon" id="btn-nsm-home-nav" type="button" aria-label="回首頁" title="回首頁"><i class="ph ph-house"></i></button>
         <span class="nsm-title">NSM 報告</span>
         <div class="nsm-navbar-spacer"></div>
       </div>
@@ -5965,9 +5974,7 @@ function renderNSMStep4() {
       <button class="btn btn-primary" id="btn-nsm-again">
         <i class="ph ph-arrow-counter-clockwise"></i> 再練一次
       </button>
-      <button class="nsm-btn-ghost" id="btn-nsm-home">
-        <i class="ph ph-house"></i> 回首頁
-      </button>
+      <button class="btn-home-icon" id="btn-nsm-home-nav" type="button" aria-label="回首頁" title="回首頁"><i class="ph ph-house"></i></button>
     </div>`;
 
   const tabContent = { overview: overviewTab, comparison: comparisonTab, highlights: highlightsTab, export: exportTab };
@@ -5978,7 +5985,8 @@ function renderNSMStep4() {
   return `
     <div class="nsm-view${_nsmStep4DesktopCls}">
       <div class="nsm-navbar">
-        <button class="btn-icon" id="btn-nsm-back" aria-label="回首頁"><i class="ph ph-house"></i></button>
+        <button class="btn-icon" id="btn-nsm-back" aria-label="返回上一步" title="返回上一步"><i class="ph ph-arrow-left"></i></button>
+        <button class="btn-home-icon" id="btn-nsm-home-nav" type="button" aria-label="回首頁" title="回首頁"><i class="ph ph-house"></i></button>
         <span class="nsm-title">NSM 報告</span>
         <div class="nsm-navbar-spacer"></div>
       </div>
