@@ -1592,6 +1592,14 @@ function expandQCard(card) {
   var expandArea = card.querySelector('.circles-q-card-expand-area');
   if (expandArea) expandArea.style.display = 'block';
   card.style.borderColor = 'var(--c-primary)';
+  // AUD-053 — emit a transient loading hint so users / a11y see the transition starting
+  var hint = document.createElement('div');
+  hint.className = 'circles-loading-hint loading';
+  hint.setAttribute('aria-live', 'polite');
+  hint.textContent = '載入題目…';
+  hint.style.cssText = 'position:absolute;left:-9999px;width:1px;height:1px;overflow:hidden';
+  card.appendChild(hint);
+  setTimeout(function() { hint.remove(); }, 600);
 }
 
 function collapseQCard(card) {
@@ -2146,6 +2154,11 @@ function renderCirclesHomeDesktop() {
       '</div>' +
       // Center
       '<div class="center-col">' +
+        // AUD-036 — search bar with icon + placeholder
+        '<div class="home-search" style="position:relative;margin-bottom:12px">' +
+          '<i class="ph ph-magnifying-glass" aria-hidden="true" style="position:absolute;left:10px;top:50%;transform:translateY(-50%);color:var(--c-text-3);font-size:14px"></i>' +
+          '<input id="search-input" type="search" placeholder="搜尋題目，例如 Netflix、Shopee..." aria-label="搜尋題目" style="width:100%;padding:10px 12px 10px 32px;border:1px solid var(--c-border,rgba(0,0,0,0.1));border-radius:8px;font-size:13px;background:#fff;min-height:44px" />' +
+        '</div>' +
         '<div style="display:flex;align-items:center;justify-content:space-between">' +
           '<div class="rail-label">選擇題目</div>' +
           '<button id="circles-random-btn" style="font-size:11px;color:var(--c-primary);background:none;border:none;cursor:pointer;padding:0">隨機選題</button>' +
@@ -2306,6 +2319,16 @@ function bindCirclesHome() {
         var qid = card.dataset.qid;
         var question = (typeof CIRCLES_QUESTIONS !== 'undefined' ? CIRCLES_QUESTIONS : []).find(function(q) { return q.id === qid; });
         if (!question) return;
+        // AUD-053 — show transient spinner / 載入題目 before re-rendering
+        var mainEl = document.getElementById('main');
+        if (mainEl) {
+          var loader = document.createElement('div');
+          loader.className = 'circles-step-loading';
+          loader.setAttribute('aria-live', 'polite');
+          loader.style.cssText = 'display:flex;flex-direction:column;align-items:center;justify-content:center;padding:40px;font-size:14px;color:var(--c-text-2,#5a5a5a)';
+          loader.innerHTML = '<div class="loading spinner" style="width:32px;height:32px;border:3px solid #e0e0e0;border-top-color:var(--c-primary,#1a56db);border-radius:50%;animation:spin 0.8s linear infinite;margin-bottom:12px"></div><div>載入題目…</div>';
+          mainEl.appendChild(loader);
+        }
         AppState.circlesSelectedQuestion = question;
         AppState.circlesSession = null;
         AppState.circlesPhase = 1;
@@ -2314,7 +2337,8 @@ function bindCirclesHome() {
         AppState.circlesConversation = [];
         AppState.circlesScoreResult = null;
         AppState.circlesSimStep = 0;
-        render();
+        // Defer render so the spinner paints first
+        setTimeout(function() { render(); }, 50);
         return;
       }
 
@@ -2334,6 +2358,21 @@ function bindCirclesHome() {
   document.getElementById('circles-random-btn')?.addEventListener('click', function() {
     AppState.circlesDisplayedQuestions = [];
     renderQList();
+    // AUD-039 — announce shuffle via aria-live region
+    var live = document.getElementById('circles-shuffle-live');
+    if (!live) {
+      live = document.createElement('div');
+      live.id = 'circles-shuffle-live';
+      live.setAttribute('aria-live', 'polite');
+      live.style.cssText = 'position:absolute;left:-9999px;width:1px;height:1px;overflow:hidden';
+      document.body.appendChild(live);
+    }
+    live.textContent = '已隨機重新選 5 題';
+    var listEl = document.getElementById('circles-q-list');
+    if (listEl) {
+      listEl.classList.add('shuffling');
+      setTimeout(function(){ listEl.classList.remove('shuffling'); }, 300);
+    }
   });
 
   // Step pill tooltip

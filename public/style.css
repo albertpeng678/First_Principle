@@ -329,7 +329,7 @@ body[data-view="nsm"] .navbar { margin-bottom: 0; }
 /* ── Offcanvas ── */
 .offcanvas-overlay {
   position: fixed; inset: 0;
-  background: rgba(0,0,0,0.4);
+  background: rgba(0,0,0,0.55);
   opacity: 0; pointer-events: none;
   transition: opacity 0.25s ease;
   z-index: 100;
@@ -3927,4 +3927,16 @@ textarea.rt-textarea {
   .navbar { min-height: 56px; }
   .circles-mode-card { min-height: 44px !important; }
   .resume-card .dismiss { min-width: 44px; min-height: 44px; }
+}
+
+/* AUD-050 — on small phone, truncate q-card stmt to 1 line */
+@media (max-width: 480px) {
+  [data-view="circles"] .circles-q-card-stmt {
+    display: -webkit-box;
+    -webkit-line-clamp: 1;
+    -webkit-box-orient: vertical;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+  }
 }
