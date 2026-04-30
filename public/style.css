@@ -1342,7 +1342,7 @@ body { -webkit-font-smoothing: antialiased; }
   display: flex;
   align-items: center;
   gap: 4px;
-  padding: 10px 16px;
+  padding: 10px 16px 22px; /* extra room for letter labels positioned below bars */
   background: var(--c-card);
   border-bottom: 1px solid var(--c-border);
 }
@@ -1352,15 +1352,36 @@ body { -webkit-font-smoothing: antialiased; }
   border-radius: 2px;
   background: #E8E6E1;
   transition: background 0.3s;
+  position: relative; /* anchor for .circles-progress-seg-letter below */
 }
 [data-view="circles"] .circles-progress-seg.active { background: var(--c-primary); }
 [data-view="circles"] .circles-progress-seg.done   { background: var(--c-primary-dim); }
+[data-view="circles"] .circles-progress-seg-letter {
+  /* AUD-015 — letter label sits centred just below each segment. CSS missing
+     in cluster-H session-3 commit caused span to overflow inside the 3px bar
+     and then the .circles-progress-label on the right was forced to wrap or
+     overlap the segments. */
+  position: absolute;
+  top: 100%;
+  left: 50%;
+  transform: translate(-50%, 4px);
+  font-size: 10.5px;
+  font-weight: 600;
+  color: var(--c-text-3);
+  font-family: 'DM Sans', sans-serif;
+  pointer-events: none;
+  white-space: nowrap;
+}
+[data-view="circles"] .circles-progress-seg.active .circles-progress-seg-letter {
+  color: var(--c-primary);
+}
 [data-view="circles"] .circles-progress-label {
   font-size: 11px;
   color: var(--c-text-3);
   white-space: nowrap;
   padding-left: 8px;
   font-family: 'DM Sans', sans-serif;
+  flex-shrink: 0;
 }
 
 /* Navbar */
