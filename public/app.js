@@ -2537,6 +2537,25 @@ function buildESolutionBlockHtml(solKey, solIdx, solName, perSolDraft, eFieldsCo
   '</div>';
 }
 
+// AUD-012, AUD-052 — letter expansion + time/save reassurance shown above the form
+var CIRCLES_LETTER_EXPANSION = {
+  C1: 'Comprehend / Clarify · 澄清情境',
+  I:  'Identify · 定義用戶',
+  R:  'Report needs · 發掘需求',
+  C2: 'Cut · 優先排序',
+  L:  'List · 提出方案',
+  E:  'Evaluate · 評估取捨',
+  S:  'Summarise · 總結推薦',
+};
+function buildCirclesStepHeaderMeta(stepKey) {
+  var expansion = CIRCLES_LETTER_EXPANSION[stepKey] || '';
+  return '<div class="circles-step-meta" style="margin:6px 0 12px;display:flex;flex-wrap:wrap;gap:6px 14px;font-size:13px;color:var(--c-text-2,#5a5a5a);align-items:center">' +
+    (expansion ? '<span class="circles-step-letter-expansion" style="font-weight:500">' + escHtml(expansion) + '</span>' : '') +
+    '<span class="circles-step-time-est">預估 25-35 分鐘</span>' +
+    '<span class="circles-step-save-reassurance">隨時可暫停 · 自動儲存</span>' +
+    '</div>';
+}
+
 // ──────────────────────────────────────────────────
 // renderCirclesPhase1 — Screen 2: Phase 1 Framework Form
 // ──────────────────────────────────────────────────
@@ -2551,10 +2570,11 @@ function renderCirclesPhase1() {
   var draft = AppState.circlesFrameworkDraft || {};
   var isSimulation = mode === 'simulation';
 
-  // Progress segments (current step active, prior steps done)
+  // Progress segments (current step active, prior steps done) — AUD-015 letter labels
   var progressSegs = CIRCLES_STEPS.map(function(s, i) {
     var cls = i < stepIdx ? 'done' : i === stepIdx ? 'active' : '';
-    return '<div class="circles-progress-seg ' + cls + '"></div>';
+    var aria = (s.short || '') + ' ' + (s.label || '');
+    return '<div class="circles-progress-seg ' + cls + '" role="listitem" aria-label="' + escHtml(aria) + '"><span class="circles-progress-seg-letter">' + escHtml(s.short || '') + '</span></div>';
   }).join('');
 
   // Step pills (only in drill mode for visual nav cue; click on pills NOT navigation per current Phase 1 requirement)
@@ -2668,8 +2688,9 @@ function renderCirclesPhase1() {
         '<button class="circles-nav-home" id="circles-p1-home" type="button">回首頁</button>' +
       '</div>' +
       '<div class="circles-progress">' + progressSegs + '<div class="circles-progress-label">' + escHtml(config.progressLabel) + '</div>' +
-        '<span class="save-indicator" aria-live="polite"></span>' +
+        '<span class="save-indicator" aria-live="polite" style="font-size:14px"></span>' +
       '</div>' +
+      buildCirclesStepHeaderMeta(stepKey) +
       '<div class="p1-grid">' +
         '<div class="p1-main circles-phase1-wrap">' +
           pillsHtml +
@@ -2698,8 +2719,9 @@ function renderCirclesPhase1() {
       '<button class="circles-nav-home" id="circles-p1-home" type="button">回首頁</button>' +
     '</div>' +
     '<div class="circles-progress">' + progressSegs + '<div class="circles-progress-label">' + escHtml(config.progressLabel) + '</div>' +
-      '<span class="save-indicator" aria-live="polite"></span>' +
+      '<span class="save-indicator" aria-live="polite" style="font-size:14px"></span>' +
     '</div>' +
+    buildCirclesStepHeaderMeta(stepKey) +
     '<div class="circles-phase1-wrap">' +
       pillsHtml +
       '<div class="problem-card">' + escHtml(q.problem_statement || '') + '</div>' +
@@ -3130,7 +3152,8 @@ function renderCirclesGate() {
 
   var progressSegs = CIRCLES_STEPS.map(function(s, i) {
     var cls = i < stepIdx ? 'done' : i === stepIdx ? 'done' : '';
-    return '<div class="circles-progress-seg ' + cls + '"></div>';
+    var aria = (s.short || '') + ' ' + (s.label || '');
+    return '<div class="circles-progress-seg ' + cls + '" role="listitem" aria-label="' + escHtml(aria) + '"><span class="circles-progress-seg-letter">' + escHtml(s.short || '') + '</span></div>';
   }).join('');
 
   var homeBtn = '<button style="font-size:12px;color:var(--c-primary);border-bottom:1px solid var(--c-primary);background:none;border-top:none;border-left:none;border-right:none;padding:2px 0;cursor:pointer;font-family:DM Sans,sans-serif;white-space:nowrap;flex-shrink:0" id="circles-gate-home">回首頁</button>';
@@ -3268,7 +3291,8 @@ function renderCirclesPhase2() {
 
   var progressSegs = CIRCLES_STEPS.map(function(s, i) {
     var cls = i < stepIdx ? 'done' : i === stepIdx ? 'active' : '';
-    return '<div class="circles-progress-seg ' + cls + '"></div>';
+    var aria = (s.short || '') + ' ' + (s.label || '');
+    return '<div class="circles-progress-seg ' + cls + '" role="listitem" aria-label="' + escHtml(aria) + '"><span class="circles-progress-seg-letter">' + escHtml(s.short || '') + '</span></div>';
   }).join('');
 
   // Icebreaker card (first element in chat body, all steps)
@@ -3739,7 +3763,8 @@ function renderCirclesStepScore() {
 
   var progressSegs = CIRCLES_STEPS.map(function(s, i) {
     var cls = i <= stepIdx ? 'done' : '';
-    return '<div class="circles-progress-seg ' + cls + '"></div>';
+    var aria = (s.short || '') + ' ' + (s.label || '');
+    return '<div class="circles-progress-seg ' + cls + '" role="listitem" aria-label="' + escHtml(aria) + '"><span class="circles-progress-seg-letter">' + escHtml(s.short || '') + '</span></div>';
   }).join('');
 
   // 4-dimension breakdown with visual bars (0-5 fill)
