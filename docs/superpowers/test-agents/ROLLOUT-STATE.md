@@ -1,12 +1,91 @@
 # PM Drill Mega Rollout — Live State Checkpoint
 
-**Last updated:** 2026-04-29 (session 2 — Mac, different machine). Round 1 SIT 8/8 PASS shipped previously. **Round 2 UAT + Round 3 UI/UX + Fix Round + Round 4 regression (partial) all completed this session.**
+**Last updated:** 2026-04-30 (session 3 — Mac). **7-Agent Audit Cycle: Phase D (TDD fix loop) COMPLETE; Phase E/F/G PENDING.**
 
-> 📍 **Local main tip:** `0c72b0f` (12 commits ahead of origin/main `0897483`). NOT YET PUSHED.
-> 📍 **origin/main tip:** `0897483` (unchanged from end of session 1).
-> 📍 **Machine note:** Now on Mac (`/Users/albertpeng/Desktop/claude_project/First_Principle`). Session 1 was on Windows.
-> 📍 **Server:** running on `http://localhost:4001` from main repo dir. Restart cmd: `pkill -f "node server.js" || true; PORT=4001 nohup node server.js > /tmp/sit-server-mac.log 2>&1 & disown`
-> ⚠️ **2 SQL migrations pending user manual apply to Supabase** (see "Pending DB migrations" section below) — without them, B2 parallel-race uniqueness + NSM /progress endpoint will not fully work.
+> 📍 **Local main tip:** `5a84e48` — 7-Agent audit Phase A→D done (15 commits ahead of session 2's `0c72b0f`).
+> 📍 **Server:** running on `http://localhost:4000` (different from session 2's :4001). Background ID `bs6o7uyqq`. Restart cmd: `pkill -f "node server.js" || true; PORT=4000 npm run dev`
+> 📍 **Machine:** Mac (`/Users/albertpeng/Desktop/claude_project/First_Principle`).
+> ⚠️ **Session 2's 2 SQL migrations still pending user apply** (see § "Pending DB migrations" further down).
+
+---
+
+## Session 3 Summary (2026-04-30 — 7-Agent Audit Cycle)
+
+### What was done
+
+User mandated all 14 superpower skills + dispatch 5 newbie-persona user agents + 2 UI/UX recorder agents + fix every P0/P1 with TDD before re-ship.
+
+**Phase A — Env**: dev server on `:4000`, audit dir scaffold (`audit/`).
+
+**Phase B — Build journey-runner + execute deterministic walkthrough across 8 viewports** (360 / 375 / 390 / 430 / 768 / 1280 / 1440 / 2560). 130+ screenshots in `audit/screenshots/<viewport>/`. Console errors captured per viewport in `audit/console/`. Path B (smarter than naively dispatching 5 Playwright-writing agents) — separated execution (deterministic) from perception (subjective persona analysis).
+
+**Wave 1 — 5 persona agents** read their viewport's screenshots/console and wrote `audit/u<n>-log.md`:
+- U1 大三學生 (Desktop-1280) — 22 issues (8 P0)
+- U2 應屆 iPhone-15-Pro — 17 issues (single-thumb commute lens)
+- U3 轉職者 Desktop-2560 — 18 issues (4 P0 wide-monitor — first-hand witness of Issue #0 leak)
+- U4 文組 iPad — 20 issues (3 P0, jargon-shy)
+- U5 休學青年 iPhone-SE — 20 issues (impatient, low-end)
+**Total: 97 raw findings.**
+
+**Wave 2 — 2 recorder agents:**
+- R1 Severity Classifier → `audit/issues-master.md` — deduped to 66 unique (P0:14 / P1:47 / P2:7 / P3-runner-artefact:2). Caught the "stuck-on-step-C" mass-misclassification — that was a journey-runner limitation (only filled 1 textarea, step C requires ≥2), not a product bug.
+- R2 Acceptance & Test Writer → `audit/acceptance.md` + **`tests/playwright/journeys/audit/audit-master.spec.js`** (57 `test()` cases, 10 describe-clusters A-J). Baseline: 82 pass / 175 fail / 199 skip across 8 viewports.
+
+**Phase D — TDD Fix Loop (8 commits in cluster order):**
+
+```
+1dcd296 fix(audit/cluster-A): wide-monitor layout layer (≥1440 / ≥1920 / iPad multi-col)
+8a4be25 fix(audit/cluster-C): nav consistency (remove duplicate 北極星指標, review-examples nav)
+62f975f fix(audit/cluster-G): copy consistency (送出評分→下一步, 電子郵件, examples)
+1315ebd fix(audit/cluster-H): progress letter labels + step header reassurance
+f1a1bdd fix(audit/cluster-D): NSM routing/header/labels + 北極星指標 always visible
+4b0bead fix(audit/cluster-F+E): tap targets ≥44px + jargon glossary line
+2b5d85e fix(audit/cluster-I): backdrop alpha, search, shuffle aria-live, login forgot/show-pw, loading hint
+5a84e48 fix(audit/cluster-J): favicon link → silence 404 console error
+```
+
+CLUSTER-B (sticky bars) was already green at baseline — no commit needed.
+
+**Final audit-master result: 282 passed / 1 flaky / 230 skipped** (from baseline 82 / 175 / 199 → +200 fixes).
+
+The 1 flaky is **AUD-013** on Desktop-1280 — Phosphor-icon font load race in parallel runs; passes deterministically in isolation. Not a code bug, left as-is.
+
+### Original triggering issue (user's complaint)
+User opened `/` on a wide monitor and saw content crammed into a center column with massive empty bands + duplicate `北極星指標` in nav. **Both fixed in CLUSTER-A + CLUSTER-C.** This was the audit's "Issue #0" — escaped the previous mega-rollout because SIT-3 only screenshotted at desktop 1280 + mobile 375.
+
+### What's still pending (session 4 picks up here)
+
+| Phase | Status | What it requires |
+|---|---|---|
+| **E. Regression suite** | NOT RUN | Full `npm test` (Jest) + full Playwright across all 8 projects (not just audit-master); console-error sweep |
+| **F. RWD Visual Gate (HARD ship-blocker)** | NOT RUN | New spec `tests/playwright/journeys/audit/rwd-visual-gate.spec.js` per plan § Phase F — captures 8 viewports × 8 routes = 64 PNGs into `audit/rwd-grid/`, asserts content/viewport ratio + no horizontal scroll. Then R1 (or you) human-eye-reviews the 64 grid. **Per spec § 7.1, this is non-negotiable before ship.** |
+| **G. Finishing the dev branch** | NOT RUN | `superpowers:finishing-a-development-branch` skill → merge / PR / cleanup decision. Tag `audit/2026-04-30-passed`. Run `npm run cleanup:empty-sessions`. Push to origin. |
+
+### Deliverables on disk
+
+- Spec: `docs/superpowers/specs/2026-04-30-7-agent-audit-design.md` (7-Agent Audit + § 7.1 RWD hard gate)
+- Plan: `docs/superpowers/plans/2026-04-30-7-agent-audit-plan.md` (Phase A→G, 8 viewport projects)
+- Master issue list: `audit/issues-master.md`
+- Acceptance + tests: `audit/acceptance.md` + `tests/playwright/journeys/audit/audit-master.spec.js`
+- Per-persona logs: `audit/u1-log.md` … `audit/u5-log.md`
+- Screenshots: `audit/screenshots/<viewport>/01-..18-*.png` × 8 viewports
+- Console logs: `audit/console/<viewport>.json`
+- Playwright config now has 8 viewport projects: `Mobile-360`, `iPhone-SE`, `iPhone-14`, `iPhone-15-Pro`, `iPad`, `Desktop-1280`, `Desktop-1440`, `Desktop-2560` (+ `Desktop` legacy alias)
+
+### Files touched (Phase D summary)
+- `public/style.css` — wide-monitor `@media (min-width:1440px)` + `(≥1920px)` + iPad layers; tap-target ≥44px; backdrop alpha; q-card stmt clamp.
+- `public/app.js` — navbar `aria-current`, login form upgrades (tabs / labels / 忘記密碼 / show-pw toggle), CIRCLES Step C placeholders, validation message, intermediate-step CTA → 下一步, progress aria-labels with letter, NSM step-1 helper / 4-step labels, offcanvas nav-links container, glossary line, search input, shuffle aria-live, q-card loading hint, recommend badge.
+- `public/index.html` — removed `hide-mobile` from `.navbar-tabs`, hamburger aria-label, offcanvas nav-links wrapper.
+- `public/review-examples.html` — global navbar + favicon + 2-col iPad / 3-col 1440 / 4-col 1920 grids.
+- `tests/playwright/playwright.config.js` — 8 viewport projects.
+- `tests/playwright/journeys/audit/audit-master.spec.js` — 57 tests, 10 clusters; helpers use `window.navigate('nsm')` / `window.navigate('login')` since URL params for mode / login are NOT supported by current product (logged separately as future enhancement, not P0).
+- `tests/playwright/journeys/audit/journey-runner.spec.js` — deterministic 18-step walkthrough used to seed audit screenshots.
+
+### Known limitations / debt logged this session
+
+- **AUD-013** flake under heavy-parallel runs (Phosphor font race). Acceptable.
+- `/?mode=nsm` and `/?login=1` URL routes do NOT exist in product. Test helpers use `window.navigate(...)`. Adding URL-param routing was deemed scope creep — log as future enhancement.
+- 7 P2 polish issues left unaddressed (per plan, P2 may be deferred with explicit OK).
 
 ---
 
