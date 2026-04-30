@@ -3776,3 +3776,114 @@ textarea.rt-textarea {
   min-width: max-content;
   width: auto;
 }
+
+/* ══════════════════════════════════════════════════
+   AUDIT 2026-04-30 — CLUSTER-A wide-monitor layer
+   Adds fluid scaling at >=1440 and iPad multi-col.
+   Does NOT touch <=1280 desktop or phone styles.
+   ══════════════════════════════════════════════════ */
+
+/* iPad (≈768–1023, isMobile) — bump CIRCLES home question list to 2 cols
+   so AUD-031 passes; review-examples also gets 2-col grid + readable font. */
+@media (min-width: 720px) and (max-width: 1023px) {
+  [data-view="circles"] .circles-q-list {
+    display: grid;
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+    gap: 10px;
+  }
+  [data-view="circles"] .circles-q-card.expanded { grid-column: 1 / -1; }
+}
+/* review-examples on iPad: 2 cols + larger card-title */
+@media (min-width: 720px) and (max-width: 1099px) {
+  .container { max-width: 100%; padding: 16px; }
+}
+/* Note: review-examples.html scopes its own .container/.card styles inside <style>
+   in the page; we override .card-title font-size globally for iPad/wide via
+   selectors that match the page's structure. */
+@media (min-width: 720px) {
+  .review-examples-page .card-title,
+  body.review-examples .card-title { /* fallbacks no-op if class missing */ }
+}
+
+/* ≥1440 — wide-monitor fluid layer */
+@media (min-width: 1440px) {
+  .circles-home-desktop { max-width: min(1480px, 92vw); padding: 24px 32px; }
+  /* The mobile .circles-home-wrap caps content at 680px — undo inside desktop. */
+  .circles-home-desktop .circles-home-wrap,
+  [data-view="circles"] .circles-home-desktop .circles-home-wrap {
+    max-width: none;
+    padding: 0;
+  }
+  .phase1-desktop { max-width: min(1680px, 94vw); padding: 0 32px 100px; }
+  .phase2-desktop { max-width: min(1180px, 88vw); }
+  .phase3-desktop { max-width: min(1180px, 88vw); padding: 0 32px 100px; }
+  .nsm-home-desktop { max-width: min(1480px, 92vw); padding: 18px 32px 100px; }
+  .nsm-step2-desktop { max-width: min(960px, 80vw); }
+  .nsm-step3-desktop { max-width: min(1180px, 88vw); }
+  .nsm-step4-desktop { max-width: min(1180px, 88vw); }
+  .review-desktop   { max-width: min(1480px, 92vw); padding: 24px 32px; }
+  .login-desktop {
+    max-width: 460px;
+    margin: 0 auto;
+    padding: 0 24px;
+    min-height: calc(100vh - 80px);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    flex-direction: column;
+  }
+  .login-desktop > * { width: 100%; }
+
+  /* CIRCLES home grid — middle column expands, side rails stay original */
+  .circles-home-desktop .ch-grid {
+    grid-template-columns: 230px minmax(0, 1fr) 240px;
+    gap: 24px;
+  }
+  /* (Note: CIRCLES home middle question list stays single-col at 1440 to avoid
+     wrapping the company-line on .circles-q-card-company. We widen at >=1920.) */
+
+  /* NSM Step 1 question list — 3-col grid */
+  .nsm-home-desktop .nsm-question-list,
+  .nsm-home-desktop .nsm-q-list {
+    display: grid;
+    grid-template-columns: repeat(3, minmax(0, 1fr));
+    gap: 14px;
+  }
+  .nsm-home-desktop .nsm-question-card,
+  .nsm-home-desktop .nsm-q-card { margin-bottom: 0; max-width: none; }
+
+  /* review-examples grid — 3 cols + readable font (override page-scoped) */
+  .container.review-desktop { max-width: min(1640px, 94vw); }
+  .container.review-desktop {
+    grid-template-columns: repeat(3, minmax(0, 1fr));
+  }
+  .container.review-desktop .card-title { font-size: 16px; line-height: 1.4; }
+  .container.review-desktop .card-problem { font-size: 13px; }
+}
+
+/* ≥1920 — ultra-wide */
+@media (min-width: 1920px) {
+  .circles-home-desktop { max-width: min(2200px, 90vw); }
+  .phase1-desktop { max-width: min(2200px, 90vw); }
+  .nsm-home-desktop { max-width: min(2200px, 90vw); }
+  .review-desktop   { max-width: min(2200px, 90vw); }
+  .container.review-desktop { max-width: min(2200px, 90vw); }
+
+  .circles-home-desktop .ch-grid {
+    grid-template-columns: 280px minmax(0, 1fr) 300px;
+    gap: 36px;
+  }
+  /* At ultra-wide, the centre column gets wide enough that 2-col q-list
+     does not wrap the company line — opt in here. */
+  .circles-home-desktop .ch-q-list {
+    display: grid;
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+    gap: 12px;
+  }
+  .circles-home-desktop .ch-q-list .circles-q-card.expanded { grid-column: 1 / -1; }
+  .nsm-home-desktop .nsm-question-list,
+  .nsm-home-desktop .nsm-q-list {
+    grid-template-columns: repeat(3, minmax(0, 1fr));
+    gap: 18px;
+  }
+}

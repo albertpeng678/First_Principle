@@ -39,14 +39,19 @@ async function gotoCirclesStepC(page) {
 }
 
 async function gotoNSM(page) {
-  await page.goto('/?mode=nsm');
+  await page.goto('/');
   await page.waitForLoadState('networkidle');
+  // App entry point is the global navigate('nsm') JS call (no URL-param route).
+  await page.evaluate(() => window.navigate && window.navigate('nsm'));
   await page.waitForSelector('.nsm-question-list, .nsm-question-card', { timeout: 5000 }).catch(() => {});
+  await page.waitForTimeout(300);
 }
 
 async function gotoLogin(page) {
-  await page.goto('/?login=1');
+  await page.goto('/');
   await page.waitForLoadState('networkidle');
+  await page.evaluate(() => window.navigate && window.navigate('login'));
+  await page.waitForTimeout(400);
 }
 
 // ────────────────────────────────────────────────────────────────────────────

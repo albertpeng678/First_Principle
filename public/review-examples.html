@@ -60,6 +60,35 @@
     }
     .container.review-desktop > .card { margin-bottom: 0; }
   }
+  /* AUDIT 2026-04-30 cluster-A — iPad 2-col + readable font */
+  @media (min-width: 720px) and (max-width: 1099px) {
+    .container {
+      max-width: 100%;
+      display: grid;
+      grid-template-columns: repeat(2, minmax(0, 1fr));
+      gap: 14px;
+      align-items: start;
+    }
+    .container > .card { margin-bottom: 0; }
+    .card-title { font-size: 15px; }
+    .card-problem { font-size: 13px; }
+  }
+  /* AUDIT 2026-04-30 cluster-A — wide-monitor 3-col + readable font */
+  @media (min-width: 1440px) {
+    .container, .container.review-desktop {
+      max-width: min(1640px, 94vw);
+      grid-template-columns: repeat(3, minmax(0, 1fr));
+      gap: 18px;
+    }
+    .card-title { font-size: 16px; line-height: 1.4; }
+    .card-problem { font-size: 13px; }
+  }
+  @media (min-width: 1920px) {
+    .container, .container.review-desktop {
+      max-width: min(1880px, 90vw);
+      grid-template-columns: repeat(4, minmax(0, 1fr));
+    }
+  }
   .card {
     background: var(--card); border: 1px solid var(--border);
     border-radius: 12px; margin-bottom: 16px;
