@@ -1581,20 +1581,40 @@ if (typeof toggleCoachHint === 'function') window.toggleCoachHint = toggleCoachH
 // ── View stubs（後續 Task 填入）────────────────────
 // CIRCLES stubs — replaced by Tasks 14-18
 function renderQCardHtml(q) {
-  var shortStmt = q.problem_statement.length > 60
-    ? q.problem_statement.slice(0, 60) + '…'
-    : q.problem_statement;
+  // Spec 2026-04-30 home-card — A1 tag row + B1 line-clamp brief +
+  // A1 「完整題目」block on expand. The brief and the full text are visually
+  // separate so the expand reveal carries new information rather than
+  // duplicating the collapsed preview.
+  var QTYPE_LABEL = { design: '產品設計', improve: '產品改進', strategy: '產品策略' };
+  var DIFF_LABEL  = { easy: '簡單', medium: '中等難度', hard: '困難' };
+
+  var qTypeTag = q.question_type && QTYPE_LABEL[q.question_type]
+    ? '<span class="circles-q-card-tag">' + escHtml(QTYPE_LABEL[q.question_type]) + '</span>' : '';
+  var qDiffTag = q.difficulty && DIFF_LABEL[q.difficulty]
+    ? '<span class="circles-q-card-tag">' + escHtml(DIFF_LABEL[q.difficulty]) + '</span>' : '';
+  var productTag = q.product
+    ? '<span class="circles-q-card-product">' + escHtml(q.product) + '</span>' : '';
+
   var drillPracticeHtml = (AppState.circlesMode === 'drill')
     ? '<div style="font-size:11px;color:var(--c-primary);font-weight:600;margin-top:6px;font-family:DM Sans,sans-serif">練習步驟：' + (AppState.circlesDrillStep || 'C1') + '</div>'
     : '';
+
   return '<div class="circles-q-card" data-qid="' + q.id + '">' +
-    '<div class="circles-q-card-company">' + escHtml(q.company) + (q.product ? ' — ' + escHtml(q.product) : '') + '</div>' +
-    '<div class="circles-q-card-stmt" data-full="' + escHtml(q.problem_statement) + '" data-short="' + escHtml(shortStmt) + '">' + escHtml(shortStmt) + '</div>' +
+    '<div class="circles-q-card-tags">' +
+      '<span class="circles-q-card-company">' + escHtml(q.company) + '</span>' +
+      productTag +
+      qTypeTag +
+      qDiffTag +
+    '</div>' +
+    '<div class="circles-q-card-stmt">' + escHtml(q.problem_statement || '') + '</div>' +
     '<div class="circles-q-card-more-wrap">' +
-      (q.problem_statement.length > 60 ? '<span class="circles-q-card-more">看更多 ▾</span>' : '') +
+      '<span class="circles-q-card-more">看完整題目 ▾</span>' +
     '</div>' +
     '<div class="circles-q-card-expand-area" style="display:none">' +
-      '<div class="circles-q-card-expanded">' + escHtml(q.problem_statement) + '</div>' +
+      '<div class="circles-q-card-full-block">' +
+        '<div class="circles-q-card-full-label">完整題目</div>' +
+        '<div class="circles-q-card-full-text">' + escHtml(q.problem_statement || '') + '</div>' +
+      '</div>' +
       drillPracticeHtml +
       '<div style="display:flex;align-items:center;gap:8px;margin-top:10px">' +
         '<button class="circles-q-confirm-btn">確認，開始練習</button>' +
@@ -1605,8 +1625,9 @@ function renderQCardHtml(q) {
 }
 
 function expandQCard(card) {
-  var stmt = card.querySelector('.circles-q-card-stmt');
-  if (stmt) stmt.textContent = stmt.dataset.full;
+  // Spec 2026-04-30 — brief (.circles-q-card-stmt) keeps its CSS line-clamp:2
+  // styling and is never mutated. We only unhide the expand area + emphasise
+  // the card border. The full text lives in .circles-q-card-full-block.
   var moreWrap = card.querySelector('.circles-q-card-more-wrap');
   if (moreWrap) moreWrap.style.display = 'none';
   var expandArea = card.querySelector('.circles-q-card-expand-area');
@@ -1623,8 +1644,8 @@ function expandQCard(card) {
 }
 
 function collapseQCard(card) {
-  var stmt = card.querySelector('.circles-q-card-stmt');
-  if (stmt) stmt.textContent = stmt.dataset.short;
+  // Brief is no longer mutated — it always renders the full statement clamped
+  // to 2 lines via CSS. Just hide the expand area + restore the 看完整題目 prompt.
   var moreWrap = card.querySelector('.circles-q-card-more-wrap');
   if (moreWrap) moreWrap.style.display = 'block';
   var expandArea = card.querySelector('.circles-q-card-expand-area');

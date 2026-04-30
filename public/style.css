@@ -1625,9 +1625,48 @@ body { -webkit-font-smoothing: antialiased; }
   font-family: 'DM Sans', sans-serif;
 }
 [data-view="circles"] .circles-q-card-stmt {
+  display: -webkit-box;
+  -webkit-line-clamp: 2;
+  -webkit-box-orient: vertical;
+  overflow: hidden;
   font-size: 13px;
   color: var(--c-text);
   line-height: 1.5;
+  font-family: 'DM Sans', sans-serif;
+}
+/* Spec 2026-04-30 — A1 home card chrome. Tag row sits above the brief; the
+   product / question_type / difficulty pills are derived from the question
+   data so the collapsed preview carries detail beyond the company name. */
+[data-view="circles"] .circles-q-card-tags {
+  display: flex; flex-wrap: wrap; gap: 6px; margin-bottom: 8px;
+  align-items: center;
+}
+[data-view="circles"] .circles-q-card-product {
+  display: inline-flex; align-items: center;
+  padding: 3px 10px; border-radius: 14px;
+  background: #fff; border: 1px solid rgba(26,86,219,0.3);
+  color: var(--c-primary); font-size: 11.5px;
+  font-family: 'DM Sans', sans-serif;
+}
+[data-view="circles"] .circles-q-card-tag {
+  display: inline-flex; align-items: center;
+  padding: 2px 8px; border-radius: 4px;
+  background: var(--c-bg-soft, #f7f5f0);
+  color: var(--c-text-2); font-size: 11px;
+  font-family: 'DM Sans', sans-serif;
+}
+[data-view="circles"] .circles-q-card-full-block {
+  background: var(--c-bg-soft, #f7f5f0);
+  border-radius: 8px;
+  padding: 10px 12px; margin-top: 6px;
+}
+[data-view="circles"] .circles-q-card-full-label {
+  font-size: 10.5px; color: var(--c-text-2); font-weight: 600;
+  text-transform: uppercase; letter-spacing: 0.05em; margin-bottom: 4px;
+  font-family: 'DM Sans', sans-serif;
+}
+[data-view="circles"] .circles-q-card-full-text {
+  font-size: 13px; color: var(--c-text); line-height: 1.7;
   font-family: 'DM Sans', sans-serif;
 }
 .circles-q-card-more {
@@ -2005,10 +2044,25 @@ body { -webkit-font-smoothing: antialiased; }
 .circles-conclusion-box {
   border-top: 2px solid var(--c-primary);
   background: #fff;
-  padding: 14px;
+  padding: 14px 14px 0;             /* bottom padding moved to .conclusion-actions */
   flex-shrink: 0;
   overflow-y: auto;
   max-height: 65vh;
+}
+/* Spec 2026-04-30 — C1 sticky-bottom action row. On shorter desktop heights
+   the textarea + 確認提交 / ← 繼續對話 row could fall below the visible scroll
+   port of the conclusion box. Pinning the action row to the box's bottom
+   keeps Submit one click away regardless of textarea length. */
+[data-view="circles"] .circles-conclusion-box .conclusion-actions {
+  position: sticky;
+  bottom: 0;
+  margin: 8px -14px 0;
+  padding: 10px 14px 14px;
+  background: #fff;
+  border-top: 1px solid var(--c-border);
+  display: flex;
+  gap: 8px;
+  justify-content: flex-end;
 }
 
 /* Phase 2 — 回首頁 button in nav */
@@ -4031,14 +4085,5 @@ textarea.rt-textarea {
   .resume-card .dismiss { min-width: 44px; min-height: 44px; }
 }
 
-/* AUD-050 — on small phone, truncate q-card stmt to 1 line */
-@media (max-width: 480px) {
-  [data-view="circles"] .circles-q-card-stmt {
-    display: -webkit-box;
-    -webkit-line-clamp: 1;
-    -webkit-box-orient: vertical;
-    overflow: hidden;
-    text-overflow: ellipsis;
-    white-space: nowrap;
-  }
-}
+/* AUD-050 superseded by spec 2026-04-30: brief is always 2 lines clamp on
+   every viewport for uniform card height. Mobile 1-line rule removed. */

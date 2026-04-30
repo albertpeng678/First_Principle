@@ -748,6 +748,102 @@ test.describe('CLUSTER-H — Progress bar labels & a11y', () => {
     expect(data.flexRow, 'affordance row is a flex row').toBe(true);
   });
 
+  test('AUD-058 [P1] home question card shows company + product + question_type + difficulty tags', async ({ page }) => {
+    await gotoHome(page);
+    const data = await page.evaluate(() => {
+      const card = document.querySelector('.circles-q-card');
+      if (!card) return { exists: false };
+      return {
+        exists: true,
+        company: !!card.querySelector('.circles-q-card-company'),
+        product: !!card.querySelector('.circles-q-card-product'),
+        tagCount: card.querySelectorAll('.circles-q-card-tag').length,
+        tagsContainer: !!card.querySelector('.circles-q-card-tags'),
+      };
+    });
+    expect(data.exists, 'first question card exists').toBe(true);
+    expect(data.tagsContainer, 'tags container present').toBe(true);
+    expect(data.company, 'company badge').toBe(true);
+    expect(data.product, 'product badge (q.product is non-empty for all 100 rows in DB)').toBe(true);
+    expect(data.tagCount, 'at least one of question_type or difficulty tag').toBeGreaterThanOrEqual(1);
+  });
+
+  test('AUD-059 [P1] home question card brief uses CSS line-clamp 2 (no JS substring)', async ({ page }) => {
+    await gotoHome(page);
+    const data = await page.evaluate(() => {
+      const stmt = document.querySelector('.circles-q-card .circles-q-card-stmt');
+      if (!stmt) return { exists: false };
+      const cs = getComputedStyle(stmt);
+      return {
+        exists: true,
+        hasFullText: stmt.textContent.length > 0,
+        hasLegacyDataset: !!stmt.dataset.full || !!stmt.dataset.short,
+        webkitLineClamp: cs.webkitLineClamp || cs.lineClamp,
+        overflow: cs.overflow,
+      };
+    });
+    expect(data.exists).toBe(true);
+    expect(data.hasFullText, 'brief text rendered').toBe(true);
+    expect(data.hasLegacyDataset, 'no legacy data-full / data-short attrs').toBe(false);
+    expect(data.webkitLineClamp, '-webkit-line-clamp:2').toBe('2');
+    expect(data.overflow, 'overflow:hidden').toBe('hidden');
+  });
+
+  test('AUD-060 [P1] expanded card shows full text in 完整題目 block, brief stays clamped above', async ({ page }) => {
+    await gotoHome(page);
+    await page.locator('.circles-q-card').first().click();
+    await page.waitForTimeout(300);
+    const data = await page.evaluate(() => {
+      const card = document.querySelector('.circles-q-card');
+      const stmt = card.querySelector('.circles-q-card-stmt');
+      const block = card.querySelector('.circles-q-card-full-block');
+      const label = card.querySelector('.circles-q-card-full-label');
+      const fullText = card.querySelector('.circles-q-card-full-text');
+      return {
+        blockVisible: block && getComputedStyle(block).display !== 'none' && block.offsetHeight > 0,
+        labelText: label ? (label.textContent || '').trim() : null,
+        fullTextLen: fullText ? (fullText.textContent || '').trim().length : 0,
+        briefStillClamped: stmt && getComputedStyle(stmt).webkitLineClamp === '2',
+      };
+    });
+    expect(data.blockVisible, '完整題目 block visible after expand').toBe(true);
+    expect(data.labelText, 'label is 完整題目').toBe('完整題目');
+    expect(data.fullTextLen, 'full text non-empty').toBeGreaterThan(0);
+    expect(data.briefStillClamped, 'brief retains line-clamp:2 after expand').toBe(true);
+  });
+
+  test('AUD-061 [P1] Phase 2 conclusion-actions are sticky-bottom inside conclusion-box', async ({ page }, testInfo) => {
+    only(testInfo, ['Desktop-1280', 'Desktop-1440']);
+    await page.setViewportSize({ width: 1280, height: 700 });
+    await page.goto('/');
+    await page.waitForLoadState('networkidle');
+    await page.evaluate(() => {
+      if (typeof AppState === 'undefined') return;
+      AppState.view = 'circles';
+      AppState.circlesPhase = 2;
+      AppState.circlesSelectedQuestion = (typeof CIRCLES_QUESTIONS !== 'undefined' ? CIRCLES_QUESTIONS[0] : null);
+      AppState.circlesMode = 'drill';
+      AppState.circlesDrillStep = 'C1';
+      AppState.circlesSubmitState = 'expanded';
+      if (typeof render === 'function') render();
+    });
+    await page.waitForTimeout(400);
+    const data = await page.evaluate(() => {
+      const box = document.querySelector('.circles-conclusion-box');
+      const actions = document.querySelector('.circles-conclusion-box .conclusion-actions');
+      if (!box || !actions) return null;
+      const cs = getComputedStyle(actions);
+      return {
+        position: cs.position,
+        boxBottom: Math.round(box.getBoundingClientRect().bottom),
+        actionsBottom: Math.round(actions.getBoundingClientRect().bottom),
+      };
+    });
+    expect(data, 'conclusion box + actions both present in DOM').not.toBeNull();
+    expect(data.position, 'actions row uses position:sticky').toBe('sticky');
+    expect(Math.abs(data.actionsBottom - data.boxBottom), 'sticky bottom anchor within ±2px of box.bottom').toBeLessThanOrEqual(2);
+  });
+
   test('AUD-057 [P1] Phase 2 "繼續對話" returns to chat input bar (not the 整理結論 strip)', async ({ page }) => {
     await page.goto('/');
     await page.waitForLoadState('networkidle');
@@ -1085,20 +1181,7 @@ test.describe('CLUSTER-I — Misc per-issue', () => {
     expect(ok, 'search+filter OR <=20 cards').toBe(true);
   });
 
-  test('AUD-050 [P1] iPhone-SE: question card description truncated to 1 line', async ({ page }, testInfo) => {
-    only(testInfo, ['iPhone-SE']);
-    await gotoHome(page);
-    const ok = await page.evaluate(() => {
-      const stmts = Array.from(document.querySelectorAll('.circles-q-card-stmt'));
-      if (stmts.length === 0) return false;
-      return stmts.every(s => {
-        const cs = getComputedStyle(s);
-        const lh = parseFloat(cs.lineHeight) || 20;
-        return s.offsetHeight <= lh * 1.5;
-      });
-    });
-    expect(ok, 'every q-card stmt fits 1 line').toBe(true);
-  });
+  test.skip('AUD-050 [P1] iPhone-SE: question card description truncated to 1 line (superseded by AUD-059 — spec 2026-04-30 chose uniform 2-line clamp)', async () => {});
 
   test('AUD-053 [P1] entering Step C shows spinner / 載入題目', async ({ page }, testInfo) => {
     only(testInfo, ['iPhone-SE']);
