@@ -17,9 +17,11 @@ jest.mock('../db/client', () => {
     update: jest.fn(),
     delete: jest.fn(),
     eq: jest.fn(),
+    is: jest.fn(),
     order: jest.fn(),
     limit: jest.fn(),
     single: jest.fn(),
+    maybeSingle: jest.fn(),
     auth: {
       getUser: jest.fn(),
     },
@@ -32,11 +34,14 @@ jest.mock('../db/client', () => {
     }),
   };
   // Each chainable method returns the same object by default
-  ['from', 'select', 'insert', 'update', 'delete', 'eq', 'order', 'limit'].forEach(k => {
+  ['from', 'select', 'insert', 'update', 'delete', 'eq', 'is', 'order', 'limit'].forEach(k => {
     mockFns[k].mockReturnValue(mockFns);
   });
   // single() returns a Promise by default
   mockFns.single.mockResolvedValue({ data: null, error: null });
+  // maybeSingle is used by PATCH /:id/progress + draft idempotency. Default
+  // returns a row so update paths return 200 (override per-test for null cases).
+  mockFns.maybeSingle.mockResolvedValue({ data: { id: 'mock-id' }, error: null });
   return mockFns;
 });
 

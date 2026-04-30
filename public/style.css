@@ -107,15 +107,18 @@ body {
      from creating a horizontal scrollbar at desktop widths once page content
      is tall enough to require a vertical scrollbar. */
   #app { max-width: none; padding: 0; overflow-x: clip; }
-  .circles-home-desktop { max-width: 1180px; margin: 0 auto; padding: 24px 28px; }
-  .phase1-desktop { max-width: 1180px; margin: 0 auto; padding: 0 28px 100px; }
+  /* AUD-000-A4 — fluid 94vw caps so 14-inch laptops (≈1366-1900) and 27-inch
+     desktops (2560-3000) all fill ≥88% of viewport. Caps prevent line-length
+     blowing past comfort at 4K. Was static 1180/920 columns. */
+  .circles-home-desktop { max-width: min(1880px, 94vw); margin: 0 auto; padding: 24px 32px; }
+  .phase1-desktop { max-width: min(1880px, 94vw); margin: 0 auto; padding: 0 32px 100px; }
   .phase2-desktop { max-width: 920px; margin: 0 auto; padding: 0 24px; }
   .phase3-desktop { max-width: 920px; margin: 0 auto; padding: 0 24px 100px; }
-  .nsm-home-desktop { max-width: 920px; margin: 0 auto; padding: 18px 24px 100px; }
+  .nsm-home-desktop { width: 100%; max-width: min(1880px, 94vw); margin: 0 auto; padding: 18px 32px 100px; }
   .nsm-step2-desktop { max-width: 720px; margin: 0 auto; padding: 18px 24px 100px; }
   .nsm-step3-desktop { max-width: 920px; margin: 0 auto; padding: 18px 24px 100px; }
   .nsm-step4-desktop { max-width: 920px; margin: 0 auto; padding: 18px 24px 100px; }
-  .review-desktop { max-width: 1180px; margin: 0 auto; padding: 24px; }
+  .review-desktop { max-width: min(1880px, 94vw); margin: 0 auto; padding: 24px 32px; }
   .login-desktop { max-width: 420px; margin: 60px auto 0; padding: 0 24px; }
 }
 
@@ -3479,13 +3482,19 @@ textarea.rt-textarea {
   .circles-home-desktop .ch-header h1 { font-size:26px; font-weight:600; margin:0 0 4px; color:var(--c-text); font-family:'Instrument Serif', serif; letter-spacing:-0.5px; }
   .circles-home-desktop .ch-header .ch-sub { font-size:13px; color:var(--c-text-2); }
   .circles-home-desktop .ch-header .ch-meta { font-size:12px; color:var(--c-text-secondary); white-space:nowrap; }
-  /* AUD-000-A2 — mobile .circles-home-wrap caps content at 680px which collapses
-     the desktop ch-grid middle column to ~130px on 1280-1366 viewports. Reset
-     across the entire desktop layer (was previously only inside >=1440). */
-  .circles-home-desktop .circles-home-wrap,
-  [data-view="circles"] .circles-home-desktop .circles-home-wrap {
+  /* AUD-000-A2/A4/A5 — every mobile .circles-*-wrap caps content at 680px AND
+     applies `margin: 0 auto`. On a grid item (.p1-main is also .circles-phase1-wrap
+     placed in a 1fr grid track), `margin: auto` shrinks the element to content
+     width and centers it — which collapses the form to ~440px even though the
+     1fr track is 1240px. Reset all three (max-width / padding / margin) so the
+     wrap fills the available column on desktop. */
+  [data-view="circles"] .circles-home-wrap,
+  [data-view="circles"] .circles-phase1-wrap,
+  [data-view="circles"] .circles-gate-wrap,
+  [data-view="circles"] .circles-score-wrap {
     max-width: none;
     padding: 0;
+    margin: 0;
   }
   .circles-home-desktop .ch-grid { display:grid; grid-template-columns:230px 1fr 240px; gap:24px; align-items:start; }
   .circles-home-desktop .left-rail { position:sticky; top:72px; display:flex; flex-direction:column; gap:18px; }
@@ -3819,21 +3828,21 @@ textarea.rt-textarea {
 
 /* ≥1440 — wide-monitor fluid layer */
 @media (min-width: 1440px) {
-  .circles-home-desktop { max-width: min(1480px, 92vw); padding: 24px 32px; }
+  .circles-home-desktop { max-width: min(1880px, 94vw); padding: 24px 32px; }
   /* The mobile .circles-home-wrap caps content at 680px — undo inside desktop. */
   .circles-home-desktop .circles-home-wrap,
   [data-view="circles"] .circles-home-desktop .circles-home-wrap {
     max-width: none;
     padding: 0;
   }
-  .phase1-desktop { max-width: min(1680px, 94vw); padding: 0 32px 100px; }
+  .phase1-desktop { max-width: min(1880px, 94vw); padding: 0 32px 100px; }
   .phase2-desktop { max-width: min(1180px, 88vw); }
   .phase3-desktop { max-width: min(1180px, 88vw); padding: 0 32px 100px; }
-  .nsm-home-desktop { max-width: min(1480px, 92vw); padding: 18px 32px 100px; }
+  .nsm-home-desktop { max-width: min(1880px, 94vw); padding: 18px 32px 100px; }
   .nsm-step2-desktop { max-width: min(960px, 80vw); }
   .nsm-step3-desktop { max-width: min(1180px, 88vw); }
   .nsm-step4-desktop { max-width: min(1180px, 88vw); }
-  .review-desktop   { max-width: min(1480px, 92vw); padding: 24px 32px; }
+  .review-desktop   { max-width: min(1880px, 94vw); padding: 24px 32px; }
   .login-desktop {
     max-width: 460px;
     margin: 0 auto;
@@ -3865,7 +3874,7 @@ textarea.rt-textarea {
   .nsm-home-desktop .nsm-q-card { margin-bottom: 0; max-width: none; }
 
   /* review-examples grid — 3 cols + readable font (override page-scoped) */
-  .container.review-desktop { max-width: min(1640px, 94vw); }
+  .container.review-desktop { max-width: min(1880px, 94vw); }
   .container.review-desktop {
     grid-template-columns: repeat(3, minmax(0, 1fr));
   }
@@ -3873,13 +3882,14 @@ textarea.rt-textarea {
   .container.review-desktop .card-problem { font-size: 13px; }
 }
 
-/* ≥1920 — ultra-wide */
+/* ≥1920 — ultra-wide. Cap 2800 prevents line-length blow-up at 4K but keeps
+   ≥88% fill at 27-inch (2560) and 30-inch (3000) monitors. */
 @media (min-width: 1920px) {
-  .circles-home-desktop { max-width: min(2200px, 90vw); }
-  .phase1-desktop { max-width: min(2200px, 90vw); }
-  .nsm-home-desktop { max-width: min(2200px, 90vw); }
-  .review-desktop   { max-width: min(2200px, 90vw); }
-  .container.review-desktop { max-width: min(2200px, 90vw); }
+  .circles-home-desktop { max-width: min(2800px, 94vw); }
+  .phase1-desktop { max-width: min(2800px, 94vw); }
+  .nsm-home-desktop { max-width: min(2800px, 94vw); }
+  .review-desktop   { max-width: min(2800px, 94vw); }
+  .container.review-desktop { max-width: min(2800px, 94vw); }
 
   .circles-home-desktop .ch-grid {
     grid-template-columns: 280px minmax(0, 1fr) 300px;

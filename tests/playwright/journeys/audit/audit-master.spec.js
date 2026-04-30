@@ -66,7 +66,67 @@ test.describe('CLUSTER-A — Wide-monitor layout', () => {
       if (!el) return 0;
       return el.getBoundingClientRect().width / window.innerWidth;
     });
-    expect(ratio, 'home content/viewport ratio at >=1440').toBeGreaterThanOrEqual(0.70);
+    // Tightened from 0.70 → 0.88 after user reported 14-inch laptop (≈1500-1800
+     // viewport) still showed empty side bands. Original 0.70 happily passed at
+     // 1480/2200 cap which is only 82% on a 1800 viewport.
+    expect(ratio, 'home content/viewport ratio at >=1440').toBeGreaterThanOrEqual(0.88);
+  });
+
+  test('AUD-000-A4 [P0] home content >=88% viewport across full desktop band 1280-3000 (no two-side empty bands)', async ({ page }, testInfo) => {
+    only(testInfo, ['Desktop-1440']); // single project; iterate viewports manually
+    const widths = [1280, 1366, 1440, 1500, 1536, 1600, 1700, 1800, 1900, 1920, 2000, 2200, 2400, 2560, 3000];
+    const failures = [];
+    for (const w of widths) {
+      await page.setViewportSize({ width: w, height: 900 });
+      await gotoHome(page);
+      const r = await page.evaluate(() => {
+        const el = document.querySelector('.circles-home-desktop') || document.querySelector('main');
+        return el ? el.getBoundingClientRect().width / window.innerWidth : 0;
+      });
+      const pct = Math.round(r * 100);
+      if (pct < 88) failures.push(`${w}px=${pct}%`);
+    }
+    expect(failures, `viewports below 88% home/viewport ratio: ${failures.join(', ')}`).toEqual([]);
+  });
+
+  test('AUD-000-A5 [P0] phase1 form (.p1-main) fills 1fr grid track on wide desktops (no margin-auto squeeze)', async ({ page }, testInfo) => {
+    only(testInfo, ['Desktop-1440']); // single project; iterate viewports manually
+    const widths = [1280, 1366, 1440, 1500, 1600, 1700, 1800, 1900, 2200, 2560];
+    const failures = [];
+    for (const w of widths) {
+      await page.setViewportSize({ width: w, height: 900 });
+      await gotoCirclesStepC(page);
+      const data = await page.evaluate(() => {
+        const grid = document.querySelector('.p1-grid');
+        const main = document.querySelector('.p1-main');
+        if (!grid || !main) return { grid: null, main: null };
+        return { grid: grid.offsetWidth, main: main.offsetWidth };
+      });
+      // p1-main should fill 1fr track = grid - 280px rail - 14px gap.
+      const expectedMain = data.grid ? data.grid - 280 - 14 : 0;
+      if (!data.main || data.main < expectedMain - 4) {
+        failures.push(`${w}px: main=${data.main}, expected≈${expectedMain}`);
+      }
+    }
+    expect(failures, `phase1 main column shrink at: ${failures.join(' | ')}`).toEqual([]);
+  });
+
+  test('AUD-000-A6 [P0] navbar logo always returns to home, even with active circlesSession', async ({ page }, testInfo) => {
+    only(testInfo, ['Desktop-1280', 'Desktop-1440', 'Desktop-2560']);
+    await gotoCirclesStepC(page);
+    // Force circlesSession to a truthy value so the navigate('circles') reset
+    // guard at app.js:818 (`!AppState.circlesSession`) is bypassed — same state
+    // a logged-in user has after the lazy-create /draft endpoint mints a row.
+    await page.evaluate(() => {
+      if (typeof AppState !== 'undefined') AppState.circlesSession = { id: 'fake-session', mode: 'drill' };
+    });
+    expect(await page.evaluate(() => !!document.querySelector('.phase1-desktop'))).toBeTruthy();
+    await page.click('#navbar-home-btn');
+    await page.waitForTimeout(400);
+    const onHome = await page.evaluate(() => !!document.querySelector('.circles-home-desktop'));
+    const stillPhase1 = await page.evaluate(() => !!document.querySelector('.phase1-desktop'));
+    expect(stillPhase1, 'navbar logo must leave Phase 1').toBeFalsy();
+    expect(onHome, 'navbar logo must reach home').toBeTruthy();
   });
 
   test('AUD-000-A2 [P0] desktop home inner-wrap fills container at 1280 (no mobile-680 squeeze)', async ({ page }, testInfo) => {

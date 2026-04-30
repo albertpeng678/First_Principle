@@ -890,9 +890,24 @@ function renderNavbar() {
 
   const hamburger = document.getElementById('btn-hamburger');
   if (hamburger) hamburger.onclick = openOffcanvas;
-  // Brand → always home (universal escape hatch from any phase / view)
+  // Brand → always home (universal escape hatch from any phase / view).
+  // navigate('circles') by itself preserves state when AppState.circlesSession
+  // is truthy (logged-in user has an active draft) — so we must explicitly
+  // wipe the practice state here, otherwise clicking the logo from Phase 1/2/3
+  // re-renders the same phase instead of returning to the question picker.
   const brandBtn = document.getElementById('navbar-home-btn');
-  if (brandBtn) brandBtn.onclick = () => navigate('circles');
+  if (brandBtn) brandBtn.onclick = () => {
+    AppState.circlesSession = null;
+    AppState.circlesSelectedQuestion = null;
+    AppState.circlesPhase = 1;
+    AppState.circlesFrameworkDraft = {};
+    AppState.circlesStepDrafts = {};
+    AppState.circlesGateResult = null;
+    AppState.circlesConversation = [];
+    AppState.circlesScoreResult = null;
+    AppState.circlesSimStep = 0;
+    navigate('circles');
+  };
 }
 
 function openOffcanvas() {
