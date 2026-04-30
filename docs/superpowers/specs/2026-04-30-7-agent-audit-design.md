@@ -109,8 +109,55 @@ The build is **ship-ready** only when ALL of the following hold:
 4. No new console errors, no regressions in existing journey specs.
 5. Code review (self via `code-review` or external) returns no blocking comments.
 6. `finishing-a-development-branch` produces an explicit merge / PR decision.
+7. **HARD RWD GATE — Visual walkthrough across every viewport** (see § 7.1).
 
 P2 issues may be deferred to a follow-up — but only with the user's explicit OK.
+
+### 7.1 · Hard RWD Gate (mandatory pre-ship)
+
+The Issue #0 desktop disaster (1180px island in a 2000px viewport) shipped because tests were green but **nobody actually looked at the page on a wide monitor**. This gate exists so it cannot happen again.
+
+Before any push to `main` / ship, an agent **must** capture full-page screenshots of **every key route × every breakpoint** and a recorder must visually OK each one.
+
+**Required viewports (8):**
+
+| Bucket | Viewport | Why |
+|---|---|---|
+| 超寬桌機 | 2560 × 1440 | Issue #0 victim — wide monitor empty bands |
+| 標準桌機 | 1440 × 900 | Common laptop |
+| 小桌機 / 大平板橫 | 1280 × 800 | Existing Playwright `Desktop` |
+| 平板直 | 768 × 1024 | Existing `iPad` |
+| 大手機 | 430 × 932 | Existing `iPhone-15-Pro` |
+| 標準手機 | 390 × 844 | iPhone 14 / 15 base |
+| 小手機 | 375 × 667 | Existing `iPhone-SE`, lowest common iOS |
+| 窄安卓 | 360 × 780 | Common low-end Android |
+
+**Required routes (per viewport):**
+
+1. `/` (landing / CIRCLES home with question list)
+2. CIRCLES step 1 (Comprehend) mid-flow
+3. CIRCLES step 5 (List) — heaviest content
+4. CIRCLES Summary
+5. NSM Workshop step 1
+6. NSM Workshop step 4
+7. `/review-examples.html`
+8. Auth / login screen
+
+→ 8 viewports × 8 routes = **64 screenshots per pre-ship verification**.
+
+**Pass criteria for each screenshot (recorder R1 checks):**
+
+- No giant empty bands (content uses ≥ 70 % of viewport width on desktop, ≥ 92 % on mobile)
+- No horizontal scroll at any width (except intentional carousels)
+- No clipped text / cards / buttons
+- Tap targets ≥ 44×44 px on touch viewports
+- No duplicate nav items (Issue #0 nav-tab + nav-action duplication)
+- Sticky / fixed elements don't overlap content
+- All 8 routes look intentional, not "shrunk mobile" on desktop
+
+If **any** screenshot fails, the offending issue is logged as P0 and fixed before re-running this gate. **No exceptions, no "it'll be fine".**
+
+The gate is implemented as `tests/playwright/journeys/rwd-visual-gate.spec.js` (defined in plan Phase F) and produces `audit/rwd-grid/<viewport>/<route>.png`. R1 reviews the grid as the final pre-ship checkpoint.
 
 ## 8 · Risks & Out-of-Scope
 
