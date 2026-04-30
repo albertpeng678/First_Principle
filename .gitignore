@@ -1,6 +1,8 @@
 # session ephemera
 .superpowers/brainstorm/
-.claude/
+.claude/*
+# But DO track project-level skills — they're durable team knowledge
+!.claude/skills/
 audit-output.json
 reviewer-input.json
 tests/playwright/rwd-audit/
