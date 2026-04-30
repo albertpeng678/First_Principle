@@ -230,13 +230,13 @@ var CIRCLES_STEP_CONFIG = {
     label: 'C — 澄清情境',
     progressLabel: 'C · 澄清情境 · 1/7',
     fields: [
-      { key: '問題範圍', placeholder: '說明討論的問題範圍與問題類型…', rows: 2,
+      { key: '問題範圍', placeholder: '例：聚焦免費版的廣告體驗，排除付費方案。建議 2-3 句。', rows: 2,
         hintOverlay: '先把題目的問題本身定義清楚——它的具體類型是什麼（行為層／情感層／系統層）？涵蓋哪些功能或場景？哪些明確排除？沒釐清這層，後面的分析會在錯的邊界上展開。' },
-      { key: '時間範圍', placeholder: '設定時間範圍並說明理由…', rows: 2,
+      { key: '時間範圍', placeholder: '例：60 天，因為廣告活動以月為週期。建議 1-2 句。', rows: 2,
         hintOverlay: '設定一個合理的觀察期，並說明為什麼這個時長對應這題的業務節奏。太短看不出趨勢、太長缺乏執行感。「X 天，因為這個業務以 Y 為週期」比丟個數字更有說服力。' },
-      { key: '業務影響', placeholder: '說明業務影響與核心約束…', rows: 2,
+      { key: '業務影響', placeholder: '例：廣告收入和免費→付費轉換率不能下降超過 3%。建議 2-3 句。', rows: 2,
         hintOverlay: '列出這題的核心業務指標和兩個關鍵利益方（通常是用戶端 vs. 商業端）。說清楚哪條紅線不能踩——什麼指標下滑多少就破局？沒有量化邊界，後面的取捨會發散。' },
-      { key: '假設確認', placeholder: '列出你的關鍵假設，並標註哪些待確認…', rows: 2,
+      { key: '假設確認', placeholder: '例：用戶的廣告負感主要來自時段而非廣告本身。建議 2-3 句。', rows: 2,
         hintOverlay: '列出 2-3 條後續分析會依賴的假設，最好寫成「X 是 A 而不是 B」的形式，並標明哪些先接受、哪些待驗證。把假設攤開，整個分析的根基才透明。' },
     ],
     icebreaker: '先與被訪談者澄清題目本身的邊界——具體在問什麼問題、涵蓋哪些功能或場景、有哪些業務限制不能突破。',
@@ -1996,8 +1996,8 @@ function renderCirclesHomeMobile() {
       // Mode selector
       '<div class="circles-step-select-label">練習模式</div>' +
       '<div class="circles-mode-row">' +
-        '<div class="circles-mode-card ' + (mode === 'simulation' ? 'selected' : '') + '" data-mode="simulation" role="button" tabindex="0" aria-label="完整模擬">' +
-          '<div class="circles-mode-card-title"><i class="ph ph-video-camera"></i> 完整模擬</div>' +
+        '<div class="circles-mode-card ' + (mode === 'simulation' ? 'selected' : '') + '" data-mode="simulation" role="button" tabindex="0" aria-label="完整模擬 新手推薦">' +
+          '<div class="circles-mode-card-title"><i class="ph ph-video-camera"></i> 完整模擬 <span class="circles-mode-recommend-badge" style="display:inline-block;font-size:11px;font-weight:600;color:#fff;background:var(--c-primary,#1a56db);padding:2px 8px;border-radius:999px;margin-left:6px;vertical-align:middle">新手推薦</span></div>' +
           '<div class="circles-mode-card-desc">25-35 分鐘 · 全 7 步 · 無提示</div>' +
         '</div>' +
         '<div class="circles-mode-card ' + (mode === 'drill' ? 'selected' : '') + '" data-mode="drill" role="button" tabindex="0" aria-label="步驟加練">' +
@@ -2056,8 +2056,8 @@ function renderCirclesHomeDesktop() {
   var strategyCount = allQs.filter(function(q) { return q.question_type === 'strategy'; }).length;
 
   var modeCardsHtml =
-    '<div class="circles-mode-card ' + (mode === 'simulation' ? 'selected' : '') + '" data-mode="simulation" role="button" tabindex="0" aria-label="完整模擬">' +
-      '<div class="circles-mode-card-title"><i class="ph ph-video-camera"></i> 完整模擬</div>' +
+    '<div class="circles-mode-card ' + (mode === 'simulation' ? 'selected' : '') + '" data-mode="simulation" role="button" tabindex="0" aria-label="完整模擬 新手推薦">' +
+      '<div class="circles-mode-card-title"><i class="ph ph-video-camera"></i> 完整模擬 <span class="circles-mode-recommend-badge" style="display:inline-block;font-size:11px;font-weight:600;color:#fff;background:var(--c-primary,#1a56db);padding:2px 8px;border-radius:999px;margin-left:6px;vertical-align:middle">新手推薦</span></div>' +
       '<div class="circles-mode-card-desc">25-35 分鐘 · 全 7 步</div>' +
     '</div>' +
     '<div class="circles-mode-card ' + (mode === 'drill' ? 'selected' : '') + '" data-mode="drill" role="button" tabindex="0" aria-label="步驟加練">' +
@@ -2621,7 +2621,7 @@ function renderCirclesPhase1() {
   var isLastStep = stepIdx === CIRCLES_STEPS.length - 1;
   var submitBarHtml = '<div class="circles-submit-bar">' +
     '<button class="circles-btn-secondary" id="circles-p1-back" type="button">返回選題</button>' +
-    '<button class="circles-btn-primary" id="circles-p1-submit" type="button">' + (isSimulation && isLastStep ? '送出評分' : '送出評分') + '</button>' +
+    '<button class="circles-btn-primary" id="circles-p1-submit" type="button">' + (isLastStep ? '送出評分' : '下一步') + '</button>' +
   '</div>';
 
   // Phase 4.2 — desktop wrapper class
@@ -2967,9 +2967,19 @@ function bindCirclesPhase1() {
       errEl.id = 'circles-p1-preflight-err';
       errEl.setAttribute('role', 'alert');
       errEl.style.cssText = 'color:var(--c-error,#d33);font-size:12px;padding:8px 12px;margin-top:6px';
-      errEl.textContent = '請至少填寫 ' + _MIN + ' 個欄位再送出評分。';
+      // AUD-019 — name the missing fields and mark them aria-invalid.
+      var emptyFields = _fieldEls.filter(function(el) { return !(el.value || '').trim(); });
+      var emptyLabels = emptyFields.map(function(el) {
+        return (el.getAttribute('data-field') || el.getAttribute('aria-label') || '').trim();
+      }).filter(Boolean);
+      var uniqLabels = Array.from(new Set(emptyLabels)).slice(0, 4);
+      emptyFields.forEach(function(el) { el.setAttribute('aria-invalid', 'true'); });
+      var msg = uniqLabels.length
+        ? '請填寫『' + uniqLabels.join('』、『') + '』再送出。'
+        : '請至少填寫 ' + _MIN + ' 個欄位再送出。';
+      errEl.textContent = msg;
       btn.parentNode && btn.parentNode.insertBefore(errEl, btn);
-      var firstEmpty = _fieldEls.find(function(el) { return !(el.value || '').trim(); });
+      var firstEmpty = emptyFields[0];
       if (firstEmpty) firstEmpty.focus();
       return;
     }
@@ -4278,19 +4288,27 @@ function renderAuth(isLogin) {
   return `
     <div class="${_loginDesktopCls}" style="max-width:400px;margin:60px auto">
       <div class="card login-card">
-        <div style="display:flex;gap:8px;margin-bottom:24px">
-          <button class="btn ${isLogin?'btn-primary':'btn-ghost'}" onclick="navigate('login')">登入</button>
-          <button class="btn ${!isLogin?'btn-primary':'btn-ghost'}" onclick="navigate('register')">註冊</button>
+        <div role="tablist" style="display:flex;gap:8px;margin-bottom:24px">
+          <button type="button" role="tab" class="auth-tab login-tab ${isLogin?'active':''}" aria-selected="${isLogin?'true':'false'}" onclick="navigate('login')" style="flex:1;padding:10px;font-weight:${isLogin?'700':'500'};text-decoration:${isLogin?'underline':'none'};text-underline-offset:6px;border:1px solid var(--border,#e5e5e5);background:${isLogin?'var(--c-primary,#1a56db)':'transparent'};color:${isLogin?'#fff':'inherit'};border-radius:8px;min-height:44px;cursor:pointer">登入</button>
+          <button type="button" role="tab" class="auth-tab login-tab ${!isLogin?'active':''}" aria-selected="${!isLogin?'true':'false'}" onclick="navigate('register')" style="flex:1;padding:10px;font-weight:${!isLogin?'700':'500'};text-decoration:${!isLogin?'underline':'none'};text-underline-offset:6px;border:1px solid var(--border,#e5e5e5);background:${!isLogin?'var(--c-primary,#1a56db)':'transparent'};color:${!isLogin?'#fff':'inherit'};border-radius:8px;min-height:44px;cursor:pointer">註冊</button>
         </div>
         <form id="auth-form">
           <div style="margin-bottom:12px">
-            <label for="email" style="font-size:0.85rem;color:var(--text-secondary)">Email</label>
+            <label for="email" style="font-size:0.85rem;color:var(--text-secondary)">電子郵件</label>
             <input id="email" type="email" name="email" autocomplete="email" inputmode="email" enterkeyhint="next" required class="chat-input" style="width:100%;margin-top:4px" />
           </div>
-          <div style="margin-bottom:20px">
+          <div style="margin-bottom:8px">
             <label for="password" style="font-size:0.85rem;color:var(--text-secondary)">密碼</label>
-            <input id="password" type="password" name="password" autocomplete="${isLogin?'current-password':'new-password'}" enterkeyhint="go" required class="chat-input" style="width:100%;margin-top:4px" />
+            <div style="position:relative;margin-top:4px">
+              <input id="password" type="password" name="password" autocomplete="${isLogin?'current-password':'new-password'}" enterkeyhint="go" required class="chat-input" style="width:100%;padding-right:52px" />
+              <button type="button" class="password-toggle" data-action="toggle-password" aria-label="顯示密碼" aria-pressed="false" style="position:absolute;right:4px;top:50%;transform:translateY(-50%);width:44px;height:44px;display:inline-flex;align-items:center;justify-content:center;background:transparent;border:none;cursor:pointer;color:var(--text-secondary)">
+                <i class="ph ph-eye"></i>
+              </button>
+            </div>
           </div>
+          <p style="margin:0 0 16px;text-align:right">
+            <a href="#" id="forgot-password-link" style="font-size:0.85rem;color:var(--c-primary,#1a56db);text-decoration:none">忘記密碼？</a>
+          </p>
           <p id="auth-error" style="color:var(--danger);font-size:0.85rem;margin-bottom:12px;display:none"></p>
           <button type="submit" class="btn btn-primary" style="width:100%">${isLogin?'登入':'建立帳號'}</button>
         </form>
@@ -4306,6 +4324,28 @@ function renderLogin() { return renderAuth(true); }
 function renderRegister() { return renderAuth(false); }
 
 function bindAuthForm(isLogin) {
+  // AUD-044/045 — password show/hide toggle
+  const toggle = document.querySelector('[data-action="toggle-password"]');
+  if (toggle) {
+    toggle.addEventListener('click', () => {
+      const pw = document.getElementById('password');
+      if (!pw) return;
+      const showing = pw.type === 'text';
+      pw.type = showing ? 'password' : 'text';
+      toggle.setAttribute('aria-pressed', showing ? 'false' : 'true');
+      toggle.setAttribute('aria-label', showing ? '顯示密碼' : '隱藏密碼');
+      const icon = toggle.querySelector('i');
+      if (icon) icon.className = showing ? 'ph ph-eye' : 'ph ph-eye-slash';
+    });
+  }
+  // AUD-044 — 忘記密碼 placeholder handler
+  const forgot = document.getElementById('forgot-password-link');
+  if (forgot) {
+    forgot.addEventListener('click', (e) => {
+      e.preventDefault();
+      alert('請聯絡管理員或使用 Supabase 的密碼重設流程。');
+    });
+  }
   document.getElementById('auth-form').addEventListener('submit', async (e) => {
     e.preventDefault();
     const email = document.getElementById('email').value;
