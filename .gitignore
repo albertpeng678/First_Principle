@@ -24,3 +24,8 @@ playwright-report/
 .playwright-mcp/
 test-results/
 .worktrees/
+
+# session 4 audit scratch (rwd-grid kept as deliverable)
+audit/post-fix-*/
+螢幕擷取畫面*.png
+Image.jpg
