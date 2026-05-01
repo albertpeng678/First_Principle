@@ -103,11 +103,19 @@ async function fetchAnalysis(q) {
   throw lastError;
 }
 
+const JS_DERIVED_PATH = path.join(__dirname, '..', 'public', 'circles-db.js');
+
 /**
- * 把更新後的題目陣列寫回 circles_database.json。
+ * 把更新後的題目陣列寫回 circles_database.json（truth），
+ * 並同步輸出 public/circles-db.js（derived，供 SPA 讀取為 window.CIRCLES_QUESTIONS）。
  */
 function saveQuestions(questions) {
+  // Truth: JSON (server reads this)
   fs.writeFileSync(DB_PATH, JSON.stringify(questions, null, 2) + '\n', 'utf8');
+  // Derived: JS (SPA reads this as window.CIRCLES_QUESTIONS)
+  const jsHeader = '// Auto-generated — do not edit manually\n// Run: node -r dotenv/config scripts/backfill-circles-analysis.js to regenerate\n';
+  const jsBody = 'var CIRCLES_QUESTIONS = ' + JSON.stringify(questions, null, 2) + ';\n';
+  fs.writeFileSync(JS_DERIVED_PATH, jsHeader + jsBody, 'utf8');
 }
 
 // ── 主流程 ────────────────────────────────────────────────────────────────────
