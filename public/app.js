@@ -83,6 +83,20 @@ const AppState = {
 // Expose for tests + debugging.
 window.AppState = AppState;
 
+// SP1.5 — helper: is the given CIRCLES step already graded?
+function isStepLocked(stepKey, stepScores) {
+  if (!stepScores || typeof stepScores !== 'object') return false;
+  return !!stepScores[stepKey];
+}
+
+// SP1.5 — helper: does session.question_json snapshot diverge from current DB?
+// Returns true when problem_statement differs (whitespace-normalized).
+function computeStaleFlag(snapshot, current) {
+  if (!snapshot || !current) return false;
+  var normalize = function(s) { return String(s || '').replace(/\s+/g, ' ').trim(); };
+  return normalize(snapshot.problem_statement) !== normalize(current.problem_statement);
+}
+
 // ── Home icon button helper (MASTER-015) ──
 // Returns a 44×44 icon-only "回首頁" button. Caller supplies the id used by
 // existing click handlers; visual styling lives in .btn-home-icon CSS.
