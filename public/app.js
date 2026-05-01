@@ -1832,20 +1832,6 @@ async function fetchCirclesStats() {
 }
 window.fetchCirclesStats = fetchCirclesStats;
 
-function renderResumeBanner() {
-  const d = AppState.circlesActiveDraft;
-  if (!d) return '';
-  if (localStorage.getItem('dismiss-resume-' + d.id)) return '';
-  const q = d.question_json || {};
-  const company = q.company || '練習';
-  const product = q.product || q.problem_statement || '';
-  return '<div class="resume-banner" data-resume-id="' + escHtml(d.id) + '">' +
-    '<span><strong>未完成練習</strong> · ' + escHtml(company) + (product ? ' · ' + escHtml(product) : '') + ' · ' + escHtml(formatRelativeEdit(d.updated_at)) + '</span>' +
-    '<span><button class="resume-go" type="button" data-id="' + escHtml(d.id) + '">繼續 →</button><button class="dismiss btn-icon" data-id="' + escHtml(d.id) + '" type="button" aria-label="關閉"><i class="ph ph-x"></i></button></span>' +
-  '</div>';
-}
-window.renderResumeBanner = renderResumeBanner;
-
 function renderPersistentQuestionChip() {
   var q = AppState.circlesSelectedQuestion;
   if (!q) return '';
@@ -1946,27 +1932,6 @@ function renderStatsStripHtml() {
   '</div>';
 }
 window.renderStatsStripHtml = renderStatsStripHtml;
-
-function bindResumeBanner() {
-  document.querySelectorAll('.resume-banner .resume-go').forEach(function (el) {
-    el.addEventListener('click', async function () {
-      const id = el.dataset.id;
-      if (!id) return;
-      await loadCirclesSession(id);
-      navigate('circles');
-    });
-  });
-  document.querySelectorAll('.resume-banner .dismiss').forEach(function (el) {
-    el.addEventListener('click', function (ev) {
-      ev.stopPropagation();
-      const id = el.dataset.id;
-      if (id) localStorage.setItem('dismiss-resume-' + id, '1');
-      const banner = el.closest('.resume-banner');
-      if (banner) banner.remove();
-    });
-  });
-}
-window.bindResumeBanner = bindResumeBanner;
 
 // ── Onboarding welcome card (Phase 5 Task 5.1) ───────────────────────
 // Spec: docs/superpowers/specs/2026-04-28-desktop-rwd-direction-c-design.md §4.1
