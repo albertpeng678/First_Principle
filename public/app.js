@@ -39,6 +39,7 @@ const AppState = {
   circlesSelectedQuestion: null,   // { id, company, ... }
   circlesSession: null,            // { id, mode, drill_step } — other fields live in top-level AppState keys
   circlesPhase: 1,                 // 1 | 1.5 | 2 | 3 (score) | 4 (report)
+  circlesChipExpanded: false,
   circlesFrameworkDraft: {},       // { fieldName: value } — current step's framework draft
   circlesStepDrafts: {},           // { stepKey: draftObj } — per-step persistent drafts saved on Phase 1 submit
                                    // L: { sol1, sol2, sol3 } — solution names
@@ -75,6 +76,8 @@ const AppState = {
   circlesSavingInFlight: false,
   circlesSavingPending: false,       // queued change while inflight
   circlesActiveDraft: null,          // for homepage resume banner
+  circlesStats: null,           // { completed, active, weeklyCompleted } | null
+  circlesStatsLoading: false,
 };
 
 // Expose for tests + debugging.
@@ -607,6 +610,7 @@ async function loadCirclesSession(sessionId) {
     AppState.circlesMode              = s.mode;
     AppState.circlesDrillStep         = s.drill_step || 'C1';
     AppState.circlesPhase             = s.current_phase || 1;
+    AppState.circlesChipExpanded      = false;
     AppState.circlesSimStep           = s.sim_step_index || 0;
     AppState.circlesFrameworkDraft    = s.framework_draft || {};
     AppState.circlesStepDrafts        = s.step_drafts || {};
@@ -641,6 +645,7 @@ async function loadCirclesSession(sessionId) {
     // so the user lands on the conclusion box rather than a perpetual loading screen.
     if (AppState.circlesPhase === 3 && !AppState.circlesScoreResult) {
       AppState.circlesPhase = 2;
+      AppState.circlesChipExpanded = false;
     }
     AppState.circlesFinalReport       = null;
     return true;
@@ -901,6 +906,7 @@ async function navigate(view) {
   closeOffcanvas();
   if (view === 'circles' && !AppState.circlesSession) {
     AppState.circlesPhase = 1;
+    AppState.circlesChipExpanded = false;
     AppState.circlesSelectedQuestion = null;
     AppState.circlesFrameworkDraft = {};
     AppState.circlesStepDrafts = {};
@@ -984,6 +990,7 @@ function renderNavbar() {
     AppState.circlesSession = null;
     AppState.circlesSelectedQuestion = null;
     AppState.circlesPhase = 1;
+    AppState.circlesChipExpanded = false;
     AppState.circlesFrameworkDraft = {};
     AppState.circlesStepDrafts = {};
     AppState.circlesGateResult = null;
@@ -1142,6 +1149,7 @@ function renderOffcanvasList(listEl, sessions) {
           AppState.circlesMode = cached.mode || 'simulation';
           AppState.circlesDrillStep = cached.drill_step || 'C1';
           AppState.circlesPhase = cached.current_phase || 1;
+          AppState.circlesChipExpanded = false;
           AppState.circlesSimStep = cached.sim_step_index || 0;
           AppState.circlesFrameworkDraft = {};
           AppState.circlesGateResult = null;
@@ -1156,6 +1164,7 @@ function renderOffcanvasList(listEl, sessions) {
             : null;
           if (AppState.circlesPhase === 3 && !AppState.circlesScoreResult) {
             AppState.circlesPhase = 2;
+            AppState.circlesChipExpanded = false;
           }
           AppState.circlesFinalReport = null;
           navigate('circles');
@@ -1663,6 +1672,36 @@ if (typeof toggleCoachHint === 'function') window.toggleCoachHint = toggleCoachH
 
 // ── View stubs（後續 Task 填入）────────────────────
 // CIRCLES stubs — replaced by Tasks 14-18
+
+function renderQuestionAnalysisBlock(q) {
+  // 4 rows happy path; fallback when analysis missing.
+  var a = q && q.analysis;
+  var hasFull = a && a.business && a.users && a.insight;
+  var traps = (a && a.traps) || ((q.common_wrong_directions || []).join('、'));
+
+  if (!hasFull) {
+    console.warn('Question missing analysis:', q.id);
+    return '<div class="qcard-analysis">' +
+      '<div class="ana-row trap"><span class="ana-label"><i class="ph ph-warning"></i> 常見誤區</span>' +
+        '<span class="ana-val">' + escHtml(traps || '—') + '</span></div>' +
+      '<div class="ana-row"><span class="ana-label">其餘欄位</span>' +
+        '<span class="ana-val muted">分析資料載入失敗，請刷新頁面或聯絡管理員</span></div>' +
+    '</div>';
+  }
+
+  return '<div class="qcard-analysis">' +
+    '<div class="ana-row"><span class="ana-label"><i class="ph ph-buildings"></i> 商業背景</span>' +
+      '<span class="ana-val">' + escHtml(a.business) + '</span></div>' +
+    '<div class="ana-row"><span class="ana-label"><i class="ph ph-users"></i> 用戶輪廓</span>' +
+      '<span class="ana-val">' + escHtml(a.users) + '</span></div>' +
+    '<div class="ana-row trap"><span class="ana-label"><i class="ph ph-warning"></i> 常見誤區</span>' +
+      '<span class="ana-val">' + escHtml(traps) + '</span></div>' +
+    '<div class="ana-row"><span class="ana-label"><i class="ph ph-lightbulb"></i> 破題切入</span>' +
+      '<span class="ana-val">' + escHtml(a.insight) + '</span></div>' +
+  '</div>';
+}
+window.renderQuestionAnalysisBlock = renderQuestionAnalysisBlock;
+
 function renderQCardHtml(q) {
   // Spec 2026-04-30 home-card — A1 tag row + B1 line-clamp brief +
   // A1 「完整題目」block on expand. The brief and the full text are visually
@@ -1695,10 +1734,7 @@ function renderQCardHtml(q) {
     '</div>' +
     '<div class="circles-q-card-expand-area scroll-container" style="display:none">' +
       '<div class="scroll-body">' +
-        '<div class="circles-q-card-full-block">' +
-          '<div class="circles-q-card-full-label">完整題目</div>' +
-          '<div class="circles-q-card-full-text">' + escHtml(q.problem_statement || '') + '</div>' +
-        '</div>' +
+        renderQuestionAnalysisBlock(q) +
         drillPracticeHtml +
       '</div>' +
       '<div class="action-row">' +
@@ -1770,40 +1806,132 @@ async function fetchActiveDraft() {
 }
 window.fetchActiveDraft = fetchActiveDraft;
 
-function renderResumeBanner() {
-  const d = AppState.circlesActiveDraft;
-  if (!d) return '';
-  if (localStorage.getItem('dismiss-resume-' + d.id)) return '';
-  const q = d.question_json || {};
-  const company = q.company || '練習';
-  const product = q.product || q.problem_statement || '';
-  return '<div class="resume-banner" data-resume-id="' + escHtml(d.id) + '">' +
-    '<span><strong>未完成練習</strong> · ' + escHtml(company) + (product ? ' · ' + escHtml(product) : '') + ' · ' + escHtml(formatRelativeEdit(d.updated_at)) + '</span>' +
-    '<span><button class="resume-go" type="button" data-id="' + escHtml(d.id) + '">繼續 →</button><button class="dismiss btn-icon" data-id="' + escHtml(d.id) + '" type="button" aria-label="關閉"><i class="ph ph-x"></i></button></span>' +
+async function fetchCirclesStats() {
+  // Login-only. Guests skip silently — UI must not render strip.
+  if (AppState.mode !== 'auth' || !AppState.accessToken) {
+    AppState.circlesStats = null;
+    return;
+  }
+  AppState.circlesStatsLoading = true;
+  try {
+    const r = await fetch('/api/circles-stats', {
+      headers: { 'Authorization': 'Bearer ' + AppState.accessToken },
+    });
+    if (!r.ok) {
+      AppState.circlesStats = null;
+      console.warn('fetchCirclesStats failed:', r.status);
+      return;
+    }
+    AppState.circlesStats = await r.json();
+  } catch (e) {
+    AppState.circlesStats = null;
+    console.warn('fetchCirclesStats threw:', e);
+  } finally {
+    AppState.circlesStatsLoading = false;
+  }
+}
+window.fetchCirclesStats = fetchCirclesStats;
+
+function renderPersistentQuestionChip() {
+  var q = AppState.circlesSelectedQuestion;
+  if (!q) return '';
+  if (AppState.circlesChipExpanded) return renderChipPanelHtml(q);
+  return renderChipCollapsedHtml(q);
+}
+window.renderPersistentQuestionChip = renderPersistentQuestionChip;
+
+function renderChipCollapsedHtml(q) {
+  return '<div class="qchip" id="circles-qchip" role="button" tabindex="0" aria-expanded="false" aria-controls="circles-qchip-panel" data-action="expand-chip">' +
+    '<div class="qchip-icon"><i class="ph ph-info"></i></div>' +
+    '<span class="qchip-tag">題目</span>' +
+    '<span class="qchip-text">' + escHtml(q.problem_statement || '') + '</span>' +
+    '<i class="ph ph-caret-down qchip-toggle"></i>' +
   '</div>';
 }
-window.renderResumeBanner = renderResumeBanner;
 
-function bindResumeBanner() {
-  document.querySelectorAll('.resume-banner .resume-go').forEach(function (el) {
-    el.addEventListener('click', async function () {
-      const id = el.dataset.id;
-      if (!id) return;
-      await loadCirclesSession(id);
-      navigate('circles');
-    });
+function renderChipPanelHtml(q) {
+  var typeLabel = q.question_type === 'design' ? '產品設計' : q.question_type === 'improve' ? '產品改進' : '產品策略';
+  var diffLabel = q.difficulty === 'easy' ? '簡單' : q.difficulty === 'hard' ? '困難' : '中等難度';
+  var meta = [q.company, q.product, typeLabel, diffLabel].filter(Boolean).join(' · ');
+  return '<div class="qchip-panel" id="circles-qchip-panel" role="region" aria-expanded="true">' +
+    '<div class="qchip-panel-head">' +
+      '<span class="qchip-tag">題目</span>' +
+      '<span class="qchip-panel-meta">' + escHtml(meta) + '</span>' +
+      '<button class="qchip-panel-close" type="button" data-action="collapse-chip" aria-label="收合">' +
+        '<i class="ph ph-caret-up"></i> 收合</button>' +
+    '</div>' +
+    '<div class="qchip-panel-stmt">' + escHtml(q.problem_statement || '') + '</div>' +
+    renderQuestionAnalysisBlock(q) +
+  '</div>';
+}
+
+function bindPersistentQuestionChip(rootEl) {
+  var root = rootEl || document;
+  // Idempotent guard: prevent stacking listeners on per-phase bind calls
+  if (root.__qchipBound) return;
+  root.__qchipBound = true;
+
+  // Single delegated handler — works whether chip is collapsed or expanded.
+  root.addEventListener('click', function(e) {
+    var t = e.target.closest('[data-action="expand-chip"]');
+    var c = e.target.closest('[data-action="collapse-chip"]');
+    if (t) {
+      AppState.circlesChipExpanded = true;
+      var slot = document.getElementById('circles-qchip-slot');
+      if (slot) slot.innerHTML = renderPersistentQuestionChip();
+      return;
+    }
+    if (c) {
+      AppState.circlesChipExpanded = false;
+      var slot2 = document.getElementById('circles-qchip-slot');
+      if (slot2) slot2.innerHTML = renderPersistentQuestionChip();
+      return;
+    }
   });
-  document.querySelectorAll('.resume-banner .dismiss').forEach(function (el) {
-    el.addEventListener('click', function (ev) {
-      ev.stopPropagation();
-      const id = el.dataset.id;
-      if (id) localStorage.setItem('dismiss-resume-' + id, '1');
-      const banner = el.closest('.resume-banner');
-      if (banner) banner.remove();
-    });
+
+  // Keyboard support: Enter or Space on expand/collapse buttons
+  root.addEventListener('keydown', function(e) {
+    var t = e.target.closest('[data-action="expand-chip"]');
+    if (!t) return;
+    if (e.key === 'Enter' || e.key === ' ') {
+      e.preventDefault();
+      AppState.circlesChipExpanded = true;
+      var slot = document.getElementById('circles-qchip-slot');
+      if (slot) slot.innerHTML = renderPersistentQuestionChip();
+    }
   });
 }
-window.bindResumeBanner = bindResumeBanner;
+window.bindPersistentQuestionChip = bindPersistentQuestionChip;
+
+function renderStatsStripHtml() {
+  if (AppState.mode !== 'auth') return '';
+
+  if (AppState.circlesStatsLoading) {
+    return '<div id="circles-stats-slot" class="pmd-stats" aria-busy="true">' +
+      '<div class="pmd-stats-icon"><i class="ph ph-chart-bar"></i></div>' +
+      '<div class="pmd-stats-list">' +
+        '<div class="pmd-stat"><span class="pmd-stat-skel"></span><span class="pmd-stat-label">已完成</span></div>' +
+        '<div class="pmd-stat"><span class="pmd-stat-skel"></span><span class="pmd-stat-label">進行中</span></div>' +
+        '<div class="pmd-stat"><span class="pmd-stat-skel"></span><span class="pmd-stat-label">本週新增</span></div>' +
+      '</div>' +
+    '</div>';
+  }
+
+  var s = AppState.circlesStats;
+  if (!s) return '<div id="circles-stats-slot"></div>';
+
+  var isEmpty = (s.completed === 0 && s.active === 0 && s.weeklyCompleted === 0);
+  var muted = isEmpty ? ' muted' : '';
+  return '<div id="circles-stats-slot" class="pmd-stats" role="group" aria-label="練習進度">' +
+    '<div class="pmd-stats-icon"><i class="ph ph-chart-bar"></i></div>' +
+    '<div class="pmd-stats-list">' +
+      '<div class="pmd-stat"><span class="pmd-stat-num blue' + muted + '">' + s.completed + '</span><span class="pmd-stat-label">已完成</span></div>' +
+      '<div class="pmd-stat"><span class="pmd-stat-num red' + muted + '">' + s.active + '</span><span class="pmd-stat-label">進行中</span></div>' +
+      '<div class="pmd-stat"><span class="pmd-stat-num blue' + muted + '">+' + s.weeklyCompleted + '</span><span class="pmd-stat-label">本週新增</span></div>' +
+    '</div>' +
+  '</div>';
+}
+window.renderStatsStripHtml = renderStatsStripHtml;
 
 // ── Onboarding welcome card (Phase 5 Task 5.1) ───────────────────────
 // Spec: docs/superpowers/specs/2026-04-28-desktop-rwd-direction-c-design.md §4.1
@@ -2122,7 +2250,7 @@ function renderCirclesHomeMobile() {
   return '<div data-view="circles">' +
     '<div class="circles-home-wrap">' +
       welcomeHtml +
-      renderResumeBanner() +
+      renderStatsStripHtml() +
       recentHtml +
 
       // Info card — collapsed by default
@@ -2252,7 +2380,7 @@ function renderCirclesHomeDesktop() {
   // pass works identically on desktop + mobile.
   var welcomeHtmlD = (typeof shouldShowOnboardingWelcome === 'function' && shouldShowOnboardingWelcome())
     ? renderOnboardingWelcomeHtml() : '';
-  var bannerHtmlD = (typeof renderResumeBanner === 'function') ? renderResumeBanner() : '';
+  var bannerHtmlD = renderStatsStripHtml();
 
   return '<div data-view="circles" class="circles-home-desktop">' +
     '<div class="circles-home-wrap">' +
@@ -2347,35 +2475,9 @@ function bindCirclesHome() {
     fetchCirclesRecentSessions();
   }
 
-  // Phase 2 Spec 2 § 6.2: bind resume banner controls + fetch fresh active draft.
-  // First call: render whatever's currently in AppState (instant if cached);
-  // then fetch and re-render the slot only if the result changes.
-  bindResumeBanner();
-  fetchActiveDraft().then(function () {
-    const wrap = document.querySelector('[data-view="circles"] .circles-home-wrap');
-    if (!wrap) return;
-    // SIT-1 #5: if active draft exists, suppress welcome card to avoid
-    // simultaneous display of welcome card + resume banner.
-    if (AppState.circlesActiveDraft) {
-      const _w = wrap.querySelector('.onboarding-welcome');
-      if (_w) _w.remove();
-    }
-    const existing = wrap.querySelector('.resume-banner');
-    const newHtml = renderResumeBanner();
-    if (existing && !newHtml) { existing.remove(); return; }
-    if (!existing && newHtml) {
-      // Insert after the welcome card if present, else at top.
-      const welcome = wrap.querySelector('.onboarding-welcome');
-      if (welcome) welcome.insertAdjacentHTML('afterend', newHtml);
-      else wrap.insertAdjacentHTML('afterbegin', newHtml);
-      bindResumeBanner();
-      return;
-    }
-    if (existing && newHtml) {
-      existing.outerHTML = newHtml;
-      bindResumeBanner();
-    }
-  });
+  // Fetch active draft for onboarding welcome card gating (shouldShowOnboardingWelcome).
+  // Note: resume banner injection removed — home renderer no longer includes it.
+  fetchActiveDraft();
 
   // Onboarding welcome card (Phase 5 Task 5.1)
   bindOnboardingWelcome();
@@ -2476,6 +2578,7 @@ function bindCirclesHome() {
         AppState.circlesSelectedQuestion = question;
         AppState.circlesSession = null;
         AppState.circlesPhase = 1;
+        AppState.circlesChipExpanded = false;
         AppState.circlesFrameworkDraft = {};
         AppState.circlesGateResult = null;
         AppState.circlesConversation = [];
@@ -2537,6 +2640,17 @@ function bindCirclesHome() {
     document.addEventListener('mouseout', function(e) {
       if (!e.target.closest('.circles-step-pill[data-tip]')) return;
       pillTipTimer = setTimeout(function() { pillTooltip.classList.remove('visible'); }, 80);
+    });
+  }
+
+  if (AppState.mode === 'auth') {
+    // Show skeleton immediately while fetch is in flight (mockup § ① · A).
+    AppState.circlesStatsLoading = true;
+    var slot = document.getElementById('circles-stats-slot');
+    if (slot) slot.outerHTML = renderStatsStripHtml();
+    fetchCirclesStats().then(function() {
+      var slot2 = document.getElementById('circles-stats-slot');
+      if (slot2) slot2.outerHTML = renderStatsStripHtml();
     });
   }
 }
@@ -2922,12 +3036,12 @@ function renderCirclesPhase1() {
         homeIconBtn('circles-p1-home') +
       '</div>' +
       progressBarHtml +
+      '<div id="circles-qchip-slot">' + renderPersistentQuestionChip() + '</div>' +
       buildCirclesStepHeaderMeta(stepKey) +
       '<div class="p1-grid">' +
         '<div class="p1-main circles-phase1-wrap">' +
           pillsHtml +
           _sStepTabs +
-          '<div class="problem-card">' + escHtml(q.problem_statement || '') + '</div>' +
           (config.showPrevStepCard ? buildPrevStepCardHtml(stepKey) : '') +
           (config.showNsmAnnotation ? '<div class="nsm-annotation">' +
             '此步驟的北極星指標欄位是 NSM 訓練的濃縮版。想深入練習？' +
@@ -2951,11 +3065,11 @@ function renderCirclesPhase1() {
       homeIconBtn('circles-p1-home') +
     '</div>' +
     progressBarHtml +
+    '<div id="circles-qchip-slot">' + renderPersistentQuestionChip() + '</div>' +
     buildCirclesStepHeaderMeta(stepKey) +
     '<div class="circles-phase1-wrap">' +
       pillsHtml +
       _sStepTabs +
-      '<div class="problem-card">' + escHtml(q.problem_statement || '') + '</div>' +
       (config.showPrevStepCard ? buildPrevStepCardHtml(stepKey) : '') +
       (config.showNsmAnnotation ? '<div class="nsm-annotation">' +
         '此步驟的北極星指標欄位是 NSM 訓練的濃縮版。想深入練習？' +
@@ -2968,10 +3082,12 @@ function renderCirclesPhase1() {
 }
 
 function bindCirclesPhase1() {
+  bindPersistentQuestionChip(document.querySelector('[data-view="circles"]'));
   // ── Navigation: back button (clear selection, return to home)
   function backToHome() {
     AppState.circlesSelectedQuestion = null;
     AppState.circlesPhase = 1;
+    AppState.circlesChipExpanded = false;
     AppState.circlesFrameworkDraft = {};
     navigate('circles');
   }
@@ -3288,6 +3404,7 @@ function bindCirclesPhase1() {
 
     AppState.circlesGateLoading = true;
     AppState.circlesPhase = 1.5;
+    AppState.circlesChipExpanded = false;
     render();
 
     var q = AppState.circlesSelectedQuestion;
@@ -3332,6 +3449,7 @@ function bindCirclesPhase1() {
       if (AppState.circlesSession && !AppState.circlesSession.id) AppState.circlesSession = null;
       AppState.circlesGateLoading = false;
       AppState.circlesPhase = 1;
+      AppState.circlesChipExpanded = false;
       render();
     }
   });
@@ -3499,6 +3617,7 @@ function renderCirclesGate() {
       homeBtn +
     '</div>' +
     progressBarHtml +
+    '<div id="circles-qchip-slot">' + renderPersistentQuestionChip() + '</div>' +
     '<div class="circles-gate-wrap">' +
       transitionBar +
       items +
@@ -3508,6 +3627,7 @@ function renderCirclesGate() {
 }
 
 function bindCirclesGate() {
+  bindPersistentQuestionChip(document.querySelector('[data-view="circles"]'));
   // J9 — show "slow" affordance after 20s while gate is still loading
   if (AppState.circlesGateLoading) {
     var _slowTimer = setTimeout(function() {
@@ -3519,11 +3639,13 @@ function bindCirclesGate() {
     document.getElementById('circles-gate-retry')?.addEventListener('click', function() {
       AppState.circlesGateLoading = false;
       AppState.circlesPhase = 1;
+      AppState.circlesChipExpanded = false;
       render();
     });
   }
   document.getElementById('circles-gate-back')?.addEventListener('click', function() {
     AppState.circlesPhase = 1;
+    AppState.circlesChipExpanded = false;
     render();
   });
   document.getElementById('circles-gate-home')?.addEventListener('click', function() {
@@ -3531,11 +3653,13 @@ function bindCirclesGate() {
   });
   document.getElementById('circles-gate-fix')?.addEventListener('click', function() {
     AppState.circlesPhase = 1;
+    AppState.circlesChipExpanded = false;
     render();
   });
   // Both inline (pass state) and bottom-bar (simulation override) use #circles-gate-continue
   document.getElementById('circles-gate-continue')?.addEventListener('click', function() {
     AppState.circlesPhase = 2;
+    AppState.circlesChipExpanded = false;
     render();
   });
 }
@@ -3672,6 +3796,7 @@ function renderCirclesPhase2() {
       homeIconBtn('circles-p2-home') +
     '</div>' +
     progressBarHtml +
+    '<div id="circles-qchip-slot">' + renderPersistentQuestionChip() + '</div>' +
     pinnedCard +
     '<div class="circles-chat-body" id="circles-chat-body"' + chatBodyAttrs + '>' + icebreakerHtml + bubbles + '<div id="circles-streaming-bubble"></div></div>' +
     bottomSection +
@@ -3691,6 +3816,7 @@ function toggleCoachHint(btn) {
 }
 
 function bindCirclesPhase2() {
+  bindPersistentQuestionChip(document.querySelector('[data-view="circles"]'));
   // Keyboard avoidance (unchanged)
   if (_adjustCirclesKbFn && window.visualViewport) {
     window.visualViewport.removeEventListener('resize', _adjustCirclesKbFn);
@@ -3736,6 +3862,7 @@ function bindCirclesPhase2() {
   // Back button
   document.getElementById('circles-p2-back')?.addEventListener('click', function() {
     AppState.circlesPhase = 1.5;
+    AppState.circlesChipExpanded = false;
     AppState.circlesSubmitState = null;
     render();
   });
@@ -3745,6 +3872,7 @@ function bindCirclesPhase2() {
     AppState.circlesSelectedQuestion = null;
     AppState.circlesSession = null;
     AppState.circlesPhase = 1;
+    AppState.circlesChipExpanded = false;
     AppState.circlesSubmitState = null;
     AppState.circlesConclusionText = '';
     AppState.circlesConversation = [];
@@ -3881,6 +4009,7 @@ function bindCirclesPhase2() {
       AppState.circlesSubmitState = null;
       AppState.circlesConclusionText = '';
       AppState.circlesPhase = 3;
+      AppState.circlesChipExpanded = false;
       render();
     } catch (e) {
       btn.disabled = false;
@@ -4134,6 +4263,7 @@ function renderCirclesStepScore() {
     '</div>' +
     scoreNavRow +
     progressBarHtml +
+    '<div id="circles-qchip-slot">' + renderPersistentQuestionChip() + '</div>' +
     '<div class="circles-score-wrap">' +
       '<div class="circles-score-total">' +
         '<div class="circles-score-number">' + Math.round(result.totalScore || 0) + '</div>' +
@@ -4153,9 +4283,11 @@ function renderCirclesStepScore() {
 }
 
 function bindCirclesStepScore() {
+  bindPersistentQuestionChip(document.querySelector('[data-view="circles"]'));
   // Back arrow → return to Phase 2
   document.getElementById('circles-score-back')?.addEventListener('click', function() {
     AppState.circlesPhase = 2;
+    AppState.circlesChipExpanded = false;
     render();
   });
 
@@ -4175,6 +4307,7 @@ function bindCirclesStepScore() {
     AppState.circlesSelectedQuestion = null;
     AppState.circlesSession = null;
     AppState.circlesPhase = 1;
+    AppState.circlesChipExpanded = false;
     AppState.circlesScoreResult = null;
     AppState.circlesFinalReport = null;
     AppState.circlesStepScores = {};
@@ -4188,6 +4321,7 @@ function bindCirclesStepScore() {
   // 看完整總結報告 (simulation last step S)
   document.getElementById('circles-score-final')?.addEventListener('click', function() {
     AppState.circlesPhase = 4;
+    AppState.circlesChipExpanded = false;
     AppState.circlesCoachOpen = false;
     render();
   });
@@ -4196,6 +4330,7 @@ function bindCirclesStepScore() {
   document.getElementById('circles-score-again')?.addEventListener('click', function() {
     AppState.circlesSession = null;
     AppState.circlesPhase = 1;
+    AppState.circlesChipExpanded = false;
     AppState.circlesFrameworkDraft = {};
     AppState.circlesGateResult = null;
     AppState.circlesConversation = [];
@@ -4212,6 +4347,7 @@ function bindCirclesStepScore() {
   document.getElementById('drill-encourage-again')?.addEventListener('click', function() {
     AppState.circlesSession = null;
     AppState.circlesPhase = 1;
+    AppState.circlesChipExpanded = false;
     AppState.circlesFrameworkDraft = {};
     AppState.circlesGateResult = null;
     AppState.circlesConversation = [];
@@ -4229,6 +4365,7 @@ function bindCirclesStepScore() {
       var nextStep = CIRCLES_STEPS[stepIdx + 1];
       AppState.circlesDrillStep = nextStep.key;
       AppState.circlesPhase = 1;
+      AppState.circlesChipExpanded = false;
       AppState.circlesFrameworkDraft = {};
       AppState.circlesGateResult = null;
       AppState.circlesConversation = [];
@@ -4396,6 +4533,7 @@ function renderCirclesFinalReport() {
 
   return '<div data-view="circles">' +
     navBar +
+    '<div id="circles-qchip-slot">' + renderPersistentQuestionChip() + '</div>' +
     '<div class="circles-final-report" style="padding:16px 0 80px">' +
       '<div class="grade-card">' +
         '<div class="grade-letter" style="color:' + gradeColor + '">' + escHtml(report.grade || '') + '</div>' +
@@ -4427,6 +4565,7 @@ function renderCirclesFinalReport() {
 }
 
 function bindCirclesFinalReport() {
+  bindPersistentQuestionChip(document.querySelector('[data-view="circles"]'));
   if (!AppState.circlesFinalReport) {
     var session = AppState.circlesSession;
     if (session && session.id) {
@@ -4460,6 +4599,7 @@ function bindCirclesFinalReport() {
   document.getElementById('circles-final-again')?.addEventListener('click', function() {
     AppState.circlesSession = null;
     AppState.circlesPhase = 1;
+    AppState.circlesChipExpanded = false;
     AppState.circlesFrameworkDraft = {};
     AppState.circlesGateResult = null;
     AppState.circlesConversation = [];
@@ -4475,6 +4615,7 @@ function bindCirclesFinalReport() {
     AppState.circlesSelectedQuestion = null;
     AppState.circlesSession = null;
     AppState.circlesPhase = 1;
+    AppState.circlesChipExpanded = false;
     AppState.circlesScoreResult = null;
     AppState.circlesFinalReport = null;
     AppState.circlesStepConclusions = {};
