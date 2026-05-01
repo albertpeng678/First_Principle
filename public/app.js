@@ -3822,14 +3822,30 @@ function renderCirclesPhase2() {
   // Phase 4.3 — desktop wrapper class (max-width 920 from CSS)
   var _phase2DesktopCls = (typeof isDesktop === 'function' && isDesktop()) ? ' phase2-desktop' : '';
 
-  // SP1.5 B2: phase-back button — always present, label varies by lock state.
+  // SP1.5 B2: phase-back row — adapt to lock state.
   // Clicking returns to phase 1 of the same step; framework draft + conversation
   // are preserved (do NOT mutate AppState here).
-  var phaseBackHtml = '<div class="circles-phase-back-row" style="padding:8px 14px;background:transparent">' +
-    '<button class="circles-btn-secondary" id="circles-p2-prev-phase" type="button">' +
-      '<i class="ph ph-arrow-left"></i> ' + (isLocked ? '上一步（看框架）' : '上一步') +
-    '</button>' +
-  '</div>';
+  var phaseBackHtml;
+  if (isLocked) {
+    // Locked: secondary "上一步（看框架）" + primary "回評分"
+    phaseBackHtml = '<div class="circles-phase-back-row" style="padding:8px 14px;background:transparent;display:flex;gap:8px">' +
+      '<button class="circles-btn-secondary" id="circles-p2-prev-phase" type="button" style="flex:1">' +
+        '<i class="ph ph-arrow-left"></i> 上一步（看框架）' +
+      '</button>' +
+      '<button class="circles-btn-primary" id="circles-p2-back-score" type="button" style="flex:1">' +
+        '回評分' +
+      '</button>' +
+    '</div>';
+  } else {
+    // Unlocked: just secondary "上一步"
+    phaseBackHtml = '<div class="circles-phase-back-row" style="padding:8px 14px;background:transparent">' +
+      '<button class="circles-btn-secondary" id="circles-p2-prev-phase" type="button">' +
+        '<i class="ph ph-arrow-left"></i> 上一步' +
+      '</button>' +
+    '</div>';
+  }
+  // Hide phase-back row when conclusion box is expanded (its own controls take over)
+  if (submitState === 'expanded') phaseBackHtml = '';
 
   return '<div data-view="circles" class="circles-chat-wrap' + _phase2DesktopCls + '">' +
     '<div class="circles-nav">' +
@@ -4061,6 +4077,12 @@ function bindCirclesPhase2() {
   // AppState.circlesConversation + AppState.circlesFrameworkDraft (no mutation here).
   document.getElementById('circles-p2-prev-phase')?.addEventListener('click', function() {
     AppState.circlesPhase = 1;
+    navigate('circles');
+  });
+
+  // SP1.5 B1 fix: 回評分 button (locked phase 2 only) → phase 3 score view
+  document.getElementById('circles-p2-back-score')?.addEventListener('click', function() {
+    AppState.circlesPhase = 3;
     navigate('circles');
   });
 }
