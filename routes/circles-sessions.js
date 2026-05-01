@@ -120,6 +120,7 @@ router.get('/:id', requireAuth, async (req, res) => {
     .eq('user_id', req.user.id)
     .single();
   if (error || !data) return res.status(404).json({ error: 'not_found' });
+  data.currentQuestion = QUESTION_BY_ID[data.question_id] || null;
   res.json(data);
 });
 

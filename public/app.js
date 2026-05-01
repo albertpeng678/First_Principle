@@ -37,6 +37,7 @@ const AppState = {
   circlesSelectedType: 'design',   // 'design' | 'improve' | 'strategy'
   circlesDrillStep: 'C1',          // which step to drill
   circlesSelectedQuestion: null,   // { id, company, ... }
+  circlesStale: false,             // SP1.5 Q3 — true when restored snapshot diverges from current DB
   circlesSession: null,            // { id, mode, drill_step } — other fields live in top-level AppState keys
   circlesPhase: 1,                 // 1 | 1.5 | 2 | 3 (score) | 4 (report)
   circlesChipExpanded: false,
@@ -630,6 +631,10 @@ async function loadCirclesSession(sessionId) {
               .find(function(x) { return x.id === s.question_id; }) || s.question_json;
 
     AppState.circlesSelectedQuestion  = q;
+    AppState.circlesStale = computeStaleFlag(
+      s.question_json,
+      s.currentQuestion || null
+    );
     AppState.circlesSession           = { id: s.id, mode: s.mode, drill_step: s.drill_step };
     AppState.circlesMode              = s.mode;
     AppState.circlesDrillStep         = s.drill_step || 'C1';
@@ -1169,6 +1174,10 @@ function renderOffcanvasList(listEl, sessions) {
         const cached = AppState.offcanvasCache?.find(s => s.id === id);
         if (cached && cached.status !== 'completed') {
           AppState.circlesSelectedQuestion = cached.question_json;
+          AppState.circlesStale = computeStaleFlag(
+            cached.question_json,
+            cached.currentQuestion || null
+          );
           AppState.circlesSession = { id: cached.id, mode: cached.mode, drill_step: cached.drill_step };
           AppState.circlesMode = cached.mode || 'simulation';
           AppState.circlesDrillStep = cached.drill_step || 'C1';
