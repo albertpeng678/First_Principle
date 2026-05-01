@@ -956,7 +956,7 @@ textarea::placeholder { white-space: nowrap; overflow: hidden; text-overflow: el
 }
 .nsm-navbar {
   display: flex; align-items: center; justify-content: space-between;
-  padding: 12px 16px; border-bottom: 1px solid var(--border);
+  padding: 12px var(--pad-block); border-bottom: 1px solid var(--border);
   background: var(--bg-primary); position: sticky; top: 0; z-index: 10;
 }
 .nsm-title { font-size: 16px; font-weight: 700; color: var(--text-primary); }
@@ -971,7 +971,7 @@ textarea::placeholder { white-space: nowrap; overflow: hidden; text-overflow: el
 }
 
 .nsm-progress {
-  display: flex; align-items: center; padding: 12px 16px; gap: 4px;
+  display: flex; align-items: center; padding: 12px var(--pad-block); gap: 4px;
   background: var(--bg-primary);
 }
 .nsm-progress-step {
@@ -1418,7 +1418,7 @@ body { -webkit-font-smoothing: antialiased; }
    Replaces the old 7×3px-bar strip; see spec
    docs/superpowers/specs/2026-04-30-circles-progress-redesign-design.md */
 [data-view="circles"] .circles-progress {
-  padding: 14px 16px;
+  padding: 14px var(--pad-block);
   background: var(--c-card);
   border-bottom: 1px solid var(--c-border);
 }
@@ -1478,7 +1478,7 @@ body { -webkit-font-smoothing: antialiased; }
 [data-view="circles"] .circles-nav {
   background: var(--c-card);
   border-bottom: 1px solid var(--c-border);
-  padding: 12px 16px;
+  padding: 12px var(--pad-block);
   display: flex;
   align-items: center;
   gap: 10px;
@@ -1886,7 +1886,7 @@ body { -webkit-font-smoothing: antialiased; }
   bottom: 0; left: 0; right: 0;
   background: var(--c-card);
   border-top: 1px solid var(--c-border);
-  padding: 12px 16px;
+  padding: 12px var(--pad-block);
   padding-bottom: calc(12px + env(safe-area-inset-bottom));
   z-index: 20;
   display: flex;
@@ -2236,7 +2236,7 @@ body { -webkit-font-smoothing: antialiased; }
   bottom: 0;
   background: var(--c-bg-1, #fff);
   border-top: 1px solid var(--c-bg-3, #e5e7eb);
-  padding: 12px 16px calc(12px + env(safe-area-inset-bottom));
+  padding: 12px var(--pad-block) calc(12px + env(safe-area-inset-bottom));
   display: flex;
   gap: 8px;
   align-items: center;
@@ -4684,4 +4684,31 @@ a.btn:focus-visible {
   padding: 6px 10px;
 }
 .qchip-panel-close:hover { color: var(--c-primary); }
+
+/* ── SP1-T5: block horizontal padding — tablet/desktop overrides ─────────
+   Mobile base uses var(--pad-block) = 14px (set inline above).
+   Tablet ≥ 768px → 18px; Desktop ≥ 1280px → 22px.
+   ──────────────────────────────────────────────────────────────────────── */
+@media (min-width: 768px) {
+  [data-view="circles"] .circles-nav,
+  [data-view="circles"] .circles-progress,
+  [data-view="circles"] .circles-submit-bar,
+  .scroll-container > .action-row,
+  .nsm-navbar,
+  .nsm-progress {
+    padding-left: var(--pad-block-tablet);
+    padding-right: var(--pad-block-tablet);
+  }
+}
+@media (min-width: 1280px) {
+  [data-view="circles"] .circles-nav,
+  [data-view="circles"] .circles-progress,
+  [data-view="circles"] .circles-submit-bar,
+  .scroll-container > .action-row,
+  .nsm-navbar,
+  .nsm-progress {
+    padding-left: var(--pad-block-desktop);
+    padding-right: var(--pad-block-desktop);
+  }
+}
 
