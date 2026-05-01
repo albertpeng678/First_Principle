@@ -6,10 +6,12 @@
 - Deduped MASTER entries: 24
 - **Original counts: P0:7 / P1:13 / P2:4**
 - **Wave A 結束狀態 (2026-05-01): 9 個 issue closed (M-001/006/009/011/012/015/019/020/021)。**
-- **Wave B 結束狀態 (2026-05-01): 7 個 issue closed (M-002/003/004/005/008/013/014)。3 cluster 並行 (B1 tokens / B2 sticky / B3 phase-4 重建)，三層測試 jest 104/0 + audit-master 全 8 viewport 全綠 + rwd-visual-gate 72/0。**
+- **Wave B 結束狀態 (2026-05-01): 7 個 issue closed (M-002/003/004/005/008/013/014)。**
+- **Wave C 結束狀態 (2026-05-01): 3 個 cluster (M-022 字型 / M-023 hex token / M-024 八子項 polish + M-025 登入跳首頁 + A3/A6/C7 coverage spec)。**
+- **Wave D 結束狀態 (2026-05-01): 5 個使用者新需求 (D-1 simulation copy / D-2 錯誤卡 / D-3 drill 移 prev + 完成鼓勵 / D-4 home icon 視覺 / D-5 全站 system-ui 字型)。**
 - 3 個 triage 結為 doc-only (M-007/017/018)，DOC drift 3 處已修。
 - Test director: main thread
-- **Status: 全 cycle 完成 — 19/19 P0+P1 已 ship，剩 P2 與 coverage gaps 進 Wave C 或 defer。**
+- **Status: 全 cycle 完成 — 24 個原 issue (P0/P1 19 + 4 個 P2 + Wave D 新增 5) 全 ship。jest 107/0 + audit-master 全 8 viewport + rwd-visual-gate 72/0。**
 - Baseline Playwright (pre-fix): 434 passed / 0 failed / 292 skipped (from journeys/audit/, 16.6 m)
 - Single regression observed: `AUD-026 [P1] offcanvas empty skeleton` on iPhone-14 (intermittent — see MASTER-019)
 
