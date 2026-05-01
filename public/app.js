@@ -3693,17 +3693,6 @@ function renderCirclesPhase2() {
     return userBubble + intervieweeBubble + coachingBubble;
   }).join('');
 
-  // Pinned question card
-  var pinnedCard = q ? (
-    '<div class="circles-pinned-card" id="circles-pinned-card">' +
-      '<div style="display:flex;align-items:center;gap:6px;margin-bottom:4px">' +
-        '<span style="background:var(--c-banner-info-bg);color:var(--c-primary);border-radius:4px;padding:1px 6px;font-size:9px;font-weight:700">' + escHtml(q.company) + '</span>' +
-      '</div>' +
-      '<div style="font-size:11px;color:var(--c-text-1);font-weight:600;line-height:1.4" id="circles-pinned-stmt">' + escHtml(q.problem_statement.slice(0, 80)) + (q.problem_statement.length > 80 ? '…' : '') + '</div>' +
-      (q.problem_statement.length > 80 ? '<div id="circles-pinned-toggle" style="font-size:10px;color:var(--c-primary);cursor:pointer;margin-top:2px">展開 ▾</div>' : '') +
-    '</div>'
-  ) : '';
-
   // Bottom section: input bar OR collapsed strip OR conclusion box
   var bottomSection;
   if (submitState === 'expanded') {
@@ -3779,7 +3768,6 @@ function renderCirclesPhase2() {
     '</div>' +
     progressBarHtml +
     '<div id="circles-qchip-slot">' + renderPersistentQuestionChip() + '</div>' +
-    pinnedCard +
     '<div class="circles-chat-body" id="circles-chat-body"' + chatBodyAttrs + '>' + icebreakerHtml + bubbles + '<div id="circles-streaming-bubble"></div></div>' +
     bottomSection +
   '</div>';
