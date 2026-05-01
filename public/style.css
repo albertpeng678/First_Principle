@@ -134,7 +134,7 @@ body {
   .nsm-home-desktop { width: 100%; max-width: min(1880px, 94vw); margin: 0 auto; padding: 18px 32px 100px; }
   .nsm-step2-desktop { max-width: 720px; margin: 0 auto; padding: 18px 24px 100px; }
   .nsm-step3-desktop { max-width: 920px; margin: 0 auto; padding: 18px 24px 100px; }
-  .nsm-step4-desktop { max-width: 920px; margin: 0 auto; padding: 18px 24px 100px; }
+  .nsm-step4-desktop { max-width: min(1880px, 94vw); margin: 0 auto; padding: 18px 24px 100px; }
   .review-desktop { max-width: min(1880px, 94vw); margin: 0 auto; padding: 24px 32px; }
   .login-desktop { max-width: 420px; margin: 60px auto 0; padding: 0 24px; }
 }
@@ -4114,7 +4114,7 @@ textarea.rt-textarea {
   .nsm-home-desktop { max-width: min(1880px, 94vw); padding: 18px 32px 100px; }
   .nsm-step2-desktop { max-width: min(960px, 80vw); }
   .nsm-step3-desktop { max-width: min(1180px, 88vw); }
-  .nsm-step4-desktop { max-width: min(1180px, 88vw); }
+  .nsm-step4-desktop { max-width: min(1880px, 94vw); }
   .review-desktop   { max-width: min(1880px, 94vw); padding: 24px 32px; }
   .login-desktop {
     max-width: 460px;
@@ -4161,6 +4161,7 @@ textarea.rt-textarea {
   .circles-home-desktop { max-width: min(2800px, 94vw); }
   .phase1-desktop { max-width: min(2800px, 94vw); }
   .nsm-home-desktop { max-width: min(2800px, 94vw); }
+  .nsm-step4-desktop { max-width: min(2800px, 94vw); }
   .review-desktop   { max-width: min(2800px, 94vw); }
   .container.review-desktop { max-width: min(2800px, 94vw); }
 
@@ -4412,3 +4413,33 @@ a.btn:focus-visible {
     gap: 12px;
   }
 }
+
+/* M-024-D — 忘記密碼次要化（預設 12px / text-3 / 無底線；hover 才轉 primary 並底線） */
+#forgot-password-link { font-size: 12px; color: var(--c-text-3); text-decoration: none; }
+@media (hover: hover) and (pointer: fine) {
+  #forgot-password-link:hover { color: var(--c-primary); text-decoration: underline; }
+}
+
+/* M-024-G — circles-step-meta-row flex-wrap nowrap + ellipsis（已有 .circles-step-meta，加新 row class） */
+[data-view="circles"] .circles-step-meta-row,
+.circles-step-meta-row {
+  display: flex;
+  flex-wrap: nowrap;
+  align-items: center;
+  gap: 6px;
+  min-width: 0;
+}
+.circles-step-meta-row > * {
+  min-width: 0;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+/* M-024 — conclusion-back-btn 套 M-008 token min-height 44px */
+[data-view="circles"] .conclusion-back-btn {
+  min-height: 44px;
+  display: inline-flex;
+  align-items: center;
+}
+
