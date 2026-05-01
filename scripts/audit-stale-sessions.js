@@ -32,20 +32,23 @@ function normalize(s) {
   return String(s || '').replace(/\s+/g, ' ').trim();
 }
 
-async function fetchAll(table, ownerCol) {
+async function fetchAll() {
+  // Single table — guest_id vs user_id distinguishes auth/guest rows.
   const { data, error } = await supabase
-    .from(table)
-    .select(`id, ${ownerCol}, question_id, question_json, status`)
+    .from('circles_sessions')
+    .select('id, user_id, guest_id, question_id, question_json, status')
     .limit(5000);
   if (error) throw error;
   return data;
 }
 
 async function main() {
-  const auth = await fetchAll('circles_sessions', 'user_id');
-  const guest = await fetchAll('guest_circles_sessions', 'guest_id');
-  const rows = auth.map(r => ({ ...r, owner: r.user_id, kind: 'auth' }))
-    .concat(guest.map(r => ({ ...r, owner: r.guest_id, kind: 'guest' })));
+  const all = await fetchAll();
+  const rows = (all || []).map(r => ({
+    ...r,
+    owner: r.user_id || r.guest_id,
+    kind: r.user_id ? 'auth' : 'guest',
+  }));
 
   console.log(['session_id', 'kind', 'owner', 'question_id', 'status', 'snapshot', 'current'].join('\t'));
   let staleCount = 0;
