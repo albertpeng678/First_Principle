@@ -18,6 +18,7 @@ test.describe('SP1.5 locked-step state (B1)', () => {
         problem_statement: 'Locked test',
         analysis: { business: 'a', users: 'b', insight: 'c' }
       };
+      window.AppState.circlesSession = { id: 'mock-test-session-id', mode: 'drill', drill_step: 'C1' };
       window.AppState.circlesPhase = 1;
       window.AppState.circlesDrillStep = 'C1';
       window.AppState.circlesMode = 'drill';

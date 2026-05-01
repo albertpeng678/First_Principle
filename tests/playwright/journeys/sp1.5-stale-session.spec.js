@@ -15,6 +15,7 @@ test.describe('SP1.5 stale session (Q3)', () => {
         problem_statement: 'Spotify 用戶在創建新播放列表後，對於如何填充內容感到困惑…如何設計一個功能幫助新用戶快速建立符合他們品味的播放列表？',
         analysis: { business: 'mock', users: 'mock', insight: 'mock' }
       };
+      window.AppState.circlesSession = { id: 'mock-test-session-id', mode: 'drill', drill_step: 'C1' };
       window.AppState.circlesPhase = 1;
       window.AppState.circlesDrillStep = 'C1';
       window.AppState.circlesMode = 'drill';

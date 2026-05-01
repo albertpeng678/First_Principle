@@ -24,6 +24,7 @@ test.describe('SP1.5 phase2 back button (B2)', () => {
         { userMessage: 'preserved-message-1', interviewee: 'preserved-reply-1', coaching: 'c1', hint: 'h1' }
       ];
       window.AppState.circlesStepScores = {};  // unlocked
+      window.AppState.circlesSession = { id: 'mock-test-session-id', mode: 'drill', drill_step: 'C1' };
       window.AppState.circlesPhase = 2;
       window.AppState.circlesDrillStep = 'C1';
       window.AppState.circlesMode = 'drill';
