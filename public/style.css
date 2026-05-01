@@ -166,6 +166,12 @@ body {
   .nsm-step4-desktop { max-width: min(1880px, 94vw); margin: 0 auto; padding: 18px 0 100px; }
   .review-desktop { max-width: min(1880px, 94vw); margin: 0 auto; padding: 24px 0; }
   .login-desktop { max-width: 420px; margin: 60px auto 0; padding: 0 24px; }
+  /* SP1.5 A2: q-card retains rounded card chrome on desktop (centered with .phase1-desktop max-width) */
+  [data-view="circles"] .circles-q-card {
+    border-radius: var(--r-card);
+    border-left: 1.5px solid var(--c-border);
+    border-right: 1.5px solid var(--c-border);
+  }
 }
 
 /* Navbar — sticky glassmorphism (aistockmap pattern) */
@@ -1698,9 +1704,11 @@ body { -webkit-font-smoothing: antialiased; }
 }
 [data-view="circles"] .circles-q-card {
   padding: 14px 16px;
-  border-radius: var(--r-card);
+  border-radius: 0;
   background: var(--c-card);
   border: 1.5px solid var(--c-border);
+  border-left: none;
+  border-right: none;
   cursor: pointer;
   touch-action: manipulation;
   -webkit-tap-highlight-color: transparent;
