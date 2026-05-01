@@ -4713,3 +4713,11 @@ a.btn:focus-visible {
   }
 }
 
+/* SP1-T7 — field-level error visualisation (replaces removed error bar) */
+.field-input.has-error,
+.rt-textarea.has-error,
+input.has-error,
+textarea.has-error {
+  border: 1.5px solid var(--c-danger, #ef4444) !important;
+  background: rgba(239, 68, 68, 0.03);
+}
