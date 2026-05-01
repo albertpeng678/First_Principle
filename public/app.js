@@ -3810,6 +3810,15 @@ function renderCirclesPhase2() {
   // Phase 4.3 — desktop wrapper class (max-width 920 from CSS)
   var _phase2DesktopCls = (typeof isDesktop === 'function' && isDesktop()) ? ' phase2-desktop' : '';
 
+  // SP1.5 B2: phase-back button — always present, label varies by lock state.
+  // Clicking returns to phase 1 of the same step; framework draft + conversation
+  // are preserved (do NOT mutate AppState here).
+  var phaseBackHtml = '<div class="circles-phase-back-row" style="padding:8px 14px;background:transparent">' +
+    '<button class="circles-btn-secondary" id="circles-p2-prev-phase" type="button">' +
+      '<i class="ph ph-arrow-left"></i> ' + (isLocked ? '上一步（看框架）' : '上一步') +
+    '</button>' +
+  '</div>';
+
   return '<div data-view="circles" class="circles-chat-wrap' + _phase2DesktopCls + '">' +
     '<div class="circles-nav">' +
       '<button class="circles-nav-back" id="circles-p2-back"><i class="ph ph-arrow-left"></i></button>' +
@@ -3823,6 +3832,7 @@ function renderCirclesPhase2() {
     progressBarHtml +
     '<div id="circles-qchip-slot">' + renderPersistentQuestionChip() + '</div>' +
     '<div class="circles-chat-body" id="circles-chat-body"' + chatBodyAttrs + '>' + icebreakerHtml + bubbles + '<div id="circles-streaming-bubble"></div></div>' +
+    phaseBackHtml +
     bottomSection +
   '</div>';
 }
@@ -4032,6 +4042,13 @@ function bindCirclesPhase2() {
     // submit the half-formed Chinese input. Bail before sending.
     if (e.isComposing || e.keyCode === 229) return;
     if (e.key === 'Enter' && !e.shiftKey) { e.preventDefault(); sendCirclesMessage(); }
+  });
+
+  // SP1.5 B2 — phase-back: switch to phase 1 of same step. Preserve
+  // AppState.circlesConversation + AppState.circlesFrameworkDraft (no mutation here).
+  document.getElementById('circles-p2-prev-phase')?.addEventListener('click', function() {
+    AppState.circlesPhase = 1;
+    navigate('circles');
   });
 }
 
