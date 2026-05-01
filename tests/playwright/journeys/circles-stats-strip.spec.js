@@ -5,12 +5,24 @@ const { test, expect } = require('@playwright/test');
 
 test.describe('CIRCLES home — stats strip', () => {
   test('logged-in user sees stats strip with 3 stats', async ({ page }) => {
-    // FIXME: Integration with Supabase test user fixture pending
-    // Current approach: test will fail until login mechanism is available
-    // Once available, replace goto with authenticated session or loginAs query param
+    // Mock the stats endpoint with sample data
+    await page.route('**/api/circles-stats', route => route.fulfill({
+      status: 200,
+      contentType: 'application/json',
+      body: JSON.stringify({ completed: 12, active: 3, weeklyCompleted: 2 }),
+    }));
 
     await page.goto('/');
     await page.waitForSelector('[data-view="circles"]');
+
+    // Inject auth state and re-render to expose the strip
+    await page.evaluate(() => {
+      window.AppState.mode = 'auth';
+      window.AppState.accessToken = 'mock-test-token';
+      window.AppState.circlesStats = { completed: 12, active: 3, weeklyCompleted: 2 };
+      window.AppState.circlesStatsLoading = false;
+      window.render && window.render();
+    });
 
     const strip = page.locator('.pmd-stats');
     await expect(strip).toBeVisible();

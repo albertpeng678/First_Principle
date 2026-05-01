@@ -4,8 +4,11 @@ test.describe('CIRCLES persistent question chip', () => {
   test('chip is present on Phase 1 after entering practice', async ({ page }) => {
     await page.goto('/');
     await page.click('[data-mode="simulation"]');
-    await page.locator('.circles-q-card').first().click();
-    await page.locator('.circles-q-confirm-btn').click();
+    const firstCard = page.locator('.circles-q-card').first();
+    await firstCard.click();
+    // Wait for expand area to be visible before clicking confirm
+    await page.locator('.circles-q-card-expand-area').first().waitFor({ timeout: 5000 });
+    await firstCard.locator('.circles-q-confirm-btn').click();
     await expect(page.locator('#circles-qchip-slot .qchip')).toBeVisible();
     await page.screenshot({ path: 'test-results/chip-phase1.png' });
 
