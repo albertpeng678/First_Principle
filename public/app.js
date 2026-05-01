@@ -799,12 +799,16 @@ let supabase;
 async function initSupabase() {
   const { createClient } = await import('https://esm.sh/@supabase/supabase-js@2');
   supabase = createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
+  window.supabase = supabase; // expose for tests / debug
   supabase.auth.onAuthStateChange((event, session) => {
     if (session) {
       AppState.mode = 'auth';
       AppState.accessToken = session.access_token;
       AppState.user = session.user;
-      if (event === 'SIGNED_IN') migrateGuestSessions();
+      if (event === 'SIGNED_IN') {
+        migrateGuestSessions();
+        if (AppState.view === 'login' || AppState.view === 'register') AppState.view = 'circles';
+      }
     } else {
       AppState.mode = 'guest';
       AppState.accessToken = null;
