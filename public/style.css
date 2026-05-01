@@ -4786,3 +4786,31 @@ textarea.has-error {
   font-size: 12px;
   font-weight: 700;
 }
+
+/* SP1.5 Q3 — stale-snapshot banner (yellow, full-width, read-only mode signal) */
+:root {
+  --c-warn-bg: #fef3c7;
+  --c-warn-border: #f5d77a;
+  --c-warn-bold: #b8860b;
+}
+[data-view="circles"] .stale-banner {
+  background: var(--c-warn-bg);
+  border-bottom: 1px solid var(--c-warn-border);
+  padding: 12px 16px;
+  display: flex; align-items: flex-start; gap: 10px;
+  font-size: 13px;
+  line-height: 1.55;
+  color: var(--c-text-1, #222);
+}
+[data-view="circles"] .stale-banner .icon {
+  color: var(--c-warn-bold);
+  font-size: 1.25rem;
+  flex-shrink: 0;
+  margin-top: 1px;
+}
+[data-view="circles"] .stale-banner strong {
+  display: block;
+  color: var(--c-warn-bold);
+  font-weight: 700;
+  margin-bottom: 2px;
+}

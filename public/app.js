@@ -108,6 +108,18 @@ function renderLockedBanner(stepKey, stepScores) {
   '</div>';
 }
 
+// SP1.5 Q3 — render stale-snapshot banner when AppState.circlesStale === true
+function renderStaleBanner() {
+  if (!AppState.circlesStale) return '';
+  return '<div class="stale-banner">' +
+    '<i class="ph ph-warning-octagon icon"></i>' +
+    '<div>' +
+      '<strong>此題目已被更新（snapshot 與當前題庫不一致）</strong>' +
+      '為避免顯示與原本練習不一致的內容，本紀錄已轉為唯讀。下方為你練習時看到的原版題目與輸入。' +
+    '</div>' +
+  '</div>';
+}
+
 // ── Home icon button helper (MASTER-015) ──
 // Returns a 44×44 icon-only "回首頁" button. Caller supplies the id used by
 // existing click handlers; visual styling lives in .btn-home-icon CSS.
@@ -2947,7 +2959,7 @@ function renderCirclesPhase1() {
   var config = CIRCLES_STEP_CONFIG[stepKey] || CIRCLES_STEP_CONFIG.C1;
   var draft = AppState.circlesFrameworkDraft || {};
   var isSimulation = mode === 'simulation';
-  var isLocked = isStepLocked(stepKey, AppState.circlesStepScores);
+  var isLocked = isStepLocked(stepKey, AppState.circlesStepScores) || AppState.circlesStale === true;
 
   var progressBarHtml = buildCirclesProgressBar(stepIdx, { includeSaveIndicator: true });
 
@@ -3041,6 +3053,12 @@ function renderCirclesPhase1() {
       '<button class="circles-btn-primary" id="circles-p1-submit" type="button">' + (isLastStep ? '送出評分' : '下一步') + '</button>' +
     '</div>';
   }
+  // SP1.5 Q3 — stale override: highest priority, single 回首頁 button
+  if (AppState.circlesStale) {
+    submitBarHtml = '<div class="circles-submit-bar">' +
+      '<button class="circles-btn-primary" id="circles-stale-home" type="button">回首頁</button>' +
+    '</div>';
+  }
 
   // Phase 4.2 — desktop wrapper class
   var _isDesktopP1 = (typeof isDesktop === 'function' && isDesktop());
@@ -3087,6 +3105,7 @@ function renderCirclesPhase1() {
       '</div>' +
       progressBarHtml +
       renderLockedBanner(stepKey, AppState.circlesStepScores) +
+      renderStaleBanner() +
       '<div id="circles-qchip-slot">' + renderPersistentQuestionChip() + '</div>' +
       buildCirclesStepHeaderMeta(stepKey) +
       '<div class="p1-grid">' +
@@ -3117,6 +3136,7 @@ function renderCirclesPhase1() {
     '</div>' +
     progressBarHtml +
     renderLockedBanner(stepKey, AppState.circlesStepScores) +
+    renderStaleBanner() +
     '<div id="circles-qchip-slot">' + renderPersistentQuestionChip() + '</div>' +
     buildCirclesStepHeaderMeta(stepKey) +
     '<div class="circles-phase1-wrap">' +
@@ -3148,6 +3168,10 @@ function bindCirclesPhase1() {
     navigate('circles');
   }
   document.getElementById('circles-p1-nav-back')?.addEventListener('click', backToHome);
+  // SP1.5 Q3 — stale-mode 回首頁
+  document.getElementById('circles-stale-home')?.addEventListener('click', function() {
+    navigate('home');
+  });
   // SP1.5 B1 — when locked, #circles-p1-back means 回評分 (phase 3); else 返回選題.
   document.getElementById('circles-p1-back')?.addEventListener('click', function() {
     if (isStepLocked(stepKey, AppState.circlesStepScores)) {
@@ -3722,7 +3746,7 @@ function renderCirclesPhase2() {
   var q = AppState.circlesSelectedQuestion;
   var mode = AppState.circlesMode;
   var stepKey = AppState.circlesDrillStep;
-  var isLocked = isStepLocked(stepKey, AppState.circlesStepScores);
+  var isLocked = isStepLocked(stepKey, AppState.circlesStepScores) || AppState.circlesStale === true;
   var stepIdx = CIRCLES_STEPS.findIndex(function(s) { return s.key === stepKey; });
   var step = CIRCLES_STEPS[stepIdx];
   var conv = AppState.circlesConversation;
@@ -3856,6 +3880,15 @@ function renderCirclesPhase2() {
   // Hide phase-back row when conclusion box is expanded (its own controls take over)
   if (submitState === 'expanded') phaseBackHtml = '';
 
+  // SP1.5 Q3 — stale override: highest priority, single 回首頁 button replaces
+  // both phase-back row and bottom input bar.
+  if (AppState.circlesStale) {
+    phaseBackHtml = '';
+    bottomSection = '<div class="circles-submit-bar">' +
+      '<button class="circles-btn-primary" id="circles-stale-home" type="button">回首頁</button>' +
+    '</div>';
+  }
+
   return '<div data-view="circles" class="circles-chat-wrap' + _phase2DesktopCls + '">' +
     '<div class="circles-nav">' +
       '<button class="circles-nav-back" id="circles-p2-back"><i class="ph ph-arrow-left"></i></button>' +
@@ -3868,6 +3901,7 @@ function renderCirclesPhase2() {
     '</div>' +
     progressBarHtml +
     renderLockedBanner(stepKey, AppState.circlesStepScores) +
+    renderStaleBanner() +
     '<div id="circles-qchip-slot">' + renderPersistentQuestionChip() + '</div>' +
     '<div class="circles-chat-body" id="circles-chat-body"' + chatBodyAttrs + '>' + icebreakerHtml + bubbles + '<div id="circles-streaming-bubble"></div></div>' +
     phaseBackHtml +
@@ -3889,6 +3923,10 @@ function toggleCoachHint(btn) {
 
 function bindCirclesPhase2() {
   bindPersistentQuestionChip(document.querySelector('[data-view="circles"]'));
+  // SP1.5 Q3 — stale-mode 回首頁
+  document.getElementById('circles-stale-home')?.addEventListener('click', function() {
+    navigate('home');
+  });
   // Keyboard avoidance (unchanged)
   if (_adjustCirclesKbFn && window.visualViewport) {
     window.visualViewport.removeEventListener('resize', _adjustCirclesKbFn);
@@ -4331,6 +4369,7 @@ function renderCirclesStepScore() {
     '</div>' +
     scoreNavRow +
     progressBarHtml +
+    renderStaleBanner() +
     '<div id="circles-qchip-slot">' + renderPersistentQuestionChip() + '</div>' +
     '<div class="circles-score-wrap">' +
       '<div class="circles-score-total">' +
