@@ -4350,3 +4350,65 @@ a.btn:focus-visible {
 }
 
 
+/* ======== M-004/M-005 Phase-4 Final Report 重建 ======== */
+.circles-final-report { display: flex; flex-direction: column; gap: 12px; }
+
+.circles-final-report .grade-card { background:#fff; border:1px solid rgba(0,0,0,0.08); border-radius:16px; padding:20px; text-align:center; }
+.circles-final-report .grade-letter { font-size:56px; font-weight:800; line-height:1; font-family:'Instrument Serif',serif; }
+.circles-final-report .grade-score { font-size:18px; color:var(--c-text-1,#1a1a1a); margin:8px 0 4px; font-weight:600; }
+.circles-final-report .grade-headline { font-size:14px; color:var(--c-text-3); }
+
+.circles-final-report .top-grid { display:flex; flex-direction:column; gap:12px; }
+.circles-final-report .radar-card,
+.circles-final-report .step-rows,
+.circles-final-report .tracking-card { background:#fff; border:1px solid rgba(0,0,0,0.08); border-radius:16px; padding:16px; }
+.circles-final-report .radar-card h4,
+.circles-final-report .step-rows h4,
+.circles-final-report .tracking-card h4 { font-size:12px; font-weight:600; color:var(--c-text-3); text-transform:uppercase; letter-spacing:.05em; margin:0 0 8px; }
+
+.circles-final-report .radar-svg { width:100%; height:220px; display:block; }
+.circles-final-report .radar-poly { fill:rgba(91,33,182,0.18); stroke:var(--c-primary,#5b21b6); stroke-width:2; }
+.circles-final-report .radar-axis { stroke:#d4d4d8; stroke-width:1; }
+.circles-final-report .radar-grid { stroke:#e5e7eb; stroke-width:1; fill:none; }
+.circles-final-report .radar-label { font-size:11px; fill:var(--c-text-3); font-weight:500; }
+.circles-final-report .radar-dot { fill:var(--c-primary,#5b21b6); }
+
+.circles-final-report .step-rows .row { display:flex; justify-content:space-between; padding:6px 0; font-size:13px; border-bottom:1px solid #f3f4f6; }
+.circles-final-report .step-rows .row:last-child { border-bottom:none; }
+.circles-final-report .step-rows .score { font-weight:600; }
+.circles-final-report .step-rows .score.high { color:var(--c-ok-bold,#15803d); }
+.circles-final-report .step-rows .score.mid  { color:var(--c-warn-bold,#b45309); }
+.circles-final-report .step-rows .score.low  { color:var(--c-error,#b91c1c); }
+
+.circles-final-report .tracking-dim { padding:12px; border-radius:10px; margin-bottom:8px; border-left:3px solid; }
+.circles-final-report .tracking-dim.reach     { border-color:#3b82f6; background:rgba(59,130,246,0.06); }
+.circles-final-report .tracking-dim.depth     { border-color:#8b5cf6; background:rgba(139,92,246,0.06); }
+.circles-final-report .tracking-dim.frequency { border-color:#10b981; background:rgba(16,185,129,0.06); }
+.circles-final-report .tracking-dim.impact    { border-color:#f59e0b; background:rgba(245,158,11,0.06); }
+.circles-final-report .tracking-dim .dim-head { display:flex; align-items:center; gap:8px; margin-bottom:4px; }
+.circles-final-report .tracking-dim .dim-dot { width:8px; height:8px; border-radius:50%; flex-shrink:0; }
+.circles-final-report .tracking-dim .dim-label { font-weight:600; font-size:13px; color:var(--c-text-1,#1a1a1a); }
+.circles-final-report .tracking-dim .dim-content { font-size:12.5px; color:var(--c-text-3); line-height:1.6; }
+.circles-final-report .tracking-dim .dim-placeholder { font-style:italic; color:var(--c-text-3); opacity:0.6; }
+
+.circles-final-report .strength-card { background:#f0fdf4; border:1px solid #bbf7d0; border-radius:16px; padding:12px 16px; }
+.circles-final-report .strength-card h4 { font-size:12px; font-weight:600; color:#137a3d; margin:0 0 6px; }
+.circles-final-report .strength-card ul,
+.circles-final-report .improve-card ul { padding-left:18px; margin:0; font-size:12.5px; line-height:1.6; }
+.circles-final-report .improve-card { background:#fff7ed; border:1px solid #fed7aa; border-radius:16px; padding:12px 16px; }
+.circles-final-report .improve-card h4 { font-size:12px; font-weight:600; color:#b45309; margin:0 0 6px; }
+
+.circles-final-report .verdict-card { background:#eef3ff; border:1px solid #c5d5ff; border-radius:16px; padding:12px 16px; }
+.circles-final-report .verdict-card h4 { font-size:12px; font-weight:600; color:var(--c-primary,#5b21b6); margin:0 0 6px; }
+.circles-final-report .verdict-card p { font-size:12.5px; color:var(--c-text-1,#1a1a1a); line-height:1.6; margin:0; }
+
+.circles-final-report .nextsteps-card { background:#fff; border:1px solid rgba(0,0,0,0.08); border-radius:12px; padding:14px; font-size:13px; color:var(--c-text-3); line-height:1.6; }
+.circles-final-report .nextsteps-card .nextsteps-label { font-weight:600; color:var(--c-text-1,#1a1a1a); }
+
+@media (min-width: 1024px) {
+  .circles-final-report .top-grid {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 12px;
+  }
+}
