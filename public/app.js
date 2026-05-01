@@ -75,6 +75,8 @@ const AppState = {
   circlesSavingInFlight: false,
   circlesSavingPending: false,       // queued change while inflight
   circlesActiveDraft: null,          // for homepage resume banner
+  circlesStats: null,           // { completed, active, weeklyCompleted } | null
+  circlesStatsLoading: false,
 };
 
 // Expose for tests + debugging.
@@ -1770,6 +1772,32 @@ async function fetchActiveDraft() {
 }
 window.fetchActiveDraft = fetchActiveDraft;
 
+async function fetchCirclesStats() {
+  // Login-only. Guests skip silently — UI must not render strip.
+  if (AppState.mode !== 'auth' || !AppState.accessToken) {
+    AppState.circlesStats = null;
+    return;
+  }
+  AppState.circlesStatsLoading = true;
+  try {
+    const r = await fetch('/api/circles-stats', {
+      headers: { 'Authorization': 'Bearer ' + AppState.accessToken },
+    });
+    if (!r.ok) {
+      AppState.circlesStats = null;
+      console.warn('fetchCirclesStats failed:', r.status);
+      return;
+    }
+    AppState.circlesStats = await r.json();
+  } catch (e) {
+    AppState.circlesStats = null;
+    console.warn('fetchCirclesStats threw:', e);
+  } finally {
+    AppState.circlesStatsLoading = false;
+  }
+}
+window.fetchCirclesStats = fetchCirclesStats;
+
 function renderResumeBanner() {
   const d = AppState.circlesActiveDraft;
   if (!d) return '';
@@ -1783,6 +1811,36 @@ function renderResumeBanner() {
   '</div>';
 }
 window.renderResumeBanner = renderResumeBanner;
+
+function renderStatsStripHtml() {
+  if (AppState.mode !== 'auth') return '';
+
+  if (AppState.circlesStatsLoading) {
+    return '<div id="circles-stats-slot" class="pmd-stats" aria-busy="true">' +
+      '<div class="pmd-stats-icon"><i class="ph ph-chart-bar"></i></div>' +
+      '<div class="pmd-stats-list">' +
+        '<div class="pmd-stat"><span class="pmd-stat-skel"></span><span class="pmd-stat-label">已完成</span></div>' +
+        '<div class="pmd-stat"><span class="pmd-stat-skel"></span><span class="pmd-stat-label">進行中</span></div>' +
+        '<div class="pmd-stat"><span class="pmd-stat-skel"></span><span class="pmd-stat-label">本週新增</span></div>' +
+      '</div>' +
+    '</div>';
+  }
+
+  var s = AppState.circlesStats;
+  if (!s) return '<div id="circles-stats-slot"></div>';
+
+  var isEmpty = (s.completed === 0 && s.active === 0 && s.weeklyCompleted === 0);
+  var muted = isEmpty ? ' muted' : '';
+  return '<div id="circles-stats-slot" class="pmd-stats" role="group" aria-label="練習進度">' +
+    '<div class="pmd-stats-icon"><i class="ph ph-chart-bar"></i></div>' +
+    '<div class="pmd-stats-list">' +
+      '<div class="pmd-stat"><span class="pmd-stat-num blue' + muted + '">' + s.completed + '</span><span class="pmd-stat-label">已完成</span></div>' +
+      '<div class="pmd-stat"><span class="pmd-stat-num red' + muted + '">' + s.active + '</span><span class="pmd-stat-label">進行中</span></div>' +
+      '<div class="pmd-stat"><span class="pmd-stat-num blue' + muted + '">+' + s.weeklyCompleted + '</span><span class="pmd-stat-label">本週新增</span></div>' +
+    '</div>' +
+  '</div>';
+}
+window.renderStatsStripHtml = renderStatsStripHtml;
 
 function bindResumeBanner() {
   document.querySelectorAll('.resume-banner .resume-go').forEach(function (el) {
@@ -2122,7 +2180,7 @@ function renderCirclesHomeMobile() {
   return '<div data-view="circles">' +
     '<div class="circles-home-wrap">' +
       welcomeHtml +
-      renderResumeBanner() +
+      renderStatsStripHtml() +
       recentHtml +
 
       // Info card — collapsed by default
@@ -2252,7 +2310,7 @@ function renderCirclesHomeDesktop() {
   // pass works identically on desktop + mobile.
   var welcomeHtmlD = (typeof shouldShowOnboardingWelcome === 'function' && shouldShowOnboardingWelcome())
     ? renderOnboardingWelcomeHtml() : '';
-  var bannerHtmlD = (typeof renderResumeBanner === 'function') ? renderResumeBanner() : '';
+  var bannerHtmlD = renderStatsStripHtml();
 
   return '<div data-view="circles" class="circles-home-desktop">' +
     '<div class="circles-home-wrap">' +
@@ -2537,6 +2595,13 @@ function bindCirclesHome() {
     document.addEventListener('mouseout', function(e) {
       if (!e.target.closest('.circles-step-pill[data-tip]')) return;
       pillTipTimer = setTimeout(function() { pillTooltip.classList.remove('visible'); }, 80);
+    });
+  }
+
+  if (AppState.mode === 'auth') {
+    fetchCirclesStats().then(function() {
+      var slot = document.getElementById('circles-stats-slot');
+      if (slot) slot.outerHTML = renderStatsStripHtml();
     });
   }
 }
