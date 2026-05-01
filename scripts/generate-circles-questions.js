@@ -31,7 +31,12 @@ const SYSTEM_PROMPT = `你是 PM 面試題庫生成器。回傳格式必須是 {
     "S": "總結推薦示範（100-150字）"
   },
   "common_wrong_directions": ["錯誤方向1", "錯誤方向2", "錯誤方向3"],
-  "anti_patterns": ["常見錯誤指標或假設1", "常見錯誤指標或假設2"]
+  "anti_patterns": ["常見錯誤指標或假設1", "常見錯誤指標或假設2"],
+  "analysis": {
+    "business": "商業背景：這家公司靠什麼賺錢、本題情境如何嵌入商業模式（1-2 句、繁體中文，60-100字）",
+    "users": "用戶輪廓：典型用戶分群與情境動機，不洩漏 hidden_context（1-2 句，60-100字）",
+    "insight": "破題切入：學員應該優先思考哪個 CIRCLES 步驟、用什麼角度切入；不洩漏答案（1-2 句，60-120字）"
+  }
 }
 
 要求：
@@ -40,6 +45,16 @@ const SYSTEM_PROMPT = `你是 PM 面試題庫生成器。回傳格式必須是 {
 - hidden_context 設計讓好問題才能挖出的資訊
 - coach_circles 示範要真實可用，非通用廢話
 - 全部繁體中文`;
+
+function isQuestionFullyAnalyzed(q) {
+  return q.analysis && q.analysis.business && q.analysis.users && q.analysis.insight;
+}
+
+function postProcessQuestion(q) {
+  q.analysis = q.analysis || {};
+  q.analysis.traps = (q.common_wrong_directions || []).join('、');
+  return q;
+}
 
 async function generateBatch(type, startId, count) {
   const label = BATCHES.find(b => b.type === type).label;
@@ -61,17 +76,45 @@ async function generateBatch(type, startId, count) {
     throw new Error(`Empty response for type=${type} startId=${startId} (finish_reason: ${resp.choices[0].finish_reason})`);
   }
   const parsed = JSON.parse(raw);
-  if (Array.isArray(parsed)) return parsed;
-  // Find the key whose value is an array of objects (not strings)
-  const arr = Object.values(parsed).find(v => Array.isArray(v) && v.length > 0 && typeof v[0] === 'object');
-  return arr ?? [];
+  let arr;
+  if (Array.isArray(parsed)) arr = parsed;
+  else {
+    // Find the key whose value is an array of objects (not strings)
+    arr = Object.values(parsed).find(v => Array.isArray(v) && v.length > 0 && typeof v[0] === 'object');
+  }
+  arr = arr ?? [];
+  return arr.map(postProcessQuestion);
 }
 
 async function main() {
   const outDir = path.join(__dirname, '..', 'circles_plan');
   if (!fs.existsSync(outDir)) fs.mkdirSync(outDir, { recursive: true });
 
-  let allQuestions = [];
+  // Load existing questions to enable idempotent re-runs
+  const jsPath = path.join(__dirname, '..', 'public', 'circles-db.js');
+  let existingQuestions = [];
+  const existingById = {};
+  if (fs.existsSync(jsPath)) {
+    try {
+      const jsContent = fs.readFileSync(jsPath, 'utf8');
+      // Extract JSON from: var CIRCLES_QUESTIONS = [...];
+      const match = jsContent.match(/var\s+CIRCLES_QUESTIONS\s*=\s*(\[.*\]);?$/ms);
+      if (match) {
+        existingQuestions = JSON.parse(match[1]);
+        existingQuestions.forEach(q => {
+          existingById[q.id] = q;
+          // Always recompute traps since common_wrong_directions may have changed
+          if (q.common_wrong_directions) {
+            postProcessQuestion(q);
+          }
+        });
+      }
+    } catch (e) {
+      console.warn(`Warning: could not load existing questions from ${jsPath}: ${e.message}`);
+    }
+  }
+
+  let allQuestions = [...existingQuestions];
   let currentId = 1;
 
   for (const { type, count } of BATCHES) {
@@ -80,21 +123,60 @@ async function main() {
     const chunkSize = 15;
     for (let i = 0; i < count; i += chunkSize) {
       const batchCount = Math.min(chunkSize, count - i);
-      const questions = await generateBatch(type, currentId, batchCount);
-      allQuestions = allQuestions.concat(questions);
-      if (questions.length !== batchCount) {
-        console.warn(`  WARNING: requested ${batchCount}, got ${questions.length}`);
+      const toGenerate = [];
+      const toSkip = [];
+
+      // Determine which questions to generate and which to skip
+      for (let j = 0; j < batchCount; j++) {
+        const qid = `circles_${String(currentId + j).padStart(3, '0')}`;
+        const existing = existingById[qid];
+        if (existing && isQuestionFullyAnalyzed(existing)) {
+          toSkip.push(qid);
+        } else {
+          toGenerate.push(qid);
+        }
       }
-      currentId += questions.length;
-      console.log(`  Generated ${questions.length} (total: ${allQuestions.length})`);
+
+      if (toGenerate.length > 0) {
+        const questions = await generateBatch(type, currentId, toGenerate.length);
+        // Merge newly generated with existing
+        const merged = [];
+        let genIdx = 0;
+        for (let j = 0; j < batchCount; j++) {
+          const qid = `circles_${String(currentId + j).padStart(3, '0')}`;
+          if (toSkip.includes(qid)) {
+            merged.push(existingById[qid]);
+          } else {
+            if (genIdx < questions.length) {
+              merged.push(questions[genIdx]);
+              existingById[qid] = questions[genIdx];
+              genIdx++;
+            }
+          }
+        }
+        allQuestions = allQuestions.concat(merged);
+        if (questions.length !== toGenerate.length) {
+          console.warn(`  WARNING: requested ${toGenerate.length}, got ${questions.length}`);
+        }
+      } else {
+        // All questions in this batch are already analyzed, skip generation
+        const skipped = [];
+        for (const qid of toSkip) {
+          skipped.push(existingById[qid]);
+        }
+        allQuestions = allQuestions.concat(skipped);
+      }
+
+      currentId += batchCount;
+      const skipInfo = toSkip.length > 0 ? ` (skipped ${toSkip.length} existing)` : '';
+      console.log(`  Generated/skipped ${batchCount}${skipInfo} (total: ${allQuestions.length})`);
     }
   }
 
   const outPath = path.join(outDir, 'circles_database.json');
   fs.writeFileSync(outPath, JSON.stringify(allQuestions, null, 2), 'utf8');
 
-  // Also write public/circles-db.js in the var format expected by the SPA
-  const jsPath = path.join(__dirname, '..', 'public', 'circles-db.js');
+  // Write public/circles-db.js in the var format expected by the SPA
   const jsContent = '// Auto-generated — do not edit manually\n' +
     '// Run: node scripts/generate-circles-questions.js to regenerate\n' +
     'var CIRCLES_QUESTIONS = ' + JSON.stringify(allQuestions, null, 2) + ';\n';
