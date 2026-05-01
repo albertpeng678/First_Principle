@@ -3053,12 +3053,12 @@ function renderCirclesPhase1() {
         homeIconBtn('circles-p1-home') +
       '</div>' +
       progressBarHtml +
+      '<div id="circles-qchip-slot">' + renderPersistentQuestionChip() + '</div>' +
       buildCirclesStepHeaderMeta(stepKey) +
       '<div class="p1-grid">' +
         '<div class="p1-main circles-phase1-wrap">' +
           pillsHtml +
           _sStepTabs +
-          '<div class="problem-card">' + escHtml(q.problem_statement || '') + '</div>' +
           (config.showPrevStepCard ? buildPrevStepCardHtml(stepKey) : '') +
           (config.showNsmAnnotation ? '<div class="nsm-annotation">' +
             '此步驟的北極星指標欄位是 NSM 訓練的濃縮版。想深入練習？' +
@@ -3082,11 +3082,11 @@ function renderCirclesPhase1() {
       homeIconBtn('circles-p1-home') +
     '</div>' +
     progressBarHtml +
+    '<div id="circles-qchip-slot">' + renderPersistentQuestionChip() + '</div>' +
     buildCirclesStepHeaderMeta(stepKey) +
     '<div class="circles-phase1-wrap">' +
       pillsHtml +
       _sStepTabs +
-      '<div class="problem-card">' + escHtml(q.problem_statement || '') + '</div>' +
       (config.showPrevStepCard ? buildPrevStepCardHtml(stepKey) : '') +
       (config.showNsmAnnotation ? '<div class="nsm-annotation">' +
         '此步驟的北極星指標欄位是 NSM 訓練的濃縮版。想深入練習？' +
@@ -3099,6 +3099,7 @@ function renderCirclesPhase1() {
 }
 
 function bindCirclesPhase1() {
+  bindPersistentQuestionChip(document.querySelector('[data-view="circles"]'));
   // ── Navigation: back button (clear selection, return to home)
   function backToHome() {
     AppState.circlesSelectedQuestion = null;
@@ -3633,6 +3634,7 @@ function renderCirclesGate() {
       homeBtn +
     '</div>' +
     progressBarHtml +
+    '<div id="circles-qchip-slot">' + renderPersistentQuestionChip() + '</div>' +
     '<div class="circles-gate-wrap">' +
       transitionBar +
       items +
@@ -3642,6 +3644,7 @@ function renderCirclesGate() {
 }
 
 function bindCirclesGate() {
+  bindPersistentQuestionChip(document.querySelector('[data-view="circles"]'));
   // J9 — show "slow" affordance after 20s while gate is still loading
   if (AppState.circlesGateLoading) {
     var _slowTimer = setTimeout(function() {
@@ -3810,6 +3813,7 @@ function renderCirclesPhase2() {
       homeIconBtn('circles-p2-home') +
     '</div>' +
     progressBarHtml +
+    '<div id="circles-qchip-slot">' + renderPersistentQuestionChip() + '</div>' +
     pinnedCard +
     '<div class="circles-chat-body" id="circles-chat-body"' + chatBodyAttrs + '>' + icebreakerHtml + bubbles + '<div id="circles-streaming-bubble"></div></div>' +
     bottomSection +
@@ -3829,6 +3833,7 @@ function toggleCoachHint(btn) {
 }
 
 function bindCirclesPhase2() {
+  bindPersistentQuestionChip(document.querySelector('[data-view="circles"]'));
   // Keyboard avoidance (unchanged)
   if (_adjustCirclesKbFn && window.visualViewport) {
     window.visualViewport.removeEventListener('resize', _adjustCirclesKbFn);
@@ -4275,6 +4280,7 @@ function renderCirclesStepScore() {
     '</div>' +
     scoreNavRow +
     progressBarHtml +
+    '<div id="circles-qchip-slot">' + renderPersistentQuestionChip() + '</div>' +
     '<div class="circles-score-wrap">' +
       '<div class="circles-score-total">' +
         '<div class="circles-score-number">' + Math.round(result.totalScore || 0) + '</div>' +
@@ -4294,6 +4300,7 @@ function renderCirclesStepScore() {
 }
 
 function bindCirclesStepScore() {
+  bindPersistentQuestionChip(document.querySelector('[data-view="circles"]'));
   // Back arrow → return to Phase 2
   document.getElementById('circles-score-back')?.addEventListener('click', function() {
     AppState.circlesPhase = 2;
@@ -4543,6 +4550,7 @@ function renderCirclesFinalReport() {
 
   return '<div data-view="circles">' +
     navBar +
+    '<div id="circles-qchip-slot">' + renderPersistentQuestionChip() + '</div>' +
     '<div class="circles-final-report" style="padding:16px 0 80px">' +
       '<div class="grade-card">' +
         '<div class="grade-letter" style="color:' + gradeColor + '">' + escHtml(report.grade || '') + '</div>' +
@@ -4574,6 +4582,7 @@ function renderCirclesFinalReport() {
 }
 
 function bindCirclesFinalReport() {
+  bindPersistentQuestionChip(document.querySelector('[data-view="circles"]'));
   if (!AppState.circlesFinalReport) {
     var session = AppState.circlesSession;
     if (session && session.id) {
