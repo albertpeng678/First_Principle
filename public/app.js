@@ -4169,6 +4169,70 @@ function bindCirclesStepScore() {
   });
 }
 
+// MASTER-004 — Phase-4 final report 7 軸雷達圖
+function renderCirclesRadarSvg(stepScores) {
+  var keys = ['C1','I','R','C2','L','E','S'];
+  var labels = { C1:'C 澄清', I:'I 用戶', R:'R 需求', C2:'C2 排序', L:'L 方案', E:'E 取捨', S:'S 總結' };
+  var cx = 120, cy = 110, R = 92;
+  var pts = keys.map(function(k, i) {
+    var raw = (stepScores && stepScores[k] && stepScores[k].totalScore) || 0;
+    var v = Math.max(0, Math.min(100, raw)) / 100;
+    var ang = -Math.PI / 2 + (Math.PI * 2 * i / keys.length);
+    return {
+      x: cx + R * v * Math.cos(ang),
+      y: cy + R * v * Math.sin(ang),
+      ang: ang,
+      label: labels[k] || k,
+    };
+  });
+  var poly = pts.map(function(p) { return p.x.toFixed(1) + ',' + p.y.toFixed(1); }).join(' ');
+  var grids = [0.75, 0.5, 0.25].map(function(scale) {
+    var gp = keys.map(function(_, i) {
+      var ang = -Math.PI / 2 + (Math.PI * 2 * i / keys.length);
+      return (cx + R * scale * Math.cos(ang)).toFixed(1) + ',' + (cy + R * scale * Math.sin(ang)).toFixed(1);
+    }).join(' ');
+    return '<polygon class="radar-grid" points="' + gp + '"/>';
+  }).join('');
+  var axes = pts.map(function(p) {
+    var x2 = cx + R * Math.cos(p.ang), y2 = cy + R * Math.sin(p.ang);
+    return '<line class="radar-axis" x1="' + cx + '" y1="' + cy + '" x2="' + x2.toFixed(1) + '" y2="' + y2.toFixed(1) + '"/>';
+  }).join('');
+  var dots = pts.map(function(p) { return '<circle class="radar-dot" cx="' + p.x.toFixed(1) + '" cy="' + p.y.toFixed(1) + '" r="3"/>'; }).join('');
+  var labelEls = pts.map(function(p) {
+    var lx = cx + (R + 16) * Math.cos(p.ang);
+    var ly = cy + (R + 16) * Math.sin(p.ang);
+    var anchor = lx > cx + 1 ? 'start' : (lx < cx - 1 ? 'end' : 'middle');
+    return '<text class="radar-label" x="' + lx.toFixed(1) + '" y="' + ly.toFixed(1) + '" text-anchor="' + anchor + '">' + escHtml(p.label) + '</text>';
+  }).join('');
+  return '<svg class="radar-svg" viewBox="0 0 240 220" preserveAspectRatio="xMidYMid meet" role="img" aria-label="CIRCLES 七步驟分數雷達圖">' +
+    grids + axes +
+    '<polygon class="radar-poly" points="' + poly + '"/>' +
+    dots + labelEls +
+  '</svg>';
+}
+
+// MASTER-005 — Phase-4 final report NSM 4-dim tracking block
+function renderCirclesTrackingBlock(tracking) {
+  tracking = tracking || {};
+  var rows = (CIRCLES_TRACKING_DIMS || []).map(function(dim) {
+    var v = tracking[dim.key];
+    var content = (typeof v === 'string' && v.trim())
+      ? '<div class="dim-content">' + escHtml(v) + '</div>'
+      : '<div class="dim-content dim-placeholder">（未填寫）</div>';
+    return '<div class="tracking-dim ' + dim.key + '">' +
+      '<div class="dim-head">' +
+        '<span class="dim-dot" style="background:' + dim.dotColor + '"></span>' +
+        '<span class="dim-label">' + escHtml(dim.label) + ' · ' + escHtml(dim.desc) + '</span>' +
+      '</div>' +
+      content +
+    '</div>';
+  }).join('');
+  return '<div class="tracking-card">' +
+    '<h4>NSM 追蹤指標</h4>' +
+    rows +
+  '</div>';
+}
+
 function renderCirclesFinalReport() {
   var report = AppState.circlesFinalReport;
   var q = AppState.circlesSelectedQuestion;
@@ -4202,46 +4266,59 @@ function renderCirclesFinalReport() {
   var stepRows = ['C1','I','R','C2','L','E','S'].filter(function(k) { return stepScores[k]; }).map(function(k) {
     var s = stepScores[k];
     var scoreNum = Math.round(s.totalScore || 0);
-    var color = scoreNum >= 70 ? 'var(--c-ok-bold)' : scoreNum >= 50 ? 'var(--c-warn-bold)' : 'var(--c-error)';
-    return '<div style="display:flex;justify-content:space-between;align-items:center;padding:8px 0;border-bottom:1px solid #eee;font-family:DM Sans,sans-serif">' +
-      '<span style="font-size:13px;color:#1a1a1a">' + escHtml(stepLabels[k] || k) + '</span>' +
-      '<span style="font-size:13px;font-weight:600;color:' + color + '">' + scoreNum + '</span>' +
+    var grade = scoreNum >= 70 ? 'high' : scoreNum >= 50 ? 'mid' : 'low';
+    return '<div class="row">' +
+      '<span>' + escHtml(stepLabels[k] || k) + '</span>' +
+      '<span class="score ' + grade + '">' + scoreNum + '</span>' +
     '</div>';
   }).join('');
 
   var strengths = (report.strengths || []).map(function(s) {
-    return '<li style="margin-bottom:6px;font-size:13px;font-family:DM Sans,sans-serif;color:#1a1a1a">' + escHtml(s) + '</li>';
+    return '<li>' + escHtml(s) + '</li>';
   }).join('');
 
   var improvements = (report.improvements || []).map(function(s) {
-    return '<li style="margin-bottom:6px;font-size:13px;font-family:DM Sans,sans-serif;color:#1a1a1a">' + escHtml(s) + '</li>';
+    return '<li>' + escHtml(s) + '</li>';
   }).join('');
+
+  var topGridHtml =
+    '<div class="top-grid">' +
+      '<div class="radar-card">' +
+        '<h4>各步驟雷達圖</h4>' +
+        renderCirclesRadarSvg(stepScores) +
+      '</div>' +
+      '<div class="step-rows">' +
+        '<h4>各步驟分數（明細）</h4>' +
+        stepRows +
+      '</div>' +
+    '</div>';
+  var trackingHtml = renderCirclesTrackingBlock(
+    (AppState.circlesFrameworkDraft && AppState.circlesFrameworkDraft.tracking) || {}
+  );
 
   return '<div data-view="circles">' +
     navBar +
     '<div class="circles-final-report" style="padding:16px 0 80px">' +
-      '<div style="background:#fff;border-radius:16px;padding:20px;text-align:center;margin-bottom:16px;border:1px solid rgba(0,0,0,0.08)">' +
-        '<div style="font-size:56px;font-weight:800;color:' + gradeColor + ';font-family:Instrument Serif,serif;line-height:1">' + escHtml(report.grade || '') + '</div>' +
-        '<div style="font-size:18px;color:#1a1a1a;margin:8px 0 4px;font-family:DM Sans,sans-serif;font-weight:600">' + Math.round(report.overallScore || 0) + ' 分</div>' +
-        '<div style="font-size:14px;color:#5a5a5a;font-family:DM Sans,sans-serif">' + escHtml(report.headline || '') + '</div>' +
+      '<div class="grade-card">' +
+        '<div class="grade-letter" style="color:' + gradeColor + '">' + escHtml(report.grade || '') + '</div>' +
+        '<div class="grade-score">' + Math.round(report.overallScore || 0) + ' 分</div>' +
+        '<div class="grade-headline">' + escHtml(report.headline || '') + '</div>' +
       '</div>' +
-      '<div style="background:#fff;border-radius:16px;padding:16px;margin-bottom:16px;border:1px solid rgba(0,0,0,0.08)">' +
-        '<div style="font-size:12px;font-weight:600;color:#8a8a8a;text-transform:uppercase;letter-spacing:.6px;margin-bottom:8px;font-family:DM Sans,sans-serif">各步驟分數</div>' +
-        stepRows +
+      topGridHtml +
+      trackingHtml +
+      '<div class="strength-card">' +
+        '<h4><i class="ph ph-check-circle"></i> 表現優秀</h4>' +
+        '<ul>' + strengths + '</ul>' +
       '</div>' +
-      '<div style="background:#F0FFF4;border-radius:16px;padding:16px;margin-bottom:12px;border:1px solid #BBF7D0">' +
-        '<div style="font-size:12px;font-weight:600;color:#137A3D;margin-bottom:8px;font-family:DM Sans,sans-serif"><i class="ph ph-check-circle"></i> 表現優秀</div>' +
-        '<ul style="padding-left:18px;margin:0">' + strengths + '</ul>' +
+      '<div class="improve-card">' +
+        '<h4>△ 需要改進</h4>' +
+        '<ul>' + improvements + '</ul>' +
       '</div>' +
-      '<div style="background:#FFF7ED;border-radius:16px;padding:16px;margin-bottom:12px;border:1px solid #FED7AA">' +
-        '<div style="font-size:12px;font-weight:600;color:var(--c-warn-bold);margin-bottom:8px;font-family:DM Sans,sans-serif">△ 需要改進</div>' +
-        '<ul style="padding-left:18px;margin:0">' + improvements + '</ul>' +
+      '<div class="verdict-card">' +
+        '<h4>教練總評</h4>' +
+        '<p>' + escHtml(report.coachVerdict || '') + '</p>' +
       '</div>' +
-      '<div style="background:#EEF3FF;border-radius:16px;padding:16px;margin-bottom:12px;border:1px solid #C5D5FF">' +
-        '<div style="font-size:12px;font-weight:600;color:var(--c-primary);margin-bottom:8px;font-family:DM Sans,sans-serif">教練總評</div>' +
-        '<div style="font-size:13px;color:#1a1a1a;line-height:1.7;font-family:DM Sans,sans-serif">' + escHtml(report.coachVerdict || '') + '</div>' +
-      '</div>' +
-      (report.nextSteps ? '<div style="background:#fff;border-radius:12px;padding:14px;margin-bottom:16px;border:1px solid rgba(0,0,0,0.08);font-size:13px;color:#5a5a5a;font-family:DM Sans,sans-serif;line-height:1.6"><span style="font-weight:600;color:#1a1a1a">建議下一步：</span>' + escHtml(report.nextSteps) + '</div>' : '') +
+      (report.nextSteps ? '<div class="nextsteps-card"><span class="nextsteps-label">建議下一步：</span>' + escHtml(report.nextSteps) + '</div>' : '') +
       '<div class="circles-submit-bar">' +
         '<button class="circles-btn-primary" id="circles-final-again">重練這道題</button>' +
         '<button class="circles-btn-secondary" id="btn-export-png" type="button"><i class="ph ph-download-simple"></i> 匯出 PNG</button>' +
@@ -6671,3 +6748,7 @@ function bindNSM() {
 }
 
 window.sendChat = sendChat;
+window.renderCirclesFinalReport = renderCirclesFinalReport;
+window.bindCirclesFinalReport = bindCirclesFinalReport;
+window.renderCirclesRadarSvg = renderCirclesRadarSvg;
+window.renderCirclesTrackingBlock = renderCirclesTrackingBlock;
