@@ -142,10 +142,10 @@ body {
 }
 
 /* Layout */
-#app { max-width: 100%; margin: 0 auto; padding: 0 16px 16px; }
+#app { max-width: 100%; margin: 0 auto; padding: 0 0 16px; }
 
 @media (min-width: 720px) and (max-width: 1023px) {
-  #app { max-width: 720px; padding: 0 24px 24px; }
+  #app { max-width: 100%; padding: 0 0 24px; }
 }
 
 @media (min-width: 1024px) {
@@ -177,7 +177,6 @@ body {
   backdrop-filter: blur(12px);
   -webkit-backdrop-filter: blur(12px);
   border-bottom: 1px solid rgba(0,0,0,0.08);
-  margin-left: -16px; margin-right: -16px;
 }
 .navbar-logo { font-size: 1.1rem; font-weight: 700; color: var(--accent); flex-shrink: 0;
   background: none; border: none; padding: 4px 6px; cursor: pointer;
