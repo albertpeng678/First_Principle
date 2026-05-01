@@ -39,6 +39,7 @@ const AppState = {
   circlesSelectedQuestion: null,   // { id, company, ... }
   circlesSession: null,            // { id, mode, drill_step } — other fields live in top-level AppState keys
   circlesPhase: 1,                 // 1 | 1.5 | 2 | 3 (score) | 4 (report)
+  circlesChipExpanded: false,
   circlesFrameworkDraft: {},       // { fieldName: value } — current step's framework draft
   circlesStepDrafts: {},           // { stepKey: draftObj } — per-step persistent drafts saved on Phase 1 submit
                                    // L: { sol1, sol2, sol3 } — solution names
@@ -643,6 +644,7 @@ async function loadCirclesSession(sessionId) {
     // so the user lands on the conclusion box rather than a perpetual loading screen.
     if (AppState.circlesPhase === 3 && !AppState.circlesScoreResult) {
       AppState.circlesPhase = 2;
+      AppState.circlesChipExpanded = false;
     }
     AppState.circlesFinalReport       = null;
     return true;
@@ -903,6 +905,7 @@ async function navigate(view) {
   closeOffcanvas();
   if (view === 'circles' && !AppState.circlesSession) {
     AppState.circlesPhase = 1;
+    AppState.circlesChipExpanded = false;
     AppState.circlesSelectedQuestion = null;
     AppState.circlesFrameworkDraft = {};
     AppState.circlesStepDrafts = {};
@@ -986,6 +989,7 @@ function renderNavbar() {
     AppState.circlesSession = null;
     AppState.circlesSelectedQuestion = null;
     AppState.circlesPhase = 1;
+    AppState.circlesChipExpanded = false;
     AppState.circlesFrameworkDraft = {};
     AppState.circlesStepDrafts = {};
     AppState.circlesGateResult = null;
@@ -1144,6 +1148,7 @@ function renderOffcanvasList(listEl, sessions) {
           AppState.circlesMode = cached.mode || 'simulation';
           AppState.circlesDrillStep = cached.drill_step || 'C1';
           AppState.circlesPhase = cached.current_phase || 1;
+          AppState.circlesChipExpanded = false;
           AppState.circlesSimStep = cached.sim_step_index || 0;
           AppState.circlesFrameworkDraft = {};
           AppState.circlesGateResult = null;
@@ -1158,6 +1163,7 @@ function renderOffcanvasList(listEl, sessions) {
             : null;
           if (AppState.circlesPhase === 3 && !AppState.circlesScoreResult) {
             AppState.circlesPhase = 2;
+            AppState.circlesChipExpanded = false;
           }
           AppState.circlesFinalReport = null;
           navigate('circles');
@@ -1665,6 +1671,36 @@ if (typeof toggleCoachHint === 'function') window.toggleCoachHint = toggleCoachH
 
 // ── View stubs（後續 Task 填入）────────────────────
 // CIRCLES stubs — replaced by Tasks 14-18
+
+function renderQuestionAnalysisBlock(q) {
+  // 4 rows happy path; fallback when analysis missing.
+  var a = q && q.analysis;
+  var hasFull = a && a.business && a.users && a.insight;
+  var traps = (a && a.traps) || ((q.common_wrong_directions || []).join('、'));
+
+  if (!hasFull) {
+    console.warn('Question missing analysis:', q.id);
+    return '<div class="qcard-analysis">' +
+      '<div class="ana-row trap"><span class="ana-label"><i class="ph ph-warning"></i> 常見誤區</span>' +
+        '<span class="ana-val">' + escHtml(traps || '—') + '</span></div>' +
+      '<div class="ana-row"><span class="ana-label">其餘欄位</span>' +
+        '<span class="ana-val muted">分析資料載入失敗，請刷新頁面或聯絡管理員</span></div>' +
+    '</div>';
+  }
+
+  return '<div class="qcard-analysis">' +
+    '<div class="ana-row"><span class="ana-label"><i class="ph ph-buildings"></i> 商業背景</span>' +
+      '<span class="ana-val">' + escHtml(a.business) + '</span></div>' +
+    '<div class="ana-row"><span class="ana-label"><i class="ph ph-users"></i> 用戶輪廓</span>' +
+      '<span class="ana-val">' + escHtml(a.users) + '</span></div>' +
+    '<div class="ana-row trap"><span class="ana-label"><i class="ph ph-warning"></i> 常見誤區</span>' +
+      '<span class="ana-val">' + escHtml(traps) + '</span></div>' +
+    '<div class="ana-row"><span class="ana-label"><i class="ph ph-lightbulb"></i> 破題切入</span>' +
+      '<span class="ana-val">' + escHtml(a.insight) + '</span></div>' +
+  '</div>';
+}
+window.renderQuestionAnalysisBlock = renderQuestionAnalysisBlock;
+
 function renderQCardHtml(q) {
   // Spec 2026-04-30 home-card — A1 tag row + B1 line-clamp brief +
   // A1 「完整題目」block on expand. The brief and the full text are visually
@@ -1697,10 +1733,7 @@ function renderQCardHtml(q) {
     '</div>' +
     '<div class="circles-q-card-expand-area scroll-container" style="display:none">' +
       '<div class="scroll-body">' +
-        '<div class="circles-q-card-full-block">' +
-          '<div class="circles-q-card-full-label">完整題目</div>' +
-          '<div class="circles-q-card-full-text">' + escHtml(q.problem_statement || '') + '</div>' +
-        '</div>' +
+        renderQuestionAnalysisBlock(q) +
         drillPracticeHtml +
       '</div>' +
       '<div class="action-row">' +
@@ -1811,6 +1844,60 @@ function renderResumeBanner() {
   '</div>';
 }
 window.renderResumeBanner = renderResumeBanner;
+
+function renderPersistentQuestionChip() {
+  var q = AppState.circlesSelectedQuestion;
+  if (!q) return '';
+  if (AppState.circlesChipExpanded) return renderChipPanelHtml(q);
+  return renderChipCollapsedHtml(q);
+}
+window.renderPersistentQuestionChip = renderPersistentQuestionChip;
+
+function renderChipCollapsedHtml(q) {
+  return '<div class="qchip" id="circles-qchip" role="button" tabindex="0" aria-expanded="false" aria-controls="circles-qchip-panel" data-action="expand-chip">' +
+    '<div class="qchip-icon"><i class="ph ph-info"></i></div>' +
+    '<span class="qchip-tag">題目</span>' +
+    '<span class="qchip-text">' + escHtml(q.problem_statement || '') + '</span>' +
+    '<i class="ph ph-caret-down qchip-toggle"></i>' +
+  '</div>';
+}
+
+function renderChipPanelHtml(q) {
+  var typeLabel = q.question_type === 'design' ? '產品設計' : q.question_type === 'improve' ? '產品改進' : '產品策略';
+  var diffLabel = q.difficulty === 'easy' ? '簡單' : q.difficulty === 'hard' ? '困難' : '中等難度';
+  var meta = [q.company, q.product, typeLabel, diffLabel].filter(Boolean).join(' · ');
+  return '<div class="qchip-panel" id="circles-qchip-panel" role="region" aria-expanded="true">' +
+    '<div class="qchip-panel-head">' +
+      '<span class="qchip-tag">題目</span>' +
+      '<span class="qchip-panel-meta">' + escHtml(meta) + '</span>' +
+      '<button class="qchip-panel-close" type="button" data-action="collapse-chip" aria-label="收合">' +
+        '<i class="ph ph-caret-up"></i> 收合</button>' +
+    '</div>' +
+    '<div class="qchip-panel-stmt">' + escHtml(q.problem_statement || '') + '</div>' +
+    renderQuestionAnalysisBlock(q) +
+  '</div>';
+}
+
+function bindPersistentQuestionChip(rootEl) {
+  // Single delegated handler — works whether chip is collapsed or expanded.
+  (rootEl || document).addEventListener('click', function(e) {
+    var t = e.target.closest('[data-action="expand-chip"]');
+    var c = e.target.closest('[data-action="collapse-chip"]');
+    if (t) {
+      AppState.circlesChipExpanded = true;
+      var slot = document.getElementById('circles-qchip-slot');
+      if (slot) slot.innerHTML = renderPersistentQuestionChip();
+      return;
+    }
+    if (c) {
+      AppState.circlesChipExpanded = false;
+      var slot2 = document.getElementById('circles-qchip-slot');
+      if (slot2) slot2.innerHTML = renderPersistentQuestionChip();
+      return;
+    }
+  });
+}
+window.bindPersistentQuestionChip = bindPersistentQuestionChip;
 
 function renderStatsStripHtml() {
   if (AppState.mode !== 'auth') return '';
@@ -2534,6 +2621,7 @@ function bindCirclesHome() {
         AppState.circlesSelectedQuestion = question;
         AppState.circlesSession = null;
         AppState.circlesPhase = 1;
+        AppState.circlesChipExpanded = false;
         AppState.circlesFrameworkDraft = {};
         AppState.circlesGateResult = null;
         AppState.circlesConversation = [];
@@ -3037,6 +3125,7 @@ function bindCirclesPhase1() {
   function backToHome() {
     AppState.circlesSelectedQuestion = null;
     AppState.circlesPhase = 1;
+    AppState.circlesChipExpanded = false;
     AppState.circlesFrameworkDraft = {};
     navigate('circles');
   }
@@ -3353,6 +3442,7 @@ function bindCirclesPhase1() {
 
     AppState.circlesGateLoading = true;
     AppState.circlesPhase = 1.5;
+    AppState.circlesChipExpanded = false;
     render();
 
     var q = AppState.circlesSelectedQuestion;
@@ -3397,6 +3487,7 @@ function bindCirclesPhase1() {
       if (AppState.circlesSession && !AppState.circlesSession.id) AppState.circlesSession = null;
       AppState.circlesGateLoading = false;
       AppState.circlesPhase = 1;
+      AppState.circlesChipExpanded = false;
       render();
     }
   });
@@ -3584,11 +3675,13 @@ function bindCirclesGate() {
     document.getElementById('circles-gate-retry')?.addEventListener('click', function() {
       AppState.circlesGateLoading = false;
       AppState.circlesPhase = 1;
+      AppState.circlesChipExpanded = false;
       render();
     });
   }
   document.getElementById('circles-gate-back')?.addEventListener('click', function() {
     AppState.circlesPhase = 1;
+    AppState.circlesChipExpanded = false;
     render();
   });
   document.getElementById('circles-gate-home')?.addEventListener('click', function() {
@@ -3596,11 +3689,13 @@ function bindCirclesGate() {
   });
   document.getElementById('circles-gate-fix')?.addEventListener('click', function() {
     AppState.circlesPhase = 1;
+    AppState.circlesChipExpanded = false;
     render();
   });
   // Both inline (pass state) and bottom-bar (simulation override) use #circles-gate-continue
   document.getElementById('circles-gate-continue')?.addEventListener('click', function() {
     AppState.circlesPhase = 2;
+    AppState.circlesChipExpanded = false;
     render();
   });
 }
@@ -3801,6 +3896,7 @@ function bindCirclesPhase2() {
   // Back button
   document.getElementById('circles-p2-back')?.addEventListener('click', function() {
     AppState.circlesPhase = 1.5;
+    AppState.circlesChipExpanded = false;
     AppState.circlesSubmitState = null;
     render();
   });
@@ -3810,6 +3906,7 @@ function bindCirclesPhase2() {
     AppState.circlesSelectedQuestion = null;
     AppState.circlesSession = null;
     AppState.circlesPhase = 1;
+    AppState.circlesChipExpanded = false;
     AppState.circlesSubmitState = null;
     AppState.circlesConclusionText = '';
     AppState.circlesConversation = [];
@@ -3946,6 +4043,7 @@ function bindCirclesPhase2() {
       AppState.circlesSubmitState = null;
       AppState.circlesConclusionText = '';
       AppState.circlesPhase = 3;
+      AppState.circlesChipExpanded = false;
       render();
     } catch (e) {
       btn.disabled = false;
@@ -4221,6 +4319,7 @@ function bindCirclesStepScore() {
   // Back arrow → return to Phase 2
   document.getElementById('circles-score-back')?.addEventListener('click', function() {
     AppState.circlesPhase = 2;
+    AppState.circlesChipExpanded = false;
     render();
   });
 
@@ -4240,6 +4339,7 @@ function bindCirclesStepScore() {
     AppState.circlesSelectedQuestion = null;
     AppState.circlesSession = null;
     AppState.circlesPhase = 1;
+    AppState.circlesChipExpanded = false;
     AppState.circlesScoreResult = null;
     AppState.circlesFinalReport = null;
     AppState.circlesStepScores = {};
@@ -4253,6 +4353,7 @@ function bindCirclesStepScore() {
   // 看完整總結報告 (simulation last step S)
   document.getElementById('circles-score-final')?.addEventListener('click', function() {
     AppState.circlesPhase = 4;
+    AppState.circlesChipExpanded = false;
     AppState.circlesCoachOpen = false;
     render();
   });
@@ -4261,6 +4362,7 @@ function bindCirclesStepScore() {
   document.getElementById('circles-score-again')?.addEventListener('click', function() {
     AppState.circlesSession = null;
     AppState.circlesPhase = 1;
+    AppState.circlesChipExpanded = false;
     AppState.circlesFrameworkDraft = {};
     AppState.circlesGateResult = null;
     AppState.circlesConversation = [];
@@ -4277,6 +4379,7 @@ function bindCirclesStepScore() {
   document.getElementById('drill-encourage-again')?.addEventListener('click', function() {
     AppState.circlesSession = null;
     AppState.circlesPhase = 1;
+    AppState.circlesChipExpanded = false;
     AppState.circlesFrameworkDraft = {};
     AppState.circlesGateResult = null;
     AppState.circlesConversation = [];
@@ -4294,6 +4397,7 @@ function bindCirclesStepScore() {
       var nextStep = CIRCLES_STEPS[stepIdx + 1];
       AppState.circlesDrillStep = nextStep.key;
       AppState.circlesPhase = 1;
+      AppState.circlesChipExpanded = false;
       AppState.circlesFrameworkDraft = {};
       AppState.circlesGateResult = null;
       AppState.circlesConversation = [];
@@ -4525,6 +4629,7 @@ function bindCirclesFinalReport() {
   document.getElementById('circles-final-again')?.addEventListener('click', function() {
     AppState.circlesSession = null;
     AppState.circlesPhase = 1;
+    AppState.circlesChipExpanded = false;
     AppState.circlesFrameworkDraft = {};
     AppState.circlesGateResult = null;
     AppState.circlesConversation = [];
@@ -4540,6 +4645,7 @@ function bindCirclesFinalReport() {
     AppState.circlesSelectedQuestion = null;
     AppState.circlesSession = null;
     AppState.circlesPhase = 1;
+    AppState.circlesChipExpanded = false;
     AppState.circlesScoreResult = null;
     AppState.circlesFinalReport = null;
     AppState.circlesStepConclusions = {};
