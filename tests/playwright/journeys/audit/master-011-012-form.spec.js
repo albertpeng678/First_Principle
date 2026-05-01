@@ -1,9 +1,9 @@
-// master-011-012-form.spec.js — Wave A fix-A3.
+// master-011-012-form.spec.js — Wave A fix-A3 (M-012 reversed by Wave D fix-D2 D-3).
 // M-011: when autosave network call fails, draft must be persisted to localStorage
 //        so the user does not lose work; on reload, local draft hydrates AppState.
-// M-012: drill mode Phase-1 submit bar must include a "上一步" button which is
-//        hidden on the first drill step (C1) and navigates to the previous drill
-//        step on click.
+// M-012 (post-D2): drill mode is a single isolated step practice — the Phase-1
+//        submit bar must NOT show a "上一步" button. The cross-step prev button
+//        now belongs to simulation mode only (covered in master-D3-D4.spec.js).
 
 const { test, expect } = require('@playwright/test');
 
@@ -88,23 +88,21 @@ test.describe('M-011 — autosave offline → localStorage fallback', () => {
   });
 });
 
-test.describe('M-012 — drill submit bar prev button', () => {
-  test('M-012 [P1] drill Phase-1 submit bar shows 上一步 button on non-first step and navigates back', async ({ page }, testInfo) => {
+test.describe('M-012 (post-D2) — drill submit bar must NOT have prev button', () => {
+  test('M-012 [P1] drill mode hides 上一步 button on every step (D-3 reversal)', async ({ page }, testInfo) => {
     only(testInfo, TARGET);
-    await gotoCirclesPhase1Drill(page, 'I'); // I is the second drill step
+    // Step I would have been the original "second drill step" target; under
+    // Wave D fix-D2 the prev button must no longer appear in drill mode.
+    await gotoCirclesPhase1Drill(page, 'I');
     const prevBtn = page.locator('#circles-p1-prev');
-    await expect(prevBtn, '上一步 button must render in drill mode on non-first step').toBeVisible();
-    await prevBtn.click();
-    await page.waitForTimeout(150);
-    const drillStep = await page.evaluate(() => window.AppState.circlesDrillStep);
-    expect(drillStep).toBe('C1');
+    const visible = await prevBtn.isVisible().catch(() => false);
+    expect(visible, '上一步 button must NOT render in drill mode (D-3 reversal)').toBeFalsy();
   });
 
   test('M-012 [P1] drill first step (C1) hides the 上一步 button', async ({ page }, testInfo) => {
     only(testInfo, TARGET);
     await gotoCirclesPhase1Drill(page, 'C1');
     const prevBtn = page.locator('#circles-p1-prev');
-    // either not present, or present but hidden
     const visible = await prevBtn.isVisible().catch(() => false);
     expect(visible, '上一步 button must be hidden on the first drill step').toBeFalsy();
   });

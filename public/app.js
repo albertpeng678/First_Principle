@@ -2865,13 +2865,10 @@ function renderCirclesPhase1() {
 
   // Submit bar (Simulation last step shows "查看完整報告 →" instead)
   var isLastStep = stepIdx === CIRCLES_STEPS.length - 1;
-  // Wave A fix-A3 (M-012): drill mode adds an "上一步" button to navigate
-  // backwards through drill steps without leaving the session. Hidden on the
-  // first drill step (C1) where there is nowhere to go back to.
-  var _drillIdx = mode === 'drill'
-    ? CIRCLES_STEPS.findIndex(function(s) { return s.key === stepKey; })
-    : -1;
-  var _showPrev = mode === 'drill' && _drillIdx > 0;
+  // Wave D fix-D2 (D-3): "上一步" button only in simulation mode on non-first
+  // step. Drill mode is a single isolated step practice — no cross-step back.
+  // (Reverses Wave A fix-A3 M-012 behaviour after audit feedback.)
+  var _showPrev = mode === 'simulation' && stepIdx > 0;
   var prevBtnHtml = _showPrev
     ? '<button class="circles-btn-secondary" id="circles-p1-prev" type="button">上一步</button>'
     : '';
@@ -2982,22 +2979,24 @@ function bindCirclesPhase1() {
   document.getElementById('circles-p1-back')?.addEventListener('click', backToHome);
   document.getElementById('circles-p1-home')?.addEventListener('click', backToHome);
 
-  // Wave A fix-A3 (M-012): drill mode prev-step button.
+  // Wave D fix-D2 (D-3): simulation mode prev-step button. Only valid when
+  // mode === 'simulation' && current step index > 0.
   document.getElementById('circles-p1-prev')?.addEventListener('click', function() {
-    if (AppState.circlesMode !== 'drill') return;
-    var idx = CIRCLES_STEPS.findIndex(function(s) { return s.key === AppState.circlesDrillStep; });
-    if (idx <= 0) return;
+    if (AppState.circlesMode !== 'simulation') return;
+    var curIdx = AppState.circlesSimStep || 0;
+    if (curIdx <= 0) return;
+    var curKey = CIRCLES_STEPS[curIdx].key;
     // Snapshot current draft into per-step store before navigating away.
-    var curKey = AppState.circlesDrillStep;
     if (curKey) {
       AppState.circlesStepDrafts[curKey] = Object.assign(
         {}, AppState.circlesStepDrafts[curKey] || {}, AppState.circlesFrameworkDraft || {}
       );
     }
-    AppState.circlesDrillStep = CIRCLES_STEPS[idx - 1].key;
-    // Restore the previous step's draft into the active framework draft.
+    var prevKey = CIRCLES_STEPS[curIdx - 1].key;
+    AppState.circlesSimStep = curIdx - 1;
+    AppState.circlesDrillStep = prevKey;
     AppState.circlesFrameworkDraft = Object.assign(
-      {}, AppState.circlesStepDrafts[AppState.circlesDrillStep] || {}
+      {}, AppState.circlesStepDrafts[prevKey] || {}
     );
     render();
   });
@@ -4027,6 +4026,24 @@ async function sendCirclesMessage() {
   if (sendBtn) sendBtn.disabled = false;
   clearTimeout(_chatSlowTimer);
 }
+// Wave D fix-D2 (D-3): drill mode 完成鼓勵卡 — congratulates user after
+// finishing a single drill step + offers next-action CTA. Returns HTML string;
+// hidden when not in drill mode.
+function buildDrillCompleteEncourageHtml() {
+  if (AppState.circlesMode !== 'drill') return '';
+  return '<div class="drill-encourage-card" data-testid="drill-encourage-card">' +
+    '<div class="drill-encourage-icon"><i class="ph ph-confetti"></i></div>' +
+    '<div class="drill-encourage-body">' +
+      '<div class="drill-encourage-title">恭喜完成這個步驟！</div>' +
+      '<div class="drill-encourage-desc">每一次練習都讓你更靠近 PM 思維。可以再練同一題，或回首頁挑下一題。</div>' +
+    '</div>' +
+    '<div class="drill-encourage-actions">' +
+      '<button class="circles-btn-secondary" id="drill-encourage-home" type="button">回首頁</button>' +
+      '<button class="circles-btn-primary" id="drill-encourage-again" type="button">再練一次</button>' +
+    '</div>' +
+  '</div>';
+}
+
 function renderCirclesStepScore() {
   var result = AppState.circlesScoreResult;
   var mode = AppState.circlesMode;
@@ -4129,6 +4146,7 @@ function renderCirclesStepScore() {
         '<div class="circles-coach-toggle-label">教練示範答案 <i class="ph ' + (coachOpen ? 'ph-caret-up' : 'ph-caret-down') + '" id="circles-coach-icon"></i></div>' +
         '<div class="circles-coach-content' + (coachOpen ? ' open' : '') + '" id="circles-coach-content">' + coachContent + '</div>' +
       '</div>' +
+      buildDrillCompleteEncourageHtml() +
       '<div class="circles-submit-bar circles-submit-bar-row">' + submitBar + '</div>' +
     '</div>' +
   '</div>';
@@ -4176,6 +4194,22 @@ function bindCirclesStepScore() {
 
   // 再練一次 (drill mode) → reset Phase to 1, clear framework, stay on same screen
   document.getElementById('circles-score-again')?.addEventListener('click', function() {
+    AppState.circlesSession = null;
+    AppState.circlesPhase = 1;
+    AppState.circlesFrameworkDraft = {};
+    AppState.circlesGateResult = null;
+    AppState.circlesConversation = [];
+    AppState.circlesScoreResult = null;
+    AppState.circlesFinalReport = null;
+    AppState.circlesStepScores = {};
+    AppState.circlesCoachOpen = false;
+    render();
+  });
+
+  // Wave D fix-D2 (D-3): drill encourage card buttons — same goHome / 再練一次
+  // semantics as the existing submit-bar buttons, just exposed in the new card.
+  document.getElementById('drill-encourage-home')?.addEventListener('click', goHome);
+  document.getElementById('drill-encourage-again')?.addEventListener('click', function() {
     AppState.circlesSession = null;
     AppState.circlesPhase = 1;
     AppState.circlesFrameworkDraft = {};
