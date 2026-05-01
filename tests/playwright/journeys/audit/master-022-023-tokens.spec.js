@@ -2,23 +2,31 @@
 const { test, expect } = require('@playwright/test');
 const BASE_URL = process.env.PMDRILL_BASE_URL || 'http://localhost:4000';
 
-test('M-022 — 全站使用 --c-font-sans token', async ({ page }) => {
+test('M-022 — 全站使用 --c-font-sans token (Wave D D-5: system-ui chain)', async ({ page }) => {
   await page.goto(BASE_URL + '/?onboarding=0');
   const fontToken = await page.evaluate(() =>
     getComputedStyle(document.documentElement).getPropertyValue('--c-font-sans').trim());
-  expect(fontToken).toMatch(/DM Sans/);
+  // Wave D D-5: token 改為 system-ui 起頭、CJK fallback chain
+  expect(fontToken.toLowerCase()).toContain('system-ui');
+  expect(fontToken.toLowerCase()).toContain('pingfang');
 });
 
-test('M-022 — body font-family 用 token 不出現殘留 DM Sans 字串', async ({ page }) => {
+test('M-022 — body font-family 用 token，system-ui 為先', async ({ page }) => {
   await page.goto(BASE_URL + '/?onboarding=0');
-  // 量幾個關鍵 selector 的 computed font-family 都帶 DM Sans
   const samples = ['body', '.circles-q-card', 'button.btn'];
   for (const sel of samples) {
     const ff = await page.evaluate((s) => {
       const el = document.querySelector(s);
       return el ? getComputedStyle(el).fontFamily : null;
     }, sel);
-    if (ff !== null) expect(ff).toMatch(/DM Sans/);
+    if (ff !== null) {
+      const lower = ff.toLowerCase();
+      // computed font-family 應包含 system-ui 或 OS-resolved 的等價物
+      // (system-ui 在 Chrome/Safari 會 resolve，但 token 字面值仍可見)
+      expect(lower.includes('system-ui') || lower.includes('-apple-system') || lower.includes('pingfang')).toBe(true);
+      // 不應 'DM Sans' 為先
+      expect(lower.startsWith('"dm sans"')).toBe(false);
+    }
   }
 });
 
