@@ -2,6 +2,7 @@ require('dotenv').config();
 const express = require('express');
 const cors = require('cors');
 const path = require('path');
+const { requireAuth } = require('./middleware/auth');
 
 const app = express();
 app.use(cors());
@@ -30,6 +31,7 @@ app.use('/api/migrate-guest', require('./routes/migrate'));
 app.use('/api/nsm-context', require('./routes/nsm-context'));
 app.use('/api/nsm-sessions', require('./routes/nsm-sessions'));
 app.use('/api/circles-sessions', require('./routes/circles-sessions'));
+app.use('/api/circles-stats', requireAuth, require('./routes/circles-stats'));
 app.use('/api/guest-circles-sessions', require('./routes/guest-circles-sessions'));
 app.use('/api/circles-public', require('./routes/circles-public'));
 app.use('/api/guest/nsm-sessions', require('./routes/guest-nsm-sessions'));
@@ -37,4 +39,8 @@ app.use('/api/guest/nsm-sessions', require('./routes/guest-nsm-sessions'));
 app.get('/health', (req, res) => res.json({ ok: true }));
 
 const PORT = process.env.PORT || 3000;
-app.listen(PORT, () => console.log(`Server running on port ${PORT}`));
+if (require.main === module) {
+  app.listen(PORT, () => console.log(`Server running on port ${PORT}`));
+}
+
+module.exports = app;
