@@ -1,0 +1,271 @@
+<!DOCTYPE html>
+<html lang="zh-TW">
+<head>
+<meta charset="utf-8">
+<title>子專案 1 v2 — 貼齊兩側</title>
+<link rel="stylesheet" href="https://unpkg.com/@phosphor-icons/web@2.0.3/src/regular/style.css">
+<style>
+  :root {
+    --c-primary: #4a6cf7;
+    --c-danger:  #ef4444;
+    --c-text-1: #1a1a1a;
+    --c-text-2: #666;
+    --c-text-3: #999;
+    --c-border: #dde2ec;
+    --c-bg: #f8f9fb;
+    --c-card: #fff;
+    --c-font-sans: system-ui, -apple-system, "Helvetica Neue", "PingFang TC", "Microsoft JhengHei", sans-serif;
+    --r-card: 12px;
+    --r-input: 8px;
+    --r-pill: 999px;
+    /* INTERNAL card padding only — no outer page padding */
+    --pad-card: 14px;
+    --pad-card-tablet: 18px;
+    --pad-card-desktop: 22px;
+  }
+  * { box-sizing: border-box; }
+  body { font-family: var(--c-font-sans); background: #f0f2f6; color: var(--c-text-1); margin: 0; padding: 32px; }
+  h2 { font-size: 22px; margin: 0 0 6px; font-weight: 700; }
+  .subtitle { color: var(--c-text-2); font-size: 13px; margin: 0 0 28px; }
+  h3 { font-size: 16px; font-weight: 700; margin: 28px 0 14px; padding-bottom: 8px; border-bottom: 2px solid var(--c-primary); display: inline-block; }
+  h4 { font-size: 13px; font-weight: 700; margin: 16px 0 10px; padding: 4px 10px; border-radius: 6px; display: inline-block; }
+  h4.before { background: rgba(239,68,68,.1); color: var(--c-danger); }
+  h4.after { background: rgba(74,108,247,.1); color: var(--c-primary); }
+  h4.diff { background: #fef3c7; color: #92400e; }
+
+  .vp-scroller { overflow-x: auto; padding-bottom: 8px; }
+  .vp-row { display: flex; gap: 16px; align-items: flex-start; width: max-content; min-width: 100%; }
+  .vp-frame { border: 1px solid #d6d6d6; border-radius: 12px; background: #fafafa; overflow: hidden; flex-shrink: 0; }
+  .vp-mobile  { width: 360px; }
+  .vp-tablet  { width: 768px; }
+  .vp-desktop { width: 1280px; }
+  .vp-label { background: #1a1a1a; color: #fff; padding: 6px 12px; font-size: 11px; font-family: monospace; }
+  .vp-content { padding: 0; background: var(--c-bg); min-height: 480px; }
+
+  /* edge-to-edge wrapper has NO side padding */
+  .e2e-wrap { padding: 0; }
+
+  /* === Each block is full-width, internal padding only === */
+  .e2e-nav {
+    background: #fff;
+    border-bottom: 1px solid var(--c-border);
+    padding: 12px var(--pad-card);
+    display: flex; align-items: center; gap: 12px;
+  }
+  .vp-tablet .e2e-nav { padding-left: var(--pad-card-tablet); padding-right: var(--pad-card-tablet); }
+  .vp-desktop .e2e-nav { padding-left: var(--pad-card-desktop); padding-right: var(--pad-card-desktop); }
+
+  .e2e-header {
+    background: #fff;
+    border-bottom: 1px solid var(--c-border);
+    padding: 14px var(--pad-card);
+  }
+  .vp-tablet .e2e-header { padding-left: var(--pad-card-tablet); padding-right: var(--pad-card-tablet); }
+  .vp-desktop .e2e-header { padding-left: var(--pad-card-desktop); padding-right: var(--pad-card-desktop); }
+
+  .e2e-progress {
+    padding: 8px var(--pad-card);
+  }
+  .vp-tablet .e2e-progress { padding-left: var(--pad-card-tablet); padding-right: var(--pad-card-tablet); }
+  .vp-desktop .e2e-progress { padding-left: var(--pad-card-desktop); padding-right: var(--pad-card-desktop); }
+
+  /* The chip is now a full-width strip touching both edges */
+  .e2e-chip {
+    background: #fff;
+    border-top: 1px solid var(--c-border);
+    border-bottom: 1px solid var(--c-border);
+    padding: 8px var(--pad-card);
+    display: flex; align-items: center; gap: 8px; font-size: 12.5px;
+    margin: 0;  /* no horizontal margin */
+  }
+  .vp-tablet .e2e-chip { padding-left: var(--pad-card-tablet); padding-right: var(--pad-card-tablet); }
+  .vp-desktop .e2e-chip { padding-left: var(--pad-card-desktop); padding-right: var(--pad-card-desktop); }
+
+  .e2e-form {
+    padding: 12px var(--pad-card);
+  }
+  .vp-tablet .e2e-form { padding-left: var(--pad-card-tablet); padding-right: var(--pad-card-tablet); }
+  .vp-desktop .e2e-form { padding-left: var(--pad-card-desktop); padding-right: var(--pad-card-desktop); }
+
+  .e2e-input {
+    background: #fff; border: 1px solid var(--c-border); border-radius: var(--r-input);
+    padding: 10px; font-size: 12.5px; min-height: 60px; color: var(--c-text-3);
+    margin-bottom: 14px;
+    width: 100%;
+  }
+  .e2e-input.err { border: 1.5px solid var(--c-danger); background: rgba(239,68,68,.03); }
+
+  .e2e-actions {
+    display: flex; gap: 8px;
+    padding: 14px var(--pad-card);
+    background: #fff; border-top: 1px solid var(--c-border);
+  }
+  .vp-tablet .e2e-actions { padding-left: var(--pad-card-tablet); padding-right: var(--pad-card-tablet); }
+  .vp-desktop .e2e-actions { padding-left: var(--pad-card-desktop); padding-right: var(--pad-card-desktop); }
+  .e2e-btn {
+    padding: 10px 16px; border-radius: var(--r-input); border: none;
+    font-size: 13px; font-weight: 600; cursor: pointer;
+  }
+  .e2e-btn.primary { background: var(--c-primary); color: #fff; flex: 1; }
+  .e2e-btn.ghost { background: #fff; border: 1px solid var(--c-border); color: var(--c-text-2); }
+
+  /* shared bits */
+  .pill { font-size: 11px; font-weight: 600; padding: 3px 8px; border-radius: var(--r-pill); background: rgba(74,108,247,.08); color: var(--c-primary); display: inline-block; }
+  .step-circle { width: 26px; height: 26px; border-radius: 999px; display: inline-flex; align-items: center; justify-content: center; font-size: 12px; font-weight: 700; }
+  .step-active { background: var(--c-primary); color: #fff; }
+  .step-done { background: rgba(74,108,247,.15); color: var(--c-primary); }
+  .step-pending { background: var(--c-border); color: var(--c-text-3); }
+  .progress-bar { display: flex; align-items: center; gap: 6px; }
+  .progress-bar > .step-circle + .step-circle::before { content: '—'; color: var(--c-text-3); margin: 0 4px; }
+  .field-label { font-size: 11.5px; font-weight: 700; color: var(--c-text-2); margin-bottom: 6px; display: flex; align-items: center; justify-content: space-between; }
+  .field-tip { font-size: 11px; color: var(--c-primary); display: inline-flex; align-items: center; gap: 3px; cursor: pointer; }
+  .step-title { font-family: var(--c-font-sans); font-size: 18px; font-weight: 700; }
+
+  /* Edge guides — visualize where the viewport edge IS */
+  .edge-guide-l, .edge-guide-r {
+    position: absolute; top: 0; bottom: 0; width: 2px;
+    background: linear-gradient(180deg, var(--c-danger) 0%, var(--c-danger) 50%, transparent 100%);
+    pointer-events: none;
+    z-index: 10;
+  }
+  .edge-guide-l { left: 0; }
+  .edge-guide-r { right: 0; }
+  .vp-content { position: relative; }
+
+  .legend { display: flex; gap: 14px; padding: 10px 14px; background: rgba(74,108,247,.06); border-radius: 8px; margin-bottom: 14px; font-size: 12px; flex-wrap: wrap; }
+  .legend code { background: #fff; padding: 1px 6px; border-radius: 4px; }
+</style>
+</head>
+<body>
+
+<h2>子專案 1 v2 — 貼齊兩側 / 0 outer padding</h2>
+<p class="subtitle">紅線標示 viewport 邊緣。每個區塊本身內部仍有 padding（讓字不貼邊），但區塊 wrapper 從 x=0 開始橫到底。所有 block 自動垂直對齊。</p>
+
+<div class="legend">
+  <span><strong>Outer page wrapper：</strong><code>padding-left: 0; padding-right: 0</code></span>
+  <span><strong>每個 block 內部 padding：</strong>mobile <code>14px</code> / tablet <code>18px</code> / desktop <code>22px</code></span>
+  <span><strong>橫到底：</strong>每個 block 都觸碰兩邊的 viewport 紅線</span>
+  <span><strong>對齊：</strong>左邊距 = 0 → 自動完美對齊</span>
+</div>
+
+<!-- ============ AFTER (edge-to-edge) ============ -->
+<h3>① Phase 1 表單頁 — 貼齊兩側版</h3>
+<h4 class="after">每個 block wrapper 從 x=0 到 x=viewport 寬度。內部 padding 14/18/22。</h4>
+<div class="vp-scroller"><div class="vp-row">
+
+  <div class="vp-frame vp-mobile">
+    <div class="vp-label">MOBILE · 360px (block 寬 = 360px)</div>
+    <div class="vp-content">
+      <div class="edge-guide-l"></div><div class="edge-guide-r"></div>
+      <div class="e2e-wrap">
+        <div class="e2e-nav"><i class="ph ph-list"></i><strong style="color:var(--c-primary)">PM Drill</strong></div>
+        <div class="e2e-header">
+          <div class="step-title">R — 發掘需求</div>
+          <div style="font-size:11px;color:var(--c-text-3)">Spotify · Spotify Podcast</div>
+        </div>
+        <div class="e2e-progress"><div class="progress-bar">
+          <span class="step-circle step-done">C</span><span class="step-circle step-done">I</span><span class="step-circle step-active">R</span><span class="step-circle step-pending">C</span><span class="step-circle step-pending">L</span><span class="step-circle step-pending">E</span><span class="step-circle step-pending">S</span>
+        </div></div>
+        <div class="e2e-chip"><i class="ph ph-info" style="color:var(--c-primary)"></i><span class="pill">題目</span><span style="overflow:hidden;text-overflow:ellipsis;white-space:nowrap;flex:1">設計新功能提升 Spotify Podcast…</span></div>
+        <div class="e2e-form">
+          <div class="field-label">功能性需求 <span class="field-tip"><i class="ph ph-lightbulb"></i> 提示</span></div>
+          <div class="e2e-input err">描述用戶要完成的具體任務與功能需求…</div>
+          <div class="field-label">情感性需求 <span class="field-tip"><i class="ph ph-lightbulb"></i> 提示</span></div>
+          <div class="e2e-input err">描述用戶想要或想避免的感受…</div>
+        </div>
+        <div class="e2e-actions">
+          <button class="e2e-btn ghost">返回選題</button>
+          <button class="e2e-btn primary">下一步</button>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <div class="vp-frame vp-tablet">
+    <div class="vp-label">TABLET · 768px (block 寬 = 768px)</div>
+    <div class="vp-content">
+      <div class="edge-guide-l"></div><div class="edge-guide-r"></div>
+      <div class="e2e-wrap">
+        <div class="e2e-nav"><i class="ph ph-list"></i><strong style="color:var(--c-primary)">PM Drill</strong></div>
+        <div class="e2e-header">
+          <div class="step-title">R — 發掘需求</div>
+          <div style="font-size:11px;color:var(--c-text-3)">Spotify · Spotify Podcast</div>
+        </div>
+        <div class="e2e-progress"><div class="progress-bar">
+          <span class="step-circle step-done">C</span><span class="step-circle step-done">I</span><span class="step-circle step-active">R</span><span class="step-circle step-pending">C</span><span class="step-circle step-pending">L</span><span class="step-circle step-pending">E</span><span class="step-circle step-pending">S</span>
+        </div></div>
+        <div class="e2e-chip"><i class="ph ph-info" style="color:var(--c-primary)"></i><span class="pill">題目</span><span style="overflow:hidden;text-overflow:ellipsis;white-space:nowrap;flex:1">設計新功能提升 Spotify Podcast…</span></div>
+        <div class="e2e-form">
+          <div class="field-label">功能性需求 <span class="field-tip"><i class="ph ph-lightbulb"></i> 提示</span></div>
+          <div class="e2e-input err">描述用戶要完成的具體任務與功能需求…</div>
+          <div class="field-label">情感性需求 <span class="field-tip"><i class="ph ph-lightbulb"></i> 提示</span></div>
+          <div class="e2e-input">描述用戶想要或想避免的感受…</div>
+        </div>
+        <div class="e2e-actions">
+          <button class="e2e-btn ghost">返回選題</button>
+          <button class="e2e-btn primary">下一步</button>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <div class="vp-frame vp-desktop">
+    <div class="vp-label">DESKTOP · 1280px (block 寬 = 1280px, 2 欄 form)</div>
+    <div class="vp-content">
+      <div class="edge-guide-l"></div><div class="edge-guide-r"></div>
+      <div class="e2e-wrap">
+        <div class="e2e-nav"><i class="ph ph-list"></i><strong style="color:var(--c-primary)">PM Drill</strong></div>
+        <div class="e2e-header"><div class="step-title">R — 發掘需求</div><div style="font-size:11px;color:var(--c-text-3)">Spotify · Spotify Podcast</div></div>
+        <div class="e2e-progress"><div class="progress-bar">
+          <span class="step-circle step-done">C</span><span class="step-circle step-done">I</span><span class="step-circle step-active">R</span><span class="step-circle step-pending">C</span><span class="step-circle step-pending">L</span><span class="step-circle step-pending">E</span><span class="step-circle step-pending">S</span>
+        </div></div>
+        <div class="e2e-chip"><i class="ph ph-info" style="color:var(--c-primary)"></i><span class="pill">題目</span><span style="overflow:hidden;text-overflow:ellipsis;white-space:nowrap;flex:1">設計新功能提升 Spotify Podcast…</span></div>
+        <div class="e2e-form" style="display:grid;grid-template-columns:1fr 1fr;gap:14px">
+          <div><div class="field-label">功能性需求 <span class="field-tip"><i class="ph ph-lightbulb"></i> 提示</span></div><div class="e2e-input err">描述用戶要完成…</div></div>
+          <div><div class="field-label">情感性需求 <span class="field-tip"><i class="ph ph-lightbulb"></i> 提示</span></div><div class="e2e-input">描述用戶想要或想避免的感受…</div></div>
+        </div>
+        <div class="e2e-actions"><button class="e2e-btn ghost">返回選題</button><button class="e2e-btn primary">下一步</button></div>
+      </div>
+    </div>
+  </div>
+
+</div></div>
+
+<h3>關鍵差異對照</h3>
+<h4 class="diff">v1 是「side padding 統一 16/24/32」；v2 是「side padding 全 0，貼齊邊緣」</h4>
+
+<table style="width:100%;border-collapse:collapse;background:#fff;border-radius:8px;overflow:hidden">
+  <thead>
+    <tr style="background:rgba(74,108,247,.08)">
+      <th style="text-align:left;padding:10px;border-bottom:1px solid var(--c-border)">元素</th>
+      <th style="text-align:left;padding:10px;border-bottom:1px solid var(--c-border)">v1（之前）</th>
+      <th style="text-align:left;padding:10px;border-bottom:1px solid var(--c-border)">v2（這次）</th>
+    </tr>
+  </thead>
+  <tbody style="font-size:13px">
+    <tr><td style="padding:10px;border-bottom:1px solid #f0f2f6">Page wrapper side padding</td><td style="padding:10px;border-bottom:1px solid #f0f2f6">16/24/32</td><td style="padding:10px;border-bottom:1px solid #f0f2f6"><strong>0</strong></td></tr>
+    <tr><td style="padding:10px;border-bottom:1px solid #f0f2f6">每個 block wrapper 寬度</td><td style="padding:10px;border-bottom:1px solid #f0f2f6">viewport - 32/48/64</td><td style="padding:10px;border-bottom:1px solid #f0f2f6"><strong>= viewport（觸邊）</strong></td></tr>
+    <tr><td style="padding:10px;border-bottom:1px solid #f0f2f6">每個 block 內部 padding</td><td style="padding:10px;border-bottom:1px solid #f0f2f6">14/18/22</td><td style="padding:10px;border-bottom:1px solid #f0f2f6">14/18/22（不變）</td></tr>
+    <tr><td style="padding:10px;border-bottom:1px solid #f0f2f6">card border-radius</td><td style="padding:10px;border-bottom:1px solid #f0f2f6">12</td><td style="padding:10px;border-bottom:1px solid #f0f2f6">維持 inputs/buttons 8 / pill 999；外層 block 因觸邊→ <strong>不需 radius</strong>（square block 反而 OK）</td></tr>
+    <tr><td style="padding:10px;border-bottom:1px solid #f0f2f6">字型</td><td style="padding:10px;border-bottom:1px solid #f0f2f6">system-ui</td><td style="padding:10px;border-bottom:1px solid #f0f2f6">system-ui（含 grade letter，無例外）</td></tr>
+    <tr><td style="padding:10px">錯誤狀態</td><td style="padding:10px">紅框 + 淺紅底</td><td style="padding:10px">紅框 + 淺紅底（不變）</td></tr>
+  </tbody>
+</table>
+
+<h3>注意點</h3>
+<ul style="background:#fff;border-radius:8px;padding:14px 28px;margin-top:14px;font-size:13px;line-height:1.8">
+  <li><strong>radius 矛盾</strong>：block 觸邊代表 4 個角觸到 viewport 邊，這時候 border-radius 沒視覺效果（只在內部 input/btn 上有意義）。</li>
+  <li><strong>desktop 1280 form 欄位太寬</strong>：用 2 欄 grid 解（已示範），1 欄會出現很長一條 input 不好用。</li>
+  <li><strong>NSM home 的 question card 也適用</strong>：每張題目卡也觸邊一條，不再是「卡片之間有 16px 縫」。</li>
+  <li><strong>仍有少數例外</strong>：modal / offcanvas / login card 這類「飄起來的卡片」維持有 radius、有 margin（不貼邊）。</li>
+</ul>
+
+<h3>確認</h3>
+<div style="padding:14px;background:#fff;border-radius:8px;border:1px solid var(--c-primary)">
+  v2 的「貼齊兩側」是不是你要的？<br>
+  <strong>確認 ok</strong> → 我寫 SP1 spec doc。<br>
+  <strong>不對</strong> → 告訴我哪裡錯了或還想改什麼。
+</div>
+
+</body>
+</html>

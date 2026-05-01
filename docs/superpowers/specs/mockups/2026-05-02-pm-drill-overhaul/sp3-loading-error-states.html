@@ -1,0 +1,290 @@
+<!DOCTYPE html>
+<html lang="zh-TW">
+<head>
+<meta charset="utf-8">
+<title>SP3 v3 — Loading / Error states</title>
+<link rel="stylesheet" href="https://unpkg.com/@phosphor-icons/web@2.0.3/src/regular/style.css">
+<style>
+  :root {
+    --c-primary: #4a6cf7;
+    --c-danger: #ef4444;
+    --c-text-1: #1a1a1a;
+    --c-text-2: #666;
+    --c-text-3: #999;
+    --c-border: #dde2ec;
+    --c-bg: #f8f9fb;
+    --c-card: #fff;
+    --c-font-sans: system-ui, -apple-system, "Helvetica Neue", "PingFang TC", "Microsoft JhengHei", sans-serif;
+    --r-input: 8px;
+  }
+  * { box-sizing: border-box; }
+  body { font-family: var(--c-font-sans); background: #f0f2f6; color: var(--c-text-1); margin: 0; padding: 32px; }
+  h2 { font-size: 22px; margin: 0 0 6px; font-weight: 700; }
+  .subtitle { color: var(--c-text-2); font-size: 13px; margin: 0 0 28px; }
+  h3 { font-size: 16px; font-weight: 700; margin: 28px 0 14px; padding-bottom: 8px; border-bottom: 2px solid var(--c-primary); display: inline-block; }
+  h4 { font-size: 13px; font-weight: 700; margin: 16px 0 10px; padding: 4px 10px; border-radius: 6px; display: inline-block; }
+  h4.loading { background: rgba(74,108,247,.1); color: var(--c-primary); }
+  h4.error { background: rgba(239,68,68,.1); color: var(--c-danger); }
+
+  .vp-scroller { overflow-x: auto; padding-bottom: 8px; }
+  .vp-row { display: flex; gap: 16px; align-items: flex-start; width: max-content; min-width: 100%; }
+  .vp-frame { border: 1px solid #d6d6d6; border-radius: 12px; background: #fafafa; overflow: hidden; flex-shrink: 0; }
+  .vp-mobile { width: 360px; }
+  .vp-tablet { width: 768px; }
+  .vp-desktop { width: 1280px; }
+  .vp-label { background: #1a1a1a; color: #fff; padding: 6px 12px; font-size: 11px; font-family: monospace; }
+  .vp-content { background: var(--c-bg); padding: 0; min-height: 700px; display: flex; flex-direction: column; }
+
+  .nav { padding: 10px 24px; background: #fff; border-bottom: 1px solid var(--c-border); display: flex; align-items: center; gap: 14px; font-size: 13px; }
+  .nav-tab.active { color: var(--c-primary); font-weight: 700; }
+  .phase-head { padding: 14px 16px; background: #fff; border-bottom: 1px solid var(--c-border); }
+  .phase-head h1 { font-size: 17px; font-weight: 700; margin: 0; }
+  .phase-head .sub { font-size: 11px; color: var(--c-text-2); }
+  .qchip { padding: 8px 16px; background: #fff; border-bottom: 1px solid var(--c-border); display: flex; align-items: center; gap: 8px; font-size: 12px; }
+  .pill { font-size: 10.5px; font-weight: 700; padding: 2px 6px; border-radius: 4px; background: rgba(74,108,247,.08); color: var(--c-primary); }
+
+  /* === Loading state === */
+  .loading-wrap {
+    flex: 1;
+    display: flex; flex-direction: column; align-items: center; justify-content: center;
+    padding: 40px 16px;
+    text-align: center;
+  }
+  .loading-spinner {
+    width: 56px; height: 56px;
+    border: 4px solid rgba(74,108,247,.15);
+    border-top-color: var(--c-primary);
+    border-radius: 50%;
+    animation: spin 1s linear infinite;
+    margin-bottom: 18px;
+  }
+  @keyframes spin { to { transform: rotate(360deg); } }
+  .loading-title { font-size: 16px; font-weight: 700; color: var(--c-text-1); margin-bottom: 6px; }
+  .loading-sub { font-size: 13px; color: var(--c-text-2); line-height: 1.6; max-width: 320px; }
+  .loading-checklist { margin-top: 20px; font-size: 12.5px; color: var(--c-text-2); text-align: left; }
+  .loading-checklist .row { display: flex; align-items: center; gap: 6px; margin-bottom: 6px; }
+  .loading-checklist .ph-check-circle { color: var(--c-primary); }
+  .loading-checklist .ph-circle-notch { color: var(--c-primary); animation: spin 1s linear infinite; }
+  .loading-checklist .pending { color: var(--c-text-3); }
+  .loading-checklist .pending i { color: var(--c-border); }
+
+  /* === Error state === */
+  .error-wrap {
+    flex: 1;
+    display: flex; flex-direction: column; align-items: center; justify-content: center;
+    padding: 40px 16px;
+    text-align: center;
+  }
+  .error-icon {
+    width: 56px; height: 56px;
+    background: rgba(239,68,68,.1);
+    color: var(--c-danger);
+    border-radius: 50%;
+    display: grid; place-items: center;
+    font-size: 32px;
+    margin-bottom: 18px;
+  }
+  .error-title { font-size: 16px; font-weight: 700; color: var(--c-text-1); margin-bottom: 6px; }
+  .error-sub { font-size: 13px; color: var(--c-text-2); line-height: 1.6; max-width: 360px; margin-bottom: 22px; }
+  .error-actions { display: flex; gap: 10px; flex-direction: column; width: 100%; max-width: 280px; }
+  .error-detail {
+    margin-top: 20px;
+    background: rgba(239,68,68,.04);
+    border: 1px solid rgba(239,68,68,.2);
+    border-radius: var(--r-input);
+    padding: 10px 12px;
+    font-size: 11.5px;
+    color: var(--c-text-2);
+    text-align: left;
+    max-width: 360px;
+    line-height: 1.5;
+    font-family: ui-monospace, SFMono-Regular, monospace;
+  }
+
+  .btn { padding: 12px 18px; border-radius: var(--r-input); font-size: 14px; font-weight: 700; cursor: pointer; border: none; }
+  .btn.primary { background: var(--c-primary); color: #fff; }
+  .btn.ghost { background: transparent; border: 1px solid var(--c-border); color: var(--c-text-1); }
+
+  .end-bar { padding: 14px 16px; background: #fff; border-top: 1px solid var(--c-border); }
+</style>
+</head>
+<body>
+
+<h2>SP3 v3 — Loading / Error states for evaluate-step</h2>
+<p class="subtitle">Phase 3 評分頁的兩個非 happy-path 狀態：API 進行中（loading）、API 失敗（error）。整頁狀態，不是局部。</p>
+
+<!-- =========== Loading =========== -->
+<h3>① Loading — POST /evaluate-step in flight (~3-6 秒)</h3>
+<h4 class="loading">使用者點「送出評分」後到 API 回應前的整段時間，取代整個評分頁內容</h4>
+
+<div class="vp-scroller"><div class="vp-row">
+
+  <div class="vp-frame vp-mobile">
+    <div class="vp-label">MOBILE · 360px (loading)</div>
+    <div class="vp-content">
+      <div class="nav"><span style="color:var(--c-primary);font-weight:700">PM Drill</span><span class="nav-tab active">CIRCLES</span></div>
+      <div class="phase-head"><h1>澄清情境 評分中</h1><div class="sub">Spotify · Spotify Podcast</div></div>
+      <div class="qchip"><i class="ph ph-info"></i><span class="pill">題目</span><span style="overflow:hidden;text-overflow:ellipsis;white-space:nowrap;flex:1">設計新功能提升 Spotify Podcast…</span></div>
+
+      <div class="loading-wrap">
+        <div class="loading-spinner"></div>
+        <div class="loading-title">AI 教練評分中…</div>
+        <div class="loading-sub">分析你的 4 個欄位，計算每個維度分數，並生成示範答案。</div>
+
+        <div class="loading-checklist">
+          <div class="row"><i class="ph-fill ph-check-circle"></i> 解析框架欄位</div>
+          <div class="row"><i class="ph-fill ph-check-circle"></i> 計算 4 個維度分數</div>
+          <div class="row"><i class="ph ph-circle-notch"></i> 生成教練示範答案</div>
+          <div class="row pending"><i class="ph ph-circle"></i> 整理改進建議</div>
+        </div>
+
+        <div style="font-size:11px;color:var(--c-text-3);margin-top:18px">通常需要 3-6 秒</div>
+      </div>
+    </div>
+  </div>
+
+  <div class="vp-frame vp-tablet">
+    <div class="vp-label">TABLET · 768px (loading)</div>
+    <div class="vp-content">
+      <div class="nav"><span style="color:var(--c-primary);font-weight:700">PM Drill</span></div>
+      <div class="phase-head"><h1>澄清情境 評分中</h1></div>
+      <div class="qchip"><i class="ph ph-info"></i><span class="pill">題目</span><span>設計新功能…</span></div>
+      <div class="loading-wrap">
+        <div class="loading-spinner"></div>
+        <div class="loading-title">AI 教練評分中…</div>
+        <div class="loading-sub">分析你的 4 個欄位，計算每個維度分數，並生成示範答案。</div>
+        <div class="loading-checklist">
+          <div class="row"><i class="ph-fill ph-check-circle"></i> 解析框架欄位</div>
+          <div class="row"><i class="ph-fill ph-check-circle"></i> 計算 4 個維度分數</div>
+          <div class="row"><i class="ph ph-circle-notch"></i> 生成教練示範答案</div>
+          <div class="row pending"><i class="ph ph-circle"></i> 整理改進建議</div>
+        </div>
+        <div style="font-size:11px;color:var(--c-text-3);margin-top:18px">通常需要 3-6 秒</div>
+      </div>
+    </div>
+  </div>
+
+  <div class="vp-frame vp-desktop">
+    <div class="vp-label">DESKTOP · 1280px (loading — 同樣置中)</div>
+    <div class="vp-content">
+      <div class="nav"><span style="color:var(--c-primary);font-weight:700">PM Drill</span></div>
+      <div class="phase-head"><h1>澄清情境 評分中</h1><div class="sub">Spotify · Spotify Podcast</div></div>
+      <div class="qchip"><i class="ph ph-info"></i><span class="pill">題目</span><span>設計新功能…</span></div>
+      <div class="loading-wrap">
+        <div class="loading-spinner"></div>
+        <div class="loading-title">AI 教練評分中…</div>
+        <div class="loading-sub">分析你的 4 個欄位，計算每個維度分數，並生成示範答案。</div>
+        <div class="loading-checklist">
+          <div class="row"><i class="ph-fill ph-check-circle"></i> 解析框架欄位</div>
+          <div class="row"><i class="ph-fill ph-check-circle"></i> 計算 4 個維度分數</div>
+          <div class="row"><i class="ph ph-circle-notch"></i> 生成教練示範答案</div>
+          <div class="row pending"><i class="ph ph-circle"></i> 整理改進建議</div>
+        </div>
+        <div style="font-size:11px;color:var(--c-text-3);margin-top:18px">通常需要 3-6 秒</div>
+      </div>
+    </div>
+  </div>
+
+</div></div>
+
+<h3>Loading 細節</h3>
+<div style="background:#fff;border-radius:8px;padding:14px;font-size:13px;line-height:1.7">
+  <strong>Checklist 項目隨進度變化（純視覺，不需要 API 提供）：</strong><br>
+  畫面 mount 後 0s — 4 顆都 pending；500ms 第 1 顆勾；1000ms 第 2 顆勾；1500ms 第 3 顆轉 spinner；3000ms 第 3 顆勾、第 4 顆轉 spinner。即使 API 還沒回，也能讓使用者「感覺有進展」。<br>
+  <strong>逾時策略：</strong>15 秒沒回應 → 顯示 toast「比預期慢一些，再等等…」；30 秒仍無回應 → 進 error state。
+</div>
+
+<!-- =========== Error =========== -->
+<h3>② Error — 評分 API 失敗</h3>
+<h4 class="error">三種主要失敗：(1) 網路錯誤 (2) OpenAI 回 5xx (3) JSON parse 失敗</h4>
+
+<div class="vp-scroller"><div class="vp-row">
+
+  <div class="vp-frame vp-mobile">
+    <div class="vp-label">MOBILE · 360px (error)</div>
+    <div class="vp-content">
+      <div class="nav"><span style="color:var(--c-primary);font-weight:700">PM Drill</span><span class="nav-tab active">CIRCLES</span></div>
+      <div class="phase-head"><h1>澄清情境 評分結果</h1><div class="sub">Spotify · Spotify Podcast</div></div>
+      <div class="qchip"><i class="ph ph-info"></i><span class="pill">題目</span><span style="overflow:hidden;text-overflow:ellipsis;white-space:nowrap;flex:1">設計新功能提升 Spotify Podcast…</span></div>
+
+      <div class="error-wrap">
+        <div class="error-icon"><i class="ph ph-cloud-warning"></i></div>
+        <div class="error-title">評分生成失敗</div>
+        <div class="error-sub">AI 教練無法在這次連線中完成評分。你的框架答案已存檔（auto-save），可以重試或稍後再試。</div>
+
+        <div class="error-actions">
+          <button class="btn primary"><i class="ph ph-arrow-clockwise"></i> 重新評分</button>
+          <button class="btn ghost">返回修改答案</button>
+        </div>
+
+        <div class="error-detail">
+          <strong>錯誤：</strong>OpenAI API timeout (30s)<br>
+          <strong>code：</strong>EVAL_TIMEOUT
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <div class="vp-frame vp-tablet">
+    <div class="vp-label">TABLET · 768px (error)</div>
+    <div class="vp-content">
+      <div class="nav"><span style="color:var(--c-primary);font-weight:700">PM Drill</span></div>
+      <div class="phase-head"><h1>澄清情境 評分結果</h1></div>
+      <div class="qchip"><i class="ph ph-info"></i><span class="pill">題目</span><span>設計新功能…</span></div>
+      <div class="error-wrap">
+        <div class="error-icon"><i class="ph ph-cloud-warning"></i></div>
+        <div class="error-title">評分生成失敗</div>
+        <div class="error-sub">AI 教練無法在這次連線中完成評分。你的框架答案已存檔，可以重試或稍後再試。</div>
+        <div class="error-actions">
+          <button class="btn primary"><i class="ph ph-arrow-clockwise"></i> 重新評分</button>
+          <button class="btn ghost">返回修改答案</button>
+        </div>
+        <div class="error-detail"><strong>錯誤：</strong>OpenAI 5xx · code: EVAL_API_ERROR</div>
+      </div>
+    </div>
+  </div>
+
+  <div class="vp-frame vp-desktop">
+    <div class="vp-label">DESKTOP · 1280px (error)</div>
+    <div class="vp-content">
+      <div class="nav"><span style="color:var(--c-primary);font-weight:700">PM Drill</span></div>
+      <div class="phase-head"><h1>澄清情境 評分結果</h1><div class="sub">Spotify · Spotify Podcast</div></div>
+      <div class="qchip"><i class="ph ph-info"></i><span class="pill">題目</span><span>設計新功能…</span></div>
+      <div class="error-wrap">
+        <div class="error-icon"><i class="ph ph-cloud-warning"></i></div>
+        <div class="error-title">評分生成失敗</div>
+        <div class="error-sub">AI 教練無法在這次連線中完成評分。你的框架答案已存檔（auto-save），可以重試或稍後再試。如果連續失敗，請聯絡管理員。</div>
+        <div class="error-actions" style="flex-direction:row;max-width:420px">
+          <button class="btn primary" style="flex:1"><i class="ph ph-arrow-clockwise"></i> 重新評分</button>
+          <button class="btn ghost" style="flex:1">返回修改答案</button>
+        </div>
+        <div class="error-detail"><strong>錯誤：</strong>JSON parse failed · code: EVAL_PARSE_ERROR · session: c1de…91</div>
+      </div>
+    </div>
+  </div>
+
+</div></div>
+
+<h3>Error 細節</h3>
+<div style="background:#fff;border-radius:8px;padding:14px;font-size:13px;line-height:1.7">
+  <strong>錯誤分類與行為：</strong>
+  <ul style="margin:8px 0 0;padding-left:22px">
+    <li><strong>EVAL_TIMEOUT</strong>（30 秒未回）→ 顯示「重新評分」+「返回修改答案」</li>
+    <li><strong>EVAL_API_ERROR</strong>（OpenAI 5xx 或 4xx）→ 顯示重試 + 返回</li>
+    <li><strong>EVAL_PARSE_ERROR</strong>（OpenAI 回的 JSON 格式錯）→ 顯示重試（背後自動重試 3 次後仍失敗才到 UI）</li>
+    <li><strong>EVAL_AUTH_ERROR</strong>（401 — token 失效）→ 跳到登入頁，不顯示錯誤頁</li>
+  </ul>
+  <strong style="margin-top:8px;display:block">「重新評分」</strong>：直接重打 evaluate-step API（自動帶上同樣的 framework_draft）<br>
+  <strong>「返回修改答案」</strong>：navigate 回 Phase 1，circlesPhase = 1，保留 framework_draft（已存）<br>
+  <strong>「auto-save」保證</strong>：framework_draft 在點送出時就 PUT 進 session.step_drafts，不會因評分失敗而丟失
+</div>
+
+<h3>確認</h3>
+<div style="padding:14px;background:#fff;border-radius:8px;border:1px solid var(--c-primary)">
+  ① loading：spinner + checklist（4 顆視覺進度），15 秒慢警告 / 30 秒進 error<br>
+  ② error：3 種錯誤代碼，2 個按鈕（重新評分 / 返回修改），dev 模式或 console 顯示細節 code<br>
+  ok 推 SP4。
+</div>
+
+</body>
+</html>

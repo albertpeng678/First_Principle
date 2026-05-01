@@ -1,0 +1,547 @@
+<!DOCTYPE html>
+<html lang="zh-TW">
+<head>
+<meta charset="utf-8">
+<title>SP4 v2 — Step 4 全部 4 個 tab 設計</title>
+<link rel="stylesheet" href="https://unpkg.com/@phosphor-icons/web@2.0.3/src/regular/style.css">
+<style>
+  :root {
+    --c-primary: #4a6cf7;
+    --c-success: #10b981;
+    --c-warn: #f59e0b;
+    --c-danger: #ef4444;
+    --c-text-1: #1a1a1a;
+    --c-text-2: #666;
+    --c-text-3: #999;
+    --c-border: #dde2ec;
+    --c-bg: #f8f9fb;
+    --c-card: #fff;
+    --c-font-sans: system-ui, -apple-system, "Helvetica Neue", "PingFang TC", "Microsoft JhengHei", sans-serif;
+    --r-input: 8px;
+  }
+  * { box-sizing: border-box; }
+  body { font-family: var(--c-font-sans); background: #f0f2f6; color: var(--c-text-1); margin: 0; padding: 32px; }
+  h2 { font-size: 22px; margin: 0 0 6px; font-weight: 700; }
+  .subtitle { color: var(--c-text-2); font-size: 13px; margin: 0 0 28px; }
+  h3 { font-size: 16px; font-weight: 700; margin: 28px 0 14px; padding: 8px 14px; background: var(--c-primary); color: #fff; border-radius: 6px; display: inline-block; }
+  h4 { font-size: 13px; font-weight: 700; margin: 16px 0 10px; padding: 4px 10px; border-radius: 6px; display: inline-block; background: rgba(74,108,247,.1); color: var(--c-primary); }
+  .vp-scroller { overflow-x: auto; padding-bottom: 8px; }
+  .vp-row { display: flex; gap: 16px; align-items: flex-start; width: max-content; min-width: 100%; }
+  .vp-frame { border: 1px solid #d6d6d6; border-radius: 12px; background: #fafafa; overflow: hidden; flex-shrink: 0; }
+  .vp-mobile { width: 360px; }
+  .vp-tablet { width: 768px; }
+  .vp-desktop { width: 1280px; }
+  .vp-label { background: #1a1a1a; color: #fff; padding: 6px 12px; font-size: 11px; font-family: monospace; }
+  .vp-content { background: var(--c-bg); padding: 0; min-height: 700px; display: flex; flex-direction: column; }
+
+  .nav { padding: 10px 16px; background: #fff; border-bottom: 1px solid var(--c-border); display: flex; align-items: center; gap: 12px; font-size: 13px; }
+  .vp-tablet .nav { padding-left: 22px; padding-right: 22px; }
+  .vp-desktop .nav { padding-left: 32px; padding-right: 32px; }
+  .nav-tab.active { color: var(--c-primary); font-weight: 700; padding: 6px 12px; background: #fff; border: 1px solid var(--c-border); border-radius: 8px; }
+
+  .phase-head { padding: 14px 16px; background: #fff; display: flex; align-items: center; gap: 10px; }
+  .vp-tablet .phase-head { padding-left: 22px; padding-right: 22px; }
+  .vp-desktop .phase-head { padding-left: 32px; padding-right: 32px; }
+  .icon-btn { width: 32px; height: 32px; border-radius: 999px; border: 1px solid var(--c-border); background: #fff; display: grid; place-items: center; flex-shrink: 0; }
+  .phase-title { font-size: 17px; font-weight: 700; flex: 1; }
+  .phase-title-meta { font-size: 12px; color: var(--c-text-2); margin-left: 8px; font-weight: 400; }
+
+  .step4-summary { background: #fff; padding: 16px; border-bottom: 1px solid var(--c-border); display: flex; align-items: baseline; gap: 8px; }
+  .vp-tablet .step4-summary { padding-left: 22px; padding-right: 22px; }
+  .vp-desktop .step4-summary { padding-left: 32px; padding-right: 32px; }
+  .step4-num { font-family: var(--c-font-sans); font-size: 56px; font-weight: 700; color: var(--c-primary); line-height: 1; letter-spacing: -.02em; }
+  .step4-of { font-size: 13px; color: var(--c-text-3); }
+  .step4-question { margin-left: auto; font-size: 13px; color: var(--c-text-2); text-align: right; }
+
+  .step4-tabs { background: #fff; border-bottom: 1px solid var(--c-border); display: flex; padding: 0 16px; }
+  .vp-tablet .step4-tabs { padding-left: 22px; padding-right: 22px; }
+  .vp-desktop .step4-tabs { padding-left: 32px; padding-right: 32px; }
+  .step4-tab { padding: 12px 16px; font-size: 13px; font-weight: 600; cursor: pointer; color: var(--c-text-2); border-bottom: 2px solid transparent; flex: 1; text-align: center; }
+  .step4-tab.active { color: var(--c-primary); border-bottom-color: var(--c-primary); }
+
+  .step4-body { padding: 16px; flex: 1; }
+  .vp-tablet .step4-body { padding: 16px 22px; }
+  .vp-desktop .step4-body { padding: 24px 32px; }
+
+  .end-bar { padding: 14px 16px; background: #fff; border-top: 1px solid var(--c-border); display: flex; gap: 10px; align-items: center; }
+  .vp-tablet .end-bar { padding-left: 22px; padding-right: 22px; }
+  .vp-desktop .end-bar { padding-left: 32px; padding-right: 32px; }
+  .btn { padding: 10px 16px; border-radius: var(--r-input); font-size: 13px; font-weight: 700; cursor: pointer; border: none; }
+  .btn.primary { background: var(--c-primary); color: #fff; }
+  .btn.ghost { background: #fff; border: 1px solid var(--c-border); color: var(--c-text-1); }
+
+  /* === Tab 1: Overview === */
+  .ov-radar {
+    background: #fff;
+    border-radius: 12px;
+    padding: 30px;
+    text-align: center;
+    color: var(--c-text-3);
+  }
+  .vp-mobile .ov-radar { padding: 24px; }
+  .dim-row { display: grid; grid-template-columns: 80px 1fr 60px; gap: 10px; align-items: start; padding: 10px 0; border-bottom: 1px solid #f0f2f6; font-size: 13px; }
+  .dim-row:last-child { border-bottom: none; }
+  .dim-bar { height: 6px; border-radius: 3px; background: var(--c-border); overflow: hidden; margin: 4px 0; }
+  .dim-bar-fill { height: 100%; background: var(--c-primary); }
+  .dim-bar-fill.green { background: var(--c-success); }
+  .dim-bar-fill.warn { background: var(--c-warn); }
+  .dim-bar-fill.red { background: var(--c-danger); }
+  .dim-comment { font-size: 11.5px; color: var(--c-text-2); }
+
+  /* === Tab 2: Comparison === */
+  .cmp-header-row { display: flex; gap: 16px; padding: 12px 0; border-bottom: 1px solid var(--c-border); margin-bottom: 12px; }
+  .cmp-h-cell { flex: 1; font-size: 12px; font-weight: 700; }
+  .cmp-h-you { color: var(--c-text-2); }
+  .cmp-h-coach { color: var(--c-primary); display: flex; align-items: center; gap: 4px; }
+  .cmp-block { padding: 12px 0; border-bottom: 1px dashed var(--c-border); }
+  .cmp-block:last-child { border-bottom: none; }
+  .cmp-dim-title { font-size: 12px; font-weight: 700; color: var(--c-text-3); margin-bottom: 8px; }
+  .cmp-row { display: grid; grid-template-columns: 1fr 1fr; gap: 12px; }
+  .cmp-card {
+    background: #fff;
+    border: 1px solid var(--c-border);
+    border-radius: var(--r-input);
+    padding: 12px;
+    font-size: 12.5px;
+    line-height: 1.55;
+  }
+  .cmp-card.coach { background: rgba(74,108,247,.04); border-color: rgba(74,108,247,.3); cursor: pointer; }
+  .cmp-card-tag { font-size: 10px; font-weight: 700; padding: 1px 5px; border-radius: 3px; margin-right: 4px; vertical-align: 2px; }
+  .cmp-card-tag.you { background: rgba(0,0,0,.06); color: var(--c-text-2); }
+  .cmp-card-tag.coach { background: rgba(74,108,247,.15); color: var(--c-primary); }
+  /* Mobile: stack pairs vertically */
+  .vp-mobile .cmp-row { grid-template-columns: 1fr; gap: 8px; }
+  .vp-mobile .cmp-header-row { display: none; }
+
+  /* === Tab 3: Highlights === */
+  .hl-grid { display: grid; gap: 12px; }
+  .vp-desktop .hl-grid { grid-template-columns: 1fr 1fr 1fr; }
+  .vp-tablet .hl-grid { grid-template-columns: 1fr 1fr; }
+  .hl-card {
+    background: #fff;
+    border-radius: 12px;
+    padding: 16px;
+    border-left: 4px solid var(--c-primary);
+  }
+  .hl-card.danger { border-left-color: var(--c-danger); }
+  .hl-card.summary { border-left-color: var(--c-warn); grid-column: span 1; }
+  .vp-desktop .hl-card.summary { grid-column: span 3; }
+  .vp-tablet .hl-card.summary { grid-column: span 2; }
+  .hl-label { font-size: 12px; font-weight: 700; color: var(--c-primary); display: flex; align-items: center; gap: 5px; margin-bottom: 6px; }
+  .hl-card.danger .hl-label { color: var(--c-danger); }
+  .hl-card.summary .hl-label { color: var(--c-warn); }
+  .hl-text { font-size: 13px; line-height: 1.6; color: var(--c-text-1); }
+
+  /* === Tab 4: Done / Export === */
+  .done-panel {
+    background: #fff;
+    border-radius: 12px;
+    padding: 24px;
+    text-align: center;
+    margin-bottom: 14px;
+  }
+  .vp-desktop .done-panel { padding: 40px 24px; }
+  .done-icon {
+    width: 64px; height: 64px;
+    background: rgba(74,108,247,.1);
+    color: var(--c-primary);
+    border-radius: 999px;
+    display: grid; place-items: center;
+    font-size: 32px;
+    margin: 0 auto 14px;
+  }
+  .done-title { font-size: 18px; font-weight: 700; margin-bottom: 6px; }
+  .done-sub { font-size: 13px; color: var(--c-text-2); line-height: 1.6; max-width: 460px; margin: 0 auto; }
+  .done-actions {
+    display: grid; gap: 10px;
+    max-width: 520px; margin: 18px auto 0;
+  }
+  .vp-desktop .done-actions { grid-template-columns: 1fr 1fr; }
+  .done-secondary {
+    background: rgba(74,108,247,.04);
+    border-radius: 8px;
+    padding: 14px;
+    font-size: 12.5px;
+    line-height: 1.6;
+    color: var(--c-text-2);
+    max-width: 520px; margin: 0 auto;
+  }
+  .done-secondary .ph { color: var(--c-primary); margin-right: 4px; }
+
+  /* Desktop overview 2-col */
+  .vp-desktop .overview-grid {
+    display: grid; grid-template-columns: 380px 1fr; gap: 24px;
+  }
+  .vp-desktop .ov-radar { background: #fff; border-radius: 12px; }
+  .ov-dims-card { background: #fff; border-radius: 12px; padding: 16px; }
+</style>
+</head>
+<body>
+
+<h2>SP4 v2 — Step 4 報告：4 個 tab 全部設計</h2>
+<p class="subtitle">每個 tab × mobile / tablet / desktop = 12 個 mockup。所有 desktop 改用 full-width，避免內容卡在 600px 窄欄。</p>
+
+<!-- ============ TAB 1: 總覽 ============ -->
+<h3>Tab 1 / 4 · 總覽</h3>
+<h4>desktop 2-col：左 radar / 右 dimension bars，撐滿寬度。mobile/tablet 單欄上下排</h4>
+
+<div class="vp-scroller"><div class="vp-row">
+
+  <div class="vp-frame vp-mobile">
+    <div class="vp-label">MOBILE · 360px</div>
+    <div class="vp-content">
+      <div class="nav"><i class="ph ph-list"></i><span style="color:var(--c-primary);font-weight:700">PM Drill</span><span class="nav-tab active">北極星指標</span></div>
+      <div class="phase-head"><div class="icon-btn"><i class="ph ph-arrow-left"></i></div><div class="phase-title">NSM 報告</div><div class="icon-btn"><i class="ph ph-house"></i></div></div>
+      <div class="step4-summary"><div class="step4-num">80</div><div class="step4-of">/ 100</div></div>
+      <div class="step4-tabs"><div class="step4-tab active">總覽</div><div class="step4-tab">對比</div><div class="step4-tab">亮點</div><div class="step4-tab">完成</div></div>
+      <div class="step4-body">
+        <div class="ov-radar"><i class="ph ph-chart-pie" style="font-size:36px;color:var(--c-primary)"></i><div style="font-size:11px;margin-top:6px">5 維度 radar chart</div></div>
+        <div style="background:#fff;border-radius:12px;padding:14px;margin-top:12px">
+          <div class="dim-row"><div>價值關聯</div><div><div class="dim-bar"><div class="dim-bar-fill" style="width:80%"></div></div><div class="dim-comment">直接指向「真正觀看」</div></div><div style="text-align:right"><strong>4</strong>/5</div></div>
+          <div class="dim-row"><div>領先指標</div><div><div class="dim-bar"><div class="dim-bar-fill" style="width:100%"></div></div><div class="dim-comment">最強的領先指標</div></div><div style="text-align:right"><strong>5</strong>/5</div></div>
+          <div class="dim-row"><div>操作性</div><div><div class="dim-bar"><div class="dim-bar-fill green" style="width:80%"></div></div><div class="dim-comment">可指導推薦演算法</div></div><div style="text-align:right"><strong>4</strong>/5</div></div>
+          <div class="dim-row"><div>可理解性</div><div><div class="dim-bar"><div class="dim-bar-fill warn" style="width:60%"></div></div><div class="dim-comment">面向行銷需稍解釋</div></div><div style="text-align:right"><strong>3</strong>/5</div></div>
+          <div class="dim-row"><div>週期敏感</div><div><div class="dim-bar"><div class="dim-bar-fill" style="width:80%"></div></div><div class="dim-comment">能反映促銷</div></div><div style="text-align:right"><strong>4</strong>/5</div></div>
+        </div>
+      </div>
+      <div class="end-bar"><button class="btn primary" style="flex:1"><i class="ph ph-shuffle"></i> 再練一題</button></div>
+    </div>
+  </div>
+
+  <div class="vp-frame vp-tablet">
+    <div class="vp-label">TABLET · 768px</div>
+    <div class="vp-content">
+      <div class="nav"><i class="ph ph-list"></i><span style="color:var(--c-primary);font-weight:700">PM Drill</span><span class="nav-tab active">北極星指標</span></div>
+      <div class="phase-head"><div class="icon-btn"><i class="ph ph-arrow-left"></i></div><div class="phase-title">NSM 報告 — Netflix</div><div class="icon-btn"><i class="ph ph-house"></i></div></div>
+      <div class="step4-summary"><div class="step4-num">80</div><div class="step4-of">/ 100</div><div class="step4-question">Netflix · 內容訂閱制</div></div>
+      <div class="step4-tabs"><div class="step4-tab active">總覽</div><div class="step4-tab">對比</div><div class="step4-tab">亮點</div><div class="step4-tab">完成</div></div>
+      <div class="step4-body">
+        <div class="ov-radar" style="margin-bottom:14px"><i class="ph ph-chart-pie" style="font-size:48px;color:var(--c-primary)"></i><div style="font-size:11px;margin-top:8px">5 維度 radar chart（寬一點）</div></div>
+        <div class="ov-dims-card">
+          <div class="dim-row"><div>價值關聯</div><div><div class="dim-bar"><div class="dim-bar-fill" style="width:80%"></div></div><div class="dim-comment">直接指向「真正觀看」</div></div><div style="text-align:right"><strong>4</strong>/5</div></div>
+          <div class="dim-row"><div>領先指標</div><div><div class="dim-bar"><div class="dim-bar-fill" style="width:100%"></div></div><div class="dim-comment">完整觀看是流失預警最強指標</div></div><div style="text-align:right"><strong>5</strong>/5</div></div>
+          <div class="dim-row"><div>操作性</div><div><div class="dim-bar"><div class="dim-bar-fill green" style="width:80%"></div></div><div class="dim-comment">可指導推薦演算法調整</div></div><div style="text-align:right"><strong>4</strong>/5</div></div>
+          <div class="dim-row"><div>可理解性</div><div><div class="dim-bar"><div class="dim-bar-fill warn" style="width:60%"></div></div><div class="dim-comment">面向行銷可能要稍解釋</div></div><div style="text-align:right"><strong>3</strong>/5</div></div>
+          <div class="dim-row"><div>週期敏感</div><div><div class="dim-bar"><div class="dim-bar-fill" style="width:80%"></div></div><div class="dim-comment">能反映季度更新與促銷</div></div><div style="text-align:right"><strong>4</strong>/5</div></div>
+        </div>
+      </div>
+      <div class="end-bar"><button class="btn primary" style="flex:1"><i class="ph ph-shuffle"></i> 再練一題</button></div>
+    </div>
+  </div>
+
+  <div class="vp-frame vp-desktop">
+    <div class="vp-label">DESKTOP · 1280px (2-col 撐滿)</div>
+    <div class="vp-content">
+      <div class="nav"><i class="ph ph-list"></i><span style="color:var(--c-primary);font-weight:700">PM Drill</span><span class="nav-tab active">北極星指標</span></div>
+      <div class="phase-head"><div class="icon-btn"><i class="ph ph-arrow-left"></i></div><div class="phase-title">NSM 報告 <span class="phase-title-meta">— Netflix · 內容訂閱制</span></div><div class="icon-btn"><i class="ph ph-house"></i></div></div>
+      <div class="step4-summary"><div class="step4-num">80</div><div class="step4-of">/ 100</div></div>
+      <div class="step4-tabs"><div class="step4-tab active">總覽</div><div class="step4-tab">對比</div><div class="step4-tab">亮點</div><div class="step4-tab">完成</div></div>
+      <div class="step4-body">
+        <div class="overview-grid">
+          <div class="ov-radar"><i class="ph ph-chart-pie" style="font-size:64px;color:var(--c-primary)"></i><div style="font-size:11px;margin-top:10px">5 維度 radar chart</div></div>
+          <div class="ov-dims-card">
+            <div class="dim-row"><div>價值關聯</div><div><div class="dim-bar"><div class="dim-bar-fill" style="width:80%"></div></div><div class="dim-comment">直接指向「真正觀看」核心價值，避免 vanity 陷阱</div></div><div style="text-align:right"><strong>4</strong>/5</div></div>
+            <div class="dim-row"><div>領先指標</div><div><div class="dim-bar"><div class="dim-bar-fill" style="width:100%"></div></div><div class="dim-comment">完整觀看是流失預警最強的領先指標</div></div><div style="text-align:right"><strong>5</strong>/5</div></div>
+            <div class="dim-row"><div>操作性</div><div><div class="dim-bar"><div class="dim-bar-fill green" style="width:80%"></div></div><div class="dim-comment">可指導推薦演算法調整與付費優惠設計</div></div><div style="text-align:right"><strong>4</strong>/5</div></div>
+            <div class="dim-row"><div>可理解性</div><div><div class="dim-bar"><div class="dim-bar-fill warn" style="width:60%"></div></div><div class="dim-comment">面向行銷可能要稍解釋</div></div><div style="text-align:right"><strong>3</strong>/5</div></div>
+            <div class="dim-row"><div>週期敏感</div><div><div class="dim-bar"><div class="dim-bar-fill" style="width:80%"></div></div><div class="dim-comment">能反映季度內容更新與促銷效果</div></div><div style="text-align:right"><strong>4</strong>/5</div></div>
+          </div>
+        </div>
+      </div>
+      <div class="end-bar"><button class="btn primary" style="max-width:520px;margin:0 auto"><i class="ph ph-shuffle"></i> 再練一題</button></div>
+    </div>
+  </div>
+
+</div></div>
+
+<!-- ============ TAB 2: 對比 ============ -->
+<h3>Tab 2 / 4 · 對比（你的拆解 vs 教練版本）</h3>
+<h4>2-col 表格：左欄你的、右欄教練版（點擊看思路）。mobile 改成「先你的、再教練」垂直堆疊以節省空間</h4>
+
+<div class="vp-scroller"><div class="vp-row">
+
+  <div class="vp-frame vp-mobile">
+    <div class="vp-label">MOBILE · 360px (垂直堆疊)</div>
+    <div class="vp-content">
+      <div class="nav"><i class="ph ph-list"></i><span style="color:var(--c-primary);font-weight:700">PM Drill</span><span class="nav-tab active">北極星指標</span></div>
+      <div class="phase-head"><div class="icon-btn"><i class="ph ph-arrow-left"></i></div><div class="phase-title">NSM 報告</div><div class="icon-btn"><i class="ph ph-house"></i></div></div>
+      <div class="step4-summary"><div class="step4-num">80</div><div class="step4-of">/ 100</div></div>
+      <div class="step4-tabs"><div class="step4-tab">總覽</div><div class="step4-tab active">對比</div><div class="step4-tab">亮點</div><div class="step4-tab">完成</div></div>
+      <div class="step4-body">
+        <div class="cmp-block">
+          <div class="cmp-dim-title">北極星指標 (NSM)</div>
+          <div class="cmp-row">
+            <div class="cmp-card"><span class="cmp-card-tag you">你的</span>訂閱用戶每月完整觀看時長</div>
+            <div class="cmp-card coach"><span class="cmp-card-tag coach">教練版</span>訂閱用戶每月完整觀看曲目時長</div>
+          </div>
+        </div>
+        <div class="cmp-block">
+          <div class="cmp-dim-title">觸及廣度（reach）</div>
+          <div class="cmp-row">
+            <div class="cmp-card"><span class="cmp-card-tag you">你的</span>每月至少完整觀看 1 部影集的訂閱用戶</div>
+            <div class="cmp-card coach"><span class="cmp-card-tag coach">教練版</span>每月完整觀看 1 部以上的活躍訂戶數</div>
+          </div>
+        </div>
+        <div class="cmp-block">
+          <div class="cmp-dim-title">互動深度（depth）</div>
+          <div class="cmp-row">
+            <div class="cmp-card"><span class="cmp-card-tag you">你的</span>每位用戶每週平均觀看時數</div>
+            <div class="cmp-card coach"><span class="cmp-card-tag coach">教練版</span>每位活躍訂戶月觀看時數</div>
+          </div>
+        </div>
+      </div>
+      <div class="end-bar"><button class="btn primary" style="flex:1"><i class="ph ph-shuffle"></i> 再練一題</button></div>
+    </div>
+  </div>
+
+  <div class="vp-frame vp-tablet">
+    <div class="vp-label">TABLET · 768px (2-col side-by-side)</div>
+    <div class="vp-content">
+      <div class="nav"><i class="ph ph-list"></i><span style="color:var(--c-primary);font-weight:700">PM Drill</span><span class="nav-tab active">北極星指標</span></div>
+      <div class="phase-head"><div class="icon-btn"><i class="ph ph-arrow-left"></i></div><div class="phase-title">NSM 報告 — Netflix</div><div class="icon-btn"><i class="ph ph-house"></i></div></div>
+      <div class="step4-summary"><div class="step4-num">80</div><div class="step4-of">/ 100</div><div class="step4-question">Netflix · 內容訂閱制</div></div>
+      <div class="step4-tabs"><div class="step4-tab">總覽</div><div class="step4-tab active">對比</div><div class="step4-tab">亮點</div><div class="step4-tab">完成</div></div>
+      <div class="step4-body">
+        <div class="cmp-header-row">
+          <div class="cmp-h-cell cmp-h-you"><i class="ph ph-user"></i> 你的拆解</div>
+          <div class="cmp-h-cell cmp-h-coach"><i class="ph ph-graduation-cap"></i> 教練版本（點擊看思路）</div>
+        </div>
+        <div class="cmp-block">
+          <div class="cmp-dim-title">北極星指標 (NSM)</div>
+          <div class="cmp-row">
+            <div class="cmp-card">訂閱用戶每月完整觀看時長</div>
+            <div class="cmp-card coach">訂閱用戶每月完整觀看曲目時長</div>
+          </div>
+        </div>
+        <div class="cmp-block">
+          <div class="cmp-dim-title">觸及廣度</div>
+          <div class="cmp-row">
+            <div class="cmp-card">每月至少完整觀看 1 部影集的訂閱用戶</div>
+            <div class="cmp-card coach">每月完整觀看 1 部以上的活躍訂戶數</div>
+          </div>
+        </div>
+        <div class="cmp-block">
+          <div class="cmp-dim-title">互動深度</div>
+          <div class="cmp-row">
+            <div class="cmp-card">每位用戶每週平均觀看時數</div>
+            <div class="cmp-card coach">每位活躍訂戶月觀看時數</div>
+          </div>
+        </div>
+        <div class="cmp-block">
+          <div class="cmp-dim-title">習慣頻率</div>
+          <div class="cmp-row">
+            <div class="cmp-card">每週平均開啟 App 天數 ≥ 4</div>
+            <div class="cmp-card coach">DAU/MAU 與每週活躍天數</div>
+          </div>
+        </div>
+      </div>
+      <div class="end-bar"><button class="btn primary" style="flex:1"><i class="ph ph-shuffle"></i> 再練一題</button></div>
+    </div>
+  </div>
+
+  <div class="vp-frame vp-desktop">
+    <div class="vp-label">DESKTOP · 1280px (2-col 撐滿)</div>
+    <div class="vp-content">
+      <div class="nav"><i class="ph ph-list"></i><span style="color:var(--c-primary);font-weight:700">PM Drill</span><span class="nav-tab active">北極星指標</span></div>
+      <div class="phase-head"><div class="icon-btn"><i class="ph ph-arrow-left"></i></div><div class="phase-title">NSM 報告 <span class="phase-title-meta">— Netflix · 內容訂閱制</span></div><div class="icon-btn"><i class="ph ph-house"></i></div></div>
+      <div class="step4-summary"><div class="step4-num">80</div><div class="step4-of">/ 100</div></div>
+      <div class="step4-tabs"><div class="step4-tab">總覽</div><div class="step4-tab active">對比</div><div class="step4-tab">亮點</div><div class="step4-tab">完成</div></div>
+      <div class="step4-body">
+        <div style="background:#fff;border-radius:12px;padding:20px">
+          <div class="cmp-header-row">
+            <div class="cmp-h-cell cmp-h-you"><i class="ph ph-user"></i> 你的拆解</div>
+            <div class="cmp-h-cell cmp-h-coach"><i class="ph ph-graduation-cap"></i> 教練版本 <span style="color:var(--c-text-3);font-weight:400;margin-left:4px">點擊看思路</span></div>
+          </div>
+          <div class="cmp-block">
+            <div class="cmp-dim-title">北極星指標 (NSM)</div>
+            <div class="cmp-row"><div class="cmp-card">訂閱用戶每月完整觀看時長</div><div class="cmp-card coach">訂閱用戶每月完整觀看曲目時長</div></div>
+          </div>
+          <div class="cmp-block">
+            <div class="cmp-dim-title">觸及廣度（reach）</div>
+            <div class="cmp-row"><div class="cmp-card">每月至少完整觀看 1 部影集的訂閱用戶</div><div class="cmp-card coach">每月完整觀看 1 部以上的活躍訂戶數</div></div>
+          </div>
+          <div class="cmp-block">
+            <div class="cmp-dim-title">互動深度（depth）</div>
+            <div class="cmp-row"><div class="cmp-card">每位用戶每週平均觀看時數</div><div class="cmp-card coach">每位活躍訂戶月觀看時數</div></div>
+          </div>
+          <div class="cmp-block">
+            <div class="cmp-dim-title">習慣頻率（frequency）</div>
+            <div class="cmp-row"><div class="cmp-card">每週平均開啟 App 天數 ≥ 4</div><div class="cmp-card coach">DAU/MAU 與每週活躍天數</div></div>
+          </div>
+          <div class="cmp-block">
+            <div class="cmp-dim-title">留存驅力（impact）</div>
+            <div class="cmp-row"><div class="cmp-card">收藏 / 加入清單後 7 天內觀看率</div><div class="cmp-card coach">加入清單後 7 天內觀看率</div></div>
+          </div>
+        </div>
+      </div>
+      <div class="end-bar"><button class="btn primary" style="max-width:520px;margin:0 auto"><i class="ph ph-shuffle"></i> 再練一題</button></div>
+    </div>
+  </div>
+
+</div></div>
+
+<!-- ============ TAB 3: 亮點 ============ -->
+<h3>Tab 3 / 4 · 亮點</h3>
+<h4>3 cards — desktop 3-col / tablet 2-col + 總評跨欄 / mobile 單欄</h4>
+
+<div class="vp-scroller"><div class="vp-row">
+
+  <div class="vp-frame vp-mobile">
+    <div class="vp-label">MOBILE · 360px</div>
+    <div class="vp-content">
+      <div class="nav"><i class="ph ph-list"></i><span style="color:var(--c-primary);font-weight:700">PM Drill</span><span class="nav-tab active">北極星指標</span></div>
+      <div class="phase-head"><div class="icon-btn"><i class="ph ph-arrow-left"></i></div><div class="phase-title">NSM 報告</div><div class="icon-btn"><i class="ph ph-house"></i></div></div>
+      <div class="step4-summary"><div class="step4-num">80</div><div class="step4-of">/ 100</div></div>
+      <div class="step4-tabs"><div class="step4-tab">總覽</div><div class="step4-tab">對比</div><div class="step4-tab active">亮點</div><div class="step4-tab">完成</div></div>
+      <div class="step4-body">
+        <div class="hl-grid">
+          <div class="hl-card">
+            <div class="hl-label"><i class="ph ph-trophy"></i> 最大亮點</div>
+            <div class="hl-text">商業價值連結很穩，把「完整觀看」設為核心避開虛榮指標。</div>
+          </div>
+          <div class="hl-card danger">
+            <div class="hl-label"><i class="ph ph-warning"></i> 主要陷阱</div>
+            <div class="hl-text">可加上跨裝置 / 跨家庭成員的去重邏輯，避免重複計算。</div>
+          </div>
+          <div class="hl-card summary">
+            <div class="hl-label"><i class="ph ph-chat-text"></i> 總評</div>
+            <div class="hl-text">整體 NSM 設計品質不錯，可加深拆解與分層分析。建議下一輪嘗試攻擊「可理解性」這個維度。</div>
+          </div>
+        </div>
+      </div>
+      <div class="end-bar"><button class="btn primary" style="flex:1"><i class="ph ph-shuffle"></i> 再練一題</button></div>
+    </div>
+  </div>
+
+  <div class="vp-frame vp-tablet">
+    <div class="vp-label">TABLET · 768px (亮點+陷阱 2-col / 總評跨欄)</div>
+    <div class="vp-content">
+      <div class="nav"><i class="ph ph-list"></i><span style="color:var(--c-primary);font-weight:700">PM Drill</span><span class="nav-tab active">北極星指標</span></div>
+      <div class="phase-head"><div class="icon-btn"><i class="ph ph-arrow-left"></i></div><div class="phase-title">NSM 報告 — Netflix</div><div class="icon-btn"><i class="ph ph-house"></i></div></div>
+      <div class="step4-summary"><div class="step4-num">80</div><div class="step4-of">/ 100</div><div class="step4-question">Netflix · 內容訂閱制</div></div>
+      <div class="step4-tabs"><div class="step4-tab">總覽</div><div class="step4-tab">對比</div><div class="step4-tab active">亮點</div><div class="step4-tab">完成</div></div>
+      <div class="step4-body">
+        <div class="hl-grid">
+          <div class="hl-card"><div class="hl-label"><i class="ph ph-trophy"></i> 最大亮點</div><div class="hl-text">商業價值連結很穩，把「完整觀看」設為核心避開虛榮指標。</div></div>
+          <div class="hl-card danger"><div class="hl-label"><i class="ph ph-warning"></i> 主要陷阱</div><div class="hl-text">可加上跨裝置 / 跨家庭成員的去重邏輯，避免重複計算。</div></div>
+          <div class="hl-card summary"><div class="hl-label"><i class="ph ph-chat-text"></i> 總評</div><div class="hl-text">整體 NSM 設計品質不錯，可加深拆解與分層分析。建議下一輪練習嘗試攻擊「可理解性」這個維度。</div></div>
+        </div>
+      </div>
+      <div class="end-bar"><button class="btn primary" style="flex:1"><i class="ph ph-shuffle"></i> 再練一題</button></div>
+    </div>
+  </div>
+
+  <div class="vp-frame vp-desktop">
+    <div class="vp-label">DESKTOP · 1280px (3-col + 總評跨 3 欄)</div>
+    <div class="vp-content">
+      <div class="nav"><i class="ph ph-list"></i><span style="color:var(--c-primary);font-weight:700">PM Drill</span><span class="nav-tab active">北極星指標</span></div>
+      <div class="phase-head"><div class="icon-btn"><i class="ph ph-arrow-left"></i></div><div class="phase-title">NSM 報告 <span class="phase-title-meta">— Netflix · 內容訂閱制</span></div><div class="icon-btn"><i class="ph ph-house"></i></div></div>
+      <div class="step4-summary"><div class="step4-num">80</div><div class="step4-of">/ 100</div></div>
+      <div class="step4-tabs"><div class="step4-tab">總覽</div><div class="step4-tab">對比</div><div class="step4-tab active">亮點</div><div class="step4-tab">完成</div></div>
+      <div class="step4-body">
+        <div class="hl-grid">
+          <div class="hl-card"><div class="hl-label"><i class="ph ph-trophy"></i> 最大亮點</div><div class="hl-text">商業價值連結很穩，把「完整觀看」設為核心避開虛榮指標。NSM 直接綁到訂閱續費的核心驅動因子。</div></div>
+          <div class="hl-card danger"><div class="hl-label"><i class="ph ph-warning"></i> 主要陷阱</div><div class="hl-text">可加上跨裝置 / 跨家庭成員的去重邏輯，避免重複計算同一個用戶的觀看活動。</div></div>
+          <div class="hl-card" style="border-left-color:var(--c-success)"><div class="hl-label" style="color:var(--c-success)"><i class="ph ph-target"></i> 下一步建議</div><div class="hl-text">下一輪練習嘗試攻擊「可理解性」維度——讓 NSM 對非技術同事也能秒懂。</div></div>
+          <div class="hl-card summary"><div class="hl-label"><i class="ph ph-chat-text"></i> 總評</div><div class="hl-text">整體 NSM 設計品質不錯，3 個亮點都集中在價值對齊和領先指標兩個維度。可加深的拆解方向：(1) 把觸及廣度的「訂戶」改成「家庭」單位；(2) 對留存驅力加上首集留存率 vs 整季完成率的兩段式拆解；(3) 把可理解性的解釋語包裝成 1 分鐘 elevator pitch。</div></div>
+        </div>
+      </div>
+      <div class="end-bar"><button class="btn primary" style="max-width:520px;margin:0 auto"><i class="ph ph-shuffle"></i> 再練一題</button></div>
+    </div>
+  </div>
+
+</div></div>
+
+<!-- ============ TAB 4: 完成 ============ -->
+<h3>Tab 4 / 4 · 完成</h3>
+<h4>把 done page 設計成「正面回饋 + 下一步引導」，不是只有兩顆按鈕</h4>
+
+<div class="vp-scroller"><div class="vp-row">
+
+  <div class="vp-frame vp-mobile">
+    <div class="vp-label">MOBILE · 360px</div>
+    <div class="vp-content">
+      <div class="nav"><i class="ph ph-list"></i><span style="color:var(--c-primary);font-weight:700">PM Drill</span><span class="nav-tab active">北極星指標</span></div>
+      <div class="phase-head"><div class="icon-btn"><i class="ph ph-arrow-left"></i></div><div class="phase-title">NSM 報告</div><div class="icon-btn"><i class="ph ph-house"></i></div></div>
+      <div class="step4-summary"><div class="step4-num">80</div><div class="step4-of">/ 100</div></div>
+      <div class="step4-tabs"><div class="step4-tab">總覽</div><div class="step4-tab">對比</div><div class="step4-tab">亮點</div><div class="step4-tab active">完成</div></div>
+      <div class="step4-body">
+        <div class="done-panel">
+          <div class="done-icon"><i class="ph ph-check-circle"></i></div>
+          <div class="done-title">完成這次 NSM 訓練</div>
+          <div class="done-sub">本次得分 80 分，距離滿分還差 20 分。可以再練同題或挑下一題挑戰不同產業。</div>
+          <div class="done-actions">
+            <button class="btn primary"><i class="ph ph-shuffle"></i> 再練一題</button>
+          </div>
+        </div>
+        <div class="done-secondary">
+          <i class="ph ph-info"></i> <strong>NSM 練習小技巧：</strong>
+          下次可挑戰不同類型（注意力／交易量／創造力／SaaS）的情境，加深對不同商業模式的理解。
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <div class="vp-frame vp-tablet">
+    <div class="vp-label">TABLET · 768px</div>
+    <div class="vp-content">
+      <div class="nav"><i class="ph ph-list"></i><span style="color:var(--c-primary);font-weight:700">PM Drill</span><span class="nav-tab active">北極星指標</span></div>
+      <div class="phase-head"><div class="icon-btn"><i class="ph ph-arrow-left"></i></div><div class="phase-title">NSM 報告 — Netflix</div><div class="icon-btn"><i class="ph ph-house"></i></div></div>
+      <div class="step4-summary"><div class="step4-num">80</div><div class="step4-of">/ 100</div><div class="step4-question">Netflix · 內容訂閱制</div></div>
+      <div class="step4-tabs"><div class="step4-tab">總覽</div><div class="step4-tab">對比</div><div class="step4-tab">亮點</div><div class="step4-tab active">完成</div></div>
+      <div class="step4-body">
+        <div class="done-panel">
+          <div class="done-icon"><i class="ph ph-check-circle"></i></div>
+          <div class="done-title">完成這次 NSM 訓練</div>
+          <div class="done-sub">本次得分 80 分，距離滿分還差 20 分。可以再練同題或挑下一題挑戰不同產業類型。</div>
+          <div class="done-actions">
+            <button class="btn primary"><i class="ph ph-shuffle"></i> 再練一題</button>
+          </div>
+        </div>
+        <div class="done-secondary">
+          <i class="ph ph-info"></i> <strong>NSM 練習小技巧：</strong>
+          下次可挑戰不同類型（注意力／交易量／創造力／SaaS）的情境，加深對不同商業模式的理解。也可以嘗試挑同產業但不同商業策略的題目對比。
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <div class="vp-frame vp-desktop">
+    <div class="vp-label">DESKTOP · 1280px</div>
+    <div class="vp-content">
+      <div class="nav"><i class="ph ph-list"></i><span style="color:var(--c-primary);font-weight:700">PM Drill</span><span class="nav-tab active">北極星指標</span></div>
+      <div class="phase-head"><div class="icon-btn"><i class="ph ph-arrow-left"></i></div><div class="phase-title">NSM 報告 <span class="phase-title-meta">— Netflix · 內容訂閱制</span></div><div class="icon-btn"><i class="ph ph-house"></i></div></div>
+      <div class="step4-summary"><div class="step4-num">80</div><div class="step4-of">/ 100</div></div>
+      <div class="step4-tabs"><div class="step4-tab">總覽</div><div class="step4-tab">對比</div><div class="step4-tab">亮點</div><div class="step4-tab active">完成</div></div>
+      <div class="step4-body">
+        <div class="done-panel">
+          <div class="done-icon"><i class="ph ph-check-circle"></i></div>
+          <div class="done-title">完成這次 NSM 訓練</div>
+          <div class="done-sub">本次得分 80 分，距離滿分還差 20 分。可以再練同一題挑戰更高分，或回首頁挑下一題嘗試不同產業類型。</div>
+          <div class="done-actions">
+            <button class="btn primary"><i class="ph ph-shuffle"></i> 再練一題</button>
+            <button class="btn ghost"><i class="ph ph-house"></i> 回首頁</button>
+          </div>
+        </div>
+        <div class="done-secondary">
+          <i class="ph ph-info"></i> <strong>NSM 練習小技巧：</strong>
+          下次可挑戰不同類型（注意力／交易量／創造力／SaaS）的情境，加深對不同商業模式的理解。也可以嘗試挑同產業但不同商業策略的題目對比。
+        </div>
+      </div>
+    </div>
+  </div>
+
+</div></div>
+
+<h3>確認</h3>
+<div style="padding:14px;background:#fff;border-radius:8px;border:1px solid var(--c-primary)">
+  <strong>4 個 tab 都做了 mobile / tablet / desktop 設計：</strong><br>
+  ① 總覽 — desktop 2-col 撐滿（radar 左 / dim bars 右）<br>
+  ② 對比 — desktop 2-col 卡片並排，加 header row 對齊<br>
+  ③ 亮點 — desktop 3-col grid，總評跨 3 欄；新增「下一步建議」第 3 卡<br>
+  ④ 完成 — 正面 done panel + 內文回饋 + 下方練習小技巧（取代原本只有按鈕的空白頁）<br>
+  ok 就可以準備寫 spec 了
+</div>
+
+</body>
+</html>

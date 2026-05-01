@@ -1,0 +1,462 @@
+<!DOCTYPE html>
+<html lang="zh-TW">
+<head>
+<meta charset="utf-8">
+<title>SP3 v2 — 評分深化（折疊）+ 教練示範答案加深 + 結尾簡化</title>
+<link rel="stylesheet" href="https://unpkg.com/@phosphor-icons/web@2.0.3/src/regular/style.css">
+<style>
+  :root {
+    --c-primary: #4a6cf7;
+    --c-danger: #ef4444;
+    --c-text-1: #1a1a1a;
+    --c-text-2: #666;
+    --c-text-3: #999;
+    --c-border: #dde2ec;
+    --c-bg: #f8f9fb;
+    --c-card: #fff;
+    --c-font-sans: system-ui, -apple-system, "Helvetica Neue", "PingFang TC", "Microsoft JhengHei", sans-serif;
+    --r-input: 8px;
+    --r-pill: 999px;
+  }
+  * { box-sizing: border-box; }
+  body { font-family: var(--c-font-sans); background: #f0f2f6; color: var(--c-text-1); margin: 0; padding: 32px; }
+  h2 { font-size: 22px; margin: 0 0 6px; font-weight: 700; }
+  .subtitle { color: var(--c-text-2); font-size: 13px; margin: 0 0 28px; }
+  h3 { font-size: 16px; font-weight: 700; margin: 28px 0 14px; padding-bottom: 8px; border-bottom: 2px solid var(--c-primary); display: inline-block; }
+  h4 { font-size: 13px; font-weight: 700; margin: 16px 0 10px; padding: 4px 10px; border-radius: 6px; display: inline-block; }
+  h4.cut { background: rgba(239,68,68,.1); color: var(--c-danger); }
+  h4.add { background: rgba(74,108,247,.1); color: var(--c-primary); }
+  .vp-scroller { overflow-x: auto; padding-bottom: 8px; }
+  .vp-row { display: flex; gap: 16px; align-items: flex-start; width: max-content; min-width: 100%; }
+  .vp-frame { border: 1px solid #d6d6d6; border-radius: 12px; background: #fafafa; overflow: hidden; flex-shrink: 0; }
+  .vp-mobile { width: 360px; }
+  .vp-tablet { width: 768px; }
+  .vp-desktop { width: 1280px; }
+  .vp-label { background: #1a1a1a; color: #fff; padding: 6px 12px; font-size: 11px; font-family: monospace; }
+  .vp-content { background: var(--c-bg); padding: 0; min-height: 800px; }
+
+  .nav { padding: 10px 24px; background: #fff; border-bottom: 1px solid var(--c-border); display: flex; align-items: center; gap: 14px; font-size: 13px; }
+  .nav-tab.active { color: var(--c-primary); font-weight: 700; }
+
+  .phase-head { padding: 14px 16px; background: #fff; }
+  .phase-head h1 { font-size: 17px; font-weight: 700; margin: 0; }
+  .phase-head .sub { font-size: 11px; color: var(--c-text-2); }
+  .qchip { padding: 8px 16px; background: #fff; border-top: 1px solid var(--c-border); border-bottom: 1px solid var(--c-border); display: flex; align-items: center; gap: 8px; font-size: 12px; }
+  .pill { font-size: 10.5px; font-weight: 700; padding: 2px 6px; border-radius: 4px; background: rgba(74,108,247,.08); color: var(--c-primary); }
+
+  /* === Score === */
+  .score-card { background: #fff; padding: 24px 16px; text-align: center; }
+  .score-num { font-family: var(--c-font-sans); font-size: 56px; font-weight: 700; color: var(--c-primary); letter-spacing: -.02em; line-height: 1; }
+  .score-step { font-size: 13px; color: var(--c-text-2); margin-top: 4px; }
+
+  /* === Dimensions (collapsible) === */
+  .dim {
+    background: #fff;
+    border-top: 1px solid var(--c-border);
+  }
+  .dim-summary {
+    padding: 14px 16px;
+    cursor: pointer;
+    display: block;
+  }
+  .dim-summary-row { display: flex; justify-content: space-between; align-items: baseline; margin-bottom: 6px; }
+  .dim-name { font-size: 14px; font-weight: 700; display: flex; align-items: center; gap: 6px; }
+  .dim-name .ph-caret { font-size: 12px; color: var(--c-text-3); transition: transform .2s; }
+  .dim-summary[data-open="true"] .ph-caret { transform: rotate(90deg); }
+  .dim-score { font-size: 14px; }
+  .dim-bar { height: 6px; border-radius: 3px; background: var(--c-border); overflow: hidden; }
+  .dim-bar-fill { height: 100%; background: var(--c-primary); }
+  .dim-detail { padding: 0 16px 14px; display: none; }
+  .dim-summary[data-open="true"] + .dim-detail { display: block; }
+
+  .dim-comment { font-size: 12.5px; color: var(--c-text-1); line-height: 1.6; margin-bottom: 8px; padding-top: 4px; }
+  .dim-coach { background: rgba(74,108,247,.05); border-left: 3px solid var(--c-primary); padding: 10px 12px; border-radius: 0 var(--r-input) var(--r-input) 0; margin-bottom: 6px; }
+  .dim-coach-label { font-size: 11px; font-weight: 700; color: var(--c-primary); margin-bottom: 4px; }
+  .dim-coach-text { font-size: 12px; line-height: 1.6; color: var(--c-text-1); }
+  .dim-tip { font-size: 11.5px; color: var(--c-text-2); display: flex; align-items: flex-start; gap: 4px; line-height: 1.6; }
+  .dim-tip i { color: var(--c-primary); margin-top: 2px; }
+
+  /* === Highlights === */
+  .hl-card { padding: 12px 16px; background: rgba(74,108,247,.06); border-left: 3px solid var(--c-primary); margin: 10px 16px; border-radius: 0 var(--r-input) var(--r-input) 0; }
+  .hl-card.danger { background: rgba(239,68,68,.06); border-left-color: var(--c-danger); }
+  .hl-label { font-size: 11px; font-weight: 700; margin-bottom: 4px; color: var(--c-primary); display: flex; align-items: center; gap: 4px; }
+  .hl-card.danger .hl-label { color: var(--c-danger); }
+  .hl-text { font-size: 13px; line-height: 1.5; }
+
+  /* === 教練示範答案 (deepened) === */
+  .coach-demo {
+    background: #fff;
+    border: 1px solid var(--c-border);
+    border-radius: var(--r-input);
+    margin: 10px 16px;
+    overflow: hidden;
+  }
+  .coach-demo-head {
+    padding: 12px 14px;
+    display: flex; align-items: center; gap: 8px;
+    cursor: pointer;
+    font-size: 13px; font-weight: 700;
+  }
+  .coach-demo-head .gap { flex: 1; }
+  .coach-demo-head .ph-caret { transition: transform .2s; color: var(--c-text-3); font-size: 13px; }
+  .coach-demo[data-open="true"] .ph-caret { transform: rotate(90deg); }
+  .coach-demo-body {
+    padding: 0 14px 14px;
+    display: none;
+    font-size: 12.5px;
+    line-height: 1.7;
+  }
+  .coach-demo[data-open="true"] .coach-demo-body { display: block; }
+  .coach-demo-body p { margin: 0 0 10px; }
+  .coach-demo-body strong { color: var(--c-primary); }
+  .coach-demo-body ul { margin: 0 0 10px; padding-left: 20px; }
+  .coach-demo-body li { margin-bottom: 4px; }
+  .coach-demo-quote {
+    background: rgba(74,108,247,.05);
+    border-left: 3px solid var(--c-primary);
+    padding: 10px 12px;
+    margin: 0 0 10px;
+    border-radius: 0 var(--r-input) var(--r-input) 0;
+    font-size: 12px;
+    line-height: 1.6;
+  }
+
+  /* === End === */
+  .end-bar { padding: 14px 16px; background: #fff; border-top: 1px solid var(--c-border); }
+  .btn { padding: 12px 18px; border-radius: var(--r-input); font-size: 14px; font-weight: 700; cursor: pointer; border: none; width: 100%; }
+  .btn.primary { background: var(--c-primary); color: #fff; }
+
+  /* Removed yellow card visual */
+  .yellow-removed-wrap { position: relative; margin: 10px 16px; }
+  .yellow-card { background: #fef9c3; border: 1px solid #fde68a; border-radius: 8px; padding: 16px; }
+  .strike { position: absolute; inset: 0; pointer-events: none; }
+  .strike::before, .strike::after { content: ''; position: absolute; left: 0; right: 0; top: 50%; height: 3px; background: var(--c-danger); transform: rotate(-15deg); }
+  .strike::after { transform: rotate(15deg); }
+  .removed-badge { position: absolute; top: -8px; left: -8px; background: var(--c-danger); color: #fff; font-size: 11px; font-weight: 700; padding: 4px 10px; border-radius: 999px; z-index: 1; }
+
+  /* Desktop 2-col */
+  .vp-desktop .desktop-grid {
+    display: grid; grid-template-columns: 360px 1fr; gap: 16px;
+    padding: 0 24px 24px;
+  }
+  .vp-desktop .desktop-left, .vp-desktop .desktop-right { background: #fff; border-radius: 12px; overflow: hidden; }
+</style>
+</head>
+<body>
+
+<h2>SP3 v2 — 評分深化（折疊）+ 教練示範答案加深 + 結尾簡化</h2>
+<p class="subtitle">A：mobile 維度預設折疊（省空間，點擊展開）；B：原有的「教練示範答案」內容加深；C：拿掉黃卡 + 單顆再練一題</h3>
+
+<!-- =========== A. Score with collapsible dim === -->
+<h3>A. 評分頁 — 維度預設折疊（省空間）</h3>
+<h4 class="add">每維度行只顯示「名稱 + 分數 + 進度條」三件事；點擊展開後才看到詳細 comment / 教練版本 / tip</h4>
+
+<div class="vp-scroller"><div class="vp-row">
+
+  <!-- Mobile -->
+  <div class="vp-frame vp-mobile">
+    <div class="vp-label">MOBILE · 360px (預設折疊 + 第 1 維度展開示範)</div>
+    <div class="vp-content">
+      <div class="nav"><span style="color:var(--c-primary);font-weight:700">PM Drill</span><span class="nav-tab active">CIRCLES</span></div>
+      <div class="phase-head"><h1>澄清情境 評分結果</h1><div class="sub">Spotify · Spotify Podcast</div></div>
+      <div class="qchip"><i class="ph ph-info"></i><span class="pill">題目</span><span style="overflow:hidden;text-overflow:ellipsis;white-space:nowrap;flex:1">設計新功能提升 Spotify Podcast…</span></div>
+
+      <div class="score-card">
+        <div class="score-num">65</div>
+        <div class="score-step">C — 澄清情境 步驟得分</div>
+      </div>
+
+      <!-- Dim 1 — expanded示範 -->
+      <div class="dim">
+        <div class="dim-summary" data-open="true">
+          <div class="dim-summary-row">
+            <span class="dim-name"><i class="ph ph-caret-right ph-caret"></i> 問題邊界清晰度</span>
+            <span class="dim-score"><strong>3</strong>/5</span>
+          </div>
+          <div class="dim-bar"><div class="dim-bar-fill" style="width:60%"></div></div>
+        </div>
+        <div class="dim-detail">
+          <div class="dim-comment"><strong>你的版本：</strong>提到「提升 Podcast 體驗」，但沒指明是「發現」、「收聽」還是「回訪」哪一段，下游 I/R 步驟可能往三個方向都做。</div>
+          <div class="dim-coach">
+            <div class="dim-coach-label"><i class="ph ph-graduation-cap"></i> 教練版本</div>
+            <div class="dim-coach-text">「聚焦 Spotify Podcast 模組，改善『發現—收聽—回訪』三段體驗中黏著度最低的一段；不延伸到創作者後台」</div>
+          </div>
+          <div class="dim-tip"><i class="ph ph-lightbulb"></i> 動詞 + 範圍邊界讓題目可被排序</div>
+        </div>
+      </div>
+
+      <!-- Dim 2 — collapsed -->
+      <div class="dim">
+        <div class="dim-summary" data-open="false">
+          <div class="dim-summary-row">
+            <span class="dim-name"><i class="ph ph-caret-right ph-caret"></i> 業務影響連結</span>
+            <span class="dim-score"><strong>4</strong>/5</span>
+          </div>
+          <div class="dim-bar"><div class="dim-bar-fill" style="width:80%"></div></div>
+        </div>
+        <div class="dim-detail">…（折疊中，點擊展開）…</div>
+      </div>
+
+      <!-- Dim 3 — collapsed -->
+      <div class="dim">
+        <div class="dim-summary" data-open="false">
+          <div class="dim-summary-row">
+            <span class="dim-name"><i class="ph ph-caret-right ph-caret"></i> 時間範圍合理性</span>
+            <span class="dim-score"><strong>4</strong>/5</span>
+          </div>
+          <div class="dim-bar"><div class="dim-bar-fill" style="width:80%"></div></div>
+        </div>
+      </div>
+
+      <!-- Dim 4 — collapsed (low score auto-highlight via red bar) -->
+      <div class="dim">
+        <div class="dim-summary" data-open="false">
+          <div class="dim-summary-row">
+            <span class="dim-name"><i class="ph ph-caret-right ph-caret"></i> 假設排除完整性</span>
+            <span class="dim-score" style="color:var(--c-danger)"><strong>2</strong>/5</span>
+          </div>
+          <div class="dim-bar"><div class="dim-bar-fill" style="width:40%;background:var(--c-danger)"></div></div>
+        </div>
+      </div>
+
+      <div class="hl-card"><div class="hl-label"><i class="ph ph-trophy"></i> 最大亮點</div><div class="hl-text">業務影響連結清晰</div></div>
+      <div class="hl-card danger"><div class="hl-label"><i class="ph ph-warning"></i> 最需改進</div><div class="hl-text">建議至少寫 2-3 個明確假設並標示驗證方式</div></div>
+    </div>
+  </div>
+
+  <!-- Tablet -->
+  <div class="vp-frame vp-tablet">
+    <div class="vp-label">TABLET · 768px (兩種狀態示意)</div>
+    <div class="vp-content">
+      <div class="nav"><span style="color:var(--c-primary);font-weight:700">PM Drill</span></div>
+      <div class="phase-head"><h1>澄清情境 評分結果</h1></div>
+      <div class="qchip"><i class="ph ph-info"></i><span class="pill">題目</span><span>設計新功能提升 Spotify Podcast…</span></div>
+      <div class="score-card"><div class="score-num">65</div><div class="score-step">C — 澄清情境 步驟得分</div></div>
+
+      <div class="dim">
+        <div class="dim-summary" data-open="true">
+          <div class="dim-summary-row"><span class="dim-name"><i class="ph ph-caret-right ph-caret"></i> 問題邊界清晰度</span><span class="dim-score"><strong>3</strong>/5</span></div>
+          <div class="dim-bar"><div class="dim-bar-fill" style="width:60%"></div></div>
+        </div>
+        <div class="dim-detail">
+          <div class="dim-comment"><strong>你的版本：</strong>提到「提升 Podcast 體驗」，但沒指明是哪一段體驗。</div>
+          <div class="dim-coach"><div class="dim-coach-label"><i class="ph ph-graduation-cap"></i> 教練版本</div><div class="dim-coach-text">「聚焦 Spotify Podcast，改善『發現—收聽—回訪』三段中最弱的一段」</div></div>
+          <div class="dim-tip"><i class="ph ph-lightbulb"></i> 動詞 + 範圍邊界</div>
+        </div>
+      </div>
+      <div class="dim">
+        <div class="dim-summary"><div class="dim-summary-row"><span class="dim-name"><i class="ph ph-caret-right ph-caret"></i> 業務影響連結</span><span class="dim-score"><strong>4</strong>/5</span></div><div class="dim-bar"><div class="dim-bar-fill" style="width:80%"></div></div></div>
+      </div>
+      <div class="dim">
+        <div class="dim-summary"><div class="dim-summary-row"><span class="dim-name"><i class="ph ph-caret-right ph-caret"></i> 時間範圍合理性</span><span class="dim-score"><strong>4</strong>/5</span></div><div class="dim-bar"><div class="dim-bar-fill" style="width:80%"></div></div></div>
+      </div>
+      <div class="dim">
+        <div class="dim-summary"><div class="dim-summary-row"><span class="dim-name"><i class="ph ph-caret-right ph-caret"></i> 假設排除完整性</span><span class="dim-score" style="color:var(--c-danger)"><strong>2</strong>/5</span></div><div class="dim-bar"><div class="dim-bar-fill" style="width:40%;background:var(--c-danger)"></div></div></div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Desktop — 2 col, all dim show expanded but cleaner since space allows -->
+  <div class="vp-frame vp-desktop">
+    <div class="vp-label">DESKTOP · 1280px (左 score+highlights / 右 dim — desktop 寬足，預設展開不擠)</div>
+    <div class="vp-content">
+      <div class="nav"><span style="color:var(--c-primary);font-weight:700">PM Drill</span></div>
+      <div class="phase-head"><h1>澄清情境 評分結果</h1><div class="sub">Spotify · Spotify Podcast</div></div>
+      <div class="qchip"><i class="ph ph-info"></i><span class="pill">題目</span><span>設計新功能提升 Spotify Podcast…</span></div>
+      <div class="desktop-grid">
+        <div class="desktop-left">
+          <div class="score-card"><div class="score-num">65</div><div class="score-step">C — 澄清情境 步驟得分</div></div>
+          <div class="hl-card" style="margin:10px 16px"><div class="hl-label"><i class="ph ph-trophy"></i> 最大亮點</div><div class="hl-text">業務影響連結清晰</div></div>
+          <div class="hl-card danger" style="margin:10px 16px"><div class="hl-label"><i class="ph ph-warning"></i> 最需改進</div><div class="hl-text">建議至少寫 2-3 個明確假設</div></div>
+        </div>
+        <div class="desktop-right">
+          <div class="dim">
+            <div class="dim-summary" data-open="true">
+              <div class="dim-summary-row"><span class="dim-name"><i class="ph ph-caret-right ph-caret"></i> 問題邊界清晰度</span><span class="dim-score"><strong>3</strong>/5</span></div>
+              <div class="dim-bar"><div class="dim-bar-fill" style="width:60%"></div></div>
+            </div>
+            <div class="dim-detail">
+              <div class="dim-comment"><strong>你的版本：</strong>沒指明是「發現」、「收聽」還是「回訪」哪一段，下游 I/R 步驟可能往三個方向都做。</div>
+              <div class="dim-coach"><div class="dim-coach-label"><i class="ph ph-graduation-cap"></i> 教練版本</div><div class="dim-coach-text">「聚焦 Spotify Podcast，改善『發現—收聽—回訪』中最弱的一段」</div></div>
+              <div class="dim-tip"><i class="ph ph-lightbulb"></i> 動詞 + 範圍邊界讓題目可被排序</div>
+            </div>
+          </div>
+          <div class="dim">
+            <div class="dim-summary" data-open="true">
+              <div class="dim-summary-row"><span class="dim-name"><i class="ph ph-caret-right ph-caret"></i> 業務影響連結</span><span class="dim-score"><strong>4</strong>/5</span></div>
+              <div class="dim-bar"><div class="dim-bar-fill" style="width:80%"></div></div>
+            </div>
+            <div class="dim-detail">
+              <div class="dim-comment"><strong>你的版本：</strong>提到「提升用戶留存」方向正確。可再加量化（如「日均收聽時長 +15%」）。</div>
+              <div class="dim-coach"><div class="dim-coach-label"><i class="ph ph-graduation-cap"></i> 教練版本</div><div class="dim-coach-text">「日均 Podcast 收聽時長 +15%、Podcast MAU +10%」</div></div>
+            </div>
+          </div>
+          <div class="dim">
+            <div class="dim-summary"><div class="dim-summary-row"><span class="dim-name"><i class="ph ph-caret-right ph-caret"></i> 時間範圍合理性</span><span class="dim-score"><strong>4</strong>/5</span></div><div class="dim-bar"><div class="dim-bar-fill" style="width:80%"></div></div></div>
+          </div>
+          <div class="dim">
+            <div class="dim-summary"><div class="dim-summary-row"><span class="dim-name"><i class="ph ph-caret-right ph-caret"></i> 假設排除完整性</span><span class="dim-score" style="color:var(--c-danger)"><strong>2</strong>/5</span></div><div class="dim-bar"><div class="dim-bar-fill" style="width:40%;background:var(--c-danger)"></div></div></div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+</div></div>
+
+<h3>折疊規則</h3>
+<div style="background:#fff;border-radius:8px;padding:14px;font-size:13px;line-height:1.7">
+  <strong>Mobile：</strong>所有維度預設折疊；自動展開：分數 ≤ 2 的維度（讓使用者第一眼就看到問題）<br>
+  <strong>Tablet：</strong>同 mobile（折疊優先）<br>
+  <strong>Desktop：</strong>預設全展開（左右 2-col 寬足，不會擠）<br>
+  <strong>互動：</strong>點擊任一維度標題切換展開/折疊；箭頭旋轉動畫
+</div>
+
+<!-- =========== B. Coach demo deeper === -->
+<h3>B. 教練示範答案 — 加深內容（不是新增 panel）</h3>
+<h4 class="cut">Before：「探索用戶行為，確定具體困惑點」 — 12 字一句話</h4>
+<h4 class="add">After：每步驟產出多段示範（情境引言 + 我會這樣寫的逐欄位答案 + 為什麼這樣答的 reasoning）</h4>
+
+<div class="vp-scroller"><div class="vp-row">
+
+  <div class="vp-frame vp-mobile">
+    <div class="vp-label">MOBILE · 360px (展開狀態)</div>
+    <div class="vp-content">
+      <div class="nav"><span style="color:var(--c-primary);font-weight:700">PM Drill</span></div>
+      <div class="phase-head"><h1>澄清情境 評分結果</h1></div>
+
+      <div class="coach-demo" data-open="true">
+        <div class="coach-demo-head">
+          <i class="ph ph-graduation-cap"></i>
+          <span>教練示範答案 — C 澄清情境</span>
+          <span class="gap"></span>
+          <i class="ph ph-caret-right ph-caret"></i>
+        </div>
+        <div class="coach-demo-body">
+          <p><strong>情境前置：</strong>面對「提升 Podcast 體驗」這種寬泛的題目，C 步驟的核心任務是把它收斂到一個可被驗證的範圍。</p>
+
+          <strong>逐欄位示範：</strong>
+          <ul>
+            <li><strong>問題範圍：</strong>聚焦 Spotify Podcast 模組（不含音樂），改善「發現—收聽—回訪」三段體驗，不延伸到創作者後台</li>
+            <li><strong>時間範圍：</strong>2 個季度上線 MVP，6 個月觀察 NSM 變化</li>
+            <li><strong>業務影響：</strong>Podcast 是廣告收入第二曲線，目標日均收聽時長 +15%、Podcast MAU +10%</li>
+            <li><strong>假設確認：</strong>假設目標用戶已是 Premium、過去 30 天有 ≥1 次 Podcast 點擊；以資料先驗證再展開設計</li>
+          </ul>
+
+          <div class="coach-demo-quote">
+            <strong>為什麼這樣答：</strong>C 步驟不是要你提解決方案，是要你<strong>讓題目可被排序</strong>。每個欄位都加上量化或範圍邊界，下游 I / R 才不會散開。
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <div class="vp-frame vp-tablet">
+    <div class="vp-label">TABLET · 768px (折疊狀態)</div>
+    <div class="vp-content">
+      <div class="nav"><span style="color:var(--c-primary);font-weight:700">PM Drill</span></div>
+      <div class="phase-head"><h1>澄清情境 評分結果</h1></div>
+      <div class="coach-demo">
+        <div class="coach-demo-head">
+          <i class="ph ph-graduation-cap"></i>
+          <span>教練示範答案 — C 澄清情境</span>
+          <span class="gap"></span>
+          <i class="ph ph-caret-right ph-caret"></i>
+        </div>
+      </div>
+      <div style="padding:14px 16px;color:var(--c-text-3);font-size:12px;text-align:center">折疊預設；點擊展開後同 mobile</div>
+    </div>
+  </div>
+
+  <div class="vp-frame vp-desktop">
+    <div class="vp-label">DESKTOP · 1280px (展開)</div>
+    <div class="vp-content">
+      <div class="nav"><span style="color:var(--c-primary);font-weight:700">PM Drill</span></div>
+      <div class="phase-head"><h1>澄清情境 評分結果</h1></div>
+      <div style="padding:0 24px">
+        <div class="coach-demo" data-open="true" style="margin:10px 0">
+          <div class="coach-demo-head"><i class="ph ph-graduation-cap"></i><span>教練示範答案 — C 澄清情境</span><span class="gap"></span><i class="ph ph-caret-right ph-caret"></i></div>
+          <div class="coach-demo-body">
+            <p><strong>情境前置：</strong>面對「提升 Podcast 體驗」這種寬泛的題目，C 步驟的核心任務是把它收斂到一個可被驗證的範圍。</p>
+            <strong>逐欄位示範：</strong>
+            <ul>
+              <li><strong>問題範圍：</strong>聚焦 Spotify Podcast 模組（不含音樂），改善「發現—收聽—回訪」三段體驗</li>
+              <li><strong>時間範圍：</strong>2 個季度上線 MVP，6 個月觀察 NSM</li>
+              <li><strong>業務影響：</strong>日均收聽時長 +15%、Podcast MAU +10%</li>
+              <li><strong>假設確認：</strong>假設目標用戶已是 Premium、過去 30 天 ≥1 次點擊</li>
+            </ul>
+            <div class="coach-demo-quote"><strong>為什麼這樣答：</strong>C 步驟不是提方案，是讓題目可被排序。每個欄位都要量化或範圍邊界。</div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+</div></div>
+
+<!-- =========== C. End simplification ============ -->
+<h3>C. 結尾頁簡化（同前版）</h3>
+<h4 class="cut">拿掉黃卡 + 雙按鈕 + 底部 sticky 再練一次</h4>
+<h4 class="add">底部單顆「再練一題」（回首頁從同 mode/type 隨機抽 1 題）</h4>
+
+<div class="vp-scroller"><div class="vp-row">
+
+  <div class="vp-frame vp-mobile">
+    <div class="vp-label">MOBILE · 360px (對照：黃卡刪除 + bottom 改單顆)</div>
+    <div class="vp-content">
+      <div class="phase-head"><h1>澄清情境 評分結果</h1></div>
+      <div style="padding:14px 16px;color:var(--c-text-3);font-size:12px">…（上面是 score + dim + highlights + 教練示範答案）…</div>
+
+      <div class="yellow-removed-wrap">
+        <span class="removed-badge">移除</span>
+        <div class="yellow-card">
+          <div style="font-size:13px;color:#92400e;font-weight:700">恭喜完成這個步驟！</div>
+          <div style="font-size:12px;color:#92400e;line-height:1.6;margin-top:4px">每一次練習都讓你更靠近 PM 思維。可以再練同一題，或回首頁挑下一題。</div>
+          <div style="display:flex;gap:8px;margin-top:10px">
+            <button style="flex:1;padding:8px;border:1px solid #fde68a;background:#fff;border-radius:8px">回首頁</button>
+            <button style="flex:1;padding:8px;background:var(--c-primary);color:#fff;border:none;border-radius:8px">再練一次</button>
+          </div>
+        </div>
+        <div class="strike"></div>
+      </div>
+
+      <div class="end-bar">
+        <button class="btn primary"><i class="ph ph-shuffle"></i> 再練一題</button>
+        <div style="font-size:11px;color:var(--c-text-3);text-align:center;margin-top:6px">回首頁並隨機帶下一題</div>
+      </div>
+    </div>
+  </div>
+
+  <div class="vp-frame vp-tablet">
+    <div class="vp-label">TABLET · 768px</div>
+    <div class="vp-content">
+      <div class="phase-head"><h1>澄清情境 評分結果</h1></div>
+      <div style="flex:1;padding:30px;color:var(--c-text-3);font-size:12px;text-align:center">…score + dim + highlights + 教練示範答案…</div>
+      <div class="end-bar">
+        <button class="btn primary"><i class="ph ph-shuffle"></i> 再練一題</button>
+      </div>
+    </div>
+  </div>
+
+  <div class="vp-frame vp-desktop">
+    <div class="vp-label">DESKTOP · 1280px (按鈕置中限寬)</div>
+    <div class="vp-content">
+      <div class="phase-head"><h1>澄清情境 評分結果</h1></div>
+      <div style="flex:1;padding:50px;color:var(--c-text-3);font-size:12px;text-align:center">…2-col score+dim layout…</div>
+      <div class="end-bar"><button class="btn primary" style="max-width:520px;margin:0 auto;display:block"><i class="ph ph-shuffle"></i> 再練一題（回首頁並隨機帶下一題）</button></div>
+    </div>
+  </div>
+
+</div></div>
+
+<h3>確認</h3>
+<div style="padding:14px;background:#fff;border-radius:8px;border:1px solid var(--c-primary)">
+  <strong>SP3 v2 鎖定：</strong><br>
+  ① <strong>評分頁</strong>：mobile/tablet 維度預設折疊（自動展開分數 ≤2 的）；desktop 預設全展開（2-col 寬足）；每維度展開後顯示「你的版本 / 教練版本 / tip」<br>
+  ② <strong>教練示範答案加深</strong>：原 12 字單句改成「情境前置 + 逐欄位示範 + 為什麼這樣答的 reasoning」結構（默認折疊，點擊展開）<br>
+  ③ <strong>結尾簡化</strong>：拿掉黃色恭喜卡 + 雙按鈕 + 底部 sticky 再練一次；改單顆「再練一題」（回首頁隨機抽下一題）<br>
+  ok 就推 SP4。
+</div>
+
+</body>
+</html>

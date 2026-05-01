@@ -1,0 +1,356 @@
+<!DOCTYPE html>
+<html lang="zh-TW">
+<head>
+<meta charset="utf-8">
+<title>SP2 v3 — 對齊真實 desktop 3-col 版面</title>
+<link rel="stylesheet" href="https://unpkg.com/@phosphor-icons/web@2.0.3/src/regular/style.css">
+<style>
+  :root {
+    --c-primary: #4a6cf7;
+    --c-text-1: #1a1a1a;
+    --c-text-2: #666;
+    --c-text-3: #999;
+    --c-border: #dde2ec;
+    --c-bg: #f8f9fb;
+    --c-card: #fff;
+    --c-font-sans: system-ui, -apple-system, "Helvetica Neue", "PingFang TC", "Microsoft JhengHei", sans-serif;
+    --r-input: 8px;
+    --r-pill: 999px;
+  }
+  * { box-sizing: border-box; }
+  body { font-family: var(--c-font-sans); background: #f0f2f6; color: var(--c-text-1); margin: 0; padding: 32px; }
+  h2 { font-size: 22px; margin: 0 0 6px; font-weight: 700; }
+  .subtitle { color: var(--c-text-2); font-size: 13px; margin: 0 0 28px; }
+  h3 { font-size: 16px; font-weight: 700; margin: 28px 0 14px; padding-bottom: 8px; border-bottom: 2px solid var(--c-primary); display: inline-block; }
+  h4 { font-size: 13px; font-weight: 700; margin: 16px 0 10px; padding: 4px 10px; border-radius: 6px; display: inline-block; }
+  h4.fix { background: rgba(74,108,247,.1); color: var(--c-primary); }
+  h4.same { background: #f0f2f6; color: var(--c-text-2); }
+  .vp-scroller { overflow-x: auto; padding-bottom: 8px; }
+  .vp-row { display: flex; gap: 16px; align-items: flex-start; width: max-content; min-width: 100%; }
+  .vp-frame { border: 1px solid #d6d6d6; border-radius: 12px; background: #fafafa; overflow: hidden; flex-shrink: 0; }
+  .vp-mobile { width: 360px; }
+  .vp-tablet { width: 768px; }
+  .vp-desktop { width: 1280px; }
+  .vp-label { background: #1a1a1a; color: #fff; padding: 6px 12px; font-size: 11px; font-family: monospace; }
+  .vp-content { background: var(--c-bg); min-height: 700px; padding: 0; }
+
+  /* Top nav (matches current production) */
+  .nav-bar { padding: 10px 24px; background: #fff; border-bottom: 1px solid var(--c-border); display: flex; align-items: center; gap: 14px; }
+  .nav-logo { width: 28px; height: 28px; border-radius: 6px; background: var(--c-primary); display: grid; place-items: center; color: #fff; font-size: 14px; }
+  .nav-brand { color: var(--c-primary); font-weight: 700; }
+  .nav-tab { padding: 6px 14px; border-radius: 8px; font-size: 13px; font-weight: 600; cursor: pointer; }
+  .nav-tab.active { background: #fff; color: var(--c-primary); border: 1px solid var(--c-border); }
+  .nav-spacer { flex: 1; }
+  .nav-login { padding: 6px 14px; border: 1px solid var(--c-border); border-radius: 8px; font-size: 13px; cursor: pointer; }
+
+  /* DESKTOP main shell */
+  .ch-header { padding: 24px; background: var(--c-bg); display: flex; justify-content: space-between; align-items: flex-end; }
+  .h1 { font-size: 26px; font-weight: 700; letter-spacing: -.01em; }
+  .h-meta { font-size: 12px; color: var(--c-text-3); }
+  .welcome { background: #fff; border-radius: 12px; padding: 20px 24px; margin: 0 24px 16px; }
+  .welcome-icon { width: 36px; height: 36px; background: rgba(74,108,247,.1); border-radius: 10px; display: grid; place-items: center; color: var(--c-primary); margin-bottom: 12px; }
+  .welcome h3 { font-size: 16px; font-weight: 700; margin: 0 0 6px; padding: 0; border: none; display: block; }
+  .welcome p { font-size: 13px; color: var(--c-text-2); line-height: 1.6; margin: 0 0 14px; }
+  .welcome-btns { display: flex; gap: 8px; }
+  .btn { padding: 8px 14px; border-radius: var(--r-input); font-size: 13px; font-weight: 600; cursor: pointer; border: none; }
+  .btn.primary { background: var(--c-primary); color: #fff; }
+  .btn.ghost { background: #fff; border: 1px solid var(--c-border); color: var(--c-text-1); }
+  .info-row { background: #fff; border-radius: 12px; margin: 0 24px 16px; padding: 14px 18px; display: flex; justify-content: space-between; align-items: center; font-size: 13px; font-weight: 600; cursor: pointer; }
+
+  /* DESKTOP grid */
+  .ch-grid { display: grid; grid-template-columns: 200px 1fr 220px; gap: 16px; padding: 0 24px 24px; }
+  .ch-rail { background: #fff; border-radius: 12px; padding: 14px; }
+  .rail-label { font-size: 12px; font-weight: 700; color: var(--c-text-2); margin-bottom: 8px; }
+  .rail-mode { padding: 10px; border-radius: var(--r-input); border: 1px solid var(--c-border); margin-bottom: 8px; cursor: pointer; }
+  .rail-mode.active { border-color: var(--c-primary); background: #fbfcff; }
+  .rail-mode-title { font-size: 12.5px; font-weight: 700; }
+  .rail-mode-sub { font-size: 10.5px; color: var(--c-text-2); margin-top: 2px; line-height: 1.4; }
+
+  .rail-pills { display: flex; flex-direction: column; gap: 6px; margin-bottom: 6px; }
+  .rail-pill { padding: 8px 10px; border-radius: var(--r-input); border: 1px solid var(--c-border); background: #fff; font-size: 12px; cursor: pointer; text-align: left; }
+  .rail-pill.active { background: var(--c-primary); color: #fff; border-color: var(--c-primary); }
+  .lock-note { font-size: 10.5px; color: var(--c-text-3); display: flex; align-items: center; gap: 4px; padding-top: 6px; border-top: 1px dashed var(--c-border); margin-top: 8px; }
+
+  .rail-type { padding: 8px 10px; border-radius: var(--r-input); display: flex; justify-content: space-between; cursor: pointer; font-size: 12px; }
+  .rail-type.active { background: var(--c-primary); color: #fff; }
+
+  /* center column */
+  .ch-center {}
+  .search { background: #fff; border-radius: 12px; padding: 12px 16px; margin-bottom: 12px; display: flex; align-items: center; gap: 8px; font-size: 13px; color: var(--c-text-3); }
+  .center-head { display: flex; justify-content: space-between; align-items: center; margin-bottom: 10px; }
+  .center-title { font-size: 13px; font-weight: 700; }
+  .random-btn { font-size: 12px; color: var(--c-primary); cursor: pointer; }
+  .qcard { background: #fff; border-radius: 12px; padding: 14px; margin-bottom: 8px; }
+  .qcard.drill-card { border: 1.5px solid rgba(74,108,247,.3); }
+  .qcard-head { display: flex; gap: 6px; margin-bottom: 8px; flex-wrap: wrap; }
+  .pill { font-size: 11px; font-weight: 600; padding: 3px 8px; border-radius: var(--r-pill); background: rgba(74,108,247,.08); color: var(--c-primary); }
+  .pill.warn { background: rgba(245,158,11,.1); color: #b45309; }
+  .pill.step { background: rgba(74,108,247,.18); color: var(--c-primary); font-weight: 700; }
+  .pill.diff { background: rgba(0,0,0,.06); color: var(--c-text-2); }
+  .qcard-stmt { font-size: 13px; line-height: 1.5; margin-bottom: 6px; }
+  .qcard-more { font-size: 12px; color: var(--c-primary); }
+
+  /* right rail */
+  .ch-right .rail-label { margin-bottom: 8px; }
+
+  /* Mobile / tablet single-col layout (matches current) */
+  .single-col-wrap { padding: 16px; }
+  .vp-tablet .single-col-wrap { padding: 16px 24px; }
+  .single-mode-row { display: grid; grid-template-columns: 1fr 1fr; gap: 8px; margin-bottom: 12px; }
+  .single-mode { background: #fff; border: 1px solid var(--c-border); border-radius: var(--r-input); padding: 12px; cursor: pointer; }
+  .single-mode.active { border-color: var(--c-primary); background: #fbfcff; }
+  .single-mode-title { font-size: 12.5px; font-weight: 700; margin-bottom: 4px; }
+  .single-mode-sub { font-size: 10.5px; color: var(--c-text-2); line-height: 1.4; }
+  .single-pills { display: flex; gap: 8px; flex-wrap: wrap; margin-bottom: 6px; }
+  .single-step-pill { padding: 8px 12px; border-radius: var(--r-pill); border: 1px solid var(--c-border); background: #fff; font-size: 12px; cursor: pointer; }
+  .single-step-pill.active { background: var(--c-primary); color: #fff; border-color: var(--c-primary); }
+
+  /* History modal/overlay */
+  .h-modal { background: #fff; border-radius: 12px; padding: 14px; margin: 12px; }
+  .vp-tablet .h-modal { margin: 12px 24px; }
+  .vp-desktop .h-modal { margin: 12px 24px; }
+  .h-item { padding: 12px 0; border-bottom: 1px dashed var(--c-border); }
+  .h-item:last-child { border-bottom: none; }
+  .h-row1 { display: flex; align-items: center; gap: 8px; margin-bottom: 4px; flex-wrap: wrap; }
+  .h-row2 { font-size: 13px; line-height: 1.4; color: var(--c-text-1); }
+  .hbadge { font-size: 10.5px; font-weight: 700; padding: 2px 8px; border-radius: 4px; background: rgba(74,108,247,.1); color: var(--c-primary); }
+  .hbadge.complete { background: rgba(34,197,94,.1); color: #15803d; }
+  .hbadge.active { background: rgba(245,158,11,.1); color: #b45309; }
+  .mode-tag { font-size: 10.5px; font-weight: 600; padding: 2px 6px; border-radius: 4px; background: rgba(99,102,241,.1); color: #6366f1; }
+  .mode-tag.drill { background: rgba(74,108,247,.1); color: var(--c-primary); }
+  .h-item-1line { display: flex; gap: 12px; align-items: center; padding: 12px 0; border-bottom: 1px dashed var(--c-border); font-size: 13px; }
+  .h-item-1line:last-child { border-bottom: none; }
+</style>
+</head>
+<body>
+
+<h2>SP2 v3 — 對齊真實 desktop 3-col 版面</h2>
+<p class="subtitle">已截圖比對現況。Desktop 是 3-col 結構（左 rail / 中 center / 右 rail），mobile/tablet 是 single-col。修正放在<strong>對的位置</strong>。</p>
+
+<!-- =========== Drill mode fix =========== -->
+<h3>① Drill mode 修正</h3>
+<h4 class="fix">desktop fix：左 rail 在「練習模式」下方插入「練習步驟」section（drill mode 才出現），垂直 3 顆 pill；中 column 題目過濾、cards 加 R 練 tag</h4>
+<h4 class="same">mobile / tablet 已有 step pills，只要加題目過濾 + cards 上的 R 練 tag</h4>
+
+<div class="vp-scroller"><div class="vp-row">
+
+  <!-- MOBILE -->
+  <div class="vp-frame vp-mobile">
+    <div class="vp-label">MOBILE · 360px (drill + R selected)</div>
+    <div class="vp-content">
+      <div class="nav-bar">
+        <i class="ph ph-list"></i>
+        <div class="nav-logo">P</div>
+        <span class="nav-brand">PM Drill</span>
+        <span class="nav-tab active">CIRCLES</span>
+        <span class="nav-tab">北極星指標</span>
+        <span class="nav-spacer"></span>
+        <span class="nav-login">登入</span>
+      </div>
+      <div class="single-col-wrap">
+        <div class="rail-label">練習模式</div>
+        <div class="single-mode-row">
+          <div class="single-mode"><div class="single-mode-title"><i class="ph ph-video-camera"></i> 完整模擬</div><div class="single-mode-sub">25-35 分鐘 · 全 7 步</div></div>
+          <div class="single-mode active"><div class="single-mode-title"><i class="ph ph-target"></i> 步驟加練</div><div class="single-mode-sub">5-10 分鐘 · 單一步驟</div></div>
+        </div>
+        <div class="rail-label">練習步驟</div>
+        <div class="single-pills">
+          <div class="single-step-pill">C 澄清情境</div>
+          <div class="single-step-pill">I 定義用戶</div>
+          <div class="single-step-pill active">R 發掘需求</div>
+        </div>
+        <div class="lock-note"><i class="ph ph-lock-simple"></i> C2、L、E、S 需在完整模擬中練習</div>
+        <div class="rail-label" style="margin-top:14px">題型</div>
+        <div style="display:flex;gap:8px;margin-bottom:12px">
+          <div style="flex:1;padding:8px 10px;background:var(--c-primary);color:#fff;border-radius:8px;font-size:12px">產品設計 ×40</div>
+          <div style="flex:1;padding:8px 10px;background:#fff;border:1px solid var(--c-border);border-radius:8px;font-size:12px;text-align:center">產品改進 ×35</div>
+        </div>
+        <div class="center-head"><span class="center-title">練習 R 步驟 · 5 題</span><span class="random-btn">隨機選題</span></div>
+        <div class="qcard drill-card">
+          <div class="qcard-head"><span class="pill">Spotify</span><span class="pill">Spotify Podcast</span><span class="pill diff">中等難度</span><span class="pill step">R 練</span></div>
+          <div class="qcard-stmt">設計新功能提升 Spotify Podcast 體驗。</div>
+          <div class="qcard-more">看完整題目 ▾</div>
+        </div>
+        <div class="qcard drill-card">
+          <div class="qcard-head"><span class="pill">Grab</span><span class="pill">GrabFood</span><span class="pill diff">簡單</span><span class="pill step">R 練</span></div>
+          <div class="qcard-stmt">設計新功能提升 GrabFood 訂單準確性。</div>
+          <div class="qcard-more">看完整題目 ▾</div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- TABLET -->
+  <div class="vp-frame vp-tablet">
+    <div class="vp-label">TABLET · 768px (drill — single-col 但 cards 2 欄)</div>
+    <div class="vp-content">
+      <div class="nav-bar">
+        <i class="ph ph-list"></i>
+        <div class="nav-logo">P</div>
+        <span class="nav-brand">PM Drill</span>
+        <span class="nav-tab active">CIRCLES</span>
+        <span class="nav-tab">北極星指標</span>
+        <span class="nav-spacer"></span>
+        <span class="nav-login">登入</span>
+      </div>
+      <div class="single-col-wrap">
+        <div class="rail-label">練習模式</div>
+        <div class="single-mode-row">
+          <div class="single-mode"><div class="single-mode-title"><i class="ph ph-video-camera"></i> 完整模擬</div><div class="single-mode-sub">25-35 分鐘 · 全 7 步</div></div>
+          <div class="single-mode active"><div class="single-mode-title"><i class="ph ph-target"></i> 步驟加練</div><div class="single-mode-sub">5-10 分鐘 · 單一步驟</div></div>
+        </div>
+        <div class="rail-label">練習步驟</div>
+        <div class="single-pills">
+          <div class="single-step-pill">C 澄清情境</div>
+          <div class="single-step-pill">I 定義用戶</div>
+          <div class="single-step-pill active">R 發掘需求</div>
+        </div>
+        <div class="lock-note"><i class="ph ph-lock-simple"></i> C2、L、E、S 需在完整模擬中練習</div>
+        <div style="display:flex;gap:8px;margin:14px 0 12px">
+          <div style="padding:8px 14px;background:var(--c-primary);color:#fff;border-radius:8px;font-size:12px">產品設計 ×40</div>
+          <div style="padding:8px 14px;background:#fff;border:1px solid var(--c-border);border-radius:8px;font-size:12px">產品改進 ×35</div>
+          <div style="padding:8px 14px;background:#fff;border:1px solid var(--c-border);border-radius:8px;font-size:12px">產品策略 ×25</div>
+        </div>
+        <div class="center-head"><span class="center-title">練習 R 步驟 · 5 題</span><span class="random-btn">隨機選題</span></div>
+        <div style="display:grid;grid-template-columns:1fr 1fr;gap:12px">
+          <div class="qcard drill-card"><div class="qcard-head"><span class="pill">Spotify</span><span class="pill">Spotify Podcast</span><span class="pill diff">中等難度</span><span class="pill step">R 練</span></div><div class="qcard-stmt">設計新功能提升 Spotify Podcast 體驗。</div></div>
+          <div class="qcard drill-card"><div class="qcard-head"><span class="pill">Grab</span><span class="pill">GrabFood</span><span class="pill diff">簡單</span><span class="pill step">R 練</span></div><div class="qcard-stmt">設計新功能提升 GrabFood…</div></div>
+          <div class="qcard drill-card"><div class="qcard-head"><span class="pill">LINE</span><span class="pill">LINE News</span><span class="pill diff">簡單</span><span class="pill step">R 練</span></div><div class="qcard-stmt">設計新功能讓 LINE News 用戶…</div></div>
+          <div class="qcard drill-card"><div class="qcard-head"><span class="pill">Netflix</span><span class="pill">Netflix Originals</span><span class="pill diff">困難</span><span class="pill step">R 練</span></div><div class="qcard-stmt">為 Netflix Originals 增加印度市場…</div></div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- DESKTOP — REAL 3-col layout -->
+  <div class="vp-frame vp-desktop">
+    <div class="vp-label">DESKTOP · 1280px (drill — fix 在左 rail 插「練習步驟」section)</div>
+    <div class="vp-content">
+      <div class="nav-bar">
+        <i class="ph ph-list"></i>
+        <div class="nav-logo">P</div>
+        <span class="nav-brand">PM Drill</span>
+        <span class="nav-tab active">CIRCLES</span>
+        <span class="nav-tab">北極星指標</span>
+        <span class="nav-spacer"></span>
+        <span class="nav-login">登入</span>
+      </div>
+      <div class="ch-header">
+        <div><div class="h1">CIRCLES 訓練</div><div style="font-size:12px;color:var(--c-text-2);margin-top:4px">選題、按步驟填寫框架、訪談、拿到評分</div></div>
+        <div class="h-meta">100 題 · 7 步驟框架</div>
+      </div>
+      <div class="welcome">
+        <div class="welcome-icon"><i class="ph ph-hand-waving"></i></div>
+        <h3>歡迎來到 PM Drill</h3>
+        <p>CIRCLES 是 PM 面試常用的七步框架。第一次使用？建議跟著引導跑一輪，5 分鐘內了解整個流程。</p>
+        <div class="welcome-btns"><button class="btn primary">開始引導 →</button><button class="btn ghost">直接自己選題</button></div>
+      </div>
+      <div class="info-row"><span>什麼是 CIRCLES 實戰訓練？</span><i class="ph ph-caret-right"></i></div>
+
+      <div class="ch-grid">
+        <!-- LEFT RAIL -->
+        <div class="ch-rail">
+          <div class="rail-label">練習模式</div>
+          <div class="rail-mode"><div class="rail-mode-title"><i class="ph ph-video-camera"></i> 完整模擬</div><div class="rail-mode-sub">25-35 分鐘 · 全 7 步 · 提示與範例隨時可看</div></div>
+          <div class="rail-mode active"><div class="rail-mode-title"><i class="ph ph-target"></i> 步驟加練</div><div class="rail-mode-sub">5-10 分鐘 · 單一步驟 · 全引導</div></div>
+
+          <!-- THE FIX: drill step pills section -->
+          <div class="rail-label" style="margin-top:14px;color:var(--c-primary)">練習步驟（fix：desktop 之前沒有這段）</div>
+          <div class="rail-pills">
+            <div class="rail-pill">C 澄清情境</div>
+            <div class="rail-pill">I 定義用戶</div>
+            <div class="rail-pill active">R 發掘需求</div>
+          </div>
+          <div class="lock-note"><i class="ph ph-lock-simple"></i> C2、L、E、S 需在完整模擬中練習</div>
+
+          <div class="rail-label" style="margin-top:14px">題型</div>
+          <div class="rail-type active"><span>產品設計</span><span>×40</span></div>
+          <div class="rail-type"><span>產品改進</span><span>×35</span></div>
+          <div class="rail-type"><span>產品策略</span><span>×25</span></div>
+        </div>
+
+        <!-- CENTER -->
+        <div class="ch-center">
+          <div class="search"><i class="ph ph-magnifying-glass"></i> 搜尋題目，例如 Netflix、Shopee...</div>
+          <div class="center-head"><span class="center-title" style="color:var(--c-primary)">練習 R 步驟 · 5 題（fix：title 標步驟，題目過濾 + R 練 tag）</span><span class="random-btn">隨機選題</span></div>
+          <div class="qcard drill-card">
+            <div class="qcard-head"><span class="pill">Spotify</span><span class="pill">Spotify Podcast</span><span class="pill diff">產品設計</span><span class="pill diff">中等難度</span><span class="pill step">R 練</span></div>
+            <div class="qcard-stmt">設計新功能提升 Spotify Podcast 體驗，並增加用戶黏著度。</div>
+            <div class="qcard-more">看完整題目 ▾</div>
+          </div>
+          <div class="qcard drill-card">
+            <div class="qcard-head"><span class="pill">Grab</span><span class="pill">GrabFood</span><span class="pill diff">產品設計</span><span class="pill diff">簡單</span><span class="pill step">R 練</span></div>
+            <div class="qcard-stmt">設計新功能提升 GrabFood 訂單準確性與配送效率。</div>
+            <div class="qcard-more">看完整題目 ▾</div>
+          </div>
+          <div class="qcard drill-card">
+            <div class="qcard-head"><span class="pill">LINE</span><span class="pill">LINE News</span><span class="pill diff">產品設計</span><span class="pill diff">簡單</span><span class="pill step">R 練</span></div>
+            <div class="qcard-stmt">設計新功能讓 LINE News 用戶能更快速獲取感興趣的內容。</div>
+            <div class="qcard-more">看完整題目 ▾</div>
+          </div>
+        </div>
+
+        <!-- RIGHT RAIL -->
+        <div class="ch-rail ch-right">
+          <div class="rail-label">近期練習</div>
+          <div style="font-size:12px;color:var(--c-text-3);text-align:center;padding:12px 0">尚無紀錄</div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+</div></div>
+
+<!-- =========== History 2-line ============-->
+<h3>② History 2 行 + mode tag（與 v2 同）</h3>
+<div class="vp-scroller"><div class="vp-row">
+
+  <div class="vp-frame vp-mobile">
+    <div class="vp-label">MOBILE · 360px (2 行)</div>
+    <div class="vp-content">
+      <div class="nav-bar"><strong>練習記錄</strong></div>
+      <div class="h-modal">
+        <div class="h-item"><div class="h-row1"><span class="hbadge">80 分</span><span class="mode-tag">完整模擬</span><span style="font-size:11px;color:var(--c-text-3);margin-left:auto">5/1 03:02</span></div><div class="h-row2">CIRCLES · Spotify · Spotify Podcast</div></div>
+        <div class="h-item"><div class="h-row1"><span class="hbadge active">進行中</span><span class="mode-tag drill">加練 R</span><span style="font-size:11px;color:var(--c-text-3);margin-left:auto">5/1 01:37</span></div><div class="h-row2">CIRCLES · Netflix · Netflix Originals</div></div>
+        <div class="h-item"><div class="h-row1"><span class="hbadge complete">完成</span><span class="mode-tag">完整模擬</span><span style="font-size:11px;color:var(--c-text-3);margin-left:auto">4/28 05:43</span></div><div class="h-row2">CIRCLES · Spotify · Spotify Wrapped</div></div>
+      </div>
+    </div>
+  </div>
+
+  <div class="vp-frame vp-tablet">
+    <div class="vp-label">TABLET · 768px (2 行)</div>
+    <div class="vp-content">
+      <div class="nav-bar"><strong>練習記錄</strong></div>
+      <div class="h-modal">
+        <div class="h-item"><div class="h-row1"><span class="hbadge">80 分</span><span class="mode-tag">完整模擬</span><span style="font-size:11px;color:var(--c-text-3);margin-left:auto">5/1 03:02</span></div><div class="h-row2">CIRCLES · Spotify · Spotify Podcast</div></div>
+        <div class="h-item"><div class="h-row1"><span class="hbadge active">進行中</span><span class="mode-tag drill">加練 R</span><span style="font-size:11px;color:var(--c-text-3);margin-left:auto">5/1 01:37</span></div><div class="h-row2">CIRCLES · Netflix · Netflix Originals</div></div>
+      </div>
+    </div>
+  </div>
+
+  <div class="vp-frame vp-desktop">
+    <div class="vp-label">DESKTOP · 1280px (單行 inline — 寬足)</div>
+    <div class="vp-content">
+      <div class="nav-bar"><strong>練習記錄</strong></div>
+      <div class="h-modal">
+        <div class="h-item-1line"><span class="hbadge">80 分</span><span class="mode-tag">完整模擬</span><span style="flex:1">CIRCLES · Spotify · Spotify Podcast</span><span style="font-size:11px;color:var(--c-text-3)">5/1 03:02</span></div>
+        <div class="h-item-1line"><span class="hbadge active">進行中</span><span class="mode-tag drill">加練 R</span><span style="flex:1">CIRCLES · Netflix · Netflix Originals</span><span style="font-size:11px;color:var(--c-text-3)">5/1 01:37</span></div>
+        <div class="h-item-1line"><span class="hbadge complete">完成</span><span class="mode-tag">完整模擬</span><span style="flex:1">CIRCLES · Spotify · Spotify Wrapped</span><span style="font-size:11px;color:var(--c-text-3)">4/28 05:43</span></div>
+      </div>
+    </div>
+  </div>
+
+</div></div>
+
+<h3>確認</h3>
+<div style="padding:14px;background:#fff;border-radius:8px;border:1px solid var(--c-primary)">
+  v3 對齊真實版面：<br>
+  ① desktop 左 rail 新增「練習步驟」section（垂直 3 顆 pill），位置在「練習模式」與「題型」之間<br>
+  ② 中 column 標題改「練習 R 步驟 · 5 題」、題目過濾、cards 加 R 練 tag + 藍框（drill mode 視覺強化）<br>
+  ③ mobile / tablet 已有 pills，只新增題目過濾 + R 練 tag + 藍框<br>
+  ④ history 2 行（mobile / tablet）/ 1 行（desktop），都加 mode tag<br>
+  ok 就推 SP3。
+</div>
+
+</body>
+</html>
