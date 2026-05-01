@@ -118,7 +118,7 @@ async function main() {
     }
   }
 
-  let allQuestions = [...existingQuestions];
+  let allQuestions = [];
   let currentId = 1;
 
   for (const { type, count } of BATCHES) {
