@@ -4737,3 +4737,15 @@ textarea.has-error {
   border: 1.5px solid var(--c-danger, #ef4444) !important;
   background: rgba(239, 68, 68, 0.03);
 }
+
+/* SP1.5 B1 — locked field-input (already-graded read-only) */
+:root {
+  --c-locked-bg: #ece9e0;
+}
+[data-view="circles"] .circles-field-input.locked,
+[data-view="circles"] .circles-field-input[readonly] {
+  background: var(--c-locked-bg);
+  color: var(--c-text-2);
+  border-color: #c4bdae;
+  cursor: not-allowed;
+}

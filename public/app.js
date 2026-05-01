@@ -2928,6 +2928,7 @@ function renderCirclesPhase1() {
   var config = CIRCLES_STEP_CONFIG[stepKey] || CIRCLES_STEP_CONFIG.C1;
   var draft = AppState.circlesFrameworkDraft || {};
   var isSimulation = mode === 'simulation';
+  var isLocked = isStepLocked(stepKey, AppState.circlesStepScores);
 
   var progressBarHtml = buildCirclesProgressBar(stepIdx, { includeSaveIndicator: true });
 
@@ -2991,6 +2992,13 @@ function renderCirclesPhase1() {
     }
   }
 
+  // SP1.5 B1 — post-process bodyHtml to inject readonly + .locked when step is graded
+  if (isLocked) {
+    bodyHtml = bodyHtml
+      .replace(/class="circles-field-input"/g, 'class="circles-field-input locked"')
+      .replace(/(<textarea[^>]*class="[^"]*circles-field-input[^"]*"[^>]*?)>/g, '$1 readonly>');
+  }
+
   // Submit bar (Simulation last step shows "查看完整報告 →" instead)
   var isLastStep = stepIdx === CIRCLES_STEPS.length - 1;
   // Wave D fix-D2 (D-3): "上一步" button only in simulation mode on non-first
@@ -3000,11 +3008,20 @@ function renderCirclesPhase1() {
   var prevBtnHtml = _showPrev
     ? '<button class="circles-btn-secondary" id="circles-p1-prev" type="button">上一步</button>'
     : '';
-  var submitBarHtml = '<div class="circles-submit-bar">' +
-    '<button class="circles-btn-secondary" id="circles-p1-back" type="button">返回選題</button>' +
-    prevBtnHtml +
-    '<button class="circles-btn-primary" id="circles-p1-submit" type="button">' + (isLastStep ? '送出評分' : '下一步') + '</button>' +
-  '</div>';
+  var submitBarHtml;
+  if (isLocked) {
+    // SP1.5 B1 — locked branch: 回評分 + 下一步 (no edit, no re-submit)
+    submitBarHtml = '<div class="circles-submit-bar">' +
+      '<button class="circles-btn-secondary" id="circles-p1-back" type="button">回評分</button>' +
+      '<button class="circles-btn-primary" id="circles-p1-next-step" type="button">下一步</button>' +
+    '</div>';
+  } else {
+    submitBarHtml = '<div class="circles-submit-bar">' +
+      '<button class="circles-btn-secondary" id="circles-p1-back" type="button">返回選題</button>' +
+      prevBtnHtml +
+      '<button class="circles-btn-primary" id="circles-p1-submit" type="button">' + (isLastStep ? '送出評分' : '下一步') + '</button>' +
+    '</div>';
+  }
 
   // Phase 4.2 — desktop wrapper class
   var _isDesktopP1 = (typeof isDesktop === 'function' && isDesktop());
@@ -3097,6 +3114,10 @@ function renderCirclesPhase1() {
 
 function bindCirclesPhase1() {
   bindPersistentQuestionChip(document.querySelector('[data-view="circles"]'));
+  // SP1.5 B1 — hoist stepKey for locked-branch handlers
+  var stepKey = AppState.circlesMode === 'drill'
+    ? AppState.circlesDrillStep
+    : (CIRCLES_STEPS[AppState.circlesSimStep || 0] || CIRCLES_STEPS[0]).key;
   // ── Navigation: back button (clear selection, return to home)
   function backToHome() {
     AppState.circlesSelectedQuestion = null;
@@ -3106,8 +3127,25 @@ function bindCirclesPhase1() {
     navigate('circles');
   }
   document.getElementById('circles-p1-nav-back')?.addEventListener('click', backToHome);
-  document.getElementById('circles-p1-back')?.addEventListener('click', backToHome);
+  // SP1.5 B1 — when locked, #circles-p1-back means 回評分 (phase 3); else 返回選題.
+  document.getElementById('circles-p1-back')?.addEventListener('click', function() {
+    if (isStepLocked(stepKey, AppState.circlesStepScores)) {
+      AppState.circlesPhase = 3;
+      navigate('circles');
+    } else {
+      backToHome();
+    }
+  });
   document.getElementById('circles-p1-home')?.addEventListener('click', backToHome);
+  // SP1.5 B1 — locked-branch 下一步 button: advance to next step (sim) or stay (drill)
+  document.getElementById('circles-p1-next-step')?.addEventListener('click', function() {
+    if (AppState.circlesMode === 'simulation') {
+      AppState.circlesSimStep = Math.min((AppState.circlesSimStep || 0) + 1, CIRCLES_STEPS.length - 1);
+    }
+    AppState.circlesPhase = 1;
+    AppState.circlesScoreResult = null;
+    navigate('circles');
+  });
 
   // Wave D fix-D2 (D-3): simulation mode prev-step button. Only valid when
   // mode === 'simulation' && current step index > 0.
