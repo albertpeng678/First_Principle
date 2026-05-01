@@ -155,14 +155,14 @@ body {
   /* AUD-000-A4 — fluid 94vw caps so 14-inch laptops (≈1366-1900) and 27-inch
      desktops (2560-3000) all fill ≥88% of viewport. Caps prevent line-length
      blowing past comfort at 4K. Was static 1180/920 columns. */
-  .circles-home-desktop { max-width: min(1880px, 94vw); margin: 0 auto; padding: 24px 32px; }
-  .phase1-desktop { max-width: min(1880px, 94vw); margin: 0 auto; padding: 0 32px 100px; }
+  .circles-home-desktop { max-width: min(1880px, 94vw); margin: 0 auto; padding: 24px 0; }
+  .phase1-desktop { max-width: min(1880px, 94vw); margin: 0 auto; padding: 0 0 100px; }
   .phase2-desktop { max-width: 920px; margin: 0 auto; padding: 0 24px; }
   .phase3-desktop { max-width: 920px; margin: 0 auto; padding: 0 24px 100px; }
-  .nsm-home-desktop { width: 100%; max-width: min(1880px, 94vw); margin: 0 auto; padding: 18px 32px 100px; }
-  .nsm-step2-desktop { max-width: 720px; margin: 0 auto; padding: 18px 24px 100px; }
-  .nsm-step3-desktop { max-width: 920px; margin: 0 auto; padding: 18px 24px 100px; }
-  .nsm-step4-desktop { max-width: min(1880px, 94vw); margin: 0 auto; padding: 18px 24px 100px; }
+  .nsm-home-desktop { width: 100%; max-width: min(1880px, 94vw); margin: 0 auto; padding: 18px 0 100px; }
+  .nsm-step2-desktop { max-width: 720px; margin: 0 auto; padding: 18px 0 100px; }
+  .nsm-step3-desktop { max-width: 920px; margin: 0 auto; padding: 18px 0 100px; }
+  .nsm-step4-desktop { max-width: min(1880px, 94vw); margin: 0 auto; padding: 18px 0 100px; }
   .review-desktop { max-width: min(1880px, 94vw); margin: 0 auto; padding: 24px 32px; }
   .login-desktop { max-width: 420px; margin: 60px auto 0; padding: 0 24px; }
 }
@@ -1527,7 +1527,7 @@ body { -webkit-font-smoothing: antialiased; }
 
 /* Home — question picker */
 [data-view="circles"] .circles-home-wrap {
-  padding: 16px 16px 96px;
+  padding: 16px 0 96px;
   max-width: 680px;
   margin: 0 auto;
 }
@@ -1754,7 +1754,7 @@ body { -webkit-font-smoothing: antialiased; }
 
 /* Phase 1 — Framework form */
 [data-view="circles"] .circles-phase1-wrap {
-  padding: 16px;
+  padding: 16px 0;
   max-width: 680px;
   margin: 0 auto;
   /* MASTER-009 — reserve space below for fixed submit bar */
@@ -4126,17 +4126,17 @@ textarea.rt-textarea {
 
 /* ≥1440 — wide-monitor fluid layer */
 @media (min-width: 1440px) {
-  .circles-home-desktop { max-width: min(1880px, 94vw); padding: 24px 32px; }
+  .circles-home-desktop { max-width: min(1880px, 94vw); padding: 24px 0; }
   /* The mobile .circles-home-wrap caps content at 680px — undo inside desktop. */
   .circles-home-desktop .circles-home-wrap,
   [data-view="circles"] .circles-home-desktop .circles-home-wrap {
     max-width: none;
     padding: 0;
   }
-  .phase1-desktop { max-width: min(1880px, 94vw); padding: 0 32px 100px; }
+  .phase1-desktop { max-width: min(1880px, 94vw); padding: 0 0 100px; }
   .phase2-desktop { max-width: min(1180px, 88vw); }
   .phase3-desktop { max-width: min(1180px, 88vw); padding: 0 32px 100px; }
-  .nsm-home-desktop { max-width: min(1880px, 94vw); padding: 18px 32px 100px; }
+  .nsm-home-desktop { max-width: min(1880px, 94vw); padding: 18px 0 100px; }
   .nsm-step2-desktop { max-width: min(960px, 80vw); }
   .nsm-step3-desktop { max-width: min(1180px, 88vw); }
   .nsm-step4-desktop { max-width: min(1880px, 94vw); }
