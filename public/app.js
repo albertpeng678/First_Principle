@@ -1704,7 +1704,7 @@ function renderQuestionAnalysisBlock(q) {
   var traps = (a && a.traps) || ((q.common_wrong_directions || []).join('、'));
 
   if (!hasFull) {
-    console.warn('Question missing analysis:', q.id);
+    console.error('[SP1.5/C1] Question missing analysis after backfill:', q.id, q.product);
     return '<div class="qcard-analysis">' +
       '<div class="ana-row trap"><span class="ana-label"><i class="ph ph-warning"></i> 常見誤區</span>' +
         '<span class="ana-val">' + escHtml(traps || '—') + '</span></div>' +
