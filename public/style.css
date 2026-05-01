@@ -4622,6 +4622,7 @@ a.btn:focus-visible {
   font-size: 12.5px;
   cursor: pointer;
   transition: border-color .15s, background .15s;
+  min-height: 44px; /* iOS minimum touch target */
 }
 .qchip:hover { border-color: var(--c-primary); background: #fbfcff; }
 .qchip:focus-visible { outline: 2px solid var(--c-primary); outline-offset: 2px; }
