@@ -2176,13 +2176,6 @@ body { -webkit-font-smoothing: antialiased; }
   will-change: transform;
 }
 
-.circles-pinned-card {
-  background: #fff;
-  border-bottom: 1px solid #e8e5de;
-  padding: 8px 14px;
-  flex-shrink: 0;
-}
-
 .circles-submit-strip {
   border-top: 1px solid #e8e5de;
   background: #fff;

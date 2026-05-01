@@ -3856,23 +3856,6 @@ function bindCirclesPhase2() {
   var chatBody = document.getElementById('circles-chat-body');
   if (chatBody) chatBody.scrollTop = chatBody.scrollHeight;
 
-  // Pinned card expand
-  document.getElementById('circles-pinned-toggle')?.addEventListener('click', function() {
-    var stmtEl = document.getElementById('circles-pinned-stmt');
-    var q = AppState.circlesSelectedQuestion;
-    if (!q) return;
-    var expanded = this.dataset.expanded === 'true';
-    if (expanded) {
-      stmtEl.textContent = q.problem_statement.slice(0, 80) + '…';
-      this.textContent = '展開 ▾';
-      this.dataset.expanded = 'false';
-    } else {
-      stmtEl.textContent = q.problem_statement;
-      this.textContent = '收起 ▴';
-      this.dataset.expanded = 'true';
-    }
-  });
-
   // Submit step button (normal state → collapsed strip)
   document.getElementById('circles-submit-step')?.addEventListener('click', function() {
     AppState.circlesSubmitState = 'collapsed';
