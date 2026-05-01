@@ -5,7 +5,7 @@ module.exports = {
   testMatch: ['<rootDir>/tests/**/*.test.js'],
   testPathIgnorePatterns: [
     '/node_modules/',
-    '/.worktrees/',
+    '<rootDir>/.worktrees/',
     '/.tmp-chrome-profile/',
     '/tests/playwright/',
     '/tests/audit/',
