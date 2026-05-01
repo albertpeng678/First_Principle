@@ -91,6 +91,26 @@
   --c-pill-active-bg: #ddd6fe;
   --c-pill-active-text: #4c1d95;
   --c-focus-ring: #7c3aed;
+
+  /* MASTER-022 — 字型 token：全站收一處 */
+  --c-font-sans: 'DM Sans', -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
+
+  /* MASTER-023 — 把 app.js inline hex 殘留（diff card / hint icon / info banner）
+     收成 token，避免 fallback hex 散落。罕用色保留原值，僅集中命名。 */
+  --c-diff-easy-bg: #d1fae5;
+  --c-diff-easy-fg: #059669;
+  --c-diff-mid-bg: #ffedd5;
+  --c-diff-mid-fg: #ea580c;
+  --c-diff-hard-bg: #fee2e2;
+  --c-diff-hard-fg: #dc2626;
+  --c-hint-icon: #f0a04b;
+  --c-banner-info-bg: #EEF3FF;
+  --c-banner-info-border: #C5D5FF;
+  --c-text-1: var(--c-text);
+}
+
+body, button, input, textarea, select, p, div, span {
+  font-family: var(--c-font-sans);
 }
 
 * { box-sizing: border-box; margin: 0; padding: 0; -webkit-tap-highlight-color: transparent; }
@@ -106,7 +126,7 @@ body {
      body's overflow-y into `auto`, which makes body its own scroll container
      and breaks mouse-wheel scroll on the document. */
   overscroll-behavior-y: none;
-  font-family: 'DM Sans', -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
+  font-family: var(--c-font-sans);
   background: var(--c-bg);
   color: #1a1a1a;
   min-height: 100dvh;
@@ -968,12 +988,12 @@ textarea::placeholder { white-space: nowrap; overflow: hidden; text-overflow: el
 }
 .nsm-list-header-label {
   font-size: 11px; font-weight: 600; color: var(--text-secondary);
-  font-family: 'DM Sans', sans-serif;
+  font-family: var(--c-font-sans);
 }
 .nsm-shuffle-btn {
   background: none; border: none; padding: 0; cursor: pointer;
   font-size: 11px; font-weight: 600; color: var(--accent);
-  font-family: 'DM Sans', sans-serif;
+  font-family: var(--c-font-sans);
   display: inline-flex; align-items: center; gap: 4px;
 }
 @media (hover: hover) and (pointer: fine) {
@@ -1402,7 +1422,7 @@ body { -webkit-font-smoothing: antialiased; }
 [data-view="circles"] .circles-progress-step {
   width: 28px; height: 28px; border-radius: 50%; flex-shrink: 0;
   display: flex; align-items: center; justify-content: center;
-  font-family: 'DM Sans', sans-serif; font-size: 12px; font-weight: 700;
+  font-family: var(--c-font-sans); font-size: 12px; font-weight: 700;
   background: #fff;
   color: var(--c-text-2);
   border: 2px solid rgba(0,0,0,0.15);
@@ -1427,7 +1447,7 @@ body { -webkit-font-smoothing: antialiased; }
 [data-view="circles"] .circles-progress-current {
   display: flex; align-items: center; gap: 8px;
   margin-top: 8px;
-  font-family: 'DM Sans', sans-serif;
+  font-family: var(--c-font-sans);
 }
 [data-view="circles"] .circles-progress-current-letter {
   color: var(--c-primary);
@@ -1480,13 +1500,13 @@ body { -webkit-font-smoothing: antialiased; }
   font-size: 11px;
   color: var(--c-text-3);
   margin-top: 1px;
-  font-family: 'DM Sans', sans-serif;
+  font-family: var(--c-font-sans);
 }
 [data-view="circles"] .circles-nav-right {
   margin-left: auto;
   font-size: 11px;
   color: var(--c-text-3);
-  font-family: 'DM Sans', sans-serif;
+  font-family: var(--c-font-sans);
 }
 
 /* Home — question picker */
@@ -1503,7 +1523,7 @@ body { -webkit-font-smoothing: antialiased; }
    to a proper page section header — same weight/size, real text color
    (was 13px/600 muted gray uppercase, looked decorative). */
 [data-view="circles"] .circles-step-select-label {
-  font-family: 'DM Sans', sans-serif;
+  font-family: var(--c-font-sans);
   font-size: 13px;
   font-weight: 600;
   color: var(--c-text);
@@ -1538,13 +1558,13 @@ body { -webkit-font-smoothing: antialiased; }
   font-weight: 600;
   color: var(--c-text);
   margin-bottom: 3px;
-  font-family: 'DM Sans', sans-serif;
+  font-family: var(--c-font-sans);
 }
 [data-view="circles"] .circles-mode-card-desc {
   font-size: 11px;
   color: var(--c-text-3);
   line-height: 1.5;
-  font-family: 'DM Sans', sans-serif;
+  font-family: var(--c-font-sans);
 }
 
 /* Type tabs */
@@ -1562,7 +1582,7 @@ body { -webkit-font-smoothing: antialiased; }
   font-size: 12px;
   color: var(--c-text-2);
   cursor: pointer;
-  font-family: 'DM Sans', sans-serif;
+  font-family: var(--c-font-sans);
   touch-action: manipulation;
   -webkit-tap-highlight-color: transparent;
   transition: background 0.2s, color 0.2s, border-color 0.2s;
@@ -1580,7 +1600,7 @@ body { -webkit-font-smoothing: antialiased; }
   font-size: 13px;
   color: var(--c-text);
   margin-bottom: 12px;
-  font-family: 'DM Sans', sans-serif;
+  font-family: var(--c-font-sans);
   text-transform: none;
   letter-spacing: 0;
   font-weight: 600;
@@ -1595,7 +1615,7 @@ body { -webkit-font-smoothing: antialiased; }
   margin-bottom: 12px;
 }
 [data-view="circles"] .circles-q-random-btn {
-  font: 500 12px/1 'DM Sans', sans-serif;
+  font: 500 12px/1 var(--c-font-sans);
   color: var(--c-text);
   background: transparent;
   border: 1px solid var(--c-border);
@@ -1628,7 +1648,7 @@ body { -webkit-font-smoothing: antialiased; }
   touch-action: manipulation;
   -webkit-tap-highlight-color: transparent;
   transition: background 0.2s, color 0.2s, border-color 0.2s;
-  font-family: 'DM Sans', sans-serif;
+  font-family: var(--c-font-sans);
 }
 [data-view="circles"] .circles-step-pill.active {
   background: var(--c-primary-lt);
@@ -1660,7 +1680,7 @@ body { -webkit-font-smoothing: antialiased; }
   color: var(--c-primary);
   font-weight: 600;
   margin-bottom: 4px;
-  font-family: 'DM Sans', sans-serif;
+  font-family: var(--c-font-sans);
 }
 [data-view="circles"] .circles-q-card-stmt {
   display: -webkit-box;
@@ -1670,7 +1690,7 @@ body { -webkit-font-smoothing: antialiased; }
   font-size: 13px;
   color: var(--c-text);
   line-height: 1.5;
-  font-family: 'DM Sans', sans-serif;
+  font-family: var(--c-font-sans);
 }
 /* Spec 2026-04-30 — A1 home card chrome. Tag row sits above the brief; the
    product / question_type / difficulty pills are derived from the question
@@ -1684,14 +1704,14 @@ body { -webkit-font-smoothing: antialiased; }
   padding: 3px 10px; border-radius: 14px;
   background: #fff; border: 1px solid rgba(26,86,219,0.3);
   color: var(--c-primary); font-size: 11.5px;
-  font-family: 'DM Sans', sans-serif;
+  font-family: var(--c-font-sans);
 }
 [data-view="circles"] .circles-q-card-tag {
   display: inline-flex; align-items: center;
   padding: 2px 8px; border-radius: 4px;
   background: var(--c-bg-soft, #f7f5f0);
   color: var(--c-text-2); font-size: 11px;
-  font-family: 'DM Sans', sans-serif;
+  font-family: var(--c-font-sans);
 }
 [data-view="circles"] .circles-q-card-full-block {
   background: var(--c-bg-soft, #f7f5f0);
@@ -1701,18 +1721,18 @@ body { -webkit-font-smoothing: antialiased; }
 [data-view="circles"] .circles-q-card-full-label {
   font-size: 10.5px; color: var(--c-text-2); font-weight: 600;
   text-transform: uppercase; letter-spacing: 0.05em; margin-bottom: 4px;
-  font-family: 'DM Sans', sans-serif;
+  font-family: var(--c-font-sans);
 }
 [data-view="circles"] .circles-q-card-full-text {
   font-size: 13px; color: var(--c-text); line-height: 1.7;
-  font-family: 'DM Sans', sans-serif;
+  font-family: var(--c-font-sans);
 }
 .circles-q-card-more {
   font-size: 11px;
   color: var(--c-primary);
   cursor: pointer;
   margin-top: 4px;
-  font-family: 'DM Sans', sans-serif;
+  font-family: var(--c-font-sans);
   display: block;
 }
 
@@ -1746,7 +1766,7 @@ body { -webkit-font-smoothing: antialiased; }
   cursor: pointer;
   color: var(--c-text-2);
   min-height: 44px;
-  font-family: 'DM Sans', sans-serif;
+  font-family: var(--c-font-sans);
 }
 [data-view="circles"] .s-step-tab.active {
   background: var(--c-primary-lt);
@@ -1760,7 +1780,7 @@ body { -webkit-font-smoothing: antialiased; }
   text-transform: uppercase;
   letter-spacing: 0.07em;
   margin-bottom: 5px;
-  font-family: 'DM Sans', sans-serif;
+  font-family: var(--c-font-sans);
 }
 /* Legacy always-visible hint (kept for backward compat; new fields use collapsible) */
 [data-view="circles"] .circles-field-hint {
@@ -1768,7 +1788,7 @@ body { -webkit-font-smoothing: antialiased; }
   color: var(--c-text-3);
   margin-bottom: 6px;
   line-height: 1.5;
-  font-family: 'DM Sans', sans-serif;
+  font-family: var(--c-font-sans);
 }
 /* Collapsible field example (per spec line 3682, replaces .circles-field-hint) */
 [data-view="circles"] .field-example-toggle {
@@ -1781,7 +1801,7 @@ body { -webkit-font-smoothing: antialiased; }
   display: flex;
   align-items: center;
   gap: 4px;
-  font-family: 'DM Sans', sans-serif;
+  font-family: var(--c-font-sans);
   -webkit-tap-highlight-color: transparent;
   touch-action: manipulation;
 }
@@ -1797,7 +1817,7 @@ body { -webkit-font-smoothing: antialiased; }
   color: var(--c-text-3);
   margin-bottom: 6px;
   line-height: 1.5;
-  font-family: 'DM Sans', sans-serif;
+  font-family: var(--c-font-sans);
   padding: 8px 10px;
   background: rgba(0, 0, 0, 0.025);
   border-left: 2px solid var(--c-border);
@@ -1814,7 +1834,7 @@ body { -webkit-font-smoothing: antialiased; }
   background: var(--c-card);
   font-size: 14px;
   color: var(--c-text);
-  font-family: 'DM Sans', sans-serif;
+  font-family: var(--c-font-sans);
   resize: vertical;
   min-height: 60px;
   box-sizing: border-box;
@@ -1875,7 +1895,7 @@ body { -webkit-font-smoothing: antialiased; }
   font-size: 14px;
   font-weight: 600;
   cursor: pointer;
-  font-family: 'DM Sans', sans-serif;
+  font-family: var(--c-font-sans);
   white-space: nowrap;
   touch-action: manipulation;
   -webkit-tap-highlight-color: transparent;
@@ -1893,7 +1913,7 @@ body { -webkit-font-smoothing: antialiased; }
   border-radius: 12px;
   padding: 14px;
   margin-bottom: 10px;
-  font-family: 'DM Sans', sans-serif;
+  font-family: var(--c-font-sans);
 }
 [data-view="circles"] .circles-gate-card.error {
   background: var(--c-error-lt);
@@ -1943,7 +1963,7 @@ body { -webkit-font-smoothing: antialiased; }
   display: flex;
   align-items: center;
   gap: 10px;
-  font-family: 'DM Sans', sans-serif;
+  font-family: var(--c-font-sans);
 }
 [data-view="circles"] .gate-transition-bar.gate-pass {
   background: #EEF6EE;
@@ -1965,7 +1985,7 @@ body { -webkit-font-smoothing: antialiased; }
   flex: 1;
   font-size: 12px;
   font-weight: 600;
-  font-family: 'DM Sans', sans-serif;
+  font-family: var(--c-font-sans);
 }
 [data-view="circles"] .gate-transition-bar.gate-pass .gate-transition-text { color: #137A3D; }
 [data-view="circles"] .gate-transition-bar.gate-fail .gate-transition-text { color: var(--c-error); }
@@ -1978,7 +1998,7 @@ body { -webkit-font-smoothing: antialiased; }
   font-size: 12px;
   font-weight: 600;
   cursor: pointer;
-  font-family: 'DM Sans', sans-serif;
+  font-family: var(--c-font-sans);
   white-space: nowrap;
   flex-shrink: 0;
   touch-action: manipulation;
@@ -2012,7 +2032,7 @@ body { -webkit-font-smoothing: antialiased; }
   text-transform: uppercase;
   letter-spacing: 0.05em;
   color: var(--c-text-3);
-  font-family: 'DM Sans', sans-serif;
+  font-family: var(--c-font-sans);
   margin-bottom: 2px;
 }
 [data-view="circles"] .gate-item-title {
@@ -2020,19 +2040,19 @@ body { -webkit-font-smoothing: antialiased; }
   font-weight: 700;
   color: var(--c-text);
   margin-bottom: 3px;
-  font-family: 'DM Sans', sans-serif;
+  font-family: var(--c-font-sans);
 }
 [data-view="circles"] .gate-item-reason {
   font-size: 12px;
   color: var(--c-text-2);
   line-height: 1.5;
-  font-family: 'DM Sans', sans-serif;
+  font-family: var(--c-font-sans);
 }
 [data-view="circles"] .gate-item-suggestion {
   font-size: 11px;
   color: var(--c-warn);
   margin-top: 4px;
-  font-family: 'DM Sans', sans-serif;
+  font-family: var(--c-font-sans);
   line-height: 1.5;
 }
 
@@ -2062,7 +2082,7 @@ body { -webkit-font-smoothing: antialiased; }
   color: var(--c-text);
   margin-bottom: 10px;
   max-width: 88%;
-  font-family: 'DM Sans', sans-serif;
+  font-family: var(--c-font-sans);
 }
 [data-view="circles"] .circles-bubble-user {
   background: var(--c-card);
@@ -2075,7 +2095,7 @@ body { -webkit-font-smoothing: antialiased; }
   margin-bottom: 10px;
   max-width: 88%;
   margin-left: auto;
-  font-family: 'DM Sans', sans-serif;
+  font-family: var(--c-font-sans);
 }
 [data-view="circles"] .circles-bubble-section {
   font-size: 10px;
@@ -2084,7 +2104,7 @@ body { -webkit-font-smoothing: antialiased; }
   text-transform: uppercase;
   letter-spacing: 0.07em;
   margin-bottom: 3px;
-  font-family: 'DM Sans', sans-serif;
+  font-family: var(--c-font-sans);
 }
 [data-view="circles"] .circles-input-bar {
   background: var(--c-card);
@@ -2211,7 +2231,7 @@ body { -webkit-font-smoothing: antialiased; }
   border-right: none;
   padding: 2px 0;
   cursor: pointer;
-  font-family: 'DM Sans', sans-serif;
+  font-family: var(--c-font-sans);
   white-space: nowrap;
   flex-shrink: 0;
   margin-left: auto;
@@ -2239,13 +2259,13 @@ body { -webkit-font-smoothing: antialiased; }
   display: flex;
   align-items: center;
   gap: 4px;
-  font-family: 'DM Sans', sans-serif;
+  font-family: var(--c-font-sans);
 }
 [data-view="circles"] .circles-icebreaker-text {
   font-size: 12px;
   color: var(--c-text-2);
   line-height: 1.65;
-  font-family: 'DM Sans', sans-serif;
+  font-family: var(--c-font-sans);
 }
 
 /* Phase 2 — Submit row (state 2: turns >= 3) */
@@ -2265,7 +2285,7 @@ body { -webkit-font-smoothing: antialiased; }
   padding: 6px 16px;
   cursor: pointer;
   background: var(--c-card);
-  font-family: 'DM Sans', sans-serif;
+  font-family: var(--c-font-sans);
 }
 
 /* Phase 2 — Strip (state 3) */
@@ -2273,12 +2293,12 @@ body { -webkit-font-smoothing: antialiased; }
   font-size: 11px;
   font-weight: 600;
   color: var(--c-primary);
-  font-family: 'DM Sans', sans-serif;
+  font-family: var(--c-font-sans);
 }
 [data-view="circles"] .circles-submit-strip .strip-sub {
   font-size: 10px;
   color: var(--c-text-3);
-  font-family: 'DM Sans', sans-serif;
+  font-family: var(--c-font-sans);
 }
 [data-view="circles"] .circles-submit-strip .strip-expand-btn {
   background: var(--c-primary);
@@ -2289,7 +2309,7 @@ body { -webkit-font-smoothing: antialiased; }
   font-size: 11px;
   font-weight: 600;
   cursor: pointer;
-  font-family: 'DM Sans', sans-serif;
+  font-family: var(--c-font-sans);
   white-space: nowrap;
 }
 
@@ -2299,13 +2319,13 @@ body { -webkit-font-smoothing: antialiased; }
   font-weight: 700;
   color: var(--c-text);
   margin-bottom: 2px;
-  font-family: 'DM Sans', sans-serif;
+  font-family: var(--c-font-sans);
 }
 [data-view="circles"] .conclusion-sub {
   font-size: 10px;
   color: var(--c-text-3);
   margin-bottom: 8px;
-  font-family: 'DM Sans', sans-serif;
+  font-family: var(--c-font-sans);
 }
 [data-view="circles"] .conclusion-example-block {
   border: 1px solid #e8e5de;
@@ -2326,19 +2346,19 @@ body { -webkit-font-smoothing: antialiased; }
   color: var(--c-text-3);
   text-transform: uppercase;
   letter-spacing: 0.4px;
-  font-family: 'DM Sans', sans-serif;
+  font-family: var(--c-font-sans);
 }
 [data-view="circles"] .conclusion-example-toggle {
   font-size: 10px;
   color: var(--c-text-3);
-  font-family: 'DM Sans', sans-serif;
+  font-family: var(--c-font-sans);
 }
 [data-view="circles"] .conclusion-example-content {
   padding: 8px 10px;
   font-size: 11px;
   color: var(--c-text-2);
   line-height: 1.6;
-  font-family: 'DM Sans', sans-serif;
+  font-family: var(--c-font-sans);
 }
 [data-view="circles"] .conclusion-textarea {
   width: 100%;
@@ -2350,7 +2370,7 @@ body { -webkit-font-smoothing: antialiased; }
   resize: none;
   height: 90px;
   box-sizing: border-box;
-  font-family: 'DM Sans', sans-serif;
+  font-family: var(--c-font-sans);
   color: var(--c-text);
   outline: none;
 }
@@ -2359,7 +2379,7 @@ body { -webkit-font-smoothing: antialiased; }
   font-size: 10px;
   color: var(--c-text-3);
   margin-top: 6px;
-  font-family: 'DM Sans', sans-serif;
+  font-family: var(--c-font-sans);
 }
 [data-view="circles"] .conclusion-hint.warn {
   background: #FFF8E1;
@@ -2385,7 +2405,7 @@ body { -webkit-font-smoothing: antialiased; }
   background: none;
   border: none;
   cursor: pointer;
-  font-family: 'DM Sans', sans-serif;
+  font-family: var(--c-font-sans);
   padding: 0;
 }
 [data-view="circles"] .conclusion-submit-btn {
@@ -2397,7 +2417,7 @@ body { -webkit-font-smoothing: antialiased; }
   font-size: 12px;
   font-weight: 600;
   cursor: pointer;
-  font-family: 'DM Sans', sans-serif;
+  font-family: var(--c-font-sans);
 }
 [data-view="circles"] .conclusion-submit-btn.disabled {
   opacity: .45;
@@ -2412,7 +2432,7 @@ body { -webkit-font-smoothing: antialiased; }
   padding: 9px 13px;
   font-size: 14px;
   color: var(--c-text);
-  font-family: 'DM Sans', sans-serif;
+  font-family: var(--c-font-sans);
   resize: none;
   max-height: 100px;
   overflow-y: auto;
@@ -2446,7 +2466,7 @@ body { -webkit-font-smoothing: antialiased; }
   cursor: pointer;
   touch-action: manipulation;
   -webkit-tap-highlight-color: transparent;
-  font-family: 'DM Sans', sans-serif;
+  font-family: var(--c-font-sans);
   white-space: nowrap;
 }
 
@@ -2476,7 +2496,7 @@ body { -webkit-font-smoothing: antialiased; }
 [data-view="circles"] .circles-score-sub {
   font-size: 13px;
   color: var(--c-text-2);
-  font-family: 'DM Sans', sans-serif;
+  font-family: var(--c-font-sans);
   line-height: 1.4;
 }
 /* legacy class kept for any non-step-score callers */
@@ -2484,7 +2504,7 @@ body { -webkit-font-smoothing: antialiased; }
   font-size: 12px;
   color: var(--c-text-3);
   margin-top: 4px;
-  font-family: 'DM Sans', sans-serif;
+  font-family: var(--c-font-sans);
 }
 
 /* 4-dim breakdown card */
@@ -2494,12 +2514,12 @@ body { -webkit-font-smoothing: antialiased; }
   border: 1px solid var(--c-border);
   padding: 6px 14px;
   margin-bottom: 14px;
-  font-family: 'DM Sans', sans-serif;
+  font-family: var(--c-font-sans);
 }
 [data-view="circles"] .circles-dim-row {
   padding: 12px 0;
   border-bottom: 1px solid var(--c-border);
-  font-family: 'DM Sans', sans-serif;
+  font-family: var(--c-font-sans);
 }
 [data-view="circles"] .circles-dim-row:last-child { border-bottom: none; }
 [data-view="circles"] .circles-dim-row-main { display: block; }
@@ -2551,7 +2571,7 @@ body { -webkit-font-smoothing: antialiased; }
   padding: 10px 16px;
   background: var(--c-card);
   border-bottom: 1px solid var(--c-border);
-  font-family: 'DM Sans', sans-serif;
+  font-family: var(--c-font-sans);
 }
 [data-view="circles"] .circles-score-nav-arrow {
   flex: 1;
@@ -2564,7 +2584,7 @@ body { -webkit-font-smoothing: antialiased; }
   border: 1px solid var(--c-border);
   color: var(--c-text-2);
   font-size: 11px;
-  font-family: 'DM Sans', sans-serif;
+  font-family: var(--c-font-sans);
   cursor: pointer;
   min-height: 36px;
   touch-action: manipulation;
@@ -2591,7 +2611,7 @@ body { -webkit-font-smoothing: antialiased; }
   font-size: 12px;
   font-weight: 600;
   color: var(--c-text);
-  font-family: 'DM Sans', sans-serif;
+  font-family: var(--c-font-sans);
   white-space: nowrap;
   overflow: hidden;
   text-overflow: ellipsis;
@@ -2606,7 +2626,7 @@ body { -webkit-font-smoothing: antialiased; }
   border: 1px solid var(--c-border);
   color: var(--c-text-2);
   font-size: 12px;
-  font-family: 'DM Sans', sans-serif;
+  font-family: var(--c-font-sans);
   cursor: pointer;
   flex-shrink: 0;
   min-height: 36px;
@@ -2618,7 +2638,7 @@ body { -webkit-font-smoothing: antialiased; }
   border-radius: 10px;
   padding: 12px 14px;
   margin-top: 14px;
-  font-family: 'DM Sans', sans-serif;
+  font-family: var(--c-font-sans);
 }
 [data-view="circles"] .circles-highlight-card.good {
   background: var(--c-ok-lt);
@@ -2648,7 +2668,7 @@ body { -webkit-font-smoothing: antialiased; }
   border: 1px solid var(--c-border);
   cursor: pointer;
   touch-action: manipulation;
-  font-family: 'DM Sans', sans-serif;
+  font-family: var(--c-font-sans);
 }
 [data-view="circles"] .circles-coach-toggle-label {
   font-size: 12px;
@@ -2677,7 +2697,7 @@ body { -webkit-font-smoothing: antialiased; }
   font-size: 14px;
   font-weight: 600;
   cursor: pointer;
-  font-family: 'DM Sans', sans-serif;
+  font-family: var(--c-font-sans);
   touch-action: manipulation;
   -webkit-tap-highlight-color: transparent;
   min-height: 44px;
@@ -2693,7 +2713,7 @@ body { -webkit-font-smoothing: antialiased; }
   border: 1px solid var(--c-border);
   font-size: 13px;
   cursor: pointer;
-  font-family: 'DM Sans', sans-serif;
+  font-family: var(--c-font-sans);
   touch-action: manipulation;
   -webkit-tap-highlight-color: transparent;
   min-height: 44px;
@@ -2705,7 +2725,7 @@ body { -webkit-font-smoothing: antialiased; }
   text-align: center;
   padding: 48px 0;
   color: var(--c-text-3);
-  font-family: 'DM Sans', sans-serif;
+  font-family: var(--c-font-sans);
   font-size: 13px;
 }
 [data-view="circles"] .circles-resume-card {
@@ -2930,14 +2950,14 @@ body { -webkit-font-smoothing: antialiased; }
   font-size: 13px;
   font-weight: 700;
   color: var(--c-text);
-  font-family: 'DM Sans', sans-serif;
+  font-family: var(--c-font-sans);
 }
 [data-view="circles"] .circles-info-card-sub {
   font-size: 12px;
   color: var(--c-text-2);
   line-height: 1.6;
   margin-bottom: 10px;
-  font-family: 'DM Sans', sans-serif;
+  font-family: var(--c-font-sans);
 }
 [data-view="circles"] .circles-info-steps {
   display: flex;
@@ -2951,7 +2971,7 @@ body { -webkit-font-smoothing: antialiased; }
   background: var(--c-primary-lt);
   border-radius: 4px;
   padding: 2px 7px;
-  font-family: 'DM Sans', sans-serif;
+  font-family: var(--c-font-sans);
 }
 
 /* ── CIRCLES Home — Drill sim note ── */
@@ -2971,7 +2991,7 @@ body { -webkit-font-smoothing: antialiased; }
   font-size: 11px;
   color: var(--c-primary);
   cursor: pointer;
-  font-family: 'DM Sans', sans-serif;
+  font-family: var(--c-font-sans);
   display: inline-block;
 }
 [data-view="circles"] .circles-q-card-expanded {
@@ -2981,7 +3001,7 @@ body { -webkit-font-smoothing: antialiased; }
   margin-top: 8px;
   padding-top: 8px;
   border-top: 1px solid var(--c-border);
-  font-family: 'DM Sans', sans-serif;
+  font-family: var(--c-font-sans);
 }
 [data-view="circles"] .circles-q-confirm-btn {
   flex: 1;
@@ -2992,7 +3012,7 @@ body { -webkit-font-smoothing: antialiased; }
   border: none;
   border-radius: 8px;
   cursor: pointer;
-  font-family: 'DM Sans', sans-serif;
+  font-family: var(--c-font-sans);
   font-weight: 600;
   touch-action: manipulation;
 }
@@ -3004,7 +3024,7 @@ body { -webkit-font-smoothing: antialiased; }
   cursor: pointer;
   padding: 9px 4px;
   white-space: nowrap;
-  font-family: 'DM Sans', sans-serif;
+  font-family: var(--c-font-sans);
   touch-action: manipulation;
 }
 
@@ -3024,12 +3044,12 @@ body { -webkit-font-smoothing: antialiased; }
   color: var(--c-primary);
   font-weight: 600;
   margin-bottom: 2px;
-  font-family: 'DM Sans', sans-serif;
+  font-family: var(--c-font-sans);
 }
 [data-view="circles"] .nsm-banner-sub {
   font-size: 12px;
   color: #3d579b;
-  font-family: 'DM Sans', sans-serif;
+  font-family: var(--c-font-sans);
 }
 [data-view="circles"] .nsm-banner-btn {
   background: var(--c-primary);
@@ -3041,7 +3061,7 @@ body { -webkit-font-smoothing: antialiased; }
   font-weight: 600;
   cursor: pointer;
   white-space: nowrap;
-  font-family: 'DM Sans', sans-serif;
+  font-family: var(--c-font-sans);
   touch-action: manipulation;
 }
 
@@ -3059,7 +3079,7 @@ body { -webkit-font-smoothing: antialiased; }
   opacity: 0;
   transition: opacity 0.15s;
   z-index: 9999;
-  font-family: 'DM Sans', sans-serif;
+  font-family: var(--c-font-sans);
   box-shadow: 0 4px 16px rgba(0,0,0,0.3);
 }
 [data-view="circles"] .circles-pill-tooltip.visible { opacity: 1; }
@@ -3081,7 +3101,7 @@ body { -webkit-font-smoothing: antialiased; }
   color: var(--c-text-2);
   line-height: 1.6;
   margin-bottom: 14px;
-  font-family: 'DM Sans', sans-serif;
+  font-family: var(--c-font-sans);
 }
 
 /* circles-nav home button (top-right link) */
@@ -3095,7 +3115,7 @@ body { -webkit-font-smoothing: antialiased; }
   border-right: none;
   padding: 2px 0;
   cursor: pointer;
-  font-family: 'DM Sans', sans-serif;
+  font-family: var(--c-font-sans);
   white-space: nowrap;
   flex-shrink: 0;
   margin-left: auto;
@@ -3129,7 +3149,7 @@ body { -webkit-font-smoothing: antialiased; }
   background: none;
   border: none;
   padding: 6px 8px;
-  font-family: 'DM Sans', sans-serif;
+  font-family: var(--c-font-sans);
   font-size: 12px;
   color: var(--c-primary);
   cursor: pointer;
@@ -3166,7 +3186,7 @@ body { -webkit-font-smoothing: antialiased; }
   color: var(--c-primary);
   cursor: pointer;
   padding: 0;
-  font-family: 'DM Sans', sans-serif;
+  font-family: var(--c-font-sans);
   white-space: nowrap;
   flex-shrink: 0;
   display: inline-flex;
@@ -3195,7 +3215,7 @@ body { -webkit-font-smoothing: antialiased; }
   cursor: pointer;
   padding: 10px 14px;
   text-align: left;
-  font-family: 'DM Sans', sans-serif;
+  font-family: var(--c-font-sans);
 }
 [data-view="circles"] .prev-step-toggle-title {
   font-size: 11px;
@@ -3232,13 +3252,13 @@ body { -webkit-font-smoothing: antialiased; }
   white-space: nowrap;
   padding-top: 2px;
   min-width: 70px;
-  font-family: 'DM Sans', sans-serif;
+  font-family: var(--c-font-sans);
 }
 [data-view="circles"] .prev-step-val {
   font-size: 12px;
   color: var(--c-text-2);
   line-height: 1.55;
-  font-family: 'DM Sans', sans-serif;
+  font-family: var(--c-font-sans);
 }
 
 /* nsm-annotation (S step only) */
@@ -3251,7 +3271,7 @@ body { -webkit-font-smoothing: antialiased; }
   font-size: 13px;
   color: var(--c-primary);
   line-height: 1.6;
-  font-family: 'DM Sans', sans-serif;
+  font-family: var(--c-font-sans);
 }
 [data-view="circles"] .nsm-annotation button {
   background: none;
@@ -3260,7 +3280,7 @@ body { -webkit-font-smoothing: antialiased; }
   font-size: 13px;
   cursor: pointer;
   text-decoration: underline;
-  font-family: 'DM Sans', sans-serif;
+  font-family: var(--c-font-sans);
   padding: 0;
 }
 
@@ -3284,7 +3304,7 @@ body { -webkit-font-smoothing: antialiased; }
   padding: 4px 2px;
   font-size: 13px;
   font-weight: 600;
-  font-family: 'DM Sans', sans-serif;
+  font-family: var(--c-font-sans);
   color: var(--c-text);
   outline: none;
   -webkit-appearance: none;
@@ -3309,7 +3329,7 @@ body { -webkit-font-smoothing: antialiased; }
   font-size: 13px;
   font-weight: 600;
   cursor: pointer;
-  font-family: 'DM Sans', sans-serif;
+  font-family: var(--c-font-sans);
   margin-bottom: 14px;
   touch-action: manipulation;
 }
@@ -3347,14 +3367,14 @@ body { -webkit-font-smoothing: antialiased; }
   border-radius: 99px;
   padding: 2px 9px;
   white-space: nowrap;
-  font-family: 'DM Sans', sans-serif;
+  font-family: var(--c-font-sans);
   flex-shrink: 0;
 }
 [data-view="circles"] .e-sol-name {
   font-size: 13px;
   font-weight: 600;
   color: var(--c-text);
-  font-family: 'DM Sans', sans-serif;
+  font-family: var(--c-font-sans);
   min-width: 0;
   overflow: hidden;
   text-overflow: ellipsis;
@@ -3371,7 +3391,7 @@ body { -webkit-font-smoothing: antialiased; }
   background: var(--c-card);
   font-size: 13px;
   color: var(--c-text);
-  font-family: 'DM Sans', sans-serif;
+  font-family: var(--c-font-sans);
   resize: vertical;
   min-height: 48px;
   box-sizing: border-box;
@@ -3403,14 +3423,14 @@ body { -webkit-font-smoothing: antialiased; }
   text-transform: uppercase;
   letter-spacing: 0.07em;
   font-weight: 700;
-  font-family: 'DM Sans', sans-serif;
+  font-family: var(--c-font-sans);
 }
 [data-view="circles"] .tracking-block-sub {
   font-size: 11px;
   color: var(--c-text-3);
   line-height: 1.5;
   padding: 3px 14px 10px;
-  font-family: 'DM Sans', sans-serif;
+  font-family: var(--c-font-sans);
 }
 [data-view="circles"] .tracking-dim {
   padding: 8px 14px 10px;
@@ -3423,7 +3443,7 @@ body { -webkit-font-smoothing: antialiased; }
   align-items: center;
   gap: 5px;
   margin-bottom: 4px;
-  font-family: 'DM Sans', sans-serif;
+  font-family: var(--c-font-sans);
 }
 [data-view="circles"] .tracking-dim-dot {
   width: 8px;
@@ -3437,7 +3457,7 @@ body { -webkit-font-smoothing: antialiased; }
   color: var(--c-text-3);
   margin-bottom: 5px;
   line-height: 1.4;
-  font-family: 'DM Sans', sans-serif;
+  font-family: var(--c-font-sans);
 }
 [data-view="circles"] .tracking-dim-input {
   width: 100%;
@@ -3446,7 +3466,7 @@ body { -webkit-font-smoothing: antialiased; }
   border: 1.5px solid var(--c-border);
   background: var(--c-surface);
   font-size: 12px;
-  font-family: 'DM Sans', sans-serif;
+  font-family: var(--c-font-sans);
   color: var(--c-text);
   resize: none;
   outline: none;
@@ -3495,7 +3515,7 @@ body { -webkit-font-smoothing: antialiased; }
   overscroll-behavior: contain;
   box-shadow: 0 8px 40px rgba(0,0,0,0.18);
   position: relative;
-  font-family: 'DM Sans', sans-serif;
+  font-family: var(--c-font-sans);
   color: #1a1a1a;
 }
 .hint-overlay .hint-close {
@@ -3515,7 +3535,7 @@ body { -webkit-font-smoothing: antialiased; }
   font-weight: 700;
   color: var(--c-primary);
   margin: 0 0 4px;
-  font-family: 'DM Sans', sans-serif;
+  font-family: var(--c-font-sans);
   display: flex;
   align-items: center;
   gap: 5px;
@@ -3524,14 +3544,14 @@ body { -webkit-font-smoothing: antialiased; }
   font-size: 12px;
   color: #8a8a8a;
   margin: 0 0 12px;
-  font-family: 'DM Sans', sans-serif;
+  font-family: var(--c-font-sans);
 }
 .hint-overlay .hint-loading {
   text-align: center;
   padding: 20px;
   font-size: 13px;
   color: #5a5a5a;
-  font-family: 'DM Sans', sans-serif;
+  font-family: var(--c-font-sans);
 }
 .hint-overlay .hint-body {
   font-size: 14px;
@@ -3541,14 +3561,14 @@ body { -webkit-font-smoothing: antialiased; }
   border-left: 3px solid var(--c-primary);
   padding: 12px;
   border-radius: 0 8px 8px 0;
-  font-family: 'DM Sans', sans-serif;
+  font-family: var(--c-font-sans);
   white-space: pre-wrap;
   word-break: break-word;
 }
 .hint-overlay .hint-footer {
   font-size: 11px;
   color: #8a8a8a;
-  font-family: 'DM Sans', sans-serif;
+  font-family: var(--c-font-sans);
 }
 @keyframes spin { to { transform: rotate(360deg); } }
 
@@ -3577,7 +3597,7 @@ body { -webkit-font-smoothing: antialiased; }
   align-items:center;
   gap:5px;
   font-size:10.5px;
-  font-family:'DM Sans', sans-serif;
+  font-family:var(--c-font-sans);
   margin-left:auto;
   padding-left:10px;
   user-select:none;
@@ -3890,7 +3910,7 @@ textarea.rt-textarea {
   color: #fff; border: none;
   padding: 8px 16px; border-radius: 8px;
   font-size: 13px; font-weight: 500; cursor: pointer;
-  font-family: 'DM Sans', sans-serif;
+  font-family: var(--c-font-sans);
 }
 .onboarding-welcome-actions .btn-ghost {
   background: transparent;
@@ -3898,7 +3918,7 @@ textarea.rt-textarea {
   border: 1px solid var(--c-border, #e6e2da);
   padding: 8px 16px; border-radius: 8px;
   font-size: 13px; font-weight: 500; cursor: pointer;
-  font-family: 'DM Sans', sans-serif;
+  font-family: var(--c-font-sans);
 }
 
 /* ── Coachmark overlay + spotlight + tooltip (Phase 5 Task 5.2) ──────
@@ -3947,7 +3967,7 @@ textarea.rt-textarea {
 .onb-step {
   font-size: 10.5px; letter-spacing: 0.5px; text-transform: uppercase;
   color: rgba(255,255,255,0.55); font-weight: 600; margin-bottom: 5px;
-  font-family: 'DM Sans', sans-serif;
+  font-family: var(--c-font-sans);
 }
 .onboarding-tooltip h4 { margin: 0 0 5px; font-size: 13.5px; font-weight: 600; }
 .onboarding-tooltip p {
@@ -3957,13 +3977,13 @@ textarea.rt-textarea {
 .onb-actions { display: flex; justify-content: space-between; align-items: center; }
 .onb-skip {
   color: rgba(255,255,255,0.5); cursor: pointer; font-size: 11.5px;
-  font-family: 'DM Sans', sans-serif;
+  font-family: var(--c-font-sans);
 }
 .onb-next {
   background: #fff; color: #1F1D1B; border: none;
   padding: 6px 14px; border-radius: 7px;
   font-size: 11.5px; font-weight: 500; cursor: pointer;
-  font-family: 'DM Sans', sans-serif;
+  font-family: var(--c-font-sans);
 }
 
 /* ── Mobile variant (Phase 5 Task 5.3) ───────────────────────────────
