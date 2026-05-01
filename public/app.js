@@ -3029,8 +3029,13 @@ function renderCirclesPhase1() {
   // SP1.5 B1 — post-process bodyHtml to inject readonly + .locked when step is graded
   if (isLocked) {
     bodyHtml = bodyHtml
-      .replace(/class="circles-field-input"/g, 'class="circles-field-input locked"')
-      .replace(/(<textarea[^>]*class="[^"]*circles-field-input[^"]*"[^>]*?)>/g, '$1 readonly>');
+      .replace(/class="([^"]*\bcircles-field-input\b[^"]*)"/g, function(m, cls) {
+        return /\blocked\b/.test(cls) ? m : 'class="' + cls + ' locked"';
+      })
+      .replace(/(<textarea[^>]*\bcircles-field-input\b[^>]*?)(\/>|>)/g, function(m, before, end) {
+        if (/\breadonly\b/.test(before)) return m;
+        return before + ' readonly' + end;
+      });
   }
 
   // Submit bar (Simulation last step shows "查看完整報告 →" instead)

@@ -36,10 +36,12 @@ test.describe('SP1.5 stale session (Q3)', () => {
     }
   });
 
-  test('phase 2 chat disabled when stale', async ({ page }) => {
+  test('phase 2 chat input not rendered when stale (bottom-bar simplified)', async ({ page }) => {
     await page.evaluate(() => { window.AppState.circlesPhase = 2; navigate('circles'); });
     await page.waitForTimeout(200);
-    await expect(page.locator('#circles-msg-input')).toBeDisabled();
+    // When stale, bottomSection is replaced with single 「回首頁」 button — no chat input.
+    await expect(page.locator('#circles-msg-input')).toHaveCount(0);
+    await expect(page.locator('#circles-stale-home')).toBeVisible();
   });
 
   test('snapshot product+statement displayed (not current DB content)', async ({ page }) => {
