@@ -4695,10 +4695,13 @@ a.btn:focus-visible {
 }
 .qchip-panel-close {
   background: none; border: none; cursor: pointer;
-  color: var(--c-text-3, #999); padding: 0;
+  color: var(--c-text-3, #999);
   display: inline-flex; align-items: center; gap: 3px;
   font-family: var(--c-font-sans); font-size: 12px;
   margin-left: auto;
+  /* iOS minimum touch target */
+  min-height: 44px; min-width: 44px;
+  padding: 6px 10px;
 }
 .qchip-panel-close:hover { color: var(--c-primary); }
 

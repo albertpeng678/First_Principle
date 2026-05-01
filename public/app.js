@@ -610,6 +610,7 @@ async function loadCirclesSession(sessionId) {
     AppState.circlesMode              = s.mode;
     AppState.circlesDrillStep         = s.drill_step || 'C1';
     AppState.circlesPhase             = s.current_phase || 1;
+    AppState.circlesChipExpanded      = false;
     AppState.circlesSimStep           = s.sim_step_index || 0;
     AppState.circlesFrameworkDraft    = s.framework_draft || {};
     AppState.circlesStepDrafts        = s.step_drafts || {};
@@ -1879,8 +1880,13 @@ function renderChipPanelHtml(q) {
 }
 
 function bindPersistentQuestionChip(rootEl) {
+  var root = rootEl || document;
+  // Idempotent guard: prevent stacking listeners on per-phase bind calls
+  if (root.__qchipBound) return;
+  root.__qchipBound = true;
+
   // Single delegated handler — works whether chip is collapsed or expanded.
-  (rootEl || document).addEventListener('click', function(e) {
+  root.addEventListener('click', function(e) {
     var t = e.target.closest('[data-action="expand-chip"]');
     var c = e.target.closest('[data-action="collapse-chip"]');
     if (t) {
@@ -1894,6 +1900,18 @@ function bindPersistentQuestionChip(rootEl) {
       var slot2 = document.getElementById('circles-qchip-slot');
       if (slot2) slot2.innerHTML = renderPersistentQuestionChip();
       return;
+    }
+  });
+
+  // Keyboard support: Enter or Space on expand/collapse buttons
+  root.addEventListener('keydown', function(e) {
+    var t = e.target.closest('[data-action="expand-chip"]');
+    if (!t) return;
+    if (e.key === 'Enter' || e.key === ' ') {
+      e.preventDefault();
+      AppState.circlesChipExpanded = true;
+      var slot = document.getElementById('circles-qchip-slot');
+      if (slot) slot.innerHTML = renderPersistentQuestionChip();
     }
   });
 }
