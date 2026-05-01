@@ -724,9 +724,9 @@ function updateRecentSessionsSlot() {
       '<div style="display:flex;align-items:center;justify-content:space-between">' +
         '<div>' +
           '<div class="circles-q-card-company">' + escHtml(company) + ' — ' + modeLabel + '</div>' +
-          '<div style="font-size:12px;color:var(--c-text-2,#5a5a5a);margin-top:2px;font-family:DM Sans,sans-serif">' + stepLabel + ' · ' + phaseLabel + '</div>' +
+          '<div style="font-size:12px;color:var(--c-text-2);margin-top:2px;font-family:var(--c-font-sans)">' + stepLabel + ' · ' + phaseLabel + '</div>' +
         '</div>' +
-        '<div style="font-size:12px;font-weight:600;color:var(--c-primary,var(--c-primary));font-family:DM Sans,sans-serif;white-space:nowrap">繼續練習 →</div>' +
+        '<div style="font-size:12px;font-weight:600;color:var(--c-primary,var(--c-primary));font-family:var(--c-font-sans);white-space:nowrap">繼續練習 →</div>' +
       '</div>' +
     '</div>';
   }).join('');
@@ -1675,7 +1675,7 @@ function renderQCardHtml(q) {
     ? '<span class="circles-q-card-product">' + escHtml(q.product) + '</span>' : '';
 
   var drillPracticeHtml = (AppState.circlesMode === 'drill')
-    ? '<div style="font-size:11px;color:var(--c-primary);font-weight:600;margin-top:6px;font-family:DM Sans,sans-serif">練習步驟：' + (AppState.circlesDrillStep || 'C1') + '</div>'
+    ? '<div style="font-size:11px;color:var(--c-primary);font-weight:600;margin-top:6px;font-family:var(--c-font-sans)">練習步驟：' + (AppState.circlesDrillStep || 'C1') + '</div>'
     : '';
 
   return '<div class="circles-q-card" data-qid="' + q.id + '">' +
@@ -2091,9 +2091,9 @@ function renderCirclesHomeMobile() {
         '<div style="display:flex;align-items:center;justify-content:space-between">' +
           '<div>' +
             '<div class="circles-q-card-company">' + escHtml(company) + ' — ' + modeLabel + '</div>' +
-            '<div style="font-size:12px;color:var(--c-text-2,#5a5a5a);margin-top:2px;font-family:DM Sans,sans-serif">' + stepLabel + ' · ' + phaseLabel + '</div>' +
+            '<div style="font-size:12px;color:var(--c-text-2);margin-top:2px;font-family:var(--c-font-sans)">' + stepLabel + ' · ' + phaseLabel + '</div>' +
           '</div>' +
-          '<div style="font-size:12px;font-weight:600;color:var(--c-primary,var(--c-primary));font-family:DM Sans,sans-serif;white-space:nowrap">繼續練習 →</div>' +
+          '<div style="font-size:12px;font-weight:600;color:var(--c-primary,var(--c-primary));font-family:var(--c-font-sans);white-space:nowrap">繼續練習 →</div>' +
         '</div>' +
       '</div>';
     }).join('');
@@ -2145,7 +2145,7 @@ function renderCirclesHomeMobile() {
       '<div class="circles-step-select-label">練習模式</div>' +
       '<div class="circles-mode-row">' +
         '<div class="circles-mode-card ' + (mode === 'simulation' ? 'selected' : '') + '" data-mode="simulation" role="button" tabindex="0" aria-label="完整模擬 新手推薦">' +
-          '<div class="circles-mode-card-title"><i class="ph ph-video-camera"></i> 完整模擬 <span class="circles-mode-recommend-badge" style="display:inline-block;font-size:11px;font-weight:600;color:#fff;background:var(--c-primary,#1a56db);padding:2px 8px;border-radius:999px;margin-left:6px;vertical-align:middle">新手推薦</span></div>' +
+          '<div class="circles-mode-card-title"><i class="ph ph-video-camera"></i> 完整模擬 <span class="circles-mode-recommend-badge" style="display:inline-block;font-size:11px;font-weight:600;color:var(--c-card);background:var(--c-primary);padding:2px 8px;border-radius:999px;margin-left:6px;vertical-align:middle">新手推薦</span></div>' +
           '<div class="circles-mode-card-desc">25-35 分鐘 · 全 7 步 · 無提示</div>' +
         '</div>' +
         '<div class="circles-mode-card ' + (mode === 'drill' ? 'selected' : '') + '" data-mode="drill" role="button" tabindex="0" aria-label="步驟加練">' +
@@ -2205,7 +2205,7 @@ function renderCirclesHomeDesktop() {
 
   var modeCardsHtml =
     '<div class="circles-mode-card ' + (mode === 'simulation' ? 'selected' : '') + '" data-mode="simulation" role="button" tabindex="0" aria-label="完整模擬 新手推薦">' +
-      '<div class="circles-mode-card-title"><i class="ph ph-video-camera"></i> 完整模擬 <span class="circles-mode-recommend-badge" style="display:inline-block;font-size:11px;font-weight:600;color:#fff;background:var(--c-primary,#1a56db);padding:2px 8px;border-radius:999px;margin-left:6px;vertical-align:middle">新手推薦</span></div>' +
+      '<div class="circles-mode-card-title"><i class="ph ph-video-camera"></i> 完整模擬 <span class="circles-mode-recommend-badge" style="display:inline-block;font-size:11px;font-weight:600;color:var(--c-card);background:var(--c-primary);padding:2px 8px;border-radius:999px;margin-left:6px;vertical-align:middle">新手推薦</span></div>' +
       '<div class="circles-mode-card-desc">25-35 分鐘 · 全 7 步</div>' +
     '</div>' +
     '<div class="circles-mode-card ' + (mode === 'drill' ? 'selected' : '') + '" data-mode="drill" role="button" tabindex="0" aria-label="步驟加練">' +
@@ -2278,7 +2278,7 @@ function renderCirclesHomeDesktop() {
         // AUD-036 — search bar with icon + placeholder
         '<div class="home-search" style="position:relative;margin-bottom:12px">' +
           '<i class="ph ph-magnifying-glass" aria-hidden="true" style="position:absolute;left:10px;top:50%;transform:translateY(-50%);color:var(--c-text-3);font-size:14px"></i>' +
-          '<input id="search-input" type="search" placeholder="搜尋題目，例如 Netflix、Shopee..." aria-label="搜尋題目" style="width:100%;padding:10px 12px 10px 32px;border:1px solid var(--c-border,rgba(0,0,0,0.1));border-radius:8px;font-size:13px;background:#fff;min-height:44px" />' +
+          '<input id="search-input" type="search" placeholder="搜尋題目，例如 Netflix、Shopee..." aria-label="搜尋題目" style="width:100%;padding:10px 12px 10px 32px;border:1px solid var(--c-border,rgba(0,0,0,0.1));border-radius:8px;font-size:13px;background:var(--c-card);min-height:44px" />' +
         '</div>' +
         '<div style="display:flex;align-items:center;justify-content:space-between">' +
           '<div class="rail-label">選擇題目</div>' +
@@ -2446,8 +2446,8 @@ function bindCirclesHome() {
           var loader = document.createElement('div');
           loader.className = 'circles-step-loading';
           loader.setAttribute('aria-live', 'polite');
-          loader.style.cssText = 'display:flex;flex-direction:column;align-items:center;justify-content:center;padding:40px;font-size:14px;color:var(--c-text-2,#5a5a5a)';
-          loader.innerHTML = '<div class="loading spinner" style="width:32px;height:32px;border:3px solid #e0e0e0;border-top-color:var(--c-primary,#1a56db);border-radius:50%;animation:spin 0.8s linear infinite;margin-bottom:12px"></div><div>載入題目…</div>';
+          loader.style.cssText = 'display:flex;flex-direction:column;align-items:center;justify-content:center;padding:40px;font-size:14px;color:var(--c-text-2)';
+          loader.innerHTML = '<div class="loading spinner" style="width:32px;height:32px;border:3px solid var(--c-border-mid);border-top-color:var(--c-primary);border-radius:50%;animation:spin 0.8s linear infinite;margin-bottom:12px"></div><div>載入題目…</div>';
           mainEl.appendChild(loader);
         }
         AppState.circlesSelectedQuestion = question;
@@ -2756,7 +2756,7 @@ var CIRCLES_LETTER_EXPANSION = {
 };
 function buildCirclesStepHeaderMeta(stepKey) {
   var expansion = CIRCLES_LETTER_EXPANSION[stepKey] || '';
-  return '<div class="circles-step-meta" style="margin:6px 0 12px;display:flex;flex-wrap:wrap;gap:6px 14px;font-size:13px;color:var(--c-text-2,#5a5a5a);align-items:center">' +
+  return '<div class="circles-step-meta" style="margin:6px 0 12px;display:flex;flex-wrap:wrap;gap:6px 14px;font-size:13px;color:var(--c-text-2);align-items:center">' +
     (expansion ? '<span class="circles-step-letter-expansion" style="font-weight:500">' + escHtml(expansion) + '</span>' : '') +
     '<span class="circles-step-time-est">預估 25-35 分鐘</span>' +
     '<span class="circles-step-save-reassurance">隨時可暫停 · 自動儲存</span>' +
@@ -3322,7 +3322,7 @@ async function showCirclesHint(step, field) {
     '<div class="hint-title"><i class="ph ph-lightbulb"></i> ' + escHtml(field) + ' — 分析思路</div>' +
     '<div class="hint-sub">' + escHtml((q && q.company) || '') + (q && q.product ? ' · ' + escHtml(q.product) : '') + ' · ' + escHtml(step) + '</div>' +
     '<div id="hint-body-area" class="hint-loading">' +
-      '<div style="display:inline-block;width:16px;height:16px;border:2px solid #ccc;border-top-color:var(--c-primary);border-radius:50%;animation:spin 0.8s linear infinite;margin-right:6px;vertical-align:middle"></div>' +
+      '<div style="display:inline-block;width:16px;height:16px;border:2px solid var(--c-border-strong);border-top-color:var(--c-primary);border-radius:50%;animation:spin 0.8s linear infinite;margin-right:6px;vertical-align:middle"></div>' +
       '生成中…' +
     '</div>' +
   '</div>';
@@ -3346,7 +3346,7 @@ async function showCirclesHint(step, field) {
     var rendered = escHtml(text).replace(/\*\*([^*]+?)\*\*/g, '<strong>$1</strong>');
     body.outerHTML = '<div class="hint-body">' + rendered + '</div>' +
       '<div style="display:flex;justify-content:space-between;align-items:center;margin-top:10px">' +
-        '<button id="hint-collapse-btn" type="button" style="font-size:11px;color:var(--c-text-3);background:none;border:none;cursor:pointer;font-family:DM Sans,sans-serif">收起提示</button>' +
+        '<button id="hint-collapse-btn" type="button" style="font-size:11px;color:var(--c-text-3);background:none;border:none;cursor:pointer;font-family:var(--c-font-sans)">收起提示</button>' +
         '<div class="hint-footer" style="margin-top:0">閱讀後自行填寫</div>' +
       '</div>';
     document.getElementById('hint-collapse-btn')?.addEventListener('click', close);
@@ -3391,7 +3391,7 @@ function renderCirclesGate() {
         homeBtn +
       '</div>' +
       progressBarHtml +
-      '<div class="circles-gate-loading" id="circles-gate-loading"><i class="ph ph-circle-notch" style="font-size:28px;animation:spin 0.8s linear infinite;display:block;margin-bottom:12px"></i>AI 正在審核你的框架...<div style="font-size:12px;color:var(--c-text-3);margin-top:8px">通常需要 8-15 秒</div><div id="circles-gate-slow" style="font-size:12px;color:var(--c-warn-bold,#a60);margin-top:10px;display:none">回應較慢，請稍候 ‧ <button type="button" id="circles-gate-retry" style="background:none;border:none;color:var(--c-primary);text-decoration:underline;cursor:pointer;font-size:12px">重試</button></div></div>' +
+      '<div class="circles-gate-loading" id="circles-gate-loading"><i class="ph ph-circle-notch" style="font-size:28px;animation:spin 0.8s linear infinite;display:block;margin-bottom:12px"></i>AI 正在審核你的框架...<div style="font-size:12px;color:var(--c-text-3);margin-top:8px">通常需要 8-15 秒</div><div id="circles-gate-slow" style="font-size:12px;color:var(--c-warn-bold);margin-top:10px;display:none">回應較慢，請稍候 ‧ <button type="button" id="circles-gate-retry" style="background:none;border:none;color:var(--c-primary);text-decoration:underline;cursor:pointer;font-size:12px">重試</button></div></div>' +
     '</div>';
   }
 
@@ -3538,10 +3538,10 @@ function renderCirclesPhase2() {
         (t.coaching || '');
       if (t.hint) {
         coachingBubble += '<div style="margin-top:6px">' +
-          '<button onclick="toggleCoachHint(this)" style="background:none;border:none;font-size:11px;color:var(--c-text-3,#8a8a8a);cursor:pointer;padding:0;font-family:\'DM Sans\',sans-serif;display:flex;align-items:center;gap:3px">' +
+          '<button onclick="toggleCoachHint(this)" style="background:none;border:none;font-size:11px;color:var(--c-text-3);cursor:pointer;padding:0;font-family:var(--c-font-sans);display:flex;align-items:center;gap:3px">' +
             '<i class="ph ph-caret-right" style="font-size:10px"></i> 查看教練提示' +
           '</button>' +
-          '<div style="display:none;margin-top:4px;padding:6px 8px;background:rgba(0,0,0,0.04);border-radius:6px;color:var(--c-text-2,#5a5a5a);font-size:11px;line-height:1.5">' +
+          '<div style="display:none;margin-top:4px;padding:6px 8px;background:rgba(0,0,0,0.04);border-radius:6px;color:var(--c-text-2);font-size:11px;line-height:1.5">' +
             t.hint +
           '</div>' +
         '</div>';
@@ -3555,9 +3555,9 @@ function renderCirclesPhase2() {
   var pinnedCard = q ? (
     '<div class="circles-pinned-card" id="circles-pinned-card">' +
       '<div style="display:flex;align-items:center;gap:6px;margin-bottom:4px">' +
-        '<span style="background:#EEF3FF;color:var(--c-primary);border-radius:4px;padding:1px 6px;font-size:9px;font-weight:700">' + escHtml(q.company) + '</span>' +
+        '<span style="background:var(--c-banner-info-bg);color:var(--c-primary);border-radius:4px;padding:1px 6px;font-size:9px;font-weight:700">' + escHtml(q.company) + '</span>' +
       '</div>' +
-      '<div style="font-size:11px;color:#1a1a1a;font-weight:600;line-height:1.4" id="circles-pinned-stmt">' + escHtml(q.problem_statement.slice(0, 80)) + (q.problem_statement.length > 80 ? '…' : '') + '</div>' +
+      '<div style="font-size:11px;color:var(--c-text-1);font-weight:600;line-height:1.4" id="circles-pinned-stmt">' + escHtml(q.problem_statement.slice(0, 80)) + (q.problem_statement.length > 80 ? '…' : '') + '</div>' +
       (q.problem_statement.length > 80 ? '<div id="circles-pinned-toggle" style="font-size:10px;color:var(--c-primary);cursor:pointer;margin-top:2px">展開 ▾</div>' : '') +
     '</div>'
   ) : '';
@@ -3651,7 +3651,7 @@ function toggleCoachHint(btn) {
   content.style.display = isOpen ? 'none' : 'block';
   var icon = btn.querySelector('i');
   if (icon) icon.className = isOpen ? 'ph ph-caret-right' : 'ph ph-caret-down';
-  btn.style.color = isOpen ? 'var(--c-text-3,#8a8a8a)' : 'var(--c-primary,var(--c-primary))';
+  btn.style.color = isOpen ? 'var(--c-text-3)' : 'var(--c-primary,var(--c-primary))';
 }
 
 function bindCirclesPhase2() {
@@ -3897,7 +3897,7 @@ async function sendCirclesMessage() {
     if (!sb) return;
     // Only show if no AI text has rendered yet (still spinner)
     if (sb.querySelector('.circles-bubble-section')) return;
-    sb.innerHTML = '<div class="circles-bubble-ai"><i class="ph ph-circle-notch" style="animation:spin 0.8s linear infinite"></i> <span style="font-size:11px;color:var(--c-warn-bold,#a60)">回應較慢，請稍候…</span></div>';
+    sb.innerHTML = '<div class="circles-bubble-ai"><i class="ph ph-circle-notch" style="animation:spin 0.8s linear infinite"></i> <span style="font-size:11px;color:var(--c-warn-bold)">回應較慢，請稍候…</span></div>';
   }, 20000);
 
   var session = AppState.circlesSession;
@@ -3957,10 +3957,10 @@ async function sendCirclesMessage() {
                 coachingHtml = '<div class="circles-bubble-ai" style="font-size:11px;padding:8px 10px"><div class="circles-bubble-section">教練點評</div>' + (coaching || '');
                 if (hint) {
                   coachingHtml += '<div style="margin-top:6px">' +
-                    '<button onclick="toggleCoachHint(this)" style="background:none;border:none;font-size:11px;color:var(--c-text-3,#8a8a8a);cursor:pointer;padding:0;font-family:\'DM Sans\',sans-serif;display:flex;align-items:center;gap:3px">' +
+                    '<button onclick="toggleCoachHint(this)" style="background:none;border:none;font-size:11px;color:var(--c-text-3);cursor:pointer;padding:0;font-family:var(--c-font-sans);display:flex;align-items:center;gap:3px">' +
                       '<i class="ph ph-caret-right" style="font-size:10px"></i> 查看教練提示' +
                     '</button>' +
-                    '<div style="display:none;margin-top:4px;padding:6px 8px;background:rgba(0,0,0,0.04);border-radius:6px;color:var(--c-text-2,#5a5a5a);font-size:11px;line-height:1.5">' + hint + '</div>' +
+                    '<div style="display:none;margin-top:4px;padding:6px 8px;background:rgba(0,0,0,0.04);border-radius:6px;color:var(--c-text-2);font-size:11px;line-height:1.5">' + hint + '</div>' +
                   '</div>';
                 }
                 coachingHtml += '</div>';
@@ -4000,7 +4000,7 @@ function renderCirclesStepScore() {
   var stepScores = AppState.circlesStepScores || {};
 
   if (!result) {
-    return '<div data-view="circles"><div style="text-align:center;padding:48px 16px;font-family:DM Sans,sans-serif">評分結果載入中...</div></div>';
+    return '<div data-view="circles"><div style="text-align:center;padding:48px 16px;font-family:var(--c-font-sans)">評分結果載入中...</div></div>';
   }
 
   var progressBarHtml = buildCirclesProgressBar(stepIdx);
@@ -4272,16 +4272,16 @@ function renderCirclesFinalReport() {
 
   if (!report) {
     return '<div data-view="circles">' + navBar +
-      '<div style="text-align:center;padding:48px 16px;font-family:DM Sans,sans-serif">' +
+      '<div style="text-align:center;padding:48px 16px;font-family:var(--c-font-sans)">' +
         '<div style="font-size:32px;margin-bottom:12px">⏳</div>' +
-        '<div style="color:#5a5a5a;font-size:14px">生成總結報告中…</div>' +
+        '<div style="color:var(--c-text-2);font-size:14px">生成總結報告中…</div>' +
       '</div></div>';
   }
 
   if (report._error) {
     return '<div data-view="circles">' + navBar +
-      '<div style="text-align:center;padding:48px 16px;font-family:DM Sans,sans-serif">' +
-        '<i class="ph ph-warning-circle" style="font-size:32px;color:#D97706;display:block;margin-bottom:12px"></i>' +
+      '<div style="text-align:center;padding:48px 16px;font-family:var(--c-font-sans)">' +
+        '<i class="ph ph-warning-circle" style="font-size:32px;color:var(--c-warn);display:block;margin-bottom:12px"></i>' +
         '<div style="color:var(--c-error);font-size:14px;margin-bottom:16px">報告生成失敗，請稍後重試</div>' +
         '<button class="circles-btn-ghost" id="circles-final-retry">重試</button>' +
       '</div></div>';
@@ -4446,17 +4446,17 @@ function renderHome() {
     <div class="section-label" style="font-size:11px;font-weight:600;color:var(--text-secondary);letter-spacing:0.8px;text-transform:uppercase;margin-bottom:10px">選擇難度</div>
     <div class="diff-list">
       <div class="diff-item" data-difficulty="入門">
-        <div class="diff-item-icon" style="background:#d1fae5"><i class="ph ph-leaf" style="color:#059669"></i></div>
+        <div class="diff-item-icon" style="background:var(--c-diff-easy-bg)"><i class="ph ph-leaf" style="color:var(--c-diff-easy-fg)"></i></div>
         <div class="diff-item-info"><h4>入門</h4><p>單一角色，問題明顯</p></div>
         <i class="ph ph-caret-right diff-arrow"></i>
       </div>
       <div class="diff-item" data-difficulty="進階">
-        <div class="diff-item-icon" style="background:#ffedd5"><i class="ph ph-flame" style="color:#ea580c"></i></div>
+        <div class="diff-item-icon" style="background:var(--c-diff-mid-bg)"><i class="ph ph-flame" style="color:var(--c-diff-mid-fg)"></i></div>
         <div class="diff-item-info"><h4>進階</h4><p>多角色交錯，需多層追問</p></div>
         <i class="ph ph-caret-right diff-arrow"></i>
       </div>
       <div class="diff-item" data-difficulty="困難">
-        <div class="diff-item-icon" style="background:#fee2e2"><i class="ph ph-lightning" style="color:#dc2626"></i></div>
+        <div class="diff-item-icon" style="background:var(--c-diff-hard-bg)"><i class="ph ph-lightning" style="color:var(--c-diff-hard-fg)"></i></div>
         <div class="diff-item-info"><h4>困難</h4><p>表象與本質落差大</p></div>
         <i class="ph ph-caret-right diff-arrow"></i>
       </div>
@@ -4655,8 +4655,8 @@ function renderAuth(isLogin) {
     <div class="${_loginDesktopCls}" style="max-width:400px;margin:60px auto">
       <div class="card login-card">
         <div role="tablist" style="display:flex;gap:8px;margin-bottom:24px">
-          <button type="button" role="tab" class="auth-tab login-tab ${isLogin?'active':''}" aria-selected="${isLogin?'true':'false'}" onclick="navigate('login')" style="flex:1;padding:10px;font-weight:${isLogin?'700':'500'};text-decoration:${isLogin?'underline':'none'};text-underline-offset:6px;border:1px solid var(--border,#e5e5e5);background:${isLogin?'var(--c-primary,#1a56db)':'transparent'};color:${isLogin?'#fff':'inherit'};border-radius:8px;min-height:44px;cursor:pointer">登入</button>
-          <button type="button" role="tab" class="auth-tab login-tab ${!isLogin?'active':''}" aria-selected="${!isLogin?'true':'false'}" onclick="navigate('register')" style="flex:1;padding:10px;font-weight:${!isLogin?'700':'500'};text-decoration:${!isLogin?'underline':'none'};text-underline-offset:6px;border:1px solid var(--border,#e5e5e5);background:${!isLogin?'var(--c-primary,#1a56db)':'transparent'};color:${!isLogin?'#fff':'inherit'};border-radius:8px;min-height:44px;cursor:pointer">註冊</button>
+          <button type="button" role="tab" class="auth-tab login-tab ${isLogin?'active':''}" aria-selected="${isLogin?'true':'false'}" onclick="navigate('login')" style="flex:1;padding:10px;font-weight:${isLogin?'700':'500'};text-decoration:${isLogin?'underline':'none'};text-underline-offset:6px;border:1px solid var(--border);background:${isLogin?'var(--c-primary)':'transparent'};color:${isLogin?'#fff':'inherit'};border-radius:8px;min-height:44px;cursor:pointer">登入</button>
+          <button type="button" role="tab" class="auth-tab login-tab ${!isLogin?'active':''}" aria-selected="${!isLogin?'true':'false'}" onclick="navigate('register')" style="flex:1;padding:10px;font-weight:${!isLogin?'700':'500'};text-decoration:${!isLogin?'underline':'none'};text-underline-offset:6px;border:1px solid var(--border);background:${!isLogin?'var(--c-primary)':'transparent'};color:${!isLogin?'#fff':'inherit'};border-radius:8px;min-height:44px;cursor:pointer">註冊</button>
         </div>
         <form id="auth-form">
           <div style="margin-bottom:12px">
@@ -4673,7 +4673,7 @@ function renderAuth(isLogin) {
             </div>
           </div>
           <p style="margin:0 0 16px;text-align:right">
-            <a href="#" id="forgot-password-link" style="font-size:0.85rem;color:var(--c-primary,#1a56db);text-decoration:none">忘記密碼？</a>
+            <a href="#" id="forgot-password-link" style="font-size:0.85rem;color:var(--c-primary);text-decoration:none">忘記密碼？</a>
           </p>
           <p id="auth-error" style="color:var(--danger);font-size:0.85rem;margin-bottom:12px;display:none"></p>
           <button type="submit" class="btn btn-primary" style="width:100%">${isLogin?'登入':'建立帳號'}</button>
@@ -4938,7 +4938,7 @@ function showHintCard() {
 
   const card = document.createElement('div');
   card.className = 'hint-card';
-  card.innerHTML = `<i class="ph ph-lightbulb" style="margin-top:2px;flex-shrink:0;color:#f0a04b"></i><span>${escHtml(hint)}</span>`;
+  card.innerHTML = `<i class="ph ph-lightbulb" style="margin-top:2px;flex-shrink:0;color:var(--c-hint-icon)"></i><span>${escHtml(hint)}</span>`;
   chatArea.appendChild(card);
   card.scrollIntoView({ behavior: 'smooth', block: 'nearest' });
 }
@@ -5616,7 +5616,7 @@ function buildNsmProgressBar(activeIdx) {
     var label = NSM_STEP_LABELS[i];
     html += '<div class="nsm-progress-step-wrap" role="listitem" aria-label="第 ' + (i+1) + ' 步 ' + label + '" style="display:flex;flex-direction:column;align-items:center;gap:4px">' +
       '<div class="nsm-progress-step ' + cls + '">' + (i+1) + '</div>' +
-      '<div class="nsm-progress-step-label" style="font-size:11px;color:var(--c-text-2,#5a5a5a);font-weight:' + (i === activeIdx ? '600' : '400') + '">' + label + '</div>' +
+      '<div class="nsm-progress-step-label" style="font-size:11px;color:var(--c-text-2);font-weight:' + (i === activeIdx ? '600' : '400') + '">' + label + '</div>' +
     '</div>';
     if (i < 3) {
       var lineStyle = i < activeIdx ? 'background:var(--accent)' : '';
@@ -5702,7 +5702,7 @@ function renderNSMStep1() {
       </div>
       <div class="nsm-fixed-bottom">
         <div id="nsm-step1-error" class="nsm-inline-error" role="alert" style="display:none"></div>
-        ${ctaDisabled ? '<div id="nsm-step1-helper" class="nsm-step1-helper" style="font-size:13px;color:var(--c-text-2,#5a5a5a);text-align:center;margin-bottom:6px">請先選擇一個情境再開始</div>' : ''}
+        ${ctaDisabled ? '<div id="nsm-step1-helper" class="nsm-step1-helper" style="font-size:13px;color:var(--c-text-2);text-align:center;margin-bottom:6px">請先選擇一個情境再開始</div>' : ''}
         <button class="btn btn-primary nsm-next-btn" id="btn-nsm-step1-next" ${ctaDisabled ? 'disabled' : ''}>
           開始 NSM 訓練 <i class="ph ph-arrow-right"></i>
         </button>
@@ -6064,7 +6064,7 @@ function renderNSMStep3() {
       ${renderNSMSubTabs()}
       ${buildNsmProgressBar(2)}
       <div class="nsm-body">
-        <div style="background:#EEF3FF;border-radius:10px;border:1px solid #C5D5FF;padding:12px 14px;margin-bottom:16px;font-size:13px;color:var(--accent)">
+        <div style="background:var(--c-banner-info-bg);border-radius:10px;border:1px solid var(--c-banner-info-border);padding:12px 14px;margin-bottom:16px;font-size:13px;color:var(--accent)">
           <strong>你的 NSM：</strong>${escHtml(AppState.nsmNsmDraft || '（未填寫）')}
         </div>
         <div class="nsm-step3-intro">
