@@ -4762,3 +4762,27 @@ textarea.has-error {
   background: var(--c-primary-dim);
   cursor: not-allowed;
 }
+
+/* SP1.5 B1 — locked-step banner */
+:root {
+  --c-success-soft: rgba(19,122,61,0.10);
+}
+[data-view="circles"] .locked-banner {
+  background: var(--c-success-soft);
+  border-bottom: 1px solid rgba(19,122,61,0.18);
+  padding: 10px 16px;
+  display: flex; align-items: center; gap: 8px;
+  font-size: 13px;
+  color: var(--c-ok);
+  font-weight: 500;
+}
+[data-view="circles"] .locked-banner .ph { font-size: 1.1rem; }
+[data-view="circles"] .locked-banner .score-pill {
+  margin-left: auto;
+  background: var(--c-ok);
+  color: #fff;
+  padding: 2px 12px;
+  border-radius: 999px;
+  font-size: 12px;
+  font-weight: 700;
+}

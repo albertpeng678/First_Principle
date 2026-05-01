@@ -97,6 +97,16 @@ function computeStaleFlag(snapshot, current) {
   return normalize(snapshot.problem_statement) !== normalize(current.problem_statement);
 }
 
+// SP1.5 B1 — render lock banner when step has score
+function renderLockedBanner(stepKey, stepScores) {
+  if (!isStepLocked(stepKey, stepScores)) return '';
+  var score = stepScores[stepKey].totalScore;
+  return '<div class="locked-banner">' +
+    '<i class="ph ph-lock-key"></i> 此步驟已評分，無法再修改' +
+    '<span class="score-pill">' + escHtml(score) + ' 分</span>' +
+  '</div>';
+}
+
 // ── Home icon button helper (MASTER-015) ──
 // Returns a 44×44 icon-only "回首頁" button. Caller supplies the id used by
 // existing click handlers; visual styling lives in .btn-home-icon CSS.
@@ -3067,6 +3077,7 @@ function renderCirclesPhase1() {
         homeIconBtn('circles-p1-home') +
       '</div>' +
       progressBarHtml +
+      renderLockedBanner(stepKey, AppState.circlesStepScores) +
       '<div id="circles-qchip-slot">' + renderPersistentQuestionChip() + '</div>' +
       buildCirclesStepHeaderMeta(stepKey) +
       '<div class="p1-grid">' +
@@ -3096,6 +3107,7 @@ function renderCirclesPhase1() {
       homeIconBtn('circles-p1-home') +
     '</div>' +
     progressBarHtml +
+    renderLockedBanner(stepKey, AppState.circlesStepScores) +
     '<div id="circles-qchip-slot">' + renderPersistentQuestionChip() + '</div>' +
     buildCirclesStepHeaderMeta(stepKey) +
     '<div class="circles-phase1-wrap">' +
@@ -3830,6 +3842,7 @@ function renderCirclesPhase2() {
       homeIconBtn('circles-p2-home') +
     '</div>' +
     progressBarHtml +
+    renderLockedBanner(stepKey, AppState.circlesStepScores) +
     '<div id="circles-qchip-slot">' + renderPersistentQuestionChip() + '</div>' +
     '<div class="circles-chat-body" id="circles-chat-body"' + chatBodyAttrs + '>' + icebreakerHtml + bubbles + '<div id="circles-streaming-bubble"></div></div>' +
     phaseBackHtml +
