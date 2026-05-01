@@ -92,8 +92,8 @@
   --c-pill-active-text: #4c1d95;
   --c-focus-ring: #7c3aed;
 
-  /* MASTER-022 — 字型 token：全站收一處 */
-  --c-font-sans: 'DM Sans', -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
+  /* MASTER-022 / Wave-D-5 — 字型 token：全站收一處，system-ui CJK chain */
+  --c-font-sans: system-ui, -apple-system, BlinkMacSystemFont, 'PingFang TC', 'Microsoft JhengHei', 'Heiti TC', 'Noto Sans TC', sans-serif;
 
   /* MASTER-023 — 把 app.js inline hex 殘留（diff card / hint icon / info banner）
      收成 token，避免 fallback hex 散落。罕用色保留原值，僅集中命名。 */
@@ -1846,6 +1846,24 @@ body { -webkit-font-smoothing: antialiased; }
   border-color: var(--c-primary);
 }
 [data-view="circles"] .circles-field-group { margin-bottom: 14px; }
+
+/* Wave-D-2 — preflight error alert card. Lives 在 submit-bar 上方同層，
+   不擠在 sticky flex row 內，避免 mobile-360 破版。 */
+.circles-form-error-card {
+  background: #fef2f2;
+  border: 1px solid #fecaca;
+  border-left: 3px solid #ef4444;
+  color: #991b1b;
+  font-family: var(--c-font-sans);
+  font-size: 12px;
+  line-height: 1.6;
+  padding: 8px 12px;
+  margin: 0 8px 6px;
+  border-radius: 6px;
+  word-break: break-word;
+}
+.circles-form-error-card i.ph { color: #b91c1c; margin-right: 4px; }
+.circles-form-error-card strong { font-weight: 700; }
 
 [data-view="circles"] .circles-submit-bar {
   position: fixed;
@@ -3743,7 +3761,7 @@ textarea.rt-textarea {
    Single-surface model — no side-by-side comparison clutter. */
 .rt-preview {
   display: none;
-  font: 400 14px/1.55 'DM Sans', system-ui, sans-serif;
+  font: 400 14px/1.55 var(--c-font-sans);
   color: var(--c-text);
   padding: 10px 12px;
   border: 1px solid var(--c-border);
