@@ -2492,35 +2492,9 @@ function bindCirclesHome() {
     fetchCirclesRecentSessions();
   }
 
-  // Phase 2 Spec 2 § 6.2: bind resume banner controls + fetch fresh active draft.
-  // First call: render whatever's currently in AppState (instant if cached);
-  // then fetch and re-render the slot only if the result changes.
-  bindResumeBanner();
-  fetchActiveDraft().then(function () {
-    const wrap = document.querySelector('[data-view="circles"] .circles-home-wrap');
-    if (!wrap) return;
-    // SIT-1 #5: if active draft exists, suppress welcome card to avoid
-    // simultaneous display of welcome card + resume banner.
-    if (AppState.circlesActiveDraft) {
-      const _w = wrap.querySelector('.onboarding-welcome');
-      if (_w) _w.remove();
-    }
-    const existing = wrap.querySelector('.resume-banner');
-    const newHtml = renderResumeBanner();
-    if (existing && !newHtml) { existing.remove(); return; }
-    if (!existing && newHtml) {
-      // Insert after the welcome card if present, else at top.
-      const welcome = wrap.querySelector('.onboarding-welcome');
-      if (welcome) welcome.insertAdjacentHTML('afterend', newHtml);
-      else wrap.insertAdjacentHTML('afterbegin', newHtml);
-      bindResumeBanner();
-      return;
-    }
-    if (existing && newHtml) {
-      existing.outerHTML = newHtml;
-      bindResumeBanner();
-    }
-  });
+  // Fetch active draft for onboarding welcome card gating (shouldShowOnboardingWelcome).
+  // Note: resume banner injection removed — home renderer no longer includes it.
+  fetchActiveDraft();
 
   // Onboarding welcome card (Phase 5 Task 5.1)
   bindOnboardingWelcome();
@@ -2687,9 +2661,13 @@ function bindCirclesHome() {
   }
 
   if (AppState.mode === 'auth') {
+    // Show skeleton immediately while fetch is in flight (mockup § ① · A).
+    AppState.circlesStatsLoading = true;
+    var slot = document.getElementById('circles-stats-slot');
+    if (slot) slot.outerHTML = renderStatsStripHtml();
     fetchCirclesStats().then(function() {
-      var slot = document.getElementById('circles-stats-slot');
-      if (slot) slot.outerHTML = renderStatsStripHtml();
+      var slot2 = document.getElementById('circles-stats-slot');
+      if (slot2) slot2.outerHTML = renderStatsStripHtml();
     });
   }
 }

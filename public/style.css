@@ -4613,6 +4613,9 @@ a.btn:focus-visible {
   0%   { background-position: 100% 0; }
   100% { background-position: -100% 0; }
 }
+@media (prefers-reduced-motion: reduce) {
+  .pmd-stat-skel { animation: none; }
+}
 
 /* ── 2026-05-01 CIRCLES home: question analysis 4-block ─────────────── */
 .qcard-analysis {
