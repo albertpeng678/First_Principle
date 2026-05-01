@@ -1,0 +1,624 @@
+<!DOCTYPE html>
+<html lang="zh-TW">
+<head>
+<meta charset="utf-8">
+<title>SP1.5 Mockup A v2 — 視覺修正（產品 baseline）</title>
+<link rel="stylesheet" href="https://unpkg.com/@phosphor-icons/web@2.0.3/src/regular/style.css">
+<style>
+  /* === 從 public/style.css 抽出的真實 token === */
+  :root {
+    --c-primary: #1a56db;
+    --c-primary-lt: #eaf2ff;
+    --c-text: #1a1a1a;
+    --c-text-2: #666;
+    --c-text-3: #999;
+    --c-border: #d8d3c5;
+    --c-bg: #f2f0eb;          /* 主背景（米色） */
+    --c-bg-soft: #f7f5f0;     /* 卡片內 inset 米色 */
+    --c-card: #ffffff;
+    --c-surface: #ffffff;
+    --c-danger: #d44a4a;
+    --c-warn-bold: #b8860b;
+    --c-chip-bg: #f7f5f0;
+    --c-chip-text: #555;
+    --c-pill-active-bg: #1a56db;
+    --c-pill-active-text: #fff;
+    --c-font-sans: system-ui, -apple-system, "Helvetica Neue", "PingFang TC", "Microsoft JhengHei", sans-serif;
+    --r-input: 8px;
+    --r-card: 12px;
+    --pad-card: 14px;
+    --pad-card-tablet: 18px;
+    --pad-card-desktop: 22px;
+  }
+  * { box-sizing: border-box; }
+  body {
+    font-family: var(--c-font-sans);
+    background: #e8e4dc; color: var(--c-text);
+    margin: 0; padding: 28px;
+  }
+  h2 { font-size: 22px; margin: 0 0 6px; font-weight: 700; }
+  .subtitle { color: var(--c-text-2); font-size: 13px; margin: 0 0 24px; }
+  h3 { font-size: 16px; font-weight: 700; margin: 28px 0 14px; padding-bottom: 8px; border-bottom: 2px solid var(--c-primary); display: inline-block; }
+  ul.rules { font-size: 13px; color: var(--c-text-2); line-height: 1.7; padding-left: 20px; }
+  ul.rules code { background: var(--c-bg-soft); padding: 1px 5px; border-radius: 3px; font-size: 12px; }
+
+  .vp-scroller { overflow-x: auto; padding-bottom: 8px; }
+  .vp-row { display: flex; gap: 16px; align-items: flex-start; width: max-content; min-width: 100%; }
+  .vp-frame { border: 1px solid #c4bdae; border-radius: 12px; background: var(--c-bg); overflow: hidden; flex-shrink: 0; }
+  .vp-mobile  { width: 360px; }
+  .vp-tablet  { width: 768px; }
+  .vp-desktop { width: 1280px; }
+  .vp-label { background: #1a1a1a; color: #fff; padding: 6px 12px; font-size: 11px; font-family: monospace; }
+  .vp-content { background: var(--c-bg); min-height: 480px; }
+
+  /* === REAL .navbar  === */
+  .navbar {
+    display: flex; justify-content: space-between; align-items: center;
+    padding: 12px 16px;
+    background: rgba(242,240,235,0.85);
+    backdrop-filter: blur(12px); -webkit-backdrop-filter: blur(12px);
+    border-bottom: 1px solid rgba(0,0,0,0.08);
+  }
+  .vp-tablet .navbar { padding-left: 24px; padding-right: 24px; }
+  .vp-desktop .navbar { padding-left: 28px; padding-right: 28px; }
+  .navbar-left { display: flex; align-items: center; gap: 8px; flex-shrink: 0; }
+  .navbar-favicon {
+    width: 22px; height: 22px; border-radius: 7px;
+    background: var(--c-primary); display: inline-flex;
+    align-items: center; justify-content: center;
+  }
+  .navbar-favicon i { color: #fff; font-size: 13px; }
+  .navbar-logo {
+    font-size: 1.05rem; font-weight: 700; color: var(--c-primary);
+    background: none; border: none; padding: 4px 6px; cursor: pointer;
+    border-radius: var(--r-input); min-height: 36px;
+    display: inline-flex; align-items: center; gap: 6px;
+  }
+  .navbar-tabs { display: flex; gap: 2px; margin-left: 20px; }
+  .navbar-tab {
+    padding: 10px 12px; border-radius: 7px; cursor: pointer;
+    font-size: 12.5px; color: var(--c-text-2);
+    min-height: 44px; display: inline-flex; align-items: center;
+    background: transparent; border: 1px solid transparent;
+  }
+  .navbar-tab.active {
+    background: #fff; color: var(--c-text); font-weight: 500;
+    border: 1px solid var(--c-border);
+  }
+  .navbar-actions { display: flex; gap: 8px; align-items: center; min-width: 0; margin-left: auto; }
+
+  /* === BAD: .btn-icon (current state, no radius) === */
+  .btn-icon {
+    background: transparent; border: none; cursor: pointer;
+    font-size: 1.3rem; padding: 4px 8px; color: var(--c-text-2);
+    display: flex; align-items: center;
+    /* NO border-radius — this is the bug we're fixing */
+  }
+
+  /* === GOOD: .btn-icon AFTER fix (added border-radius pill + min size) === */
+  .btn-icon.fixed {
+    width: 40px; height: 40px;
+    padding: 0;
+    border-radius: 50%;
+    justify-content: center;
+  }
+  .btn-icon.fixed:hover { background: rgba(0,0,0,0.06); }
+
+  .btn-bad-outline { outline: 2px dashed var(--c-danger); outline-offset: -2px; }
+
+  /* === REAL .circles-nav (step header) === */
+  .circles-nav {
+    display: flex; align-items: center; gap: 10px;
+    padding: 12px 16px;
+    background: var(--c-bg);
+  }
+  .vp-tablet .circles-nav { padding-left: 24px; padding-right: 24px; }
+  .vp-desktop .circles-nav { padding-left: 28px; padding-right: 28px; }
+  .circles-nav-back {
+    min-width: 44px; min-height: 44px;
+    border-radius: 50%;
+    background: var(--c-surface);
+    border: none;
+    display: flex; align-items: center; justify-content: center;
+    cursor: pointer;
+    color: var(--c-text-2);
+  }
+  .circles-nav > div:not(.circles-nav-right) { flex: 1 1 auto; min-width: 0; }
+  .circles-nav-title { font-size: 16px; color: var(--c-text); font-weight: 400; }
+  .circles-nav-sub { font-size: 11px; color: var(--c-text-3); margin-top: 1px; }
+  /* "回首頁" button — text-link style with border (per real CSS) */
+  .circles-nav-home-btn {
+    margin-left: auto;
+    padding: 8px 12px;
+    border-radius: var(--r-input);
+    background: transparent;
+    border: 1px solid var(--c-border);
+    color: var(--c-text-2);
+    font-size: 12px;
+    cursor: pointer;
+    min-height: 36px;
+  }
+
+  /* === REAL .circles-q-card  === */
+  /* SP1.5 A2 final: q-card flush (option a chosen) — NO horizontal margin,
+     border-left/right removed, border-radius 0. Internal padding 14px 16px
+     provides text gutter so content doesn't hug viewport edge. */
+  .circles-q-card {
+    padding: 14px 16px;
+    border-radius: 0;
+    background: var(--c-card);
+    border: 1.5px solid var(--c-border);
+    border-left: none; border-right: none;
+    margin: 0 0 12px;
+  }
+  /* Old margin-based card (for BEFORE comparison only) */
+  .circles-q-card.legacy {
+    border-radius: var(--r-card);
+    border: 1.5px solid var(--c-border);
+    margin: 0 16px 12px;
+  }
+  .vp-tablet .circles-q-card.legacy { margin-left: 24px; margin-right: 24px; }
+  .vp-desktop .circles-q-card.legacy { margin-left: 28px; margin-right: 28px; }
+  .circles-q-card-tags {
+    display: flex; flex-wrap: wrap; gap: 6px; margin-bottom: 8px;
+    align-items: center;
+  }
+  .circles-q-card-product {
+    display: inline-flex; align-items: center;
+    padding: 3px 10px; border-radius: var(--r-card);
+    background: #fff; border: 1px solid rgba(26,86,219,0.3);
+    color: var(--c-primary); font-size: 11.5px;
+  }
+  .circles-q-card-tag {
+    display: inline-flex; align-items: center;
+    padding: 2px 8px; border-radius: 4px;
+    background: var(--c-bg-soft); color: var(--c-text-2); font-size: 11px;
+  }
+  .circles-q-card-stmt {
+    display: -webkit-box; -webkit-line-clamp: 2; -webkit-box-orient: vertical;
+    overflow: hidden;
+    font-size: 13px; color: var(--c-text); line-height: 1.5;
+  }
+  .circles-q-card-stmt-collapsed {
+    display: -webkit-box; -webkit-line-clamp: 1; -webkit-box-orient: vertical;
+    overflow: hidden;
+    font-size: 13px; color: var(--c-text); line-height: 1.5;
+  }
+  .circles-q-card-full-block {
+    background: var(--c-bg-soft);
+    border-radius: var(--r-input);
+    padding: 10px 12px; margin-top: 6px;
+  }
+  .circles-q-card-full-label {
+    font-size: 10.5px; color: var(--c-text-2); font-weight: 600;
+    text-transform: uppercase; letter-spacing: 0.05em; margin-bottom: 4px;
+  }
+  .circles-q-card-full-text {
+    font-size: 13px; color: var(--c-text); line-height: 1.7;
+  }
+  .circles-q-card-more {
+    font-size: 11px; color: var(--c-primary);
+    cursor: pointer; margin-top: 4px; display: block;
+  }
+
+  /* step pills */
+  .circles-step-pills {
+    display: flex; gap: 6px; flex-wrap: wrap;
+    padding: 0 16px 12px;
+  }
+  .vp-tablet .circles-step-pills { padding-left: 24px; padding-right: 24px; }
+  .vp-desktop .circles-step-pills { padding-left: 28px; padding-right: 28px; }
+  .circles-step-pill {
+    background: var(--c-chip-bg);
+    color: var(--c-chip-text);
+    border: 1px solid var(--c-border);
+    padding: 6px 12px;
+    border-radius: 999px;
+    font-size: 12px; cursor: pointer;
+  }
+  .circles-step-pill.active {
+    background: var(--c-pill-active-bg);
+    color: var(--c-pill-active-text);
+    border-color: var(--c-pill-active-text);
+  }
+  .circles-step-pill.done {
+    background: #fff; color: var(--c-primary);
+    border-color: var(--c-primary);
+  }
+
+  /* progress bar style */
+  .circles-progress {
+    padding: 10px 16px 6px; font-size: 12.5px;
+    color: var(--c-primary); font-weight: 600;
+  }
+  .vp-tablet .circles-progress { padding-left: 24px; padding-right: 24px; }
+  .vp-desktop .circles-progress { padding-left: 28px; padding-right: 28px; }
+
+  /* === REAL letter-strip (C-I-R-C-L-E-S 圈鏈條) === */
+  .circles-progress-track {
+    display: flex; align-items: center; gap: 4px;
+    padding: 12px 16px 4px;
+  }
+  .vp-tablet .circles-progress-track { padding-left: 24px; padding-right: 24px; gap: 6px; }
+  .vp-desktop .circles-progress-track { padding-left: 28px; padding-right: 28px; gap: 8px; }
+  .circles-progress-step {
+    width: 28px; height: 28px;
+    border-radius: 50%;
+    flex-shrink: 0;
+    display: flex; align-items: center; justify-content: center;
+    font-family: var(--c-font-sans);
+    font-size: 12px; font-weight: 700;
+    background: #fff;
+    color: var(--c-text-2);
+    border: 2px solid rgba(0,0,0,0.15);
+  }
+  .circles-progress-step.active {
+    background: var(--c-primary); color: #fff;
+    border-color: var(--c-primary);
+    box-shadow: 0 0 0 3px rgba(26,86,219,0.18);
+  }
+  .circles-progress-step.done {
+    background: var(--c-primary); color: #fff;
+    border-color: var(--c-primary);
+  }
+  .circles-progress-line {
+    flex: 1; height: 2px; min-width: 6px;
+    background: rgba(0,0,0,0.15);
+  }
+  .circles-progress-line.done { background: var(--c-primary); }
+  .circles-progress-current {
+    display: flex; align-items: center; gap: 8px;
+    padding: 4px 16px 8px;
+    font-size: 12px;
+  }
+  .vp-tablet .circles-progress-current { padding-left: 24px; padding-right: 24px; }
+  .vp-desktop .circles-progress-current { padding-left: 28px; padding-right: 28px; }
+  .circles-progress-current-letter { color: var(--c-primary); font-weight: 600; font-size: 13px; }
+  .circles-progress-current-meta { color: var(--c-text-2); }
+
+  /* indicators */
+  .bug-tag {
+    background: var(--c-danger); color: #fff;
+    padding: 2px 6px; border-radius: 4px;
+    font-size: 10px; font-weight: 700;
+  }
+  .fix-tag {
+    background: var(--c-primary); color: #fff;
+    padding: 2px 6px; border-radius: 4px;
+    font-size: 10px; font-weight: 700;
+  }
+
+  /* BAD A2 — show 16px gutter overlay */
+  .bad-gutter-overlay { position: relative; }
+  .bad-gutter-overlay::before, .bad-gutter-overlay::after {
+    content: ''; position: absolute; top: 0; bottom: 0; width: 16px;
+    background: rgba(212,74,74,0.15);
+    border: 1px dashed var(--c-danger);
+    pointer-events: none; z-index: 9;
+  }
+  .bad-gutter-overlay::before { left: 0; border-right-color: var(--c-danger); border-top: none; border-bottom: none; border-left: none; }
+  .bad-gutter-overlay::after { right: 0; border-left-color: var(--c-danger); border-top: none; border-bottom: none; border-right: none; }
+
+  /* BAD A3 — duplicate stmt block */
+  .bad-duplicate-stmt {
+    background: rgba(212,74,74,0.07);
+    border: 1.5px dashed var(--c-danger);
+    margin: 0 16px 12px;
+    padding: 12px;
+    border-radius: var(--r-card);
+    font-size: 12px;
+    color: var(--c-danger);
+  }
+  .vp-tablet .bad-duplicate-stmt { margin-left: 24px; margin-right: 24px; }
+  .vp-desktop .bad-duplicate-stmt { margin-left: 28px; margin-right: 28px; }
+
+  /* === A2 FIX: edge-to-edge — wrappers have no horizontal padding === */
+  .e2e-fixed .navbar { margin-left: 0; margin-right: 0; }
+</style>
+</head>
+<body>
+
+<h2>SP1.5 Mockup A v2 — 視覺修正（產品 baseline）</h2>
+<p class="subtitle">用真實 <code>.navbar / .circles-nav / .circles-q-card / .circles-step-pill</code> 結構與真色票（米色 bg、glassmorphism navbar、圓形 .circles-nav-back）。所有差異與既有產品一致，只覆蓋 A1/A2/A3 三項。</p>
+
+<h3>BEFORE — 目前 production（IMG_0942/0944 截到的）</h3>
+<div class="vp-scroller"><div class="vp-row">
+
+  <!-- BEFORE Mobile -->
+  <div class="vp-frame vp-mobile">
+    <div class="vp-label">Mobile · 360 · BEFORE</div>
+    <div class="vp-content bad-gutter-overlay">
+      <div class="navbar" style="margin-left:-16px;margin-right:-16px">
+        <div class="navbar-left">
+          <button class="btn-icon btn-bad-outline" title="hamburger"><i class="ph ph-list"></i></button>
+          <span class="navbar-favicon"><i class="ph ph-graph"></i></span>
+          <button class="navbar-logo">PM Drill</button>
+        </div>
+        <div class="navbar-tabs"><span class="navbar-tab active">CIRCLES</span><span class="navbar-tab">北極星指標</span></div>
+        <div class="navbar-actions">
+          <button class="btn-icon btn-bad-outline" title="logout"><i class="ph ph-sign-out"></i></button>
+        </div>
+      </div>
+      <div class="circles-nav">
+        <button class="circles-nav-back"><i class="ph ph-arrow-left"></i></button>
+        <div>
+          <div class="circles-nav-title">R — 發掘需求</div>
+          <div class="circles-nav-sub">Netflix · Netflix Originals</div>
+        </div>
+        <button class="btn-icon btn-bad-outline" style="margin-left:auto" aria-label="回首頁"><i class="ph ph-house"></i></button>
+      </div>
+      <div class="circles-progress-track">
+        <div class="circles-progress-step done">C</div><div class="circles-progress-line done"></div>
+        <div class="circles-progress-step done">I</div><div class="circles-progress-line done"></div>
+        <div class="circles-progress-step active">R</div><div class="circles-progress-line"></div>
+        <div class="circles-progress-step">C</div><div class="circles-progress-line"></div>
+        <div class="circles-progress-step">L</div><div class="circles-progress-line"></div>
+        <div class="circles-progress-step">E</div><div class="circles-progress-line"></div>
+        <div class="circles-progress-step">S</div>
+      </div>
+      <div class="circles-progress-current">
+        <span class="circles-progress-current-letter">R · 發掘需求</span>
+        <span class="circles-progress-current-meta">3/7</span>
+      </div>
+      <div class="circles-q-card legacy">
+        <div class="circles-q-card-tags">
+          <span class="circles-q-card-product">Netflix · Netflix Originals</span>
+          <span class="circles-q-card-tag">產品策略</span>
+          <span class="circles-q-card-tag">困難</span>
+          <a class="circles-q-card-more" style="margin-left:auto">∧ 收合</a>
+        </div>
+        <div class="circles-q-card-stmt">Netflix 希望在印度市場增加 Netflix Originals 的觀影人數，您會怎麼制定策略？</div>
+        <div style="margin-top:10px;font-size:12px;color:var(--c-warn-bold)"><i class="ph ph-warning"></i> 常見誤區</div>
+        <div style="font-size:12.5px;line-height:1.6;color:var(--c-text)">過度依賴國際內容、忽視本土文化特色、單純依賴價格策略</div>
+        <div style="margin-top:10px;font-size:12px;color:var(--c-text-2);font-weight:600">其餘欄位</div>
+        <div style="font-size:12.5px;color:var(--c-text-3);font-style:italic">分析資料載入失敗，請刷新頁面或聯絡管理員</div>
+      </div>
+      <div class="bad-duplicate-stmt">
+        <strong>【A3 BUG】</strong>collapsed 但下方仍渲染重複 stmt block：<br>
+        Spotify · 設計一個新功能，提升用戶在 Spotify 上的 Podcast 體驗，並增加用戶的黏著度。
+      </div>
+      <div style="position:absolute;top:8px;right:24px;display:flex;flex-direction:column;gap:4px;align-items:flex-end;z-index:10">
+        <span class="bug-tag">A1: btn-icon 沒 radius</span>
+        <span class="bug-tag">A2: 16px gutter</span>
+        <span class="bug-tag">A3: collapsed 重複</span>
+      </div>
+    </div>
+  </div>
+
+  <!-- BEFORE Tablet — shows the sharp-right-corner navbar issue -->
+  <div class="vp-frame vp-tablet">
+    <div class="vp-label">Tablet · 768 · BEFORE — navbar bg 沒貼齊 + 直角邊</div>
+    <div class="vp-content" style="position:relative">
+      <!-- show the 8px gutter overlay where the navbar bg fails to reach the viewport edge -->
+      <div style="position:absolute;left:0;top:0;bottom:0;width:8px;background:repeating-linear-gradient(45deg,rgba(212,74,74,0.3),rgba(212,74,74,0.3) 4px,transparent 4px,transparent 8px);pointer-events:none;z-index:8" title="8px gutter"></div>
+      <div style="position:absolute;right:0;top:0;bottom:0;width:8px;background:repeating-linear-gradient(45deg,rgba(212,74,74,0.3),rgba(212,74,74,0.3) 4px,transparent 4px,transparent 8px);pointer-events:none;z-index:8" title="8px gutter"></div>
+      <!-- navbar leaves 8px gutter each side because margin:-16 doesn't compensate #app padding 24 -->
+      <div class="navbar" style="margin-left:-16px;margin-right:-16px;border-radius:0;outline:2px solid var(--c-danger);outline-offset:-1px">
+        <div class="navbar-left">
+          <button class="btn-icon btn-bad-outline"><i class="ph ph-list"></i></button>
+          <span class="navbar-favicon"><i class="ph ph-graph"></i></span>
+          <button class="navbar-logo">PM Drill</button>
+        </div>
+        <div class="navbar-tabs"><span class="navbar-tab active">CIRCLES</span><span class="navbar-tab">北極星指標</span></div>
+        <div class="navbar-actions" style="margin-left:auto">
+          <span style="font-size:12px;color:var(--c-text-2);margin-right:8px">albertpeng678@gmail.com</span>
+          <button class="btn-icon btn-bad-outline"><i class="ph ph-sign-out"></i></button>
+        </div>
+      </div>
+      <div class="circles-nav">
+        <button class="circles-nav-back"><i class="ph ph-arrow-left"></i></button>
+        <div>
+          <div class="circles-nav-title">C — 澄清情境</div>
+          <div class="circles-nav-sub">Spotify · Spotify Podcast</div>
+        </div>
+        <button class="btn-icon btn-bad-outline" style="margin-left:auto"><i class="ph ph-house"></i></button>
+      </div>
+      <div style="position:absolute;top:50px;right:24px;display:flex;flex-direction:column;gap:4px;align-items:flex-end;z-index:10">
+        <span class="bug-tag">navbar 直角 + 8px 縫</span>
+      </div>
+    </div>
+  </div>
+
+  <!-- BEFORE Desktop -->
+  <div class="vp-frame vp-desktop">
+    <div class="vp-label">Desktop · 1280 · BEFORE (icons square)</div>
+    <div class="vp-content">
+      <div class="navbar">
+        <div class="navbar-left">
+          <button class="btn-icon btn-bad-outline"><i class="ph ph-list"></i></button>
+          <span class="navbar-favicon"><i class="ph ph-graph"></i></span>
+          <button class="navbar-logo">PM Drill</button>
+        </div>
+        <div class="navbar-tabs"><span class="navbar-tab active">CIRCLES</span><span class="navbar-tab">北極星指標</span></div>
+        <div class="navbar-actions"><button class="btn-icon btn-bad-outline"><i class="ph ph-sign-out"></i></button></div>
+      </div>
+      <div class="circles-nav">
+        <button class="circles-nav-back"><i class="ph ph-arrow-left"></i></button>
+        <div>
+          <div class="circles-nav-title">C — 澄清情境</div>
+          <div class="circles-nav-sub">Spotify · Spotify Podcast</div>
+        </div>
+        <button class="btn-icon btn-bad-outline" style="margin-left:auto"><i class="ph ph-house"></i></button>
+      </div>
+      <div style="padding:16px 28px;color:var(--c-text-2);font-size:12px;text-align:center">A1: 漢堡、登出、🏠 home 三個 .btn-icon 都直角，跟旁邊圓形 .circles-nav-back 不一致</div>
+    </div>
+  </div>
+
+</div></div>
+
+<h3>AFTER — 修正後（產品語言不變，只改 3 個點）</h3>
+<div class="vp-scroller"><div class="vp-row">
+
+  <!-- AFTER Mobile -->
+  <div class="vp-frame vp-mobile">
+    <div class="vp-label">Mobile · 360 · AFTER</div>
+    <div class="vp-content e2e-fixed">
+      <div class="navbar">
+        <div class="navbar-left">
+          <button class="btn-icon fixed"><i class="ph ph-list"></i></button>
+          <span class="navbar-favicon"><i class="ph ph-graph"></i></span>
+          <button class="navbar-logo">PM Drill</button>
+        </div>
+        <div class="navbar-tabs"><span class="navbar-tab active">CIRCLES</span><span class="navbar-tab">北極星指標</span></div>
+        <div class="navbar-actions"><button class="btn-icon fixed"><i class="ph ph-sign-out"></i></button></div>
+      </div>
+      <div class="circles-nav">
+        <button class="circles-nav-back"><i class="ph ph-arrow-left"></i></button>
+        <div>
+          <div class="circles-nav-title">R — 發掘需求</div>
+          <div class="circles-nav-sub">Netflix · Netflix Originals</div>
+        </div>
+        <button class="btn-icon fixed" style="margin-left:auto" aria-label="回首頁"><i class="ph ph-house"></i></button>
+      </div>
+      <div class="circles-progress-track">
+        <div class="circles-progress-step done">C</div><div class="circles-progress-line done"></div>
+        <div class="circles-progress-step done">I</div><div class="circles-progress-line done"></div>
+        <div class="circles-progress-step active">R</div><div class="circles-progress-line"></div>
+        <div class="circles-progress-step">C</div><div class="circles-progress-line"></div>
+        <div class="circles-progress-step">L</div><div class="circles-progress-line"></div>
+        <div class="circles-progress-step">E</div><div class="circles-progress-line"></div>
+        <div class="circles-progress-step">S</div>
+      </div>
+      <div class="circles-progress-current">
+        <span class="circles-progress-current-letter">R · 發掘需求</span>
+        <span class="circles-progress-current-meta">3/7</span>
+      </div>
+      <div class="circles-q-card">
+        <div class="circles-q-card-tags">
+          <span class="circles-q-card-product">Netflix · Netflix Originals</span>
+          <span class="circles-q-card-tag">產品策略</span>
+          <span class="circles-q-card-tag">困難</span>
+          <a class="circles-q-card-more" style="margin-left:auto">∧ 收合</a>
+        </div>
+        <div class="circles-q-card-stmt-collapsed">Netflix 希望在印度市場增加 Netflix Originals 的觀影人數，您會怎麼制定策略？</div>
+        <!-- A3 FIX: when collapsed, NO duplicate full-block below; remains in collapsed state only -->
+      </div>
+      <div style="position:absolute;top:8px;right:8px;display:flex;flex-direction:column;gap:4px;align-items:flex-end;z-index:10">
+        <span class="fix-tag">A1: 圓形 40×40</span>
+        <span class="fix-tag">A2: 0 gutter</span>
+        <span class="fix-tag">A3: 不重複</span>
+      </div>
+    </div>
+  </div>
+
+  <!-- AFTER Tablet -->
+  <div class="vp-frame vp-tablet">
+    <div class="vp-label">Tablet · 768 · AFTER</div>
+    <div class="vp-content e2e-fixed">
+      <div class="navbar">
+        <div class="navbar-left">
+          <button class="btn-icon fixed"><i class="ph ph-list"></i></button>
+          <span class="navbar-favicon"><i class="ph ph-graph"></i></span>
+          <button class="navbar-logo">PM Drill</button>
+        </div>
+        <div class="navbar-tabs"><span class="navbar-tab active">CIRCLES</span><span class="navbar-tab">北極星指標</span></div>
+        <div class="navbar-actions"><button class="btn-icon fixed"><i class="ph ph-sign-out"></i></button></div>
+      </div>
+      <div class="circles-nav">
+        <button class="circles-nav-back"><i class="ph ph-arrow-left"></i></button>
+        <div>
+          <div class="circles-nav-title">C — 澄清情境</div>
+          <div class="circles-nav-sub">Spotify · Spotify Podcast</div>
+        </div>
+        <button class="btn-icon fixed" style="margin-left:auto"><i class="ph ph-house"></i></button>
+      </div>
+      <div class="circles-progress-track">
+        <div class="circles-progress-step active">C</div><div class="circles-progress-line"></div>
+        <div class="circles-progress-step">I</div><div class="circles-progress-line"></div>
+        <div class="circles-progress-step">R</div><div class="circles-progress-line"></div>
+        <div class="circles-progress-step">C</div><div class="circles-progress-line"></div>
+        <div class="circles-progress-step">L</div><div class="circles-progress-line"></div>
+        <div class="circles-progress-step">E</div><div class="circles-progress-line"></div>
+        <div class="circles-progress-step">S</div>
+      </div>
+      <div class="circles-progress-current">
+        <span class="circles-progress-current-letter">C · 澄清情境</span>
+        <span class="circles-progress-current-meta">1/7</span>
+      </div>
+      <div class="circles-q-card">
+        <div class="circles-q-card-tags">
+          <span class="circles-q-card-product">Spotify · Spotify Podcast</span>
+          <span class="circles-q-card-tag">產品設計</span>
+          <span class="circles-q-card-tag">中等難度</span>
+          <a class="circles-q-card-more" style="margin-left:auto">∨ 展開</a>
+        </div>
+        <div class="circles-q-card-stmt">設計一個新功能，提升用戶在 Spotify 上的 Podcast 體驗，並增加用戶的黏著度。</div>
+        <div class="circles-q-card-full-block">
+          <div class="circles-q-card-full-label">完整題目</div>
+          <div class="circles-q-card-full-text">設計一個新功能，提升用戶在 Spotify 上的 Podcast 體驗，並增加用戶的黏著度。</div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- AFTER Desktop -->
+  <div class="vp-frame vp-desktop">
+    <div class="vp-label">Desktop · 1280 · AFTER</div>
+    <div class="vp-content e2e-fixed">
+      <div class="navbar">
+        <div class="navbar-left">
+          <button class="btn-icon fixed"><i class="ph ph-list"></i></button>
+          <span class="navbar-favicon"><i class="ph ph-graph"></i></span>
+          <button class="navbar-logo">PM Drill</button>
+        </div>
+        <div class="navbar-tabs"><span class="navbar-tab active">CIRCLES</span><span class="navbar-tab">北極星指標</span></div>
+        <div class="navbar-actions"><button class="btn-icon fixed"><i class="ph ph-sign-out"></i></button></div>
+      </div>
+      <div class="circles-nav">
+        <button class="circles-nav-back"><i class="ph ph-arrow-left"></i></button>
+        <div>
+          <div class="circles-nav-title">C — 澄清情境</div>
+          <div class="circles-nav-sub">Spotify · Spotify Podcast</div>
+        </div>
+        <button class="btn-icon fixed" style="margin-left:auto"><i class="ph ph-house"></i></button>
+      </div>
+      <div class="circles-progress-track">
+        <div class="circles-progress-step active">C</div><div class="circles-progress-line"></div>
+        <div class="circles-progress-step">I</div><div class="circles-progress-line"></div>
+        <div class="circles-progress-step">R</div><div class="circles-progress-line"></div>
+        <div class="circles-progress-step">C</div><div class="circles-progress-line"></div>
+        <div class="circles-progress-step">L</div><div class="circles-progress-line"></div>
+        <div class="circles-progress-step">E</div><div class="circles-progress-line"></div>
+        <div class="circles-progress-step">S</div>
+      </div>
+      <div class="circles-progress-current">
+        <span class="circles-progress-current-letter">C · 澄清情境</span>
+        <span class="circles-progress-current-meta">1/7</span>
+      </div>
+      <div class="circles-q-card">
+        <div class="circles-q-card-tags">
+          <span class="circles-q-card-product">Spotify · Spotify Podcast</span>
+          <span class="circles-q-card-tag">產品設計</span>
+          <span class="circles-q-card-tag">中等難度</span>
+          <a class="circles-q-card-more" style="margin-left:auto">∨ 展開</a>
+        </div>
+        <div class="circles-q-card-stmt">設計一個新功能，提升用戶在 Spotify 上的 Podcast 體驗，並增加用戶的黏著度。</div>
+        <div class="circles-q-card-full-block">
+          <div class="circles-q-card-full-label">完整題目</div>
+          <div class="circles-q-card-full-text">設計一個新功能，提升用戶在 Spotify 上的 Podcast 體驗，並增加用戶的黏著度。</div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+</div></div>
+
+<h3>實作規範（給 implementer）</h3>
+<ul class="rules">
+  <li><strong>A1 修法（產品語言）</strong>：CSS 對 <code>.btn-icon</code> 加 <code>width:40px; height:40px; padding:0; border-radius:50%; justify-content:center;</code>。注意 <code>.circles-nav-back</code> 已經是 50%，不要重複修。<code>.btn-home-icon</code>（同樣繼承 .btn-icon）會跟著吃到。Hover：<code>background: rgba(0,0,0,0.06)</code>。</li>
+  <li><strong>A2 修法（edge-to-edge mobile/tablet）</strong>：<code>#app</code> mobile padding 從 <code>0 16px 16px</code> → <code>0 0 16px</code>；tablet（720-1023）從 <code>0 24px 24px</code> → <code>0 0 24px</code>。<code>.navbar</code> 原本有 <code>margin-left/right: -16px</code> 補償 #app padding，現在要拿掉這對負 margin。<code>.circles-nav</code>、<code>.circles-progress</code>、<code>.circles-q-card</code> 的 padding/margin 自帶 16/24/28，不會破版。</li>
+  <li><strong>A3 修法（簡化）</strong>：phase 2 顯示了 <strong>兩個</strong>題目卡 — 上面是 <code>renderPersistentQuestionChip()</code>（保留），下面是 <code>pinnedCard</code>（重複，要砍）。<br>
+    具體刪除：
+    <ul>
+      <li><code>public/app.js:3697-3705</code> 整個 <code>var pinnedCard = q ? (...)</code> 區塊</li>
+      <li><code>public/app.js:3782</code> return statement 裡的 <code>pinnedCard +</code></li>
+      <li><code>public/app.js:3872-3873</code> 附近 <code>circles-pinned-toggle</code> click handler</li>
+      <li><code>public/style.css:2156</code> 附近 <code>.circles-pinned-card</code> 樣式區塊（可標 deprecated 或直接刪）</li>
+    </ul>
+    驗證：phase 2 進入後，題目卡只剩一個（上面 chevron 那個），中間空白自然消失。
+  </li>
+  <li><strong>絕對保留</strong>：<code>rgba(242,240,235,0.85)</code> navbar bg、<code>backdrop-filter: blur(12px)</code>、<code>.circles-q-card-full-block</code> 米色 inset、<code>.circles-q-card-product</code> 邊框 pill、<code>.circles-step-pill</code> chip。</li>
+</ul>
+
+</body>
+</html>

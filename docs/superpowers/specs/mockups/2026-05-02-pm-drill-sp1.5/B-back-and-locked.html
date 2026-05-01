@@ -1,0 +1,556 @@
+<!DOCTYPE html>
+<html lang="zh-TW">
+<head>
+<meta charset="utf-8">
+<title>SP1.5 Mockup B v2 — phase 2 上一步 + 已得分鎖</title>
+<link rel="stylesheet" href="https://unpkg.com/@phosphor-icons/web@2.0.3/src/regular/style.css">
+<style>
+  /* === REAL tokens === */
+  :root {
+    --c-primary: #1a56db;
+    --c-primary-lt: #eaf2ff;
+    --c-primary-dim: rgba(26,86,219,.45);
+    --c-text: #1a1a1a;
+    --c-text-2: #666;
+    --c-text-3: #999;
+    --c-border: #d8d3c5;
+    --c-bg: #f2f0eb;
+    --c-bg-soft: #f7f5f0;
+    --c-card: #ffffff;
+    --c-surface: #ffffff;
+    --c-locked-bg: #ece9e0;
+    --c-success: #137a3d;
+    --c-success-soft: rgba(19,122,61,.1);
+    --c-font-sans: system-ui, -apple-system, "Helvetica Neue", "PingFang TC", "Microsoft JhengHei", sans-serif;
+    --r-input: 8px;
+    --r-card: 12px;
+    --pad-block: 14px;
+  }
+  * { box-sizing: border-box; }
+  body { font-family: var(--c-font-sans); background: #e8e4dc; color: var(--c-text); margin: 0; padding: 28px; }
+  h2 { font-size: 22px; margin: 0 0 6px; }
+  .subtitle { color: var(--c-text-2); font-size: 13px; margin: 0 0 24px; }
+  h3 { font-size: 16px; font-weight: 700; margin: 28px 0 12px; padding-bottom: 8px; border-bottom: 2px solid var(--c-primary); display: inline-block; }
+  ul.rules { font-size: 13px; color: var(--c-text-2); line-height: 1.7; padding-left: 20px; }
+  ul.rules code { background: var(--c-bg-soft); padding: 1px 5px; border-radius: 3px; font-size: 12px; }
+
+  .vp-scroller { overflow-x: auto; padding-bottom: 8px; }
+  .vp-row { display: flex; gap: 16px; align-items: flex-start; width: max-content; min-width: 100%; }
+  .vp-frame { border: 1px solid #c4bdae; border-radius: 12px; background: var(--c-bg); overflow: hidden; flex-shrink: 0; }
+  .vp-mobile { width: 360px; }
+  .vp-tablet { width: 768px; }
+  .vp-desktop { width: 1280px; }
+  .vp-label { background: #1a1a1a; color: #fff; padding: 6px 12px; font-size: 11px; font-family: monospace; }
+  .vp-content { background: var(--c-bg); min-height: 540px; position: relative; padding-bottom: 80px; }
+
+  /* === navbar (edge-to-edge) === */
+  .navbar {
+    display: flex; justify-content: space-between; align-items: center;
+    padding: 12px 16px;
+    background: rgba(242,240,235,0.85);
+    backdrop-filter: blur(12px);
+    border-bottom: 1px solid rgba(0,0,0,0.08);
+  }
+  .vp-tablet .navbar { padding-left: 24px; padding-right: 24px; }
+  .vp-desktop .navbar { padding-left: 28px; padding-right: 28px; }
+  .navbar-left { display: flex; align-items: center; gap: 6px; }
+  .navbar-favicon { width: 22px; height: 22px; border-radius: 7px; background: var(--c-primary); display: inline-flex; align-items: center; justify-content: center; }
+  .navbar-favicon i { color: #fff; font-size: 13px; }
+  .navbar-logo { font-size: 1rem; font-weight: 700; color: var(--c-primary); background: none; border: none; padding: 4px 6px; }
+  .navbar-actions { display: flex; gap: 6px; align-items: center; margin-left: auto; }
+  .btn-icon { width: 40px; height: 40px; padding: 0; border-radius: 50%; border: none; background: transparent; display: inline-flex; align-items: center; justify-content: center; color: var(--c-text-2); cursor: pointer; }
+
+  /* === circles-nav === */
+  .circles-nav { display: flex; align-items: center; gap: 10px; padding: 12px 16px; background: var(--c-bg); }
+  .vp-tablet .circles-nav { padding-left: 24px; padding-right: 24px; }
+  .vp-desktop .circles-nav { padding-left: 28px; padding-right: 28px; }
+  .circles-nav-back { min-width: 44px; min-height: 44px; border-radius: 50%; background: var(--c-surface); border: none; display: flex; align-items: center; justify-content: center; }
+  .circles-nav > div:not(.circles-nav-right) { flex: 1 1 auto; min-width: 0; }
+  .circles-nav-title { font-size: 16px; }
+  .circles-nav-sub { font-size: 11px; color: var(--c-text-3); }
+  .circles-nav-right { font-size: 11px; color: var(--c-text-3); margin-left: auto; }
+
+  /* === phase 1 form  === */
+  .circles-phase1-wrap { padding: 12px 16px 100px; }
+  .vp-tablet .circles-phase1-wrap { padding-left: 24px; padding-right: 24px; }
+  .vp-desktop .circles-phase1-wrap { padding-left: 28px; padding-right: 28px; }
+  .circles-field-group { margin-bottom: 14px; }
+  .circles-field-label { font-size: 13px; font-weight: 600; color: var(--c-text); margin-bottom: 6px; display: flex; align-items: center; gap: 6px; }
+  .circles-field-input {
+    width: 100%; padding: 11px 13px;
+    border-radius: var(--r-input); border: 1.5px solid var(--c-border);
+    background: var(--c-card); font-size: 14px; min-height: 60px;
+    font-family: inherit; resize: vertical;
+  }
+  .circles-field-input.locked {
+    background: var(--c-locked-bg); color: var(--c-text-2);
+    border-color: #c4bdae;
+    cursor: not-allowed;
+  }
+
+  /* === phase 2 chat === */
+  .circles-chat-body { padding: 12px 16px; min-height: 200px; display: flex; flex-direction: column; gap: 8px; }
+  .vp-tablet .circles-chat-body { padding-left: 24px; padding-right: 24px; }
+  .vp-desktop .circles-chat-body { padding-left: 28px; padding-right: 28px; }
+  .circles-bubble-ai {
+    background: var(--c-primary-lt);
+    border: 1px solid rgba(26,86,219,0.18);
+    border-radius: 4px 12px 12px 12px;
+    padding: 10px 13px; font-size: 13px; line-height: 1.6;
+    max-width: 88%;
+  }
+  .circles-bubble-user {
+    background: var(--c-card);
+    border: 1px solid var(--c-border);
+    border-radius: 12px 4px 12px 12px;
+    padding: 10px 13px; font-size: 13px; line-height: 1.6;
+    max-width: 88%; margin-left: auto;
+  }
+  .circles-bubble-section {
+    font-size: 10px; font-weight: 700; color: var(--c-text-3);
+    text-transform: uppercase; letter-spacing: 0.07em; margin-bottom: 3px;
+  }
+
+  /* === input bar === */
+  .circles-input-bar {
+    background: var(--c-card); border-top: 1px solid var(--c-border);
+    padding: 10px 14px;
+    display: flex; gap: 8px; align-items: flex-end;
+  }
+  .circles-input {
+    flex: 1; background: var(--c-surface);
+    border: 1px solid var(--c-border); border-radius: var(--r-input);
+    padding: 9px 13px; font-size: 14px;
+    min-height: 38px;
+  }
+  .circles-input.locked { background: var(--c-locked-bg); color: var(--c-text-3); cursor: not-allowed; }
+  .circles-send-btn {
+    width: 40px; height: 40px; border-radius: var(--r-input);
+    background: var(--c-primary); border: none; color: #fff;
+    display: flex; align-items: center; justify-content: center;
+    flex-shrink: 0;
+  }
+  .circles-send-btn:disabled, .circles-send-btn.disabled { background: var(--c-primary-dim); cursor: not-allowed; }
+
+  /* === bottom action bar (submit) === */
+  .circles-submit-bar {
+    position: absolute; bottom: 0; left: 0; right: 0;
+    background: var(--c-card); border-top: 1px solid var(--c-border);
+    padding: 12px var(--pad-block);
+    display: flex; gap: 10px;
+  }
+  .circles-btn-primary {
+    background: var(--c-primary); color: #fff; border: none;
+    padding: 11px 16px; border-radius: var(--r-input);
+    font-size: 14.5px; font-weight: 700; cursor: pointer;
+    flex: 1.6;
+  }
+  .circles-btn-secondary {
+    background: #f0ede6; color: var(--c-text); border: 1px solid var(--c-border);
+    padding: 11px 16px; border-radius: var(--r-input);
+    font-size: 14.5px; font-weight: 600; cursor: pointer;
+    white-space: nowrap;
+  }
+
+  /* === locked banner === */
+  .locked-banner {
+    background: var(--c-success-soft);
+    border-bottom: 1px solid rgba(19,122,61,0.18);
+    padding: 10px 16px;
+    display: flex; align-items: center; gap: 8px;
+    font-size: 13px; color: var(--c-success);
+    font-weight: 500;
+  }
+  .vp-tablet .locked-banner { padding-left: 24px; padding-right: 24px; }
+  .vp-desktop .locked-banner { padding-left: 28px; padding-right: 28px; }
+  .locked-banner .ph { font-size: 1.1rem; }
+  .score-pill {
+    margin-left: auto;
+    background: var(--c-success); color: #fff;
+    padding: 2px 12px; border-radius: 999px;
+    font-size: 12px; font-weight: 700;
+  }
+
+  /* persistent question chip */
+  .pq-chip {
+    background: var(--c-card); border-bottom: 1px solid var(--c-border);
+    padding: 10px 16px;
+    display: flex; align-items: center; gap: 8px;
+    font-size: 12.5px; color: var(--c-text);
+  }
+  .vp-tablet .pq-chip { padding-left: 24px; padding-right: 24px; }
+  .vp-desktop .pq-chip { padding-left: 28px; padding-right: 28px; }
+  .pq-chip .lbl { background: var(--c-primary-lt); color: var(--c-primary); padding: 2px 8px; border-radius: 4px; font-size: 11px; font-weight: 700; }
+  .pq-chip .stmt { flex: 1; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+  .pq-chip .chev { color: var(--c-text-3); }
+
+  .scenario {
+    display: inline-block; background: var(--c-primary); color: #fff;
+    padding: 4px 12px; border-radius: 999px;
+    font-size: 12px; font-weight: 600;
+  }
+</style>
+</head>
+<body>
+
+<h2>SP1.5 Mockup B v2 — phase 2 上一步 + 已得分鎖（產品 baseline）</h2>
+<p class="subtitle">用真實 <code>.circles-bubble-ai/user / .circles-input-bar / .circles-submit-bar</code> 結構。新增：phase 2 「上一步」button 進入 phase 1 同 step；已得分時整個 step 鎖成 read-only。</p>
+
+<h3>場景 1 · 未得分 phase 2 — 加入「上一步」按鈕 <span class="scenario">新行為</span></h3>
+<div class="vp-scroller"><div class="vp-row">
+
+  <div class="vp-frame vp-mobile">
+    <div class="vp-label">Mobile · 360 · phase 2 ungraded</div>
+    <div class="vp-content">
+      <div class="navbar">
+        <div class="navbar-left"><button class="btn-icon"><i class="ph ph-list"></i></button><span class="navbar-favicon"><i class="ph ph-circles-three"></i></span><button class="navbar-logo">PM Drill</button></div>
+        <div class="navbar-actions"><button class="btn-icon"><i class="ph ph-sign-out"></i></button></div>
+      </div>
+      <div class="circles-nav">
+        <button class="circles-nav-back"><i class="ph ph-arrow-left"></i></button>
+        <div><div class="circles-nav-title">C — 對話練習</div><div class="circles-nav-sub">Spotify</div></div>
+        <span class="circles-nav-right">3 輪</span>
+        <button class="btn-icon"><i class="ph ph-house"></i></button>
+      </div>
+      <div class="pq-chip">
+        <span class="lbl">題目</span>
+        <span class="stmt">設計一個新功能，提升用戶在 Spotify 上的 Podcast 體驗…</span>
+        <i class="ph ph-caret-down chev"></i>
+      </div>
+      <div class="circles-chat-body">
+        <div class="circles-bubble-user">那使用者有沒有什麼偏好的 podcast 題材</div>
+        <div class="circles-bubble-ai"><div class="circles-bubble-section">被訪談者</div>用戶對 podcast 的偏好多樣…</div>
+        <div class="circles-bubble-ai" style="font-size:11px;padding:8px 10px"><div class="circles-bubble-section">教練點評</div>這次對話偏離了核心問題。</div>
+      </div>
+      <div class="circles-input-bar">
+        <textarea class="circles-input" rows="1" placeholder="輸入你的問題..."></textarea>
+        <button class="circles-send-btn"><i class="ph ph-paper-plane-tilt"></i></button>
+      </div>
+      <div class="circles-submit-bar">
+        <button class="circles-btn-secondary"><i class="ph ph-arrow-left"></i> 上一步</button>
+        <button class="circles-btn-primary">對話足夠了，提交</button>
+      </div>
+    </div>
+  </div>
+
+  <div class="vp-frame vp-tablet">
+    <div class="vp-label">Tablet · 768 · phase 2 ungraded</div>
+    <div class="vp-content">
+      <div class="navbar">
+        <div class="navbar-left"><button class="btn-icon"><i class="ph ph-list"></i></button><span class="navbar-favicon"><i class="ph ph-circles-three"></i></span><button class="navbar-logo">PM Drill</button></div>
+        <div class="navbar-actions"><button class="btn-icon"><i class="ph ph-sign-out"></i></button></div>
+      </div>
+      <div class="circles-nav">
+        <button class="circles-nav-back"><i class="ph ph-arrow-left"></i></button>
+        <div><div class="circles-nav-title">C — 對話練習</div><div class="circles-nav-sub">Spotify</div></div>
+        <span class="circles-nav-right">3 輪</span>
+        <button class="btn-icon"><i class="ph ph-house"></i></button>
+      </div>
+      <div class="pq-chip">
+        <span class="lbl">題目</span>
+        <span class="stmt">設計一個新功能，提升用戶在 Spotify 上的 Podcast 體驗…</span>
+        <i class="ph ph-caret-down chev"></i>
+      </div>
+      <div class="circles-chat-body">
+        <div class="circles-bubble-user">那使用者有沒有什麼偏好的 podcast 題材</div>
+        <div class="circles-bubble-ai"><div class="circles-bubble-section">被訪談者</div>用戶對 podcast 的偏好多樣…</div>
+        <div class="circles-bubble-ai" style="font-size:11px;padding:8px 10px"><div class="circles-bubble-section">教練點評</div>這次對話偏離了核心問題。</div>
+      </div>
+      <div class="circles-input-bar">
+        <textarea class="circles-input" rows="1" placeholder="輸入你的問題..."></textarea>
+        <button class="circles-send-btn"><i class="ph ph-paper-plane-tilt"></i></button>
+      </div>
+      <div class="circles-submit-bar">
+        <button class="circles-btn-secondary"><i class="ph ph-arrow-left"></i> 上一步</button>
+        <button class="circles-btn-primary">對話足夠了，提交這個步驟</button>
+      </div>
+    </div>
+  </div>
+
+  <div class="vp-frame vp-desktop">
+    <div class="vp-label">Desktop · 1280 · phase 2 ungraded</div>
+    <div class="vp-content">
+      <div class="navbar">
+        <div class="navbar-left"><button class="btn-icon"><i class="ph ph-list"></i></button><span class="navbar-favicon"><i class="ph ph-circles-three"></i></span><button class="navbar-logo">PM Drill</button></div>
+        <div class="navbar-actions"><button class="btn-icon"><i class="ph ph-sign-out"></i></button></div>
+      </div>
+      <div class="circles-nav">
+        <button class="circles-nav-back"><i class="ph ph-arrow-left"></i></button>
+        <div><div class="circles-nav-title">C — 對話練習</div><div class="circles-nav-sub">Spotify</div></div>
+        <span class="circles-nav-right">3 輪</span>
+        <button class="btn-icon"><i class="ph ph-house"></i></button>
+      </div>
+      <div class="pq-chip">
+        <span class="lbl">題目</span>
+        <span class="stmt">設計一個新功能，提升用戶在 Spotify 上的 Podcast 體驗…</span>
+        <i class="ph ph-caret-down chev"></i>
+      </div>
+      <div class="circles-chat-body">
+        <div class="circles-bubble-user">那使用者有沒有什麼偏好的 podcast 題材</div>
+        <div class="circles-bubble-ai"><div class="circles-bubble-section">被訪談者</div>用戶對 podcast 的偏好多樣，有些喜歡訪談和故事類型，有些則偏好教育和新聞內容。</div>
+        <div class="circles-bubble-ai" style="font-size:11px;padding:8px 10px"><div class="circles-bubble-section">教練點評</div>這次對話偏離了核心問題，沒有聚焦於播放清單創建的需求和困難。</div>
+      </div>
+      <div class="circles-input-bar">
+        <textarea class="circles-input" rows="1" placeholder="輸入你的問題..."></textarea>
+        <button class="circles-send-btn"><i class="ph ph-paper-plane-tilt"></i></button>
+      </div>
+      <div class="circles-submit-bar">
+        <button class="circles-btn-secondary"><i class="ph ph-arrow-left"></i> 上一步</button>
+        <button class="circles-btn-primary">對話足夠了，提交這個步驟</button>
+      </div>
+    </div>
+  </div>
+
+</div></div>
+
+<h3>場景 2 · 點「上一步」回到 phase 1（同 step、可編輯） <span class="scenario">新流程</span></h3>
+<div class="vp-scroller"><div class="vp-row">
+
+  <div class="vp-frame vp-mobile">
+    <div class="vp-label">Mobile · 360 · phase 1 editable</div>
+    <div class="vp-content">
+      <div class="navbar">
+        <div class="navbar-left"><button class="btn-icon"><i class="ph ph-list"></i></button><span class="navbar-favicon"><i class="ph ph-circles-three"></i></span><button class="navbar-logo">PM Drill</button></div>
+        <div class="navbar-actions"><button class="btn-icon"><i class="ph ph-sign-out"></i></button></div>
+      </div>
+      <div class="circles-nav">
+        <button class="circles-nav-back"><i class="ph ph-arrow-left"></i></button>
+        <div><div class="circles-nav-title">C — 澄清情境</div><div class="circles-nav-sub">填寫框架</div></div>
+        <button class="btn-icon"><i class="ph ph-house"></i></button>
+      </div>
+      <div class="circles-phase1-wrap">
+        <div style="font-size:12px;color:var(--c-text-2);margin-bottom:12px">已輸入內容會保留，可繼續修改。送出後會重新執行 AI 審核，對話歷史保留。</div>
+        <div class="circles-field-group">
+          <div class="circles-field-label">問題範圍</div>
+          <textarea class="circles-field-input">Spotify 播放列表 - 新增內容</textarea>
+        </div>
+        <div class="circles-field-group">
+          <div class="circles-field-label">業務影響</div>
+          <textarea class="circles-field-input">使用者留存</textarea>
+        </div>
+        <div class="circles-field-group">
+          <div class="circles-field-label">時間範圍</div>
+          <textarea class="circles-field-input">過去 90 天</textarea>
+        </div>
+        <div class="circles-field-group">
+          <div class="circles-field-label">假設確認</div>
+          <textarea class="circles-field-input">Spotify 播放列表-新增內容斷點，會造成使用者無法建構符合自己品味的產品體驗</textarea>
+        </div>
+      </div>
+      <div class="circles-submit-bar">
+        <button class="circles-btn-secondary">回對話</button>
+        <button class="circles-btn-primary">送出 AI 審核</button>
+      </div>
+    </div>
+  </div>
+
+  <div class="vp-frame vp-tablet">
+    <div class="vp-label">Tablet · 768 · phase 1 editable</div>
+    <div class="vp-content">
+      <div class="navbar">
+        <div class="navbar-left"><button class="btn-icon"><i class="ph ph-list"></i></button><span class="navbar-favicon"><i class="ph ph-circles-three"></i></span><button class="navbar-logo">PM Drill</button></div>
+        <div class="navbar-actions"><button class="btn-icon"><i class="ph ph-sign-out"></i></button></div>
+      </div>
+      <div class="circles-nav">
+        <button class="circles-nav-back"><i class="ph ph-arrow-left"></i></button>
+        <div><div class="circles-nav-title">C — 澄清情境</div><div class="circles-nav-sub">填寫框架</div></div>
+        <button class="btn-icon"><i class="ph ph-house"></i></button>
+      </div>
+      <div class="circles-phase1-wrap">
+        <div style="font-size:12px;color:var(--c-text-2);margin-bottom:12px">已輸入內容會保留，可繼續修改。送出後會重新執行 AI 審核，對話歷史保留。</div>
+        <div class="circles-field-group">
+          <div class="circles-field-label">問題範圍</div>
+          <textarea class="circles-field-input">Spotify 播放列表 - 新增內容</textarea>
+        </div>
+        <div class="circles-field-group">
+          <div class="circles-field-label">業務影響</div>
+          <textarea class="circles-field-input">使用者留存</textarea>
+        </div>
+        <div class="circles-field-group">
+          <div class="circles-field-label">時間範圍</div>
+          <textarea class="circles-field-input">過去 90 天</textarea>
+        </div>
+        <div class="circles-field-group">
+          <div class="circles-field-label">假設確認</div>
+          <textarea class="circles-field-input">Spotify 播放列表-新增內容斷點，會造成使用者無法建構符合自己品味的產品體驗</textarea>
+        </div>
+      </div>
+      <div class="circles-submit-bar">
+        <button class="circles-btn-secondary">回對話</button>
+        <button class="circles-btn-primary">送出 AI 審核</button>
+      </div>
+    </div>
+  </div>
+
+  <div class="vp-frame vp-desktop">
+    <div class="vp-label">Desktop · 1280 · phase 1 editable</div>
+    <div class="vp-content">
+      <div class="navbar">
+        <div class="navbar-left"><button class="btn-icon"><i class="ph ph-list"></i></button><span class="navbar-favicon"><i class="ph ph-circles-three"></i></span><button class="navbar-logo">PM Drill</button></div>
+        <div class="navbar-actions"><button class="btn-icon"><i class="ph ph-sign-out"></i></button></div>
+      </div>
+      <div class="circles-nav">
+        <button class="circles-nav-back"><i class="ph ph-arrow-left"></i></button>
+        <div><div class="circles-nav-title">C — 澄清情境</div><div class="circles-nav-sub">填寫框架</div></div>
+        <button class="btn-icon"><i class="ph ph-house"></i></button>
+      </div>
+      <div class="circles-phase1-wrap" style="max-width:760px;margin:0 auto">
+        <div style="font-size:12px;color:var(--c-text-2);margin-bottom:12px">已輸入內容會保留，可繼續修改。送出後會重新執行 AI 審核，對話歷史保留。</div>
+        <div class="circles-field-group">
+          <div class="circles-field-label">問題範圍</div>
+          <textarea class="circles-field-input">Spotify 播放列表 - 新增內容</textarea>
+        </div>
+        <div class="circles-field-group">
+          <div class="circles-field-label">業務影響</div>
+          <textarea class="circles-field-input">使用者留存</textarea>
+        </div>
+        <div class="circles-field-group">
+          <div class="circles-field-label">時間範圍</div>
+          <textarea class="circles-field-input">過去 90 天</textarea>
+        </div>
+        <div class="circles-field-group">
+          <div class="circles-field-label">假設確認</div>
+          <textarea class="circles-field-input">Spotify 播放列表-新增內容斷點，會造成使用者無法建構符合自己品味的產品體驗</textarea>
+        </div>
+      </div>
+      <div class="circles-submit-bar">
+        <button class="circles-btn-secondary">回對話</button>
+        <button class="circles-btn-primary">送出 AI 審核</button>
+      </div>
+    </div>
+  </div>
+
+</div></div>
+
+<h3>場景 3 · 已得分時整個 step 鎖定（read-only） <span class="scenario">B1+B2 lock</span></h3>
+<div class="vp-scroller"><div class="vp-row">
+
+  <div class="vp-frame vp-mobile">
+    <div class="vp-label">Mobile · 360 · phase 1 LOCKED</div>
+    <div class="vp-content">
+      <div class="navbar">
+        <div class="navbar-left"><button class="btn-icon"><i class="ph ph-list"></i></button><span class="navbar-favicon"><i class="ph ph-circles-three"></i></span><button class="navbar-logo">PM Drill</button></div>
+        <div class="navbar-actions"><button class="btn-icon"><i class="ph ph-sign-out"></i></button></div>
+      </div>
+      <div class="circles-nav">
+        <button class="circles-nav-back"><i class="ph ph-arrow-left"></i></button>
+        <div><div class="circles-nav-title">C — 澄清情境</div><div class="circles-nav-sub">填寫框架（已評分）</div></div>
+        <button class="btn-icon"><i class="ph ph-house"></i></button>
+      </div>
+      <div class="locked-banner">
+        <i class="ph ph-lock-key"></i> 此步驟已評分，無法再修改
+        <span class="score-pill">65 分</span>
+      </div>
+      <div class="circles-phase1-wrap">
+        <div class="circles-field-group">
+          <div class="circles-field-label">問題範圍</div>
+          <textarea class="circles-field-input locked" readonly>Spotify 播放列表 - 新增內容</textarea>
+        </div>
+        <div class="circles-field-group">
+          <div class="circles-field-label">業務影響</div>
+          <textarea class="circles-field-input locked" readonly>使用者留存</textarea>
+        </div>
+        <div class="circles-field-group">
+          <div class="circles-field-label">時間範圍</div>
+          <textarea class="circles-field-input locked" readonly>過去 90 天</textarea>
+        </div>
+        <div class="circles-field-group">
+          <div class="circles-field-label">假設確認</div>
+          <textarea class="circles-field-input locked" readonly>Spotify 播放列表-新增內容斷點，會造成使用者無法建構符合自己品味的產品體驗</textarea>
+        </div>
+      </div>
+      <div class="circles-submit-bar">
+        <button class="circles-btn-secondary">回評分</button>
+        <button class="circles-btn-primary">下一步</button>
+      </div>
+    </div>
+  </div>
+
+  <div class="vp-frame vp-tablet">
+    <div class="vp-label">Tablet · 768 · phase 2 LOCKED chat</div>
+    <div class="vp-content">
+      <div class="navbar">
+        <div class="navbar-left"><button class="btn-icon"><i class="ph ph-list"></i></button><span class="navbar-favicon"><i class="ph ph-circles-three"></i></span><button class="navbar-logo">PM Drill</button></div>
+        <div class="navbar-actions"><button class="btn-icon"><i class="ph ph-sign-out"></i></button></div>
+      </div>
+      <div class="circles-nav">
+        <button class="circles-nav-back"><i class="ph ph-arrow-left"></i></button>
+        <div><div class="circles-nav-title">C — 對話紀錄</div><div class="circles-nav-sub">已評分</div></div>
+        <button class="btn-icon"><i class="ph ph-house"></i></button>
+      </div>
+      <div class="locked-banner">
+        <i class="ph ph-lock-key"></i> 此步驟已評分，對話為唯讀紀錄
+        <span class="score-pill">65 分</span>
+      </div>
+      <div class="circles-chat-body">
+        <div class="circles-bubble-user">那使用者有沒有什麼偏好的 podcast 題材</div>
+        <div class="circles-bubble-ai"><div class="circles-bubble-section">被訪談者</div>用戶對 podcast 的偏好多樣…</div>
+        <div class="circles-bubble-ai" style="font-size:11px;padding:8px 10px"><div class="circles-bubble-section">教練點評</div>對話偏離核心問題。</div>
+      </div>
+      <div class="circles-input-bar">
+        <textarea class="circles-input locked" disabled placeholder="此步驟已評分，無法繼續對話"></textarea>
+        <button class="circles-send-btn disabled" disabled><i class="ph ph-paper-plane-tilt"></i></button>
+      </div>
+      <div class="circles-submit-bar">
+        <button class="circles-btn-secondary"><i class="ph ph-arrow-left"></i> 上一步（看框架）</button>
+        <button class="circles-btn-primary">回評分</button>
+      </div>
+    </div>
+  </div>
+
+  <div class="vp-frame vp-desktop">
+    <div class="vp-label">Desktop · 1280 · phase 1 LOCKED</div>
+    <div class="vp-content">
+      <div class="navbar">
+        <div class="navbar-left"><button class="btn-icon"><i class="ph ph-list"></i></button><span class="navbar-favicon"><i class="ph ph-circles-three"></i></span><button class="navbar-logo">PM Drill</button></div>
+        <div class="navbar-actions"><button class="btn-icon"><i class="ph ph-sign-out"></i></button></div>
+      </div>
+      <div class="circles-nav">
+        <button class="circles-nav-back"><i class="ph ph-arrow-left"></i></button>
+        <div><div class="circles-nav-title">C — 澄清情境</div><div class="circles-nav-sub">填寫框架（已評分）</div></div>
+        <button class="btn-icon"><i class="ph ph-house"></i></button>
+      </div>
+      <div class="locked-banner">
+        <i class="ph ph-lock-key"></i> 此步驟已評分，無法再修改
+        <span class="score-pill">65 分</span>
+      </div>
+      <div class="circles-phase1-wrap" style="max-width:760px;margin:0 auto">
+        <div class="circles-field-group">
+          <div class="circles-field-label">問題範圍</div>
+          <textarea class="circles-field-input locked" readonly>Spotify 播放列表 - 新增內容</textarea>
+        </div>
+        <div class="circles-field-group">
+          <div class="circles-field-label">業務影響</div>
+          <textarea class="circles-field-input locked" readonly>使用者留存</textarea>
+        </div>
+        <div class="circles-field-group">
+          <div class="circles-field-label">時間範圍</div>
+          <textarea class="circles-field-input locked" readonly>過去 90 天</textarea>
+        </div>
+        <div class="circles-field-group">
+          <div class="circles-field-label">假設確認</div>
+          <textarea class="circles-field-input locked" readonly>Spotify 播放列表-新增內容斷點，會造成使用者無法建構符合自己品味的產品體驗</textarea>
+        </div>
+      </div>
+      <div class="circles-submit-bar">
+        <button class="circles-btn-secondary">回評分</button>
+        <button class="circles-btn-primary">下一步</button>
+      </div>
+    </div>
+  </div>
+
+</div></div>
+
+<h3>實作規範</h3>
+<ul class="rules">
+  <li><strong>B2 上一步 button</strong>：在 <code>renderCirclesPhase2()</code> 的 <code>.circles-submit-bar</code> 區塊（line ~3782 結尾）加入 <code>&lt;button class="circles-btn-secondary" id="circles-p2-prev-phase"&gt;&lt;i class="ph ph-arrow-left"&gt;&lt;/i&gt; 上一步&lt;/button&gt;</code>，所有 step 都顯示。</li>
+  <li><strong>點擊 handler</strong>：<code>circles-p2-prev-phase</code> click → <code>AppState.circlesPhase = 1; navigate('circles')</code>。<code>framework_draft</code> 已存在 AppState，phase 1 自動 pre-fill。</li>
+  <li><strong>已得分判定</strong>：<code>var isLocked = !!(AppState.circlesStepScores &amp;&amp; AppState.circlesStepScores[stepKey])</code>。phase 1 / phase 2 都讀這個 flag。</li>
+  <li><strong>已得分 phase 1 read-only</strong>：<code>buildFieldGroupHtml()</code> 加入 <code>readonly</code> 屬性 + <code>.locked</code> class（CSS 補新規則 <code>background: var(--c-locked-bg); color: var(--c-text-2); cursor: not-allowed;</code>）。submit-bar primary 改為「下一步」（next step or 回評分）。</li>
+  <li><strong>已得分 phase 2 read-only</strong>：<code>.circles-input</code> 加 <code>disabled</code>，<code>.circles-send-btn</code> 加 <code>disabled</code>。submit-bar 兩個按鈕：「上一步（看框架）」 + 「回評分」。</li>
+  <li><strong>locked-banner</strong>：在 <code>.circles-nav</code> 之後渲染，使用 <code>--c-success-soft</code> 底色 + <code>--c-success</code> 文字 + score pill (success bg)。</li>
+  <li><strong>conversation 保留</strong>：phase 1 編輯送出 → re-run gate API → 成功後回 phase 2，<code>AppState.circlesConversation</code> 不清空。</li>
+</ul>
+
+</body>
+</html>

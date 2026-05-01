@@ -1,0 +1,290 @@
+<!DOCTYPE html>
+<html lang="zh-TW">
+<head>
+<meta charset="utf-8">
+<title>SP1.5 Mockup D v2 — Stale session 警告（snapshot guard）</title>
+<link rel="stylesheet" href="https://unpkg.com/@phosphor-icons/web@2.0.3/src/regular/style.css">
+<style>
+  :root {
+    --c-primary: #1a56db;
+    --c-primary-lt: #eaf2ff;
+    --c-text: #1a1a1a;
+    --c-text-2: #666;
+    --c-text-3: #999;
+    --c-border: #d8d3c5;
+    --c-bg: #f2f0eb;
+    --c-bg-soft: #f7f5f0;
+    --c-card: #ffffff;
+    --c-locked-bg: #ece9e0;
+    --c-warn: #b8860b;
+    --c-warn-bg: #fef3c7;
+    --c-warn-border: #f5d77a;
+    --c-danger: #d44a4a;
+    --c-font-sans: system-ui, -apple-system, "Helvetica Neue", "PingFang TC", "Microsoft JhengHei", sans-serif;
+    --r-input: 8px;
+    --r-card: 12px;
+  }
+  * { box-sizing: border-box; }
+  body { font-family: var(--c-font-sans); background: #e8e4dc; color: var(--c-text); margin: 0; padding: 28px; }
+  h2 { font-size: 22px; margin: 0 0 6px; }
+  .subtitle { color: var(--c-text-2); font-size: 13px; margin: 0 0 24px; }
+  h3 { font-size: 16px; font-weight: 700; margin: 28px 0 12px; padding-bottom: 8px; border-bottom: 2px solid var(--c-primary); display: inline-block; }
+  ul.rules { font-size: 13px; color: var(--c-text-2); line-height: 1.7; padding-left: 20px; }
+  ul.rules code { background: var(--c-bg-soft); padding: 1px 5px; border-radius: 3px; font-size: 12px; }
+
+  .vp-scroller { overflow-x: auto; padding-bottom: 8px; }
+  .vp-row { display: flex; gap: 16px; align-items: flex-start; width: max-content; min-width: 100%; }
+  .vp-frame { border: 1px solid #c4bdae; border-radius: 12px; background: var(--c-bg); overflow: hidden; flex-shrink: 0; }
+  .vp-mobile { width: 360px; }
+  .vp-tablet { width: 768px; }
+  .vp-desktop { width: 1280px; }
+  .vp-label { background: #1a1a1a; color: #fff; padding: 6px 12px; font-size: 11px; font-family: monospace; }
+  .vp-content { background: var(--c-bg); min-height: 540px; position: relative; padding-bottom: 80px; }
+
+  /* navbar */
+  .navbar {
+    display: flex; align-items: center; padding: 12px 16px;
+    background: rgba(242,240,235,0.85);
+    backdrop-filter: blur(12px);
+    border-bottom: 1px solid rgba(0,0,0,0.08);
+  }
+  .vp-tablet .navbar { padding-left: 24px; padding-right: 24px; }
+  .vp-desktop .navbar { padding-left: 28px; padding-right: 28px; }
+  .navbar-left { display: flex; align-items: center; gap: 6px; }
+  .navbar-favicon { width: 22px; height: 22px; border-radius: 7px; background: var(--c-primary); display: inline-flex; align-items: center; justify-content: center; }
+  .navbar-favicon i { color: #fff; font-size: 13px; }
+  .navbar-logo { font-size: 1rem; font-weight: 700; color: var(--c-primary); background: none; border: none; padding: 4px 6px; }
+  .navbar-actions { display: flex; gap: 6px; align-items: center; margin-left: auto; }
+  .btn-icon { width: 40px; height: 40px; padding: 0; border-radius: 50%; border: none; background: transparent; display: inline-flex; align-items: center; justify-content: center; color: var(--c-text-2); }
+
+  /* circles-nav */
+  .circles-nav { display: flex; align-items: center; gap: 10px; padding: 12px 16px; background: var(--c-bg); }
+  .vp-tablet .circles-nav { padding-left: 24px; padding-right: 24px; }
+  .vp-desktop .circles-nav { padding-left: 28px; padding-right: 28px; }
+  .circles-nav-back { min-width: 44px; min-height: 44px; border-radius: 50%; background: var(--c-card); border: none; display: flex; align-items: center; justify-content: center; }
+  .circles-nav > div:not(.circles-nav-right) { flex: 1 1 auto; min-width: 0; }
+  .circles-nav-title { font-size: 16px; }
+  .circles-nav-sub { font-size: 11px; color: var(--c-text-3); }
+
+  /* === STALE BANNER (Q3) === */
+  .stale-banner {
+    background: var(--c-warn-bg);
+    border-bottom: 1px solid var(--c-warn-border);
+    padding: 12px 16px;
+    display: flex; align-items: flex-start; gap: 10px;
+  }
+  .vp-tablet .stale-banner { padding-left: 24px; padding-right: 24px; }
+  .vp-desktop .stale-banner { padding-left: 28px; padding-right: 28px; }
+  .stale-banner .icon { color: var(--c-warn); font-size: 1.3rem; flex-shrink: 0; margin-top: 1px; }
+  .stale-banner .body { flex: 1; }
+  .stale-banner strong { display: block; font-weight: 700; margin-bottom: 2px; color: #78350f; font-size: 13px; }
+  .stale-banner .desc { font-size: 12.5px; color: #78350f; line-height: 1.5; }
+  .stale-banner .acts { display: flex; gap: 8px; margin-top: 8px; }
+  .btn-link { color: var(--c-primary); background: none; border: none; padding: 0; font-size: 13px; cursor: pointer; font-weight: 600; text-decoration: underline; }
+
+  /* snapshot-archived q-card (flush) */
+  .circles-q-card.snapshot {
+    padding: 14px 16px;
+    border-radius: 0;
+    background: var(--c-card);
+    border: 1.5px solid var(--c-border);
+    border-left: none; border-right: none;
+    margin: 12px 0;
+    position: relative;
+  }
+  .vp-tablet .circles-q-card.snapshot { padding-left: 24px; padding-right: 24px; }
+  .vp-desktop .circles-q-card.snapshot { padding-left: 28px; padding-right: 28px; }
+  .circles-q-card.snapshot::before {
+    content: "你練習時的原版（snapshot）";
+    position: absolute; top: -10px; left: 16px;
+    background: var(--c-bg); padding: 0 6px;
+    font-size: 11px; color: var(--c-text-3); font-weight: 600;
+  }
+  .circles-q-card-tags { display: flex; flex-wrap: wrap; gap: 6px; margin-bottom: 8px; align-items: center; }
+  .circles-q-card-product { padding: 3px 10px; border-radius: var(--r-card); background: #fff; border: 1px solid rgba(26,86,219,0.3); color: var(--c-primary); font-size: 11.5px; }
+  .archive-tag { padding: 2px 8px; border-radius: 4px; background: var(--c-locked-bg); color: var(--c-text-2); font-size: 11px; display: inline-flex; align-items: center; gap: 4px; }
+  .stmt { font-size: 13.5px; line-height: 1.55; color: var(--c-text); padding: 8px 0 12px; border-bottom: 1px dashed var(--c-border); margin-bottom: 8px; }
+
+  /* read-only phase 1 fields (locked) */
+  .ro-section {
+    margin: 12px 0;
+    padding: 0 16px;
+  }
+  .vp-tablet .ro-section { padding-left: 24px; padding-right: 24px; }
+  .vp-desktop .ro-section { padding-left: 28px; padding-right: 28px; }
+  .ro-section .h { font-size: 12px; font-weight: 700; color: var(--c-text-2); margin-bottom: 6px; display: flex; align-items: center; gap: 6px; }
+  .circles-field-group { margin-bottom: 10px; }
+  .circles-field-label { font-size: 12.5px; font-weight: 600; color: var(--c-text-2); margin-bottom: 4px; }
+  .circles-field-input.locked {
+    width: 100%; padding: 10px 12px;
+    border-radius: var(--r-input); border: 1.5px solid #c4bdae;
+    background: var(--c-locked-bg); color: var(--c-text-2);
+    font-size: 13px; font-family: inherit; line-height: 1.5;
+    min-height: 38px; resize: none; cursor: not-allowed;
+  }
+
+  /* drift comparison */
+  .drift-cmp {
+    margin: 12px 0; padding: 14px 16px;
+    background: var(--c-card); border-top: 1px solid var(--c-border); border-bottom: 1px solid var(--c-border);
+  }
+  .vp-tablet .drift-cmp { padding-left: 24px; padding-right: 24px; }
+  .vp-desktop .drift-cmp { padding-left: 28px; padding-right: 28px; }
+  .drift-cmp .title { font-size: 13px; font-weight: 700; margin-bottom: 8px; }
+  .drift-row { display: flex; gap: 8px; padding: 6px 0; font-size: 12.5px; line-height: 1.5; }
+  .drift-row .lbl { flex: 0 0 100px; color: var(--c-text-2); font-weight: 600; }
+  .drift-row .val.snap { color: var(--c-text-1); }
+  .drift-row .val.now { color: var(--c-danger); text-decoration: line-through; }
+
+  .actions-bar {
+    position: absolute; bottom: 0; left: 0; right: 0;
+    background: var(--c-card); border-top: 1px solid var(--c-border);
+    padding: 12px 14px; display: flex; gap: 10px;
+  }
+  .btn { padding: 11px 16px; border-radius: var(--r-input); border: 1px solid var(--c-border); background: var(--c-card); font-size: 14.5px; font-weight: 600; cursor: pointer; flex: 1; }
+  .btn.primary { background: var(--c-primary); color: #fff; border-color: var(--c-primary); }
+</style>
+</head>
+<body>
+
+<h2>SP1.5 Mockup D v2 — Stale session 警告（Q3 snapshot guard）</h2>
+<p class="subtitle">使用者打開 4/29 之前建立的 session（如 session b715898…），系統偵測 <code>question_json.problem_statement</code> ≠ 當前 DB → 整個 session 鎖成 read-only + 顯示警告 banner。</p>
+
+<h3>場景：使用者點 offcanvas 歷史紀錄 → 自動跳出警告 + read-only mode（用真實 b715898 case 演示）</h3>
+<div class="vp-scroller"><div class="vp-row">
+
+  <div class="vp-frame vp-mobile">
+    <div class="vp-label">Mobile · 360 · stale session</div>
+    <div class="vp-content">
+      <div class="navbar">
+        <div class="navbar-left"><button class="btn-icon"><i class="ph ph-list"></i></button><span class="navbar-favicon"><i class="ph ph-circles-three"></i></span><button class="navbar-logo">PM Drill</button></div>
+        <div class="navbar-actions"><button class="btn-icon"><i class="ph ph-sign-out"></i></button></div>
+      </div>
+      <div class="circles-nav">
+        <button class="circles-nav-back"><i class="ph ph-arrow-left"></i></button>
+        <div><div class="circles-nav-title">C — 澄清情境</div><div class="circles-nav-sub">Spotify · Spotify播放列表推薦</div></div>
+        <button class="btn-icon"><i class="ph ph-house"></i></button>
+      </div>
+      <div class="stale-banner">
+        <i class="ph ph-warning-octagon icon"></i>
+        <div class="body">
+          <strong>此題目已被更新</strong>
+          <div class="desc">本紀錄保留你當初看到的題目原文。為了不破壞紀錄，整段練習已轉為唯讀。</div>
+        </div>
+      </div>
+      <div class="circles-q-card snapshot">
+        <div class="circles-q-card-tags">
+          <span class="circles-q-card-product">Spotify · Spotify播放列表推薦</span>
+          <span class="archive-tag"><i class="ph ph-archive"></i> 原版</span>
+        </div>
+        <div class="stmt">Spotify 用戶在創建新播放列表後，對於如何填充內容感到困惑。如何設計一個功能幫助新用戶快速建立符合他們品味的播放列表？</div>
+      </div>
+      <div class="ro-section">
+        <div class="h"><i class="ph ph-lock-key"></i> phase 1 框架（唯讀）</div>
+        <div class="circles-field-group">
+          <div class="circles-field-label">問題範圍</div>
+          <textarea class="circles-field-input locked" readonly>Spotify 播放列表 - 新增內容</textarea>
+        </div>
+        <div class="circles-field-group">
+          <div class="circles-field-label">業務影響</div>
+          <textarea class="circles-field-input locked" readonly>使用者留存</textarea>
+        </div>
+      </div>
+      <div class="actions-bar">
+        <button class="btn primary">回首頁</button>
+      </div>
+    </div>
+  </div>
+
+  <div class="vp-frame vp-tablet">
+    <div class="vp-label">Tablet · 768 · stale session</div>
+    <div class="vp-content">
+      <div class="navbar">
+        <div class="navbar-left"><button class="btn-icon"><i class="ph ph-list"></i></button><span class="navbar-favicon"><i class="ph ph-circles-three"></i></span><button class="navbar-logo">PM Drill</button></div>
+        <div class="navbar-actions"><button class="btn-icon"><i class="ph ph-sign-out"></i></button></div>
+      </div>
+      <div class="circles-nav">
+        <button class="circles-nav-back"><i class="ph ph-arrow-left"></i></button>
+        <div><div class="circles-nav-title">C — 澄清情境</div><div class="circles-nav-sub">Spotify · Spotify播放列表推薦</div></div>
+        <button class="btn-icon"><i class="ph ph-house"></i></button>
+      </div>
+      <div class="stale-banner">
+        <i class="ph ph-warning-octagon icon"></i>
+        <div class="body">
+          <strong>此題目已被更新（snapshot 與當前題庫不一致）</strong>
+          <div class="desc">為避免顯示與原本練習不一致的題目，本紀錄已轉為唯讀。下方為你當初練習時看到的原題與輸入。</div>
+          <div class="acts"><button class="btn-link">查看新版題目（會開啟新練習）</button></div>
+        </div>
+      </div>
+      <div class="circles-q-card snapshot">
+        <div class="circles-q-card-tags">
+          <span class="circles-q-card-product">Spotify · Spotify播放列表推薦</span>
+          <span class="archive-tag"><i class="ph ph-archive"></i> 你練習時的原版</span>
+        </div>
+        <div class="stmt">Spotify 用戶在創建新播放列表後，對於如何填充內容感到困惑。許多用戶會放棄創建播放列表，因為他們不知道從哪裡開始。如何設計一個功能幫助新用戶快速建立符合他們品味的播放列表？</div>
+      </div>
+      <div class="drift-cmp">
+        <div class="title">snapshot vs 當前題庫差異</div>
+        <div class="drift-row"><span class="lbl">snapshot</span><span class="val snap">Spotify 用戶在創建新播放列表後…快速建立符合他們品味的播放列表？</span></div>
+        <div class="drift-row"><span class="lbl">當前題庫</span><span class="val now">設計一個新功能，提升用戶在 Spotify 上的 Podcast 體驗…</span></div>
+      </div>
+      <div class="actions-bar">
+        <button class="btn primary">回首頁</button>
+      </div>
+    </div>
+  </div>
+
+  <div class="vp-frame vp-desktop">
+    <div class="vp-label">Desktop · 1280 · stale session</div>
+    <div class="vp-content">
+      <div class="navbar">
+        <div class="navbar-left"><button class="btn-icon"><i class="ph ph-list"></i></button><span class="navbar-favicon"><i class="ph ph-circles-three"></i></span><button class="navbar-logo">PM Drill</button></div>
+        <div class="navbar-actions"><button class="btn-icon"><i class="ph ph-sign-out"></i></button></div>
+      </div>
+      <div class="circles-nav">
+        <button class="circles-nav-back"><i class="ph ph-arrow-left"></i></button>
+        <div><div class="circles-nav-title">C — 澄清情境</div><div class="circles-nav-sub">Spotify · Spotify播放列表推薦</div></div>
+        <button class="btn-icon"><i class="ph ph-house"></i></button>
+      </div>
+      <div class="stale-banner">
+        <i class="ph ph-warning-octagon icon"></i>
+        <div class="body">
+          <strong>此題目已被更新（snapshot 與當前題庫不一致）</strong>
+          <div class="desc">為避免顯示與原本練習不一致的題目，本紀錄已轉為唯讀。下方為你當初練習時看到的原題與輸入。系統將以 <code>session.question_json</code> snapshot 為準，不重新從題庫 lookup。</div>
+          <div class="acts"><button class="btn-link">查看新版題目（會開啟新練習）</button></div>
+        </div>
+      </div>
+      <div class="circles-q-card snapshot">
+        <div class="circles-q-card-tags">
+          <span class="circles-q-card-product">Spotify · Spotify播放列表推薦</span>
+          <span class="archive-tag"><i class="ph ph-archive"></i> 你練習時的原版</span>
+        </div>
+        <div class="stmt">Spotify 用戶在創建新播放列表後，對於如何填充內容感到困惑。許多用戶會放棄創建播放列表，因為他們不知道從哪裡開始。如何設計一個功能幫助新用戶快速建立符合他們品味的播放列表？</div>
+      </div>
+      <div class="drift-cmp">
+        <div class="title">snapshot vs 當前題庫差異</div>
+        <div class="drift-row"><span class="lbl">snapshot.problem_statement</span><span class="val snap">Spotify 用戶在創建新播放列表後…快速建立符合他們品味的播放列表？</span></div>
+        <div class="drift-row"><span class="lbl">當前題庫</span><span class="val now">設計一個新功能，提升用戶在 Spotify 上的 Podcast 體驗，並增加用戶的黏著度。</span></div>
+      </div>
+      <div class="actions-bar">
+        <button class="btn primary">回首頁</button>
+      </div>
+    </div>
+  </div>
+
+</div></div>
+
+<h3>實作規範（Q3 snapshot guard 是 SP1.5 最關鍵 fix）</h3>
+<ul class="rules">
+  <li><strong>偵測時機</strong>：Session 還原時（offcanvas click 或 sessionId URL 還原），server 回傳 session record 後，client 端立刻 diff <code>session.question_json.problem_statement</code> vs <code>QUESTION_BY_ID[question_id].problem_statement</code>（normalize whitespace）。如果不同，<code>AppState.circlesStale = true</code>。</li>
+  <li><strong>顯示永遠走 snapshot</strong>：所有題目 UI（題目卡、商業背景、用戶輪廓、教練示範等）一律從 <code>AppState.circlesSelectedQuestion</code>（= session.question_json）讀，<strong>禁止</strong>用 <code>QUESTION_BY_ID[id]</code> fresh lookup。</li>
+  <li><strong>後端 server-side AI</strong>：gate / evaluate / chat / coach / hint / final-report — 全部從 session record 拉 <code>question_json</code> 當 prompt context（已是 contract，但需要 jest test 覆蓋）。</li>
+  <li><strong>UI 鎖定</strong>：<code>AppState.circlesStale === true</code> 時，phase 1 form readonly、phase 2 input disabled、bottom action bar 簡化為「回首頁」。phase 3 評分頁正常顯示（read-only）。</li>
+  <li><strong>Banner</strong>：<code>.stale-banner</code> 出現在 <code>.circles-nav</code> 之後。<code>--c-warn-bg</code> 底色、<code>ph-warning-octagon</code> icon。</li>
+  <li><strong>「查看新版題目」</strong>：點下去 <code>navigate('circles')</code> 到題目選擇頁，並 <code>?question=&lt;id&gt;</code> 預選新版題（不影響舊 session 紀錄）。</li>
+  <li><strong>Audit script</strong>：新增 <code>scripts/audit-stale-sessions.js</code> — 掃 DB 列出所有 question_json 與當前 DB drift 的 session id（給營運觀察用，不刪資料）。</li>
+  <li><strong>Test</strong>：jest 測 stale 偵測 + snapshot 顯示（mock session record with old snapshot vs current DB），Playwright 跑 stale session 流程。</li>
+</ul>
+
+</body>
+</html>
