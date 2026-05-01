@@ -3701,6 +3701,7 @@ function renderCirclesPhase2() {
   var q = AppState.circlesSelectedQuestion;
   var mode = AppState.circlesMode;
   var stepKey = AppState.circlesDrillStep;
+  var isLocked = isStepLocked(stepKey, AppState.circlesStepScores);
   var stepIdx = CIRCLES_STEPS.findIndex(function(s) { return s.key === stepKey; });
   var step = CIRCLES_STEPS[stepIdx];
   var conv = AppState.circlesConversation;
@@ -3789,11 +3790,12 @@ function renderCirclesPhase2() {
     '</div>';
   } else {
     // Normal input bar (states 1 & 2). Submit row only shown when turns ≥ 3 (state 2)
+    // SP1.5 B1 — locked: input + send button disabled, submit row suppressed
     bottomSection = '<div class="circles-input-bar" id="circles-input-bar">' +
-      '<textarea class="circles-input" id="circles-msg-input" placeholder="輸入你的問題..." rows="1"></textarea>' +
-      '<button class="circles-send-btn" id="circles-send-btn"><i class="ph ph-paper-plane-tilt"></i></button>' +
+      '<textarea class="circles-input' + (isLocked ? ' locked' : '') + '" id="circles-msg-input" placeholder="' + (isLocked ? '此步驟已評分，無法繼續對話' : '輸入你的問題...') + '" rows="1"' + (isLocked ? ' disabled' : '') + '></textarea>' +
+      '<button class="circles-send-btn' + (isLocked ? ' disabled' : '') + '" id="circles-send-btn"' + (isLocked ? ' disabled' : '') + '><i class="ph ph-paper-plane-tilt"></i></button>' +
     '</div>' +
-    (turnCount >= 3
+    (turnCount >= 3 && !isLocked
       ? '<div class="circles-submit-row" id="circles-submit-row">' +
           '<button id="circles-submit-step" class="circles-submit-step-btn">對話足夠了，提交這個步驟</button>' +
         '</div>'

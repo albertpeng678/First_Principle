@@ -4749,3 +4749,16 @@ textarea.has-error {
   border-color: #c4bdae;
   cursor: not-allowed;
 }
+
+/* SP1.5 B1 — locked chat input (already-graded read-only) */
+[data-view="circles"] .circles-input.locked,
+[data-view="circles"] .circles-input[disabled] {
+  background: var(--c-locked-bg);
+  color: var(--c-text-3);
+  cursor: not-allowed;
+}
+[data-view="circles"] .circles-send-btn[disabled],
+[data-view="circles"] .circles-send-btn.disabled {
+  background: var(--c-primary-dim);
+  cursor: not-allowed;
+}
