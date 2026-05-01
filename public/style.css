@@ -2115,13 +2115,35 @@ body { -webkit-font-smoothing: antialiased; }
   flex-shrink: 0;
 }
 
+/* MASTER-003 (2026-05-01) — conclusion box becomes a flex column scroll
+   container with sticky action row at bottom. The rt-field absorbs flex
+   space so the textarea grows/scrolls inside instead of pushing the action
+   row out of the fold. */
 .circles-conclusion-box {
   border-top: 2px solid var(--c-primary);
   background: #fff;
   padding: 14px 14px 0;             /* bottom padding moved to .conclusion-actions */
   flex-shrink: 0;
+  display: flex;
+  flex-direction: column;
+  max-height: calc(100dvh - 200px); /* leave room for navbar / progress / context bar */
+  overflow: hidden;
+}
+.circles-conclusion-box > .conclusion-title,
+.circles-conclusion-box > .conclusion-sub,
+.circles-conclusion-box > .conclusion-example-block,
+.circles-conclusion-box > #circles-conclusion-hint {
+  flex: 0 0 auto;
+}
+.circles-conclusion-box > .rt-field {
+  flex: 1 1 auto;
+  min-height: 0;
   overflow-y: auto;
-  max-height: 65vh;
+}
+@media (min-width: 1024px) {
+  .circles-conclusion-box {
+    max-height: calc(100dvh - 240px);
+  }
 }
 /* Spec 2026-04-30 — C1 sticky-bottom action row. On shorter desktop heights
    the textarea + 確認提交 / ← 繼續對話 row could fall below the visible scroll
@@ -2131,12 +2153,51 @@ body { -webkit-font-smoothing: antialiased; }
   position: sticky;
   bottom: 0;
   margin: 8px -14px 0;
-  padding: 10px 14px 14px;
-  background: #fff;
-  border-top: 1px solid var(--c-border);
+  padding: 12px 14px calc(14px + env(safe-area-inset-bottom));
+  background: var(--c-bg-1, #fff);
+  border-top: 1px solid var(--c-border, #e5e7eb);
   display: flex;
   gap: 8px;
   justify-content: flex-end;
+  z-index: 10;
+  box-shadow: 0 -2px 8px rgba(0, 0, 0, 0.04);
+  flex: 0 0 auto;
+}
+
+/* MASTER-002 (2026-05-01) — generic flex-column scroll container with
+   sticky action row at bottom. Used by .circles-q-card-expand-area so the
+   "確認，開始練習" / "取消" pair stays inside the fold on iPhone-SE. */
+.scroll-container {
+  display: flex;
+  flex-direction: column;
+}
+.scroll-container > .scroll-body {
+  flex: 1 1 auto;
+  min-height: 0;
+  overflow-y: auto;
+  padding-bottom: 8px;
+}
+.scroll-container > .action-row {
+  position: sticky;
+  bottom: 0;
+  background: var(--c-bg-1, #fff);
+  border-top: 1px solid var(--c-bg-3, #e5e7eb);
+  padding: 12px 16px calc(12px + env(safe-area-inset-bottom));
+  display: flex;
+  gap: 8px;
+  align-items: center;
+  z-index: 10;
+  box-shadow: 0 -2px 8px rgba(0, 0, 0, 0.04);
+  flex: 0 0 auto;
+}
+/* Expand area participates in page-level scroll: the action row pins to the
+   bottom of the viewport (via the page's scrolling ancestor) so 確認/取消
+   stay reachable on iPhone-SE without trapping scroll inside the card. */
+.circles-q-card-expand-area.scroll-container {
+  /* keep max-height as a soft cap to avoid the card eating the entire fold
+     on very tall content, but DO NOT clip overflow so sticky binds to the
+     page scroll ancestor, not the card itself. */
+  max-height: none;
 }
 
 /* Phase 2 — 回首頁 button in nav */

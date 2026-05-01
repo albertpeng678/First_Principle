@@ -1689,13 +1689,15 @@ function renderQCardHtml(q) {
     '<div class="circles-q-card-more-wrap">' +
       '<span class="circles-q-card-more">看完整題目 ▾</span>' +
     '</div>' +
-    '<div class="circles-q-card-expand-area" style="display:none">' +
-      '<div class="circles-q-card-full-block">' +
-        '<div class="circles-q-card-full-label">完整題目</div>' +
-        '<div class="circles-q-card-full-text">' + escHtml(q.problem_statement || '') + '</div>' +
+    '<div class="circles-q-card-expand-area scroll-container" style="display:none">' +
+      '<div class="scroll-body">' +
+        '<div class="circles-q-card-full-block">' +
+          '<div class="circles-q-card-full-label">完整題目</div>' +
+          '<div class="circles-q-card-full-text">' + escHtml(q.problem_statement || '') + '</div>' +
+        '</div>' +
+        drillPracticeHtml +
       '</div>' +
-      drillPracticeHtml +
-      '<div style="display:flex;align-items:center;gap:8px;margin-top:10px">' +
+      '<div class="action-row">' +
         '<button class="circles-q-confirm-btn">確認，開始練習</button>' +
         '<button class="circles-q-cancel-btn">取消</button>' +
       '</div>' +
@@ -1710,8 +1712,18 @@ function expandQCard(card) {
   var moreWrap = card.querySelector('.circles-q-card-more-wrap');
   if (moreWrap) moreWrap.style.display = 'none';
   var expandArea = card.querySelector('.circles-q-card-expand-area');
-  if (expandArea) expandArea.style.display = 'block';
+  if (expandArea) expandArea.style.display = 'flex';
   card.style.borderColor = 'var(--c-primary)';
+  // MASTER-002 — bring the sticky action row into view on small viewports so
+  // 確認，開始練習 / 取消 are reachable without manual scroll.
+  setTimeout(function() {
+    try {
+      var actionRow = card.querySelector('.circles-q-card-expand-area .action-row');
+      if (actionRow && typeof actionRow.scrollIntoView === 'function') {
+        actionRow.scrollIntoView({ block: 'end', inline: 'nearest', behavior: 'auto' });
+      }
+    } catch (e) { /* noop */ }
+  }, 50);
   // AUD-053 — emit a transient loading hint so users / a11y see the transition starting
   var hint = document.createElement('div');
   hint.className = 'circles-loading-hint loading';
@@ -3668,6 +3680,21 @@ function bindCirclesPhase2() {
     window.visualViewport.addEventListener('resize', _adjustCirclesKbFn);
     window.visualViewport.addEventListener('scroll', _adjustCirclesKbFn);
     _adjustCirclesKbFn();
+  }
+
+  // MASTER-003 — when conclusion box is expanded, ensure its bottom edge
+  // (where the sticky action row is pinned) sits inside the viewport. On
+  // iPhone-SE / shorter desktops the box would otherwise render below the
+  // fold and the sticky row would pin to its off-screen bottom.
+  if (AppState.circlesSubmitState === 'expanded') {
+    setTimeout(function() {
+      try {
+        var box = document.getElementById('circles-conclusion-box');
+        if (box && typeof box.scrollIntoView === 'function') {
+          box.scrollIntoView({ block: 'end', inline: 'nearest', behavior: 'auto' });
+        }
+      } catch (e) { /* noop */ }
+    }, 50);
   }
 
   // Back button
