@@ -110,7 +110,7 @@ consolidation that every row has at least one piece of evidence
 - F4. **繼續對話** stays in Phase 2; **進入下一階段** runs `POST /:id/conclusion-check` then advances.
 
 ### G. CIRCLES Phase 3 — per-step score
-- G1. `POST /:id/evaluate-step` → score breakdown card; radar chart (`renderRadar`) renders.
+- G1. `POST /:id/evaluate-step` → score breakdown card with `circles-dim-row` horizontal bars (radar 保留給 Phase-4 final report only)。
 - G2. Re-evaluate path works (no stale render).
 - G3. Simulation only: score nav `◀` / `▶` switches displayed score for prev/next step using the in-memory cache without re-fetching.
 
@@ -199,8 +199,8 @@ Use `subagent_type: "general-purpose"` for each. Identical prompt template, with
 | step-i  | I  | I | 定義用戶 | 目標用戶分群 / 選定焦點對象 / 用戶動機假設 / 排除對象 |
 | step-r  | R  | R | 發掘需求 | 功能性需求 / 情感性需求 / 社交性需求 / 核心痛點 |
 | step-c2 | C2 | C | 優先排序 | 取捨標準 / 最優先項目 / 暫緩項目 / 排序理由 |
-| step-l  | L  | L | 提出方案 | 方案一 / 方案二 / 方案三（可選）/ 各方案特性 |
-| step-e  | E  | E | 評估取捨 | 方案優點 / 方案缺點 / 風險與依賴 / 成功指標 |
+| step-l  | L  | L | 提出方案 | 方案一 / 方案二 / 方案三（可選）— 各方案特性在 step E 拆 4 子欄位 |
+| step-e  | E  | E | 評估取捨 | 優點 / 缺點 / 風險與依賴 / 成功指標（每方案各一組） |
 | step-s  | S  | S | 總結推薦 | 推薦方案 / 選擇理由 / 北極星指標 / 追蹤指標 (含 4-dim tracking-block) |
 | step-nsm | NSM | — | NSM 工作坊 | 情境 / 指標 / 拆解 (4 dim) / 總結 |
 

@@ -4,9 +4,10 @@
 - Source agents: 10 (8 step coverage + 2 UI/UX auditors)
 - Raw findings ingested: ~50 issues across logs
 - Deduped MASTER entries: 24
-- **Counts: P0:7 / P1:13 / P2:4**
+- **Original counts: P0:7 / P1:13 / P2:4**
+- **Wave A 結束狀態 (2026-05-01): 9 個 issue closed (M-001/006/009/011/012/015/019/020/021)，3 個 triage 結為 doc-only (M-007/017/018)，DOC drift 3 處已修。剩 12 個 P0/P1 進 Wave B。**
 - Test director: main thread
-- Status: OPEN
+- Status: WAVE A 完成 — 進 Wave B（M-002/003/004/005/008/013/014）
 - Baseline Playwright (pre-fix): 434 passed / 0 failed / 292 skipped (from journeys/audit/, 16.6 m)
 - Single regression observed: `AUD-026 [P1] offcanvas empty skeleton` on iPhone-14 (intermittent — see MASTER-019)
 
