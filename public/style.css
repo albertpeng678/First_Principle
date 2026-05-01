@@ -1496,6 +1496,14 @@ body { -webkit-font-smoothing: antialiased; }
   color: var(--c-text);
   font-weight: 400;
 }
+/* Wave D fix-D2 (D-4): the unnamed middle <div> in .circles-nav that holds
+   .circles-nav-title + .circles-nav-sub takes remaining space so the home
+   icon (margin-left:auto) sits on the right edge without overlapping text.
+   Min-width:0 lets long titles ellipsize cleanly. */
+[data-view="circles"] .circles-nav > div:not(.circles-nav-right) {
+  flex: 1 1 auto;
+  min-width: 0;
+}
 [data-view="circles"] .circles-nav-sub {
   font-size: 11px;
   color: var(--c-text-3);
@@ -4255,17 +4263,21 @@ textarea.rt-textarea {
   min-height: 44px;
   padding: 0;
   border: none;
-  background: transparent;
+  /* Wave D fix-D2 (D-4): give the icon a soft circular surface so it reads as
+     a tappable button against the white nav bar instead of looking like a
+     loose glyph. margin-left:auto keeps it pinned to the right edge. */
+  background: var(--c-surface, #f3f4f6);
   cursor: pointer;
   display: inline-flex;
   align-items: center;
   justify-content: center;
   color: var(--text-primary, #1f2937);
-  border-radius: 8px;
+  border-radius: 50%;
   transition: background 0.15s ease;
   flex-shrink: 0;
+  margin-left: auto;
 }
-.btn-home-icon:hover { background: var(--bg-surface-2, #f3f4f6); }
+.btn-home-icon:hover { background: var(--bg-surface-2, #e5e7eb); }
 .btn-home-icon:focus-visible { outline: 2px solid var(--c-primary, #5b21b6); outline-offset: 2px; }
 .btn-home-icon i { font-size: 22px; line-height: 1; }
 
@@ -4461,5 +4473,72 @@ a.btn:focus-visible {
   min-height: 44px;
   display: inline-flex;
   align-items: center;
+}
+
+/* ─────────────────────────────────────────────────────────────
+   Wave D fix-D2 (D-3) — drill 完成鼓勵卡
+   出現於 drill mode 評分結果頁，鼓勵使用者再練 / 回首頁挑下一題。
+   ───────────────────────────────────────────────────────────── */
+.drill-encourage-card {
+  margin: 16px 0;
+  padding: 16px;
+  background: linear-gradient(135deg, #fef3c7 0%, #fde68a 100%);
+  border: 1px solid #fcd34d;
+  border-radius: 12px;
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+  font-family: var(--c-font-sans);
+}
+.drill-encourage-card .drill-encourage-icon {
+  font-size: 28px;
+  line-height: 1;
+  color: #b45309;
+}
+.drill-encourage-card .drill-encourage-icon i { font-size: 28px; }
+.drill-encourage-card .drill-encourage-title {
+  font-size: 16px;
+  font-weight: 600;
+  color: #78350f;
+  margin-bottom: 4px;
+}
+.drill-encourage-card .drill-encourage-desc {
+  font-size: 13px;
+  color: #92400e;
+  line-height: 1.55;
+}
+.drill-encourage-card .drill-encourage-actions {
+  display: flex;
+  gap: 8px;
+  flex-wrap: wrap;
+}
+.drill-encourage-card .drill-encourage-actions button { flex: 1 1 140px; }
+
+/* ─────────────────────────────────────────────────────────────
+   Wave D fix-D2 (D-4) — home icon visual chrome overrides
+   The Wave B token block ([data-view="circles"] #circles-p1-home, ...,
+   .btn-home-icon, ...) sets border-radius:8px which steamrolls .btn-home-icon's
+   50% rule on cascade order at equal specificity. These selectors raise
+   specificity (id-based or [data-view]-based) to win unambiguously.
+   ───────────────────────────────────────────────────────────── */
+[data-view="circles"] #circles-p1-home,
+[data-view="circles"] #circles-p2-home,
+[data-view="circles"] #circles-gate-home,
+[data-view="circles"] #circles-score-home,
+[data-view="circles"] #circles-score-home-btn,
+[data-view="circles"] #circles-final-home,
+#btn-nsm-home-nav {
+  border-radius: 50%;
+  margin-left: auto;
+  background: var(--c-surface, #f3f4f6);
+}
+[data-view="circles"] #circles-p1-home:hover,
+[data-view="circles"] #circles-p2-home:hover,
+[data-view="circles"] #circles-gate-home:hover,
+[data-view="circles"] #circles-score-home:hover,
+[data-view="circles"] #circles-score-home-btn:hover,
+[data-view="circles"] #circles-final-home:hover,
+#btn-nsm-home-nav:hover {
+  background: var(--bg-surface-2, #e5e7eb);
 }
 
