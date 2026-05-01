@@ -107,6 +107,14 @@
   --c-banner-info-bg: #EEF3FF;
   --c-banner-info-border: #C5D5FF;
   --c-text-1: var(--c-text);
+
+  /* SP1 — block padding tokens */
+  --pad-block: 14px;
+  --pad-block-tablet: 18px;
+  --pad-block-desktop: 22px;
+  /* SP1 — radius tokens */
+  --r-input: 8px;
+  --r-pill: 999px;
 }
 
 body, button, input, textarea, select, p, div, span {
