@@ -97,10 +97,14 @@ async function main() {
   if (fs.existsSync(jsPath)) {
     try {
       const jsContent = fs.readFileSync(jsPath, 'utf8');
-      // Extract JSON from: var CIRCLES_QUESTIONS = [...];
-      const match = jsContent.match(/var\s+CIRCLES_QUESTIONS\s*=\s*(\[.*\]);?$/ms);
-      if (match) {
-        existingQuestions = JSON.parse(match[1]);
+      // Sandbox eval to safely extract CIRCLES_QUESTIONS (avoids greedy regex pitfall)
+      // This is robust when the file has multiple var declarations (CIRCLES_STEPS, CIRCLES_STEP_CONFIG, etc.)
+      const sandbox = { CIRCLES_QUESTIONS: [], CIRCLES_STEPS: [], CIRCLES_STEP_CONFIG: {} };
+      const fn = new Function('CIRCLES_QUESTIONS', 'CIRCLES_STEPS', 'CIRCLES_STEP_CONFIG',
+        jsContent + '\nreturn CIRCLES_QUESTIONS;');
+      existingQuestions = fn(sandbox.CIRCLES_QUESTIONS, sandbox.CIRCLES_STEPS, sandbox.CIRCLES_STEP_CONFIG) || [];
+
+      if (Array.isArray(existingQuestions) && existingQuestions.length > 0) {
         existingQuestions.forEach(q => {
           existingById[q.id] = q;
           // Always recompute traps since common_wrong_directions may have changed
@@ -156,7 +160,12 @@ async function main() {
         }
         allQuestions = allQuestions.concat(merged);
         if (questions.length !== toGenerate.length) {
-          console.warn(`  WARNING: requested ${toGenerate.length}, got ${questions.length}`);
+          console.warn(`  ⚠️  WARNING: requested ${toGenerate.length}, got ${questions.length} (advancing currentId by actual generated count)`);
+          // Advance only by the actual number of questions generated
+          currentId += questions.length;
+        } else {
+          // All requested questions were returned, advance normally
+          currentId += batchCount;
         }
       } else {
         // All questions in this batch are already analyzed, skip generation
@@ -165,9 +174,9 @@ async function main() {
           skipped.push(existingById[qid]);
         }
         allQuestions = allQuestions.concat(skipped);
+        currentId += batchCount;
       }
 
-      currentId += batchCount;
       const skipInfo = toSkip.length > 0 ? ` (skipped ${toSkip.length} existing)` : '';
       console.log(`  Generated/skipped ${batchCount}${skipInfo} (total: ${allQuestions.length})`);
     }
