@@ -4791,7 +4791,6 @@ textarea.has-error {
 :root {
   --c-warn-bg: #fef3c7;
   --c-warn-border: #f5d77a;
-  --c-warn-bold: #b8860b;
 }
 [data-view="circles"] .stale-banner {
   background: var(--c-warn-bg);

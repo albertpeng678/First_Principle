@@ -949,6 +949,7 @@ async function navigate(view) {
     AppState.circlesPhase = 1;
     AppState.circlesChipExpanded = false;
     AppState.circlesSelectedQuestion = null;
+    AppState.circlesStale = false;
     AppState.circlesFrameworkDraft = {};
     AppState.circlesStepDrafts = {};
     AppState.circlesGateResult = null;
@@ -1030,6 +1031,7 @@ function renderNavbar() {
   if (brandBtn) brandBtn.onclick = () => {
     AppState.circlesSession = null;
     AppState.circlesSelectedQuestion = null;
+    AppState.circlesStale = false;
     AppState.circlesPhase = 1;
     AppState.circlesChipExpanded = false;
     AppState.circlesFrameworkDraft = {};
@@ -2621,6 +2623,7 @@ function bindCirclesHome() {
           mainEl.appendChild(loader);
         }
         AppState.circlesSelectedQuestion = question;
+        AppState.circlesStale = false;
         AppState.circlesSession = null;
         AppState.circlesPhase = 1;
         AppState.circlesChipExpanded = false;
@@ -3168,8 +3171,15 @@ function bindCirclesPhase1() {
     navigate('circles');
   }
   document.getElementById('circles-p1-nav-back')?.addEventListener('click', backToHome);
-  // SP1.5 Q3 — stale-mode 回首頁
+  // SP1.5 Q3 — stale-mode 回首頁 (clear all CIRCLES state to prevent leakage)
   document.getElementById('circles-stale-home')?.addEventListener('click', function() {
+    AppState.circlesStale = false;
+    AppState.circlesSelectedQuestion = null;
+    AppState.circlesSession = null;
+    AppState.circlesConversation = [];
+    AppState.circlesFrameworkDraft = {};
+    AppState.circlesStepScores = {};
+    AppState.circlesScoreResult = null;
     navigate('home');
   });
   // SP1.5 B1 — when locked, #circles-p1-back means 回評分 (phase 3); else 返回選題.
@@ -3923,8 +3933,15 @@ function toggleCoachHint(btn) {
 
 function bindCirclesPhase2() {
   bindPersistentQuestionChip(document.querySelector('[data-view="circles"]'));
-  // SP1.5 Q3 — stale-mode 回首頁
+  // SP1.5 Q3 — stale-mode 回首頁 (clear all CIRCLES state to prevent leakage)
   document.getElementById('circles-stale-home')?.addEventListener('click', function() {
+    AppState.circlesStale = false;
+    AppState.circlesSelectedQuestion = null;
+    AppState.circlesSession = null;
+    AppState.circlesConversation = [];
+    AppState.circlesFrameworkDraft = {};
+    AppState.circlesStepScores = {};
+    AppState.circlesScoreResult = null;
     navigate('home');
   });
   // Keyboard avoidance (unchanged)
@@ -4336,7 +4353,10 @@ function renderCirclesStepScore() {
 
   // Bottom submit-bar variants
   var submitBar;
-  if (mode === 'simulation' && isLastStep) {
+  if (AppState.circlesStale) {
+    // Stale snapshot — suppress action buttons; user must return home to start fresh.
+    submitBar = '<button class="circles-btn-primary" id="circles-score-home" type="button">回首頁</button>';
+  } else if (mode === 'simulation' && isLastStep) {
     submitBar =
       homeIconBtn('circles-score-home') +
       '<button class="circles-btn-primary" id="circles-score-final">看完整總結報告</button>';

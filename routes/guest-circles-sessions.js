@@ -28,7 +28,8 @@ router.get('/', requireGuestId, async (req, res) => {
   if (req.query.status) query = query.eq('status', req.query.status);
   const { data, error } = await query;
   if (error) return res.status(500).json({ error: error.message });
-  res.json(data || []);
+  const enriched = (data || []).map(d => ({ ...d, currentQuestion: QUESTION_BY_ID[d.question_id] || null }));
+  res.json(enriched);
 });
 
 // POST /api/guest-circles-sessions/draft — Lazy-create endpoint (Spec 2 § 3.1)
