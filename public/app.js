@@ -3356,38 +3356,20 @@ function bindCirclesPhase1() {
     var _filled = _fieldEls.filter(function(el) { return (el.value || '').trim().length > 0; });
     var _MIN = 2;
     if (_fieldEls.length > 0 && _filled.length < _MIN) {
-      var existingErr = document.getElementById('circles-p1-preflight-err');
-      if (existingErr) existingErr.remove();
-      var errEl = document.createElement('div');
-      errEl.id = 'circles-p1-preflight-err';
-      errEl.className = 'circles-form-error-card';
-      errEl.setAttribute('role', 'alert');
-      // AUD-019 — name the missing fields and mark them aria-invalid.
+      // SP1-T7 — field-level red border replaces the old error bar card.
+      // Clear stale has-error state first, then mark each empty field.
+      _fieldEls.forEach(function(el) { el.classList.remove('has-error'); });
       var emptyFields = _fieldEls.filter(function(el) { return !(el.value || '').trim(); });
-      var emptyLabels = emptyFields.map(function(el) {
-        return (el.getAttribute('data-field') || el.getAttribute('aria-label') || '').trim();
-      }).filter(Boolean);
-      var uniqLabels = Array.from(new Set(emptyLabels)).slice(0, 4);
-      emptyFields.forEach(function(el) { el.setAttribute('aria-invalid', 'true'); });
-      var emptyCount = emptyFields.length;
-      var labelHtml = uniqLabels.length
-        ? '<span style="font-size:11px;color:#7f1d1d">' + uniqLabels.map(function(s) {
-            return String(s).replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;');
-          }).join(' · ') + '</span>'
-        : '';
-      errEl.innerHTML = '<i class="ph ph-warning"></i> <strong>還有 ' + emptyCount + ' 個欄位需要填寫</strong>'
-        + (labelHtml ? '<br>' + labelHtml : '');
-      // D-2 — insert err card 進 submit-bar 上方（同層父 container），不在 flex row 內。
-      var submitBar = document.querySelector('.circles-submit-bar');
-      if (submitBar && submitBar.parentNode) {
-        submitBar.parentNode.insertBefore(errEl, submitBar);
-      } else {
-        btn.parentNode && btn.parentNode.insertBefore(errEl, btn);
-      }
+      emptyFields.forEach(function(el) {
+        el.classList.add('has-error');
+        el.setAttribute('aria-invalid', 'true');
+      });
       var firstEmpty = emptyFields[0];
       if (firstEmpty) firstEmpty.focus();
       return;
     }
+    // Clear any has-error state from a previous failed preflight before proceeding.
+    _fieldEls.forEach(function(el) { el.classList.remove('has-error'); el.removeAttribute('aria-invalid'); });
 
     btn.disabled = true;
     btn.textContent = 'AI 審核中...';
