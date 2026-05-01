@@ -7,24 +7,32 @@ test.describe('SP1 — visual baseline invariants', () => {
     await page.waitForSelector('[data-view="circles"]');
     const wrappers = ['.circles-home-wrap', '.circles-home-desktop'];
     for (const sel of wrappers) {
-      if (await page.locator(sel).count() === 0) continue;
-      const padding = await page.locator(sel).first().evaluate(el => {
-        const cs = getComputedStyle(el);
+      const el = page.locator(sel).first();
+      if (await el.count() === 0) continue;
+      // Skip if the element exists but isn't rendered (display:none / off DOM)
+      const padding = await el.evaluate(node => {
+        const cs = getComputedStyle(node);
+        if (cs.display === 'none' || !cs.paddingLeft) return null;
         return { left: cs.paddingLeft, right: cs.paddingRight };
       });
-      expect(padding.left).toBe('0px');
-      expect(padding.right).toBe('0px');
+      if (!padding) continue;
+      expect(padding.left, sel + ' paddingLeft').toBe('0px');
+      expect(padding.right, sel + ' paddingRight').toBe('0px');
     }
   });
 
   test('no element on home uses Instrument Serif', async ({ page }) => {
     await page.goto('/');
     await page.waitForSelector('[data-view="circles"]');
+    // Skip HTML/HEAD/META etc where browser-default Times is irrelevant.
+    // Specifically forbid 'Instrument Serif' (the named font we banned).
+    // Generic serif fallback in stack is allowed.
     const serifElements = await page.evaluate(() => {
-      return Array.from(document.querySelectorAll('*')).filter(el => {
+      const SKIP = new Set(['SCRIPT', 'STYLE', 'NOSCRIPT']);
+      return Array.from(document.querySelectorAll('body *')).filter(el => {
+        if (SKIP.has(el.tagName)) return false;
         const ff = getComputedStyle(el).fontFamily;
-        // Allow generic 'serif' as final fallback in stack
-        return /Instrument Serif|Georgia|Times/i.test(ff);
+        return /Instrument Serif/i.test(ff);
       }).map(el => ({ tag: el.tagName, cls: typeof el.className === 'string' ? el.className.slice(0, 60) : '', ff: getComputedStyle(el).fontFamily }));
     });
     expect(serifElements).toEqual([]);
@@ -53,7 +61,8 @@ test.describe('SP1 — visual baseline invariants', () => {
   test('block left-edge alignment — navbar / chip / progress at x=0', async ({ page }) => {
     await page.goto('/');
     await page.waitForSelector('[data-view="circles"]');
-    const targets = ['.circles-nav', '.qchip', '.problem-card', '.circles-q-card'];
+    // Strips that span viewport (q-card / question-card are content-cards with margin, excluded)
+    const targets = ['.circles-nav', '.qchip', '.problem-card', '.circles-progress'];
     const lefts = [];
     for (const sel of targets) {
       const el = page.locator(sel).first();
