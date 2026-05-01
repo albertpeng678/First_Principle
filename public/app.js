@@ -237,7 +237,7 @@ var CIRCLES_STEPS = [
 var CIRCLES_STEP_CONFIG = {
   C1: {
     label: 'C — 澄清情境',
-    progressLabel: 'C · 澄清情境 · 1/7',
+    progressLabel: 'C · 澄清情境 · 第 1 步 / 共 7 步',
     fields: [
       { key: '問題範圍', placeholder: '例：聚焦免費版的廣告體驗，排除付費方案。建議 2-3 句。', rows: 2,
         hintOverlay: '先把題目的問題本身定義清楚——它的具體類型是什麼（行為層／情感層／系統層）？涵蓋哪些功能或場景？哪些明確排除？沒釐清這層，後面的分析會在錯的邊界上展開。' },
@@ -255,7 +255,7 @@ var CIRCLES_STEP_CONFIG = {
   },
   I: {
     label: 'I — 定義用戶',
-    progressLabel: 'I · 定義用戶 · 2/7',
+    progressLabel: 'I · 定義用戶 · 第 2 步 / 共 7 步',
     fields: [
       { key: '目標用戶分群', placeholder: '說明你如何劃分用戶群…', rows: 2,
         hintOverlay: '用「同一把尺」切 2-4 群（依行為、使用頻率、或場景）。不要混用兩種維度，例如「新手 vs. 老手」和「付費 vs. 免費」要選一個。分群越具體，後面選焦點時越有理由。' },
@@ -273,7 +273,7 @@ var CIRCLES_STEP_CONFIG = {
   },
   R: {
     label: 'R — 發掘需求',
-    progressLabel: 'R · 發掘需求 · 3/7',
+    progressLabel: 'R · 發掘需求 · 第 3 步 / 共 7 步',
     fields: [
       { key: '功能性需求', placeholder: '描述用戶要完成的具體任務與功能需求…', rows: 2,
         hintOverlay: '想清楚焦點用戶在具體場景下要「做到什麼」——他要完成什麼任務？目前產品做不到的卡點在哪裡？場景越具體，需求越好分析。避免「更好的體驗」這種空話。' },
@@ -291,7 +291,7 @@ var CIRCLES_STEP_CONFIG = {
   },
   C2: {
     label: 'C — 優先排序',
-    progressLabel: 'C · 優先排序 · 4/7',
+    progressLabel: 'C · 優先排序 · 第 4 步 / 共 7 步',
     fields: [
       { key: '取捨標準', placeholder: '建立可操作的取捨判斷框架…', rows: 2,
         hintOverlay: '取捨標準是「排序方案」的可操作框架，不是「什麼比較重要」的口號。最好寫成「以 A 為硬性約束，在此前提下最大化 B」這種可比較形式。沒顯性標準，後面排序就站不住腳。' },
@@ -309,7 +309,7 @@ var CIRCLES_STEP_CONFIG = {
   },
   L: {
     label: 'L — 提出方案',
-    progressLabel: 'L · 提出方案 · 5/7',
+    progressLabel: 'L · 提出方案 · 第 5 步 / 共 7 步',
     fields: [
       { key: '方案一', placeholder: '說明方案一的核心機制…', rows: 2, kind: 'solution', solKey: 'sol1',
         nameKey: 'sol1', namePlaceholder: '方案名稱（10 字內）',
@@ -328,7 +328,7 @@ var CIRCLES_STEP_CONFIG = {
   },
   E: {
     label: 'E — 評估取捨',
-    progressLabel: 'E · 評估取捨 · 6/7',
+    progressLabel: 'E · 評估取捨 · 第 6 步 / 共 7 步',
     kind: 'per-solution',
     showPrevStepCard: true,
     perSolutionFields: [
@@ -348,7 +348,7 @@ var CIRCLES_STEP_CONFIG = {
   },
   S: {
     label: 'S — 總結推薦',
-    progressLabel: 'S · 總結推薦 · 7/7',
+    progressLabel: 'S · 總結推薦 · 第 7 步 / 共 7 步',
     showPrevStepCard: true,
     showNsmAnnotation: true,
     fields: [
@@ -2261,6 +2261,25 @@ function renderCirclesHomeDesktop() {
     '</div>' +
     welcomeHtmlD +
     bannerHtmlD +
+    // M-024-A — desktop 也展示 7 步驟 pill（與 mobile info card 對齊）
+    '<div class="circles-info-card" style="padding:0;overflow:hidden;margin-bottom:20px">' +
+      '<button onclick="toggleInfoCard(this)" style="width:100%;display:flex;align-items:center;justify-content:space-between;background:none;border:none;cursor:pointer;padding:12px 14px;text-align:left">' +
+        '<div class="circles-info-card-title" style="margin:0;font-size:13px">什麼是 CIRCLES 實戰訓練？</div>' +
+        '<i class="ph ph-caret-right" id="info-card-icon" style="font-size:13px;color:var(--c-text-3);flex-shrink:0"></i>' +
+      '</button>' +
+      '<div id="info-card-body" style="display:none;padding:0 14px 14px">' +
+        '<div class="circles-info-card-sub">用結構化框架拆解 PM 設計面試題，模擬真實利害關係人訪談，並在每個步驟收到 AI 教練評分與回饋。</div>' +
+        '<div class="circles-info-steps">' +
+          '<span class="circles-info-step">C 澄清情境</span>' +
+          '<span class="circles-info-step">I 定義用戶</span>' +
+          '<span class="circles-info-step">R 發掘需求</span>' +
+          '<span class="circles-info-step">C 優先排序</span>' +
+          '<span class="circles-info-step">L 提出方案</span>' +
+          '<span class="circles-info-step">E 評估取捨</span>' +
+          '<span class="circles-info-step">S 總結推薦</span>' +
+        '</div>' +
+      '</div>' +
+    '</div>' +
     '<div class="ch-grid">' +
       // Left rail
       '<div class="left-rail">' +
@@ -2555,12 +2574,13 @@ function buildPrevStepCardHtml(stepKey) {
   } else {
     return '';
   }
-  return '<div class="prev-step-card">' +
-    '<button class="prev-step-toggle" type="button" data-prev-toggle="1">' +
+  // M-024-B — 預設折疊（mobile 上佔位太多；展開為使用者顯式行為）
+  return '<div class="prev-step-card" data-prev-card data-collapsed="true">' +
+    '<button class="prev-step-toggle" type="button" data-prev-toggle="1" aria-expanded="false">' +
       '<span class="prev-step-toggle-title"><i class="ph ph-clock-counter-clockwise"></i> 前步驟重點參考</span>' +
-      '<i class="ph ph-caret-down toggle-caret"></i>' +
+      '<i class="ph ph-caret-right toggle-caret"></i>' +
     '</button>' +
-    '<div class="prev-step-body">' +
+    '<div class="prev-step-body" style="display:none">' +
       rows.map(function(r) {
         return '<div class="prev-step-row">' +
           '<span class="prev-step-label">' + r.label + '</span>' +
@@ -3165,7 +3185,7 @@ function bindCirclesPhase1() {
     });
   });
 
-  // ── Prev-step-card toggle (E and S steps only)
+  // ── Prev-step-card toggle (E and S steps only); default collapsed (M-024-B)
   document.querySelectorAll('[data-prev-toggle]').forEach(function(btn) {
     btn.addEventListener('click', function() {
       var body = btn.nextElementSibling;
@@ -3174,6 +3194,9 @@ function bindCirclesPhase1() {
       body.style.display = open ? 'none' : 'block';
       var caret = btn.querySelector('.toggle-caret');
       if (caret) caret.className = open ? 'ph ph-caret-right toggle-caret' : 'ph ph-caret-down toggle-caret';
+      btn.setAttribute('aria-expanded', open ? 'false' : 'true');
+      var card = btn.closest('.prev-step-card');
+      if (card) card.setAttribute('data-collapsed', open ? 'true' : 'false');
     });
   });
 
@@ -4673,7 +4696,7 @@ function renderAuth(isLogin) {
             </div>
           </div>
           <p style="margin:0 0 16px;text-align:right">
-            <a href="#" id="forgot-password-link" style="font-size:0.85rem;color:var(--c-primary);text-decoration:none">忘記密碼？</a>
+            <a href="#" id="forgot-password-link" style="font-size:12px;color:var(--c-text-3);text-decoration:none">忘記密碼？</a>
           </p>
           <p id="auth-error" style="color:var(--danger);font-size:0.85rem;margin-bottom:12px;display:none"></p>
           <button type="submit" class="btn btn-primary" style="width:100%">${isLogin?'登入':'建立帳號'}</button>
