@@ -103,7 +103,7 @@ function renderLockedBanner(stepKey, stepScores) {
   var score = stepScores[stepKey].totalScore;
   return '<div class="locked-banner">' +
     '<i class="ph ph-lock-key"></i> 此步驟已評分，無法再修改' +
-    '<span class="score-pill">' + escHtml(score) + ' 分</span>' +
+    '<span class="score-pill">' + Math.round(score || 0) + ' 分</span>' +
   '</div>';
 }
 
