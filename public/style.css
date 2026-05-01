@@ -17,7 +17,7 @@
   /* Text */
   --c-text: #1F1D1B;             /* 暖深棕，比 #1a1a1a 更柔 */
   --c-text-2: #5a5046;
-  --c-text-3: #8a7e6f;
+  --c-text-3: #525252;             /* Wave B M-013 — AA 5.74:1 (was #8a7e6f) */
   --c-text-4: #a89d8e;
   /* SIT-7 F5: secondary text token w/ AA-compliant contrast against cream bg (~7:1 vs #F2F0EB) */
   --c-text-secondary: #5a5a5a;
@@ -79,6 +79,18 @@
      Mobile bar measured at ~71-88px; reserve 96px so the last form
      control is never covered. Desktop overrides to 64px below. */
   --circles-stickybar-pad: 96px;
+
+  /* Wave B 設計 token — M-008 觸控 / M-013 對比 / M-014 焦點環 */
+  --btn-touch-min: 44px;
+  --btn-pad-x: 16px;
+  --btn-pad-y: 10px;
+  --btn-radius: 8px;
+  --btn-font: 14px;
+  --c-chip-bg: #ede9fe;
+  --c-chip-text: #5b21b6;
+  --c-pill-active-bg: #ddd6fe;
+  --c-pill-active-text: #4c1d95;
+  --c-focus-ring: #7c3aed;
 }
 
 * { box-sizing: border-box; margin: 0; padding: 0; -webkit-tap-highlight-color: transparent; }
@@ -4198,4 +4210,82 @@ textarea.rt-textarea {
   margin-bottom: 12px;
 }
 @keyframes offc-spin { to { transform: rotate(360deg); } }
+
+/* ─────────────────────────────────────────────────────────────
+   Wave B — M-008 / M-013 / M-014 設計 token 套用 (放最後 cascade 覆蓋)
+   ───────────────────────────────────────────────────────────── */
+
+/* M-008 — base button sizing：所有可點擊主要按鈕 ≥44×44
+   注意：fix-targets.css 在後 cascade，且用 ID selector，本檔需以更高
+   specificity（[data-view] + #id 或 .class + #id）才能覆蓋。 */
+button.btn,
+button.btn-ghost,
+.circles-btn-primary,
+.circles-btn-secondary,
+.circles-btn-ghost,
+[data-view="circles"] .circles-q-confirm-btn,
+[data-view="circles"] .circles-q-cancel-btn,
+[data-view="circles"] .nsm-banner-btn,
+[data-view="circles"] #circles-nsm-banner-btn,
+[data-view="circles"] #circles-p1-home,
+[data-view="circles"] #circles-random-btn,
+.btn-home-icon,
+.s-step-tab,
+button#btn-export-png,
+button#btn-nsm-redefine {
+  min-height: var(--btn-touch-min);
+  min-width: var(--btn-touch-min);
+  padding: var(--btn-pad-y) var(--btn-pad-x);
+  border-radius: var(--btn-radius);
+  font-size: var(--btn-font);
+  box-sizing: border-box;
+}
+
+/* icon-only 按鈕保持正方且置中 */
+.btn-home-icon,
+.btn-icon {
+  padding: 0;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+}
+
+/* M-013 — chip / pill token 套色 (active 狀覆蓋預設) */
+[data-view="circles"] .circles-step-pill {
+  background: var(--c-chip-bg);
+  color: var(--c-chip-text);
+}
+[data-view="circles"] .circles-step-pill.active {
+  background: var(--c-pill-active-bg);
+  color: var(--c-pill-active-text);
+  border-color: var(--c-pill-active-text);
+}
+
+/* M-014 — focus-visible 統一 keyboard focus 視覺回饋 */
+.circles-q-card:focus-visible,
+.circles-mode-card:focus-visible,
+.circles-type-tab:focus-visible,
+.navbar-tab:focus-visible,
+.offcanvas-item:focus-visible,
+.history-item:focus-visible,
+button:focus-visible,
+a.btn:focus-visible {
+  outline: 2px solid var(--c-focus-ring);
+  outline-offset: 2px;
+}
+
+/* 為 keyboard / programmatic focus 都保留 ring。
+   .circles-q-card 預留透明 2px outline 作為 reserve（無 tabindex 時也具備
+   outline-width/style，:focus-visible 再切到實色 ring）。 */
+.circles-q-card {
+  outline: 2px solid transparent;
+}
+.circles-q-card:focus,
+.circles-q-card:focus-visible,
+.circles-mode-card:focus,
+.circles-mode-card:focus-visible {
+  outline: 2px solid var(--c-focus-ring);
+  outline-offset: 2px;
+}
+
 
