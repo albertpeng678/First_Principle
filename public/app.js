@@ -2150,7 +2150,7 @@ function renderCirclesHomeMobile() {
       '<div class="circles-mode-row">' +
         '<div class="circles-mode-card ' + (mode === 'simulation' ? 'selected' : '') + '" data-mode="simulation" role="button" tabindex="0" aria-label="完整模擬 新手推薦">' +
           '<div class="circles-mode-card-title"><i class="ph ph-video-camera"></i> 完整模擬 <span class="circles-mode-recommend-badge" style="display:inline-block;font-size:11px;font-weight:600;color:var(--c-card);background:var(--c-primary);padding:2px 8px;border-radius:999px;margin-left:6px;vertical-align:middle">新手推薦</span></div>' +
-          '<div class="circles-mode-card-desc">25-35 分鐘 · 全 7 步 · 無提示</div>' +
+          '<div class="circles-mode-card-desc">25-35 分鐘 · 全 7 步 · 提示與範例隨時可看</div>' +
         '</div>' +
         '<div class="circles-mode-card ' + (mode === 'drill' ? 'selected' : '') + '" data-mode="drill" role="button" tabindex="0" aria-label="步驟加練">' +
           '<div class="circles-mode-card-title"><i class="ph ph-target"></i> 步驟加練</div>' +
@@ -2210,7 +2210,7 @@ function renderCirclesHomeDesktop() {
   var modeCardsHtml =
     '<div class="circles-mode-card ' + (mode === 'simulation' ? 'selected' : '') + '" data-mode="simulation" role="button" tabindex="0" aria-label="完整模擬 新手推薦">' +
       '<div class="circles-mode-card-title"><i class="ph ph-video-camera"></i> 完整模擬 <span class="circles-mode-recommend-badge" style="display:inline-block;font-size:11px;font-weight:600;color:var(--c-card);background:var(--c-primary);padding:2px 8px;border-radius:999px;margin-left:6px;vertical-align:middle">新手推薦</span></div>' +
-      '<div class="circles-mode-card-desc">25-35 分鐘 · 全 7 步</div>' +
+      '<div class="circles-mode-card-desc">25-35 分鐘 · 全 7 步 · 提示與範例隨時可看</div>' +
     '</div>' +
     '<div class="circles-mode-card ' + (mode === 'drill' ? 'selected' : '') + '" data-mode="drill" role="button" tabindex="0" aria-label="步驟加練">' +
       '<div class="circles-mode-card-title"><i class="ph ph-target"></i> 步驟加練</div>' +
@@ -3245,8 +3245,8 @@ function bindCirclesPhase1() {
       if (existingErr) existingErr.remove();
       var errEl = document.createElement('div');
       errEl.id = 'circles-p1-preflight-err';
+      errEl.className = 'circles-form-error-card';
       errEl.setAttribute('role', 'alert');
-      errEl.style.cssText = 'color:var(--c-error,#d33);font-size:12px;padding:8px 12px;margin-top:6px';
       // AUD-019 — name the missing fields and mark them aria-invalid.
       var emptyFields = _fieldEls.filter(function(el) { return !(el.value || '').trim(); });
       var emptyLabels = emptyFields.map(function(el) {
@@ -3254,11 +3254,21 @@ function bindCirclesPhase1() {
       }).filter(Boolean);
       var uniqLabels = Array.from(new Set(emptyLabels)).slice(0, 4);
       emptyFields.forEach(function(el) { el.setAttribute('aria-invalid', 'true'); });
-      var msg = uniqLabels.length
-        ? '請填寫『' + uniqLabels.join('』、『') + '』再送出。'
-        : '請至少填寫 ' + _MIN + ' 個欄位再送出。';
-      errEl.textContent = msg;
-      btn.parentNode && btn.parentNode.insertBefore(errEl, btn);
+      var emptyCount = emptyFields.length;
+      var labelHtml = uniqLabels.length
+        ? '<span style="font-size:11px;color:#7f1d1d">' + uniqLabels.map(function(s) {
+            return String(s).replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;');
+          }).join(' · ') + '</span>'
+        : '';
+      errEl.innerHTML = '<i class="ph ph-warning"></i> <strong>還有 ' + emptyCount + ' 個欄位需要填寫</strong>'
+        + (labelHtml ? '<br>' + labelHtml : '');
+      // D-2 — insert err card 進 submit-bar 上方（同層父 container），不在 flex row 內。
+      var submitBar = document.querySelector('.circles-submit-bar');
+      if (submitBar && submitBar.parentNode) {
+        submitBar.parentNode.insertBefore(errEl, submitBar);
+      } else {
+        btn.parentNode && btn.parentNode.insertBefore(errEl, btn);
+      }
       var firstEmpty = emptyFields[0];
       if (firstEmpty) firstEmpty.focus();
       return;
