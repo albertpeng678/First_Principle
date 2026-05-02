@@ -6,7 +6,7 @@ const db = require('../db/client');
 const { requireAuth } = require('../middleware/auth');
 const { reviewFramework } = require('../prompts/circles-gate');
 const { streamCirclesReply } = require('../prompts/circles-coach');
-const { runEvaluateStep } = require('../lib/evaluate-step-handler');
+const { runEvaluateStep, EvaluatorError } = require('../lib/evaluate-step-handler');
 const { checkConclusion } = require('../prompts/circles-conclusion-check');
 const { generateFinalReport } = require('../prompts/circles-final-report');
 const { generateCirclesHint } = require('../prompts/circles-hint');
@@ -230,7 +230,7 @@ router.post('/:id/evaluate-step', requireAuth, async (req, res) => {
     });
     res.json(result);
   } catch (err) {
-    if (err && err.status && err.body) return res.status(err.status).json(err.body);
+    if (err instanceof EvaluatorError) return res.status(err.status).json({ error: err.message, code: err.code });
     res.status(500).json({ error: (err && err.message) || 'unknown_error' });
   }
 });
