@@ -1,0 +1,1673 @@
+<!doctype html>
+<html lang="zh-TW">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover, interactive-widget=resizes-visual">
+  <title>PM Drill — 03 Phase 1 表單（批次 A）</title>
+
+  <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/@phosphor-icons/web@2.1.1/src/regular/style.css">
+  <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Instrument+Serif:ital@0;1&display=swap">
+
+  <style>
+    /* tokens */
+    :root {
+      --c-bg: #F2F0EB; --c-bg-soft: #ECE9E1; --c-bg-deep: #E5E1D7;
+      --c-card: #FFFFFF; --c-surface: #FAFAF7;
+      --c-ink: #1F1D1B; --c-ink-2: #5A5046; --c-ink-3: #8A7E70; --c-ink-4: #B8AC9D;
+      --c-rule: rgba(60,45,30,0.10); --c-rule-bold: rgba(60,45,30,0.18);
+      --c-primary: #1A56DB;
+      --c-navy: #1B2D5C; --c-navy-2: #142347; --c-navy-lt: rgba(27,45,92,0.08);
+      --c-success: #137A3D; --c-success-lt: #DCEFE0;
+      --c-warn: #B85C00; --c-warn-lt: #FBE9D0;
+      --c-danger: #B61F1F; --c-danger-lt: #FADCDC;
+      --font-sans: system-ui, -apple-system, BlinkMacSystemFont, 'PingFang TC', 'Microsoft JhengHei', 'Heiti TC', 'Noto Sans TC', sans-serif;
+      --font-serif: 'Instrument Serif', 'Times New Roman', serif;
+      --t-h1: 24px; --t-h2: 19px; --t-h3: 16px; --t-body: 15px; --t-body-sm: 14px; --t-meta: 13px; --t-cap: 12px;
+      --s-1: 4px; --s-2: 8px; --s-3: 12px; --s-4: 16px; --s-5: 20px; --s-6: 24px; --s-7: 32px; --s-8: 40px; --s-9: 56px; --s-10: 80px;
+      --r-input: 6px; --r-card: 10px; --r-pill: 999px;
+      --touch-min: 44px;
+      --t-fast: 120ms; --t-norm: 200ms; --t-slow: 300ms;
+      --ease: cubic-bezier(0.4, 0, 0.2, 1);
+      --shadow-1: 0 1px 0 rgba(60,45,30,0.04);
+      --shadow-2: 0 1px 2px rgba(60,45,30,0.06);
+      --shadow-3: 0 4px 12px rgba(60,45,30,0.08);
+      --shadow-focus: 0 0 0 3px rgba(26,86,219,0.18);
+    }
+
+    *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+    html, body {
+      background: var(--c-bg);
+      color: var(--c-ink);
+      font-family: var(--font-sans);
+      font-size: var(--t-body);
+      line-height: 1.55;
+      -webkit-font-smoothing: antialiased;
+      -webkit-tap-highlight-color: transparent;
+    }
+    button { font: inherit; color: inherit; cursor: pointer; background: none; border: none; }
+    input, textarea { font: inherit; color: inherit; }
+    @media (max-width: 767px) {
+      input, textarea { font-size: 16px !important; }
+    }
+
+    /* viewport demo */
+    .vp-grid {
+      display: grid;
+      grid-template-columns: 360px 768px 1280px;
+      gap: var(--s-6);
+      padding: var(--s-6);
+      align-items: start;
+      overflow-x: auto;
+    }
+    .vp-frame {
+      border: 1px solid var(--c-rule-bold);
+      border-radius: var(--r-card);
+      background: var(--c-bg);
+      overflow: hidden;
+    }
+    .vp-frame__label {
+      padding: var(--s-3) var(--s-4);
+      border-bottom: 1px solid var(--c-rule);
+      background: var(--c-card);
+      display: flex;
+      justify-content: space-between;
+      font-size: var(--t-cap);
+      letter-spacing: 0.08em;
+      text-transform: uppercase;
+      color: var(--c-ink-2);
+    }
+    .vp-frame__label span:last-child { font-family: ui-monospace, 'SF Mono', monospace; color: var(--c-ink-3); }
+
+    .ds-page { padding: var(--s-6); }
+    .ds-header { max-width: 1880px; margin: 0 auto var(--s-7); padding-bottom: var(--s-6); border-bottom: 1px solid var(--c-rule); }
+    .ds-header h1 { font-size: var(--t-h1); margin-top: var(--s-2); }
+    .ds-header__eyebrow { font-size: var(--t-cap); letter-spacing: 0.12em; text-transform: uppercase; color: var(--c-ink-3); }
+    .ds-header__sub { color: var(--c-ink-2); font-size: var(--t-body-sm); margin-top: var(--s-3); max-width: 720px; }
+
+    .vp-section-title { max-width: 1880px; margin: var(--s-7) auto var(--s-3); padding-bottom: var(--s-2); border-bottom: 1px solid var(--c-rule); font-size: var(--t-h2); }
+    .vp-section-title__sub { font-size: var(--t-cap); color: var(--c-ink-3); margin-left: var(--s-3); letter-spacing: 0.04em; text-transform: uppercase; }
+    .anno {
+      background: var(--c-bg-soft);
+      border-left: 2px solid var(--c-ink-3);
+      padding: var(--s-3) var(--s-4);
+      font-size: var(--t-meta);
+      color: var(--c-ink-2);
+      margin: var(--s-4) auto;
+      max-width: 1180px;
+      line-height: 1.7;
+    }
+    .anno strong { color: var(--c-ink); }
+
+    /* ───── PRODUCTION COMPONENTS ───── */
+    .navbar {
+      display: flex;
+      align-items: center;
+      gap: var(--s-3);
+      padding: var(--s-3) var(--s-4);
+      background: rgba(255,255,255,0.85);
+      -webkit-backdrop-filter: saturate(140%) blur(10px);
+      backdrop-filter: saturate(140%) blur(10px);
+      border-bottom: 1px solid var(--c-rule);
+    }
+    .navbar__icon-btn { width: 40px; height: 40px; border-radius: var(--r-pill); display: inline-flex; align-items: center; justify-content: center; color: var(--c-ink-2); }
+    .navbar__icon-btn:hover { background: var(--c-bg-soft); color: var(--c-ink); }
+    .navbar__brand { display: flex; align-items: center; gap: var(--s-2); }
+    .navbar__brand-icon { width: 28px; height: 28px; border-radius: 6px; background: var(--c-navy); color: #fff; display: inline-flex; align-items: center; justify-content: center; font-size: 16px; }
+    .navbar__brand-name { font-size: var(--t-body-sm); font-weight: 500; }
+    .navbar__tabs { display: flex; gap: var(--s-2); margin-left: var(--s-4); }
+    .navbar__tab { padding: 6px var(--s-3); border-radius: var(--r-pill); font-size: var(--t-meta); color: var(--c-ink-3); }
+    .navbar__tab.is-active { background: var(--c-navy); color: #fff; }
+    .navbar__actions { margin-left: auto; display: flex; align-items: center; gap: var(--s-2); }
+    .navbar__email { font-size: var(--t-cap); color: var(--c-ink-3); max-width: 180px; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+
+    /* progress (simulation 7-step) */
+    .progress {
+      padding: var(--s-3) var(--s-4);
+      background: var(--c-bg-soft);
+      border-bottom: 1px solid var(--c-rule);
+      display: flex;
+      gap: var(--s-2);
+      align-items: center;
+      overflow-x: auto;
+      white-space: nowrap;
+    }
+    .progress__step {
+      flex: 0 0 auto;
+      padding: 4px 10px;
+      border-radius: var(--r-pill);
+      font-size: var(--t-cap);
+      color: var(--c-ink-3);
+    }
+    .progress__step.is-done { color: var(--c-ink); }
+    .progress__step.is-active { background: var(--c-navy); color: #fff; }
+    .progress__step .step-letter { font-family: var(--font-serif); font-style: italic; margin-right: 4px; font-size: 14px; }
+
+    /* phase head */
+    .phase-head {
+      padding: var(--s-3) var(--s-5);
+      background: var(--c-bg-soft);
+      border-bottom: 1px solid var(--c-rule);
+      display: flex;
+      align-items: center;
+      gap: var(--s-3);
+    }
+    .phase-head__num { font-family: var(--font-serif); font-style: italic; font-size: 22px; color: var(--c-navy); line-height: 1; flex: 0 0 auto; }
+    .phase-head__main { flex: 1; min-width: 0; }
+    .phase-head__eyebrow { font-size: var(--t-cap); letter-spacing: 0.08em; text-transform: uppercase; color: var(--c-ink-3); }
+    .phase-head__title { font-size: var(--t-h3); color: var(--c-ink); margin-top: 2px; letter-spacing: -0.005em; }
+    .phase-head__meta { flex: 0 0 auto; font-size: var(--t-meta); color: var(--c-ink-3); }
+
+    /* qchip persistent */
+    .qchip {
+      max-width: 920px;
+      margin: 0 auto;
+      padding: var(--s-3) var(--s-5);
+      background: var(--c-card);
+      border-bottom: 1px solid var(--c-rule);
+      display: flex;
+      gap: var(--s-3);
+      align-items: center;
+      cursor: pointer;
+      transition: background var(--t-fast) var(--ease);
+    }
+    .qchip:hover { background: var(--c-bg-soft); }
+    .qchip__icon { width: 28px; height: 28px; flex: 0 0 auto; border-radius: var(--r-pill); background: var(--c-navy-lt); color: var(--c-navy); display: inline-flex; align-items: center; justify-content: center; font-size: 14px; }
+    .qchip__main { flex: 1; min-width: 0; }
+    .qchip__company { font-size: var(--t-cap); color: var(--c-ink-3); margin-bottom: 2px; }
+    .qchip__title {
+      font-size: var(--t-body-sm);
+      color: var(--c-ink);
+      overflow: hidden;
+      text-overflow: ellipsis;
+      white-space: nowrap;
+    }
+    .qchip__caret { color: var(--c-ink-3); font-size: 16px; flex: 0 0 auto; }
+
+    /* form body */
+    .phase-body {
+      max-width: 920px;
+      margin: 0 auto;
+      padding: var(--s-6) var(--s-5) calc(var(--s-9) + var(--s-9));
+    }
+
+    /* save indicator floating */
+    .save-floating {
+      position: sticky;
+      top: var(--s-3);
+      float: right;
+      margin: 0 0 var(--s-3);
+      z-index: 5;
+    }
+    .save-indicator {
+      display: inline-flex;
+      align-items: center;
+      gap: var(--s-2);
+      padding: 4px var(--s-3);
+      border-radius: var(--r-pill);
+      font-size: var(--t-cap);
+    }
+    .save-indicator--saving { color: var(--c-ink-2); background: var(--c-bg-soft); }
+    .save-indicator--saving::before { content: ''; width: 12px; height: 12px; border: 2px solid var(--c-ink-3); border-top-color: transparent; border-radius: 50%; animation: spin 0.8s linear infinite; }
+    .save-indicator--saved { color: var(--c-success); background: var(--c-success-lt); }
+    .save-indicator--idle { color: var(--c-ink-3); }
+    .save-indicator--error { color: var(--c-danger); background: var(--c-danger-lt); cursor: pointer; }
+    @keyframes spin { to { transform: rotate(360deg); } }
+
+    /* rt-field */
+    .field {
+      margin-bottom: var(--s-5);
+    }
+    .field__label-row {
+      display: flex;
+      align-items: baseline;
+      justify-content: space-between;
+      gap: var(--s-3);
+      margin-bottom: var(--s-2);
+    }
+    .field__label {
+      font-size: var(--t-body-sm);
+      color: var(--c-ink);
+      font-weight: 500;
+      letter-spacing: -0.005em;
+    }
+    .field__hint-link {
+      display: inline-flex;
+      align-items: center;
+      gap: 4px;
+      font-size: var(--t-cap);
+      color: var(--c-ink-3);
+      transition: color var(--t-fast) var(--ease);
+      cursor: pointer;
+    }
+    .field__hint-link:hover { color: var(--c-navy); }
+    .field__hint-link i { font-size: 14px; }
+
+    .rt-field {
+      border: 1px solid var(--c-rule-bold);
+      border-radius: var(--r-input);
+      background: var(--c-card);
+      transition: border-color var(--t-fast) var(--ease), box-shadow var(--t-fast) var(--ease);
+      overflow: hidden;
+    }
+    .rt-field:focus-within {
+      border-color: var(--c-primary);
+      box-shadow: var(--shadow-focus);
+    }
+    .rt-field__toolbar {
+      display: flex;
+      gap: var(--s-1);
+      padding: var(--s-2) var(--s-3);
+      border-bottom: 1px solid var(--c-rule);
+      background: var(--c-surface);
+    }
+    .rt-tbtn {
+      width: 28px; height: 28px;
+      display: inline-flex; align-items: center; justify-content: center;
+      border-radius: 4px;
+      color: var(--c-ink-2);
+      font-size: 14px;
+    }
+    .rt-tbtn:hover { background: var(--c-bg-soft); color: var(--c-ink); }
+    .rt-tbtn[aria-pressed="true"] { background: var(--c-navy-lt); color: var(--c-navy); }
+    .rt-textarea {
+      width: 100%;
+      padding: var(--s-3) var(--s-4);
+      background: transparent;
+      border: 0;
+      outline: none;
+      font-size: var(--t-body);
+      line-height: 1.7;
+      color: var(--c-ink);
+      min-height: 88px;
+      resize: vertical;
+    }
+    .rt-textarea::placeholder { color: var(--c-ink-4); }
+
+    .field__meta {
+      display: flex;
+      justify-content: space-between;
+      margin-top: var(--s-2);
+      font-size: var(--t-cap);
+      color: var(--c-ink-3);
+    }
+    .char-counter { font-family: ui-monospace, 'SF Mono', monospace; }
+    .char-counter--near { color: var(--c-warn); }
+    .char-counter--over { color: var(--c-danger); font-weight: 600; }
+
+    .field--error .rt-field { border-color: var(--c-danger); }
+    .field__error {
+      display: flex;
+      gap: var(--s-1);
+      align-items: flex-start;
+      margin-top: var(--s-2);
+      font-size: var(--t-cap);
+      color: var(--c-danger);
+    }
+    .field__error i { font-size: 14px; flex: 0 0 auto; margin-top: 1px; }
+
+    /* L step — solution sub-card */
+    .sol-card {
+      margin-bottom: var(--s-5);
+      padding: var(--s-4) var(--s-5);
+      background: var(--c-card);
+      border: 1px solid var(--c-rule);
+      border-radius: var(--r-card);
+    }
+    .sol-card__num {
+      display: inline-flex;
+      align-items: center;
+      gap: var(--s-2);
+      margin-bottom: var(--s-3);
+      font-size: var(--t-meta);
+      color: var(--c-navy);
+      letter-spacing: 0.06em;
+      text-transform: uppercase;
+      font-weight: 600;
+    }
+    .sol-card__num::before { content: ''; width: 18px; height: 2px; background: var(--c-navy); }
+    .sol-card__name-row {
+      display: flex;
+      gap: var(--s-2);
+      align-items: baseline;
+      margin-bottom: var(--s-3);
+    }
+    .sol-card__name-input {
+      flex: 1;
+      padding: var(--s-2) var(--s-3);
+      background: var(--c-card);
+      border: 1px solid var(--c-rule-bold);
+      border-radius: var(--r-input);
+      font-size: var(--t-body-sm);
+      color: var(--c-ink);
+    }
+    .sol-card__optional {
+      font-size: var(--t-cap);
+      color: var(--c-ink-3);
+      flex: 0 0 auto;
+    }
+    .sol-card__remove {
+      flex: 0 0 auto;
+      width: 32px; height: 32px;
+      border-radius: var(--r-pill);
+      color: var(--c-ink-3);
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+    }
+    .sol-card__remove:hover { background: var(--c-danger-lt); color: var(--c-danger); }
+
+    .sol-add {
+      width: 100%;
+      padding: var(--s-3);
+      background: transparent;
+      border: 1px dashed var(--c-rule-bold);
+      border-radius: var(--r-input);
+      font-size: var(--t-body-sm);
+      color: var(--c-ink-2);
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+      gap: var(--s-2);
+      transition: all var(--t-fast) var(--ease);
+    }
+    .sol-add:hover { background: var(--c-bg-soft); border-color: var(--c-navy); color: var(--c-navy); }
+
+    /* S step — tracking 4-dim grid */
+    .tracking-section {
+      margin-top: var(--s-7);
+      padding-top: var(--s-6);
+      border-top: 1px solid var(--c-rule);
+    }
+    .tracking-section__head {
+      display: flex;
+      align-items: center;
+      gap: var(--s-3);
+      font-size: var(--t-h3);
+      color: var(--c-navy);
+      font-weight: 600;
+      margin-bottom: var(--s-2);
+    }
+    .tracking-section__head::before { content: ''; width: 24px; height: 2px; background: var(--c-navy); flex: 0 0 auto; }
+    .tracking-section__sub { font-size: var(--t-meta); color: var(--c-ink-3); margin-bottom: var(--s-5); }
+    .tracking-grid {
+      display: grid;
+      grid-template-columns: 1fr;
+      gap: var(--s-4);
+    }
+    @media (min-width: 768px) {
+      .tracking-grid { grid-template-columns: 1fr 1fr; }
+    }
+    .tracking-card {
+      padding: var(--s-4);
+      background: var(--c-card);
+      border: 1px solid var(--c-rule);
+      border-radius: var(--r-input);
+      border-left-width: 3px;
+    }
+    .tracking-card[data-dim="reach"] { border-left-color: #3b82f6; }
+    .tracking-card[data-dim="depth"] { border-left-color: #8b5cf6; }
+    .tracking-card[data-dim="frequency"] { border-left-color: var(--c-success); }
+    .tracking-card[data-dim="impact"] { border-left-color: var(--c-warn); }
+    .tracking-card__head {
+      font-size: var(--t-body-sm);
+      font-weight: 600;
+      color: var(--c-ink);
+      margin-bottom: var(--s-1);
+    }
+    .tracking-card__sub { font-size: var(--t-cap); color: var(--c-ink-3); margin-bottom: var(--s-3); }
+    .tracking-card input {
+      width: 100%;
+      padding: var(--s-2) var(--s-3);
+      background: var(--c-card);
+      border: 1px solid var(--c-rule-bold);
+      border-radius: var(--r-input);
+      font-size: var(--t-body-sm);
+      color: var(--c-ink);
+    }
+
+    /* sticky submit bar */
+    .submit-bar {
+      position: sticky;
+      bottom: 0;
+      background: rgba(255,255,255,0.92);
+      -webkit-backdrop-filter: saturate(140%) blur(10px);
+      backdrop-filter: saturate(140%) blur(10px);
+      border-top: 1px solid var(--c-rule);
+      padding: var(--s-3) var(--s-4) max(var(--s-3), env(safe-area-inset-bottom));
+      display: flex;
+      gap: var(--s-3);
+      justify-content: space-between;
+      align-items: center;
+    }
+    .submit-bar__left, .submit-bar__right { display: flex; gap: var(--s-2); align-items: center; flex-wrap: wrap; }
+    .btn {
+      display: inline-flex;
+      align-items: center;
+      gap: var(--s-2);
+      min-height: var(--touch-min);
+      padding: 0 var(--s-5);
+      border-radius: var(--r-input);
+      font-size: var(--t-body-sm);
+      font-weight: 500;
+      transition: all var(--t-fast) var(--ease);
+    }
+    .btn--primary { background: var(--c-navy); color: #fff; }
+    .btn--primary:hover { background: var(--c-navy-2); }
+    .btn--ghost { background: transparent; color: var(--c-ink-2); border: 1px solid var(--c-rule-bold); }
+    .btn--ghost:hover { background: var(--c-bg-soft); color: var(--c-ink); }
+
+    /* banners */
+    .banner {
+      max-width: 920px;
+      margin: 0 auto var(--s-5);
+      padding: var(--s-3) var(--s-4);
+      border-radius: var(--r-input);
+      font-size: var(--t-meta);
+      display: flex;
+      gap: var(--s-3);
+      align-items: flex-start;
+    }
+    .banner i { font-size: 18px; flex: 0 0 auto; margin-top: 1px; }
+    .banner strong { display: block; margin-bottom: 2px; }
+    .banner--locked { background: var(--c-bg-soft); color: var(--c-ink-2); border-left: 2px solid var(--c-ink-3); }
+    .banner--stale { background: var(--c-warn-lt); color: var(--c-warn); border-left: 2px solid var(--c-warn); }
+
+    /* hint modal demo */
+    .modal-frame {
+      background: rgba(31,29,27,0.5);
+      padding: var(--s-5);
+      border-radius: var(--r-input);
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      min-height: 320px;
+    }
+    .modal-card {
+      width: 100%;
+      max-width: 520px;
+      background: var(--c-card);
+      border-radius: var(--r-card);
+      box-shadow: var(--shadow-3);
+      overflow: hidden;
+    }
+    .modal__head {
+      padding: var(--s-5) var(--s-5) var(--s-3);
+      border-bottom: 1px solid var(--c-rule);
+      display: flex;
+      align-items: flex-start;
+      gap: var(--s-3);
+    }
+    .modal__head-icon { width: 36px; height: 36px; border-radius: var(--r-input); background: var(--c-navy-lt); color: var(--c-navy); display: inline-flex; align-items: center; justify-content: center; font-size: 18px; }
+    .modal__title { font-size: var(--t-h3); flex: 1; }
+    .modal__sub { font-size: var(--t-cap); color: var(--c-ink-3); letter-spacing: 0.04em; text-transform: uppercase; margin-top: 2px; }
+    .modal__close { width: 32px; height: 32px; flex: 0 0 auto; border-radius: var(--r-pill); color: var(--c-ink-3); display: inline-flex; align-items: center; justify-content: center; }
+    .modal__body { padding: var(--s-4) var(--s-5); font-size: var(--t-body-sm); line-height: 1.75; color: var(--c-ink); max-height: 280px; overflow-y: auto; }
+    .modal__foot { padding: var(--s-3) var(--s-5); border-top: 1px solid var(--c-rule); display: flex; justify-content: flex-end; gap: var(--s-2); background: var(--c-bg-soft); }
+
+    /* desktop right rail (drill mode hint) */
+    @media (min-width: 1024px) {
+      .phase-body--with-rail {
+        max-width: 1180px;
+        display: grid;
+        grid-template-columns: 1fr 220px;
+        gap: var(--s-7);
+      }
+    }
+    .rail {
+      background: var(--c-card);
+      border: 1px solid var(--c-rule);
+      border-radius: var(--r-card);
+      padding: var(--s-4);
+      font-size: var(--t-meta);
+      color: var(--c-ink-2);
+      align-self: flex-start;
+      position: sticky;
+      top: var(--s-3);
+    }
+    .rail__title { font-size: var(--t-cap); letter-spacing: 0.08em; text-transform: uppercase; color: var(--c-ink-3); margin-bottom: var(--s-3); }
+
+    @media (max-width: 1100px) {
+      .vp-grid { grid-template-columns: 360px; }
+      .vp-frame:nth-child(2), .vp-frame:nth-child(3) { display: none; }
+    }
+  </style>
+</head>
+<body>
+
+<div class="ds-page">
+  <header class="ds-header">
+    <div class="ds-header__eyebrow">PM Drill · Path 2 · Mockup 03 / 16 · Batch A</div>
+    <h1>Phase 1 表單 — 寫框架</h1>
+    <p class="ds-header__sub">
+      用戶選題後進入 Phase 1：填寫該步驟的 framework 欄位。本 mockup 涵蓋三種結構（C1 標準 4-field / L solution-multi / S 3 main + 4 tracking）+ hint 觸發鏈 / locked-stale 狀態 / save-indicator 與 sticky submit bar。<br>
+      I / R / C2 沿用 C1 結構；E 沿用 L 結構（per-solution × 4 fields nested）。
+    </p>
+  </header>
+
+  <!-- ═══════════════════ A. C1 標準 4-field 結構 ═══════════════════ -->
+  <h2 class="vp-section-title">A. Phase 1 — C1 / I / R / C2 標準 4-field 結構 <span class="vp-section-title__sub">qchip + progress + 4×rt-field + sticky submit</span></h2>
+
+  <div class="vp-grid">
+
+    <!-- mobile -->
+    <div class="vp-frame">
+      <div class="vp-frame__label"><span>Mobile · simulation</span><span>360 px</span></div>
+      <div class="vp-frame__body">
+        <div class="navbar"><button class="navbar__icon-btn"><i class="ph ph-list"></i></button><div class="navbar__brand"><span class="navbar__brand-icon"><i class="ph ph-circles-three"></i></span><span class="navbar__brand-name">PM Drill</span></div></div>
+
+        <div class="progress">
+          <span class="progress__step is-active"><span class="step-letter">C</span>澄清</span>
+          <span class="progress__step"><span class="step-letter">I</span>用戶</span>
+          <span class="progress__step"><span class="step-letter">R</span>需求</span>
+          <span class="progress__step"><span class="step-letter">C</span>排序</span>
+          <span class="progress__step"><span class="step-letter">L</span>方案</span>
+          <span class="progress__step"><span class="step-letter">E</span>取捨</span>
+          <span class="progress__step"><span class="step-letter">S</span>總結</span>
+        </div>
+
+        <div class="phase-head">
+          <span class="phase-head__num">01</span>
+          <div class="phase-head__main">
+            <div class="phase-head__eyebrow">Phase 1 · 寫框架</div>
+            <div class="phase-head__title">C · 澄清情境</div>
+          </div>
+        </div>
+
+        <div class="qchip">
+          <span class="qchip__icon"><i class="ph ph-info"></i></span>
+          <div class="qchip__main">
+            <div class="qchip__company">Spotify · Spotify Podcast</div>
+            <div class="qchip__title">如何提升 Spotify Podcast 的用戶留存率？</div>
+          </div>
+          <i class="ph ph-caret-down qchip__caret"></i>
+        </div>
+
+        <div class="phase-body" style="padding: var(--s-5) var(--s-4) calc(var(--s-9) + var(--s-9));">
+
+          <div class="field">
+            <div class="field__label-row">
+              <label class="field__label">問題範圍</label>
+              <button class="field__hint-link"><i class="ph ph-lightbulb"></i>提示</button>
+            </div>
+            <div class="rt-field" style="border-color: var(--c-primary); box-shadow: var(--shadow-focus);">
+              <div class="rt-field__toolbar">
+                <button class="rt-tbtn"><i class="ph ph-text-b"></i></button>
+                <button class="rt-tbtn"><i class="ph ph-list-bullets"></i></button>
+                <button class="rt-tbtn"><i class="ph ph-text-indent"></i></button>
+              </div>
+              <textarea class="rt-textarea" rows="3">聚焦免費版的廣告體驗，排除付費方案</textarea>
+            </div>
+            <div class="field__meta">
+              <span>建議 50-120 字</span>
+              <span class="char-counter">22 / 120</span>
+            </div>
+          </div>
+
+          <div class="field">
+            <div class="field__label-row">
+              <label class="field__label">時間範圍</label>
+              <button class="field__hint-link"><i class="ph ph-lightbulb"></i>提示</button>
+            </div>
+            <div class="rt-field">
+              <div class="rt-field__toolbar">
+                <button class="rt-tbtn"><i class="ph ph-text-b"></i></button>
+                <button class="rt-tbtn"><i class="ph ph-list-bullets"></i></button>
+              </div>
+              <textarea class="rt-textarea" rows="2" placeholder="60 天，因為廣告活動以月為週期"></textarea>
+            </div>
+            <div class="field__meta">
+              <span>建議 30-100 字</span>
+              <span class="char-counter">0 / 100</span>
+            </div>
+          </div>
+
+          <div class="field">
+            <div class="field__label-row">
+              <label class="field__label">業務影響</label>
+              <button class="field__hint-link"><i class="ph ph-lightbulb"></i>提示</button>
+            </div>
+            <div class="rt-field">
+              <div class="rt-field__toolbar">
+                <button class="rt-tbtn"><i class="ph ph-text-b"></i></button>
+                <button class="rt-tbtn"><i class="ph ph-list-bullets"></i></button>
+              </div>
+              <textarea class="rt-textarea" rows="2" placeholder="廣告收入和免費→付費轉換率不能下降超過 3%"></textarea>
+            </div>
+          </div>
+
+          <div class="field">
+            <div class="field__label-row">
+              <label class="field__label">假設確認</label>
+              <button class="field__hint-link"><i class="ph ph-lightbulb"></i>提示</button>
+            </div>
+            <div class="rt-field">
+              <div class="rt-field__toolbar">
+                <button class="rt-tbtn"><i class="ph ph-text-b"></i></button>
+                <button class="rt-tbtn"><i class="ph ph-list-bullets"></i></button>
+              </div>
+              <textarea class="rt-textarea" rows="2" placeholder="用戶廣告負感主要來自時段而非廣告本身"></textarea>
+            </div>
+          </div>
+
+        </div>
+
+        <div class="submit-bar">
+          <div class="submit-bar__left">
+            <span class="save-indicator save-indicator--saved"><i class="ph ph-check" style="font-size:12px;"></i>已儲存</span>
+          </div>
+          <div class="submit-bar__right">
+            <button class="btn btn--primary">確認提交<i class="ph ph-arrow-right"></i></button>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- tablet -->
+    <div class="vp-frame">
+      <div class="vp-frame__label"><span>Tablet · simulation</span><span>768 px</span></div>
+      <div class="vp-frame__body">
+        <div class="navbar"><button class="navbar__icon-btn"><i class="ph ph-list"></i></button><div class="navbar__brand"><span class="navbar__brand-icon"><i class="ph ph-circles-three"></i></span><span class="navbar__brand-name">PM Drill</span></div><nav class="navbar__tabs"><span class="navbar__tab is-active">CIRCLES</span><span class="navbar__tab">北極星指標</span></nav></div>
+
+        <div class="progress">
+          <span class="progress__step is-active"><span class="step-letter">C</span>澄清</span>
+          <span class="progress__step"><span class="step-letter">I</span>用戶</span>
+          <span class="progress__step"><span class="step-letter">R</span>需求</span>
+          <span class="progress__step"><span class="step-letter">C</span>排序</span>
+          <span class="progress__step"><span class="step-letter">L</span>方案</span>
+          <span class="progress__step"><span class="step-letter">E</span>取捨</span>
+          <span class="progress__step"><span class="step-letter">S</span>總結</span>
+        </div>
+
+        <div class="phase-head">
+          <span class="phase-head__num">01</span>
+          <div class="phase-head__main">
+            <div class="phase-head__eyebrow">Phase 1 · 寫框架</div>
+            <div class="phase-head__title">C · 澄清情境</div>
+          </div>
+          <span class="phase-head__meta">完整模擬 · 1 / 7 步</span>
+        </div>
+
+        <div class="qchip">
+          <span class="qchip__icon"><i class="ph ph-info"></i></span>
+          <div class="qchip__main">
+            <div class="qchip__company">Spotify · Spotify Podcast</div>
+            <div class="qchip__title">如何提升 Spotify Podcast 的用戶留存率？</div>
+          </div>
+          <i class="ph ph-caret-down qchip__caret"></i>
+        </div>
+
+        <div class="phase-body">
+          <div class="save-floating">
+            <span class="save-indicator save-indicator--saving">儲存中</span>
+          </div>
+
+          <div class="field">
+            <div class="field__label-row">
+              <label class="field__label">問題範圍</label>
+              <button class="field__hint-link"><i class="ph ph-lightbulb"></i>提示</button>
+            </div>
+            <div class="rt-field">
+              <div class="rt-field__toolbar"><button class="rt-tbtn"><i class="ph ph-text-b"></i></button><button class="rt-tbtn"><i class="ph ph-list-bullets"></i></button><button class="rt-tbtn"><i class="ph ph-text-indent"></i></button></div>
+              <textarea class="rt-textarea" rows="3">聚焦免費版的廣告體驗，排除付費方案。針對核心場景：通勤 / 運動時聽 Podcast 的用戶被廣告打斷情緒的問題。</textarea>
+            </div>
+            <div class="field__meta">
+              <span>建議 50-120 字</span>
+              <span class="char-counter">52 / 120</span>
+            </div>
+          </div>
+
+          <div class="field">
+            <div class="field__label-row">
+              <label class="field__label">時間範圍</label>
+              <button class="field__hint-link"><i class="ph ph-lightbulb"></i>提示</button>
+            </div>
+            <div class="rt-field">
+              <div class="rt-field__toolbar"><button class="rt-tbtn"><i class="ph ph-text-b"></i></button><button class="rt-tbtn"><i class="ph ph-list-bullets"></i></button></div>
+              <textarea class="rt-textarea" rows="2">60 天，因為廣告活動以月為週期，需要兩個完整循環看出留存改善是否穩定</textarea>
+            </div>
+          </div>
+
+          <div class="field">
+            <div class="field__label-row">
+              <label class="field__label">業務影響</label>
+              <button class="field__hint-link"><i class="ph ph-lightbulb"></i>提示</button>
+            </div>
+            <div class="rt-field">
+              <div class="rt-field__toolbar"><button class="rt-tbtn"><i class="ph ph-text-b"></i></button><button class="rt-tbtn"><i class="ph ph-list-bullets"></i></button></div>
+              <textarea class="rt-textarea" rows="2">廣告收入不能下降超過 3%；同時免費→付費轉換率不能下降；DAU 留存率須維持 62% 以上基準</textarea>
+            </div>
+          </div>
+
+          <div class="field">
+            <div class="field__label-row">
+              <label class="field__label">假設確認</label>
+              <button class="field__hint-link"><i class="ph ph-lightbulb"></i>提示</button>
+            </div>
+            <div class="rt-field">
+              <div class="rt-field__toolbar"><button class="rt-tbtn"><i class="ph ph-text-b"></i></button><button class="rt-tbtn"><i class="ph ph-list-bullets"></i></button></div>
+              <textarea class="rt-textarea" rows="3" placeholder="列出 2-3 條後續分析會依賴的假設"></textarea>
+            </div>
+          </div>
+        </div>
+
+        <div class="submit-bar">
+          <div class="submit-bar__left">
+            <button class="btn btn--ghost"><i class="ph ph-arrow-left"></i>上一步</button>
+          </div>
+          <div class="submit-bar__right">
+            <button class="btn btn--primary">確認提交<i class="ph ph-arrow-right"></i></button>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- desktop -->
+    <div class="vp-frame">
+      <div class="vp-frame__label"><span>Desktop · drill mode</span><span>1280 px</span></div>
+      <div class="vp-frame__body">
+        <div class="navbar"><button class="navbar__icon-btn"><i class="ph ph-list"></i></button><div class="navbar__brand"><span class="navbar__brand-icon"><i class="ph ph-circles-three"></i></span><span class="navbar__brand-name">PM Drill</span></div><nav class="navbar__tabs"><span class="navbar__tab is-active">CIRCLES</span><span class="navbar__tab">北極星指標</span></nav><div class="navbar__actions"><span class="navbar__email">albert.peng@example.com</span><button class="navbar__icon-btn"><i class="ph ph-sign-out"></i></button></div></div>
+
+        <!-- drill mode：無 progress bar，phase head 顯示 drill 練習步驟 -->
+        <div class="phase-head" style="background: var(--c-navy-lt);">
+          <span class="phase-head__num">01</span>
+          <div class="phase-head__main">
+            <div class="phase-head__eyebrow">Phase 1 · 個別步驟練習</div>
+            <div class="phase-head__title">C · 澄清情境（題目邊界 / 業務影響 / 假設）</div>
+          </div>
+          <span class="phase-head__meta">drill 模式 · 此步驟結束即完成</span>
+        </div>
+
+        <div class="qchip">
+          <span class="qchip__icon"><i class="ph ph-info"></i></span>
+          <div class="qchip__main">
+            <div class="qchip__company">Spotify · Spotify Podcast · 設計題 · 難度 中</div>
+            <div class="qchip__title">如何提升 Spotify Podcast 的用戶留存率？</div>
+          </div>
+          <i class="ph ph-caret-down qchip__caret"></i>
+        </div>
+
+        <div class="phase-body phase-body--with-rail">
+          <div>
+            <div class="save-floating">
+              <span class="save-indicator save-indicator--saved"><i class="ph ph-check" style="font-size:12px;"></i>已儲存到雲端</span>
+            </div>
+
+            <div class="field">
+              <div class="field__label-row">
+                <label class="field__label">問題範圍</label>
+                <button class="field__hint-link"><i class="ph ph-lightbulb"></i>提示 + 教練示範</button>
+              </div>
+              <div class="rt-field" style="border-color: var(--c-primary); box-shadow: var(--shadow-focus);">
+                <div class="rt-field__toolbar">
+                  <button class="rt-tbtn"><i class="ph ph-text-b"></i></button>
+                  <button class="rt-tbtn"><i class="ph ph-list-bullets"></i></button>
+                  <button class="rt-tbtn"><i class="ph ph-text-indent"></i></button>
+                  <button class="rt-tbtn"><i class="ph ph-text-outdent"></i></button>
+                </div>
+                <textarea class="rt-textarea" rows="4">聚焦免費版的廣告體驗，排除付費方案。針對核心場景：通勤 / 運動時聽 Podcast 的用戶被廣告打斷情緒的問題。不討論內容推薦、發現機制、podcast 創作工具。</textarea>
+              </div>
+              <div class="field__meta">
+                <span>建議 50-120 字 · 寫具體的功能或場景邊界</span>
+                <span class="char-counter">82 / 120</span>
+              </div>
+            </div>
+
+            <div class="field">
+              <div class="field__label-row">
+                <label class="field__label">時間範圍</label>
+                <button class="field__hint-link"><i class="ph ph-lightbulb"></i>提示 + 教練示範</button>
+              </div>
+              <div class="rt-field">
+                <div class="rt-field__toolbar"><button class="rt-tbtn"><i class="ph ph-text-b"></i></button><button class="rt-tbtn"><i class="ph ph-list-bullets"></i></button></div>
+                <textarea class="rt-textarea" rows="2">60 天，因為廣告活動以月為週期，需要兩個完整循環看出留存改善是否穩定</textarea>
+              </div>
+            </div>
+
+            <div class="field">
+              <div class="field__label-row">
+                <label class="field__label">業務影響</label>
+                <button class="field__hint-link"><i class="ph ph-lightbulb"></i>提示 + 教練示範</button>
+              </div>
+              <div class="rt-field">
+                <div class="rt-field__toolbar"><button class="rt-tbtn"><i class="ph ph-text-b"></i></button><button class="rt-tbtn"><i class="ph ph-list-bullets"></i></button></div>
+                <textarea class="rt-textarea" rows="3">主要指標：DAU Podcast 留存率（30 天）。利益方拉鋸：用戶體驗 vs 廣告收入。紅線：廣告收入不能下降超過 3%；訂閱轉換率不能下降。</textarea>
+              </div>
+            </div>
+
+            <div class="field">
+              <div class="field__label-row">
+                <label class="field__label">假設確認</label>
+                <button class="field__hint-link"><i class="ph ph-lightbulb"></i>提示 + 教練示範</button>
+              </div>
+              <div class="rt-field">
+                <div class="rt-field__toolbar"><button class="rt-tbtn"><i class="ph ph-text-b"></i></button><button class="rt-tbtn"><i class="ph ph-list-bullets"></i></button></div>
+                <textarea class="rt-textarea" rows="3" placeholder="列出 2-3 條後續分析會依賴的假設，例如「用戶廣告負感主要來自時段而非廣告本身」"></textarea>
+              </div>
+            </div>
+          </div>
+
+          <aside class="rail">
+            <div class="rail__title">本步重點</div>
+            <p style="margin-bottom: var(--s-3); color: var(--c-ink); font-weight: 500;">確認題目邊界</p>
+            <p style="line-height: 1.7;">先把題目本身定義清楚 — 它的具體類型是什麼？涵蓋哪些場景？哪些明確排除？沒釐清這層，後面分析會在錯的邊界上展開。</p>
+
+            <hr style="border: 0; border-top: 1px solid var(--c-rule); margin: var(--s-4) 0;">
+            <div class="rail__title">時間範圍提示</div>
+            <p style="line-height: 1.7;">設定一個合理的觀察期，並說明為什麼這個時長對應業務節奏。「X 天，因為這個業務以 Y 為週期」比丟個數字更有說服力。</p>
+          </aside>
+        </div>
+
+        <div class="submit-bar">
+          <div class="submit-bar__left">
+            <button class="btn btn--ghost"><i class="ph ph-house"></i>回首頁</button>
+          </div>
+          <div class="submit-bar__right">
+            <button class="btn btn--primary">確認提交<i class="ph ph-arrow-right"></i></button>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <p class="anno">
+    <strong>A · C1 / I / R / C2 標準結構：</strong>4 個 rt-field 縱向堆疊；每欄包含 label + hint button + rt-field（toolbar + textarea）+ char counter；submit bar sticky 底；save indicator floating top-right。<br>
+    <strong>simulation vs drill 差異：</strong>
+    <ul style="margin:var(--s-2) 0 0 var(--s-5); padding-left:var(--s-3);">
+      <li><strong>simulation：</strong>chrome 含 7-step progress / submit bar 顯示「上一步 + 確認提交」</li>
+      <li><strong>drill：</strong>chrome 無 progress（單步 session）/ phase head 用 navy-lt 底色強調 drill mode / submit bar 顯示「回首頁 + 確認提交」</li>
+    </ul>
+    <strong>Desktop 加值：</strong>右 220px rail 顯示當前步驟提示文（從 CIRCLES_STEP_CONFIG hintOverlay 拉前 100 字）+ 下一個欄位提示；mobile/tablet 不啟用 rail，hint 改點 lightbulb 觸發 modal（見 D 區）。
+  </p>
+
+  <!-- ═══════════════════ B. L 步 — solution-multi 結構 ═══════════════════ -->
+  <h2 class="vp-section-title">B. Phase 1 — L 步 · solution-multi 結構 <span class="vp-section-title__sub">2-3 個 sol cards / 每張 name + body / sol3 optional</span></h2>
+
+  <div class="vp-grid">
+
+    <div class="vp-frame">
+      <div class="vp-frame__label"><span>Mobile · L step</span><span>360 px</span></div>
+      <div class="vp-frame__body">
+        <div class="navbar"><button class="navbar__icon-btn"><i class="ph ph-list"></i></button><div class="navbar__brand"><span class="navbar__brand-icon"><i class="ph ph-circles-three"></i></span><span class="navbar__brand-name">PM Drill</span></div></div>
+        <div class="progress"><span class="progress__step is-done"><span class="step-letter">C</span></span><span class="progress__step is-done"><span class="step-letter">I</span></span><span class="progress__step is-done"><span class="step-letter">R</span></span><span class="progress__step is-done"><span class="step-letter">C</span></span><span class="progress__step is-active"><span class="step-letter">L</span>方案</span><span class="progress__step"><span class="step-letter">E</span></span><span class="progress__step"><span class="step-letter">S</span></span></div>
+        <div class="phase-head">
+          <span class="phase-head__num">05</span>
+          <div class="phase-head__main">
+            <div class="phase-head__eyebrow">Phase 1 · 寫框架</div>
+            <div class="phase-head__title">L · 提出方案</div>
+          </div>
+        </div>
+        <div class="qchip"><span class="qchip__icon"><i class="ph ph-info"></i></span><div class="qchip__main"><div class="qchip__company">Spotify · Spotify Podcast</div><div class="qchip__title">如何提升 Spotify Podcast 的用戶留存率？</div></div><i class="ph ph-caret-down qchip__caret"></i></div>
+
+        <div class="phase-body" style="padding: var(--s-5) var(--s-4) calc(var(--s-9) + var(--s-9));">
+
+          <div class="sol-card">
+            <div class="sol-card__num">方案一</div>
+            <div class="sol-card__name-row">
+              <input class="sol-card__name-input" type="text" value="主動廣告排程" placeholder="方案名稱（10 字內）">
+            </div>
+            <div class="field" style="margin-bottom:0;">
+              <div class="field__label-row">
+                <label class="field__label">核心機制</label>
+                <button class="field__hint-link"><i class="ph ph-lightbulb"></i>提示</button>
+              </div>
+              <div class="rt-field">
+                <div class="rt-field__toolbar"><button class="rt-tbtn"><i class="ph ph-text-b"></i></button><button class="rt-tbtn"><i class="ph ph-list-bullets"></i></button></div>
+                <textarea class="rt-textarea" rows="3">讓 ML 偵測「情緒高潮段落」自動避開插廣告，改在過場處插。</textarea>
+              </div>
+            </div>
+          </div>
+
+          <div class="sol-card">
+            <div class="sol-card__num">方案二</div>
+            <div class="sol-card__name-row">
+              <input class="sol-card__name-input" type="text" placeholder="方案名稱（10 字內）">
+            </div>
+            <div class="field" style="margin-bottom:0;">
+              <div class="field__label-row">
+                <label class="field__label">核心機制</label>
+                <button class="field__hint-link"><i class="ph ph-lightbulb"></i>提示</button>
+              </div>
+              <div class="rt-field">
+                <div class="rt-field__toolbar"><button class="rt-tbtn"><i class="ph ph-text-b"></i></button><button class="rt-tbtn"><i class="ph ph-list-bullets"></i></button></div>
+                <textarea class="rt-textarea" rows="3" placeholder="與方案一在「方向」上有本質差異 — 不是更多，而是不同"></textarea>
+              </div>
+            </div>
+          </div>
+
+          <button class="sol-add"><i class="ph ph-plus"></i>加方案三（選擇性）</button>
+        </div>
+
+        <div class="submit-bar">
+          <div class="submit-bar__left"><span class="save-indicator save-indicator--saved"><i class="ph ph-check" style="font-size:12px;"></i>已儲存</span></div>
+          <div class="submit-bar__right"><button class="btn btn--primary">確認提交<i class="ph ph-arrow-right"></i></button></div>
+        </div>
+      </div>
+    </div>
+
+    <div class="vp-frame">
+      <div class="vp-frame__label"><span>Tablet · L step</span><span>768 px</span></div>
+      <div class="vp-frame__body">
+        <div class="navbar"><button class="navbar__icon-btn"><i class="ph ph-list"></i></button><div class="navbar__brand"><span class="navbar__brand-icon"><i class="ph ph-circles-three"></i></span><span class="navbar__brand-name">PM Drill</span></div><nav class="navbar__tabs"><span class="navbar__tab is-active">CIRCLES</span><span class="navbar__tab">北極星指標</span></nav></div>
+        <div class="progress"><span class="progress__step is-done"><span class="step-letter">C</span>澄清</span><span class="progress__step is-done"><span class="step-letter">I</span>用戶</span><span class="progress__step is-done"><span class="step-letter">R</span>需求</span><span class="progress__step is-done"><span class="step-letter">C</span>排序</span><span class="progress__step is-active"><span class="step-letter">L</span>方案</span><span class="progress__step"><span class="step-letter">E</span>取捨</span><span class="progress__step"><span class="step-letter">S</span>總結</span></div>
+        <div class="phase-head"><span class="phase-head__num">05</span><div class="phase-head__main"><div class="phase-head__eyebrow">Phase 1 · 寫框架</div><div class="phase-head__title">L · 提出方案</div></div><span class="phase-head__meta">完整模擬 · 5 / 7 步</span></div>
+        <div class="qchip"><span class="qchip__icon"><i class="ph ph-info"></i></span><div class="qchip__main"><div class="qchip__company">Spotify · Spotify Podcast</div><div class="qchip__title">如何提升 Spotify Podcast 的用戶留存率？</div></div><i class="ph ph-caret-down qchip__caret"></i></div>
+
+        <div class="phase-body">
+          <div class="sol-card">
+            <div class="sol-card__num">方案一</div>
+            <div class="sol-card__name-row">
+              <input class="sol-card__name-input" type="text" value="主動廣告排程" placeholder="方案名稱（10 字內）">
+            </div>
+            <div class="field" style="margin-bottom:0;">
+              <div class="field__label-row"><label class="field__label">核心機制</label><button class="field__hint-link"><i class="ph ph-lightbulb"></i>提示</button></div>
+              <div class="rt-field">
+                <div class="rt-field__toolbar"><button class="rt-tbtn"><i class="ph ph-text-b"></i></button><button class="rt-tbtn"><i class="ph ph-list-bullets"></i></button></div>
+                <textarea class="rt-textarea" rows="3">讓 ML 偵測「情緒高潮段落」自動避開插廣告，改在過場處或對話換場處插。打到的痛點：用戶不是反感廣告，是反感「打斷情緒」。</textarea>
+              </div>
+            </div>
+          </div>
+
+          <div class="sol-card">
+            <div class="sol-card__num">方案二</div>
+            <div class="sol-card__name-row">
+              <input class="sol-card__name-input" type="text" value="廣告獎勵聽完" placeholder="方案名稱（10 字內）">
+            </div>
+            <div class="field" style="margin-bottom:0;">
+              <div class="field__label-row"><label class="field__label">核心機制</label><button class="field__hint-link"><i class="ph ph-lightbulb"></i>提示</button></div>
+              <div class="rt-field">
+                <div class="rt-field__toolbar"><button class="rt-tbtn"><i class="ph ph-text-b"></i></button><button class="rt-tbtn"><i class="ph ph-list-bullets"></i></button></div>
+                <textarea class="rt-textarea" rows="3">用戶聽完廣告 → 獲得「無廣告 30 分」獎勵 token，可累積。把廣告從「要忍受」改成「換取體驗」。</textarea>
+              </div>
+            </div>
+          </div>
+
+          <div class="sol-card">
+            <div class="sol-card__num">方案三 <span class="sol-card__optional">（選擇性）</span></div>
+            <div class="sol-card__name-row">
+              <input class="sol-card__name-input" type="text" placeholder="方案名稱（10 字內）">
+              <button class="sol-card__remove" aria-label="移除方案三"><i class="ph ph-x"></i></button>
+            </div>
+            <div class="field" style="margin-bottom:0;">
+              <div class="field__label-row"><label class="field__label">核心機制</label><button class="field__hint-link"><i class="ph ph-lightbulb"></i>提示</button></div>
+              <div class="rt-field">
+                <div class="rt-field__toolbar"><button class="rt-tbtn"><i class="ph ph-text-b"></i></button><button class="rt-tbtn"><i class="ph ph-list-bullets"></i></button></div>
+                <textarea class="rt-textarea" rows="3" placeholder="加分項 — 第三個真正不同的思路（更激進、更長線）"></textarea>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <div class="submit-bar">
+          <div class="submit-bar__left"><button class="btn btn--ghost"><i class="ph ph-arrow-left"></i>上一步（C2 排序）</button></div>
+          <div class="submit-bar__right"><button class="btn btn--primary">確認提交<i class="ph ph-arrow-right"></i></button></div>
+        </div>
+      </div>
+    </div>
+
+    <div class="vp-frame">
+      <div class="vp-frame__label"><span>Desktop · L step</span><span>1280 px</span></div>
+      <div class="vp-frame__body">
+        <div class="navbar"><button class="navbar__icon-btn"><i class="ph ph-list"></i></button><div class="navbar__brand"><span class="navbar__brand-icon"><i class="ph ph-circles-three"></i></span><span class="navbar__brand-name">PM Drill</span></div><nav class="navbar__tabs"><span class="navbar__tab is-active">CIRCLES</span><span class="navbar__tab">北極星指標</span></nav><div class="navbar__actions"><span class="navbar__email">albert.peng@example.com</span><button class="navbar__icon-btn"><i class="ph ph-sign-out"></i></button></div></div>
+        <div class="progress"><span class="progress__step is-done"><span class="step-letter">C</span>澄清</span><span class="progress__step is-done"><span class="step-letter">I</span>用戶</span><span class="progress__step is-done"><span class="step-letter">R</span>需求</span><span class="progress__step is-done"><span class="step-letter">C</span>排序</span><span class="progress__step is-active"><span class="step-letter">L</span>提出方案</span><span class="progress__step"><span class="step-letter">E</span>取捨</span><span class="progress__step"><span class="step-letter">S</span>總結</span></div>
+        <div class="phase-head"><span class="phase-head__num">05</span><div class="phase-head__main"><div class="phase-head__eyebrow">Phase 1 · 寫框架</div><div class="phase-head__title">L · 提出方案（2-3 個方案）</div></div><span class="phase-head__meta">完整模擬 · 5 / 7 步</span></div>
+        <div class="qchip"><span class="qchip__icon"><i class="ph ph-info"></i></span><div class="qchip__main"><div class="qchip__company">Spotify · Spotify Podcast · 設計題 · 難度 中</div><div class="qchip__title">如何提升 Spotify Podcast 的用戶留存率？</div></div><i class="ph ph-caret-down qchip__caret"></i></div>
+
+        <div class="phase-body phase-body--with-rail">
+          <div>
+            <div class="sol-card">
+              <div class="sol-card__num">方案一</div>
+              <div class="sol-card__name-row">
+                <input class="sol-card__name-input" type="text" value="主動廣告排程">
+              </div>
+              <div class="field" style="margin-bottom:0;">
+                <div class="field__label-row"><label class="field__label">核心機制（一句話打到核心痛點）</label><button class="field__hint-link"><i class="ph ph-lightbulb"></i>提示 + 教練示範</button></div>
+                <div class="rt-field">
+                  <div class="rt-field__toolbar"><button class="rt-tbtn"><i class="ph ph-text-b"></i></button><button class="rt-tbtn"><i class="ph ph-list-bullets"></i></button></div>
+                  <textarea class="rt-textarea" rows="3">讓 ML 偵測「情緒高潮段落」自動避開插廣告，改在過場處或對話換場處插。打到的痛點：用戶不是反感廣告，是反感「打斷情緒」。</textarea>
+                </div>
+              </div>
+            </div>
+
+            <div class="sol-card">
+              <div class="sol-card__num">方案二</div>
+              <div class="sol-card__name-row">
+                <input class="sol-card__name-input" type="text" value="廣告獎勵聽完">
+              </div>
+              <div class="field" style="margin-bottom:0;">
+                <div class="field__label-row"><label class="field__label">核心機制（與方案一本質差異）</label><button class="field__hint-link"><i class="ph ph-lightbulb"></i>提示 + 教練示範</button></div>
+                <div class="rt-field">
+                  <div class="rt-field__toolbar"><button class="rt-tbtn"><i class="ph ph-text-b"></i></button><button class="rt-tbtn"><i class="ph ph-list-bullets"></i></button></div>
+                  <textarea class="rt-textarea" rows="3">用戶聽完廣告 → 獲得「無廣告 30 分」獎勵 token，可累積。把廣告從「要忍受」改成「換取體驗」— 用戶主動 vs 系統推送的本質差異。</textarea>
+                </div>
+              </div>
+            </div>
+
+            <div class="sol-card">
+              <div class="sol-card__num">方案三 <span class="sol-card__optional">（選擇性）</span></div>
+              <div class="sol-card__name-row">
+                <input class="sol-card__name-input" type="text" placeholder="方案名稱（10 字內）— 加分項，更激進或長線">
+                <button class="sol-card__remove" aria-label="移除方案三"><i class="ph ph-x"></i></button>
+              </div>
+              <div class="field" style="margin-bottom:0;">
+                <div class="field__label-row"><label class="field__label">核心機制</label><button class="field__hint-link"><i class="ph ph-lightbulb"></i>提示 + 教練示範</button></div>
+                <div class="rt-field">
+                  <div class="rt-field__toolbar"><button class="rt-tbtn"><i class="ph ph-text-b"></i></button><button class="rt-tbtn"><i class="ph ph-list-bullets"></i></button></div>
+                  <textarea class="rt-textarea" rows="3" placeholder="第三個真正不同的思路 — 例如：把廣告變成內容（品牌 podcast）；或從供給端切（廣告主競價）"></textarea>
+                </div>
+              </div>
+            </div>
+          </div>
+
+          <aside class="rail">
+            <div class="rail__title">L 步重點</div>
+            <p style="margin-bottom: var(--s-3); color: var(--c-ink); font-weight: 500;">提出 2-3 個有方向差異的方案</p>
+            <p style="line-height: 1.7;">方案二要和方案一在「方向」上有本質差異 — 不是更多，而是不同。例如方案一是系統主動，方案二可以是用戶主動；或方案一是短期戰術，方案二是長期重設計。</p>
+            <hr style="border: 0; border-top: 1px solid var(--c-rule); margin: var(--s-4) 0;">
+            <div class="rail__title">方案三是加分項</div>
+            <p style="line-height: 1.7;">湊數寧可不填 — 說明「前兩個已涵蓋主要可能性」也是有效回答。</p>
+          </aside>
+        </div>
+
+        <div class="submit-bar">
+          <div class="submit-bar__left"><button class="btn btn--ghost"><i class="ph ph-arrow-left"></i>上一步（C2 排序）</button></div>
+          <div class="submit-bar__right"><button class="btn btn--primary">確認提交<i class="ph ph-arrow-right"></i></button></div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <p class="anno">
+    <strong>B · L 步 solution-multi 結構：</strong>每方案是獨立 sol-card（white bg + 1px rule + radius）— 套 §0.7.1 card-based block pattern。<br>
+    <strong>結構：</strong>每張卡含 sol-card num（navy 標籤 + 24px bar）+ name input（10 字內 placeholder）+ rt-field（核心機制）；方案三 optional → 顯示「（選擇性）」+ 移除按鈕；底部 dashed「加方案三」按鈕（如果還沒加）。<br>
+    <strong>E 步沿用：</strong>E 步驟結構是「per-solution × 4-field nested」— 每張 sol-card 內裝 4 個 rt-field（優點/缺點/風險與依賴/成功指標）。本 mockup 不重畫，但 implementer 必對照 L pattern 並列。
+  </p>
+
+  <!-- ═══════════════════ C. S 步 — 3 main + 4 tracking ═══════════════════ -->
+  <h2 class="vp-section-title">C. Phase 1 — S 步 · 3 main + 4 tracking <span class="vp-section-title__sub">推薦方案 + 選擇理由 + NSM 定義 + 4 維度（reach/depth/frequency/impact）動態 label per type</span></h2>
+
+  <div class="vp-grid">
+
+    <div class="vp-frame">
+      <div class="vp-frame__label"><span>Mobile · S</span><span>360 px</span></div>
+      <div class="vp-frame__body">
+        <div class="navbar"><button class="navbar__icon-btn"><i class="ph ph-list"></i></button><div class="navbar__brand"><span class="navbar__brand-icon"><i class="ph ph-circles-three"></i></span><span class="navbar__brand-name">PM Drill</span></div></div>
+        <div class="progress"><span class="progress__step is-done"><span class="step-letter">C</span></span><span class="progress__step is-done"><span class="step-letter">I</span></span><span class="progress__step is-done"><span class="step-letter">R</span></span><span class="progress__step is-done"><span class="step-letter">C</span></span><span class="progress__step is-done"><span class="step-letter">L</span></span><span class="progress__step is-done"><span class="step-letter">E</span></span><span class="progress__step is-active"><span class="step-letter">S</span>總結</span></div>
+        <div class="phase-head"><span class="phase-head__num">07</span><div class="phase-head__main"><div class="phase-head__eyebrow">Phase 1 · 寫框架（最後一步）</div><div class="phase-head__title">S · 總結推薦</div></div></div>
+        <div class="qchip"><span class="qchip__icon"><i class="ph ph-info"></i></span><div class="qchip__main"><div class="qchip__company">Spotify · Spotify Podcast</div><div class="qchip__title">如何提升 Spotify Podcast 的用戶留存率？</div></div><i class="ph ph-caret-down qchip__caret"></i></div>
+
+        <div class="phase-body" style="padding: var(--s-5) var(--s-4) calc(var(--s-9) + var(--s-9));">
+          <div class="field">
+            <div class="field__label-row"><label class="field__label">推薦方案</label><button class="field__hint-link"><i class="ph ph-lightbulb"></i>提示</button></div>
+            <div class="rt-field">
+              <div class="rt-field__toolbar"><button class="rt-tbtn"><i class="ph ph-text-b"></i></button></div>
+              <textarea class="rt-textarea" rows="2" placeholder="推薦哪個方案 + 一句話總判斷"></textarea>
+            </div>
+          </div>
+
+          <div class="field">
+            <div class="field__label-row"><label class="field__label">選擇理由</label><button class="field__hint-link"><i class="ph ph-lightbulb"></i>提示</button></div>
+            <div class="rt-field">
+              <div class="rt-field__toolbar"><button class="rt-tbtn"><i class="ph ph-text-b"></i></button></div>
+              <textarea class="rt-textarea" rows="3" placeholder="引用 E 結論的 3 個面向 / 對比放棄方案 / 回應最大缺點"></textarea>
+            </div>
+          </div>
+
+          <div class="field">
+            <div class="field__label-row"><label class="field__label">北極星指標</label><button class="field__hint-link"><i class="ph ph-lightbulb"></i>提示</button></div>
+            <div class="rt-field">
+              <div class="rt-field__toolbar"><button class="rt-tbtn"><i class="ph ph-text-b"></i></button></div>
+              <textarea class="rt-textarea" rows="2" placeholder="NSM 定義含行為門檻 / 為什麼能反映成效"></textarea>
+            </div>
+          </div>
+
+          <div class="tracking-section">
+            <h3 class="tracking-section__head">追蹤指標 · 4 個維度</h3>
+            <p class="tracking-section__sub">分別說明北極星指標的 reach / depth / frequency / impact。本題（attention 型 / 訂閱平台）label 自動切換為對應產業術語。</p>
+
+            <div class="tracking-grid">
+              <div class="tracking-card" data-dim="reach">
+                <div class="tracking-card__head">觸及廣度（reach）</div>
+                <div class="tracking-card__sub">每月至少播放 1 首歌的 MAU 數</div>
+                <input type="text" placeholder="例：MAU ≥ 1.2M">
+              </div>
+              <div class="tracking-card" data-dim="depth">
+                <div class="tracking-card__head">互動深度（depth）</div>
+                <div class="tracking-card__sub">每 session 平均聆聽時長（分鐘）</div>
+                <input type="text" placeholder="例：avg 25 min/session">
+              </div>
+              <div class="tracking-card" data-dim="frequency">
+                <div class="tracking-card__head">習慣頻率（frequency）</div>
+                <div class="tracking-card__sub">每週使用 ≥ 3 天的用戶佔比</div>
+                <input type="text" placeholder="例：65% 用戶 weekly ≥ 3 days">
+              </div>
+              <div class="tracking-card" data-dim="impact">
+                <div class="tracking-card__head">留存驅力（impact）</div>
+                <div class="tracking-card__sub">擁有 ≥ 5 首收藏歌曲的 30 日留存率</div>
+                <input type="text" placeholder="例：70% retention">
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <div class="submit-bar">
+          <div class="submit-bar__left"><span class="save-indicator save-indicator--saved"><i class="ph ph-check" style="font-size:12px;"></i>已儲存</span></div>
+          <div class="submit-bar__right"><button class="btn btn--primary">完成 Phase 1<i class="ph ph-arrow-right"></i></button></div>
+        </div>
+      </div>
+    </div>
+
+    <div class="vp-frame">
+      <div class="vp-frame__label"><span>Tablet · S</span><span>768 px</span></div>
+      <div class="vp-frame__body">
+        <div class="navbar"><button class="navbar__icon-btn"><i class="ph ph-list"></i></button><div class="navbar__brand"><span class="navbar__brand-icon"><i class="ph ph-circles-three"></i></span><span class="navbar__brand-name">PM Drill</span></div><nav class="navbar__tabs"><span class="navbar__tab is-active">CIRCLES</span><span class="navbar__tab">北極星指標</span></nav></div>
+        <div class="progress"><span class="progress__step is-done"><span class="step-letter">C</span>澄清</span><span class="progress__step is-done"><span class="step-letter">I</span>用戶</span><span class="progress__step is-done"><span class="step-letter">R</span>需求</span><span class="progress__step is-done"><span class="step-letter">C</span>排序</span><span class="progress__step is-done"><span class="step-letter">L</span>方案</span><span class="progress__step is-done"><span class="step-letter">E</span>取捨</span><span class="progress__step is-active"><span class="step-letter">S</span>總結</span></div>
+        <div class="phase-head"><span class="phase-head__num">07</span><div class="phase-head__main"><div class="phase-head__eyebrow">Phase 1 · 寫框架（最後一步）</div><div class="phase-head__title">S · 總結推薦</div></div><span class="phase-head__meta">完整模擬 · 7 / 7 步</span></div>
+        <div class="qchip"><span class="qchip__icon"><i class="ph ph-info"></i></span><div class="qchip__main"><div class="qchip__company">Spotify · Spotify Podcast</div><div class="qchip__title">如何提升 Spotify Podcast 的用戶留存率？</div></div><i class="ph ph-caret-down qchip__caret"></i></div>
+
+        <div class="phase-body">
+          <div class="field">
+            <div class="field__label-row"><label class="field__label">推薦方案</label><button class="field__hint-link"><i class="ph ph-lightbulb"></i>提示 + 教練示範</button></div>
+            <div class="rt-field">
+              <div class="rt-field__toolbar"><button class="rt-tbtn"><i class="ph ph-text-b"></i></button><button class="rt-tbtn"><i class="ph ph-list-bullets"></i></button></div>
+              <textarea class="rt-textarea" rows="2">推薦方案一：主動廣告排程（ML 避開情緒高潮段）— 風險最低、能直接打到核心痛點。</textarea>
+            </div>
+          </div>
+
+          <div class="field">
+            <div class="field__label-row"><label class="field__label">選擇理由</label><button class="field__hint-link"><i class="ph ph-lightbulb"></i>提示 + 教練示範</button></div>
+            <div class="rt-field">
+              <div class="rt-field__toolbar"><button class="rt-tbtn"><i class="ph ph-text-b"></i></button><button class="rt-tbtn"><i class="ph ph-list-bullets"></i></button></div>
+              <textarea class="rt-textarea" rows="3">3 個面向：(1) 直接打到「打斷情緒」核心痛點 (2) 不損失廣告 inventory（廣告數不減） (3) 對廣告主透明（不會被質疑）。對比方案二「廣告獎勵」雖然可愛但實作複雜、且可能讓廣告主反彈。</textarea>
+            </div>
+          </div>
+
+          <div class="field">
+            <div class="field__label-row"><label class="field__label">北極星指標</label><button class="field__hint-link"><i class="ph ph-lightbulb"></i>提示 + 教練示範</button></div>
+            <div class="rt-field">
+              <div class="rt-field__toolbar"><button class="rt-tbtn"><i class="ph ph-text-b"></i></button><button class="rt-tbtn"><i class="ph ph-list-bullets"></i></button></div>
+              <textarea class="rt-textarea" rows="2">每週至少完播 2 集 Podcast 的 MAU 數 — 排除瀏覽性聽眾，反映「真愛聽 podcast 不被廣告趕走」的核心信號。</textarea>
+            </div>
+          </div>
+
+          <div class="tracking-section">
+            <h3 class="tracking-section__head">追蹤指標 · 4 個維度</h3>
+            <p class="tracking-section__sub">分別說明北極星指標的 reach / depth / frequency / impact。本題（attention 型 / 訂閱平台）label 自動切換為對應產業術語。</p>
+
+            <div class="tracking-grid">
+              <div class="tracking-card" data-dim="reach">
+                <div class="tracking-card__head">觸及廣度（reach）</div>
+                <div class="tracking-card__sub">每月至少完播 1 集的 MAU 數</div>
+                <input type="text" value="MAU ≥ 1.2M（年增 +15%）">
+              </div>
+              <div class="tracking-card" data-dim="depth">
+                <div class="tracking-card__head">互動深度（depth）</div>
+                <div class="tracking-card__sub">每 session 平均聆聽時長</div>
+                <input type="text" value="avg ≥ 25 min/session">
+              </div>
+              <div class="tracking-card" data-dim="frequency">
+                <div class="tracking-card__head">習慣頻率（frequency）</div>
+                <div class="tracking-card__sub">每週使用 ≥ 3 天用戶佔比</div>
+                <input type="text" placeholder="例：65% weekly ≥ 3 days">
+              </div>
+              <div class="tracking-card" data-dim="impact">
+                <div class="tracking-card__head">留存驅力（impact）</div>
+                <div class="tracking-card__sub">收藏 ≥ 5 集後 30 日留存率</div>
+                <input type="text" placeholder="例：70% retention">
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <div class="submit-bar">
+          <div class="submit-bar__left"><button class="btn btn--ghost"><i class="ph ph-arrow-left"></i>上一步（E 取捨）</button></div>
+          <div class="submit-bar__right"><button class="btn btn--primary">完成 Phase 1<i class="ph ph-arrow-right"></i></button></div>
+        </div>
+      </div>
+    </div>
+
+    <div class="vp-frame">
+      <div class="vp-frame__label"><span>Desktop · S</span><span>1280 px</span></div>
+      <div class="vp-frame__body">
+        <div class="navbar"><button class="navbar__icon-btn"><i class="ph ph-list"></i></button><div class="navbar__brand"><span class="navbar__brand-icon"><i class="ph ph-circles-three"></i></span><span class="navbar__brand-name">PM Drill</span></div><nav class="navbar__tabs"><span class="navbar__tab is-active">CIRCLES</span><span class="navbar__tab">北極星指標</span></nav><div class="navbar__actions"><span class="navbar__email">albert.peng@example.com</span><button class="navbar__icon-btn"><i class="ph ph-sign-out"></i></button></div></div>
+        <div class="progress"><span class="progress__step is-done"><span class="step-letter">C</span>澄清</span><span class="progress__step is-done"><span class="step-letter">I</span>用戶</span><span class="progress__step is-done"><span class="step-letter">R</span>需求</span><span class="progress__step is-done"><span class="step-letter">C</span>排序</span><span class="progress__step is-done"><span class="step-letter">L</span>方案</span><span class="progress__step is-done"><span class="step-letter">E</span>取捨</span><span class="progress__step is-active"><span class="step-letter">S</span>總結推薦</span></div>
+        <div class="phase-head"><span class="phase-head__num">07</span><div class="phase-head__main"><div class="phase-head__eyebrow">Phase 1 · 寫框架（最後一步）</div><div class="phase-head__title">S · 總結推薦（含 NSM 與 4 追蹤維度）</div></div><span class="phase-head__meta">完整模擬 · 7 / 7 步</span></div>
+        <div class="qchip"><span class="qchip__icon"><i class="ph ph-info"></i></span><div class="qchip__main"><div class="qchip__company">Spotify · Spotify Podcast · 設計題 · 難度 中</div><div class="qchip__title">如何提升 Spotify Podcast 的用戶留存率？</div></div><i class="ph ph-caret-down qchip__caret"></i></div>
+
+        <div class="phase-body phase-body--with-rail">
+          <div>
+            <div class="field">
+              <div class="field__label-row"><label class="field__label">推薦方案</label><button class="field__hint-link"><i class="ph ph-lightbulb"></i>提示 + 教練示範</button></div>
+              <div class="rt-field">
+                <div class="rt-field__toolbar"><button class="rt-tbtn"><i class="ph ph-text-b"></i></button><button class="rt-tbtn"><i class="ph ph-list-bullets"></i></button></div>
+                <textarea class="rt-textarea" rows="2">推薦方案一：主動廣告排程（ML 避開情緒高潮段）— 風險最低、能直接打到核心痛點。</textarea>
+              </div>
+            </div>
+
+            <div class="field">
+              <div class="field__label-row"><label class="field__label">選擇理由</label><button class="field__hint-link"><i class="ph ph-lightbulb"></i>提示 + 教練示範</button></div>
+              <div class="rt-field">
+                <div class="rt-field__toolbar"><button class="rt-tbtn"><i class="ph ph-text-b"></i></button><button class="rt-tbtn"><i class="ph ph-list-bullets"></i></button></div>
+                <textarea class="rt-textarea" rows="4">3 個面向引用 E 結論：(1) 直接打到「打斷情緒」核心痛點，留存改善預估 +5pp (2) 不損失廣告 inventory — 廣告播放總數不減，避免廣告主反彈 (3) 實作風險低 — ML 模型已有 podcast metadata 可訓練。對比方案二「廣告獎勵」雖然可愛但實作複雜（需與廣告主重簽合約）。</textarea>
+              </div>
+            </div>
+
+            <div class="field">
+              <div class="field__label-row"><label class="field__label">北極星指標（NSM 定義）</label><button class="field__hint-link"><i class="ph ph-lightbulb"></i>提示 + 教練示範</button></div>
+              <div class="rt-field">
+                <div class="rt-field__toolbar"><button class="rt-tbtn"><i class="ph ph-text-b"></i></button><button class="rt-tbtn"><i class="ph ph-list-bullets"></i></button></div>
+                <textarea class="rt-textarea" rows="3">每週至少完播 2 集 Podcast 的 MAU 數 — 排除瀏覽性聽眾，反映「真愛聽 podcast 不被廣告趕走」的核心信號。為什麼能反映成效：完播率與滿意度高度正相關（內部 OKR 過往 12 個月相關係數 0.74）。</textarea>
+              </div>
+            </div>
+
+            <div class="tracking-section">
+              <h3 class="tracking-section__head">追蹤指標 · 4 個維度</h3>
+              <p class="tracking-section__sub">分別說明北極星指標的 reach / depth / frequency / impact。本題（attention 型 / 訂閱平台）label 自動切換為對應產業術語；左 border 色對應 dim 顏色（design system §11 motion 區既有規則）。</p>
+
+              <div class="tracking-grid">
+                <div class="tracking-card" data-dim="reach">
+                  <div class="tracking-card__head">觸及廣度（reach）</div>
+                  <div class="tracking-card__sub">有多少用戶真的觸碰到核心功能 — 每月至少完播 1 集的 MAU 數</div>
+                  <input type="text" value="MAU ≥ 1.2M（年增 +15%）">
+                </div>
+                <div class="tracking-card" data-dim="depth">
+                  <div class="tracking-card__head">互動深度（depth）</div>
+                  <div class="tracking-card__sub">每位用戶每次的品質 — 每 session 平均聆聽時長</div>
+                  <input type="text" value="avg ≥ 25 min/session（vs 目前 18 min）">
+                </div>
+                <div class="tracking-card" data-dim="frequency">
+                  <div class="tracking-card__head">習慣頻率（frequency）</div>
+                  <div class="tracking-card__sub">是否形成定期回訪習慣 — 每週使用 ≥ 3 天用戶佔比</div>
+                  <input type="text" value="65% weekly ≥ 3 days（vs 目前 52%）">
+                </div>
+                <div class="tracking-card" data-dim="impact">
+                  <div class="tracking-card__head">留存驅力（impact）</div>
+                  <div class="tracking-card__sub">什麼讓用戶持續回訪 — 收藏 ≥ 5 集後 30 日留存率</div>
+                  <input type="text" placeholder="例：70% retention（vs 目前 58%）">
+                </div>
+              </div>
+            </div>
+          </div>
+
+          <aside class="rail">
+            <div class="rail__title">S 步重點</div>
+            <p style="margin-bottom: var(--s-3); color: var(--c-ink); font-weight: 500;">總結推薦 + NSM + 4 維度追蹤</p>
+            <p style="line-height: 1.7;">推薦方案要可操作，NSM 必須含「行為門檻 + 為什麼能反映成效」。4 維度排除虛榮指標。</p>
+
+            <hr style="border: 0; border-top: 1px solid var(--c-rule); margin: var(--s-4) 0;">
+            <div class="rail__title">產業類型動態 label</div>
+            <p style="line-height: 1.7;">本題自動歸類為「attention 型」— 4 維度 label 是上面那組。若題目改為 supply-demand / creator-content / B2B SaaS，label 會切換對應術語（master-spec §2.5）。</p>
+          </aside>
+        </div>
+
+        <div class="submit-bar">
+          <div class="submit-bar__left"><button class="btn btn--ghost"><i class="ph ph-arrow-left"></i>上一步（E 取捨）</button></div>
+          <div class="submit-bar__right"><button class="btn btn--primary">完成 Phase 1<i class="ph ph-arrow-right"></i></button></div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <p class="anno">
+    <strong>C · S 步：</strong>3 個 main rt-field（推薦方案 / 選擇理由 / NSM 定義）+ 「追蹤指標 · 4 個維度」section 含 24px navy bar 標題 + sub line + 2-col grid（mobile 1-col）共 4 張 tracking-card。<br>
+    <strong>tracking-card 設計：</strong>白卡 + 1px rule + **左 3px border 對應 dim 顏色**（reach #3b82f6 藍 / depth #8b5cf6 紫 / frequency success 綠 / impact warn 橘 — 既有 master-spec §2.12 token）；head（dim 中文 + 英文）+ sub（一句行為定義）+ input（filled 範例值）。<br>
+    <strong>動態 label per type：</strong>本題 attention 型；其他類型詳見 master-spec §2.5。<br>
+    <strong>完成 Phase 1：</strong>S 是最後一步 → CTA 改顯「完成 Phase 1」（不是「確認提交」）— 暗示用戶接下來會跳 Phase 1.5 gate。
+  </p>
+
+  <!-- ═══════════════════ D. Hint icon → modal 觸發鏈 ═══════════════════ -->
+  <h2 class="vp-section-title">D. Hint icon → modal 觸發鏈 <span class="vp-section-title__sub">三層 hint 系統 · 點 lightbulb 開 modal · 看教練示範切換</span></h2>
+
+  <div class="vp-grid">
+
+    <div class="vp-frame">
+      <div class="vp-frame__label"><span>Mobile · 提示 modal（底部 sheet）</span><span>360 px</span></div>
+      <div class="vp-frame__body">
+        <div class="navbar"><button class="navbar__icon-btn"><i class="ph ph-list"></i></button><div class="navbar__brand"><span class="navbar__brand-icon"><i class="ph ph-circles-three"></i></span><span class="navbar__brand-name">PM Drill</span></div></div>
+        <div class="modal-frame" style="padding:0; align-items:flex-end; min-height:480px;">
+          <div class="modal-card" style="border-radius: var(--r-card) var(--r-card) 0 0;">
+            <div class="modal__head">
+              <span class="modal__head-icon"><i class="ph ph-lightbulb"></i></span>
+              <div style="flex:1;">
+                <div class="modal__sub">提示 · C1 · 第 1 / 3 層</div>
+                <h3 class="modal__title">問題範圍</h3>
+              </div>
+              <button class="modal__close"><i class="ph ph-x"></i></button>
+            </div>
+            <div class="modal__body">
+              <p>先把題目的問題本身定義清楚 — 它的具體類型是什麼（行為層 / 情感層 / 系統層）？涵蓋哪些功能或場景？哪些明確排除？</p>
+              <p style="margin-top: var(--s-3);">沒釐清這層，後面的分析會在錯的邊界上展開。</p>
+            </div>
+            <div class="modal__foot">
+              <button class="btn btn--ghost" style="font-size:var(--t-meta); min-height:36px;"><i class="ph ph-chalkboard-teacher"></i>看教練示範</button>
+              <button class="btn btn--primary" style="font-size:var(--t-meta); min-height:36px;">了解了</button>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <div class="vp-frame">
+      <div class="vp-frame__label"><span>Tablet · AI hint loading</span><span>768 px</span></div>
+      <div class="vp-frame__body">
+        <div class="navbar"><button class="navbar__icon-btn"><i class="ph ph-list"></i></button><div class="navbar__brand"><span class="navbar__brand-icon"><i class="ph ph-circles-three"></i></span><span class="navbar__brand-name">PM Drill</span></div></div>
+        <div class="modal-frame">
+          <div class="modal-card">
+            <div class="modal__head">
+              <span class="modal__head-icon"><i class="ph ph-lightbulb"></i></span>
+              <div style="flex:1;">
+                <div class="modal__sub">AI 個人化提示 · 第 2 / 3 層</div>
+                <h3 class="modal__title">問題範圍</h3>
+              </div>
+              <button class="modal__close"><i class="ph ph-x"></i></button>
+            </div>
+            <div style="padding: var(--s-7) var(--s-5); display: flex; flex-direction: column; align-items: center; gap: var(--s-3); color: var(--c-ink-3);">
+              <div style="width:32px; height:32px; border:2px solid var(--c-rule-bold); border-top-color:var(--c-navy); border-radius:50%; animation: spin 0.8s linear infinite;"></div>
+              <div style="font-size: var(--t-body-sm);">教練思考中…</div>
+              <div style="font-size: var(--t-cap);">針對 Spotify Podcast 題目 + 你的草稿產生個人化破題提示</div>
+            </div>
+            <div class="modal__foot">
+              <button class="btn btn--ghost" style="font-size:var(--t-meta); min-height:36px;" disabled>關閉</button>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <div class="vp-frame">
+      <div class="vp-frame__label"><span>Desktop · 教練示範（第 3 層）</span><span>1280 px</span></div>
+      <div class="vp-frame__body">
+        <div class="navbar"><button class="navbar__icon-btn"><i class="ph ph-list"></i></button><div class="navbar__brand"><span class="navbar__brand-icon"><i class="ph ph-circles-three"></i></span><span class="navbar__brand-name">PM Drill</span></div></div>
+        <div class="modal-frame">
+          <div class="modal-card" style="max-width: 560px;">
+            <div class="modal__head">
+              <span class="modal__head-icon"><i class="ph ph-chalkboard-teacher"></i></span>
+              <div style="flex:1;">
+                <div class="modal__sub">教練示範 · 第 3 / 3 層 · C1</div>
+                <h3 class="modal__title">問題範圍</h3>
+              </div>
+              <button class="modal__close"><i class="ph ph-x"></i></button>
+            </div>
+            <div class="modal__body">
+              <p>聚焦 Spotify 免費版 Podcast 的廣告體驗，排除付費方案、家庭方案、內容版權問題。</p>
+              <blockquote style="border-left:2px solid var(--c-navy); background: var(--c-navy-lt); padding: var(--s-2) var(--s-4); margin: var(--s-4) 0; border-radius: 0 var(--r-input) var(--r-input) 0;">
+                <strong style="color: var(--c-navy); display: block; margin-bottom: 4px; font-size: var(--t-cap); letter-spacing: 0.04em; text-transform: uppercase;">為什麼這樣寫</strong>
+                先把產品線（免費 vs 付費）切開，避免討論時混到付費方案的優化。再把「廣告體驗」鎖在「呈現方式 + 時段 + 形式」，不擴散到內容推薦演算法（那是另一題）。
+              </blockquote>
+            </div>
+            <div class="modal__foot">
+              <button class="btn btn--ghost" style="font-size:var(--t-meta); min-height:36px;">關閉</button>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <p class="anno">
+    <strong>D · 三層 hint 系統觸發鏈：</strong>
+    <ol style="margin:var(--s-2) 0 0 var(--s-5); padding-left:var(--s-3);">
+      <li>點 field 旁 ph-lightbulb → 開 modal 第 1 層（CIRCLES_STEP_CONFIG hardcoded zh-TW 80-100 字）</li>
+      <li>點「看教練示範」→ modal 切換到第 2 層 AI hint（POST /api/circles-(public\|sessions)/:id/hint，loading checklist 8-12 秒）</li>
+      <li>第 2 層讀完點「看教練示範」→ 切第 3 層教練 example（POST /:id/example，curated 答案 + 為什麼這樣寫 quote-block）</li>
+    </ol>
+    Modal 結構繼承 design system §13；mobile 底部 sheet up-slide / desktop 居中 fade-in。
+  </p>
+
+  <!-- ═══════════════════ E. Locked / Stale 狀態 ═══════════════════ -->
+  <h2 class="vp-section-title">E. Locked / Stale 變體 <span class="vp-section-title__sub">已評分鎖定 / 題庫已更新唯讀 — 表單轉 read-only + banner</span></h2>
+
+  <div class="vp-grid">
+
+    <div class="vp-frame">
+      <div class="vp-frame__label"><span>Mobile · locked</span><span>360 px</span></div>
+      <div class="vp-frame__body">
+        <div class="navbar"><button class="navbar__icon-btn"><i class="ph ph-list"></i></button><div class="navbar__brand"><span class="navbar__brand-icon"><i class="ph ph-circles-three"></i></span><span class="navbar__brand-name">PM Drill</span></div></div>
+        <div class="phase-head"><span class="phase-head__num">01</span><div class="phase-head__main"><div class="phase-head__eyebrow">Phase 1 · 已評分</div><div class="phase-head__title">C · 澄清情境 · 76 / 100</div></div></div>
+
+        <div class="banner banner--locked">
+          <i class="ph ph-lock-key"></i>
+          <div>
+            <strong>已評分鎖定 · 76 / 100</strong>
+            本步驟答案已被評分系統審核並鎖定。如要重練本題請從首頁開新場練習。
+          </div>
+        </div>
+
+        <div class="phase-body" style="padding: 0 var(--s-4) var(--s-5);">
+          <div class="field">
+            <div class="field__label-row"><label class="field__label">問題範圍</label></div>
+            <div class="rt-field" style="background: var(--c-bg-soft); opacity: 0.85;">
+              <div class="rt-field__toolbar" style="opacity: 0.5;">
+                <button class="rt-tbtn" disabled><i class="ph ph-text-b"></i></button>
+                <button class="rt-tbtn" disabled><i class="ph ph-list-bullets"></i></button>
+              </div>
+              <textarea class="rt-textarea" disabled style="color: var(--c-ink-3);">聚焦免費版的廣告體驗，排除付費方案。針對核心場景：通勤 / 運動時聽 Podcast 的用戶被廣告打斷情緒的問題。</textarea>
+            </div>
+          </div>
+
+          <div class="field">
+            <div class="field__label-row"><label class="field__label">時間範圍</label></div>
+            <div class="rt-field" style="background: var(--c-bg-soft); opacity: 0.85;">
+              <textarea class="rt-textarea" disabled style="color: var(--c-ink-3); padding-top: var(--s-3);">60 天，因為廣告活動以月為週期</textarea>
+            </div>
+          </div>
+        </div>
+
+        <div class="submit-bar">
+          <div class="submit-bar__left"><button class="btn btn--ghost"><i class="ph ph-house"></i>回首頁</button></div>
+          <div class="submit-bar__right"><button class="btn btn--ghost">看評分結果<i class="ph ph-arrow-right"></i></button></div>
+        </div>
+      </div>
+    </div>
+
+    <div class="vp-frame">
+      <div class="vp-frame__label"><span>Tablet · stale</span><span>768 px</span></div>
+      <div class="vp-frame__body">
+        <div class="navbar"><button class="navbar__icon-btn"><i class="ph ph-list"></i></button><div class="navbar__brand"><span class="navbar__brand-icon"><i class="ph ph-circles-three"></i></span><span class="navbar__brand-name">PM Drill</span></div><nav class="navbar__tabs"><span class="navbar__tab is-active">CIRCLES</span><span class="navbar__tab">北極星指標</span></nav></div>
+        <div class="phase-head"><span class="phase-head__num">01</span><div class="phase-head__main"><div class="phase-head__eyebrow">Phase 1 · 唯讀</div><div class="phase-head__title">C · 澄清情境（題庫已更新）</div></div></div>
+
+        <div class="banner banner--stale">
+          <i class="ph ph-warning-octagon"></i>
+          <div>
+            <strong>題庫已更新 — 顯示為唯讀</strong>
+            這份紀錄的題目陳述（problem_statement）與資料庫目前版本不同。為避免分析錯亂，整份練習轉為唯讀；可回首頁用最新題目重練。
+          </div>
+        </div>
+
+        <div class="phase-body">
+          <div class="field">
+            <div class="field__label-row"><label class="field__label">問題範圍（當時版本）</label></div>
+            <div class="rt-field" style="background: var(--c-bg-soft); opacity: 0.85;">
+              <textarea class="rt-textarea" disabled style="color: var(--c-ink-3); padding-top: var(--s-3);">聚焦免費版的廣告體驗，排除付費方案</textarea>
+            </div>
+          </div>
+
+          <div class="field">
+            <div class="field__label-row"><label class="field__label">時間範圍（當時版本）</label></div>
+            <div class="rt-field" style="background: var(--c-bg-soft); opacity: 0.85;">
+              <textarea class="rt-textarea" disabled style="color: var(--c-ink-3); padding-top: var(--s-3);">60 天</textarea>
+            </div>
+          </div>
+        </div>
+
+        <div class="submit-bar">
+          <div class="submit-bar__left"><button class="btn btn--ghost"><i class="ph ph-house"></i>回首頁</button></div>
+          <div class="submit-bar__right"><button class="btn btn--primary"><i class="ph ph-arrow-clockwise"></i>用最新題目重練</button></div>
+        </div>
+      </div>
+    </div>
+
+    <div class="vp-frame">
+      <div class="vp-frame__label"><span>Desktop · save error retry</span><span>1280 px</span></div>
+      <div class="vp-frame__body">
+        <div class="navbar"><button class="navbar__icon-btn"><i class="ph ph-list"></i></button><div class="navbar__brand"><span class="navbar__brand-icon"><i class="ph ph-circles-three"></i></span><span class="navbar__brand-name">PM Drill</span></div><nav class="navbar__tabs"><span class="navbar__tab is-active">CIRCLES</span><span class="navbar__tab">北極星指標</span></nav><div class="navbar__actions"><span class="navbar__email">albert.peng@example.com</span><button class="navbar__icon-btn"><i class="ph ph-sign-out"></i></button></div></div>
+        <div class="progress"><span class="progress__step is-active"><span class="step-letter">C</span>澄清</span><span class="progress__step"><span class="step-letter">I</span>用戶</span><span class="progress__step"><span class="step-letter">R</span>需求</span><span class="progress__step"><span class="step-letter">C</span>排序</span><span class="progress__step"><span class="step-letter">L</span>方案</span><span class="progress__step"><span class="step-letter">E</span>取捨</span><span class="progress__step"><span class="step-letter">S</span>總結</span></div>
+        <div class="phase-head"><span class="phase-head__num">01</span><div class="phase-head__main"><div class="phase-head__eyebrow">Phase 1 · 寫框架</div><div class="phase-head__title">C · 澄清情境</div></div></div>
+
+        <div style="max-width: 920px; margin: 0 auto; padding: var(--s-5) var(--s-5) 0;">
+          <div class="banner" style="background: var(--c-danger-lt); color: var(--c-danger); border-left: 2px solid var(--c-danger); margin-bottom: var(--s-4);">
+            <i class="ph ph-cloud-warning"></i>
+            <div>
+              <strong>離線中 · 已存於本機</strong>
+              你的修改已保存到瀏覽器，等網路恢復會自動同步到雲端。也可<a href="#" style="color: var(--c-danger); text-decoration: underline; margin-left: 4px;">立即重試</a>。
+            </div>
+          </div>
+        </div>
+
+        <div class="phase-body" style="padding-top: var(--s-3);">
+          <div class="save-floating">
+            <span class="save-indicator save-indicator--error"><i class="ph ph-warning-circle" style="font-size:12px;"></i>離線中 · 點擊重試</span>
+          </div>
+
+          <div class="field">
+            <div class="field__label-row"><label class="field__label">問題範圍</label><button class="field__hint-link"><i class="ph ph-lightbulb"></i>提示 + 教練示範</button></div>
+            <div class="rt-field">
+              <div class="rt-field__toolbar"><button class="rt-tbtn"><i class="ph ph-text-b"></i></button><button class="rt-tbtn"><i class="ph ph-list-bullets"></i></button></div>
+              <textarea class="rt-textarea" rows="3">聚焦免費版的廣告體驗，排除付費方案。針對核心場景：通勤 / 運動時聽 Podcast 的用戶被廣告打斷情緒的問題。</textarea>
+            </div>
+          </div>
+        </div>
+
+        <div class="submit-bar">
+          <div class="submit-bar__left"><span class="save-indicator save-indicator--error"><i class="ph ph-warning-circle" style="font-size:12px;"></i>儲存失敗 · 點擊重試</span></div>
+          <div class="submit-bar__right"><button class="btn btn--primary" disabled>確認提交（請先恢復連線）</button></div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <p class="anno">
+    <strong>E · 鎖定狀態：</strong>
+    <ul style="margin:var(--s-2) 0 0 var(--s-5); padding-left:var(--s-3);">
+      <li><strong>Locked（已評分）：</strong>banner--locked + rt-field 全 disabled + bg-soft + opacity 0.85；submit bar 只剩「回首頁 + 看評分結果」</li>
+      <li><strong>Stale（題庫更新）：</strong>banner--stale 警示 + rt-field disabled；submit bar primary 改「用最新題目重練」</li>
+      <li><strong>Save error（網路斷）：</strong>banner danger 安撫 + save-indicator floating 紅 + submit primary disabled 不擋核心，但提示先恢復連線；不阻止用戶繼續編輯（草稿存本機）</li>
+    </ul>
+    <strong>三狀態都不刪 user 草稿：</strong>locked 保留答案唯讀；stale 保留歷史紀錄；error 草稿存 localStorage。設計原則「使用者的東西絕不會憑空消失」。
+  </p>
+
+  <!-- ═══════════════════ F. Save indicator + Sticky bar 互動 ═══════════════════ -->
+  <h2 class="vp-section-title">F. Save indicator + Sticky submit 互動 <span class="vp-section-title__sub">4 狀態週期 + iOS 鍵盤彈出 + safe-area-inset</span></h2>
+
+  <div class="vp-grid">
+
+    <div class="vp-frame">
+      <div class="vp-frame__label"><span>Mobile · iOS 鍵盤彈出</span><span>360 px</span></div>
+      <div class="vp-frame__body" style="position: relative; min-height: 600px;">
+        <div class="navbar"><button class="navbar__icon-btn"><i class="ph ph-list"></i></button><div class="navbar__brand"><span class="navbar__brand-icon"><i class="ph ph-circles-three"></i></span><span class="navbar__brand-name">PM Drill</span></div></div>
+        <div class="phase-head"><span class="phase-head__num">01</span><div class="phase-head__main"><div class="phase-head__eyebrow">Phase 1</div><div class="phase-head__title">C · 澄清情境</div></div></div>
+
+        <div style="padding: var(--s-4); height: 350px; overflow-y: auto;">
+          <div class="field">
+            <div class="field__label-row"><label class="field__label">問題範圍</label><button class="field__hint-link"><i class="ph ph-lightbulb"></i></button></div>
+            <div class="rt-field" style="border-color: var(--c-primary); box-shadow: var(--shadow-focus);">
+              <div class="rt-field__toolbar"><button class="rt-tbtn"><i class="ph ph-text-b"></i></button><button class="rt-tbtn"><i class="ph ph-list-bullets"></i></button></div>
+              <textarea class="rt-textarea" rows="3">聚焦免費版的廣告體驗，排除付費方案</textarea>
+            </div>
+          </div>
+        </div>
+
+        <!-- mock keyboard zone -->
+        <div style="position: absolute; bottom: 0; left: 0; right: 0; height: 200px; background: linear-gradient(180deg, rgba(0,0,0,0.05), rgba(0,0,0,0.15)); border-top: 1px solid var(--c-rule); display: flex; align-items: center; justify-content: center; color: var(--c-ink-3); font-size: var(--t-cap);">
+          [iOS 鍵盤區 · 彈出時佔 ~200px]
+        </div>
+
+        <!-- sticky bar pinned above keyboard -->
+        <div class="submit-bar" style="position: absolute; bottom: 200px; left: 0; right: 0; z-index: 5;">
+          <div class="submit-bar__left"><span class="save-indicator save-indicator--saving">儲存中</span></div>
+          <div class="submit-bar__right"><button class="btn btn--primary">下一題</button></div>
+        </div>
+      </div>
+    </div>
+
+    <div class="vp-frame">
+      <div class="vp-frame__label"><span>Tablet · save 4 狀態週期</span><span>768 px</span></div>
+      <div class="vp-frame__body">
+        <div class="navbar"><button class="navbar__icon-btn"><i class="ph ph-list"></i></button><div class="navbar__brand"><span class="navbar__brand-icon"><i class="ph ph-circles-three"></i></span><span class="navbar__brand-name">PM Drill</span></div></div>
+
+        <div style="padding: var(--s-6) var(--s-5);">
+          <h3 style="font-size: var(--t-h2); margin-bottom: var(--s-5);">Save indicator 狀態週期</h3>
+
+          <div style="display: flex; flex-direction: column; gap: var(--s-4);">
+            <div style="display: flex; gap: var(--s-3); align-items: center; padding: var(--s-3) var(--s-4); background: var(--c-card); border: 1px solid var(--c-rule); border-radius: var(--r-input);">
+              <span class="save-indicator save-indicator--idle">已暫存</span>
+              <span style="font-size: var(--t-meta); color: var(--c-ink-3);">未變更 / 剛載入</span>
+            </div>
+            <div style="display: flex; gap: var(--s-3); align-items: center; padding: var(--s-3) var(--s-4); background: var(--c-card); border: 1px solid var(--c-rule); border-radius: var(--r-input);">
+              <span class="save-indicator save-indicator--saving">儲存中</span>
+              <span style="font-size: var(--t-meta); color: var(--c-ink-3);">debounce 20s 後觸發 PATCH /progress（Master Spec §1.1）</span>
+            </div>
+            <div style="display: flex; gap: var(--s-3); align-items: center; padding: var(--s-3) var(--s-4); background: var(--c-card); border: 1px solid var(--c-rule); border-radius: var(--r-input);">
+              <span class="save-indicator save-indicator--saved"><i class="ph ph-check" style="font-size:12px;"></i>已儲存到雲端</span>
+              <span style="font-size: var(--t-meta); color: var(--c-ink-3);">2s 後自動 fade 回 idle</span>
+            </div>
+            <div style="display: flex; gap: var(--s-3); align-items: center; padding: var(--s-3) var(--s-4); background: var(--c-card); border: 1px solid var(--c-rule); border-radius: var(--r-input);">
+              <span class="save-indicator save-indicator--error"><i class="ph ph-warning-circle" style="font-size:12px;"></i>離線中 · 點擊重試</span>
+              <span style="font-size: var(--t-meta); color: var(--c-ink-3);">click → re-attempt</span>
+            </div>
+          </div>
+
+          <p style="font-size: var(--t-meta); color: var(--c-ink-3); margin-top: var(--s-5); line-height: 1.7;">
+            位置：phase-body 內 sticky top-right（floating 不蓋住內容）；submit-bar 內也鏡像同步顯示。
+          </p>
+        </div>
+
+        <div class="submit-bar">
+          <div class="submit-bar__left"><span class="save-indicator save-indicator--saved"><i class="ph ph-check" style="font-size:12px;"></i>已儲存</span></div>
+          <div class="submit-bar__right"><button class="btn btn--primary">確認提交</button></div>
+        </div>
+      </div>
+    </div>
+
+    <div class="vp-frame">
+      <div class="vp-frame__label"><span>Desktop · sticky bar with keyboard</span><span>1280 px</span></div>
+      <div class="vp-frame__body">
+        <div class="navbar"><button class="navbar__icon-btn"><i class="ph ph-list"></i></button><div class="navbar__brand"><span class="navbar__brand-icon"><i class="ph ph-circles-three"></i></span><span class="navbar__brand-name">PM Drill</span></div><nav class="navbar__tabs"><span class="navbar__tab is-active">CIRCLES</span><span class="navbar__tab">北極星指標</span></nav><div class="navbar__actions"><span class="navbar__email">albert.peng@example.com</span><button class="navbar__icon-btn"><i class="ph ph-sign-out"></i></button></div></div>
+
+        <div style="padding: var(--s-6) var(--s-5);">
+          <h3 style="font-size: var(--t-h2); margin-bottom: var(--s-5);">iOS Sticky bar 行為（master-spec §0.2 #8）</h3>
+
+          <ul style="font-size: var(--t-body-sm); color: var(--c-ink-2); padding-left: var(--s-5); line-height: 1.8;">
+            <li><strong>iOS Safari 鍵盤彈出時：</strong>用 <code>interactive-widget=resizes-visual</code> viewport meta 讓 visualViewport 縮 — sticky bar 自動維持「鍵盤上方」</li>
+            <li><strong>safe-area-inset-bottom：</strong><code>padding-bottom: max(var(--s-3), env(safe-area-inset-bottom))</code> 防 home indicator 遮擋</li>
+            <li><strong>iPhone notch：</strong><code>viewport-fit=cover</code> + safe-area-inset-top 讓 navbar 不被 notch 蓋</li>
+            <li><strong>橫向滾動防止：</strong>sticky bar <code>position: sticky; bottom: 0</code> 而非 fixed — 配合 visualViewport API 自動跟鍵盤</li>
+            <li><strong>Save indicator 鏡像：</strong>floating top-right + sticky bar 內 同時顯示同一狀態 — 用戶從輸入區往下提交不需「找」儲存狀態</li>
+          </ul>
+        </div>
+
+        <div class="submit-bar">
+          <div class="submit-bar__left">
+            <span class="save-indicator save-indicator--saved"><i class="ph ph-check" style="font-size:12px;"></i>已儲存到雲端</span>
+            <span style="font-size: var(--t-cap); color: var(--c-ink-3); margin-left: var(--s-2);">10 秒前</span>
+          </div>
+          <div class="submit-bar__right">
+            <button class="btn btn--ghost"><i class="ph ph-arrow-left"></i>上一步</button>
+            <button class="btn btn--primary">確認提交<i class="ph ph-arrow-right"></i></button>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <p class="anno">
+    <strong>F · Save indicator + Sticky bar：</strong>
+    <ul style="margin:var(--s-2) 0 0 var(--s-5); padding-left:var(--s-3);">
+      <li><strong>Save 4 狀態：</strong>idle → saving (debounce 20s 觸發) → saved (2s 後 fade idle) → error (click retry)；位置 phase-body floating top-right + submit-bar 鏡像</li>
+      <li><strong>iOS keyboard：</strong>sticky bar 用 <code>position: sticky; bottom: 0</code> + <code>interactive-widget=resizes-visual</code> viewport meta；safe-area-inset-bottom 防 home indicator</li>
+      <li><strong>不阻擋編輯：</strong>error 狀態 submit primary disabled「請先恢復連線」但 form 仍可編輯；草稿存 localStorage</li>
+    </ul>
+    完整 iOS 規則 → master-spec §0.2 15-item checklist。
+  </p>
+
+  <footer style="max-width:1880px; margin:var(--s-9) auto var(--s-7); padding-top:var(--s-6); border-top:1px solid var(--c-rule); display:flex; gap:var(--s-5); flex-wrap:wrap; color:var(--c-ink-3); font-size:var(--t-meta);">
+    <div><strong style="color:var(--c-ink); display:block;">Mockup</strong>03 · Phase 1 表單（批次 A）</div>
+    <div><strong style="color:var(--c-ink); display:block;">Sections</strong>A 標準 4-field / B L solution-multi / C S 3+4tracking / D hint trigger / E locked-stale / F save+sticky</div>
+    <div><strong style="color:var(--c-ink); display:block;">Status</strong>等 user 放行</div>
+    <div><strong style="color:var(--c-ink); display:block;">Next</strong>04 — Phase 1.5 Gate（如 03 OK）</div>
+    <div><strong style="color:var(--c-ink); display:block;">繼承自</strong>00-design-system §1-§21（form / rt-field / hint / save / banner / phase-head / mode-tag / overflow）</div>
+  </footer>
+
+</div>
+
+</body>
+</html>
