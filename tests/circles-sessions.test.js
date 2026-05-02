@@ -581,6 +581,24 @@ describe('POST /api/circles-sessions/:id/message', () => {
 
 // ── POST /:id/evaluate-step ───────────────────────────────────────────────────
 
+// SP3 (M3): the route now validates evaluator output shape before DB write —
+// `coachVersion` must be { context, perField, reasoning }. Tests that don't
+// care about the shape merge in this minimum-valid stub.
+function validEvalResult(overrides = {}) {
+  return {
+    totalScore: 80,
+    dimensions: [],
+    highlight: 'ok',
+    improvement: 'ok',
+    coachVersion: {
+      context: 'ctx',
+      perField: [{ field: 'f', demo: 'd' }],
+      reasoning: 'why',
+    },
+    ...overrides,
+  };
+}
+
 describe('POST /api/circles-sessions/:id/evaluate-step', () => {
   test('returns 404 when session not found', async () => {
     db.single.mockResolvedValue({ data: null, error: { message: 'not found' } });
@@ -596,7 +614,7 @@ describe('POST /api/circles-sessions/:id/evaluate-step', () => {
   test('calls evaluateCirclesStep with correct params', async () => {
     const session = makeSession({ drill_step: 'I', framework_draft: { user: 'PM' }, conversation: [] });
     db.single.mockResolvedValue({ data: session, error: null });
-    evaluateCirclesStep.mockResolvedValue({ totalScore: 80, dimensions: [] });
+    evaluateCirclesStep.mockResolvedValue(validEvalResult({ totalScore: 80 }));
 
     await request(app)
       .post('/api/circles-sessions/session-abc/evaluate-step')
@@ -620,7 +638,7 @@ describe('POST /api/circles-sessions/:id/evaluate-step', () => {
   test('returns evaluateCirclesStep result', async () => {
     const session = makeSession();
     db.single.mockResolvedValue({ data: session, error: null });
-    const evalResult = { totalScore: 75, highlight: '不錯', improvement: '補充', dimensions: [] };
+    const evalResult = validEvalResult({ totalScore: 75, highlight: '不錯', improvement: '補充' });
     evaluateCirclesStep.mockResolvedValue(evalResult);
 
     const res = await request(app)
@@ -635,7 +653,7 @@ describe('POST /api/circles-sessions/:id/evaluate-step', () => {
   test('sets status to completed for drill mode', async () => {
     const session = makeSession({ mode: 'drill', drill_step: 'C1', sim_step_index: 0 });
     db.single.mockResolvedValue({ data: session, error: null });
-    evaluateCirclesStep.mockResolvedValue({ totalScore: 80 });
+    evaluateCirclesStep.mockResolvedValue(validEvalResult({ totalScore: 80 }));
 
     await request(app)
       .post('/api/circles-sessions/session-abc/evaluate-step')
@@ -659,7 +677,7 @@ describe('POST /api/circles-sessions/:id/evaluate-step', () => {
       step_scores: { C1: {}, I: {}, R: {}, C2: {}, L: {}, E: {} },
     });
     db.single.mockResolvedValue({ data: session, error: null });
-    evaluateCirclesStep.mockResolvedValue({ totalScore: 90 });
+    evaluateCirclesStep.mockResolvedValue(validEvalResult({ totalScore: 90 }));
 
     await request(app)
       .post('/api/circles-sessions/session-abc/evaluate-step')
@@ -674,7 +692,7 @@ describe('POST /api/circles-sessions/:id/evaluate-step', () => {
   test('sets status to active for simulation mode at non-last step', async () => {
     const session = makeSession({ mode: 'simulation', sim_step_index: 3 });
     db.single.mockResolvedValue({ data: session, error: null });
-    evaluateCirclesStep.mockResolvedValue({ totalScore: 85 });
+    evaluateCirclesStep.mockResolvedValue(validEvalResult({ totalScore: 85 }));
 
     await request(app)
       .post('/api/circles-sessions/session-abc/evaluate-step')
@@ -689,7 +707,7 @@ describe('POST /api/circles-sessions/:id/evaluate-step', () => {
   test('saves step score under drill_step key', async () => {
     const session = makeSession({ drill_step: 'C1', step_scores: {} });
     db.single.mockResolvedValue({ data: session, error: null });
-    const evalResult = { totalScore: 80 };
+    const evalResult = validEvalResult({ totalScore: 80 });
     evaluateCirclesStep.mockResolvedValue(evalResult);
 
     await request(app)
@@ -723,6 +741,53 @@ describe('POST /api/circles-sessions/:id/evaluate-step', () => {
       .post('/api/circles-sessions/session-abc/evaluate-step')
       .send({});
     expect(res.status).toBe(401);
+  });
+
+  // SP3 (M3) — guard against legacy coachVersion shape (string instead of
+  // structured object). The route must reject before DB write, returning
+  // EVAL_PARSE_ERROR so the front-end knows the LLM drifted.
+  test('legacy coachVersion (string) → 500 EVAL_PARSE_ERROR (not persisted)', async () => {
+    const session = makeSession();
+    db.single.mockResolvedValue({ data: session, error: null });
+    evaluateCirclesStep.mockResolvedValue({
+      totalScore: 80,
+      dimensions: [],
+      highlight: 'ok',
+      improvement: 'ok',
+      coachVersion: '舊版字串提示', // <-- legacy shape
+    });
+
+    const res = await request(app)
+      .post('/api/circles-sessions/session-abc/evaluate-step')
+      .set(AUTH_HEADER)
+      .send({});
+
+    expect(res.status).toBe(500);
+    expect(res.body.code).toBe('EVAL_PARSE_ERROR');
+    // Must NOT have written step_scores.
+    expect(db.update).not.toHaveBeenCalledWith(
+      expect.objectContaining({ step_scores: expect.anything() })
+    );
+  });
+
+  test('coachVersion missing perField array → 500 EVAL_PARSE_ERROR', async () => {
+    const session = makeSession();
+    db.single.mockResolvedValue({ data: session, error: null });
+    evaluateCirclesStep.mockResolvedValue({
+      totalScore: 80,
+      dimensions: [],
+      highlight: 'ok',
+      improvement: 'ok',
+      coachVersion: { context: 'c', reasoning: 'r' }, // <-- no perField
+    });
+
+    const res = await request(app)
+      .post('/api/circles-sessions/session-abc/evaluate-step')
+      .set(AUTH_HEADER)
+      .send({});
+
+    expect(res.status).toBe(500);
+    expect(res.body.code).toBe('EVAL_PARSE_ERROR');
   });
 });
 
