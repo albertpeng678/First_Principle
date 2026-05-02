@@ -4310,6 +4310,8 @@ async function sendCirclesMessage() {
 // hidden when not in drill mode.
 function buildDrillCompleteEncourageHtml() {
   if (AppState.circlesMode !== 'drill') return '';
+  // SP1.5-bugfix — stale: 再練一次 would replay against current DB diverging from snapshot
+  if (AppState.circlesStale) return '';
   return '<div class="drill-encourage-card" data-testid="drill-encourage-card">' +
     '<div class="drill-encourage-icon"><i class="ph ph-confetti"></i></div>' +
     '<div class="drill-encourage-body">' +
@@ -4381,8 +4383,11 @@ function renderCirclesStepScore() {
   // Bottom submit-bar variants
   var submitBar;
   if (AppState.circlesStale) {
-    // Stale snapshot — suppress action buttons; user must return home to start fresh.
-    submitBar = '<button class="circles-btn-primary" id="circles-score-home" type="button">回首頁</button>';
+    // SP1.5-bugfix — id changed to circles-stale-home + paired with 上一步.
+    // (The old id #circles-score-home was styled as round 40x40 icon-btn at style.css:4541
+    // which collided here, rendering this primary as a colorless oval.)
+    submitBar = '<button class="circles-btn-secondary" id="circles-stale-prev" type="button" style="flex:1"><i class="ph ph-arrow-left"></i> 上一步</button>' +
+                '<button class="circles-btn-primary" id="circles-stale-home" type="button" style="flex:1.6">回首頁</button>';
   } else if (mode === 'simulation' && isLastStep) {
     submitBar =
       homeIconBtn('circles-score-home') +
@@ -4404,8 +4409,9 @@ function renderCirclesStepScore() {
 
   // Phase 4.4 — desktop wrapper class
   var _phase3DesktopCls = (typeof isDesktop === 'function' && isDesktop()) ? ' phase3-desktop' : '';
+  var _staleModeCls = AppState.circlesStale ? ' stale-mode' : '';
 
-  return '<div data-view="circles" class="' + _phase3DesktopCls.trim() + '">' +
+  return '<div data-view="circles" class="' + (_phase3DesktopCls + _staleModeCls).trim() + '">' +
     '<div class="circles-nav">' +
       '<button class="circles-nav-back" id="circles-score-back"><i class="ph ph-arrow-left"></i></button>' +
       '<div style="flex:1;min-width:0">' +
@@ -4416,22 +4422,26 @@ function renderCirclesStepScore() {
     '</div>' +
     scoreNavRow +
     progressBarHtml +
-    renderStaleBanner() +
+    (AppState.circlesStale
+      ? renderStaleLockedBar(stepKey, AppState.circlesStepScores)
+      : renderStaleBanner()) +
     '<div id="circles-qchip-slot">' + renderPersistentQuestionChip() + '</div>' +
-    '<div class="circles-score-wrap">' +
-      '<div class="circles-score-total">' +
-        '<div class="circles-score-number">' + Math.round(result.totalScore || 0) + '</div>' +
-        '<div class="circles-score-sub">' + escHtml(summaryLine) + '</div>' +
+    '<div class="circles-body-centered">' +
+      '<div class="circles-score-wrap">' +
+        '<div class="circles-score-total">' +
+          '<div class="circles-score-number">' + Math.round(result.totalScore || 0) + '</div>' +
+          '<div class="circles-score-sub">' + escHtml(summaryLine) + '</div>' +
+        '</div>' +
+        '<div class="circles-score-breakdown">' + dims + '</div>' +
+        '<div class="circles-highlight-card good"><div class="circles-highlight-card-label">最強表現</div><div class="circles-highlight-card-text">' + escHtml(result.highlight || '—') + '</div></div>' +
+        '<div class="circles-highlight-card improve"><div class="circles-highlight-card-label">最需改進</div><div class="circles-highlight-card-text">' + escHtml(result.improvement || '—') + '</div></div>' +
+        '<div class="circles-coach-toggle" id="circles-coach-toggle">' +
+          '<div class="circles-coach-toggle-label">教練示範答案 <i class="ph ' + (coachOpen ? 'ph-caret-up' : 'ph-caret-down') + '" id="circles-coach-icon"></i></div>' +
+          '<div class="circles-coach-content' + (coachOpen ? ' open' : '') + '" id="circles-coach-content">' + coachContent + '</div>' +
+        '</div>' +
+        buildDrillCompleteEncourageHtml() +
+        '<div class="circles-submit-bar circles-submit-bar-row">' + submitBar + '</div>' +
       '</div>' +
-      '<div class="circles-score-breakdown">' + dims + '</div>' +
-      '<div class="circles-highlight-card good"><div class="circles-highlight-card-label">最強表現</div><div class="circles-highlight-card-text">' + escHtml(result.highlight || '—') + '</div></div>' +
-      '<div class="circles-highlight-card improve"><div class="circles-highlight-card-label">最需改進</div><div class="circles-highlight-card-text">' + escHtml(result.improvement || '—') + '</div></div>' +
-      '<div class="circles-coach-toggle" id="circles-coach-toggle">' +
-        '<div class="circles-coach-toggle-label">教練示範答案 <i class="ph ' + (coachOpen ? 'ph-caret-up' : 'ph-caret-down') + '" id="circles-coach-icon"></i></div>' +
-        '<div class="circles-coach-content' + (coachOpen ? ' open' : '') + '" id="circles-coach-content">' + coachContent + '</div>' +
-      '</div>' +
-      buildDrillCompleteEncourageHtml() +
-      '<div class="circles-submit-bar circles-submit-bar-row">' + submitBar + '</div>' +
     '</div>' +
   '</div>';
 }
@@ -4471,6 +4481,8 @@ function bindCirclesStepScore() {
   }
   document.getElementById('circles-score-home')?.addEventListener('click', goHome);
   document.getElementById('circles-score-home-btn')?.addEventListener('click', goHome);
+  // SP1.5-bugfix — unified stale-prev/stale-home handlers (phase 3 stale uses both)
+  bindStaleActionBar();
 
   // 看完整總結報告 (simulation last step S)
   document.getElementById('circles-score-final')?.addEventListener('click', function() {
