@@ -4855,3 +4855,26 @@ textarea.has-error {
 @media (min-width: 1280px) {
   .stale-action-bar { padding-left: var(--pad-block-desktop); padding-right: var(--pad-block-desktop); }
 }
+
+/* SP1.5-bugfix — .stale-mode wrapper class: edge-to-edge stripes, 1px ruler separators */
+.stale-mode .circles-progress { border-bottom: 1px solid var(--c-border); margin: 0; }
+.stale-mode .qchip {
+  border-radius: 0; border: none;
+  border-bottom: 1px solid var(--c-border);
+  margin: 0; background: var(--c-card);
+  padding: 10px var(--pad-block);
+}
+@media (min-width: 768px) { .stale-mode .qchip { padding-left: var(--pad-block-tablet); padding-right: var(--pad-block-tablet); } }
+@media (min-width: 1280px) { .stale-mode .qchip { padding-left: var(--pad-block-desktop); padding-right: var(--pad-block-desktop); } }
+.stale-mode .circles-q-card,
+.stale-mode .circles-q-card.onb-expanded {
+  border-radius: 0; border: none;
+  border-bottom: 1px solid var(--c-border);
+  margin: 0; background: var(--c-card);
+  padding: 12px var(--pad-block);
+}
+@media (min-width: 768px) { .stale-mode .circles-q-card { padding-left: var(--pad-block-tablet); padding-right: var(--pad-block-tablet); } }
+@media (min-width: 1280px) { .stale-mode .circles-q-card { padding-left: var(--pad-block-desktop); padding-right: var(--pad-block-desktop); } }
+/* Scroll-clearance — last content visible above .stale-action-bar (12+44+12+~16 safe-area) */
+.stale-mode .circles-chat-body { background: var(--c-card); padding-bottom: 88px; }
+.stale-mode .circles-score-wrap { padding-bottom: 88px; }
