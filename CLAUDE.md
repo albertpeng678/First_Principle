@@ -18,6 +18,7 @@
 | 全盤掃描（122 項 UI / 47% baseline）| ✅ 完成 — `path-2-ui-coverage-audit.md` |
 | Master Spec 凍結 | ✅ 完成 |
 | SP3 backend 並行 | ✅ Merged 到 main（13 commits / jest 142 綠 / 兩階段 review × 2 round 全綠）|
+| SP4 backend 並行 | ✅ Merged 到 main（jest 142 → 157 / 103 題 NSM context 預生成 idempotent 雙跑驗證）|
 | Mockup（共 16 張）| 🟡 5/16 放行，下一張 05 |
 | writing-plans → CSS rewrite plan | ⏳ 待 mockup 全完 |
 | subagent-driven-development | ⏳ 待 plan |
@@ -57,7 +58,7 @@
 
 | 路徑 | branch | 狀態 |
 |---|---|---|
-| `/Users/albertpeng/Desktop/claude_project/First_Principle` | main | 主 repo（SP3 backend 已 merge）|
+| `/Users/albertpeng/Desktop/claude_project/First_Principle` | main | 主 repo（SP3 + SP4 backend 已 merge / jest 157）|
 | `/Users/albertpeng/Desktop/claude_project/first-principle-sp2` | feat/sp2-drill | 暫不 merge — JS 改動可 cherry-pick，CSS 廢棄 |
 | `/Users/albertpeng/Desktop/claude_project/first-principle-sp3-backend` | feat/sp3-backend | 已 merge 進 main，可 cleanup |
 | 主 repo | revise/sp3-alignment | 4 commits — Path 2 結束再評估 |
@@ -70,10 +71,9 @@
 - Phase 3 三狀態 renderer / collapsible / coach demo / loading checklist
 - Spec：`docs/superpowers/specs/2026-05-02-sp3-score-coach-end-design.md`
 
-### SP4 — NSM 升級
-- **後端可早做**：Task 2 backfill 腳本（隨時）+ Task 3 跑 backfill（OpenAI ~$0.50，需 user 確認）
-- **前端**：Path 2 期間 mockup 06-08, 14 處理
-- Spec：`docs/superpowers/specs/2026-05-02-sp4-nsm-upgrade-design.md`
+### SP4 frontend tasks（Path 2 期間 mockup 06-08, 14 處理）
+- Step 1 卡片 UI parity / Step 4 全 4 tab 重設計 / 統一 padding
+- Spec：`docs/superpowers/specs/2026-05-02-sp4-nsm-upgrade-design.md`（Task A backend 已 merge）
 
 ---
 
@@ -107,7 +107,7 @@
 
 ## Tests / Quality Gates
 
-- jest 基線：142/142 (main 含 SP3 merge)
+- jest 基線：157/157（main 含 SP3 + SP4 backend merge）
 - Playwright：91/91 × 8 viewport（iPhone-SE / iPhone-14 / iPhone-15-Pro / iPad / Mobile-360 / Desktop-1280 / Desktop-1440 / Desktop-2560）
 
 ---
