@@ -294,6 +294,142 @@
     .char-counter--near { color: var(--c-warn); }
     .char-counter--over { color: var(--c-danger); font-weight: 600; }
 
+    /* ─── field 兩種 hint links（提示 + 範例答案）─── */
+    .field__hint-row {
+      display: flex;
+      gap: var(--s-3);
+      flex-wrap: wrap;
+      align-items: center;
+    }
+    .field__hint-link.is-active {
+      color: var(--c-navy);
+      font-weight: 500;
+    }
+    .field-example-toggle {
+      display: inline-flex;
+      align-items: center;
+      gap: 4px;
+      font-size: var(--t-cap);
+      color: var(--c-ink-3);
+      transition: color var(--t-fast) var(--ease);
+      cursor: pointer;
+    }
+    .field-example-toggle:hover { color: var(--c-navy); }
+    .field-example-toggle i { font-size: 14px; }
+    .field-example-toggle[aria-expanded="true"] { color: var(--c-navy); font-weight: 500; }
+    .field-example-toggle[aria-expanded="true"] i.toggle-caret { transform: rotate(180deg); }
+    .field-example-toggle i.toggle-caret { transition: transform var(--t-fast) var(--ease); font-size: 12px; }
+
+    /* ─── example bullet inline expand（spec 2026-04-28 bullet-format）─── */
+    .example-expand {
+      margin-top: var(--s-3);
+      padding: var(--s-4) var(--s-5);
+      background: var(--c-surface);
+      border: 1px solid var(--c-rule);
+      border-radius: var(--r-input);
+      animation: fadeSlideIn var(--t-norm) var(--ease);
+    }
+    @keyframes fadeSlideIn {
+      from { opacity: 0; transform: translateY(-4px); }
+      to { opacity: 1; transform: translateY(0); }
+    }
+    .example-expand__head {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      margin-bottom: var(--s-3);
+      padding-bottom: var(--s-2);
+      border-bottom: 1px solid var(--c-rule);
+    }
+    .example-expand__title {
+      display: inline-flex;
+      align-items: center;
+      gap: var(--s-2);
+      font-size: var(--t-cap);
+      letter-spacing: 0.04em;
+      text-transform: uppercase;
+      color: var(--c-navy);
+      font-weight: 600;
+    }
+    .example-expand__title i { font-size: 14px; }
+    .example-expand__close {
+      width: 24px; height: 24px;
+      border-radius: var(--r-pill);
+      color: var(--c-ink-3);
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+    }
+    .example-expand__close:hover { background: var(--c-bg-soft); color: var(--c-ink); }
+
+    .example-list {
+      list-style: disc;
+      padding-left: 18px;
+      margin: 0;
+      font-size: var(--t-body-sm);
+      line-height: 1.7;
+      color: var(--c-ink);
+    }
+    .example-list > li { margin: 4px 0; }
+    .example-list .example-sub {
+      list-style: circle;
+      padding-left: 18px;
+      margin: 4px 0;
+    }
+    .example-list strong { color: var(--c-navy); font-weight: 700; }
+
+    .example-expand__action {
+      margin-top: var(--s-3);
+      padding-top: var(--s-3);
+      border-top: 1px solid var(--c-rule);
+      display: flex;
+      gap: var(--s-2);
+      justify-content: flex-end;
+    }
+    .example-expand__copy {
+      display: inline-flex;
+      align-items: center;
+      gap: 4px;
+      padding: 6px 10px;
+      font-size: var(--t-cap);
+      color: var(--c-ink-3);
+      border-radius: var(--r-input);
+      transition: all var(--t-fast) var(--ease);
+    }
+    .example-expand__copy:hover { background: var(--c-bg-soft); color: var(--c-navy); }
+
+    /* ─── modal overlay（form 在後，modal 在上）─── */
+    .overlay-frame {
+      position: relative;
+      min-height: 540px;
+      overflow: hidden;
+    }
+    .overlay-frame__backdrop {
+      position: absolute;
+      inset: 0;
+      background: rgba(31,29,27,0.45);
+      z-index: 1;
+    }
+    .overlay-frame .modal-card {
+      position: absolute;
+      top: 50%;
+      left: 50%;
+      transform: translate(-50%, -50%);
+      z-index: 2;
+      width: calc(100% - var(--s-7));
+      max-width: 520px;
+    }
+    .overlay-frame--bottom .modal-card {
+      top: auto;
+      bottom: 0;
+      left: 0;
+      transform: none;
+      width: 100%;
+      max-width: 100%;
+      border-radius: var(--r-card) var(--r-card) 0 0;
+    }
+    .overlay-frame--bottom .overlay-frame__backdrop { bottom: 0; }
+
     .field--error .rt-field { border-color: var(--c-danger); }
     .field__error {
       display: flex;
@@ -587,7 +723,10 @@
           <div class="field">
             <div class="field__label-row">
               <label class="field__label">問題範圍</label>
-              <button class="field__hint-link"><i class="ph ph-lightbulb"></i>提示</button>
+              <div class="field__hint-row">
+                <button class="field__hint-link"><i class="ph ph-lightbulb"></i>提示</button>
+                <button class="field-example-toggle is-active" aria-expanded="true"><i class="ph ph-quotes"></i>範例答案<i class="ph ph-caret-down toggle-caret" style="transform: rotate(180deg);"></i></button>
+              </div>
             </div>
             <div class="rt-field" style="border-color: var(--c-primary); box-shadow: var(--shadow-focus);">
               <div class="rt-field__toolbar">
@@ -600,6 +739,27 @@
             <div class="field__meta">
               <span>建議 50-120 字</span>
               <span class="char-counter">22 / 120</span>
+            </div>
+
+            <div class="example-expand">
+              <div class="example-expand__head">
+                <div class="example-expand__title"><i class="ph ph-quotes"></i>範例答案</div>
+                <button class="example-expand__close" aria-label="收合"><i class="ph ph-x"></i></button>
+              </div>
+              <ul class="example-list">
+                <li>聚焦：<strong>免費版 ad-supported tier</strong> 的 Podcast 體驗</li>
+                <li>排除範圍：
+                  <ul class="example-sub">
+                    <li>付費方案、家庭方案</li>
+                    <li>內容推薦演算法（另一題）</li>
+                    <li>Podcast 創作者工具</li>
+                  </ul>
+                </li>
+                <li>核心場景：<strong>通勤 / 運動 / 開車</strong> 三類用戶被廣告打斷情緒</li>
+              </ul>
+              <div class="example-expand__action">
+                <button class="example-expand__copy"><i class="ph ph-copy"></i>複製到輸入框</button>
+              </div>
             </div>
           </div>
 
@@ -704,7 +864,10 @@
           <div class="field">
             <div class="field__label-row">
               <label class="field__label">問題範圍</label>
-              <button class="field__hint-link"><i class="ph ph-lightbulb"></i>提示</button>
+              <div class="field__hint-row">
+                <button class="field__hint-link"><i class="ph ph-lightbulb"></i>提示</button>
+                <button class="field-example-toggle" aria-expanded="false"><i class="ph ph-quotes"></i>範例答案<i class="ph ph-caret-down toggle-caret"></i></button>
+              </div>
             </div>
             <div class="rt-field">
               <div class="rt-field__toolbar"><button class="rt-tbtn"><i class="ph ph-text-b"></i></button><button class="rt-tbtn"><i class="ph ph-list-bullets"></i></button><button class="rt-tbtn"><i class="ph ph-text-indent"></i></button></div>
@@ -795,7 +958,10 @@
             <div class="field">
               <div class="field__label-row">
                 <label class="field__label">問題範圍</label>
-                <button class="field__hint-link"><i class="ph ph-lightbulb"></i>提示 + 教練示範</button>
+                <div class="field__hint-row">
+                  <button class="field__hint-link"><i class="ph ph-lightbulb"></i>提示</button>
+                  <button class="field-example-toggle is-active" aria-expanded="true"><i class="ph ph-quotes"></i>範例答案<i class="ph ph-caret-down toggle-caret" style="transform: rotate(180deg);"></i></button>
+                </div>
               </div>
               <div class="rt-field" style="border-color: var(--c-primary); box-shadow: var(--shadow-focus);">
                 <div class="rt-field__toolbar">
@@ -809,6 +975,27 @@
               <div class="field__meta">
                 <span>建議 50-120 字 · 寫具體的功能或場景邊界</span>
                 <span class="char-counter">82 / 120</span>
+              </div>
+
+              <div class="example-expand">
+                <div class="example-expand__head">
+                  <div class="example-expand__title"><i class="ph ph-quotes"></i>範例答案 — 此題預先生成，不打 LLM</div>
+                  <button class="example-expand__close" aria-label="收合"><i class="ph ph-x"></i></button>
+                </div>
+                <ul class="example-list">
+                  <li>聚焦：<strong>免費版 ad-supported tier</strong> 的 Podcast 體驗（不含付費方案）</li>
+                  <li>3 個關鍵場景：
+                    <ul class="example-sub">
+                      <li>通勤 — 連續聽 30-60 分，廣告打斷頻率最敏感</li>
+                      <li>運動 — 心跳已高，廣告音量切換體驗差</li>
+                      <li>開車 — 注意力被分割，廣告影響安全感</li>
+                    </ul>
+                  </li>
+                  <li>排除：付費方案、內容推薦演算法、Podcast 創作工具（這些是<strong>另一題</strong>）</li>
+                </ul>
+                <div class="example-expand__action">
+                  <button class="example-expand__copy"><i class="ph ph-copy"></i>複製到輸入框</button>
+                </div>
               </div>
             </div>
 
@@ -1314,21 +1501,42 @@
     <strong>完成 Phase 1：</strong>S 是最後一步 → CTA 改顯「完成 Phase 1」（不是「確認提交」）— 暗示用戶接下來會跳 Phase 1.5 gate。
   </p>
 
-  <!-- ═══════════════════ D. Hint icon → modal 觸發鏈 ═══════════════════ -->
-  <h2 class="vp-section-title">D. Hint icon → modal 觸發鏈 <span class="vp-section-title__sub">三層 hint 系統 · 點 lightbulb 開 modal · 看教練示範切換</span></h2>
+  <!-- ═══════════════════ D. 點擊提示後的 overlay 樣子 ═══════════════════ -->
+  <h2 class="vp-section-title">D. 點擊提示後的 overlay 樣子 <span class="vp-section-title__sub">form 在後 dim / modal 在上 / 三層 hint 系統 trigger 鏈</span></h2>
 
   <div class="vp-grid">
 
+    <!-- mobile: 點 lightbulb → bottom sheet 浮出，form 在後 -->
     <div class="vp-frame">
-      <div class="vp-frame__label"><span>Mobile · 提示 modal（底部 sheet）</span><span>360 px</span></div>
+      <div class="vp-frame__label"><span>Mobile · 第 1 層 hardcoded（bottom sheet）</span><span>360 px</span></div>
       <div class="vp-frame__body">
         <div class="navbar"><button class="navbar__icon-btn"><i class="ph ph-list"></i></button><div class="navbar__brand"><span class="navbar__brand-icon"><i class="ph ph-circles-three"></i></span><span class="navbar__brand-name">PM Drill</span></div></div>
-        <div class="modal-frame" style="padding:0; align-items:flex-end; min-height:480px;">
-          <div class="modal-card" style="border-radius: var(--r-card) var(--r-card) 0 0;">
+        <div class="phase-head"><span class="phase-head__num">01</span><div class="phase-head__main"><div class="phase-head__eyebrow">Phase 1 · 寫框架</div><div class="phase-head__title">C · 澄清情境</div></div></div>
+        <div class="overlay-frame overlay-frame--bottom">
+          <!-- form behind dim -->
+          <div style="padding: var(--s-4); opacity: 0.45;">
+            <div class="field">
+              <div class="field__label-row">
+                <label class="field__label">問題範圍</label>
+                <div class="field__hint-row">
+                  <button class="field__hint-link is-active"><i class="ph ph-lightbulb"></i>提示</button>
+                  <button class="field-example-toggle"><i class="ph ph-quotes"></i>範例答案</button>
+                </div>
+              </div>
+              <div class="rt-field">
+                <div class="rt-field__toolbar"><button class="rt-tbtn"><i class="ph ph-text-b"></i></button></div>
+                <textarea class="rt-textarea" rows="3">聚焦免費版的廣告體驗</textarea>
+              </div>
+            </div>
+          </div>
+          <!-- backdrop -->
+          <div class="overlay-frame__backdrop"></div>
+          <!-- bottom sheet -->
+          <div class="modal-card">
             <div class="modal__head">
               <span class="modal__head-icon"><i class="ph ph-lightbulb"></i></span>
               <div style="flex:1;">
-                <div class="modal__sub">提示 · C1 · 第 1 / 3 層</div>
+                <div class="modal__sub">提示 · C1 · 第 1 / 2 層</div>
                 <h3 class="modal__title">問題範圍</h3>
               </div>
               <button class="modal__close"><i class="ph ph-x"></i></button>
@@ -1338,7 +1546,7 @@
               <p style="margin-top: var(--s-3);">沒釐清這層，後面的分析會在錯的邊界上展開。</p>
             </div>
             <div class="modal__foot">
-              <button class="btn btn--ghost" style="font-size:var(--t-meta); min-height:36px;"><i class="ph ph-chalkboard-teacher"></i>看教練示範</button>
+              <button class="btn btn--ghost" style="font-size:var(--t-meta); min-height:36px;"><i class="ph ph-sparkle"></i>要更個人化提示</button>
               <button class="btn btn--primary" style="font-size:var(--t-meta); min-height:36px;">了解了</button>
             </div>
           </div>
@@ -1346,16 +1554,41 @@
       </div>
     </div>
 
+    <!-- tablet: 第 2 層 AI hint loading -->
     <div class="vp-frame">
-      <div class="vp-frame__label"><span>Tablet · AI hint loading</span><span>768 px</span></div>
+      <div class="vp-frame__label"><span>Tablet · 第 2 層 AI 個人化（loading）</span><span>768 px</span></div>
       <div class="vp-frame__body">
         <div class="navbar"><button class="navbar__icon-btn"><i class="ph ph-list"></i></button><div class="navbar__brand"><span class="navbar__brand-icon"><i class="ph ph-circles-three"></i></span><span class="navbar__brand-name">PM Drill</span></div></div>
-        <div class="modal-frame">
+        <div class="phase-head"><span class="phase-head__num">01</span><div class="phase-head__main"><div class="phase-head__eyebrow">Phase 1 · 寫框架</div><div class="phase-head__title">C · 澄清情境</div></div></div>
+        <div class="overlay-frame">
+          <!-- form behind -->
+          <div style="padding: var(--s-5); opacity: 0.45;">
+            <div class="field">
+              <div class="field__label-row">
+                <label class="field__label">問題範圍</label>
+                <div class="field__hint-row">
+                  <button class="field__hint-link is-active"><i class="ph ph-lightbulb"></i>提示</button>
+                  <button class="field-example-toggle"><i class="ph ph-quotes"></i>範例答案</button>
+                </div>
+              </div>
+              <div class="rt-field">
+                <div class="rt-field__toolbar"><button class="rt-tbtn"><i class="ph ph-text-b"></i></button><button class="rt-tbtn"><i class="ph ph-list-bullets"></i></button></div>
+                <textarea class="rt-textarea" rows="3">聚焦免費版的廣告體驗，排除付費方案</textarea>
+              </div>
+            </div>
+            <div class="field">
+              <div class="field__label-row"><label class="field__label">時間範圍</label></div>
+              <div class="rt-field">
+                <textarea class="rt-textarea" rows="2" style="padding-top: var(--s-3);" placeholder="60 天，因為廣告活動以月為週期"></textarea>
+              </div>
+            </div>
+          </div>
+          <div class="overlay-frame__backdrop"></div>
           <div class="modal-card">
             <div class="modal__head">
-              <span class="modal__head-icon"><i class="ph ph-lightbulb"></i></span>
+              <span class="modal__head-icon"><i class="ph ph-sparkle"></i></span>
               <div style="flex:1;">
-                <div class="modal__sub">AI 個人化提示 · 第 2 / 3 層</div>
+                <div class="modal__sub">AI 個人化提示 · 第 2 / 2 層</div>
                 <h3 class="modal__title">問題範圍</h3>
               </div>
               <button class="modal__close"><i class="ph ph-x"></i></button>
@@ -1363,7 +1596,7 @@
             <div style="padding: var(--s-7) var(--s-5); display: flex; flex-direction: column; align-items: center; gap: var(--s-3); color: var(--c-ink-3);">
               <div style="width:32px; height:32px; border:2px solid var(--c-rule-bold); border-top-color:var(--c-navy); border-radius:50%; animation: spin 0.8s linear infinite;"></div>
               <div style="font-size: var(--t-body-sm);">教練思考中…</div>
-              <div style="font-size: var(--t-cap);">針對 Spotify Podcast 題目 + 你的草稿產生個人化破題提示</div>
+              <div style="font-size: var(--t-cap);">針對 Spotify Podcast 題目 + 你目前的草稿產生個人化提示</div>
             </div>
             <div class="modal__foot">
               <button class="btn btn--ghost" style="font-size:var(--t-meta); min-height:36px;" disabled>關閉</button>
@@ -1373,44 +1606,77 @@
       </div>
     </div>
 
+    <!-- desktop: 點 quotes → 範例答案 inline 直接展開（不開 modal） -->
     <div class="vp-frame">
-      <div class="vp-frame__label"><span>Desktop · 教練示範（第 3 層）</span><span>1280 px</span></div>
+      <div class="vp-frame__label"><span>Desktop · 點「範例答案」inline 展開（非 modal）</span><span>1280 px</span></div>
       <div class="vp-frame__body">
-        <div class="navbar"><button class="navbar__icon-btn"><i class="ph ph-list"></i></button><div class="navbar__brand"><span class="navbar__brand-icon"><i class="ph ph-circles-three"></i></span><span class="navbar__brand-name">PM Drill</span></div></div>
-        <div class="modal-frame">
-          <div class="modal-card" style="max-width: 560px;">
-            <div class="modal__head">
-              <span class="modal__head-icon"><i class="ph ph-chalkboard-teacher"></i></span>
-              <div style="flex:1;">
-                <div class="modal__sub">教練示範 · 第 3 / 3 層 · C1</div>
-                <h3 class="modal__title">問題範圍</h3>
+        <div class="navbar"><button class="navbar__icon-btn"><i class="ph ph-list"></i></button><div class="navbar__brand"><span class="navbar__brand-icon"><i class="ph ph-circles-three"></i></span><span class="navbar__brand-name">PM Drill</span></div><nav class="navbar__tabs"><span class="navbar__tab is-active">CIRCLES</span><span class="navbar__tab">北極星指標</span></nav></div>
+        <div class="phase-head"><span class="phase-head__num">01</span><div class="phase-head__main"><div class="phase-head__eyebrow">Phase 1 · 寫框架</div><div class="phase-head__title">C · 澄清情境</div></div></div>
+
+        <div style="max-width: 920px; margin: 0 auto; padding: var(--s-5);">
+          <div class="field">
+            <div class="field__label-row">
+              <label class="field__label">問題範圍</label>
+              <div class="field__hint-row">
+                <button class="field__hint-link"><i class="ph ph-lightbulb"></i>提示</button>
+                <button class="field-example-toggle is-active" aria-expanded="true"><i class="ph ph-quotes"></i>範例答案<i class="ph ph-caret-down toggle-caret" style="transform: rotate(180deg);"></i></button>
               </div>
-              <button class="modal__close"><i class="ph ph-x"></i></button>
             </div>
-            <div class="modal__body">
-              <p>聚焦 Spotify 免費版 Podcast 的廣告體驗，排除付費方案、家庭方案、內容版權問題。</p>
-              <blockquote style="border-left:2px solid var(--c-navy); background: var(--c-navy-lt); padding: var(--s-2) var(--s-4); margin: var(--s-4) 0; border-radius: 0 var(--r-input) var(--r-input) 0;">
-                <strong style="color: var(--c-navy); display: block; margin-bottom: 4px; font-size: var(--t-cap); letter-spacing: 0.04em; text-transform: uppercase;">為什麼這樣寫</strong>
-                先把產品線（免費 vs 付費）切開，避免討論時混到付費方案的優化。再把「廣告體驗」鎖在「呈現方式 + 時段 + 形式」，不擴散到內容推薦演算法（那是另一題）。
-              </blockquote>
+            <div class="rt-field">
+              <div class="rt-field__toolbar"><button class="rt-tbtn"><i class="ph ph-text-b"></i></button><button class="rt-tbtn"><i class="ph ph-list-bullets"></i></button><button class="rt-tbtn"><i class="ph ph-text-indent"></i></button></div>
+              <textarea class="rt-textarea" rows="3" placeholder="聚焦免費版的廣告體驗，排除付費方案"></textarea>
             </div>
-            <div class="modal__foot">
-              <button class="btn btn--ghost" style="font-size:var(--t-meta); min-height:36px;">關閉</button>
+
+            <div class="example-expand">
+              <div class="example-expand__head">
+                <div class="example-expand__title"><i class="ph ph-quotes"></i>範例答案 — 此題預先生成，不打 LLM（&lt; 50ms）</div>
+                <button class="example-expand__close" aria-label="收合"><i class="ph ph-x"></i></button>
+              </div>
+              <ul class="example-list">
+                <li>聚焦：<strong>免費版 ad-supported tier</strong> 的 Podcast 體驗（不含付費方案）</li>
+                <li>3 個關鍵場景：
+                  <ul class="example-sub">
+                    <li>通勤 — 連續聽 30-60 分，廣告打斷頻率最敏感</li>
+                    <li>運動 — 心跳已高，廣告音量切換體驗差</li>
+                    <li>開車 — 注意力被分割，廣告影響安全感</li>
+                  </ul>
+                </li>
+                <li>排除：付費方案、內容推薦演算法、Podcast 創作工具（這些是<strong>另一題</strong>）</li>
+              </ul>
+              <div class="example-expand__action">
+                <button class="example-expand__copy"><i class="ph ph-copy"></i>複製到輸入框</button>
+                <button class="example-expand__copy"><i class="ph ph-arrow-up-right"></i>看更多範例（其他類似題）</button>
+              </div>
             </div>
           </div>
         </div>
       </div>
     </div>
+
   </div>
 
   <p class="anno">
-    <strong>D · 三層 hint 系統觸發鏈：</strong>
-    <ol style="margin:var(--s-2) 0 0 var(--s-5); padding-left:var(--s-3);">
-      <li>點 field 旁 ph-lightbulb → 開 modal 第 1 層（CIRCLES_STEP_CONFIG hardcoded zh-TW 80-100 字）</li>
-      <li>點「看教練示範」→ modal 切換到第 2 層 AI hint（POST /api/circles-(public\|sessions)/:id/hint，loading checklist 8-12 秒）</li>
-      <li>第 2 層讀完點「看教練示範」→ 切第 3 層教練 example（POST /:id/example，curated 答案 + 為什麼這樣寫 quote-block）</li>
-    </ol>
-    Modal 結構繼承 design system §13；mobile 底部 sheet up-slide / desktop 居中 fade-in。
+    <strong>D · 兩種 hint trigger 設計分流（重要規格區別）：</strong>
+    <ul style="margin:var(--s-2) 0 0 var(--s-5); padding-left:var(--s-3); line-height:1.7;">
+      <li><strong>「提示」（lightbulb）→ 開 modal overlay：</strong>
+        <ul style="margin:4px 0 0 var(--s-4);">
+          <li>第 1 層：static hardcoded 文案（CIRCLES_STEP_CONFIG hintOverlay 80-100 字 zh-TW，0ms 載入）</li>
+          <li>第 2 層：AI 個人化（POST `/api/circles-(public\|sessions)/:id/hint`，loading 8-12 秒，針對「題目 + 用戶草稿」生成）</li>
+          <li>Modal 浮在 form 上方，backdrop dim 45% — user 還是看得到自己的草稿</li>
+          <li>Mobile 用 bottom sheet up-slide（拇指可達）；desktop 用 centered fade-in</li>
+        </ul>
+      </li>
+      <li><strong>「範例答案」（quotes）→ inline expand（不開 modal）：</strong>
+        <ul style="margin:4px 0 0 var(--s-4);">
+          <li><strong>預先生成（不打 LLM）— production circles_database.json 的 field_examples</strong>，每題 27 欄已寫好（spec 2026-04-28-bullet-format）</li>
+          <li>點 quotes button → 直接 inline 展開在 rt-field 下方（surface bg）</li>
+          <li>用 §14 example-bullet 規格：<code>- </code> 頂層 + <code>  - </code> 子項縮排 + <code>**bold**</code> navy</li>
+          <li>底部「複製到輸入框」按鈕（ph-copy）+ desktop 多「看更多範例（其他類似題）」</li>
+          <li><strong>為什麼 inline 不 modal：</strong>用戶會邊看範例邊修自己的答案 — 範例和輸入區並排比浮 overlay 好</li>
+        </ul>
+      </li>
+    </ul>
+    <strong>UX 邏輯區隔：</strong>提示 = 引導怎麼想；範例 = 看具體答案 — 兩者用不同 trigger 視覺（lightbulb vs quotes）+ 不同 UI pattern（modal vs inline）讓使用者直覺區分。
   </p>
 
   <!-- ═══════════════════ E. Locked / Stale 狀態 ═══════════════════ -->
