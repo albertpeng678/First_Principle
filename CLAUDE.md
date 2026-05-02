@@ -1,7 +1,7 @@
 # PM Drill — 專案狀態看板
 
 > 即時狀態 single source of truth。重大事件即時 Edit。不放歷史（git log 有）。
-> **Last updated:** 2026-05-03（10 Onboarding Welcome + 4-step Tour 放行 / 下一張 01 v5 對齊缺口補）
+> **Last updated:** 2026-05-03（01 v5 對齊缺口補 + mobile navbar 統一 84 處 / 下一張 11 Phase 3 步驟分數）
 
 ---
 
@@ -19,7 +19,7 @@
 | Master Spec 凍結 | ✅ 完成 |
 | SP3 backend 並行 | ✅ Merged 到 main（13 commits / jest 142 綠 / 兩階段 review × 2 round 全綠）|
 | SP4 backend 並行 | ✅ Merged 到 main（jest 142 → 157 / 103 題 NSM context 預生成 idempotent 雙跑驗證）|
-| Mockup（共 16 張）| 🟡 11/16 放行，下一張 01 v5（補 NSM cross-promo + 「什麼是 CIRCLES」accordion + wording）|
+| Mockup（共 16 張）| 🟡 11/16 放行（01 升 v5）/ 下一張 11 Phase 3 步驟分數 |
 | writing-plans → CSS rewrite plan | ⏳ 待 mockup 全完 |
 | subagent-driven-development | ⏳ 待 plan |
 | 14-box gate → merge main | ⏳ 待全綠 |
@@ -31,7 +31,7 @@
 | # | 狀態 | 完整路徑 | 內容 |
 |---|---|---|---|
 | 00 | ✅ 放行 | `docs/superpowers/specs/mockups/2026-05-02-frontend-rewrite/00-design-system.html` | Design system 21 sections |
-| 01 | ✅ 放行 v4 | `docs/superpowers/specs/mockups/2026-05-02-frontend-rewrite/01-circles-home.html` | CIRCLES Home A-G 7 sections |
+| 01 | ✅ 放行 v5 | `docs/superpowers/specs/mockups/2026-05-02-frontend-rewrite/01-circles-home.html` | CIRCLES Home A-G 7 sections + **v5 對齊缺口補**：NSM cross-promo card 底部（mobile 直式 / tablet+desktop 橫式）+ 「什麼是 CIRCLES 實戰訓練？」accordion（精簡 prose 2-line 不用 card-block）+ wording 對齊 production（個別步驟 → 步驟加練 / 設計題 → 產品設計 ×40 / 改善題 → 產品改進 ×35 / 策略題 → 產品策略 ×25）+ q-card title 全改公司·產品/feature 格式（Spotify · Spotify Podcast / Notion · 工作協作 / Airbnb · Marketplace 擴展，drill 保留「— 練 C 步驟」suffix）+ mode-tag 統一 navy（去除 success 綠）|
 | 02 | ✅ 放行 | `docs/superpowers/specs/mockups/2026-05-02-frontend-rewrite/02-auth-flow.html` | 登入登出 A-E 5 sections |
 | 03 | ✅ 放行 | `docs/superpowers/specs/mockups/2026-05-02-frontend-rewrite/03-phase-1-form.html` | Phase 1 表單 A-G 7 sections |
 | 04 | ✅ 放行 | `docs/superpowers/specs/mockups/2026-05-02-frontend-rewrite/04-phase-1-5-gate.html` | Phase 1.5 Gate 三態 ok/warn/error（紅 = 必擋，drill+sim 一致）+ loading |

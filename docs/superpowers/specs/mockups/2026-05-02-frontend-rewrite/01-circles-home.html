@@ -364,7 +364,7 @@
     }
     .mode-tag i { font-size: 11px; }
     .mode-tag--drill { background: var(--c-bg-deep); color: var(--c-ink-2); }
-    .mode-tag--sim { background: var(--c-success-lt); color: var(--c-success); }
+    .mode-tag--sim { background: var(--c-navy-lt); color: var(--c-navy); }
 
     /* reshuffle button */
     .reshuffle {
@@ -464,6 +464,92 @@
       .home--desktop-no-drill {
         grid-template-columns: 1fr 220px;
       }
+    }
+
+    /* ───── 「什麼是 CIRCLES 實戰訓練？」accordion row（v5）───── */
+    .qa-row {
+      background: var(--c-card);
+      border: 1px solid var(--c-rule);
+      border-radius: var(--r-input);
+      margin-bottom: var(--s-4);
+      overflow: hidden;
+      transition: box-shadow var(--t-fast) var(--ease);
+    }
+    .qa-row:hover { box-shadow: var(--shadow-1); }
+    .qa-row__head {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      padding: var(--s-3) var(--s-4);
+      cursor: pointer;
+      gap: var(--s-3);
+    }
+    .qa-row__title {
+      font-size: var(--t-body-sm);
+      color: var(--c-ink);
+      font-weight: 500;
+      flex: 1;
+      min-width: 0;
+    }
+    .qa-row__caret {
+      color: var(--c-ink-3);
+      font-size: 16px;
+      flex: 0 0 auto;
+      transition: transform var(--t-fast) var(--ease);
+    }
+    .qa-row.is-open .qa-row__caret { transform: rotate(90deg); }
+    .qa-row__body {
+      padding: var(--s-3) var(--s-4) var(--s-4);
+      border-top: 1px solid var(--c-rule);
+      font-size: var(--t-meta);
+      color: var(--c-ink-2);
+      line-height: 1.7;
+    }
+    .qa-row__body p + p { margin-top: var(--s-2); }
+    .qa-row__body strong { color: var(--c-navy); font-weight: 600; }
+
+    /* ───── NSM cross-promo card（v5 footer）───── */
+    .nsm-promo {
+      background: var(--c-navy-lt);
+      border: 1px solid rgba(27,45,92,0.18);
+      border-radius: var(--r-card);
+      padding: var(--s-4);
+      margin-top: var(--s-5);
+      display: flex;
+      flex-direction: column;
+      gap: var(--s-3);
+    }
+    .nsm-promo__main { flex: 1; min-width: 0; }
+    .nsm-promo__title {
+      font-size: var(--t-body-sm);
+      color: var(--c-navy);
+      font-weight: 600;
+      margin-bottom: 2px;
+    }
+    .nsm-promo__sub {
+      font-size: var(--t-meta);
+      color: var(--c-ink-2);
+      line-height: 1.6;
+    }
+    .nsm-promo__cta {
+      display: inline-flex;
+      align-items: center;
+      gap: var(--s-2);
+      padding: 8px var(--s-4);
+      background: var(--c-navy);
+      color: #fff;
+      border-radius: var(--r-input);
+      font-size: var(--t-body-sm);
+      font-weight: 500;
+      text-decoration: none;
+      align-self: flex-start;
+      transition: background var(--t-fast) var(--ease);
+    }
+    .nsm-promo__cta:hover { background: var(--c-navy-2); }
+    /* tablet+desktop: horizontal layout */
+    @media (min-width: 768px) {
+      .nsm-promo { flex-direction: row; align-items: center; gap: var(--s-4); }
+      .nsm-promo__cta { align-self: center; }
     }
 
     /* annotations / labels */
@@ -700,7 +786,7 @@
     <div class="ds-header__eyebrow">PM Drill · Path 2 · Mockup 01 / 16 · Batch A</div>
     <h1>CIRCLES Home — 主畫面（含 stats / search / mode selector / type tabs / q-card / drill rail / recent rail）</h1>
     <p class="ds-header__sub">
-      入口畫面：用戶從這裡選模式（完整模擬 / 個別步驟）→ 選題型 → 看 5 隨機題卡 → 選題進入 phase 1。<br>
+      入口畫面：用戶從這裡選模式（完整模擬 / 步驟加練）→ 選題型 → 看 5 隨機題卡 → 選題進入 phase 1。<br>
       desktop 啟用左 drill rail（drill 模式）+ 右 recent sessions rail。mobile / tablet 單欄、recent 走 offcanvas。
     </p>
   </header>
@@ -729,6 +815,18 @@
           <span class="stats-strip__item"><span class="stats-strip__num">5</span>本週</span>
         </div>
 
+                <div class="qa-row is-open">
+          <div class="qa-row__head">
+            <span class="qa-row__title">什麼是 CIRCLES 實戰訓練？</span>
+            <i class="ph ph-caret-right qa-row__caret"></i>
+          </div>
+          <div class="qa-row__body">
+            <p><strong>CIRCLES</strong>（七步框架）：釐清題目 → 鎖定用戶 → 列舉需求 → 排序聚焦 → 提出方案 → 取捨評估 → 總結結論。每一步都有 AI 即時點評。</p>
+            <p><strong>完整模擬</strong> 25-35 分鐘走全 7 步；<strong>步驟加練</strong> 5-10 分鐘專注單練弱點。</p>
+          </div>
+        </div>
+
+
         <div class="home">
           <div class="mode-selector">
             <button class="mode-card is-active">
@@ -736,7 +834,7 @@
               <div class="mode-card__body">7 步循序練習</div>
             </button>
             <button class="mode-card">
-              <div class="mode-card__head"><i class="ph ph-target"></i><span class="mode-card__title">個別步驟</span></div>
+              <div class="mode-card__head"><i class="ph ph-target"></i><span class="mode-card__title">步驟加練</span></div>
               <div class="mode-card__body">單練 C / I / R</div>
             </button>
           </div>
@@ -747,30 +845,37 @@
           </div>
 
           <div class="type-tabs">
-            <button class="type-tab is-active">設計</button>
-            <button class="type-tab">改善</button>
-            <button class="type-tab">策略</button>
+            <button class="type-tab is-active">產品設計 ×40</button>
+            <button class="type-tab">產品改進 ×35</button>
+            <button class="type-tab">產品策略 ×25</button>
           </div>
 
           <div class="q-list">
             <div class="qcard">
-              <div class="qcard__head"><span class="qcard__num">01</span><h3 class="qcard__title">如何提升 Spotify Podcast 的用戶留存？</h3></div>
+              <div class="qcard__head"><span class="qcard__num">01</span><h3 class="qcard__title">Spotify · Spotify Podcast</h3></div>
               <div class="qcard__meta"><span class="mode-tag mode-tag--sim"><i class="ph ph-list-checks"></i>完整</span><span class="qcard__meta-sep">·</span>Spotify</div>
               <p class="qcard__body">既有用戶聽 Podcast 的留存比聽音樂低；找出主因並提出策略。</p>
             </div>
             <div class="qcard">
-              <div class="qcard__head"><span class="qcard__num">02</span><h3 class="qcard__title">Notion 如何提升新用戶啟用率？</h3></div>
+              <div class="qcard__head"><span class="qcard__num">02</span><h3 class="qcard__title">Notion · 工作協作</h3></div>
               <div class="qcard__meta"><span class="mode-tag mode-tag--sim"><i class="ph ph-list-checks"></i>完整</span><span class="qcard__meta-sep">·</span>Notion</div>
               <p class="qcard__body">空白工作區的「冷啟動」問題：用戶下載後三天內回流率僅 28%。</p>
             </div>
             <div class="qcard">
-              <div class="qcard__head"><span class="qcard__num">03</span><h3 class="qcard__title">Airbnb 二手交易市場該不該做？</h3></div>
+              <div class="qcard__head"><span class="qcard__num">03</span><h3 class="qcard__title">Airbnb · Marketplace 擴展</h3></div>
               <div class="qcard__meta"><span class="mode-tag mode-tag--sim"><i class="ph ph-list-checks"></i>完整</span><span class="qcard__meta-sep">·</span>Airbnb</div>
               <p class="qcard__body">在地家具租賃需求上升 — 是否該擴展業務範圍？</p>
             </div>
           </div>
 
           <button class="reshuffle"><i class="ph ph-shuffle"></i>隨機抽 5 題（不含目前的題）</button>
+        </div>
+        <div class="nsm-promo">
+          <div class="nsm-promo__main">
+            <div class="nsm-promo__title">S 步驟含北極星指標練習</div>
+            <div class="nsm-promo__sub">想做最完整的 NSM 定義訓練？單獨進入北極星指標訓練器拆解 4 個維度的輸入指標。</div>
+          </div>
+          <a href="#" class="nsm-promo__cta">前往 NSM<i class="ph ph-arrow-right"></i></a>
         </div>
       </div>
     </div>
@@ -802,6 +907,18 @@
           <span class="stats-strip__hint">已完成 12 / 100 題</span>
         </div>
 
+                <div class="qa-row is-open">
+          <div class="qa-row__head">
+            <span class="qa-row__title">什麼是 CIRCLES 實戰訓練？</span>
+            <i class="ph ph-caret-right qa-row__caret"></i>
+          </div>
+          <div class="qa-row__body">
+            <p><strong>CIRCLES</strong>（七步框架）：釐清題目 → 鎖定用戶 → 列舉需求 → 排序聚焦 → 提出方案 → 取捨評估 → 總結結論。每一步都有 AI 即時點評。</p>
+            <p><strong>完整模擬</strong> 25-35 分鐘走全 7 步；<strong>步驟加練</strong> 5-10 分鐘專注單練弱點。</p>
+          </div>
+        </div>
+
+
         <div class="home">
           <div class="mode-selector">
             <button class="mode-card is-active">
@@ -809,7 +926,7 @@
               <div class="mode-card__body">7 步循序練習，最完整。可上一步 / 下一步</div>
             </button>
             <button class="mode-card">
-              <div class="mode-card__head"><i class="ph ph-target"></i><span class="mode-card__title">個別步驟</span></div>
+              <div class="mode-card__head"><i class="ph ph-target"></i><span class="mode-card__title">步驟加練</span></div>
               <div class="mode-card__body">單練 C / I / R 三步。該步結束即整 session 完成</div>
             </button>
           </div>
@@ -820,30 +937,37 @@
           </div>
 
           <div class="type-tabs">
-            <button class="type-tab is-active">設計題 · 24</button>
-            <button class="type-tab">改善題 · 36</button>
-            <button class="type-tab">策略題 · 40</button>
+            <button class="type-tab is-active">產品設計 ×40</button>
+            <button class="type-tab">產品改進 ×35</button>
+            <button class="type-tab">產品策略 ×25</button>
           </div>
 
           <div class="q-list">
             <div class="qcard">
-              <div class="qcard__head"><span class="qcard__num">01</span><h3 class="qcard__title">如何提升 Spotify Podcast 的用戶留存率？</h3></div>
+              <div class="qcard__head"><span class="qcard__num">01</span><h3 class="qcard__title">Spotify · Spotify Podcast</h3></div>
               <div class="qcard__meta"><span class="mode-tag mode-tag--sim"><i class="ph ph-list-checks"></i>完整模擬</span><span class="qcard__meta-sep">·</span>Spotify<span class="qcard__meta-sep">·</span>Podcast</div>
-              <p class="qcard__body">既有用戶聽 Podcast 的留存比聽音樂低；產品經理需要找出主因並提出策略，但不能影響廣告收入或訂閱轉換率。</p>
+              <p class="qcard__body">既有用戶聽 Podcast 的留存比聽音樂低；找出主因並提出策略。</p>
             </div>
             <div class="qcard">
-              <div class="qcard__head"><span class="qcard__num">02</span><h3 class="qcard__title">Notion 如何提升新用戶啟用率？</h3></div>
+              <div class="qcard__head"><span class="qcard__num">02</span><h3 class="qcard__title">Notion · 工作協作</h3></div>
               <div class="qcard__meta"><span class="mode-tag mode-tag--sim"><i class="ph ph-list-checks"></i>完整模擬</span><span class="qcard__meta-sep">·</span>Notion</div>
-              <p class="qcard__body">空白工作區的「冷啟動」問題：用戶下載後三天內回流率僅 28%。如何在不增加教學步驟的前提下幫用戶找到第一個有意義的使用場景？</p>
+              <p class="qcard__body">空白工作區的「冷啟動」問題：用戶下載後三天內回流率僅 28%。</p>
             </div>
             <div class="qcard">
-              <div class="qcard__head"><span class="qcard__num">03</span><h3 class="qcard__title">Airbnb 二手交易市場該不該做？</h3></div>
+              <div class="qcard__head"><span class="qcard__num">03</span><h3 class="qcard__title">Airbnb · Marketplace 擴展</h3></div>
               <div class="qcard__meta"><span class="mode-tag mode-tag--sim"><i class="ph ph-list-checks"></i>完整模擬</span><span class="qcard__meta-sep">·</span>Airbnb</div>
-              <p class="qcard__body">在地家具租賃需求上升、Airbnb 已有信任體系；應該擴展業務範圍嗎？評估市場機會與業務風險。</p>
+              <p class="qcard__body">在地家具租賃需求上升 — 是否該擴展業務範圍？</p>
             </div>
           </div>
 
           <button class="reshuffle"><i class="ph ph-shuffle"></i>隨機抽 5 題（不含目前的題）</button>
+        </div>
+        <div class="nsm-promo">
+          <div class="nsm-promo__main">
+            <div class="nsm-promo__title">S 步驟含北極星指標練習</div>
+            <div class="nsm-promo__sub">想做最完整的 NSM 定義訓練？單獨進入北極星指標訓練器拆解 4 個維度的輸入指標。</div>
+          </div>
+          <a href="#" class="nsm-promo__cta">前往 NSM<i class="ph ph-arrow-right"></i></a>
         </div>
       </div>
     </div>
@@ -876,6 +1000,18 @@
           <span class="stats-strip__hint">已完成 12 / 100 題 · 持續 4 週連續練習</span>
         </div>
 
+                <div class="qa-row is-open">
+          <div class="qa-row__head">
+            <span class="qa-row__title">什麼是 CIRCLES 實戰訓練？</span>
+            <i class="ph ph-caret-right qa-row__caret"></i>
+          </div>
+          <div class="qa-row__body">
+            <p><strong>CIRCLES</strong>（七步框架）：釐清題目 → 鎖定用戶 → 列舉需求 → 排序聚焦 → 提出方案 → 取捨評估 → 總結結論。每一步都有 AI 即時點評。</p>
+            <p><strong>完整模擬</strong> 25-35 分鐘走全 7 步；<strong>步驟加練</strong> 5-10 分鐘專注單練弱點。</p>
+          </div>
+        </div>
+
+
         <div class="home home--desktop home--desktop-no-drill">
           <!-- center -->
           <div>
@@ -885,7 +1021,7 @@
                 <div class="mode-card__body">7 步循序（C → I → R → C → L → E → S）。可隨時上一步 / 下一步調整。最完整的訓練。</div>
               </button>
               <button class="mode-card">
-                <div class="mode-card__head"><i class="ph ph-target"></i><span class="mode-card__title">個別步驟</span></div>
+                <div class="mode-card__head"><i class="ph ph-target"></i><span class="mode-card__title">步驟加練</span></div>
                 <div class="mode-card__body">單練 C / I / R 三步任一。專注練好其中一步。該步結束即整 session 完成。</div>
               </button>
             </div>
@@ -896,26 +1032,26 @@
             </div>
 
             <div class="type-tabs">
-              <button class="type-tab is-active">設計題 · 24</button>
-              <button class="type-tab">改善題 · 36</button>
-              <button class="type-tab">策略題 · 40</button>
+              <button class="type-tab is-active">產品設計 ×40</button>
+              <button class="type-tab">產品改進 ×35</button>
+              <button class="type-tab">產品策略 ×25</button>
             </div>
 
             <div class="q-list">
               <div class="qcard">
-                <div class="qcard__head"><span class="qcard__num">01</span><h3 class="qcard__title">如何提升 Spotify Podcast 的用戶留存率？</h3></div>
+                <div class="qcard__head"><span class="qcard__num">01</span><h3 class="qcard__title">Spotify · Spotify Podcast</h3></div>
                 <div class="qcard__meta"><span class="mode-tag mode-tag--sim"><i class="ph ph-list-checks"></i>完整模擬</span><span class="qcard__meta-sep">·</span>Spotify<span class="qcard__meta-sep">·</span>Spotify Podcast<span class="qcard__meta-sep">·</span><span style="color:var(--c-ink-4);">難度 中</span></div>
-                <p class="qcard__body">既有用戶聽 Podcast 的留存比聽音樂低；產品經理需要找出主因並提出策略，但不能影響廣告收入或訂閱轉換率。</p>
+                <p class="qcard__body">既有用戶聽 Podcast 的留存比聽音樂低；找出主因並提出策略。</p>
               </div>
               <div class="qcard">
-                <div class="qcard__head"><span class="qcard__num">02</span><h3 class="qcard__title">Notion 如何提升新用戶啟用率？</h3></div>
+                <div class="qcard__head"><span class="qcard__num">02</span><h3 class="qcard__title">Notion · 工作協作</h3></div>
                 <div class="qcard__meta"><span class="mode-tag mode-tag--sim"><i class="ph ph-list-checks"></i>完整模擬</span><span class="qcard__meta-sep">·</span>Notion<span class="qcard__meta-sep">·</span><span style="color:var(--c-ink-4);">難度 中</span></div>
-                <p class="qcard__body">空白工作區的「冷啟動」問題：用戶下載後三天內回流率僅 28%。如何在不增加教學步驟的前提下幫用戶找到第一個有意義的使用場景？</p>
+                <p class="qcard__body">空白工作區的「冷啟動」問題：用戶下載後三天內回流率僅 28%。</p>
               </div>
               <div class="qcard">
-                <div class="qcard__head"><span class="qcard__num">03</span><h3 class="qcard__title">Airbnb 二手交易市場該不該做？</h3></div>
+                <div class="qcard__head"><span class="qcard__num">03</span><h3 class="qcard__title">Airbnb · Marketplace 擴展</h3></div>
                 <div class="qcard__meta"><span class="mode-tag mode-tag--sim"><i class="ph ph-list-checks"></i>完整模擬</span><span class="qcard__meta-sep">·</span>Airbnb<span class="qcard__meta-sep">·</span><span style="color:var(--c-ink-4);">難度 高</span></div>
-                <p class="qcard__body">在地家具租賃需求上升、Airbnb 已有信任體系；應該擴展業務範圍嗎？評估市場機會與業務風險，提出進場策略或拒絕理由。</p>
+                <p class="qcard__body">在地家具租賃需求上升 — 是否該擴展業務範圍？</p>
               </div>
             </div>
 
@@ -956,6 +1092,13 @@
             </div>
           </aside>
         </div>
+        <div class="nsm-promo">
+          <div class="nsm-promo__main">
+            <div class="nsm-promo__title">S 步驟含北極星指標練習</div>
+            <div class="nsm-promo__sub">想做最完整的 NSM 定義訓練？單獨進入北極星指標訓練器拆解 4 個維度的輸入指標。</div>
+          </div>
+          <a href="#" class="nsm-promo__cta">前往 NSM<i class="ph ph-arrow-right"></i></a>
+        </div>
       </div>
     </div>
   </div>
@@ -970,7 +1113,7 @@
   </p>
 
   <!-- ═══════════════════ Drill mode 切換 ═══════════════════ -->
-  <h2 class="vp-section-title">B. 個別步驟模式 · drill mode <span class="vp-section-title__sub">desktop 啟用 left drill rail / mobile/tablet 改顯 horizontal pills</span></h2>
+  <h2 class="vp-section-title">B. 步驟加練模式 · drill mode <span class="vp-section-title__sub">desktop 啟用 left drill rail / mobile/tablet 改顯 horizontal pills</span></h2>
 
   <div class="vp-grid">
 
@@ -998,7 +1141,7 @@
               <div class="mode-card__body">7 步循序</div>
             </button>
             <button class="mode-card is-active">
-              <div class="mode-card__head"><i class="ph ph-target"></i><span class="mode-card__title">個別步驟</span></div>
+              <div class="mode-card__head"><i class="ph ph-target"></i><span class="mode-card__title">步驟加練</span></div>
               <div class="mode-card__body">單練 C / I / R</div>
             </button>
           </div>
@@ -1018,19 +1161,19 @@
           </div>
 
           <div class="type-tabs">
-            <button class="type-tab is-active">設計</button>
-            <button class="type-tab">改善</button>
-            <button class="type-tab">策略</button>
+            <button class="type-tab is-active">產品設計 ×40</button>
+            <button class="type-tab">產品改進 ×35</button>
+            <button class="type-tab">產品策略 ×25</button>
           </div>
 
           <div class="q-list">
             <div class="qcard">
-              <div class="qcard__head"><span class="qcard__num">01</span><h3 class="qcard__title">Spotify Podcast 留存 — 練 C 步驟</h3></div>
+              <div class="qcard__head"><span class="qcard__num">01</span><h3 class="qcard__title">Spotify · Spotify Podcast — 練 C 步驟</h3></div>
               <div class="qcard__meta"><span class="mode-tag mode-tag--drill"><i class="ph ph-target"></i>個別 C</span><span class="qcard__meta-sep">·</span>Spotify</div>
               <p class="qcard__body">專注練習「澄清情境」一步：練習用精準問題縮小解題範圍。</p>
             </div>
             <div class="qcard">
-              <div class="qcard__head"><span class="qcard__num">02</span><h3 class="qcard__title">Notion 啟用率 — 練 C 步驟</h3></div>
+              <div class="qcard__head"><span class="qcard__num">02</span><h3 class="qcard__title">Notion · 工作協作 — 練 C 步驟</h3></div>
               <div class="qcard__meta"><span class="mode-tag mode-tag--drill"><i class="ph ph-target"></i>個別 C</span><span class="qcard__meta-sep">·</span>Notion</div>
               <p class="qcard__body">將「啟用率太低」這個模糊問題拆成可分析的具體子問題。</p>
             </div>
@@ -1071,7 +1214,7 @@
               <div class="mode-card__body">7 步循序練習，可上下步</div>
             </button>
             <button class="mode-card is-active">
-              <div class="mode-card__head"><i class="ph ph-target"></i><span class="mode-card__title">個別步驟</span></div>
+              <div class="mode-card__head"><i class="ph ph-target"></i><span class="mode-card__title">步驟加練</span></div>
               <div class="mode-card__body">單練 C / I / R 三步，結束即完成</div>
             </button>
           </div>
@@ -1095,19 +1238,19 @@
           </div>
 
           <div class="type-tabs">
-            <button class="type-tab is-active">設計</button>
-            <button class="type-tab">改善</button>
-            <button class="type-tab">策略</button>
+            <button class="type-tab is-active">產品設計 ×40</button>
+            <button class="type-tab">產品改進 ×35</button>
+            <button class="type-tab">產品策略 ×25</button>
           </div>
 
           <div class="q-list">
             <div class="qcard">
-              <div class="qcard__head"><span class="qcard__num">01</span><h3 class="qcard__title">Spotify Podcast 留存 — 練 C · 澄清情境</h3></div>
+              <div class="qcard__head"><span class="qcard__num">01</span><h3 class="qcard__title">Spotify · Spotify Podcast — 練 C · 澄清情境</h3></div>
               <div class="qcard__meta"><span class="mode-tag mode-tag--drill"><i class="ph ph-target"></i>個別 C</span><span class="qcard__meta-sep">·</span>Spotify<span class="qcard__meta-sep">·</span>Spotify Podcast</div>
               <p class="qcard__body">這題在問什麼？要釐清的問題邊界、時間範圍、業務影響、需驗證的假設 — 練習用精準問題縮小解題範圍。</p>
             </div>
             <div class="qcard">
-              <div class="qcard__head"><span class="qcard__num">02</span><h3 class="qcard__title">Notion 啟用率 — 練 C · 澄清情境</h3></div>
+              <div class="qcard__head"><span class="qcard__num">02</span><h3 class="qcard__title">Notion · 工作協作 — 練 C · 澄清情境</h3></div>
               <div class="qcard__meta"><span class="mode-tag mode-tag--drill"><i class="ph ph-target"></i>個別 C</span><span class="qcard__meta-sep">·</span>Notion</div>
               <p class="qcard__body">將「啟用率太低」這個模糊問題拆成可分析的具體子問題：是哪一群人？啟用的定義？業務影響？</p>
             </div>
@@ -1143,7 +1286,7 @@
           <span class="stats-strip__item"><span class="stats-strip__num">3</span> 進行中</span>
           <span class="stats-strip__sep">·</span>
           <span class="stats-strip__item"><span class="stats-strip__num">5</span> 本週</span>
-          <span class="stats-strip__hint">個別步驟 C — 已練 4 題</span>
+          <span class="stats-strip__hint">步驟加練 C — 已練 4 題</span>
         </div>
 
         <div class="home home--desktop">
@@ -1169,7 +1312,7 @@
                 <div class="mode-card__body">7 步循序（C → I → R → C → L → E → S）。可隨時上下步。</div>
               </button>
               <button class="mode-card is-active">
-                <div class="mode-card__head"><i class="ph ph-target"></i><span class="mode-card__title">個別步驟</span></div>
+                <div class="mode-card__head"><i class="ph ph-target"></i><span class="mode-card__title">步驟加練</span></div>
                 <div class="mode-card__body">單練 C / I / R 三步任一。專注練好其中一步。該步結束即整 session 完成。</div>
               </button>
             </div>
@@ -1180,24 +1323,24 @@
             </div>
 
             <div class="type-tabs">
-              <button class="type-tab is-active">設計題 · 24</button>
-              <button class="type-tab">改善題 · 36</button>
-              <button class="type-tab">策略題 · 40</button>
+              <button class="type-tab is-active">產品設計 ×40</button>
+              <button class="type-tab">產品改進 ×35</button>
+              <button class="type-tab">產品策略 ×25</button>
             </div>
 
             <div class="q-list">
               <div class="qcard">
-                <div class="qcard__head"><span class="qcard__num">01</span><h3 class="qcard__title">Spotify Podcast 留存率 — 練 C · 澄清情境</h3></div>
+                <div class="qcard__head"><span class="qcard__num">01</span><h3 class="qcard__title">Spotify · Spotify Podcast — 練 C · 澄清情境</h3></div>
                 <div class="qcard__meta"><span class="mode-tag mode-tag--drill"><i class="ph ph-target"></i>個別 C</span><span class="qcard__meta-sep">·</span>Spotify<span class="qcard__meta-sep">·</span>Spotify Podcast<span class="qcard__meta-sep">·</span><span style="color:var(--c-ink-4);">難度 中</span></div>
                 <p class="qcard__body">這題在問什麼？問題邊界、時間範圍、業務影響、需驗證的假設 — 練習用精準問題縮小解題範圍，避免後面分析在錯的邊界上展開。</p>
               </div>
               <div class="qcard">
-                <div class="qcard__head"><span class="qcard__num">02</span><h3 class="qcard__title">Notion 啟用率 — 練 C · 澄清情境</h3></div>
+                <div class="qcard__head"><span class="qcard__num">02</span><h3 class="qcard__title">Notion · 工作協作 — 練 C · 澄清情境</h3></div>
                 <div class="qcard__meta"><span class="mode-tag mode-tag--drill"><i class="ph ph-target"></i>個別 C</span><span class="qcard__meta-sep">·</span>Notion<span class="qcard__meta-sep">·</span><span style="color:var(--c-ink-4);">難度 中</span></div>
                 <p class="qcard__body">將「啟用率太低」拆成具體子問題：哪一群人 / 啟用的定義 / 業務影響 / 需驗證的假設。</p>
               </div>
               <div class="qcard">
-                <div class="qcard__head"><span class="qcard__num">03</span><h3 class="qcard__title">Slack 通知策略 — 練 C · 澄清情境</h3></div>
+                <div class="qcard__head"><span class="qcard__num">03</span><h3 class="qcard__title">Slack · 通知策略 — 練 C · 澄清情境</h3></div>
                 <div class="qcard__meta"><span class="mode-tag mode-tag--drill"><i class="ph ph-target"></i>個別 C</span><span class="qcard__meta-sep">·</span>Slack<span class="qcard__meta-sep">·</span><span style="color:var(--c-ink-4);">難度 高</span></div>
                 <p class="qcard__body">在重設通知策略前，先界定討論範圍 — 是針對 DM、頻道、@mention，還是全部？影響哪幾個指標？</p>
               </div>
@@ -1270,12 +1413,12 @@
 
           <div class="q-list">
             <div class="qcard">
-              <div class="qcard__head"><span class="qcard__num">01</span><h3 class="qcard__title"><mark style="background:var(--c-navy-lt); color:var(--c-navy); padding:0 2px;">Spotify</mark> Podcast 留存率</h3></div>
+              <div class="qcard__head"><span class="qcard__num">01</span><h3 class="qcard__title"><mark style="background:var(--c-navy-lt); color:var(--c-navy); padding:0 2px;">Spotify</mark> · Spotify Podcast</h3></div>
               <div class="qcard__meta"><span class="mode-tag mode-tag--sim">完整</span><span class="qcard__meta-sep">·</span><mark style="background:var(--c-navy-lt); color:var(--c-navy); padding:0 2px;">Spotify</mark></div>
               <p class="qcard__body">既有用戶聽 Podcast 的留存比聽音樂低…</p>
             </div>
             <div class="qcard">
-              <div class="qcard__head"><span class="qcard__num">02</span><h3 class="qcard__title"><mark style="background:var(--c-navy-lt); color:var(--c-navy); padding:0 2px;">Spotify</mark> 廣告體驗優化</h3></div>
+              <div class="qcard__head"><span class="qcard__num">02</span><h3 class="qcard__title"><mark style="background:var(--c-navy-lt); color:var(--c-navy); padding:0 2px;">Spotify</mark> · 廣告體驗</h3></div>
               <div class="qcard__meta"><span class="mode-tag mode-tag--sim">完整</span><span class="qcard__meta-sep">·</span><mark style="background:var(--c-navy-lt); color:var(--c-navy); padding:0 2px;">Spotify</mark></div>
               <p class="qcard__body">免費版用戶對廣告負感升高…</p>
             </div>
@@ -1306,12 +1449,12 @@
           </div>
           <div class="q-list">
             <div class="qcard">
-              <div class="qcard__head"><span class="qcard__num">01</span><h3 class="qcard__title">Spotify Podcast 用戶<mark style="background:var(--c-navy-lt); color:var(--c-navy); padding:0 2px;">留存</mark></h3></div>
+              <div class="qcard__head"><span class="qcard__num">01</span><h3 class="qcard__title">Spotify · Spotify Podcast <mark style="background:var(--c-navy-lt); color:var(--c-navy); padding:0 2px;">留存</mark></h3></div>
               <div class="qcard__meta"><span class="mode-tag mode-tag--sim">完整</span><span class="qcard__meta-sep">·</span>Spotify</div>
               <p class="qcard__body">既有用戶聽 Podcast 的<mark style="background:var(--c-navy-lt); color:var(--c-navy); padding:0 2px;">留存</mark>比聽音樂低…</p>
             </div>
             <div class="qcard">
-              <div class="qcard__head"><span class="qcard__num">02</span><h3 class="qcard__title">Notion 新用戶啟用率與<mark style="background:var(--c-navy-lt); color:var(--c-navy); padding:0 2px;">留存</mark></h3></div>
+              <div class="qcard__head"><span class="qcard__num">02</span><h3 class="qcard__title">Notion · 工作協作 <mark style="background:var(--c-navy-lt); color:var(--c-navy); padding:0 2px;">留存</mark></h3></div>
               <div class="qcard__meta"><span class="mode-tag mode-tag--sim">完整</span><span class="qcard__meta-sep">·</span>Notion</div>
               <p class="qcard__body">空白工作區的「冷啟動」問題…</p>
             </div>
@@ -1347,17 +1490,17 @@
             </div>
             <div class="q-list">
               <div class="qcard">
-                <div class="qcard__head"><span class="qcard__num">01</span><h3 class="qcard__title">Spotify Podcast 用戶<mark style="background:var(--c-navy-lt); color:var(--c-navy); padding:0 2px;">留存</mark>率</h3></div>
+                <div class="qcard__head"><span class="qcard__num">01</span><h3 class="qcard__title">Spotify · Spotify Podcast <mark style="background:var(--c-navy-lt); color:var(--c-navy); padding:0 2px;">留存</mark></h3></div>
                 <div class="qcard__meta"><span class="mode-tag mode-tag--sim">完整模擬</span><span class="qcard__meta-sep">·</span>Spotify<span class="qcard__meta-sep">·</span><span style="color:var(--c-ink-4);">難度 中</span></div>
                 <p class="qcard__body">既有用戶聽 Podcast 的<mark style="background:var(--c-navy-lt); color:var(--c-navy); padding:0 2px;">留存</mark>比聽音樂低；產品經理需要找出主因並提出策略。</p>
               </div>
               <div class="qcard">
-                <div class="qcard__head"><span class="qcard__num">02</span><h3 class="qcard__title">Notion 新用戶啟用率與<mark style="background:var(--c-navy-lt); color:var(--c-navy); padding:0 2px;">留存</mark></h3></div>
+                <div class="qcard__head"><span class="qcard__num">02</span><h3 class="qcard__title">Notion · 工作協作 <mark style="background:var(--c-navy-lt); color:var(--c-navy); padding:0 2px;">留存</mark></h3></div>
                 <div class="qcard__meta"><span class="mode-tag mode-tag--sim">完整模擬</span><span class="qcard__meta-sep">·</span>Notion<span class="qcard__meta-sep">·</span><span style="color:var(--c-ink-4);">難度 中</span></div>
                 <p class="qcard__body">空白工作區的「冷啟動」問題：用戶下載後三天內回流率僅 28%。</p>
               </div>
               <div class="qcard">
-                <div class="qcard__head"><span class="qcard__num">03</span><h3 class="qcard__title">Discord <mark style="background:var(--c-navy-lt); color:var(--c-navy); padding:0 2px;">retention</mark> deep dive</h3></div>
+                <div class="qcard__head"><span class="qcard__num">03</span><h3 class="qcard__title">Discord · 群組互動 <mark style="background:var(--c-navy-lt); color:var(--c-navy); padding:0 2px;">retention</mark></h3></div>
                 <div class="qcard__meta"><span class="mode-tag mode-tag--sim">完整模擬</span><span class="qcard__meta-sep">·</span>Discord<span class="qcard__meta-sep">·</span><span style="color:var(--c-ink-4);">難度 高</span></div>
                 <p class="qcard__body">青少年群體 30 天<mark style="background:var(--c-navy-lt); color:var(--c-navy); padding:0 2px;">retention</mark> 下滑 12% — 找出根本原因。</p>
               </div>
@@ -1599,7 +1742,7 @@
           <div>
             <div style="background:var(--c-navy-lt); border-left:2px solid var(--c-navy); padding:var(--s-3) var(--s-5); border-radius:var(--r-input); margin-bottom:var(--s-5); font-size:var(--t-body-sm); color:var(--c-ink-2);">
               <strong style="color:var(--c-navy);">歡迎使用 PM Drill — 100 題情境模擬訓練</strong><br>
-              先選一個模式：完整模擬適合系統訓練、個別步驟適合 5-15 分鐘的零碎時間。<br>
+              先選一個模式：完整模擬適合系統訓練、步驟加練適合 5-15 分鐘的零碎時間。<br>
               <a href="#" style="color:var(--c-navy); text-decoration:underline;">看 60 秒 onboarding 引導 →</a>
             </div>
             <div class="mode-selector">
@@ -1608,7 +1751,7 @@
                 <div class="mode-card__body">7 步循序練習。最完整的訓練。每場約 25-40 分鐘。</div>
               </button>
               <button class="mode-card">
-                <div class="mode-card__head"><i class="ph ph-target"></i><span class="mode-card__title">個別步驟</span></div>
+                <div class="mode-card__head"><i class="ph ph-target"></i><span class="mode-card__title">步驟加練</span></div>
                 <div class="mode-card__body">單練 C / I / R 三步。每場約 10-15 分鐘。零碎時間練習。</div>
               </button>
             </div>
@@ -1623,7 +1766,7 @@
             </div>
             <div class="q-list">
               <div class="qcard">
-                <div class="qcard__head"><span class="qcard__num">01</span><h3 class="qcard__title">如何提升 Spotify Podcast 的用戶留存率？</h3></div>
+                <div class="qcard__head"><span class="qcard__num">01</span><h3 class="qcard__title">Spotify · Spotify Podcast</h3></div>
                 <div class="qcard__meta"><span class="mode-tag mode-tag--sim"><i class="ph ph-list-checks"></i>完整模擬</span><span class="qcard__meta-sep">·</span>Spotify<span class="qcard__meta-sep">·</span><span style="color:var(--c-ink-4);">難度 中</span></div>
                 <p class="qcard__body">建議的入門題目 — 中等難度，3 個業務目標需要平衡。</p>
               </div>
@@ -1657,7 +1800,7 @@
 
         <div class="home">
           <div class="qcard is-expanded">
-            <div class="qcard__head"><span class="qcard__num">01</span><h3 class="qcard__title">如何提升 Spotify Podcast 的用戶留存率？</h3></div>
+            <div class="qcard__head"><span class="qcard__num">01</span><h3 class="qcard__title">Spotify · Spotify Podcast</h3></div>
             <div class="qcard__meta"><span class="mode-tag mode-tag--sim"><i class="ph ph-list-checks"></i>完整模擬</span><span class="qcard__meta-sep">·</span>Spotify<span class="qcard__meta-sep">·</span>難度 中</div>
 
             <div class="qcard__expand">
@@ -1704,7 +1847,7 @@
 
         <div class="home">
           <div class="qcard is-expanded">
-            <div class="qcard__head"><span class="qcard__num">01</span><h3 class="qcard__title">如何提升 Spotify Podcast 的用戶留存率？</h3></div>
+            <div class="qcard__head"><span class="qcard__num">01</span><h3 class="qcard__title">Spotify · Spotify Podcast</h3></div>
             <div class="qcard__meta"><span class="mode-tag mode-tag--sim"><i class="ph ph-list-checks"></i>完整模擬</span><span class="qcard__meta-sep">·</span>Spotify<span class="qcard__meta-sep">·</span>Spotify Podcast<span class="qcard__meta-sep">·</span>難度 中</div>
 
             <div class="qcard__expand">
@@ -1752,7 +1895,7 @@
         <div class="home home--desktop home--desktop-no-drill">
           <div>
             <div class="qcard is-expanded">
-              <div class="qcard__head"><span class="qcard__num">01</span><h3 class="qcard__title">Spotify Podcast 留存 — 練 R · 發掘需求</h3></div>
+              <div class="qcard__head"><span class="qcard__num">01</span><h3 class="qcard__title">Spotify · Spotify Podcast — 練 R · 發掘需求</h3></div>
               <div class="qcard__meta"><span class="mode-tag mode-tag--drill"><i class="ph ph-target"></i>個別 R</span><span class="qcard__meta-sep">·</span>Spotify<span class="qcard__meta-sep">·</span>Spotify Podcast<span class="qcard__meta-sep">·</span>難度 中</div>
 
               <div class="qcard__expand">
