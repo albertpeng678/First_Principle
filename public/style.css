@@ -160,7 +160,7 @@ body {
   .phase1-desktop { max-width: min(1880px, 94vw); margin: 0 auto; padding: 0 0 100px; }
   .phase2-desktop { max-width: none; margin: 0; padding: 0 0 100px; }   /* SP1.5-bugfix D-1 */
   .phase3-desktop { max-width: none; margin: 0; padding: 0 0 100px; }   /* SP1.5-bugfix D-1 */
-  .circles-body-centered { max-width: 920px; margin: 0 auto; width: 100%; }   /* SP1.5-bugfix D-1: replaces wrap centering */
+  .circles-body-centered { max-width: 920px; margin: 0 auto; }   /* SP1.5-bugfix D-1: width comes from base rule below */
   .nsm-home-desktop { width: 100%; max-width: min(1880px, 94vw); margin: 0 auto; padding: 18px 0 100px; }
   .nsm-step2-desktop { max-width: 720px; margin: 0 auto; padding: 18px 0 100px; }
   .nsm-step3-desktop { max-width: 920px; margin: 0 auto; padding: 18px 0 100px; }
@@ -2130,6 +2130,16 @@ body { -webkit-font-smoothing: antialiased; }
   padding: 14px 16px;
   overscroll-behavior: contain;
   -webkit-overflow-scrolling: touch;
+}
+/* SP1.5-bugfix D-1: .circles-body-centered must inherit flex column to keep
+   the flex:1 chain alive for .circles-chat-body inside .circles-chat-wrap.
+   Width is full on mobile/tablet; max-width: 920px applied at >=1024px above. */
+[data-view="circles"] .circles-chat-wrap > .circles-body-centered {
+  display: flex;
+  flex-direction: column;
+  flex: 1;
+  min-height: 0;
+  width: 100%;
 }
 [data-view="circles"] .circles-bubble-ai {
   background: var(--c-primary-lt);
