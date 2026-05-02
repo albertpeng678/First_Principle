@@ -3,11 +3,12 @@
 /**
  * backfill-circles-analysis.js
  *
- * 為 public/circles-db.js 中既有的 100 道 CIRCLES 題目補填 analysis 欄位，
+ * 為 circles_plan/circles_database.json 中既有的 CIRCLES 題目補填 analysis 欄位，
  * 不重新生成題目本身，只 patch { business, users, traps, insight }。
  *
  * 用法：
  *   node -r dotenv/config scripts/backfill-circles-analysis.js
+ *   node -r dotenv/config scripts/backfill-circles-analysis.js --dry-run
  *
  * 冪等：已有完整 analysis 的題目直接跳過，不呼叫 OpenAI。
  */
@@ -18,7 +19,7 @@ const path = require('path');
 
 // ── 設定 ──────────────────────────────────────────────────────────────────────
 
-const DB_PATH = path.join(__dirname, '..', 'public', 'circles-db.js');
+const DB_PATH = path.join(__dirname, '..', 'circles_plan', 'circles_database.json');
 const MODEL = 'gpt-4o-mini';
 const MAX_RETRIES = 3;
 const CHUNK_SIZE = 5; // 同時送出的最大平行數
@@ -37,38 +38,14 @@ function isAnalysisComplete(q) {
 }
 
 /**
- * 用 sandbox eval 載入 circles-db.js，安全取出 CIRCLES_QUESTIONS。
- * 仿照 generate-circles-questions.js lines ~97-105 的作法。
+ * 從 circles_database.json 載入題目陣列。
  */
 function loadQuestions() {
-  const jsContent = fs.readFileSync(DB_PATH, 'utf8');
-  const sandbox = { CIRCLES_QUESTIONS: [] };
-  const fn = new Function(
-    'CIRCLES_QUESTIONS',
-    jsContent + '\nreturn CIRCLES_QUESTIONS;'
-  );
-  const questions = fn(sandbox.CIRCLES_QUESTIONS) || [];
-  if (!Array.isArray(questions) || questions.length === 0) {
-    throw new Error('載入失敗：CIRCLES_QUESTIONS 為空或格式錯誤');
+  const json = JSON.parse(fs.readFileSync(DB_PATH, 'utf8'));
+  if (!Array.isArray(json) || json.length === 0) {
+    throw new Error('載入失敗：JSON 為空或非陣列');
   }
-  return questions;
-}
-
-/**
- * 讀取原始檔案的標頭（`// ...` 開頭的連續行），
- * 以便寫回時保留 Auto-generated 注解。
- */
-function extractHeader(fileContent) {
-  const lines = fileContent.split('\n');
-  const headerLines = [];
-  for (const line of lines) {
-    if (line.startsWith('//')) {
-      headerLines.push(line);
-    } else {
-      break;
-    }
-  }
-  return headerLines.join('\n') + '\n';
+  return json;
 }
 
 /**
@@ -126,34 +103,38 @@ async function fetchAnalysis(q) {
   throw lastError;
 }
 
+const JS_DERIVED_PATH = path.join(__dirname, '..', 'public', 'circles-db.js');
+
 /**
- * 把更新後的題目陣列寫回 public/circles-db.js，
- * 保留原有標頭注解。
+ * 把更新後的題目陣列寫回 circles_database.json（truth），
+ * 並同步輸出 public/circles-db.js（derived，供 SPA 讀取為 window.CIRCLES_QUESTIONS）。
  */
-function writeDb(questions, header) {
-  const body =
-    'var CIRCLES_QUESTIONS = ' + JSON.stringify(questions, null, 2) + ';\n';
-  fs.writeFileSync(DB_PATH, header + body, 'utf8');
+function saveQuestions(questions) {
+  // Truth: JSON (server reads this)
+  fs.writeFileSync(DB_PATH, JSON.stringify(questions, null, 2) + '\n', 'utf8');
+  // Derived: JS (SPA reads this as window.CIRCLES_QUESTIONS)
+  const jsHeader = '// Auto-generated — do not edit manually\n// Run: node -r dotenv/config scripts/backfill-circles-analysis.js to regenerate\n';
+  const jsBody = 'var CIRCLES_QUESTIONS = ' + JSON.stringify(questions, null, 2) + ';\n';
+  fs.writeFileSync(JS_DERIVED_PATH, jsHeader + jsBody, 'utf8');
 }
 
 // ── 主流程 ────────────────────────────────────────────────────────────────────
 
 async function main() {
+  const dryRun = process.argv.includes('--dry-run');
+  if (dryRun) console.log('[DRY RUN] OpenAI calls will run; results NOT saved.');
+
   if (!process.env.OPENAI_API_KEY) {
     console.error('錯誤：請設定環境變數 OPENAI_API_KEY（或用 node -r dotenv/config 載入 .env）');
     process.exit(1);
   }
-
-  // 讀取原始檔案（保留標頭）
-  const originalContent = fs.readFileSync(DB_PATH, 'utf8');
-  const header = extractHeader(originalContent);
 
   // 載入題目
   let questions;
   try {
     questions = loadQuestions();
   } catch (e) {
-    console.error('載入 circles-db.js 失敗：', e.message);
+    console.error('載入 circles_database.json 失敗：', e.message);
     process.exit(1);
   }
 
@@ -203,7 +184,7 @@ async function main() {
     }
 
     // 每批結束後立即寫回，保留部分進度
-    writeDb(questions, header);
+    if (!dryRun) saveQuestions(questions);
   }
 
   // ── 摘要 ────────────────────────────────────────────────────────────────────

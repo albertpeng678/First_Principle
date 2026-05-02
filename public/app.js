@@ -37,6 +37,7 @@ const AppState = {
   circlesSelectedType: 'design',   // 'design' | 'improve' | 'strategy'
   circlesDrillStep: 'C1',          // which step to drill
   circlesSelectedQuestion: null,   // { id, company, ... }
+  circlesStale: false,             // SP1.5 Q3 — true when restored snapshot diverges from current DB
   circlesSession: null,            // { id, mode, drill_step } — other fields live in top-level AppState keys
   circlesPhase: 1,                 // 1 | 1.5 | 2 | 3 (score) | 4 (report)
   circlesChipExpanded: false,
@@ -82,6 +83,42 @@ const AppState = {
 
 // Expose for tests + debugging.
 window.AppState = AppState;
+
+// SP1.5 — helper: is the given CIRCLES step already graded?
+function isStepLocked(stepKey, stepScores) {
+  if (!stepScores || typeof stepScores !== 'object') return false;
+  return !!stepScores[stepKey];
+}
+
+// SP1.5 — helper: does session.question_json snapshot diverge from current DB?
+// Returns true when problem_statement differs (whitespace-normalized).
+function computeStaleFlag(snapshot, current) {
+  if (!snapshot || !current) return false;
+  var normalize = function(s) { return String(s || '').replace(/\s+/g, ' ').trim(); };
+  return normalize(snapshot.problem_statement) !== normalize(current.problem_statement);
+}
+
+// SP1.5 B1 — render lock banner when step has score
+function renderLockedBanner(stepKey, stepScores) {
+  if (!isStepLocked(stepKey, stepScores)) return '';
+  var score = stepScores[stepKey].totalScore;
+  return '<div class="locked-banner">' +
+    '<i class="ph ph-lock-key"></i> 此步驟已評分，無法再修改' +
+    '<span class="score-pill">' + Math.round(score || 0) + ' 分</span>' +
+  '</div>';
+}
+
+// SP1.5 Q3 — render stale-snapshot banner when AppState.circlesStale === true
+function renderStaleBanner() {
+  if (!AppState.circlesStale) return '';
+  return '<div class="stale-banner">' +
+    '<i class="ph ph-warning-octagon icon"></i>' +
+    '<div>' +
+      '<strong>此題目已被更新（snapshot 與當前題庫不一致）</strong>' +
+      '為避免顯示與原本練習不一致的內容，本紀錄已轉為唯讀。下方為你練習時看到的原版題目與輸入。' +
+    '</div>' +
+  '</div>';
+}
 
 // ── Home icon button helper (MASTER-015) ──
 // Returns a 44×44 icon-only "回首頁" button. Caller supplies the id used by
@@ -606,6 +643,10 @@ async function loadCirclesSession(sessionId) {
               .find(function(x) { return x.id === s.question_id; }) || s.question_json;
 
     AppState.circlesSelectedQuestion  = q;
+    AppState.circlesStale = computeStaleFlag(
+      s.question_json,
+      s.currentQuestion || null
+    );
     AppState.circlesSession           = { id: s.id, mode: s.mode, drill_step: s.drill_step };
     AppState.circlesMode              = s.mode;
     AppState.circlesDrillStep         = s.drill_step || 'C1';
@@ -908,6 +949,7 @@ async function navigate(view) {
     AppState.circlesPhase = 1;
     AppState.circlesChipExpanded = false;
     AppState.circlesSelectedQuestion = null;
+    AppState.circlesStale = false;
     AppState.circlesFrameworkDraft = {};
     AppState.circlesStepDrafts = {};
     AppState.circlesGateResult = null;
@@ -989,6 +1031,7 @@ function renderNavbar() {
   if (brandBtn) brandBtn.onclick = () => {
     AppState.circlesSession = null;
     AppState.circlesSelectedQuestion = null;
+    AppState.circlesStale = false;
     AppState.circlesPhase = 1;
     AppState.circlesChipExpanded = false;
     AppState.circlesFrameworkDraft = {};
@@ -1145,6 +1188,10 @@ function renderOffcanvasList(listEl, sessions) {
         const cached = AppState.offcanvasCache?.find(s => s.id === id);
         if (cached && cached.status !== 'completed') {
           AppState.circlesSelectedQuestion = cached.question_json;
+          AppState.circlesStale = computeStaleFlag(
+            cached.question_json,
+            cached.currentQuestion || null
+          );
           AppState.circlesSession = { id: cached.id, mode: cached.mode, drill_step: cached.drill_step };
           AppState.circlesMode = cached.mode || 'simulation';
           AppState.circlesDrillStep = cached.drill_step || 'C1';
@@ -1680,7 +1727,7 @@ function renderQuestionAnalysisBlock(q) {
   var traps = (a && a.traps) || ((q.common_wrong_directions || []).join('、'));
 
   if (!hasFull) {
-    console.warn('Question missing analysis:', q.id);
+    console.error('[SP1.5/C1] Question missing analysis after backfill:', q.id, q.product);
     return '<div class="qcard-analysis">' +
       '<div class="ana-row trap"><span class="ana-label"><i class="ph ph-warning"></i> 常見誤區</span>' +
         '<span class="ana-val">' + escHtml(traps || '—') + '</span></div>' +
@@ -2576,6 +2623,7 @@ function bindCirclesHome() {
           mainEl.appendChild(loader);
         }
         AppState.circlesSelectedQuestion = question;
+        AppState.circlesStale = false;
         AppState.circlesSession = null;
         AppState.circlesPhase = 1;
         AppState.circlesChipExpanded = false;
@@ -2914,6 +2962,7 @@ function renderCirclesPhase1() {
   var config = CIRCLES_STEP_CONFIG[stepKey] || CIRCLES_STEP_CONFIG.C1;
   var draft = AppState.circlesFrameworkDraft || {};
   var isSimulation = mode === 'simulation';
+  var isLocked = isStepLocked(stepKey, AppState.circlesStepScores) || AppState.circlesStale === true;
 
   var progressBarHtml = buildCirclesProgressBar(stepIdx, { includeSaveIndicator: true });
 
@@ -2977,6 +3026,18 @@ function renderCirclesPhase1() {
     }
   }
 
+  // SP1.5 B1 — post-process bodyHtml to inject readonly + .locked when step is graded
+  if (isLocked) {
+    bodyHtml = bodyHtml
+      .replace(/class="([^"]*\bcircles-field-input\b[^"]*)"/g, function(m, cls) {
+        return /\blocked\b/.test(cls) ? m : 'class="' + cls + ' locked"';
+      })
+      .replace(/(<textarea[^>]*\bcircles-field-input\b[^>]*?)(\/>|>)/g, function(m, before, end) {
+        if (/\breadonly\b/.test(before)) return m;
+        return before + ' readonly' + end;
+      });
+  }
+
   // Submit bar (Simulation last step shows "查看完整報告 →" instead)
   var isLastStep = stepIdx === CIRCLES_STEPS.length - 1;
   // Wave D fix-D2 (D-3): "上一步" button only in simulation mode on non-first
@@ -2986,11 +3047,26 @@ function renderCirclesPhase1() {
   var prevBtnHtml = _showPrev
     ? '<button class="circles-btn-secondary" id="circles-p1-prev" type="button">上一步</button>'
     : '';
-  var submitBarHtml = '<div class="circles-submit-bar">' +
-    '<button class="circles-btn-secondary" id="circles-p1-back" type="button">返回選題</button>' +
-    prevBtnHtml +
-    '<button class="circles-btn-primary" id="circles-p1-submit" type="button">' + (isLastStep ? '送出評分' : '下一步') + '</button>' +
-  '</div>';
+  var submitBarHtml;
+  if (isLocked) {
+    // SP1.5 B1 — locked branch: 回評分 + 下一步 (no edit, no re-submit)
+    submitBarHtml = '<div class="circles-submit-bar">' +
+      '<button class="circles-btn-secondary" id="circles-p1-back" type="button">回評分</button>' +
+      '<button class="circles-btn-primary" id="circles-p1-next-step" type="button">下一步</button>' +
+    '</div>';
+  } else {
+    submitBarHtml = '<div class="circles-submit-bar">' +
+      '<button class="circles-btn-secondary" id="circles-p1-back" type="button">返回選題</button>' +
+      prevBtnHtml +
+      '<button class="circles-btn-primary" id="circles-p1-submit" type="button">' + (isLastStep ? '送出評分' : '下一步') + '</button>' +
+    '</div>';
+  }
+  // SP1.5 Q3 — stale override: highest priority, single 回首頁 button
+  if (AppState.circlesStale) {
+    submitBarHtml = '<div class="circles-submit-bar">' +
+      '<button class="circles-btn-primary" id="circles-stale-home" type="button">回首頁</button>' +
+    '</div>';
+  }
 
   // Phase 4.2 — desktop wrapper class
   var _isDesktopP1 = (typeof isDesktop === 'function' && isDesktop());
@@ -3036,6 +3112,8 @@ function renderCirclesPhase1() {
         homeIconBtn('circles-p1-home') +
       '</div>' +
       progressBarHtml +
+      renderLockedBanner(stepKey, AppState.circlesStepScores) +
+      renderStaleBanner() +
       '<div id="circles-qchip-slot">' + renderPersistentQuestionChip() + '</div>' +
       buildCirclesStepHeaderMeta(stepKey) +
       '<div class="p1-grid">' +
@@ -3065,6 +3143,8 @@ function renderCirclesPhase1() {
       homeIconBtn('circles-p1-home') +
     '</div>' +
     progressBarHtml +
+    renderLockedBanner(stepKey, AppState.circlesStepScores) +
+    renderStaleBanner() +
     '<div id="circles-qchip-slot">' + renderPersistentQuestionChip() + '</div>' +
     buildCirclesStepHeaderMeta(stepKey) +
     '<div class="circles-phase1-wrap">' +
@@ -3083,6 +3163,10 @@ function renderCirclesPhase1() {
 
 function bindCirclesPhase1() {
   bindPersistentQuestionChip(document.querySelector('[data-view="circles"]'));
+  // SP1.5 B1 — hoist stepKey for locked-branch handlers
+  var stepKey = AppState.circlesMode === 'drill'
+    ? AppState.circlesDrillStep
+    : (CIRCLES_STEPS[AppState.circlesSimStep || 0] || CIRCLES_STEPS[0]).key;
   // ── Navigation: back button (clear selection, return to home)
   function backToHome() {
     AppState.circlesSelectedQuestion = null;
@@ -3092,8 +3176,36 @@ function bindCirclesPhase1() {
     navigate('circles');
   }
   document.getElementById('circles-p1-nav-back')?.addEventListener('click', backToHome);
-  document.getElementById('circles-p1-back')?.addEventListener('click', backToHome);
+  // SP1.5 Q3 — stale-mode 回首頁 (clear all CIRCLES state to prevent leakage)
+  document.getElementById('circles-stale-home')?.addEventListener('click', function() {
+    AppState.circlesStale = false;
+    AppState.circlesSelectedQuestion = null;
+    AppState.circlesSession = null;
+    AppState.circlesConversation = [];
+    AppState.circlesFrameworkDraft = {};
+    AppState.circlesStepScores = {};
+    AppState.circlesScoreResult = null;
+    navigate('home');
+  });
+  // SP1.5 B1 — when locked, #circles-p1-back means 回評分 (phase 3); else 返回選題.
+  document.getElementById('circles-p1-back')?.addEventListener('click', function() {
+    if (isStepLocked(stepKey, AppState.circlesStepScores)) {
+      AppState.circlesPhase = 3;
+      navigate('circles');
+    } else {
+      backToHome();
+    }
+  });
   document.getElementById('circles-p1-home')?.addEventListener('click', backToHome);
+  // SP1.5 B1 — locked-branch 下一步 button: advance to next step (sim) or stay (drill)
+  document.getElementById('circles-p1-next-step')?.addEventListener('click', function() {
+    if (AppState.circlesMode === 'simulation') {
+      AppState.circlesSimStep = Math.min((AppState.circlesSimStep || 0) + 1, CIRCLES_STEPS.length - 1);
+    }
+    AppState.circlesPhase = 1;
+    AppState.circlesScoreResult = null;
+    navigate('circles');
+  });
 
   // Wave D fix-D2 (D-3): simulation mode prev-step button. Only valid when
   // mode === 'simulation' && current step index > 0.
@@ -3649,6 +3761,7 @@ function renderCirclesPhase2() {
   var q = AppState.circlesSelectedQuestion;
   var mode = AppState.circlesMode;
   var stepKey = AppState.circlesDrillStep;
+  var isLocked = isStepLocked(stepKey, AppState.circlesStepScores) || AppState.circlesStale === true;
   var stepIdx = CIRCLES_STEPS.findIndex(function(s) { return s.key === stepKey; });
   var step = CIRCLES_STEPS[stepIdx];
   var conv = AppState.circlesConversation;
@@ -3692,17 +3805,6 @@ function renderCirclesPhase2() {
     }
     return userBubble + intervieweeBubble + coachingBubble;
   }).join('');
-
-  // Pinned question card
-  var pinnedCard = q ? (
-    '<div class="circles-pinned-card" id="circles-pinned-card">' +
-      '<div style="display:flex;align-items:center;gap:6px;margin-bottom:4px">' +
-        '<span style="background:var(--c-banner-info-bg);color:var(--c-primary);border-radius:4px;padding:1px 6px;font-size:9px;font-weight:700">' + escHtml(q.company) + '</span>' +
-      '</div>' +
-      '<div style="font-size:11px;color:var(--c-text-1);font-weight:600;line-height:1.4" id="circles-pinned-stmt">' + escHtml(q.problem_statement.slice(0, 80)) + (q.problem_statement.length > 80 ? '…' : '') + '</div>' +
-      (q.problem_statement.length > 80 ? '<div id="circles-pinned-toggle" style="font-size:10px;color:var(--c-primary);cursor:pointer;margin-top:2px">展開 ▾</div>' : '') +
-    '</div>'
-  ) : '';
 
   // Bottom section: input bar OR collapsed strip OR conclusion box
   var bottomSection;
@@ -3748,11 +3850,12 @@ function renderCirclesPhase2() {
     '</div>';
   } else {
     // Normal input bar (states 1 & 2). Submit row only shown when turns ≥ 3 (state 2)
+    // SP1.5 B1 — locked: input + send button disabled, submit row suppressed
     bottomSection = '<div class="circles-input-bar" id="circles-input-bar">' +
-      '<textarea class="circles-input" id="circles-msg-input" placeholder="輸入你的問題..." rows="1"></textarea>' +
-      '<button class="circles-send-btn" id="circles-send-btn"><i class="ph ph-paper-plane-tilt"></i></button>' +
+      '<textarea class="circles-input' + (isLocked ? ' locked' : '') + '" id="circles-msg-input" placeholder="' + (isLocked ? '此步驟已評分，無法繼續對話' : '輸入你的問題...') + '" rows="1"' + (isLocked ? ' disabled' : '') + '></textarea>' +
+      '<button class="circles-send-btn' + (isLocked ? ' disabled' : '') + '" id="circles-send-btn"' + (isLocked ? ' disabled' : '') + '><i class="ph ph-paper-plane-tilt"></i></button>' +
     '</div>' +
-    (turnCount >= 3
+    (turnCount >= 3 && !isLocked
       ? '<div class="circles-submit-row" id="circles-submit-row">' +
           '<button id="circles-submit-step" class="circles-submit-step-btn">對話足夠了，提交這個步驟</button>' +
         '</div>'
@@ -3767,6 +3870,40 @@ function renderCirclesPhase2() {
   // Phase 4.3 — desktop wrapper class (max-width 920 from CSS)
   var _phase2DesktopCls = (typeof isDesktop === 'function' && isDesktop()) ? ' phase2-desktop' : '';
 
+  // SP1.5 B2: phase-back row — adapt to lock state.
+  // Clicking returns to phase 1 of the same step; framework draft + conversation
+  // are preserved (do NOT mutate AppState here).
+  var phaseBackHtml;
+  if (isLocked) {
+    // Locked: secondary "上一步（看框架）" + primary "回評分"
+    phaseBackHtml = '<div class="circles-phase-back-row" style="padding:8px 14px;background:transparent;display:flex;gap:8px">' +
+      '<button class="circles-btn-secondary" id="circles-p2-prev-phase" type="button" style="flex:1">' +
+        '<i class="ph ph-arrow-left"></i> 上一步（看框架）' +
+      '</button>' +
+      '<button class="circles-btn-primary" id="circles-p2-back-score" type="button" style="flex:1">' +
+        '回評分' +
+      '</button>' +
+    '</div>';
+  } else {
+    // Unlocked: just secondary "上一步"
+    phaseBackHtml = '<div class="circles-phase-back-row" style="padding:8px 14px;background:transparent">' +
+      '<button class="circles-btn-secondary" id="circles-p2-prev-phase" type="button">' +
+        '<i class="ph ph-arrow-left"></i> 上一步' +
+      '</button>' +
+    '</div>';
+  }
+  // Hide phase-back row when conclusion box is expanded (its own controls take over)
+  if (submitState === 'expanded') phaseBackHtml = '';
+
+  // SP1.5 Q3 — stale override: highest priority, single 回首頁 button replaces
+  // both phase-back row and bottom input bar.
+  if (AppState.circlesStale) {
+    phaseBackHtml = '';
+    bottomSection = '<div class="circles-submit-bar">' +
+      '<button class="circles-btn-primary" id="circles-stale-home" type="button">回首頁</button>' +
+    '</div>';
+  }
+
   return '<div data-view="circles" class="circles-chat-wrap' + _phase2DesktopCls + '">' +
     '<div class="circles-nav">' +
       '<button class="circles-nav-back" id="circles-p2-back"><i class="ph ph-arrow-left"></i></button>' +
@@ -3778,9 +3915,11 @@ function renderCirclesPhase2() {
       homeIconBtn('circles-p2-home') +
     '</div>' +
     progressBarHtml +
+    renderLockedBanner(stepKey, AppState.circlesStepScores) +
+    renderStaleBanner() +
     '<div id="circles-qchip-slot">' + renderPersistentQuestionChip() + '</div>' +
-    pinnedCard +
     '<div class="circles-chat-body" id="circles-chat-body"' + chatBodyAttrs + '>' + icebreakerHtml + bubbles + '<div id="circles-streaming-bubble"></div></div>' +
+    phaseBackHtml +
     bottomSection +
   '</div>';
 }
@@ -3799,6 +3938,17 @@ function toggleCoachHint(btn) {
 
 function bindCirclesPhase2() {
   bindPersistentQuestionChip(document.querySelector('[data-view="circles"]'));
+  // SP1.5 Q3 — stale-mode 回首頁 (clear all CIRCLES state to prevent leakage)
+  document.getElementById('circles-stale-home')?.addEventListener('click', function() {
+    AppState.circlesStale = false;
+    AppState.circlesSelectedQuestion = null;
+    AppState.circlesSession = null;
+    AppState.circlesConversation = [];
+    AppState.circlesFrameworkDraft = {};
+    AppState.circlesStepScores = {};
+    AppState.circlesScoreResult = null;
+    navigate('home');
+  });
   // Keyboard avoidance (unchanged)
   if (_adjustCirclesKbFn && window.visualViewport) {
     window.visualViewport.removeEventListener('resize', _adjustCirclesKbFn);
@@ -3867,23 +4017,6 @@ function bindCirclesPhase2() {
   // Auto-scroll chat
   var chatBody = document.getElementById('circles-chat-body');
   if (chatBody) chatBody.scrollTop = chatBody.scrollHeight;
-
-  // Pinned card expand
-  document.getElementById('circles-pinned-toggle')?.addEventListener('click', function() {
-    var stmtEl = document.getElementById('circles-pinned-stmt');
-    var q = AppState.circlesSelectedQuestion;
-    if (!q) return;
-    var expanded = this.dataset.expanded === 'true';
-    if (expanded) {
-      stmtEl.textContent = q.problem_statement.slice(0, 80) + '…';
-      this.textContent = '展開 ▾';
-      this.dataset.expanded = 'false';
-    } else {
-      stmtEl.textContent = q.problem_statement;
-      this.textContent = '收起 ▴';
-      this.dataset.expanded = 'true';
-    }
-  });
 
   // Submit step button (normal state → collapsed strip)
   document.getElementById('circles-submit-step')?.addEventListener('click', function() {
@@ -4007,6 +4140,19 @@ function bindCirclesPhase2() {
     // submit the half-formed Chinese input. Bail before sending.
     if (e.isComposing || e.keyCode === 229) return;
     if (e.key === 'Enter' && !e.shiftKey) { e.preventDefault(); sendCirclesMessage(); }
+  });
+
+  // SP1.5 B2 — phase-back: switch to phase 1 of same step. Preserve
+  // AppState.circlesConversation + AppState.circlesFrameworkDraft (no mutation here).
+  document.getElementById('circles-p2-prev-phase')?.addEventListener('click', function() {
+    AppState.circlesPhase = 1;
+    navigate('circles');
+  });
+
+  // SP1.5 B1 fix: 回評分 button (locked phase 2 only) → phase 3 score view
+  document.getElementById('circles-p2-back-score')?.addEventListener('click', function() {
+    AppState.circlesPhase = 3;
+    navigate('circles');
   });
 }
 
@@ -4212,7 +4358,10 @@ function renderCirclesStepScore() {
 
   // Bottom submit-bar variants
   var submitBar;
-  if (mode === 'simulation' && isLastStep) {
+  if (AppState.circlesStale) {
+    // Stale snapshot — suppress action buttons; user must return home to start fresh.
+    submitBar = '<button class="circles-btn-primary" id="circles-score-home" type="button">回首頁</button>';
+  } else if (mode === 'simulation' && isLastStep) {
     submitBar =
       homeIconBtn('circles-score-home') +
       '<button class="circles-btn-primary" id="circles-score-final">看完整總結報告</button>';
@@ -4245,6 +4394,7 @@ function renderCirclesStepScore() {
     '</div>' +
     scoreNavRow +
     progressBarHtml +
+    renderStaleBanner() +
     '<div id="circles-qchip-slot">' + renderPersistentQuestionChip() + '</div>' +
     '<div class="circles-score-wrap">' +
       '<div class="circles-score-total">' +
