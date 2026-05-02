@@ -1,0 +1,867 @@
+<!doctype html>
+<html lang="zh-TW">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover, interactive-widget=resizes-visual">
+  <title>PM Drill — 09 Offcanvas 練習記錄（4 狀態 × 3 viewport）</title>
+
+  <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/@phosphor-icons/web@2.1.1/src/regular/style.css">
+  <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/@phosphor-icons/web@2.1.1/src/fill/style.css">
+  <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Instrument+Serif:ital@0;1&display=swap">
+
+  <style>
+    /* ───── LOCKED CSS — verbatim from 03 / 04 / 06 / 07 / 08 ───── */
+    :root {
+      --c-bg: #F2F0EB; --c-bg-soft: #ECE9E1; --c-bg-deep: #E5E1D7;
+      --c-card: #FFFFFF; --c-surface: #FAFAF7;
+      --c-ink: #1F1D1B; --c-ink-2: #5A5046; --c-ink-3: #8A7E70; --c-ink-4: #B8AC9D;
+      --c-rule: rgba(60,45,30,0.10); --c-rule-bold: rgba(60,45,30,0.18);
+      --c-primary: #1A56DB;
+      --c-navy: #1B2D5C; --c-navy-2: #142347; --c-navy-lt: rgba(27,45,92,0.08);
+      --c-success: #137A3D; --c-success-lt: #DCEFE0;
+      --c-warn: #B85C00; --c-warn-lt: #FBE9D0;
+      --c-danger: #B61F1F; --c-danger-lt: #FADCDC;
+      --font-sans: system-ui, -apple-system, BlinkMacSystemFont, 'PingFang TC', 'Microsoft JhengHei', 'Heiti TC', 'Noto Sans TC', sans-serif;
+      --font-serif: 'Instrument Serif', 'Times New Roman', serif;
+      --t-h1: 24px; --t-h2: 19px; --t-h3: 16px; --t-body: 15px; --t-body-sm: 14px; --t-meta: 13px; --t-cap: 12px;
+      --s-1: 4px; --s-2: 8px; --s-3: 12px; --s-4: 16px; --s-5: 20px; --s-6: 24px; --s-7: 32px; --s-8: 40px; --s-9: 56px; --s-10: 80px;
+      --r-input: 6px; --r-card: 10px; --r-pill: 999px;
+      --touch-min: 44px;
+      --t-fast: 120ms; --t-norm: 200ms; --t-slow: 300ms;
+      --ease: cubic-bezier(0.4, 0, 0.2, 1);
+      --shadow-1: 0 1px 0 rgba(60,45,30,0.04);
+      --shadow-2: 0 1px 2px rgba(60,45,30,0.06);
+      --shadow-3: 0 4px 12px rgba(60,45,30,0.08);
+      --shadow-drawer: 4px 0 24px rgba(20,15,10,0.18);
+    }
+
+    *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+    html, body { background: var(--c-bg); color: var(--c-ink); font-family: var(--font-sans); font-size: var(--t-body); line-height: 1.55; -webkit-font-smoothing: antialiased; -webkit-tap-highlight-color: transparent; }
+    button { font: inherit; color: inherit; cursor: pointer; background: none; border: none; }
+    a { color: inherit; text-decoration: none; }
+    @media (max-width: 767px) { input, textarea, select { font-size: 16px !important; } }
+
+    .vp-grid { display: grid; grid-template-columns: 360px 768px 1280px; gap: var(--s-6); padding: var(--s-6); align-items: start; overflow-x: auto; }
+    .vp-frame { border: 1px solid var(--c-rule-bold); border-radius: var(--r-card); background: var(--c-bg); overflow: hidden; }
+    .vp-frame__label { padding: var(--s-3) var(--s-4); border-bottom: 1px solid var(--c-rule); background: var(--c-card); display: flex; justify-content: space-between; font-size: var(--t-cap); letter-spacing: 0.08em; text-transform: uppercase; color: var(--c-ink-2); }
+    .vp-frame__label span:last-child { font-family: ui-monospace, 'SF Mono', monospace; color: var(--c-ink-3); }
+
+    .ds-page { padding: var(--s-6); }
+    .ds-header { max-width: 1880px; margin: 0 auto var(--s-7); padding-bottom: var(--s-6); border-bottom: 1px solid var(--c-rule); }
+    .ds-header h1 { font-size: var(--t-h1); margin-top: var(--s-2); }
+    .ds-header__eyebrow { font-size: var(--t-cap); letter-spacing: 0.12em; text-transform: uppercase; color: var(--c-ink-3); }
+    .ds-header__sub { color: var(--c-ink-2); font-size: var(--t-body-sm); margin-top: var(--s-3); max-width: 720px; }
+
+    .vp-section-title { max-width: 1880px; margin: var(--s-7) auto var(--s-3); padding-bottom: var(--s-2); border-bottom: 1px solid var(--c-rule); font-size: var(--t-h2); display: flex; align-items: baseline; gap: var(--s-3); }
+    .vp-section-title__sub { font-size: var(--t-cap); color: var(--c-ink-3); letter-spacing: 0.04em; text-transform: uppercase; }
+    .anno { background: var(--c-bg-soft); border-left: 2px solid var(--c-ink-3); padding: var(--s-3) var(--s-4); font-size: var(--t-meta); color: var(--c-ink-2); margin: var(--s-4) auto; max-width: 1180px; line-height: 1.7; }
+    .anno strong { color: var(--c-ink); }
+    .anno code { font-family: ui-monospace, 'SF Mono', monospace; font-size: 12px; background: var(--c-card); padding: 1px 6px; border-radius: 4px; border: 1px solid var(--c-rule); }
+
+    /* ───── PRODUCTION COMPONENTS — LOCKED ───── */
+    .navbar { display: flex; align-items: center; gap: var(--s-3); padding: var(--s-3) var(--s-4); background: rgba(255,255,255,0.85); -webkit-backdrop-filter: saturate(140%) blur(10px); backdrop-filter: saturate(140%) blur(10px); border-bottom: 1px solid var(--c-rule); }
+    .navbar__icon-btn { width: 40px; height: 40px; border-radius: var(--r-pill); display: inline-flex; align-items: center; justify-content: center; color: var(--c-ink-2); }
+    .navbar__icon-btn:hover { background: var(--c-bg-soft); color: var(--c-ink); }
+    .navbar__brand { display: flex; align-items: center; gap: var(--s-2); padding: 4px var(--s-2); border-radius: var(--r-input); cursor: pointer; }
+    .navbar__brand-icon { width: 28px; height: 28px; border-radius: 6px; background: var(--c-navy); color: #fff; display: inline-flex; align-items: center; justify-content: center; font-size: 16px; }
+    .navbar__brand-name { font-size: var(--t-body-sm); font-weight: 500; }
+    .navbar__tabs { display: flex; gap: var(--s-2); margin-left: var(--s-4); }
+    .navbar__tab { padding: 6px var(--s-3); border-radius: var(--r-pill); font-size: var(--t-meta); color: var(--c-ink-3); }
+    .navbar__tab.is-active { background: var(--c-navy); color: #fff; }
+    .navbar__actions { margin-left: auto; display: flex; align-items: center; gap: var(--s-2); }
+    .navbar__email { font-size: var(--t-cap); color: var(--c-ink-3); max-width: 180px; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+
+    .btn { display: inline-flex; align-items: center; gap: var(--s-2); min-height: var(--touch-min); padding: 0 var(--s-5); border-radius: var(--r-input); font-size: var(--t-body-sm); font-weight: 500; transition: all var(--t-fast) var(--ease); }
+    .btn--primary { background: var(--c-navy); color: #fff; }
+    .btn--primary:hover { background: var(--c-navy-2); }
+    .btn--ghost { background: transparent; color: var(--c-ink-2); border: 1px solid var(--c-rule-bold); }
+    .btn--ghost:hover { background: var(--c-bg-soft); color: var(--c-ink); }
+
+    /* ───────────────────────────────────────────
+       09-specific NEW components — Offcanvas drawer
+       ─────────────────────────────────────────── */
+
+    /* viewport frame holds page-behind (greyed) + drawer overlay */
+    .vp-frame__inner { background: var(--c-bg); height: 880px; position: relative; overflow: hidden; }
+
+    /* page-behind (greyed CIRCLES home for context) */
+    .page-behind { position: absolute; inset: 0; display: flex; flex-direction: column; }
+    .page-behind__faded { flex: 1; padding: var(--s-4); display: flex; flex-direction: column; gap: var(--s-3); overflow: hidden; }
+    .page-behind__q-hint {
+      background: var(--c-card);
+      border: 1px solid var(--c-rule);
+      border-radius: var(--r-card);
+      padding: var(--s-4);
+      box-shadow: var(--shadow-1);
+    }
+    .page-behind__q-hint-co { font-size: var(--t-cap); color: var(--c-navy); font-weight: 600; }
+    .page-behind__q-hint-body { font-size: var(--t-body-sm); color: var(--c-ink-2); margin-top: var(--s-1); line-height: 1.7; }
+
+    /* backdrop dim */
+    .offcanvas-backdrop {
+      position: absolute; inset: 0;
+      background: rgba(20,15,10,0.45);
+      -webkit-backdrop-filter: saturate(60%);
+      backdrop-filter: saturate(60%);
+      z-index: 1;
+    }
+
+    /* drawer */
+    .offcanvas-drawer {
+      position: absolute;
+      left: 0; top: 0; bottom: 0;
+      width: 280px;
+      background: var(--c-card);
+      box-shadow: var(--shadow-drawer);
+      display: flex;
+      flex-direction: column;
+      z-index: 2;
+    }
+    .offcanvas-head {
+      display: flex;
+      align-items: center;
+      gap: var(--s-3);
+      padding: var(--s-4) var(--s-4) var(--s-3);
+      flex: 0 0 auto;
+    }
+    .offcanvas-head__title { flex: 1; font-size: var(--t-h3); font-weight: 600; color: var(--c-ink); letter-spacing: -0.005em; }
+    .offcanvas-head__close { width: 36px; height: 36px; border-radius: var(--r-pill); display: inline-flex; align-items: center; justify-content: center; color: var(--c-ink-2); font-size: 20px; transition: background var(--t-fast) var(--ease); }
+    .offcanvas-head__close:hover { background: var(--c-bg-soft); color: var(--c-ink); }
+    .offcanvas-body {
+      flex: 1;
+      min-height: 0;
+      overflow-y: auto;
+      padding: 0 var(--s-3) var(--s-4);
+    }
+
+    /* item — minimal palette: navy score badge only, all else greyscale */
+    .offcanvas-item {
+      position: relative;
+      padding: var(--s-3);
+      border-radius: var(--r-input);
+      cursor: pointer;
+      transition: background var(--t-fast) var(--ease);
+      margin-bottom: 2px;
+    }
+    .offcanvas-item:hover { background: var(--c-bg-soft); }
+    .offcanvas-item__title-row {
+      display: flex;
+      gap: var(--s-2);
+      align-items: flex-start;
+      padding-right: 28px;
+    }
+    .offcanvas-item__title {
+      flex: 1;
+      min-width: 0;
+      font-size: var(--t-body-sm);
+      color: var(--c-ink);
+      font-weight: 500;
+      line-height: 1.4;
+      display: -webkit-box;
+      -webkit-line-clamp: 2;
+      -webkit-box-orient: vertical;
+      overflow: hidden;
+    }
+    .offcanvas-item__score {
+      flex: 0 0 auto;
+      padding: 1px var(--s-2);
+      background: var(--c-navy);
+      color: #fff;
+      border-radius: var(--r-pill);
+      font-size: var(--t-cap);
+      font-weight: 600;
+      letter-spacing: 0.02em;
+      line-height: 1.5;
+    }
+    .offcanvas-item__meta {
+      margin-top: var(--s-1);
+      font-size: var(--t-cap);
+      color: var(--c-ink-3);
+      line-height: 1.5;
+    }
+    .offcanvas-item__date {
+      margin-top: 2px;
+      font-size: var(--t-cap);
+      color: var(--c-ink-4);
+    }
+    .offcanvas-item__delete {
+      position: absolute;
+      top: 6px;
+      right: 4px;
+      width: 28px; height: 28px;
+      border-radius: var(--r-pill);
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+      color: var(--c-ink-3);
+      font-size: 14px;
+      opacity: 0;
+      transition: all var(--t-fast) var(--ease);
+    }
+    .offcanvas-item:hover .offcanvas-item__delete { opacity: 1; }
+    .offcanvas-item__delete:hover { background: var(--c-danger-lt); color: var(--c-danger); }
+
+    /* section divider in list (today / 過去 7 天 / 更早) */
+    .offcanvas-section {
+      font-size: var(--t-cap);
+      letter-spacing: 0.06em;
+      text-transform: uppercase;
+      color: var(--c-ink-3);
+      font-weight: 500;
+      padding: var(--s-3) var(--s-3) var(--s-2);
+    }
+
+    /* empty state */
+    .offcanvas-empty {
+      flex: 1;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: center;
+      padding: var(--s-7) var(--s-4);
+      text-align: center;
+      gap: var(--s-3);
+      color: var(--c-ink-3);
+    }
+    .offcanvas-empty__icon {
+      width: 56px; height: 56px;
+      border-radius: 50%;
+      background: var(--c-bg-soft);
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+      font-size: 24px;
+      color: var(--c-ink-3);
+    }
+    .offcanvas-empty__title { font-size: var(--t-body); color: var(--c-ink-2); font-weight: 500; }
+    .offcanvas-empty__sub { font-size: var(--t-meta); color: var(--c-ink-3); max-width: 220px; line-height: 1.7; }
+    .offcanvas-empty__cta { margin-top: var(--s-2); }
+
+    /* loading state */
+    .offcanvas-loading {
+      flex: 1;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: center;
+      padding: var(--s-7) var(--s-4);
+      gap: var(--s-3);
+    }
+    .offcanvas-spinner {
+      width: 36px; height: 36px;
+      border: 3px solid var(--c-rule);
+      border-top-color: var(--c-navy);
+      border-radius: 50%;
+      animation: spin 0.8s linear infinite;
+    }
+    @keyframes spin { to { transform: rotate(360deg); } }
+    .offcanvas-loading__text { font-size: var(--t-meta); color: var(--c-ink-3); }
+
+    /* error state */
+    .offcanvas-error {
+      flex: 1;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: center;
+      padding: var(--s-7) var(--s-4);
+      text-align: center;
+      gap: var(--s-3);
+    }
+    .offcanvas-error__icon {
+      width: 56px; height: 56px;
+      border-radius: 50%;
+      background: var(--c-danger-lt);
+      color: var(--c-danger);
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+      font-size: 24px;
+    }
+    .offcanvas-error__title { font-size: var(--t-body); color: var(--c-ink); font-weight: 500; }
+    .offcanvas-error__sub { font-size: var(--t-meta); color: var(--c-ink-3); max-width: 220px; line-height: 1.7; }
+  </style>
+</head>
+<body>
+  <div class="ds-page">
+    <header class="ds-header">
+      <div class="ds-header__eyebrow">Path 2 · Mockup 09 · CONTRACT-LOCKED 草稿</div>
+      <h1>Offcanvas 練習記錄 — 4 狀態（list / empty / loading / error）× 3 viewport</h1>
+      <p class="ds-header__sub">
+        側邊抽屜記錄面板。左滑進入、固定 280px 寬（跨 viewport 不放大）、後方 backdrop 全頁 dim。
+        Header「練習記錄」+ close X，無下分隔線。Body 4 狀態：
+        <strong>A 已登入完整 list</strong>（CIRCLES / NSM 混排，依 created_at desc，分組 今天 / 過去 7 天 / 更早；
+        每筆 badge 4 種：CIRCLES 完成 navy / NSM 完成綠 / drafts 進行中黃 / 一般進行中藍 + 分數）/
+        <strong>B Empty</strong>「尚無練習記錄」/ <strong>C Loading</strong> spinner / <strong>D Error</strong> 載入失敗 + 重試。
+        Item hover 顯示右上 trash icon（防誤點，預設隱藏）。Item click：CIRCLES 載入 session、NSM 跳 step 4 報告。
+        Component CSS：root tokens / navbar / btn / badge LOCKED；新增 offcanvas-* 元件。
+      </p>
+    </header>
+
+    <!-- ============================================================ -->
+    <!-- Section A — 已登入完整 list                                  -->
+    <!-- ============================================================ -->
+    <h2 class="vp-section-title">A · 已登入完整 list（4 種 badge 全展示）<span class="vp-section-title__sub">CIRCLES 完成 navy · NSM 完成綠 · drafts 進行中黃 · 一般進行中藍</span></h2>
+    <div class="anno"><strong>視覺契約：</strong>drawer 280px 從左進入 + 後方 backdrop dim（rgba(20,15,10,0.45)）+ Header「練習記錄」+ close X +
+    list 分組「今天」/「過去 7 天」/「更早」+ 6 筆 items 涵蓋 4 種 badge（Spotify CIRCLES 86 分 / Asana NSM 92 分 / Discord drafts 進行中黃 / Netflix CIRCLES 進行中藍 / Meta CIRCLES 78 分 / Grab NSM 進行中藍）。Hover 才顯示 trash icon。</div>
+    <div class="vp-grid">
+
+      <!-- A · Mobile 360 -->
+      <div class="vp-frame">
+        <div class="vp-frame__label"><span>Mobile</span><span>360 × 880</span></div>
+        <div class="vp-frame__inner" style="width:360px">
+          <div class="page-behind">
+            <div class="navbar">
+              <button class="navbar__icon-btn"><i class="ph ph-list"></i></button>
+              <div class="navbar__brand"><span class="navbar__brand-icon">PM</span></div>
+              <div class="navbar__actions"><button class="navbar__icon-btn"><i class="ph ph-house"></i></button></div>
+            </div>
+            <div class="page-behind__faded">
+              <div class="page-behind__q-hint">
+                <div class="page-behind__q-hint-co">Spotify · 音樂串流</div>
+                <div class="page-behind__q-hint-body">為 Spotify Podcast 業務定義北極星指標…</div>
+              </div>
+            </div>
+          </div>
+          <div class="offcanvas-backdrop"></div>
+          <div class="offcanvas-drawer">
+            <div class="offcanvas-head">
+              <div class="offcanvas-head__title">練習記錄</div>
+              <button class="offcanvas-head__close"><i class="ph ph-x"></i></button>
+            </div>
+            <div class="offcanvas-body">
+              <div class="offcanvas-section">今天</div>
+              <div class="offcanvas-item">
+                <div class="offcanvas-item__title-row"><div class="offcanvas-item__title">Discord Voice</div></div>
+                <div class="offcanvas-item__meta">CIRCLES · L 方案 · 草稿</div>
+                <div class="offcanvas-item__date">3 分鐘前編輯</div>
+                <button class="offcanvas-item__delete"><i class="ph ph-trash"></i></button>
+              </div>
+              <div class="offcanvas-item">
+                <div class="offcanvas-item__title-row"><div class="offcanvas-item__title">Spotify Wrapped</div><span class="offcanvas-item__score">86 分</span></div>
+                <div class="offcanvas-item__meta">CIRCLES · 完整 7 步</div>
+                <div class="offcanvas-item__date">5/3 · 14:22</div>
+                <button class="offcanvas-item__delete"><i class="ph ph-trash"></i></button>
+              </div>
+              <div class="offcanvas-section">過去 7 天</div>
+              <div class="offcanvas-item">
+                <div class="offcanvas-item__title-row"><div class="offcanvas-item__title">Asana 工作協作</div><span class="offcanvas-item__score">92 分</span></div>
+                <div class="offcanvas-item__meta">NSM · 4 步</div>
+                <div class="offcanvas-item__date">5/1 · 09:48</div>
+                <button class="offcanvas-item__delete"><i class="ph ph-trash"></i></button>
+              </div>
+              <div class="offcanvas-item">
+                <div class="offcanvas-item__title-row"><div class="offcanvas-item__title">Netflix Kids</div></div>
+                <div class="offcanvas-item__meta">CIRCLES · 完整 7 步 · 進行中</div>
+                <div class="offcanvas-item__date">4/29 · 21:05</div>
+                <button class="offcanvas-item__delete"><i class="ph ph-trash"></i></button>
+              </div>
+              <div class="offcanvas-item">
+                <div class="offcanvas-item__title-row"><div class="offcanvas-item__title">GrabFood</div></div>
+                <div class="offcanvas-item__meta">NSM · 4 步 · 進行中</div>
+                <div class="offcanvas-item__date">4/28 · 18:33</div>
+                <button class="offcanvas-item__delete"><i class="ph ph-trash"></i></button>
+              </div>
+              <div class="offcanvas-section">更早</div>
+              <div class="offcanvas-item">
+                <div class="offcanvas-item__title-row"><div class="offcanvas-item__title">Meta Marketplace</div><span class="offcanvas-item__score">78 分</span></div>
+                <div class="offcanvas-item__meta">CIRCLES · C 澄清</div>
+                <div class="offcanvas-item__date">4/22 · 11:12</div>
+                <button class="offcanvas-item__delete"><i class="ph ph-trash"></i></button>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- A · Tablet 768 -->
+      <div class="vp-frame">
+        <div class="vp-frame__label"><span>Tablet</span><span>768 × 880</span></div>
+        <div class="vp-frame__inner" style="width:768px">
+          <div class="page-behind">
+            <div class="navbar">
+              <button class="navbar__icon-btn"><i class="ph ph-list"></i></button>
+              <div class="navbar__brand"><span class="navbar__brand-icon">PM</span><span class="navbar__brand-name">PM Drill</span></div>
+              <div class="navbar__tabs"><button class="navbar__tab is-active">CIRCLES</button><button class="navbar__tab">北極星</button></div>
+              <div class="navbar__actions"><button class="navbar__icon-btn"><i class="ph ph-magnifying-glass"></i></button><button class="navbar__icon-btn"><i class="ph ph-house"></i></button></div>
+            </div>
+            <div class="page-behind__faded">
+              <div class="page-behind__q-hint">
+                <div class="page-behind__q-hint-co">Spotify · 音樂串流</div>
+                <div class="page-behind__q-hint-body">為 Spotify Podcast 業務定義北極星指標，目標是衡量新用戶能否養成日常收聽習慣。</div>
+              </div>
+              <div class="page-behind__q-hint">
+                <div class="page-behind__q-hint-co">Discord · 即時通訊</div>
+                <div class="page-behind__q-hint-body">設計一個新功能，提升 Discord Voice 聊天中的音質和用戶互動體驗，特別是在大型群組中。</div>
+              </div>
+            </div>
+          </div>
+          <div class="offcanvas-backdrop"></div>
+          <div class="offcanvas-drawer">
+            <div class="offcanvas-head">
+              <div class="offcanvas-head__title">練習記錄</div>
+              <button class="offcanvas-head__close"><i class="ph ph-x"></i></button>
+            </div>
+            <div class="offcanvas-body">
+              <div class="offcanvas-section">今天</div>
+              <div class="offcanvas-item">
+                <div class="offcanvas-item__title-row"><div class="offcanvas-item__title">Discord Voice</div></div>
+                <div class="offcanvas-item__meta">CIRCLES · L 方案 · 草稿</div>
+                <div class="offcanvas-item__date">3 分鐘前編輯</div>
+                <button class="offcanvas-item__delete"><i class="ph ph-trash"></i></button>
+              </div>
+              <div class="offcanvas-item">
+                <div class="offcanvas-item__title-row"><div class="offcanvas-item__title">Spotify Wrapped</div><span class="offcanvas-item__score">86 分</span></div>
+                <div class="offcanvas-item__meta">CIRCLES · 完整 7 步</div>
+                <div class="offcanvas-item__date">5/3 · 14:22</div>
+                <button class="offcanvas-item__delete"><i class="ph ph-trash"></i></button>
+              </div>
+              <div class="offcanvas-section">過去 7 天</div>
+              <div class="offcanvas-item">
+                <div class="offcanvas-item__title-row"><div class="offcanvas-item__title">Asana 工作協作</div><span class="offcanvas-item__score">92 分</span></div>
+                <div class="offcanvas-item__meta">NSM · 4 步</div>
+                <div class="offcanvas-item__date">5/1 · 09:48</div>
+                <button class="offcanvas-item__delete"><i class="ph ph-trash"></i></button>
+              </div>
+              <div class="offcanvas-item">
+                <div class="offcanvas-item__title-row"><div class="offcanvas-item__title">Netflix Kids</div></div>
+                <div class="offcanvas-item__meta">CIRCLES · 完整 7 步 · 進行中</div>
+                <div class="offcanvas-item__date">4/29 · 21:05</div>
+                <button class="offcanvas-item__delete"><i class="ph ph-trash"></i></button>
+              </div>
+              <div class="offcanvas-item">
+                <div class="offcanvas-item__title-row"><div class="offcanvas-item__title">GrabFood</div></div>
+                <div class="offcanvas-item__meta">NSM · 4 步 · 進行中</div>
+                <div class="offcanvas-item__date">4/28 · 18:33</div>
+                <button class="offcanvas-item__delete"><i class="ph ph-trash"></i></button>
+              </div>
+              <div class="offcanvas-section">更早</div>
+              <div class="offcanvas-item">
+                <div class="offcanvas-item__title-row"><div class="offcanvas-item__title">Meta Marketplace</div><span class="offcanvas-item__score">78 分</span></div>
+                <div class="offcanvas-item__meta">CIRCLES · C 澄清</div>
+                <div class="offcanvas-item__date">4/22 · 11:12</div>
+                <button class="offcanvas-item__delete"><i class="ph ph-trash"></i></button>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- A · Desktop 1280 -->
+      <div class="vp-frame">
+        <div class="vp-frame__label"><span>Desktop</span><span>1280 × 880</span></div>
+        <div class="vp-frame__inner" style="width:1280px">
+          <div class="page-behind">
+            <div class="navbar">
+              <button class="navbar__icon-btn"><i class="ph ph-list"></i></button>
+              <div class="navbar__brand"><span class="navbar__brand-icon">PM</span><span class="navbar__brand-name">PM Drill</span></div>
+              <div class="navbar__tabs"><button class="navbar__tab is-active">CIRCLES</button><button class="navbar__tab">北極星</button></div>
+              <div class="navbar__actions"><span class="navbar__email">albertpeng678@gmail.com</span><button class="navbar__icon-btn"><i class="ph ph-magnifying-glass"></i></button><button class="navbar__icon-btn"><i class="ph ph-house"></i></button></div>
+            </div>
+            <div class="page-behind__faded">
+              <div class="page-behind__q-hint">
+                <div class="page-behind__q-hint-co">Spotify · 音樂串流</div>
+                <div class="page-behind__q-hint-body">為 Spotify Podcast 業務定義北極星指標，目標是衡量新用戶能否養成日常收聽習慣。</div>
+              </div>
+              <div class="page-behind__q-hint">
+                <div class="page-behind__q-hint-co">Discord · 即時通訊</div>
+                <div class="page-behind__q-hint-body">設計一個新功能，提升 Discord Voice 聊天中的音質和用戶互動體驗，特別是在大型群組中。</div>
+              </div>
+              <div class="page-behind__q-hint">
+                <div class="page-behind__q-hint-co">Netflix · 串流影音</div>
+                <div class="page-behind__q-hint-body">為 Netflix Kids 設計一個新功能，幫助家長更好地管理孩子的觀看內容。</div>
+              </div>
+            </div>
+          </div>
+          <div class="offcanvas-backdrop"></div>
+          <div class="offcanvas-drawer">
+            <div class="offcanvas-head">
+              <div class="offcanvas-head__title">練習記錄</div>
+              <button class="offcanvas-head__close"><i class="ph ph-x"></i></button>
+            </div>
+            <div class="offcanvas-body">
+              <div class="offcanvas-section">今天</div>
+              <div class="offcanvas-item">
+                <div class="offcanvas-item__title-row"><div class="offcanvas-item__title">Discord Voice</div></div>
+                <div class="offcanvas-item__meta">CIRCLES · L 方案 · 草稿</div>
+                <div class="offcanvas-item__date">3 分鐘前編輯</div>
+                <button class="offcanvas-item__delete"><i class="ph ph-trash"></i></button>
+              </div>
+              <div class="offcanvas-item">
+                <div class="offcanvas-item__title-row"><div class="offcanvas-item__title">Spotify Wrapped</div><span class="offcanvas-item__score">86 分</span></div>
+                <div class="offcanvas-item__meta">CIRCLES · 完整 7 步</div>
+                <div class="offcanvas-item__date">5/3 · 14:22</div>
+                <button class="offcanvas-item__delete"><i class="ph ph-trash"></i></button>
+              </div>
+              <div class="offcanvas-section">過去 7 天</div>
+              <div class="offcanvas-item">
+                <div class="offcanvas-item__title-row"><div class="offcanvas-item__title">Asana 工作協作</div><span class="offcanvas-item__score">92 分</span></div>
+                <div class="offcanvas-item__meta">NSM · 4 步</div>
+                <div class="offcanvas-item__date">5/1 · 09:48</div>
+                <button class="offcanvas-item__delete"><i class="ph ph-trash"></i></button>
+              </div>
+              <div class="offcanvas-item">
+                <div class="offcanvas-item__title-row"><div class="offcanvas-item__title">Netflix Kids</div></div>
+                <div class="offcanvas-item__meta">CIRCLES · 完整 7 步 · 進行中</div>
+                <div class="offcanvas-item__date">4/29 · 21:05</div>
+                <button class="offcanvas-item__delete"><i class="ph ph-trash"></i></button>
+              </div>
+              <div class="offcanvas-item">
+                <div class="offcanvas-item__title-row"><div class="offcanvas-item__title">GrabFood</div></div>
+                <div class="offcanvas-item__meta">NSM · 4 步 · 進行中</div>
+                <div class="offcanvas-item__date">4/28 · 18:33</div>
+                <button class="offcanvas-item__delete"><i class="ph ph-trash"></i></button>
+              </div>
+              <div class="offcanvas-section">更早</div>
+              <div class="offcanvas-item">
+                <div class="offcanvas-item__title-row"><div class="offcanvas-item__title">Meta Marketplace</div><span class="offcanvas-item__score">78 分</span></div>
+                <div class="offcanvas-item__meta">CIRCLES · C 澄清</div>
+                <div class="offcanvas-item__date">4/22 · 11:12</div>
+                <button class="offcanvas-item__delete"><i class="ph ph-trash"></i></button>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+
+    </div>
+
+    <!-- ============================================================ -->
+    <!-- Section B — Empty                                            -->
+    <!-- ============================================================ -->
+    <h2 class="vp-section-title">B · Empty 尚無練習記錄<span class="vp-section-title__sub">訪客模式或新帳號 · CTA「開始第一題」回 CIRCLES home</span></h2>
+    <div class="anno"><strong>視覺契約：</strong>drawer 同 A，body 變成 <code>offcanvas-empty</code>：圓形 icon container + 「尚無練習記錄」title + 副文「練習完成的題目會出現在這裡」+ ghost CTA「開始第一題」（dismiss drawer 跳回 CIRCLES home）。</div>
+    <div class="vp-grid">
+
+      <!-- B · Mobile 360 -->
+      <div class="vp-frame">
+        <div class="vp-frame__label"><span>Mobile</span><span>360 × 880</span></div>
+        <div class="vp-frame__inner" style="width:360px">
+          <div class="page-behind">
+            <div class="navbar">
+              <button class="navbar__icon-btn"><i class="ph ph-list"></i></button>
+              <div class="navbar__brand"><span class="navbar__brand-icon">PM</span></div>
+              <div class="navbar__actions"><button class="navbar__icon-btn"><i class="ph ph-house"></i></button></div>
+            </div>
+            <div class="page-behind__faded">
+              <div class="page-behind__q-hint">
+                <div class="page-behind__q-hint-co">Spotify · 音樂串流</div>
+                <div class="page-behind__q-hint-body">為 Spotify Podcast 業務定義北極星指標…</div>
+              </div>
+            </div>
+          </div>
+          <div class="offcanvas-backdrop"></div>
+          <div class="offcanvas-drawer">
+            <div class="offcanvas-head">
+              <div class="offcanvas-head__title">練習記錄</div>
+              <button class="offcanvas-head__close"><i class="ph ph-x"></i></button>
+            </div>
+            <div class="offcanvas-empty">
+              <div class="offcanvas-empty__icon"><i class="ph ph-folder-open"></i></div>
+              <div class="offcanvas-empty__title">尚無練習記錄</div>
+              <div class="offcanvas-empty__sub">練習完成的 CIRCLES 題目與 NSM 訓練會出現在這裡。</div>
+              <button class="btn btn--ghost offcanvas-empty__cta"><i class="ph ph-arrow-right"></i>開始第一題</button>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- B · Tablet 768 -->
+      <div class="vp-frame">
+        <div class="vp-frame__label"><span>Tablet</span><span>768 × 880</span></div>
+        <div class="vp-frame__inner" style="width:768px">
+          <div class="page-behind">
+            <div class="navbar">
+              <button class="navbar__icon-btn"><i class="ph ph-list"></i></button>
+              <div class="navbar__brand"><span class="navbar__brand-icon">PM</span><span class="navbar__brand-name">PM Drill</span></div>
+              <div class="navbar__tabs"><button class="navbar__tab is-active">CIRCLES</button><button class="navbar__tab">北極星</button></div>
+              <div class="navbar__actions"><button class="navbar__icon-btn"><i class="ph ph-magnifying-glass"></i></button><button class="navbar__icon-btn"><i class="ph ph-house"></i></button></div>
+            </div>
+            <div class="page-behind__faded">
+              <div class="page-behind__q-hint">
+                <div class="page-behind__q-hint-co">Spotify · 音樂串流</div>
+                <div class="page-behind__q-hint-body">為 Spotify Podcast 業務定義北極星指標，目標是衡量新用戶能否養成日常收聽習慣。</div>
+              </div>
+            </div>
+          </div>
+          <div class="offcanvas-backdrop"></div>
+          <div class="offcanvas-drawer">
+            <div class="offcanvas-head">
+              <div class="offcanvas-head__title">練習記錄</div>
+              <button class="offcanvas-head__close"><i class="ph ph-x"></i></button>
+            </div>
+            <div class="offcanvas-empty">
+              <div class="offcanvas-empty__icon"><i class="ph ph-folder-open"></i></div>
+              <div class="offcanvas-empty__title">尚無練習記錄</div>
+              <div class="offcanvas-empty__sub">練習完成的 CIRCLES 題目與 NSM 訓練會出現在這裡。</div>
+              <button class="btn btn--ghost offcanvas-empty__cta"><i class="ph ph-arrow-right"></i>開始第一題</button>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- B · Desktop 1280 -->
+      <div class="vp-frame">
+        <div class="vp-frame__label"><span>Desktop</span><span>1280 × 880</span></div>
+        <div class="vp-frame__inner" style="width:1280px">
+          <div class="page-behind">
+            <div class="navbar">
+              <button class="navbar__icon-btn"><i class="ph ph-list"></i></button>
+              <div class="navbar__brand"><span class="navbar__brand-icon">PM</span><span class="navbar__brand-name">PM Drill</span></div>
+              <div class="navbar__tabs"><button class="navbar__tab is-active">CIRCLES</button><button class="navbar__tab">北極星</button></div>
+              <div class="navbar__actions"><span class="navbar__email">albertpeng678@gmail.com</span><button class="navbar__icon-btn"><i class="ph ph-magnifying-glass"></i></button><button class="navbar__icon-btn"><i class="ph ph-house"></i></button></div>
+            </div>
+            <div class="page-behind__faded">
+              <div class="page-behind__q-hint">
+                <div class="page-behind__q-hint-co">Spotify · 音樂串流</div>
+                <div class="page-behind__q-hint-body">為 Spotify Podcast 業務定義北極星指標，目標是衡量新用戶能否養成日常收聽習慣。</div>
+              </div>
+              <div class="page-behind__q-hint">
+                <div class="page-behind__q-hint-co">Discord · 即時通訊</div>
+                <div class="page-behind__q-hint-body">設計一個新功能，提升 Discord Voice 聊天中的音質和用戶互動體驗。</div>
+              </div>
+            </div>
+          </div>
+          <div class="offcanvas-backdrop"></div>
+          <div class="offcanvas-drawer">
+            <div class="offcanvas-head">
+              <div class="offcanvas-head__title">練習記錄</div>
+              <button class="offcanvas-head__close"><i class="ph ph-x"></i></button>
+            </div>
+            <div class="offcanvas-empty">
+              <div class="offcanvas-empty__icon"><i class="ph ph-folder-open"></i></div>
+              <div class="offcanvas-empty__title">尚無練習記錄</div>
+              <div class="offcanvas-empty__sub">練習完成的 CIRCLES 題目與 NSM 訓練會出現在這裡。</div>
+              <button class="btn btn--ghost offcanvas-empty__cta"><i class="ph ph-arrow-right"></i>開始第一題</button>
+            </div>
+          </div>
+        </div>
+      </div>
+
+    </div>
+
+    <!-- ============================================================ -->
+    <!-- Section C — Loading                                          -->
+    <!-- ============================================================ -->
+    <h2 class="vp-section-title">C · Loading 載入中<span class="vp-section-title__sub">無 cache 第一次開啟 · spinner + 「載入練習記錄中…」</span></h2>
+    <div class="anno"><strong>視覺契約：</strong>drawer 同 A，body 變成 <code>offcanvas-loading</code>：36px navy spinner（border 3px / animation 0.8s linear infinite）+ 「載入練習記錄中…」副文。</div>
+    <div class="vp-grid">
+
+      <!-- C · Mobile 360 -->
+      <div class="vp-frame">
+        <div class="vp-frame__label"><span>Mobile</span><span>360 × 880</span></div>
+        <div class="vp-frame__inner" style="width:360px">
+          <div class="page-behind">
+            <div class="navbar">
+              <button class="navbar__icon-btn"><i class="ph ph-list"></i></button>
+              <div class="navbar__brand"><span class="navbar__brand-icon">PM</span></div>
+              <div class="navbar__actions"><button class="navbar__icon-btn"><i class="ph ph-house"></i></button></div>
+            </div>
+            <div class="page-behind__faded">
+              <div class="page-behind__q-hint">
+                <div class="page-behind__q-hint-co">Spotify · 音樂串流</div>
+                <div class="page-behind__q-hint-body">為 Spotify Podcast 業務定義北極星指標…</div>
+              </div>
+            </div>
+          </div>
+          <div class="offcanvas-backdrop"></div>
+          <div class="offcanvas-drawer">
+            <div class="offcanvas-head">
+              <div class="offcanvas-head__title">練習記錄</div>
+              <button class="offcanvas-head__close"><i class="ph ph-x"></i></button>
+            </div>
+            <div class="offcanvas-loading">
+              <div class="offcanvas-spinner"></div>
+              <div class="offcanvas-loading__text">載入練習記錄中…</div>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- C · Tablet 768 -->
+      <div class="vp-frame">
+        <div class="vp-frame__label"><span>Tablet</span><span>768 × 880</span></div>
+        <div class="vp-frame__inner" style="width:768px">
+          <div class="page-behind">
+            <div class="navbar">
+              <button class="navbar__icon-btn"><i class="ph ph-list"></i></button>
+              <div class="navbar__brand"><span class="navbar__brand-icon">PM</span><span class="navbar__brand-name">PM Drill</span></div>
+              <div class="navbar__tabs"><button class="navbar__tab is-active">CIRCLES</button><button class="navbar__tab">北極星</button></div>
+              <div class="navbar__actions"><button class="navbar__icon-btn"><i class="ph ph-magnifying-glass"></i></button><button class="navbar__icon-btn"><i class="ph ph-house"></i></button></div>
+            </div>
+            <div class="page-behind__faded">
+              <div class="page-behind__q-hint">
+                <div class="page-behind__q-hint-co">Spotify · 音樂串流</div>
+                <div class="page-behind__q-hint-body">為 Spotify Podcast 業務定義北極星指標，目標是衡量新用戶能否養成日常收聽習慣。</div>
+              </div>
+            </div>
+          </div>
+          <div class="offcanvas-backdrop"></div>
+          <div class="offcanvas-drawer">
+            <div class="offcanvas-head">
+              <div class="offcanvas-head__title">練習記錄</div>
+              <button class="offcanvas-head__close"><i class="ph ph-x"></i></button>
+            </div>
+            <div class="offcanvas-loading">
+              <div class="offcanvas-spinner"></div>
+              <div class="offcanvas-loading__text">載入練習記錄中…</div>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- C · Desktop 1280 -->
+      <div class="vp-frame">
+        <div class="vp-frame__label"><span>Desktop</span><span>1280 × 880</span></div>
+        <div class="vp-frame__inner" style="width:1280px">
+          <div class="page-behind">
+            <div class="navbar">
+              <button class="navbar__icon-btn"><i class="ph ph-list"></i></button>
+              <div class="navbar__brand"><span class="navbar__brand-icon">PM</span><span class="navbar__brand-name">PM Drill</span></div>
+              <div class="navbar__tabs"><button class="navbar__tab is-active">CIRCLES</button><button class="navbar__tab">北極星</button></div>
+              <div class="navbar__actions"><span class="navbar__email">albertpeng678@gmail.com</span><button class="navbar__icon-btn"><i class="ph ph-magnifying-glass"></i></button><button class="navbar__icon-btn"><i class="ph ph-house"></i></button></div>
+            </div>
+            <div class="page-behind__faded">
+              <div class="page-behind__q-hint">
+                <div class="page-behind__q-hint-co">Spotify · 音樂串流</div>
+                <div class="page-behind__q-hint-body">為 Spotify Podcast 業務定義北極星指標，目標是衡量新用戶能否養成日常收聽習慣。</div>
+              </div>
+              <div class="page-behind__q-hint">
+                <div class="page-behind__q-hint-co">Discord · 即時通訊</div>
+                <div class="page-behind__q-hint-body">設計一個新功能，提升 Discord Voice 聊天中的音質和用戶互動體驗。</div>
+              </div>
+            </div>
+          </div>
+          <div class="offcanvas-backdrop"></div>
+          <div class="offcanvas-drawer">
+            <div class="offcanvas-head">
+              <div class="offcanvas-head__title">練習記錄</div>
+              <button class="offcanvas-head__close"><i class="ph ph-x"></i></button>
+            </div>
+            <div class="offcanvas-loading">
+              <div class="offcanvas-spinner"></div>
+              <div class="offcanvas-loading__text">載入練習記錄中…</div>
+            </div>
+          </div>
+        </div>
+      </div>
+
+    </div>
+
+    <!-- ============================================================ -->
+    <!-- Section D — Error                                            -->
+    <!-- ============================================================ -->
+    <h2 class="vp-section-title">D · Error 載入失敗<span class="vp-section-title__sub">network 錯誤 / 401 / 500 · 重試 button</span></h2>
+    <div class="anno"><strong>視覺契約：</strong>drawer 同 A，body 變成 <code>offcanvas-error</code>：紅圓 icon + 「載入失敗」title + 副文「請檢查網路連線後再試」+ ghost CTA「重試」。</div>
+    <div class="vp-grid">
+
+      <!-- D · Mobile 360 -->
+      <div class="vp-frame">
+        <div class="vp-frame__label"><span>Mobile</span><span>360 × 880</span></div>
+        <div class="vp-frame__inner" style="width:360px">
+          <div class="page-behind">
+            <div class="navbar">
+              <button class="navbar__icon-btn"><i class="ph ph-list"></i></button>
+              <div class="navbar__brand"><span class="navbar__brand-icon">PM</span></div>
+              <div class="navbar__actions"><button class="navbar__icon-btn"><i class="ph ph-house"></i></button></div>
+            </div>
+            <div class="page-behind__faded">
+              <div class="page-behind__q-hint">
+                <div class="page-behind__q-hint-co">Spotify · 音樂串流</div>
+                <div class="page-behind__q-hint-body">為 Spotify Podcast 業務定義北極星指標…</div>
+              </div>
+            </div>
+          </div>
+          <div class="offcanvas-backdrop"></div>
+          <div class="offcanvas-drawer">
+            <div class="offcanvas-head">
+              <div class="offcanvas-head__title">練習記錄</div>
+              <button class="offcanvas-head__close"><i class="ph ph-x"></i></button>
+            </div>
+            <div class="offcanvas-error">
+              <div class="offcanvas-error__icon"><i class="ph ph-warning-circle"></i></div>
+              <div class="offcanvas-error__title">載入失敗</div>
+              <div class="offcanvas-error__sub">請檢查網路連線後再試。</div>
+              <button class="btn btn--ghost"><i class="ph ph-arrow-clockwise"></i>重試</button>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- D · Tablet 768 -->
+      <div class="vp-frame">
+        <div class="vp-frame__label"><span>Tablet</span><span>768 × 880</span></div>
+        <div class="vp-frame__inner" style="width:768px">
+          <div class="page-behind">
+            <div class="navbar">
+              <button class="navbar__icon-btn"><i class="ph ph-list"></i></button>
+              <div class="navbar__brand"><span class="navbar__brand-icon">PM</span><span class="navbar__brand-name">PM Drill</span></div>
+              <div class="navbar__tabs"><button class="navbar__tab is-active">CIRCLES</button><button class="navbar__tab">北極星</button></div>
+              <div class="navbar__actions"><button class="navbar__icon-btn"><i class="ph ph-magnifying-glass"></i></button><button class="navbar__icon-btn"><i class="ph ph-house"></i></button></div>
+            </div>
+            <div class="page-behind__faded">
+              <div class="page-behind__q-hint">
+                <div class="page-behind__q-hint-co">Spotify · 音樂串流</div>
+                <div class="page-behind__q-hint-body">為 Spotify Podcast 業務定義北極星指標，目標是衡量新用戶能否養成日常收聽習慣。</div>
+              </div>
+            </div>
+          </div>
+          <div class="offcanvas-backdrop"></div>
+          <div class="offcanvas-drawer">
+            <div class="offcanvas-head">
+              <div class="offcanvas-head__title">練習記錄</div>
+              <button class="offcanvas-head__close"><i class="ph ph-x"></i></button>
+            </div>
+            <div class="offcanvas-error">
+              <div class="offcanvas-error__icon"><i class="ph ph-warning-circle"></i></div>
+              <div class="offcanvas-error__title">載入失敗</div>
+              <div class="offcanvas-error__sub">請檢查網路連線後再試。</div>
+              <button class="btn btn--ghost"><i class="ph ph-arrow-clockwise"></i>重試</button>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- D · Desktop 1280 -->
+      <div class="vp-frame">
+        <div class="vp-frame__label"><span>Desktop</span><span>1280 × 880</span></div>
+        <div class="vp-frame__inner" style="width:1280px">
+          <div class="page-behind">
+            <div class="navbar">
+              <button class="navbar__icon-btn"><i class="ph ph-list"></i></button>
+              <div class="navbar__brand"><span class="navbar__brand-icon">PM</span><span class="navbar__brand-name">PM Drill</span></div>
+              <div class="navbar__tabs"><button class="navbar__tab is-active">CIRCLES</button><button class="navbar__tab">北極星</button></div>
+              <div class="navbar__actions"><span class="navbar__email">albertpeng678@gmail.com</span><button class="navbar__icon-btn"><i class="ph ph-magnifying-glass"></i></button><button class="navbar__icon-btn"><i class="ph ph-house"></i></button></div>
+            </div>
+            <div class="page-behind__faded">
+              <div class="page-behind__q-hint">
+                <div class="page-behind__q-hint-co">Spotify · 音樂串流</div>
+                <div class="page-behind__q-hint-body">為 Spotify Podcast 業務定義北極星指標，目標是衡量新用戶能否養成日常收聽習慣。</div>
+              </div>
+              <div class="page-behind__q-hint">
+                <div class="page-behind__q-hint-co">Discord · 即時通訊</div>
+                <div class="page-behind__q-hint-body">設計一個新功能，提升 Discord Voice 聊天中的音質和用戶互動體驗。</div>
+              </div>
+            </div>
+          </div>
+          <div class="offcanvas-backdrop"></div>
+          <div class="offcanvas-drawer">
+            <div class="offcanvas-head">
+              <div class="offcanvas-head__title">練習記錄</div>
+              <button class="offcanvas-head__close"><i class="ph ph-x"></i></button>
+            </div>
+            <div class="offcanvas-error">
+              <div class="offcanvas-error__icon"><i class="ph ph-warning-circle"></i></div>
+              <div class="offcanvas-error__title">載入失敗</div>
+              <div class="offcanvas-error__sub">請檢查網路連線後再試。</div>
+              <button class="btn btn--ghost"><i class="ph ph-arrow-clockwise"></i>重試</button>
+            </div>
+          </div>
+        </div>
+      </div>
+
+    </div>
+
+  </div>
+</body>
+</html>
