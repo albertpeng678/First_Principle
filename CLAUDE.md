@@ -53,7 +53,7 @@ frontend-design (獨立 plugin) → writing-plans → using-git-worktrees
 - [x] **批次 B（Phase 3 / 4 / error）mockup 解鎖**
 - [x] Design system mockup v1 完成（13 sections）→ user 抓到漏洞 → 全盤掃描 122 項 UI（覆蓋率 47%）→ 擴充到 **21 sections**（補 example-bullet / save-indicator / toast / overflow / char-counter / phase-head / mode-tag / onboarding-coachmark），覆蓋率 ~85%
 - [x] UI 覆蓋盤點存到 `docs/superpowers/specs/path-2-ui-coverage-audit.md`
-- [x] **批次 A 01 — CIRCLES Home mockup 完成**（v2 — 7 sections × 3 viewport = 21 變化，新增 G 題目展開 + Q1 recent rail vs offcanvas 註解）
+- [x] **批次 A 01 — CIRCLES Home mockup v4**（7 sections × 3 viewport = 21 變化）— q-card 展開重設計成 card-based blocks + 色系統一 navy（淘汰 v3 editorial 的 hairline + eyebrow 弱化做法）
 - [x] SP3 backend 兩階段 review 完成 → 找到 2 critical + 4 major + 3 minor 問題 → fix subagent 在背景跑（agentId `aa807c0e7618aa574`，自動通知完成）
 - [ ] **NEXT — 雙軌等 user：** ①SP3 backend merge ②design system 放行
 - [ ] SP3 backend merge → 更新 Master Spec §1.4 ⚠ 提示框移除
