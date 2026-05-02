@@ -158,8 +158,9 @@ body {
      blowing past comfort at 4K. Was static 1180/920 columns. */
   .circles-home-desktop { max-width: min(1880px, 94vw); margin: 0 auto; padding: 24px 0; }
   .phase1-desktop { max-width: min(1880px, 94vw); margin: 0 auto; padding: 0 0 100px; }
-  .phase2-desktop { max-width: 920px; margin: 0 auto; padding: 0 0; }
-  .phase3-desktop { max-width: 920px; margin: 0 auto; padding: 0 0 100px; }
+  .phase2-desktop { max-width: none; margin: 0; padding: 0 0 100px; }   /* SP1.5-bugfix D-1 */
+  .phase3-desktop { max-width: none; margin: 0; padding: 0 0 100px; }   /* SP1.5-bugfix D-1 */
+  .circles-body-centered { max-width: 920px; margin: 0 auto; width: 100%; }   /* SP1.5-bugfix D-1: replaces wrap centering */
   .nsm-home-desktop { width: 100%; max-width: min(1880px, 94vw); margin: 0 auto; padding: 18px 0 100px; }
   .nsm-step2-desktop { max-width: 720px; margin: 0 auto; padding: 18px 0 100px; }
   .nsm-step3-desktop { max-width: 920px; margin: 0 auto; padding: 18px 0 100px; }
