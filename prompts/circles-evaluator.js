@@ -32,12 +32,15 @@ const STEP_RUBRICS = {
   },
 };
 
-async function evaluateCirclesStep({ step, frameworkDraft, conversation, questionJson, mode, signal }) {
+async function evaluateCirclesStep({ step, frameworkDraft, conversation, questionJson, mode, isSimulation, signal }) {
   const rubric = STEP_RUBRICS[step];
   if (!rubric) throw new Error('Unknown step: ' + step);
 
   const coachAnswer = (questionJson.coach_circles || {})[step] || '';
-  const isSimulation = mode === 'simulation';
+  // SP3: accept either `isSimulation` (boolean) or legacy `mode` ('simulation' | 'drill').
+  // Explicit `isSimulation` wins so the new test contract is honoured; otherwise we
+  // derive from `mode` for backward-compat with existing route callers.
+  const _isSim = (typeof isSimulation === 'boolean') ? isSimulation : (mode === 'simulation');
 
   const convText = (conversation || [])
     .map(t => `學員：${t.userMessage}\n教練：${t.interviewee}`)
@@ -48,7 +51,7 @@ async function evaluateCirclesStep({ step, frameworkDraft, conversation, questio
   const fieldNamesHint = fieldNames.length
     ? fieldNames.map(n => `"${n}"`).join('、')
     : '（依步驟對應欄位）';
-  const styleHint = isSimulation
+  const styleHint = _isSim
     ? '完整示範答案（展示給學員，可以直接給出具體解法）'
     : '簡短提示（不完全給答案，只引導思路方向）';
 
