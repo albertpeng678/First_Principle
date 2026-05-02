@@ -61,6 +61,7 @@ mockup `sp3-loading-error-states.html § ① ②`：
   - **重新評分**（primary）— 重打 evaluate API 帶同一份 framework_draft
   - **返回修改答案**（ghost）— navigate 回 Phase 1，保留 framework_draft（已 auto-save）
 - 顯示 error code（dev-only 或 console）：`EVAL_TIMEOUT` / `EVAL_API_ERROR` / `EVAL_PARSE_ERROR`
+  - `EVAL_PARSE_ERROR` 同時涵蓋兩種失敗：(1) 模型回傳的 JSON 無法 parse；(2) JSON 可 parse 但 `coachVersion` shape 不符（schema-drift / legacy string）。前端 toast 文案可共用「教練回應格式異常 · 請重試」
 - `EVAL_AUTH_ERROR`（401）特殊處理：跳登入頁，不顯示錯誤頁
 
 ### 與既有流程相容性
