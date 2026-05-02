@@ -603,13 +603,18 @@ describe('POST /api/circles-sessions/:id/evaluate-step', () => {
       .set(AUTH_HEADER)
       .send({});
 
-    expect(evaluateCirclesStep).toHaveBeenCalledWith({
+    // SP3: route now also forwards a `signal` (AbortSignal) for 30s timeout —
+    // assert the relevant fields rather than exact-match the whole object.
+    expect(evaluateCirclesStep).toHaveBeenCalledWith(expect.objectContaining({
       step: 'I',
       frameworkDraft: { user: 'PM' },
       conversation: [],
       questionJson: session.question_json,
       mode: 'drill',
-    });
+    }));
+    const callArg = evaluateCirclesStep.mock.calls[0][0];
+    expect(callArg.signal).toBeDefined();
+    expect(callArg.signal.aborted).toBe(false);
   });
 
   test('returns evaluateCirclesStep result', async () => {
