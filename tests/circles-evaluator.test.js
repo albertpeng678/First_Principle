@@ -99,7 +99,7 @@ describe('evaluateCirclesStep — OpenAI call', () => {
     };
   }
 
-  test('calls OpenAI with model gpt-4o, temperature 0.3, max_tokens 800', async () => {
+  test('calls OpenAI with model gpt-4o, temperature 0.3, max_tokens 1500', async () => {
     const mockCreate = new OpenAI().chat.completions.create;
     mockCreate.mockResolvedValue(makeMockResponse());
 
@@ -115,7 +115,7 @@ describe('evaluateCirclesStep — OpenAI call', () => {
     const callArg = mockCreate.mock.calls[0][0];
     expect(callArg.model).toBe('gpt-4o');
     expect(callArg.temperature).toBe(0.3);
-    expect(callArg.max_tokens).toBe(800);
+    expect(callArg.max_tokens).toBe(1500);
   });
 
   test('calls OpenAI with response_format json_object', async () => {
