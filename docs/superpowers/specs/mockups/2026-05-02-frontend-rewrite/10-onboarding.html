@@ -1,0 +1,994 @@
+<!doctype html>
+<html lang="zh-TW">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover, interactive-widget=resizes-visual">
+  <title>PM Drill — 10 Onboarding Welcome + 4-step Coachmark Tour</title>
+
+  <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/@phosphor-icons/web@2.1.1/src/regular/style.css">
+  <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/@phosphor-icons/web@2.1.1/src/fill/style.css">
+  <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Instrument+Serif:ital@0;1&display=swap">
+
+  <style>
+    /* ───── LOCKED CSS — verbatim from 03/04/06/07/08/09 ───── */
+    :root {
+      --c-bg: #F2F0EB; --c-bg-soft: #ECE9E1; --c-bg-deep: #E5E1D7;
+      --c-card: #FFFFFF; --c-surface: #FAFAF7;
+      --c-ink: #1F1D1B; --c-ink-2: #5A5046; --c-ink-3: #8A7E70; --c-ink-4: #B8AC9D;
+      --c-rule: rgba(60,45,30,0.10); --c-rule-bold: rgba(60,45,30,0.18);
+      --c-primary: #1A56DB;
+      --c-navy: #1B2D5C; --c-navy-2: #142347; --c-navy-lt: rgba(27,45,92,0.08);
+      --c-success: #137A3D; --c-success-lt: #DCEFE0;
+      --c-warn: #B85C00; --c-warn-lt: #FBE9D0;
+      --c-danger: #B61F1F; --c-danger-lt: #FADCDC;
+      --font-sans: system-ui, -apple-system, BlinkMacSystemFont, 'PingFang TC', 'Microsoft JhengHei', 'Heiti TC', 'Noto Sans TC', sans-serif;
+      --font-serif: 'Instrument Serif', 'Times New Roman', serif;
+      --t-h1: 24px; --t-h2: 19px; --t-h3: 16px; --t-body: 15px; --t-body-sm: 14px; --t-meta: 13px; --t-cap: 12px;
+      --s-1: 4px; --s-2: 8px; --s-3: 12px; --s-4: 16px; --s-5: 20px; --s-6: 24px; --s-7: 32px; --s-8: 40px; --s-9: 56px; --s-10: 80px;
+      --r-input: 6px; --r-card: 10px; --r-pill: 999px;
+      --touch-min: 44px;
+      --t-fast: 120ms; --t-norm: 200ms; --t-slow: 300ms;
+      --ease: cubic-bezier(0.4, 0, 0.2, 1);
+      --shadow-1: 0 1px 0 rgba(60,45,30,0.04);
+      --shadow-2: 0 1px 2px rgba(60,45,30,0.06);
+      --shadow-3: 0 4px 12px rgba(60,45,30,0.08);
+      --shadow-tooltip: 0 10px 30px rgba(20,15,10,0.25);
+    }
+
+    *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+    html, body { background: var(--c-bg); color: var(--c-ink); font-family: var(--font-sans); font-size: var(--t-body); line-height: 1.55; -webkit-font-smoothing: antialiased; }
+    button { font: inherit; color: inherit; cursor: pointer; background: none; border: none; }
+
+    .vp-grid { display: grid; grid-template-columns: 360px 768px 1280px; gap: var(--s-6); padding: var(--s-6); align-items: start; overflow-x: auto; }
+    .vp-frame { border: 1px solid var(--c-rule-bold); border-radius: var(--r-card); background: var(--c-bg); overflow: hidden; }
+    .vp-frame__label { padding: var(--s-3) var(--s-4); border-bottom: 1px solid var(--c-rule); background: var(--c-card); display: flex; justify-content: space-between; font-size: var(--t-cap); letter-spacing: 0.08em; text-transform: uppercase; color: var(--c-ink-2); }
+    .vp-frame__label span:last-child { font-family: ui-monospace, 'SF Mono', monospace; color: var(--c-ink-3); }
+    .vp-frame__inner { background: var(--c-bg); height: 880px; position: relative; overflow: hidden; }
+
+    .ds-page { padding: var(--s-6); }
+    .ds-header { max-width: 1880px; margin: 0 auto var(--s-7); padding-bottom: var(--s-6); border-bottom: 1px solid var(--c-rule); }
+    .ds-header h1 { font-size: var(--t-h1); margin-top: var(--s-2); }
+    .ds-header__eyebrow { font-size: var(--t-cap); letter-spacing: 0.12em; text-transform: uppercase; color: var(--c-ink-3); }
+    .ds-header__sub { color: var(--c-ink-2); font-size: var(--t-body-sm); margin-top: var(--s-3); max-width: 720px; }
+
+    .vp-section-title { max-width: 1880px; margin: var(--s-7) auto var(--s-3); padding-bottom: var(--s-2); border-bottom: 1px solid var(--c-rule); font-size: var(--t-h2); display: flex; align-items: baseline; gap: var(--s-3); }
+    .vp-section-title__sub { font-size: var(--t-cap); color: var(--c-ink-3); letter-spacing: 0.04em; text-transform: uppercase; }
+    .anno { background: var(--c-bg-soft); border-left: 2px solid var(--c-ink-3); padding: var(--s-3) var(--s-4); font-size: var(--t-meta); color: var(--c-ink-2); margin: var(--s-4) auto; max-width: 1180px; line-height: 1.7; }
+    .anno strong { color: var(--c-ink); }
+    .anno code { font-family: ui-monospace, 'SF Mono', monospace; font-size: 12px; background: var(--c-card); padding: 1px 6px; border-radius: 4px; border: 1px solid var(--c-rule); }
+
+    /* ───── PRODUCTION COMPONENTS — LOCKED ───── */
+    .navbar { display: flex; align-items: center; gap: var(--s-3); padding: var(--s-3) var(--s-4); background: rgba(255,255,255,0.85); -webkit-backdrop-filter: saturate(140%) blur(10px); backdrop-filter: saturate(140%) blur(10px); border-bottom: 1px solid var(--c-rule); }
+    .navbar__icon-btn { width: 40px; height: 40px; border-radius: var(--r-pill); display: inline-flex; align-items: center; justify-content: center; color: var(--c-ink-2); }
+    .navbar__brand { display: flex; align-items: center; gap: var(--s-2); padding: 4px var(--s-2); border-radius: var(--r-input); }
+    .navbar__brand-icon { width: 28px; height: 28px; border-radius: 6px; background: var(--c-navy); color: #fff; display: inline-flex; align-items: center; justify-content: center; font-size: 16px; }
+    .navbar__brand-name { font-size: var(--t-body-sm); font-weight: 500; }
+    .navbar__tabs { display: flex; gap: var(--s-2); margin-left: var(--s-4); }
+    .navbar__tab { padding: 6px var(--s-3); border-radius: var(--r-pill); font-size: var(--t-meta); color: var(--c-ink-3); }
+    .navbar__tab.is-active { background: var(--c-navy); color: #fff; }
+    .navbar__actions { margin-left: auto; display: flex; align-items: center; gap: var(--s-2); }
+    .navbar__email { font-size: var(--t-cap); color: var(--c-ink-3); max-width: 180px; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+
+    .btn { display: inline-flex; align-items: center; gap: var(--s-2); min-height: var(--touch-min); padding: 0 var(--s-5); border-radius: var(--r-input); font-size: var(--t-body-sm); font-weight: 500; transition: all var(--t-fast) var(--ease); }
+    .btn--primary { background: var(--c-navy); color: #fff; }
+    .btn--primary:hover { background: var(--c-navy-2); }
+    .btn--ghost { background: transparent; color: var(--c-ink-2); border: 1px solid var(--c-rule-bold); }
+
+    /* simplified page-behind mode/type/q-list (greyed under tour overlay) */
+    .home-content { padding: var(--s-4); display: flex; flex-direction: column; gap: var(--s-4); }
+    @media (min-width: 1024px) { .home-content { padding: var(--s-6) var(--s-5); } }
+    .mode-section, .type-section, .q-list, .q-card {
+      background: var(--c-card);
+      border: 1px solid var(--c-rule);
+      border-radius: var(--r-card);
+      padding: var(--s-4);
+      box-shadow: var(--shadow-1);
+    }
+    .mode-section__title, .type-section__title {
+      font-size: var(--t-cap);
+      letter-spacing: 0.06em;
+      text-transform: uppercase;
+      color: var(--c-ink-3);
+      font-weight: 500;
+      margin-bottom: var(--s-3);
+    }
+    .mode-row { display: flex; gap: var(--s-3); }
+    .mode-card {
+      flex: 1;
+      padding: var(--s-3);
+      background: var(--c-surface);
+      border: 1px solid var(--c-rule);
+      border-radius: var(--r-input);
+      font-size: var(--t-body-sm);
+    }
+    .mode-card.is-active { background: var(--c-navy-lt); border-color: var(--c-navy); color: var(--c-navy); font-weight: 600; }
+    .mode-card__name { font-weight: 600; color: var(--c-ink); }
+    .mode-card__meta { font-size: var(--t-cap); color: var(--c-ink-3); margin-top: 2px; }
+    .type-tabs { display: flex; gap: var(--s-2); flex-wrap: wrap; }
+    .type-tab {
+      padding: 6px var(--s-3);
+      border-radius: var(--r-pill);
+      background: var(--c-surface);
+      border: 1px solid var(--c-rule);
+      font-size: var(--t-meta);
+      color: var(--c-ink-2);
+    }
+    .type-tab.is-active { background: var(--c-navy); color: #fff; border-color: var(--c-navy); }
+
+    .q-list { padding: var(--s-3); display: flex; flex-direction: column; gap: var(--s-2); }
+    .q-card-mini {
+      padding: var(--s-3);
+      background: var(--c-surface);
+      border: 1px solid var(--c-rule);
+      border-radius: var(--r-input);
+    }
+    .q-card-mini__co { font-size: var(--t-cap); color: var(--c-navy); font-weight: 600; }
+    .q-card-mini__body { font-size: var(--t-body-sm); color: var(--c-ink-2); margin-top: 2px; line-height: 1.6; }
+    .q-card-mini.is-expanded { background: var(--c-card); }
+    .q-card-mini__cta {
+      margin-top: var(--s-3);
+      display: flex;
+      justify-content: flex-end;
+    }
+    .q-card-mini__cta .btn { min-height: 36px; padding: 0 var(--s-4); }
+
+    /* ───────────────────────────────────────────
+       10-specific NEW components — Onboarding
+       ─────────────────────────────────────────── */
+
+    /* welcome card */
+    .onb-welcome {
+      background: var(--c-card);
+      border: 1px solid var(--c-rule);
+      border-radius: var(--r-card);
+      padding: var(--s-5);
+      margin-bottom: var(--s-4);
+      box-shadow: var(--shadow-2);
+    }
+    .onb-welcome__icon {
+      width: 44px; height: 44px;
+      border-radius: var(--r-input);
+      background: var(--c-navy);
+      color: #fff;
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+      font-size: 22px;
+      margin-bottom: var(--s-3);
+    }
+    .onb-welcome__title {
+      font-size: var(--t-h2);
+      font-weight: 600;
+      color: var(--c-ink);
+      letter-spacing: -0.01em;
+      margin-bottom: var(--s-2);
+    }
+    .onb-welcome__body {
+      font-size: var(--t-body-sm);
+      color: var(--c-ink-2);
+      line-height: 1.7;
+      margin-bottom: var(--s-4);
+      max-width: 540px;
+    }
+    .onb-welcome__actions {
+      display: flex;
+      gap: var(--s-2);
+      flex-wrap: wrap;
+    }
+    .onb-welcome__actions .btn { min-height: 40px; padding: 0 var(--s-4); }
+
+    /* spotlight applied directly on target element via class — auto-sized,
+       single layer of dim (no double-overlay). Dual ring: 2px white inner
+       halo + navy outer ring + 9999px outer dim. The white inner ensures
+       contrast against any target bg (navy buttons, white cards).
+       Mobile uses same pattern as desktop (per user override § 2026-05-03):
+       full-page dim + floating tooltip near target, no sticky-bottom. */
+    .onb-targeted {
+      position: relative;
+      z-index: 5;
+      box-shadow:
+        0 0 0 2px #fff,
+        0 0 0 6px var(--c-navy),
+        0 0 0 9999px rgba(20,15,10,0.45);
+      border-radius: var(--r-input);
+    }
+
+    /* tooltip — desktop side-positioned, mobile sticky-bottom */
+    .onb-tooltip {
+      position: absolute;
+      background: var(--c-ink);
+      color: #fff;
+      padding: var(--s-3) var(--s-4);
+      border-radius: var(--r-input);
+      width: 300px;
+      box-shadow: var(--shadow-tooltip);
+      z-index: 10;
+    }
+    /* mobile keeps same floating tooltip + arrow as desktop (per user override) */
+
+    .onb-tooltip__step {
+      font-size: 10.5px;
+      letter-spacing: 0.5px;
+      text-transform: uppercase;
+      color: rgba(255,255,255,0.55);
+      font-weight: 600;
+      margin-bottom: 4px;
+    }
+    .onb-tooltip__title {
+      font-size: var(--t-body);
+      font-weight: 600;
+      margin-bottom: var(--s-1);
+      letter-spacing: -0.005em;
+    }
+    .onb-tooltip__body {
+      font-size: var(--t-meta);
+      color: rgba(255,255,255,0.78);
+      line-height: 1.7;
+      margin-bottom: var(--s-3);
+    }
+    .onb-tooltip__actions {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      gap: var(--s-2);
+    }
+    .onb-tooltip__skip {
+      color: rgba(255,255,255,0.55);
+      font-size: var(--t-meta);
+      cursor: pointer;
+    }
+    .onb-tooltip__skip:hover { color: rgba(255,255,255,0.85); }
+    .onb-tooltip__next {
+      background: #fff;
+      color: var(--c-ink);
+      padding: 6px var(--s-3);
+      border-radius: var(--r-input);
+      font-size: var(--t-meta);
+      font-weight: 500;
+      display: inline-flex;
+      align-items: center;
+      gap: 4px;
+    }
+    .onb-tooltip__next:hover { background: rgba(255,255,255,0.92); }
+
+    /* tooltip arrow (desktop only) */
+    .onb-tooltip__arrow {
+      position: absolute;
+      width: 0; height: 0;
+      border: 7px solid transparent;
+    }
+    .onb-tooltip__arrow--left  { left: -14px; top: 24px; border-right-color: var(--c-ink); }
+    .onb-tooltip__arrow--right { right: -14px; top: 24px; border-left-color: var(--c-ink); }
+    .onb-tooltip__arrow--top   { top: -14px; left: 24px; border-bottom-color: var(--c-ink); }
+    .onb-tooltip__arrow--bottom { bottom: -14px; left: 24px; border-top-color: var(--c-ink); }
+  </style>
+</head>
+<body>
+  <div class="ds-page">
+    <header class="ds-header">
+      <div class="ds-header__eyebrow">Path 2 · Mockup 10 · CONTRACT-LOCKED 草稿</div>
+      <h1>Onboarding 引導 — Welcome card + 4-step Coachmark Tour</h1>
+      <p class="ds-header__sub">
+        新用戶第一次進入 CIRCLES home 時觸發（<code>circles_onboarding_done !== '1'</code> AND 無 recent sessions）。
+        兩階段：A 歡迎卡（ph-hand-waving + 介紹文 + 開始引導 / 直接自己選題）→ user 點開始引導 → B-D 4-step coachmark tour（Step 1 練習模式 / Step 2 題型 / Step 3 題目列表 / Step 4 開始練習）。
+        每 step：spotlight ring（desktop 4px navy / mobile 3px navy）+ tooltip（desktop 300px 黑底白字 with arrow / mobile sticky-bottom 全寬）。
+        Component CSS：navbar / btn / mode-section / q-card / token 全 LOCKED；新增 onb-welcome / onb-overlay / onb-spotlight / onb-tooltip。
+      </p>
+    </header>
+
+    <!-- ============================================================ -->
+    <!-- Section A — Welcome card                                      -->
+    <!-- ============================================================ -->
+    <h2 class="vp-section-title">A · 歡迎卡（state 1）<span class="vp-section-title__sub">localStorage circles_onboarding_done !== '1' · 無 recent sessions · 顯示在 mode-section 上方</span></h2>
+    <div class="anno"><strong>視覺契約：</strong>navbar + welcome card（navy filled hand-waving icon 44px + 「歡迎來到 PM Drill」h2 + 介紹文 + 兩 button：開始引導→ primary navy / 直接自己選題 ghost outline）+ 下方為 mode-section（fade peek 提示 user 引導結束後就到這裡）。Mobile/tablet 卡片全寬，desktop 卡片寬 max-width 與 home content 一致。</div>
+    <div class="vp-grid">
+
+      <!-- A · Mobile 360 -->
+      <div class="vp-frame">
+        <div class="vp-frame__label"><span>Mobile</span><span>360 × 880</span></div>
+        <div class="vp-frame__inner" style="width:360px">
+          <div class="navbar">
+            <button class="navbar__icon-btn"><i class="ph ph-list"></i></button>
+            <div class="navbar__brand"><span class="navbar__brand-icon">PM</span></div>
+            <div class="navbar__actions"><button class="navbar__icon-btn"><i class="ph ph-house"></i></button></div>
+          </div>
+          <div class="home-content">
+            <div class="onb-welcome">
+              <div class="onb-welcome__icon"><i class="ph-fill ph-hand-waving"></i></div>
+              <div class="onb-welcome__title">歡迎來到 PM Drill</div>
+              <p class="onb-welcome__body">CIRCLES 是 PM 面試常用的七步框架。第一次使用？建議跟著引導跑一輪，5 分鐘內了解整個流程。</p>
+              <div class="onb-welcome__actions">
+                <button class="btn btn--primary">開始引導<i class="ph ph-arrow-right"></i></button>
+                <button class="btn btn--ghost">直接自己選題</button>
+              </div>
+            </div>
+            <div class="mode-section">
+              <div class="mode-section__title">練習模式</div>
+              <div class="mode-row">
+                <div class="mode-card is-active">
+                  <div class="mode-card__name">完整模擬</div>
+                  <div class="mode-card__meta">25-35 分鐘 · 全 7 步</div>
+                </div>
+                <div class="mode-card">
+                  <div class="mode-card__name">步驟加練</div>
+                  <div class="mode-card__meta">5-10 分鐘 · 單一步驟</div>
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- A · Tablet 768 -->
+      <div class="vp-frame">
+        <div class="vp-frame__label"><span>Tablet</span><span>768 × 880</span></div>
+        <div class="vp-frame__inner" style="width:768px">
+          <div class="navbar">
+            <button class="navbar__icon-btn"><i class="ph ph-list"></i></button>
+            <div class="navbar__brand"><span class="navbar__brand-icon">PM</span><span class="navbar__brand-name">PM Drill</span></div>
+            <div class="navbar__tabs"><button class="navbar__tab is-active">CIRCLES</button><button class="navbar__tab">北極星</button></div>
+            <div class="navbar__actions"><button class="navbar__icon-btn"><i class="ph ph-magnifying-glass"></i></button><button class="navbar__icon-btn"><i class="ph ph-house"></i></button></div>
+          </div>
+          <div class="home-content">
+            <div class="onb-welcome">
+              <div class="onb-welcome__icon"><i class="ph-fill ph-hand-waving"></i></div>
+              <div class="onb-welcome__title">歡迎來到 PM Drill</div>
+              <p class="onb-welcome__body">CIRCLES 是 PM 面試常用的七步框架。第一次使用？建議跟著引導跑一輪，5 分鐘內了解整個流程。</p>
+              <div class="onb-welcome__actions">
+                <button class="btn btn--primary">開始引導<i class="ph ph-arrow-right"></i></button>
+                <button class="btn btn--ghost">直接自己選題</button>
+              </div>
+            </div>
+            <div class="mode-section">
+              <div class="mode-section__title">練習模式</div>
+              <div class="mode-row">
+                <div class="mode-card is-active">
+                  <div class="mode-card__name">完整模擬</div>
+                  <div class="mode-card__meta">25-35 分鐘 · 全 7 步</div>
+                </div>
+                <div class="mode-card">
+                  <div class="mode-card__name">步驟加練</div>
+                  <div class="mode-card__meta">5-10 分鐘 · 單一步驟</div>
+                </div>
+              </div>
+            </div>
+            <div class="type-section">
+              <div class="type-section__title">題型</div>
+              <div class="type-tabs">
+                <button class="type-tab is-active">產品設計 ×40</button>
+                <button class="type-tab">產品改進 ×35</button>
+                <button class="type-tab">產品策略 ×25</button>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- A · Desktop 1280 -->
+      <div class="vp-frame">
+        <div class="vp-frame__label"><span>Desktop</span><span>1280 × 880</span></div>
+        <div class="vp-frame__inner" style="width:1280px">
+          <div class="navbar">
+            <button class="navbar__icon-btn"><i class="ph ph-list"></i></button>
+            <div class="navbar__brand"><span class="navbar__brand-icon">PM</span><span class="navbar__brand-name">PM Drill</span></div>
+            <div class="navbar__tabs"><button class="navbar__tab is-active">CIRCLES</button><button class="navbar__tab">北極星</button></div>
+            <div class="navbar__actions"><span class="navbar__email">albertpeng678@gmail.com</span><button class="navbar__icon-btn"><i class="ph ph-magnifying-glass"></i></button><button class="navbar__icon-btn"><i class="ph ph-house"></i></button></div>
+          </div>
+          <div class="home-content" style="max-width:1180px;margin:0 auto;width:100%">
+            <div class="onb-welcome">
+              <div class="onb-welcome__icon"><i class="ph-fill ph-hand-waving"></i></div>
+              <div class="onb-welcome__title">歡迎來到 PM Drill</div>
+              <p class="onb-welcome__body">CIRCLES 是 PM 面試常用的七步框架（Comprehend / Identify users / Report needs / Cut prioritise / List solutions / Evaluate / Summarise）。第一次使用？建議跟著引導跑一輪，5 分鐘內了解整個流程。</p>
+              <div class="onb-welcome__actions">
+                <button class="btn btn--primary">開始引導<i class="ph ph-arrow-right"></i></button>
+                <button class="btn btn--ghost">直接自己選題</button>
+              </div>
+            </div>
+            <div class="mode-section">
+              <div class="mode-section__title">練習模式</div>
+              <div class="mode-row">
+                <div class="mode-card is-active">
+                  <div class="mode-card__name">完整模擬</div>
+                  <div class="mode-card__meta">25-35 分鐘 · 全 7 步 · 無提示</div>
+                </div>
+                <div class="mode-card">
+                  <div class="mode-card__name">步驟加練</div>
+                  <div class="mode-card__meta">5-10 分鐘 · 單一步驟 · 全引導</div>
+                </div>
+              </div>
+            </div>
+            <div class="type-section">
+              <div class="type-section__title">題型</div>
+              <div class="type-tabs">
+                <button class="type-tab is-active">產品設計 ×40</button>
+                <button class="type-tab">產品改進 ×35</button>
+                <button class="type-tab">產品策略 ×25</button>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+
+    </div>
+
+    <!-- ============================================================ -->
+    <!-- Section B — Tour step 1：選擇練習模式                          -->
+    <!-- ============================================================ -->
+    <h2 class="vp-section-title">B · 引導第 1 步 — 選擇練習模式<span class="vp-section-title__sub">target .mode-section · spotlight 4px navy · tooltip 右側 (desktop) / sticky-bottom (mobile)</span></h2>
+    <div class="anno"><strong>視覺契約：</strong>backdrop dim（mobile 不暗化）+ spotlight 4px navy ring 圍住 mode-section + 黑底 tooltip：「第 1 步 / 共 4 步」eyebrow + 「選擇練習模式」h3 + body 文字 + footer：略過引導 (text 半透明) + 下一步 → (白底 pill button)。Desktop tooltip 右側 with arrow；Mobile tooltip sticky-bottom（全寬）無 arrow。</div>
+    <div class="vp-grid">
+
+      <!-- B · Mobile 360 -->
+      <div class="vp-frame">
+        <div class="vp-frame__label"><span>Mobile</span><span>360 × 880</span></div>
+        <div class="vp-frame__inner is-mobile" style="width:360px">
+          <div class="navbar">
+            <button class="navbar__icon-btn"><i class="ph ph-list"></i></button>
+            <div class="navbar__brand"><span class="navbar__brand-icon">PM</span></div>
+            <div class="navbar__actions"><button class="navbar__icon-btn"><i class="ph ph-house"></i></button></div>
+          </div>
+          <div class="home-content">
+            <div class="mode-section onb-targeted">
+              <div class="mode-section__title">練習模式</div>
+              <div class="mode-row">
+                <div class="mode-card is-active">
+                  <div class="mode-card__name">完整模擬</div>
+                  <div class="mode-card__meta">25-35 分鐘 · 全 7 步</div>
+                </div>
+                <div class="mode-card">
+                  <div class="mode-card__name">步驟加練</div>
+                  <div class="mode-card__meta">5-10 分鐘 · 單一步驟</div>
+                </div>
+              </div>
+            </div>
+            <div class="type-section">
+              <div class="type-section__title">題型</div>
+              <div class="type-tabs">
+                <button class="type-tab is-active">產品設計 ×40</button>
+                <button class="type-tab">產品改進 ×35</button>
+                <button class="type-tab">產品策略 ×25</button>
+              </div>
+            </div>
+          </div>
+          <div class="onb-tooltip" style="top:240px;left:30px">
+            <div class="onb-tooltip__arrow onb-tooltip__arrow--top"></div>
+            <div class="onb-tooltip__step">第 1 步 / 共 4 步</div>
+            <div class="onb-tooltip__title">選擇練習模式</div>
+            <p class="onb-tooltip__body">建議首次選「完整模擬」走完整流程，熟悉後再用「步驟加練」針對弱點刻意練習。</p>
+            <div class="onb-tooltip__actions">
+              <span class="onb-tooltip__skip">略過引導</span>
+              <button class="onb-tooltip__next">下一步<i class="ph ph-arrow-right"></i></button>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- B · Tablet 768 -->
+      <div class="vp-frame">
+        <div class="vp-frame__label"><span>Tablet</span><span>768 × 880</span></div>
+        <div class="vp-frame__inner" style="width:768px">
+          <div class="navbar">
+            <button class="navbar__icon-btn"><i class="ph ph-list"></i></button>
+            <div class="navbar__brand"><span class="navbar__brand-icon">PM</span><span class="navbar__brand-name">PM Drill</span></div>
+            <div class="navbar__tabs"><button class="navbar__tab is-active">CIRCLES</button><button class="navbar__tab">北極星</button></div>
+            <div class="navbar__actions"><button class="navbar__icon-btn"><i class="ph ph-magnifying-glass"></i></button><button class="navbar__icon-btn"><i class="ph ph-house"></i></button></div>
+          </div>
+          <div class="home-content">
+            <div class="mode-section onb-targeted">
+              <div class="mode-section__title">練習模式</div>
+              <div class="mode-row">
+                <div class="mode-card is-active">
+                  <div class="mode-card__name">完整模擬</div>
+                  <div class="mode-card__meta">25-35 分鐘 · 全 7 步</div>
+                </div>
+                <div class="mode-card">
+                  <div class="mode-card__name">步驟加練</div>
+                  <div class="mode-card__meta">5-10 分鐘 · 單一步驟</div>
+                </div>
+              </div>
+            </div>
+            <div class="type-section">
+              <div class="type-section__title">題型</div>
+              <div class="type-tabs">
+                <button class="type-tab is-active">產品設計 ×40</button>
+                <button class="type-tab">產品改進 ×35</button>
+                <button class="type-tab">產品策略 ×25</button>
+              </div>
+            </div>
+          </div>
+          <div class="onb-tooltip" style="top:80px;left:auto;right:16px">
+            <div class="onb-tooltip__arrow onb-tooltip__arrow--left"></div>
+            <div class="onb-tooltip__step">第 1 步 / 共 4 步</div>
+            <div class="onb-tooltip__title">選擇練習模式</div>
+            <p class="onb-tooltip__body">建議首次選「完整模擬」走完整流程，熟悉後再用「步驟加練」針對弱點刻意練習。</p>
+            <div class="onb-tooltip__actions">
+              <span class="onb-tooltip__skip">略過引導</span>
+              <button class="onb-tooltip__next">下一步<i class="ph ph-arrow-right"></i></button>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- B · Desktop 1280 -->
+      <div class="vp-frame">
+        <div class="vp-frame__label"><span>Desktop</span><span>1280 × 880</span></div>
+        <div class="vp-frame__inner" style="width:1280px">
+          <div class="navbar">
+            <button class="navbar__icon-btn"><i class="ph ph-list"></i></button>
+            <div class="navbar__brand"><span class="navbar__brand-icon">PM</span><span class="navbar__brand-name">PM Drill</span></div>
+            <div class="navbar__tabs"><button class="navbar__tab is-active">CIRCLES</button><button class="navbar__tab">北極星</button></div>
+            <div class="navbar__actions"><span class="navbar__email">albertpeng678@gmail.com</span><button class="navbar__icon-btn"><i class="ph ph-magnifying-glass"></i></button><button class="navbar__icon-btn"><i class="ph ph-house"></i></button></div>
+          </div>
+          <div class="home-content" style="max-width:1180px;margin:0 auto;width:100%">
+            <div class="mode-section onb-targeted">
+              <div class="mode-section__title">練習模式</div>
+              <div class="mode-row">
+                <div class="mode-card is-active">
+                  <div class="mode-card__name">完整模擬</div>
+                  <div class="mode-card__meta">25-35 分鐘 · 全 7 步 · 無提示</div>
+                </div>
+                <div class="mode-card">
+                  <div class="mode-card__name">步驟加練</div>
+                  <div class="mode-card__meta">5-10 分鐘 · 單一步驟 · 全引導</div>
+                </div>
+              </div>
+            </div>
+            <div class="type-section">
+              <div class="type-section__title">題型</div>
+              <div class="type-tabs">
+                <button class="type-tab is-active">產品設計 ×40</button>
+                <button class="type-tab">產品改進 ×35</button>
+                <button class="type-tab">產品策略 ×25</button>
+              </div>
+            </div>
+          </div>
+          <div class="onb-tooltip" style="top:100px;left:auto;right:60px">
+            <div class="onb-tooltip__arrow onb-tooltip__arrow--left"></div>
+            <div class="onb-tooltip__step">第 1 步 / 共 4 步</div>
+            <div class="onb-tooltip__title">選擇練習模式</div>
+            <p class="onb-tooltip__body">建議首次選「完整模擬」走完整流程，熟悉後再用「步驟加練」針對弱點刻意練習。</p>
+            <div class="onb-tooltip__actions">
+              <span class="onb-tooltip__skip">略過引導</span>
+              <button class="onb-tooltip__next">下一步<i class="ph ph-arrow-right"></i></button>
+            </div>
+          </div>
+        </div>
+      </div>
+
+    </div>
+
+    <!-- ============================================================ -->
+    <!-- Section C — Tour step 2：選擇題型                              -->
+    <!-- ============================================================ -->
+    <h2 class="vp-section-title">C · 引導第 2 步 — 選擇題型<span class="vp-section-title__sub">target .type-section · spotlight 圍住題型 tabs · tooltip 下方 (mobile) / 右側 (desktop) with arrow</span></h2>
+    <div class="anno"><strong>視覺契約：</strong>spotlight 雙環圍住 type-section（產品設計 / 產品改進 / 產品策略 三 type-tab）+ tooltip：mobile 下方 with top-arrow / tablet+desktop 右側 with left-arrow；「第 2 步 / 共 4 步」+「選擇題型」+「三種題型對應不同 PM 能力。新手建議從『產品設計』開始，題目較具體、容易上手。」</div>
+    <div class="vp-grid">
+
+      <!-- C · Mobile 360 -->
+      <div class="vp-frame">
+        <div class="vp-frame__label"><span>Mobile</span><span>360 × 880</span></div>
+        <div class="vp-frame__inner is-mobile" style="width:360px">
+          <div class="navbar">
+            <button class="navbar__icon-btn"><i class="ph ph-list"></i></button>
+            <div class="navbar__brand"><span class="navbar__brand-icon">PM</span></div>
+            <div class="navbar__actions"><button class="navbar__icon-btn"><i class="ph ph-house"></i></button></div>
+          </div>
+          <div class="home-content">
+            <div class="mode-section">
+              <div class="mode-section__title">練習模式</div>
+              <div class="mode-row">
+                <div class="mode-card is-active">
+                  <div class="mode-card__name">完整模擬</div>
+                  <div class="mode-card__meta">25-35 分鐘 · 全 7 步</div>
+                </div>
+                <div class="mode-card">
+                  <div class="mode-card__name">步驟加練</div>
+                  <div class="mode-card__meta">5-10 分鐘 · 單一步驟</div>
+                </div>
+              </div>
+            </div>
+            <div class="type-section onb-targeted">
+              <div class="type-section__title">題型</div>
+              <div class="type-tabs">
+                <button class="type-tab is-active">產品設計 ×40</button>
+                <button class="type-tab">產品改進 ×35</button>
+                <button class="type-tab">產品策略 ×25</button>
+              </div>
+            </div>
+            <div class="q-list">
+              <div class="q-card-mini">
+                <div class="q-card-mini__co">Spotify · 音樂串流</div>
+                <div class="q-card-mini__body">為 Spotify Podcast 業務定義北極星指標…</div>
+              </div>
+            </div>
+          </div>
+          <div class="onb-tooltip" style="top:415px;left:30px">
+            <div class="onb-tooltip__arrow onb-tooltip__arrow--top"></div>
+            <div class="onb-tooltip__step">第 2 步 / 共 4 步</div>
+            <div class="onb-tooltip__title">選擇題型</div>
+            <p class="onb-tooltip__body">三種題型對應不同 PM 能力。新手建議從「產品設計」開始，題目較具體、容易上手。</p>
+            <div class="onb-tooltip__actions">
+              <span class="onb-tooltip__skip">略過引導</span>
+              <button class="onb-tooltip__next">下一步<i class="ph ph-arrow-right"></i></button>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- C · Tablet 768 -->
+      <div class="vp-frame">
+        <div class="vp-frame__label"><span>Tablet</span><span>768 × 880</span></div>
+        <div class="vp-frame__inner" style="width:768px">
+          <div class="navbar">
+            <button class="navbar__icon-btn"><i class="ph ph-list"></i></button>
+            <div class="navbar__brand"><span class="navbar__brand-icon">PM</span><span class="navbar__brand-name">PM Drill</span></div>
+            <div class="navbar__tabs"><button class="navbar__tab is-active">CIRCLES</button><button class="navbar__tab">北極星</button></div>
+            <div class="navbar__actions"><button class="navbar__icon-btn"><i class="ph ph-magnifying-glass"></i></button><button class="navbar__icon-btn"><i class="ph ph-house"></i></button></div>
+          </div>
+          <div class="home-content">
+            <div class="mode-section">
+              <div class="mode-section__title">練習模式</div>
+              <div class="mode-row">
+                <div class="mode-card is-active">
+                  <div class="mode-card__name">完整模擬</div>
+                  <div class="mode-card__meta">25-35 分鐘 · 全 7 步</div>
+                </div>
+                <div class="mode-card">
+                  <div class="mode-card__name">步驟加練</div>
+                  <div class="mode-card__meta">5-10 分鐘 · 單一步驟</div>
+                </div>
+              </div>
+            </div>
+            <div class="type-section onb-targeted">
+              <div class="type-section__title">題型</div>
+              <div class="type-tabs">
+                <button class="type-tab is-active">產品設計 ×40</button>
+                <button class="type-tab">產品改進 ×35</button>
+                <button class="type-tab">產品策略 ×25</button>
+              </div>
+            </div>
+            <div class="q-list">
+              <div class="q-card-mini">
+                <div class="q-card-mini__co">Spotify · 音樂串流</div>
+                <div class="q-card-mini__body">為 Spotify Podcast 業務定義北極星指標，目標是衡量新用戶能否養成日常收聽習慣。</div>
+              </div>
+            </div>
+          </div>
+          <div class="onb-tooltip" style="top:330px;left:30px">
+            <div class="onb-tooltip__arrow onb-tooltip__arrow--top"></div>
+            <div class="onb-tooltip__step">第 2 步 / 共 4 步</div>
+            <div class="onb-tooltip__title">選擇題型</div>
+            <p class="onb-tooltip__body">三種題型對應不同 PM 能力。新手建議從「產品設計」開始，題目較具體、容易上手。</p>
+            <div class="onb-tooltip__actions">
+              <span class="onb-tooltip__skip">略過引導</span>
+              <button class="onb-tooltip__next">下一步<i class="ph ph-arrow-right"></i></button>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- C · Desktop 1280 -->
+      <div class="vp-frame">
+        <div class="vp-frame__label"><span>Desktop</span><span>1280 × 880</span></div>
+        <div class="vp-frame__inner" style="width:1280px">
+          <div class="navbar">
+            <button class="navbar__icon-btn"><i class="ph ph-list"></i></button>
+            <div class="navbar__brand"><span class="navbar__brand-icon">PM</span><span class="navbar__brand-name">PM Drill</span></div>
+            <div class="navbar__tabs"><button class="navbar__tab is-active">CIRCLES</button><button class="navbar__tab">北極星</button></div>
+            <div class="navbar__actions"><span class="navbar__email">albertpeng678@gmail.com</span><button class="navbar__icon-btn"><i class="ph ph-magnifying-glass"></i></button><button class="navbar__icon-btn"><i class="ph ph-house"></i></button></div>
+          </div>
+          <div class="home-content" style="max-width:1180px;margin:0 auto;width:100%">
+            <div class="mode-section">
+              <div class="mode-section__title">練習模式</div>
+              <div class="mode-row">
+                <div class="mode-card is-active">
+                  <div class="mode-card__name">完整模擬</div>
+                  <div class="mode-card__meta">25-35 分鐘 · 全 7 步 · 無提示</div>
+                </div>
+                <div class="mode-card">
+                  <div class="mode-card__name">步驟加練</div>
+                  <div class="mode-card__meta">5-10 分鐘 · 單一步驟 · 全引導</div>
+                </div>
+              </div>
+            </div>
+            <div class="type-section onb-targeted">
+              <div class="type-section__title">題型</div>
+              <div class="type-tabs">
+                <button class="type-tab is-active">產品設計 ×40</button>
+                <button class="type-tab">產品改進 ×35</button>
+                <button class="type-tab">產品策略 ×25</button>
+              </div>
+            </div>
+            <div class="q-list">
+              <div class="q-card-mini">
+                <div class="q-card-mini__co">Spotify · 音樂串流</div>
+                <div class="q-card-mini__body">為 Spotify Podcast 業務定義北極星指標，目標是衡量新用戶能否養成日常收聽習慣。</div>
+              </div>
+            </div>
+          </div>
+          <div class="onb-tooltip" style="top:280px;left:auto;right:80px">
+            <div class="onb-tooltip__arrow onb-tooltip__arrow--left"></div>
+            <div class="onb-tooltip__step">第 2 步 / 共 4 步</div>
+            <div class="onb-tooltip__title">選擇題型</div>
+            <p class="onb-tooltip__body">三種題型對應不同 PM 能力。新手建議從「產品設計」開始，題目較具體、容易上手。</p>
+            <div class="onb-tooltip__actions">
+              <span class="onb-tooltip__skip">略過引導</span>
+              <button class="onb-tooltip__next">下一步<i class="ph ph-arrow-right"></i></button>
+            </div>
+          </div>
+        </div>
+      </div>
+
+    </div>
+
+    <!-- ============================================================ -->
+    <!-- Section D — Tour step 3：挑一道題目                            -->
+    <!-- ============================================================ -->
+    <h2 class="vp-section-title">D · 引導第 3 步 — 挑一道題目<span class="vp-section-title__sub">target .q-list · spotlight 圍住題目列表 · tooltip 下方 with top arrow</span></h2>
+    <div class="anno"><strong>視覺契約：</strong>spotlight 移至 q-list；tooltip mobile 下方 with top arrow / desktop 下方 with top arrow；step indicator 「第 3 步 / 共 4 步」。</div>
+    <div class="vp-grid">
+
+      <!-- C · Mobile 360 -->
+      <div class="vp-frame">
+        <div class="vp-frame__label"><span>Mobile</span><span>360 × 880</span></div>
+        <div class="vp-frame__inner is-mobile" style="width:360px">
+          <div class="navbar">
+            <button class="navbar__icon-btn"><i class="ph ph-list"></i></button>
+            <div class="navbar__brand"><span class="navbar__brand-icon">PM</span></div>
+            <div class="navbar__actions"><button class="navbar__icon-btn"><i class="ph ph-house"></i></button></div>
+          </div>
+          <div class="home-content">
+            <div class="type-section">
+              <div class="type-section__title">題型</div>
+              <div class="type-tabs">
+                <button class="type-tab is-active">產品設計 ×40</button>
+                <button class="type-tab">產品改進 ×35</button>
+                <button class="type-tab">產品策略 ×25</button>
+              </div>
+            </div>
+            <div class="q-list onb-targeted">
+              <div class="q-card-mini">
+                <div class="q-card-mini__co">Spotify · 音樂串流</div>
+                <div class="q-card-mini__body">為 Spotify Podcast 業務定義北極星指標…</div>
+              </div>
+              <div class="q-card-mini">
+                <div class="q-card-mini__co">Discord · 即時通訊</div>
+                <div class="q-card-mini__body">設計 Discord Voice 群組互動體驗…</div>
+              </div>
+              <div class="q-card-mini">
+                <div class="q-card-mini__co">Netflix · 串流影音</div>
+                <div class="q-card-mini__body">為 Netflix Kids 設計家長控制功能…</div>
+              </div>
+            </div>
+          </div>
+          <div class="onb-tooltip" style="top:480px;left:30px">
+            <div class="onb-tooltip__arrow onb-tooltip__arrow--top"></div>
+            <div class="onb-tooltip__step">第 3 步 / 共 4 步</div>
+            <div class="onb-tooltip__title">挑一道題目</div>
+            <p class="onb-tooltip__body">點任一題會展開完整描述。展開後可看到難度、產品背景與「確認，開始練習」按鈕。</p>
+            <div class="onb-tooltip__actions">
+              <span class="onb-tooltip__skip">略過引導</span>
+              <button class="onb-tooltip__next">下一步<i class="ph ph-arrow-right"></i></button>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- C · Tablet 768 -->
+      <div class="vp-frame">
+        <div class="vp-frame__label"><span>Tablet</span><span>768 × 880</span></div>
+        <div class="vp-frame__inner" style="width:768px">
+          <div class="navbar">
+            <button class="navbar__icon-btn"><i class="ph ph-list"></i></button>
+            <div class="navbar__brand"><span class="navbar__brand-icon">PM</span><span class="navbar__brand-name">PM Drill</span></div>
+            <div class="navbar__tabs"><button class="navbar__tab is-active">CIRCLES</button><button class="navbar__tab">北極星</button></div>
+            <div class="navbar__actions"><button class="navbar__icon-btn"><i class="ph ph-magnifying-glass"></i></button><button class="navbar__icon-btn"><i class="ph ph-house"></i></button></div>
+          </div>
+          <div class="home-content">
+            <div class="type-section">
+              <div class="type-section__title">題型</div>
+              <div class="type-tabs">
+                <button class="type-tab is-active">產品設計 ×40</button>
+                <button class="type-tab">產品改進 ×35</button>
+                <button class="type-tab">產品策略 ×25</button>
+              </div>
+            </div>
+            <div class="q-list onb-targeted">
+              <div class="q-card-mini">
+                <div class="q-card-mini__co">Spotify · 音樂串流</div>
+                <div class="q-card-mini__body">為 Spotify Podcast 業務定義北極星指標，目標是衡量新用戶能否養成日常收聽習慣。</div>
+              </div>
+              <div class="q-card-mini">
+                <div class="q-card-mini__co">Discord · 即時通訊</div>
+                <div class="q-card-mini__body">設計一個新功能，提升 Discord Voice 聊天中的音質和用戶互動體驗。</div>
+              </div>
+              <div class="q-card-mini">
+                <div class="q-card-mini__co">Netflix · 串流影音</div>
+                <div class="q-card-mini__body">為 Netflix Kids 設計家長控制功能，幫助家長管理孩子的觀看內容。</div>
+              </div>
+            </div>
+          </div>
+          <div class="onb-tooltip" style="top:400px;left:240px">
+            <div class="onb-tooltip__arrow onb-tooltip__arrow--top"></div>
+            <div class="onb-tooltip__step">第 3 步 / 共 4 步</div>
+            <div class="onb-tooltip__title">挑一道題目</div>
+            <p class="onb-tooltip__body">每題標難度（Easy / Medium / Hard）。新手建議先挑 Easy。點題目會展開完整描述與「開始練習」。</p>
+            <div class="onb-tooltip__actions">
+              <span class="onb-tooltip__skip">略過引導</span>
+              <button class="onb-tooltip__next">下一步<i class="ph ph-arrow-right"></i></button>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- C · Desktop 1280 -->
+      <div class="vp-frame">
+        <div class="vp-frame__label"><span>Desktop</span><span>1280 × 880</span></div>
+        <div class="vp-frame__inner" style="width:1280px">
+          <div class="navbar">
+            <button class="navbar__icon-btn"><i class="ph ph-list"></i></button>
+            <div class="navbar__brand"><span class="navbar__brand-icon">PM</span><span class="navbar__brand-name">PM Drill</span></div>
+            <div class="navbar__tabs"><button class="navbar__tab is-active">CIRCLES</button><button class="navbar__tab">北極星</button></div>
+            <div class="navbar__actions"><span class="navbar__email">albertpeng678@gmail.com</span><button class="navbar__icon-btn"><i class="ph ph-magnifying-glass"></i></button><button class="navbar__icon-btn"><i class="ph ph-house"></i></button></div>
+          </div>
+          <div class="home-content" style="max-width:1180px;margin:0 auto;width:100%">
+            <div class="type-section">
+              <div class="type-section__title">題型</div>
+              <div class="type-tabs">
+                <button class="type-tab is-active">產品設計 ×40</button>
+                <button class="type-tab">產品改進 ×35</button>
+                <button class="type-tab">產品策略 ×25</button>
+              </div>
+            </div>
+            <div class="q-list onb-targeted">
+              <div class="q-card-mini">
+                <div class="q-card-mini__co">Spotify · 音樂串流</div>
+                <div class="q-card-mini__body">為 Spotify Podcast 業務定義北極星指標，目標是衡量新用戶能否養成日常收聽習慣。</div>
+              </div>
+              <div class="q-card-mini">
+                <div class="q-card-mini__co">Discord · 即時通訊</div>
+                <div class="q-card-mini__body">設計一個新功能，提升 Discord Voice 聊天中的音質和用戶互動體驗。</div>
+              </div>
+              <div class="q-card-mini">
+                <div class="q-card-mini__co">Netflix · 串流影音</div>
+                <div class="q-card-mini__body">為 Netflix Kids 設計家長控制功能，幫助家長管理孩子的觀看內容。</div>
+              </div>
+            </div>
+          </div>
+          <div class="onb-tooltip" style="top:404px;left:480px">
+            <div class="onb-tooltip__arrow onb-tooltip__arrow--top"></div>
+            <div class="onb-tooltip__step">第 3 步 / 共 4 步</div>
+            <div class="onb-tooltip__title">挑一道題目</div>
+            <p class="onb-tooltip__body">每題標難度（Easy / Medium / Hard）。新手建議先挑 Easy。點題目會展開完整描述與「開始練習」。</p>
+            <div class="onb-tooltip__actions">
+              <span class="onb-tooltip__skip">略過引導</span>
+              <button class="onb-tooltip__next">下一步<i class="ph ph-arrow-right"></i></button>
+            </div>
+          </div>
+        </div>
+      </div>
+
+    </div>
+
+    <!-- ============================================================ -->
+    <!-- Section E — Tour step 4：開始練習（最後一步）                   -->
+    <!-- ============================================================ -->
+    <h2 class="vp-section-title">E · 引導第 4 步 — 開始練習<span class="vp-section-title__sub">最後一步 · CTA「完成」(白底 pill) · target desktop=展開卡的 btn-primary / mobile=最後一張 q-card</span></h2>
+    <div class="anno"><strong>視覺契約：</strong>step indicator「第 4 步 / 共 4 步」+ tooltip footer 改「完成」(取代「下一步」)。Desktop spotlight 圍住 expanded q-card 的「開始練習」按鈕（spec §4.3）；Mobile spotlight 圍住最後一張 q-card（spec §4.5：mobile 的 q-row expansion 是 route change，所以改提示「點任一題會展開」）。</div>
+    <div class="vp-grid">
+
+      <!-- D · Mobile 360 -->
+      <div class="vp-frame">
+        <div class="vp-frame__label"><span>Mobile</span><span>360 × 880</span></div>
+        <div class="vp-frame__inner is-mobile" style="width:360px">
+          <div class="navbar">
+            <button class="navbar__icon-btn"><i class="ph ph-list"></i></button>
+            <div class="navbar__brand"><span class="navbar__brand-icon">PM</span></div>
+            <div class="navbar__actions"><button class="navbar__icon-btn"><i class="ph ph-house"></i></button></div>
+          </div>
+          <div class="home-content">
+            <div class="q-list">
+              <div class="q-card-mini">
+                <div class="q-card-mini__co">Spotify · 音樂串流</div>
+                <div class="q-card-mini__body">為 Spotify Podcast 業務定義北極星指標…</div>
+              </div>
+              <div class="q-card-mini">
+                <div class="q-card-mini__co">Discord · 即時通訊</div>
+                <div class="q-card-mini__body">設計 Discord Voice 群組互動體驗…</div>
+              </div>
+              <div class="q-card-mini onb-targeted">
+                <div class="q-card-mini__co">Netflix · 串流影音</div>
+                <div class="q-card-mini__body">為 Netflix Kids 設計家長控制功能…</div>
+              </div>
+            </div>
+          </div>
+          <div class="onb-tooltip" style="top:380px;left:30px">
+            <div class="onb-tooltip__arrow onb-tooltip__arrow--top"></div>
+            <div class="onb-tooltip__step">第 4 步 / 共 4 步</div>
+            <div class="onb-tooltip__title">挑一道題目</div>
+            <p class="onb-tooltip__body">點任一題會展開完整描述。展開後可看到難度、產品背景與「確認，開始練習」按鈕。</p>
+            <div class="onb-tooltip__actions">
+              <span class="onb-tooltip__skip">略過引導</span>
+              <button class="onb-tooltip__next"><i class="ph ph-check"></i>完成</button>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- D · Tablet 768 -->
+      <div class="vp-frame">
+        <div class="vp-frame__label"><span>Tablet</span><span>768 × 880</span></div>
+        <div class="vp-frame__inner" style="width:768px">
+          <div class="navbar">
+            <button class="navbar__icon-btn"><i class="ph ph-list"></i></button>
+            <div class="navbar__brand"><span class="navbar__brand-icon">PM</span><span class="navbar__brand-name">PM Drill</span></div>
+            <div class="navbar__tabs"><button class="navbar__tab is-active">CIRCLES</button><button class="navbar__tab">北極星</button></div>
+            <div class="navbar__actions"><button class="navbar__icon-btn"><i class="ph ph-magnifying-glass"></i></button><button class="navbar__icon-btn"><i class="ph ph-house"></i></button></div>
+          </div>
+          <div class="home-content">
+            <div class="q-list">
+              <div class="q-card-mini is-expanded onb-targeted">
+                <div class="q-card-mini__co">Spotify · 音樂串流</div>
+                <div class="q-card-mini__body">為 Spotify Podcast 業務定義北極星指標，目標是衡量新用戶能否養成日常收聽習慣。產品設計題型 · Easy 難度 · 預計 25-35 分鐘完成。</div>
+                <div class="q-card-mini__cta"><button class="btn btn--primary">確認，開始練習<i class="ph ph-arrow-right"></i></button></div>
+              </div>
+              <div class="q-card-mini">
+                <div class="q-card-mini__co">Discord · 即時通訊</div>
+                <div class="q-card-mini__body">設計一個新功能，提升 Discord Voice 聊天中的音質和用戶互動體驗。</div>
+              </div>
+            </div>
+          </div>
+          <div class="onb-tooltip" style="top:240px;left:30px">
+            <div class="onb-tooltip__arrow onb-tooltip__arrow--top"></div>
+            <div class="onb-tooltip__step">第 4 步 / 共 4 步</div>
+            <div class="onb-tooltip__title">開始練習</div>
+            <p class="onb-tooltip__body">先讀題目說明再決定：合適就點「確認，開始練習」進入 Phase 1，不合適可上一步換題。每個欄位都有「提示」與「查看範例」幫你思考。</p>
+            <div class="onb-tooltip__actions">
+              <span class="onb-tooltip__skip">略過引導</span>
+              <button class="onb-tooltip__next"><i class="ph ph-check"></i>完成</button>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- D · Desktop 1280 -->
+      <div class="vp-frame">
+        <div class="vp-frame__label"><span>Desktop</span><span>1280 × 880</span></div>
+        <div class="vp-frame__inner" style="width:1280px">
+          <div class="navbar">
+            <button class="navbar__icon-btn"><i class="ph ph-list"></i></button>
+            <div class="navbar__brand"><span class="navbar__brand-icon">PM</span><span class="navbar__brand-name">PM Drill</span></div>
+            <div class="navbar__tabs"><button class="navbar__tab is-active">CIRCLES</button><button class="navbar__tab">北極星</button></div>
+            <div class="navbar__actions"><span class="navbar__email">albertpeng678@gmail.com</span><button class="navbar__icon-btn"><i class="ph ph-magnifying-glass"></i></button><button class="navbar__icon-btn"><i class="ph ph-house"></i></button></div>
+          </div>
+          <div class="home-content" style="max-width:1180px;margin:0 auto;width:100%">
+            <div class="q-list">
+              <div class="q-card-mini is-expanded onb-targeted">
+                <div class="q-card-mini__co">Spotify · 音樂串流</div>
+                <div class="q-card-mini__body">為 Spotify Podcast 業務定義北極星指標，目標是衡量新用戶能否養成日常收聽習慣。產品設計題型 · Easy 難度 · 預計 25-35 分鐘完成。</div>
+                <div class="q-card-mini__cta"><button class="btn btn--primary">確認，開始練習<i class="ph ph-arrow-right"></i></button></div>
+              </div>
+              <div class="q-card-mini">
+                <div class="q-card-mini__co">Discord · 即時通訊</div>
+                <div class="q-card-mini__body">設計一個新功能，提升 Discord Voice 聊天中的音質和用戶互動體驗。</div>
+              </div>
+            </div>
+          </div>
+          <div class="onb-tooltip" style="top:240px;left:80px">
+            <div class="onb-tooltip__arrow onb-tooltip__arrow--top"></div>
+            <div class="onb-tooltip__step">第 4 步 / 共 4 步</div>
+            <div class="onb-tooltip__title">開始練習</div>
+            <p class="onb-tooltip__body">先讀題目說明再決定：合適就點「確認，開始練習」進入 Phase 1，不合適可上一步換題。每個欄位都有「提示」與「查看範例」幫你思考。</p>
+            <div class="onb-tooltip__actions">
+              <span class="onb-tooltip__skip">略過引導</span>
+              <button class="onb-tooltip__next"><i class="ph ph-check"></i>完成</button>
+            </div>
+          </div>
+        </div>
+      </div>
+
+    </div>
+
+  </div>
+</body>
+</html>
