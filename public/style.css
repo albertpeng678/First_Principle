@@ -4152,8 +4152,9 @@ textarea.rt-textarea {
     padding: 0;
   }
   .phase1-desktop { max-width: min(1880px, 94vw); padding: 0 0 100px; }
-  .phase2-desktop { max-width: min(1180px, 88vw); }
-  .phase3-desktop { max-width: min(1180px, 88vw); padding: 0 32px 100px; }
+  /* SP1.5-bugfix D-1: phase2/3 chrome full-width at >=1440 too; body uses .circles-body-centered */
+  .phase2-desktop { max-width: none; }
+  .phase3-desktop { max-width: none; padding: 0 0 100px; }
   .nsm-home-desktop { max-width: min(1880px, 94vw); padding: 18px 0 100px; }
   .nsm-step2-desktop { max-width: min(960px, 80vw); }
   .nsm-step3-desktop { max-width: min(1180px, 88vw); }
