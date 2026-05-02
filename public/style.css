@@ -4837,3 +4837,21 @@ textarea.has-error {
 @media (min-width: 1280px) {
   .stale-locked-bar { padding-left: var(--pad-block-desktop); padding-right: var(--pad-block-desktop); }
 }
+
+/* SP1.5-bugfix — stale mode sticky double-button bar (上一步 + 回首頁) */
+.stale-action-bar {
+  position: fixed; left: 0; right: 0; bottom: 0; z-index: 20;
+  padding: 12px var(--pad-block);
+  padding-bottom: calc(12px + env(safe-area-inset-bottom));
+  background: var(--c-card);
+  border-top: 1px solid var(--c-border);
+  display: flex; gap: 10px;
+}
+.stale-action-bar .circles-btn-secondary { flex: 1; }
+.stale-action-bar .circles-btn-primary { flex: 1.6; }
+@media (min-width: 768px) {
+  .stale-action-bar { padding-left: var(--pad-block-tablet); padding-right: var(--pad-block-tablet); }
+}
+@media (min-width: 1280px) {
+  .stale-action-bar { padding-left: var(--pad-block-desktop); padding-right: var(--pad-block-desktop); }
+}
