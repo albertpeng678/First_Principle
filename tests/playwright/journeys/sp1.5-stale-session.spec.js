@@ -25,8 +25,8 @@ test.describe('SP1.5 stale session (Q3)', () => {
   });
 
   test('stale banner visible', async ({ page }) => {
-    await expect(page.locator('.stale-banner')).toBeVisible();
-    await expect(page.locator('.stale-banner strong')).toContainText('此題目已被更新');
+    await expect(page.locator('.stale-locked-bar')).toBeVisible();
+    await expect(page.locator('.stale-locked-bar .core')).toContainText('此題目已更新');
   });
 
   test('phase 1 fields are readonly when stale', async ({ page }) => {

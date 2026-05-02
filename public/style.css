@@ -158,8 +158,9 @@ body {
      blowing past comfort at 4K. Was static 1180/920 columns. */
   .circles-home-desktop { max-width: min(1880px, 94vw); margin: 0 auto; padding: 24px 0; }
   .phase1-desktop { max-width: min(1880px, 94vw); margin: 0 auto; padding: 0 0 100px; }
-  .phase2-desktop { max-width: 920px; margin: 0 auto; padding: 0 0; }
-  .phase3-desktop { max-width: 920px; margin: 0 auto; padding: 0 0 100px; }
+  .phase2-desktop { max-width: none; margin: 0; padding: 0 0 100px; }   /* SP1.5-bugfix D-1 */
+  .phase3-desktop { max-width: none; margin: 0; padding: 0 0 100px; }   /* SP1.5-bugfix D-1 */
+  .circles-body-centered { max-width: 920px; margin: 0 auto; }   /* SP1.5-bugfix D-1: width comes from base rule below */
   .nsm-home-desktop { width: 100%; max-width: min(1880px, 94vw); margin: 0 auto; padding: 18px 0 100px; }
   .nsm-step2-desktop { max-width: 720px; margin: 0 auto; padding: 18px 0 100px; }
   .nsm-step3-desktop { max-width: 920px; margin: 0 auto; padding: 18px 0 100px; }
@@ -2129,6 +2130,16 @@ body { -webkit-font-smoothing: antialiased; }
   padding: 14px 16px;
   overscroll-behavior: contain;
   -webkit-overflow-scrolling: touch;
+}
+/* SP1.5-bugfix D-1: .circles-body-centered must inherit flex column to keep
+   the flex:1 chain alive for .circles-chat-body inside .circles-chat-wrap.
+   Width is full on mobile/tablet; max-width: 920px applied at >=1024px above. */
+[data-view="circles"] .circles-chat-wrap > .circles-body-centered {
+  display: flex;
+  flex-direction: column;
+  flex: 1;
+  min-height: 0;
+  width: 100%;
 }
 [data-view="circles"] .circles-bubble-ai {
   background: var(--c-primary-lt);
@@ -4151,8 +4162,9 @@ textarea.rt-textarea {
     padding: 0;
   }
   .phase1-desktop { max-width: min(1880px, 94vw); padding: 0 0 100px; }
-  .phase2-desktop { max-width: min(1180px, 88vw); }
-  .phase3-desktop { max-width: min(1180px, 88vw); padding: 0 32px 100px; }
+  /* SP1.5-bugfix D-1: phase2/3 chrome full-width at >=1440 too; body uses .circles-body-centered */
+  .phase2-desktop { max-width: none; }
+  .phase3-desktop { max-width: none; padding: 0 0 100px; }
   .nsm-home-desktop { max-width: min(1880px, 94vw); padding: 18px 0 100px; }
   .nsm-step2-desktop { max-width: min(960px, 80vw); }
   .nsm-step3-desktop { max-width: min(1180px, 88vw); }
@@ -4813,3 +4825,68 @@ textarea.has-error {
   font-weight: 700;
   margin-bottom: 2px;
 }
+
+/* SP1.5-bugfix — stale mode compact merged banner (replaces locked-banner + stale-banner) */
+.stale-locked-bar {
+  display: flex; align-items: center; gap: 8px;
+  padding: 10px var(--pad-block);
+  background: var(--c-warn-bg);
+  border-bottom: 1px solid var(--c-warn-border);
+  color: #78350f; font-size: 12.5px; line-height: 1.4;
+}
+.stale-locked-bar .icon-warn { color: var(--c-warn); font-size: 16px; flex-shrink: 0; }
+.stale-locked-bar .core { flex: 1; min-width: 0; font-weight: 600; }
+.stale-locked-bar .pill {
+  flex-shrink: 0; padding: 3px 9px; border-radius: 999px;
+  background: var(--c-success-soft); border: 1px solid #a7f3d0;
+  color: #065f46; font-size: 11px; font-weight: 700;
+  display: inline-flex; align-items: center; gap: 4px;
+}
+.stale-locked-bar .pill i { font-size: 11px; }
+@media (min-width: 768px) {
+  .stale-locked-bar { padding-left: var(--pad-block-tablet); padding-right: var(--pad-block-tablet); }
+}
+@media (min-width: 1280px) {
+  .stale-locked-bar { padding-left: var(--pad-block-desktop); padding-right: var(--pad-block-desktop); }
+}
+
+/* SP1.5-bugfix — stale mode sticky double-button bar (上一步 + 回首頁) */
+.stale-action-bar {
+  position: fixed; left: 0; right: 0; bottom: 0; z-index: 20;
+  padding: 12px var(--pad-block);
+  padding-bottom: calc(12px + env(safe-area-inset-bottom));
+  background: var(--c-card);
+  border-top: 1px solid var(--c-border);
+  display: flex; gap: 10px;
+}
+.stale-action-bar .circles-btn-secondary { flex: 1; }
+.stale-action-bar .circles-btn-primary { flex: 1.6; }
+@media (min-width: 768px) {
+  .stale-action-bar { padding-left: var(--pad-block-tablet); padding-right: var(--pad-block-tablet); }
+}
+@media (min-width: 1280px) {
+  .stale-action-bar { padding-left: var(--pad-block-desktop); padding-right: var(--pad-block-desktop); }
+}
+
+/* SP1.5-bugfix — .stale-mode wrapper class: edge-to-edge stripes, 1px ruler separators */
+.stale-mode .circles-progress { border-bottom: 1px solid var(--c-border); margin: 0; }
+.stale-mode .qchip {
+  border-radius: 0; border: none;
+  border-bottom: 1px solid var(--c-border);
+  margin: 0; background: var(--c-card);
+  padding: 10px var(--pad-block);
+}
+@media (min-width: 768px) { .stale-mode .qchip { padding-left: var(--pad-block-tablet); padding-right: var(--pad-block-tablet); } }
+@media (min-width: 1280px) { .stale-mode .qchip { padding-left: var(--pad-block-desktop); padding-right: var(--pad-block-desktop); } }
+.stale-mode .circles-q-card,
+.stale-mode .circles-q-card.onb-expanded {
+  border-radius: 0; border: none;
+  border-bottom: 1px solid var(--c-border);
+  margin: 0; background: var(--c-card);
+  padding: 12px var(--pad-block);
+}
+@media (min-width: 768px) { .stale-mode .circles-q-card { padding-left: var(--pad-block-tablet); padding-right: var(--pad-block-tablet); } }
+@media (min-width: 1280px) { .stale-mode .circles-q-card { padding-left: var(--pad-block-desktop); padding-right: var(--pad-block-desktop); } }
+/* Scroll-clearance — last content visible above .stale-action-bar (12+44+12+~16 safe-area) */
+.stale-mode .circles-chat-body { background: var(--c-card); padding-bottom: 88px; }
+.stale-mode .circles-score-wrap { padding-bottom: 88px; }

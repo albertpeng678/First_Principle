@@ -98,6 +98,40 @@ function computeStaleFlag(snapshot, current) {
   return normalize(snapshot.problem_statement) !== normalize(current.problem_statement);
 }
 
+// SP1.5-bugfix — render compact merged banner (locked + stale combined)
+function renderStaleLockedBar(stepKey, stepScores) {
+  if (!AppState.circlesStale) return '';
+  var locked = isStepLocked(stepKey, stepScores);
+  var pillHtml = locked
+    ? '<div class="pill"><i class="ph ph-lock-key"></i> ' + Math.round(stepScores[stepKey].totalScore || 0) + ' 分</div>'
+    : '';
+  return '<div class="stale-locked-bar">' +
+    '<i class="ph ph-warning-octagon icon-warn"></i>' +
+    '<div class="core">此題目已更新 — 顯示為唯讀</div>' +
+    pillHtml +
+  '</div>';
+}
+
+// SP1.5-bugfix — shared bind for #circles-stale-prev + #circles-stale-home
+function bindStaleActionBar() {
+  document.getElementById('circles-stale-prev')?.addEventListener('click', function() {
+    // Decrement phase by 1 (phase 3 → 2; phase 2 → 1). Phase 1 has no stale-prev.
+    if (AppState.circlesPhase === 3) { AppState.circlesPhase = 2; }
+    else if (AppState.circlesPhase === 2) { AppState.circlesPhase = 1; }
+    navigate('circles');
+  });
+  document.getElementById('circles-stale-home')?.addEventListener('click', function() {
+    AppState.circlesStale = false;
+    AppState.circlesSelectedQuestion = null;
+    AppState.circlesSession = null;
+    AppState.circlesConversation = [];
+    AppState.circlesFrameworkDraft = {};
+    AppState.circlesStepScores = {};
+    AppState.circlesScoreResult = null;
+    navigate('circles');
+  });
+}
+
 // SP1.5 B1 — render lock banner when step has score
 function renderLockedBanner(stepKey, stepScores) {
   if (!isStepLocked(stepKey, stepScores)) return '';
@@ -3061,15 +3095,16 @@ function renderCirclesPhase1() {
       '<button class="circles-btn-primary" id="circles-p1-submit" type="button">' + (isLastStep ? '送出評分' : '下一步') + '</button>' +
     '</div>';
   }
-  // SP1.5 Q3 — stale override: highest priority, single 回首頁 button
+  // SP1.5-bugfix — phase 1 stale: 回首頁 only (no 上一步 — phase 1 is the start)
   if (AppState.circlesStale) {
-    submitBarHtml = '<div class="circles-submit-bar">' +
-      '<button class="circles-btn-primary" id="circles-stale-home" type="button">回首頁</button>' +
+    submitBarHtml = '<div class="stale-action-bar">' +
+      '<button class="circles-btn-primary" id="circles-stale-home" type="button" style="flex:1">回首頁</button>' +
     '</div>';
   }
 
   // Phase 4.2 — desktop wrapper class
   var _isDesktopP1 = (typeof isDesktop === 'function' && isDesktop());
+  var _staleModeCls = AppState.circlesStale ? ' stale-mode' : '';
 
   // Phase 4.2 — desktop sidebar rail (題目脈絡 + 上一步重點)
   var _railHtml = '';
@@ -3102,7 +3137,7 @@ function renderCirclesPhase1() {
   }
 
   if (_isDesktopP1) {
-    return '<div data-view="circles" class="phase1-desktop">' +
+    return '<div data-view="circles" class="phase1-desktop' + _staleModeCls + '">' +
       '<div class="circles-nav">' +
         '<button class="circles-nav-back" id="circles-p1-nav-back" type="button" aria-label="返回"><i class="ph ph-arrow-left"></i></button>' +
         '<div>' +
@@ -3112,8 +3147,9 @@ function renderCirclesPhase1() {
         homeIconBtn('circles-p1-home') +
       '</div>' +
       progressBarHtml +
-      renderLockedBanner(stepKey, AppState.circlesStepScores) +
-      renderStaleBanner() +
+      (AppState.circlesStale
+        ? renderStaleLockedBar(stepKey, AppState.circlesStepScores)
+        : renderLockedBanner(stepKey, AppState.circlesStepScores)) +
       '<div id="circles-qchip-slot">' + renderPersistentQuestionChip() + '</div>' +
       buildCirclesStepHeaderMeta(stepKey) +
       '<div class="p1-grid">' +
@@ -3133,7 +3169,7 @@ function renderCirclesPhase1() {
     '</div>';
   }
 
-  return '<div data-view="circles">' +
+  return '<div data-view="circles" class="' + _staleModeCls.trim() + '">' +
     '<div class="circles-nav">' +
       '<button class="circles-nav-back" id="circles-p1-nav-back" type="button" aria-label="返回"><i class="ph ph-arrow-left"></i></button>' +
       '<div>' +
@@ -3143,8 +3179,9 @@ function renderCirclesPhase1() {
       homeIconBtn('circles-p1-home') +
     '</div>' +
     progressBarHtml +
-    renderLockedBanner(stepKey, AppState.circlesStepScores) +
-    renderStaleBanner() +
+    (AppState.circlesStale
+      ? renderStaleLockedBar(stepKey, AppState.circlesStepScores)
+      : renderLockedBanner(stepKey, AppState.circlesStepScores)) +
     '<div id="circles-qchip-slot">' + renderPersistentQuestionChip() + '</div>' +
     buildCirclesStepHeaderMeta(stepKey) +
     '<div class="circles-phase1-wrap">' +
@@ -3176,17 +3213,8 @@ function bindCirclesPhase1() {
     navigate('circles');
   }
   document.getElementById('circles-p1-nav-back')?.addEventListener('click', backToHome);
-  // SP1.5 Q3 — stale-mode 回首頁 (clear all CIRCLES state to prevent leakage)
-  document.getElementById('circles-stale-home')?.addEventListener('click', function() {
-    AppState.circlesStale = false;
-    AppState.circlesSelectedQuestion = null;
-    AppState.circlesSession = null;
-    AppState.circlesConversation = [];
-    AppState.circlesFrameworkDraft = {};
-    AppState.circlesStepScores = {};
-    AppState.circlesScoreResult = null;
-    navigate('home');
-  });
+  // SP1.5-bugfix — unified stale-prev/stale-home handlers
+  bindStaleActionBar();
   // SP1.5 B1 — when locked, #circles-p1-back means 回評分 (phase 3); else 返回選題.
   document.getElementById('circles-p1-back')?.addEventListener('click', function() {
     if (isStepLocked(stepKey, AppState.circlesStepScores)) {
@@ -3869,12 +3897,13 @@ function renderCirclesPhase2() {
 
   // Phase 4.3 — desktop wrapper class (max-width 920 from CSS)
   var _phase2DesktopCls = (typeof isDesktop === 'function' && isDesktop()) ? ' phase2-desktop' : '';
+  var _staleModeCls = AppState.circlesStale ? ' stale-mode' : '';
 
-  // SP1.5 B2: phase-back row — adapt to lock state.
-  // Clicking returns to phase 1 of the same step; framework draft + conversation
-  // are preserved (do NOT mutate AppState here).
+  // SP1.5-bugfix — phase-back row (non-stale only; stale uses .stale-action-bar)
   var phaseBackHtml;
-  if (isLocked) {
+  if (AppState.circlesStale) {
+    phaseBackHtml = '';
+  } else if (isLocked) {
     // Locked: secondary "上一步（看框架）" + primary "回評分"
     phaseBackHtml = '<div class="circles-phase-back-row" style="padding:8px 14px;background:transparent;display:flex;gap:8px">' +
       '<button class="circles-btn-secondary" id="circles-p2-prev-phase" type="button" style="flex:1">' +
@@ -3895,16 +3924,15 @@ function renderCirclesPhase2() {
   // Hide phase-back row when conclusion box is expanded (its own controls take over)
   if (submitState === 'expanded') phaseBackHtml = '';
 
-  // SP1.5 Q3 — stale override: highest priority, single 回首頁 button replaces
-  // both phase-back row and bottom input bar.
+  // SP1.5-bugfix — stale: replace bottomSection with .stale-action-bar (上一步 + 回首頁)
   if (AppState.circlesStale) {
-    phaseBackHtml = '';
-    bottomSection = '<div class="circles-submit-bar">' +
+    bottomSection = '<div class="stale-action-bar">' +
+      '<button class="circles-btn-secondary" id="circles-stale-prev" type="button"><i class="ph ph-arrow-left"></i> 上一步</button>' +
       '<button class="circles-btn-primary" id="circles-stale-home" type="button">回首頁</button>' +
     '</div>';
   }
 
-  return '<div data-view="circles" class="circles-chat-wrap' + _phase2DesktopCls + '">' +
+  return '<div data-view="circles" class="circles-chat-wrap' + _phase2DesktopCls + _staleModeCls + '">' +
     '<div class="circles-nav">' +
       '<button class="circles-nav-back" id="circles-p2-back"><i class="ph ph-arrow-left"></i></button>' +
       '<div>' +
@@ -3915,12 +3943,15 @@ function renderCirclesPhase2() {
       homeIconBtn('circles-p2-home') +
     '</div>' +
     progressBarHtml +
-    renderLockedBanner(stepKey, AppState.circlesStepScores) +
-    renderStaleBanner() +
+    (AppState.circlesStale
+      ? renderStaleLockedBar(stepKey, AppState.circlesStepScores)
+      : renderLockedBanner(stepKey, AppState.circlesStepScores)) +
     '<div id="circles-qchip-slot">' + renderPersistentQuestionChip() + '</div>' +
-    '<div class="circles-chat-body" id="circles-chat-body"' + chatBodyAttrs + '>' + icebreakerHtml + bubbles + '<div id="circles-streaming-bubble"></div></div>' +
-    phaseBackHtml +
-    bottomSection +
+    '<div class="circles-body-centered">' +
+      '<div class="circles-chat-body" id="circles-chat-body"' + chatBodyAttrs + '>' + icebreakerHtml + bubbles + '<div id="circles-streaming-bubble"></div></div>' +
+      phaseBackHtml +
+      bottomSection +
+    '</div>' +
   '</div>';
 }
 
@@ -3938,17 +3969,8 @@ function toggleCoachHint(btn) {
 
 function bindCirclesPhase2() {
   bindPersistentQuestionChip(document.querySelector('[data-view="circles"]'));
-  // SP1.5 Q3 — stale-mode 回首頁 (clear all CIRCLES state to prevent leakage)
-  document.getElementById('circles-stale-home')?.addEventListener('click', function() {
-    AppState.circlesStale = false;
-    AppState.circlesSelectedQuestion = null;
-    AppState.circlesSession = null;
-    AppState.circlesConversation = [];
-    AppState.circlesFrameworkDraft = {};
-    AppState.circlesStepScores = {};
-    AppState.circlesScoreResult = null;
-    navigate('home');
-  });
+  // SP1.5-bugfix — unified stale-prev/stale-home handlers
+  bindStaleActionBar();
   // Keyboard avoidance (unchanged)
   if (_adjustCirclesKbFn && window.visualViewport) {
     window.visualViewport.removeEventListener('resize', _adjustCirclesKbFn);
@@ -4288,6 +4310,8 @@ async function sendCirclesMessage() {
 // hidden when not in drill mode.
 function buildDrillCompleteEncourageHtml() {
   if (AppState.circlesMode !== 'drill') return '';
+  // SP1.5-bugfix — stale: 再練一次 would replay against current DB diverging from snapshot
+  if (AppState.circlesStale) return '';
   return '<div class="drill-encourage-card" data-testid="drill-encourage-card">' +
     '<div class="drill-encourage-icon"><i class="ph ph-confetti"></i></div>' +
     '<div class="drill-encourage-body">' +
@@ -4359,8 +4383,11 @@ function renderCirclesStepScore() {
   // Bottom submit-bar variants
   var submitBar;
   if (AppState.circlesStale) {
-    // Stale snapshot — suppress action buttons; user must return home to start fresh.
-    submitBar = '<button class="circles-btn-primary" id="circles-score-home" type="button">回首頁</button>';
+    // SP1.5-bugfix — id changed to circles-stale-home + paired with 上一步.
+    // (The old id #circles-score-home was styled as round 40x40 icon-btn at style.css:4541
+    // which collided here, rendering this primary as a colorless oval.)
+    submitBar = '<button class="circles-btn-secondary" id="circles-stale-prev" type="button" style="flex:1"><i class="ph ph-arrow-left"></i> 上一步</button>' +
+                '<button class="circles-btn-primary" id="circles-stale-home" type="button" style="flex:1.6">回首頁</button>';
   } else if (mode === 'simulation' && isLastStep) {
     submitBar =
       homeIconBtn('circles-score-home') +
@@ -4382,8 +4409,9 @@ function renderCirclesStepScore() {
 
   // Phase 4.4 — desktop wrapper class
   var _phase3DesktopCls = (typeof isDesktop === 'function' && isDesktop()) ? ' phase3-desktop' : '';
+  var _staleModeCls = AppState.circlesStale ? ' stale-mode' : '';
 
-  return '<div data-view="circles" class="' + _phase3DesktopCls.trim() + '">' +
+  return '<div data-view="circles" class="' + (_phase3DesktopCls + _staleModeCls).trim() + '">' +
     '<div class="circles-nav">' +
       '<button class="circles-nav-back" id="circles-score-back"><i class="ph ph-arrow-left"></i></button>' +
       '<div style="flex:1;min-width:0">' +
@@ -4394,22 +4422,26 @@ function renderCirclesStepScore() {
     '</div>' +
     scoreNavRow +
     progressBarHtml +
-    renderStaleBanner() +
+    (AppState.circlesStale
+      ? renderStaleLockedBar(stepKey, AppState.circlesStepScores)
+      : renderStaleBanner()) +
     '<div id="circles-qchip-slot">' + renderPersistentQuestionChip() + '</div>' +
-    '<div class="circles-score-wrap">' +
-      '<div class="circles-score-total">' +
-        '<div class="circles-score-number">' + Math.round(result.totalScore || 0) + '</div>' +
-        '<div class="circles-score-sub">' + escHtml(summaryLine) + '</div>' +
+    '<div class="circles-body-centered">' +
+      '<div class="circles-score-wrap">' +
+        '<div class="circles-score-total">' +
+          '<div class="circles-score-number">' + Math.round(result.totalScore || 0) + '</div>' +
+          '<div class="circles-score-sub">' + escHtml(summaryLine) + '</div>' +
+        '</div>' +
+        '<div class="circles-score-breakdown">' + dims + '</div>' +
+        '<div class="circles-highlight-card good"><div class="circles-highlight-card-label">最強表現</div><div class="circles-highlight-card-text">' + escHtml(result.highlight || '—') + '</div></div>' +
+        '<div class="circles-highlight-card improve"><div class="circles-highlight-card-label">最需改進</div><div class="circles-highlight-card-text">' + escHtml(result.improvement || '—') + '</div></div>' +
+        '<div class="circles-coach-toggle" id="circles-coach-toggle">' +
+          '<div class="circles-coach-toggle-label">教練示範答案 <i class="ph ' + (coachOpen ? 'ph-caret-up' : 'ph-caret-down') + '" id="circles-coach-icon"></i></div>' +
+          '<div class="circles-coach-content' + (coachOpen ? ' open' : '') + '" id="circles-coach-content">' + coachContent + '</div>' +
+        '</div>' +
+        buildDrillCompleteEncourageHtml() +
+        '<div class="circles-submit-bar circles-submit-bar-row">' + submitBar + '</div>' +
       '</div>' +
-      '<div class="circles-score-breakdown">' + dims + '</div>' +
-      '<div class="circles-highlight-card good"><div class="circles-highlight-card-label">最強表現</div><div class="circles-highlight-card-text">' + escHtml(result.highlight || '—') + '</div></div>' +
-      '<div class="circles-highlight-card improve"><div class="circles-highlight-card-label">最需改進</div><div class="circles-highlight-card-text">' + escHtml(result.improvement || '—') + '</div></div>' +
-      '<div class="circles-coach-toggle" id="circles-coach-toggle">' +
-        '<div class="circles-coach-toggle-label">教練示範答案 <i class="ph ' + (coachOpen ? 'ph-caret-up' : 'ph-caret-down') + '" id="circles-coach-icon"></i></div>' +
-        '<div class="circles-coach-content' + (coachOpen ? ' open' : '') + '" id="circles-coach-content">' + coachContent + '</div>' +
-      '</div>' +
-      buildDrillCompleteEncourageHtml() +
-      '<div class="circles-submit-bar circles-submit-bar-row">' + submitBar + '</div>' +
     '</div>' +
   '</div>';
 }
@@ -4449,6 +4481,8 @@ function bindCirclesStepScore() {
   }
   document.getElementById('circles-score-home')?.addEventListener('click', goHome);
   document.getElementById('circles-score-home-btn')?.addEventListener('click', goHome);
+  // SP1.5-bugfix — unified stale-prev/stale-home handlers (phase 3 stale uses both)
+  bindStaleActionBar();
 
   // 看完整總結報告 (simulation last step S)
   document.getElementById('circles-score-final')?.addEventListener('click', function() {
