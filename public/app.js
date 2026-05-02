@@ -112,6 +112,26 @@ function renderStaleLockedBar(stepKey, stepScores) {
   '</div>';
 }
 
+// SP1.5-bugfix — shared bind for #circles-stale-prev + #circles-stale-home
+function bindStaleActionBar() {
+  document.getElementById('circles-stale-prev')?.addEventListener('click', function() {
+    // Decrement phase by 1 (phase 3 → 2; phase 2 → 1). Phase 1 has no stale-prev.
+    if (AppState.circlesPhase === 3) { AppState.circlesPhase = 2; }
+    else if (AppState.circlesPhase === 2) { AppState.circlesPhase = 1; }
+    navigate('circles');
+  });
+  document.getElementById('circles-stale-home')?.addEventListener('click', function() {
+    AppState.circlesStale = false;
+    AppState.circlesSelectedQuestion = null;
+    AppState.circlesSession = null;
+    AppState.circlesConversation = [];
+    AppState.circlesFrameworkDraft = {};
+    AppState.circlesStepScores = {};
+    AppState.circlesScoreResult = null;
+    navigate('circles');
+  });
+}
+
 // SP1.5 B1 — render lock banner when step has score
 function renderLockedBanner(stepKey, stepScores) {
   if (!isStepLocked(stepKey, stepScores)) return '';
