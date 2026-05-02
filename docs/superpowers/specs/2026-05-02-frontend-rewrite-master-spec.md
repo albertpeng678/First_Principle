@@ -120,6 +120,29 @@ tests/visual/
 ```
 未來 SP3 / SP4 / 任何 feature 都走同一套。
 
+### 0.7.1 多 section 分析內容 — Card-based Block Pattern（CONTRACT-LOCKED）
+從 q-card v3→v4 學到的設計鐵則。任何「並列多 section 分析」（q-card analysis 4 欄 / coachVersion 3 段 / Phase 4 dimension cards / NSM 拆解 4 dim）都套此 pattern：
+
+**Section label（強）：** 16px navy 600 weight + 24px 短 navy bar `::before` 當 anchor — 不用 12px uppercase eyebrow
+
+**主題目 / 主內容：** `--c-surface` 底 + 1px 細邊 + 16-20px padding，視覺像「卡內的卡」；16px / 1.8 / max 64ch
+
+**並列分析 cards：**
+- white bg + 1px rule + 8px radius + 16-20px padding
+- Block 間距 16px（卡有邊界、不需巨大空白）
+- Head：20px icon（width 24 對齊）+ 15px 600 weight label + **12px gap to body**
+- Body：14px / 1.75 / ink-2 / 32px 左 padding 對齊 icon / max 60ch
+
+**Trap-like 警示變體：** `linear-gradient(0deg, rgba(warn,0.04), rgba(warn,0.04)), white` bg + `rgba(warn,0.18)` border + warn head/icon；body 維持 ink-2 不 color-shift
+
+**禁止：**
+- ❌ 12px uppercase eyebrow 當章節標 — 太弱
+- ❌ 只用 hairline divider 分塊 — mobile 看不出
+- ❌ Trap 用紅底 box — 像錯誤訊息
+- ❌ Head 與 body 緊貼 — 至少 12px gap
+
+**色系統一：** 全 navy（active surface / strong text / icon accent / 確認 CTA）；primary 藍只給 focus ring（a11y）
+
 ### 0.7 老實的限制
 1. 沒銀彈：Layer 1-5 自動化抓客觀對齊 95%+，**美學判斷**（typography + spacing 好不好看）只能 user 看
 2. WebKit on Mac ≠ iPhone Safari：真機觸控 / 鍵盤彈出 / safe-area 仍要 Layer 7

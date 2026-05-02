@@ -1,0 +1,1074 @@
+<!doctype html>
+<html lang="zh-TW">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover, interactive-widget=resizes-visual">
+  <title>PM Drill — 02 登入登出流程（批次 A）</title>
+
+  <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/@phosphor-icons/web@2.1.1/src/regular/style.css">
+  <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Instrument+Serif:ital@0;1&display=swap">
+
+  <style>
+    /* tokens — 繼承 00-design-system */
+    :root {
+      --c-bg: #F2F0EB; --c-bg-soft: #ECE9E1; --c-bg-deep: #E5E1D7;
+      --c-card: #FFFFFF; --c-surface: #FAFAF7;
+      --c-ink: #1F1D1B; --c-ink-2: #5A5046; --c-ink-3: #8A7E70; --c-ink-4: #B8AC9D;
+      --c-rule: rgba(60,45,30,0.10); --c-rule-bold: rgba(60,45,30,0.18);
+      --c-primary: #1A56DB; --c-primary-lt: rgba(26,86,219,0.08);
+      --c-navy: #1B2D5C; --c-navy-2: #142347; --c-navy-lt: rgba(27,45,92,0.08);
+      --c-success: #137A3D; --c-success-lt: #DCEFE0;
+      --c-warn: #B85C00; --c-warn-lt: #FBE9D0;
+      --c-danger: #B61F1F; --c-danger-lt: #FADCDC;
+      --font-sans: system-ui, -apple-system, BlinkMacSystemFont, 'PingFang TC', 'Microsoft JhengHei', 'Heiti TC', 'Noto Sans TC', sans-serif;
+      --font-serif: 'Instrument Serif', 'Times New Roman', serif;
+      --t-h1: 24px; --t-h2: 19px; --t-h3: 16px; --t-body: 15px; --t-body-sm: 14px; --t-meta: 13px; --t-cap: 12px;
+      --lh-tight: 1.25; --lh-norm: 1.55;
+      --s-1: 4px; --s-2: 8px; --s-3: 12px; --s-4: 16px; --s-5: 20px; --s-6: 24px; --s-7: 32px; --s-8: 40px; --s-9: 56px; --s-10: 80px;
+      --r-input: 6px; --r-card: 10px; --r-pill: 999px;
+      --touch-min: 44px;
+      --t-fast: 120ms; --t-norm: 200ms; --t-slow: 300ms;
+      --ease: cubic-bezier(0.4, 0, 0.2, 1);
+      --shadow-1: 0 1px 0 rgba(60,45,30,0.04);
+      --shadow-2: 0 1px 2px rgba(60,45,30,0.06);
+      --shadow-3: 0 4px 12px rgba(60,45,30,0.08);
+      --shadow-focus: 0 0 0 3px rgba(26,86,219,0.18);
+    }
+
+    *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+    html, body {
+      background: var(--c-bg);
+      color: var(--c-ink);
+      font-family: var(--font-sans);
+      font-size: var(--t-body);
+      line-height: var(--lh-norm);
+      -webkit-font-smoothing: antialiased;
+      -webkit-tap-highlight-color: transparent;
+    }
+    button { font: inherit; color: inherit; cursor: pointer; background: none; border: none; }
+    input { font: inherit; color: inherit; }
+    a { color: inherit; text-decoration: none; }
+    @media (max-width: 767px) {
+      input { font-size: 16px !important; }
+    }
+
+    /* viewport demo wrapper */
+    .vp-grid {
+      display: grid;
+      grid-template-columns: 360px 768px 1280px;
+      gap: var(--s-6);
+      padding: var(--s-6);
+      align-items: start;
+      overflow-x: auto;
+    }
+    .vp-frame {
+      border: 1px solid var(--c-rule-bold);
+      border-radius: var(--r-card);
+      background: var(--c-bg);
+      overflow: hidden;
+    }
+    .vp-frame__label {
+      padding: var(--s-3) var(--s-4);
+      border-bottom: 1px solid var(--c-rule);
+      background: var(--c-card);
+      display: flex;
+      justify-content: space-between;
+      font-size: var(--t-cap);
+      letter-spacing: 0.08em;
+      text-transform: uppercase;
+      color: var(--c-ink-2);
+    }
+    .vp-frame__label span:last-child { font-family: ui-monospace, 'SF Mono', monospace; color: var(--c-ink-3); }
+
+    .ds-page { padding: var(--s-6); max-width: 100%; }
+    .ds-header { max-width: 1880px; margin: 0 auto var(--s-7); padding-bottom: var(--s-6); border-bottom: 1px solid var(--c-rule); }
+    .ds-header h1 { font-size: var(--t-h1); margin-top: var(--s-2); }
+    .ds-header__eyebrow { font-size: var(--t-cap); letter-spacing: 0.12em; text-transform: uppercase; color: var(--c-ink-3); }
+    .ds-header__sub { color: var(--c-ink-2); font-size: var(--t-body-sm); margin-top: var(--s-3); max-width: 720px; }
+
+    .vp-section-title {
+      max-width: 1880px;
+      margin: var(--s-7) auto var(--s-3);
+      padding-bottom: var(--s-2);
+      border-bottom: 1px solid var(--c-rule);
+      font-size: var(--t-h2);
+    }
+    .vp-section-title__sub {
+      font-size: var(--t-cap);
+      color: var(--c-ink-3);
+      margin-left: var(--s-3);
+      letter-spacing: 0.04em;
+      text-transform: uppercase;
+    }
+    .anno {
+      background: var(--c-bg-soft);
+      border-left: 2px solid var(--c-ink-3);
+      padding: var(--s-3) var(--s-4);
+      font-size: var(--t-meta);
+      color: var(--c-ink-2);
+      margin: var(--s-4) auto;
+      max-width: 1180px;
+      line-height: var(--lh-norm);
+    }
+    .anno strong { color: var(--c-ink); }
+
+    /* ───── PRODUCTION COMPONENTS ───── */
+    .navbar {
+      display: flex;
+      align-items: center;
+      gap: var(--s-3);
+      padding: var(--s-3) var(--s-4);
+      background: rgba(255,255,255,0.85);
+      -webkit-backdrop-filter: saturate(140%) blur(10px);
+      backdrop-filter: saturate(140%) blur(10px);
+      border-bottom: 1px solid var(--c-rule);
+    }
+    .navbar__icon-btn {
+      width: 40px; height: 40px;
+      border-radius: var(--r-pill);
+      display: inline-flex; align-items: center; justify-content: center;
+      color: var(--c-ink-2);
+    }
+    .navbar__icon-btn:hover { background: var(--c-bg-soft); color: var(--c-ink); }
+    .navbar__brand { display: flex; align-items: center; gap: var(--s-2); }
+    .navbar__brand-icon {
+      width: 28px; height: 28px; border-radius: 6px;
+      background: var(--c-navy); color: #fff;
+      display: inline-flex; align-items: center; justify-content: center;
+      font-size: 16px;
+    }
+    .navbar__brand-name { font-size: var(--t-body-sm); font-weight: 500; letter-spacing: -0.005em; }
+    .navbar__actions { margin-left: auto; display: flex; align-items: center; gap: var(--s-2); }
+    .navbar__email {
+      font-size: var(--t-cap);
+      color: var(--c-ink-3);
+      max-width: 180px;
+      overflow: hidden;
+      text-overflow: ellipsis;
+      white-space: nowrap;
+    }
+    .navbar__login {
+      padding: 6px 14px;
+      border-radius: var(--r-pill);
+      font-size: var(--t-meta);
+      color: var(--c-navy);
+      border: 1px solid var(--c-navy);
+      transition: background var(--t-fast) var(--ease);
+    }
+    .navbar__login:hover { background: var(--c-navy-lt); }
+
+    /* ═══════════════════════════════════════════════════════════════
+       Auth screen — centered card
+       ═══════════════════════════════════════════════════════════════ */
+    .auth-page {
+      min-height: 480px;
+      padding: var(--s-7) var(--s-4);
+      display: flex;
+      align-items: flex-start;
+      justify-content: center;
+    }
+    .auth-card {
+      width: 100%;
+      max-width: 440px;
+      background: var(--c-card);
+      border: 1px solid var(--c-rule);
+      border-radius: var(--r-card);
+      padding: var(--s-7) var(--s-6);
+      box-shadow: var(--shadow-2);
+    }
+
+    .auth-card__brand {
+      display: flex;
+      align-items: center;
+      gap: var(--s-2);
+      justify-content: center;
+      margin-bottom: var(--s-3);
+    }
+    .auth-card__brand-icon {
+      width: 36px; height: 36px;
+      border-radius: 8px;
+      background: var(--c-navy);
+      color: #fff;
+      display: inline-flex; align-items: center; justify-content: center;
+      font-size: 20px;
+    }
+    .auth-card__brand-name {
+      font-size: var(--t-h3);
+      font-weight: 500;
+      letter-spacing: -0.005em;
+    }
+
+    .auth-card__title {
+      font-size: var(--t-h1);
+      letter-spacing: -0.01em;
+      margin-bottom: var(--s-2);
+      text-align: center;
+    }
+    .auth-card__sub {
+      font-size: var(--t-meta);
+      color: var(--c-ink-3);
+      margin-bottom: var(--s-6);
+      text-align: center;
+      line-height: 1.55;
+    }
+
+    /* form fields */
+    .field {
+      margin-bottom: var(--s-4);
+    }
+    .field__label {
+      display: flex;
+      justify-content: space-between;
+      align-items: baseline;
+      font-size: var(--t-meta);
+      color: var(--c-ink-2);
+      margin-bottom: var(--s-2);
+      letter-spacing: 0.005em;
+    }
+    .field__hint-link {
+      font-size: var(--t-cap);
+      color: var(--c-ink-3);
+      transition: color var(--t-fast) var(--ease);
+    }
+    .field__hint-link:hover { color: var(--c-navy); }
+    .field__input {
+      width: 100%;
+      padding: var(--s-3) var(--s-4);
+      background: var(--c-card);
+      border: 1px solid var(--c-rule-bold);
+      border-radius: var(--r-input);
+      font-size: var(--t-body);
+      color: var(--c-ink);
+      transition: border-color var(--t-fast) var(--ease), box-shadow var(--t-fast) var(--ease);
+    }
+    .field__input::placeholder { color: var(--c-ink-4); }
+    .field__input:focus {
+      outline: none;
+      border-color: var(--c-primary);
+      box-shadow: var(--shadow-focus);
+    }
+    .field--error .field__input {
+      border-color: var(--c-danger);
+      background: rgba(182,31,31,0.02);
+    }
+    .field__error {
+      font-size: var(--t-cap);
+      color: var(--c-danger);
+      margin-top: var(--s-2);
+      display: flex;
+      gap: var(--s-1);
+      align-items: flex-start;
+    }
+    .field__error i { font-size: 14px; flex: 0 0 auto; margin-top: 1px; }
+
+    /* form-level error banner */
+    .auth-error-banner {
+      background: var(--c-danger-lt);
+      border-left: 2px solid var(--c-danger);
+      padding: var(--s-3) var(--s-4);
+      border-radius: var(--r-input);
+      font-size: var(--t-meta);
+      color: var(--c-danger);
+      margin-bottom: var(--s-4);
+      display: flex;
+      gap: var(--s-2);
+      align-items: flex-start;
+    }
+    .auth-error-banner i { font-size: 16px; flex: 0 0 auto; margin-top: 1px; }
+    .auth-error-banner strong { display: block; margin-bottom: 2px; }
+
+    /* primary submit */
+    .auth-submit {
+      width: 100%;
+      min-height: var(--touch-min);
+      padding: var(--s-3) var(--s-5);
+      background: var(--c-navy);
+      color: #fff;
+      border-radius: var(--r-input);
+      font-size: var(--t-body);
+      font-weight: 500;
+      letter-spacing: 0.005em;
+      transition: all var(--t-fast) var(--ease);
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+      gap: var(--s-2);
+    }
+    .auth-submit:hover { background: var(--c-navy-2); }
+    .auth-submit:active { transform: translateY(1px); }
+    .auth-submit[disabled] {
+      background: var(--c-ink-4);
+      cursor: not-allowed;
+      opacity: 0.7;
+    }
+    .auth-submit--loading {
+      color: transparent;
+      position: relative;
+    }
+    .auth-submit--loading::after {
+      content: '';
+      position: absolute;
+      inset: 0;
+      margin: auto;
+      width: 18px; height: 18px;
+      border: 2px solid #fff;
+      border-right-color: transparent;
+      border-radius: 50%;
+      animation: spin 0.8s linear infinite;
+    }
+    @keyframes spin { to { transform: rotate(360deg); } }
+
+    /* divider + switch link */
+    .auth-divider {
+      margin: var(--s-5) 0 var(--s-4);
+      border: 0;
+      border-top: 1px solid var(--c-rule);
+    }
+    .auth-switch {
+      font-size: var(--t-meta);
+      color: var(--c-ink-2);
+      text-align: center;
+    }
+    .auth-switch a {
+      color: var(--c-navy);
+      font-weight: 500;
+      margin-left: var(--s-1);
+    }
+    .auth-switch a:hover { text-decoration: underline; }
+
+    /* guest-quick-bypass — 直接訪客模式入口 */
+    .auth-guest-bypass {
+      margin-top: var(--s-4);
+      padding-top: var(--s-4);
+      border-top: 1px solid var(--c-rule);
+      font-size: var(--t-cap);
+      color: var(--c-ink-3);
+      text-align: center;
+    }
+    .auth-guest-bypass a {
+      color: var(--c-ink-2);
+      text-decoration: underline;
+      text-decoration-color: var(--c-rule-bold);
+      text-underline-offset: 2px;
+    }
+    .auth-guest-bypass a:hover { color: var(--c-navy); }
+
+    /* tabs (login / register switch) */
+    .auth-tabs {
+      display: flex;
+      gap: 0;
+      background: var(--c-bg-soft);
+      border-radius: var(--r-input);
+      padding: 4px;
+      margin-bottom: var(--s-6);
+    }
+    .auth-tab {
+      flex: 1;
+      padding: var(--s-2) var(--s-3);
+      border-radius: 4px;
+      font-size: var(--t-meta);
+      color: var(--c-ink-3);
+      text-align: center;
+      transition: all var(--t-fast) var(--ease);
+    }
+    .auth-tab.is-active {
+      background: var(--c-card);
+      color: var(--c-navy);
+      font-weight: 500;
+      box-shadow: var(--shadow-1);
+    }
+
+    /* migration toast / banner */
+    .migration-banner {
+      background: var(--c-success-lt);
+      border-left: 2px solid var(--c-success);
+      padding: var(--s-3) var(--s-4);
+      border-radius: var(--r-input);
+      font-size: var(--t-meta);
+      color: var(--c-success);
+      display: flex;
+      gap: var(--s-2);
+      align-items: flex-start;
+    }
+    .migration-banner i { font-size: 16px; flex: 0 0 auto; margin-top: 1px; }
+    .migration-banner strong { display: block; margin-bottom: 2px; }
+
+    /* token expiry overlay */
+    .token-expiry {
+      background: var(--c-warn-lt);
+      border: 1px solid rgba(184,92,0,0.18);
+      padding: var(--s-4) var(--s-5);
+      border-radius: var(--r-card);
+      display: flex;
+      gap: var(--s-3);
+      align-items: flex-start;
+      max-width: 480px;
+      margin: 0 auto;
+    }
+    .token-expiry__icon {
+      flex: 0 0 auto;
+      width: 36px; height: 36px;
+      border-radius: var(--r-input);
+      background: rgba(184,92,0,0.12);
+      color: var(--c-warn);
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+      font-size: 18px;
+    }
+    .token-expiry__main {
+      flex: 1;
+      min-width: 0;
+    }
+    .token-expiry__title {
+      font-size: var(--t-body-sm);
+      font-weight: 600;
+      color: var(--c-ink);
+      margin-bottom: var(--s-1);
+    }
+    .token-expiry__body {
+      font-size: var(--t-meta);
+      color: var(--c-ink-2);
+      margin-bottom: var(--s-3);
+      line-height: 1.55;
+    }
+    .token-expiry__btn {
+      display: inline-flex;
+      align-items: center;
+      gap: var(--s-1);
+      padding: 6px var(--s-3);
+      background: var(--c-navy);
+      color: #fff;
+      border-radius: var(--r-input);
+      font-size: var(--t-meta);
+      font-weight: 500;
+    }
+
+    /* ───── responsive ───── */
+    @media (max-width: 600px) {
+      .auth-card {
+        padding: var(--s-6) var(--s-5);
+      }
+    }
+    @media (max-width: 1100px) {
+      .vp-grid { grid-template-columns: 360px; }
+      .vp-frame:nth-child(2), .vp-frame:nth-child(3) { display: none; }
+    }
+  </style>
+</head>
+<body>
+
+<div class="ds-page">
+  <header class="ds-header">
+    <div class="ds-header__eyebrow">PM Drill · Path 2 · Mockup 02 / 16 · Batch A</div>
+    <h1>登入登出流程（auth flow）</h1>
+    <p class="ds-header__sub">
+      Email + password only（無 magic link / OAuth — production 已 lock）。包含登入 / 註冊 / 錯誤狀態 / loading / 已登入 navbar / 登出 / guest→authed migration / token expiry 重新登入。<br>
+      色系全 navy（user 親指 image #28 — primary 藍與紙基調不搭，已修）。
+    </p>
+  </header>
+
+  <!-- ═══════════════════ A. 登入畫面 — default ═══════════════════ -->
+  <h2 class="vp-section-title">A. 登入畫面 · default state <span class="vp-section-title__sub">centered card / max 440px / login-tab active</span></h2>
+
+  <div class="vp-grid">
+
+    <!-- mobile -->
+    <div class="vp-frame">
+      <div class="vp-frame__label"><span>Mobile</span><span>360 px</span></div>
+      <div class="vp-frame__body">
+        <div class="navbar">
+          <button class="navbar__icon-btn"><i class="ph ph-list"></i></button>
+          <div class="navbar__brand"><span class="navbar__brand-icon"><i class="ph ph-circles-three"></i></span><span class="navbar__brand-name">PM Drill</span></div>
+        </div>
+
+        <div class="auth-page">
+          <div class="auth-card">
+            <div class="auth-card__brand">
+              <span class="auth-card__brand-icon"><i class="ph ph-circles-three"></i></span>
+              <span class="auth-card__brand-name">PM Drill</span>
+            </div>
+            <h1 class="auth-card__title">歡迎回來</h1>
+            <p class="auth-card__sub">登入後練習記錄會自動同步到雲端</p>
+
+            <div class="auth-tabs">
+              <button class="auth-tab is-active">登入</button>
+              <button class="auth-tab">註冊</button>
+            </div>
+
+            <div class="field">
+              <label class="field__label">Email</label>
+              <input class="field__input" type="email" placeholder="you@example.com" autocomplete="email">
+            </div>
+            <div class="field">
+              <label class="field__label">
+                <span>密碼</span>
+                <a href="#" class="field__hint-link">忘記密碼？</a>
+              </label>
+              <input class="field__input" type="password" placeholder="••••••••" autocomplete="current-password">
+            </div>
+
+            <button class="auth-submit">登入</button>
+
+            <hr class="auth-divider">
+            <p class="auth-switch">
+              還沒有帳號？<a href="#">立即註冊</a>
+            </p>
+            <p class="auth-guest-bypass">
+              <a href="#">先以遊客模式試用</a>
+            </p>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- tablet -->
+    <div class="vp-frame">
+      <div class="vp-frame__label"><span>Tablet</span><span>768 px</span></div>
+      <div class="vp-frame__body">
+        <div class="navbar">
+          <button class="navbar__icon-btn"><i class="ph ph-list"></i></button>
+          <div class="navbar__brand"><span class="navbar__brand-icon"><i class="ph ph-circles-three"></i></span><span class="navbar__brand-name">PM Drill</span></div>
+        </div>
+
+        <div class="auth-page">
+          <div class="auth-card">
+            <div class="auth-card__brand">
+              <span class="auth-card__brand-icon"><i class="ph ph-circles-three"></i></span>
+              <span class="auth-card__brand-name">PM Drill</span>
+            </div>
+            <h1 class="auth-card__title">歡迎回來</h1>
+            <p class="auth-card__sub">登入後練習記錄會自動同步到雲端，可在任何裝置接續練習</p>
+
+            <div class="auth-tabs">
+              <button class="auth-tab is-active">登入</button>
+              <button class="auth-tab">註冊</button>
+            </div>
+
+            <div class="field">
+              <label class="field__label">Email</label>
+              <input class="field__input" type="email" placeholder="you@example.com" autocomplete="email">
+            </div>
+            <div class="field">
+              <label class="field__label">
+                <span>密碼</span>
+                <a href="#" class="field__hint-link">忘記密碼？</a>
+              </label>
+              <input class="field__input" type="password" placeholder="••••••••" autocomplete="current-password">
+            </div>
+
+            <button class="auth-submit">登入</button>
+
+            <hr class="auth-divider">
+            <p class="auth-switch">
+              還沒有帳號？<a href="#">立即註冊</a>
+            </p>
+            <p class="auth-guest-bypass">
+              <a href="#">先以遊客模式試用 — 練習記錄存於本機 7 天</a>
+            </p>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- desktop -->
+    <div class="vp-frame">
+      <div class="vp-frame__label"><span>Desktop</span><span>1280 px</span></div>
+      <div class="vp-frame__body">
+        <div class="navbar">
+          <button class="navbar__icon-btn"><i class="ph ph-list"></i></button>
+          <div class="navbar__brand"><span class="navbar__brand-icon"><i class="ph ph-circles-three"></i></span><span class="navbar__brand-name">PM Drill</span></div>
+        </div>
+
+        <div class="auth-page" style="min-height: 560px;">
+          <div class="auth-card">
+            <div class="auth-card__brand">
+              <span class="auth-card__brand-icon"><i class="ph ph-circles-three"></i></span>
+              <span class="auth-card__brand-name">PM Drill</span>
+            </div>
+            <h1 class="auth-card__title">歡迎回來</h1>
+            <p class="auth-card__sub">登入後練習記錄會自動同步到雲端，可在任何裝置接續練習</p>
+
+            <div class="auth-tabs">
+              <button class="auth-tab is-active">登入</button>
+              <button class="auth-tab">註冊</button>
+            </div>
+
+            <div class="field">
+              <label class="field__label">Email</label>
+              <input class="field__input" type="email" placeholder="you@example.com" autocomplete="email">
+            </div>
+            <div class="field">
+              <label class="field__label">
+                <span>密碼</span>
+                <a href="#" class="field__hint-link">忘記密碼？</a>
+              </label>
+              <input class="field__input" type="password" placeholder="••••••••" autocomplete="current-password">
+            </div>
+
+            <button class="auth-submit">登入</button>
+
+            <hr class="auth-divider">
+            <p class="auth-switch">
+              還沒有帳號？<a href="#">立即註冊</a>
+            </p>
+            <p class="auth-guest-bypass">
+              <a href="#">先以遊客模式試用 — 練習記錄存於本機 7 天，登入後自動合併</a>
+            </p>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <p class="anno">
+    <strong>A · 登入 default：</strong>centered card 440px max-width / 三裝置 layout 一致只調 padding / brand mark + tagline 在頂 / login-register tab 切換 / Email + Password 兩欄（無 confirm-password 因為 production 簡單註冊）/ 「忘記密碼」link 預留（production 還沒實作，目前點擊會帶到 stub 頁）/ 主 CTA navy / 切換到註冊 + 遊客模式 bypass 在底部。<br>
+    <strong>遊客 bypass 設計理由：</strong>降低初訪 friction — 不強迫先登入，但用 underline 字而非按鈕、不搶 CTA 焦點。
+  </p>
+
+  <!-- ═══════════════════ B. 登入 — 表單狀態（filled / focus / loading）═══════════════════ -->
+  <h2 class="vp-section-title">B. 登入表單狀態 <span class="vp-section-title__sub">filled / focus / loading — 三狀態並列</span></h2>
+
+  <div class="vp-grid">
+
+    <div class="vp-frame">
+      <div class="vp-frame__label"><span>Mobile · filled</span><span>360 px</span></div>
+      <div class="vp-frame__body">
+        <div class="navbar"><button class="navbar__icon-btn"><i class="ph ph-list"></i></button><div class="navbar__brand"><span class="navbar__brand-icon"><i class="ph ph-circles-three"></i></span><span class="navbar__brand-name">PM Drill</span></div></div>
+        <div class="auth-page">
+          <div class="auth-card">
+            <div class="auth-card__brand"><span class="auth-card__brand-icon"><i class="ph ph-circles-three"></i></span><span class="auth-card__brand-name">PM Drill</span></div>
+            <h1 class="auth-card__title">歡迎回來</h1>
+            <div class="auth-tabs"><button class="auth-tab is-active">登入</button><button class="auth-tab">註冊</button></div>
+            <div class="field">
+              <label class="field__label">Email</label>
+              <input class="field__input" type="email" value="albert.peng@example.com">
+            </div>
+            <div class="field">
+              <label class="field__label"><span>密碼</span><a href="#" class="field__hint-link">忘記密碼？</a></label>
+              <input class="field__input" type="password" value="••••••••••">
+            </div>
+            <button class="auth-submit">登入</button>
+            <p class="auth-switch" style="margin-top:var(--s-4);">還沒有帳號？<a href="#">立即註冊</a></p>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <div class="vp-frame">
+      <div class="vp-frame__label"><span>Tablet · focus</span><span>768 px</span></div>
+      <div class="vp-frame__body">
+        <div class="navbar"><button class="navbar__icon-btn"><i class="ph ph-list"></i></button><div class="navbar__brand"><span class="navbar__brand-icon"><i class="ph ph-circles-three"></i></span><span class="navbar__brand-name">PM Drill</span></div></div>
+        <div class="auth-page">
+          <div class="auth-card">
+            <div class="auth-card__brand"><span class="auth-card__brand-icon"><i class="ph ph-circles-three"></i></span><span class="auth-card__brand-name">PM Drill</span></div>
+            <h1 class="auth-card__title">歡迎回來</h1>
+            <div class="auth-tabs"><button class="auth-tab is-active">登入</button><button class="auth-tab">註冊</button></div>
+            <div class="field">
+              <label class="field__label">Email</label>
+              <input class="field__input" type="email" value="albert.peng@example.com">
+            </div>
+            <div class="field">
+              <label class="field__label"><span>密碼</span><a href="#" class="field__hint-link">忘記密碼？</a></label>
+              <input class="field__input" type="password" value="hunter2" style="border-color: var(--c-primary); box-shadow: var(--shadow-focus);">
+            </div>
+            <button class="auth-submit">登入</button>
+            <hr class="auth-divider">
+            <p class="auth-switch">還沒有帳號？<a href="#">立即註冊</a></p>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <div class="vp-frame">
+      <div class="vp-frame__label"><span>Desktop · loading</span><span>1280 px</span></div>
+      <div class="vp-frame__body">
+        <div class="navbar"><button class="navbar__icon-btn"><i class="ph ph-list"></i></button><div class="navbar__brand"><span class="navbar__brand-icon"><i class="ph ph-circles-three"></i></span><span class="navbar__brand-name">PM Drill</span></div></div>
+        <div class="auth-page" style="min-height: 560px;">
+          <div class="auth-card">
+            <div class="auth-card__brand"><span class="auth-card__brand-icon"><i class="ph ph-circles-three"></i></span><span class="auth-card__brand-name">PM Drill</span></div>
+            <h1 class="auth-card__title">歡迎回來</h1>
+            <p class="auth-card__sub">登入中…</p>
+            <div class="auth-tabs"><button class="auth-tab is-active" disabled style="opacity:0.6;">登入</button><button class="auth-tab" disabled style="opacity:0.6;">註冊</button></div>
+            <div class="field">
+              <label class="field__label">Email</label>
+              <input class="field__input" type="email" value="albert.peng@example.com" disabled style="background: var(--c-bg-soft); color: var(--c-ink-3);">
+            </div>
+            <div class="field">
+              <label class="field__label"><span>密碼</span></label>
+              <input class="field__input" type="password" value="••••••••••" disabled style="background: var(--c-bg-soft); color: var(--c-ink-3);">
+            </div>
+            <button class="auth-submit auth-submit--loading" disabled>登入</button>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <p class="anno">
+    <strong>B · 表單狀態：</strong>filled = 用戶輸入後（normal border）/ focus = primary 1px border + 3px focus ring（保留 primary 因 a11y）/ loading = 整 form disabled + submit 變 spinner（`--c-ink` glyph 隱藏）+ tabs 半透明<br>
+    <strong>iOS：</strong>所有 input mobile 強制 16px font-size 防 zoom（CSS 已 lock）<br>
+    <strong>Autocomplete：</strong>`autocomplete="email" / "current-password" / "new-password"` 對應 — 讓 Safari iCloud Keychain 自動填入
+  </p>
+
+  <!-- ═══════════════════ C. 登入錯誤狀態 ═══════════════════ -->
+  <h2 class="vp-section-title">C. 登入錯誤 <span class="vp-section-title__sub">帳密錯 / 找不到帳號 / 連線失敗 三種</span></h2>
+
+  <div class="vp-grid">
+
+    <div class="vp-frame">
+      <div class="vp-frame__label"><span>Mobile · 帳密錯</span><span>360 px</span></div>
+      <div class="vp-frame__body">
+        <div class="navbar"><button class="navbar__icon-btn"><i class="ph ph-list"></i></button><div class="navbar__brand"><span class="navbar__brand-icon"><i class="ph ph-circles-three"></i></span><span class="navbar__brand-name">PM Drill</span></div></div>
+        <div class="auth-page">
+          <div class="auth-card">
+            <div class="auth-card__brand"><span class="auth-card__brand-icon"><i class="ph ph-circles-three"></i></span><span class="auth-card__brand-name">PM Drill</span></div>
+            <h1 class="auth-card__title">歡迎回來</h1>
+            <div class="auth-tabs"><button class="auth-tab is-active">登入</button><button class="auth-tab">註冊</button></div>
+
+            <div class="auth-error-banner">
+              <i class="ph ph-warning-circle"></i>
+              <div>
+                <strong>帳號或密碼錯誤</strong>
+                請再確認，或點下方「忘記密碼」重設。
+              </div>
+            </div>
+
+            <div class="field">
+              <label class="field__label">Email</label>
+              <input class="field__input" type="email" value="albert.peng@example.com">
+            </div>
+            <div class="field field--error">
+              <label class="field__label"><span style="color:var(--c-danger);">密碼</span><a href="#" class="field__hint-link">忘記密碼？</a></label>
+              <input class="field__input" type="password" value="••••">
+              <div class="field__error"><i class="ph ph-warning-circle"></i>密碼長度至少 6 字</div>
+            </div>
+            <button class="auth-submit">重新登入</button>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <div class="vp-frame">
+      <div class="vp-frame__label"><span>Tablet · 找不到帳號</span><span>768 px</span></div>
+      <div class="vp-frame__body">
+        <div class="navbar"><button class="navbar__icon-btn"><i class="ph ph-list"></i></button><div class="navbar__brand"><span class="navbar__brand-icon"><i class="ph ph-circles-three"></i></span><span class="navbar__brand-name">PM Drill</span></div></div>
+        <div class="auth-page">
+          <div class="auth-card">
+            <div class="auth-card__brand"><span class="auth-card__brand-icon"><i class="ph ph-circles-three"></i></span><span class="auth-card__brand-name">PM Drill</span></div>
+            <h1 class="auth-card__title">歡迎回來</h1>
+            <div class="auth-tabs"><button class="auth-tab is-active">登入</button><button class="auth-tab">註冊</button></div>
+
+            <div class="auth-error-banner">
+              <i class="ph ph-user-minus"></i>
+              <div>
+                <strong>找不到此 email 對應的帳號</strong>
+                還沒註冊嗎？試試<a href="#" style="color:var(--c-danger); text-decoration:underline;">直接註冊</a>，或<a href="#" style="color:var(--c-danger); text-decoration:underline;">先以遊客模式試用</a>。
+              </div>
+            </div>
+
+            <div class="field field--error">
+              <label class="field__label"><span style="color:var(--c-danger);">Email</span></label>
+              <input class="field__input" type="email" value="newuser@example.com">
+            </div>
+            <div class="field">
+              <label class="field__label"><span>密碼</span><a href="#" class="field__hint-link">忘記密碼？</a></label>
+              <input class="field__input" type="password" value="••••••••">
+            </div>
+            <button class="auth-submit">重新登入</button>
+            <hr class="auth-divider">
+            <p class="auth-switch">還沒有帳號？<a href="#">立即註冊</a></p>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <div class="vp-frame">
+      <div class="vp-frame__label"><span>Desktop · 連線失敗</span><span>1280 px</span></div>
+      <div class="vp-frame__body">
+        <div class="navbar"><button class="navbar__icon-btn"><i class="ph ph-list"></i></button><div class="navbar__brand"><span class="navbar__brand-icon"><i class="ph ph-circles-three"></i></span><span class="navbar__brand-name">PM Drill</span></div></div>
+        <div class="auth-page" style="min-height: 560px;">
+          <div class="auth-card">
+            <div class="auth-card__brand"><span class="auth-card__brand-icon"><i class="ph ph-circles-three"></i></span><span class="auth-card__brand-name">PM Drill</span></div>
+            <h1 class="auth-card__title">歡迎回來</h1>
+            <div class="auth-tabs"><button class="auth-tab is-active">登入</button><button class="auth-tab">註冊</button></div>
+
+            <div class="auth-error-banner">
+              <i class="ph ph-cloud-warning"></i>
+              <div>
+                <strong>連線失敗</strong>
+                請檢查網路或稍後再試。你的草稿已存於本機，不會遺失。
+              </div>
+            </div>
+
+            <div class="field">
+              <label class="field__label">Email</label>
+              <input class="field__input" type="email" value="albert.peng@example.com">
+            </div>
+            <div class="field">
+              <label class="field__label"><span>密碼</span><a href="#" class="field__hint-link">忘記密碼？</a></label>
+              <input class="field__input" type="password" value="••••••••••">
+            </div>
+            <button class="auth-submit"><i class="ph ph-arrow-clockwise"></i>重試</button>
+            <hr class="auth-divider">
+            <p class="auth-switch">還沒有帳號？<a href="#">立即註冊</a></p>
+            <p class="auth-guest-bypass"><a href="#">繼續以遊客模式（離線可用）</a></p>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <p class="anno">
+    <strong>C · 錯誤狀態：</strong>每種錯誤對應不同 icon + 文案 + 建議動作：
+    <ul style="margin:var(--s-2) 0 0 var(--s-5); padding-left:var(--s-3); line-height:1.7;">
+      <li><strong>帳密錯（401 invalid creds）：</strong>`ph-warning-circle` + 「請再確認，或點忘記密碼重設」+ 密碼欄位 inline error</li>
+      <li><strong>找不到帳號（404 user not found）：</strong>`ph-user-minus` + 「還沒註冊嗎？」+ 註冊 / 遊客 兩個 link 引導 — 不要罵 user</li>
+      <li><strong>連線失敗（network error）：</strong>`ph-cloud-warning` + 「草稿已存本機」安撫 + 重試 + 遊客模式 fallback link</li>
+    </ul>
+    <strong>Banner 設計：</strong>danger-lt 底 + danger 左 2px rule + 標題粗 + 一句行動建議。錯誤訊息**不指責 user**，先解釋再給路。
+  </p>
+
+  <!-- ═══════════════════ D. 註冊畫面 ═══════════════════ -->
+  <h2 class="vp-section-title">D. 註冊畫面 · default + 錯誤 <span class="vp-section-title__sub">同 layout / register tab active / 文案差異</span></h2>
+
+  <div class="vp-grid">
+
+    <div class="vp-frame">
+      <div class="vp-frame__label"><span>Mobile · default</span><span>360 px</span></div>
+      <div class="vp-frame__body">
+        <div class="navbar"><button class="navbar__icon-btn"><i class="ph ph-list"></i></button><div class="navbar__brand"><span class="navbar__brand-icon"><i class="ph ph-circles-three"></i></span><span class="navbar__brand-name">PM Drill</span></div></div>
+        <div class="auth-page">
+          <div class="auth-card">
+            <div class="auth-card__brand"><span class="auth-card__brand-icon"><i class="ph ph-circles-three"></i></span><span class="auth-card__brand-name">PM Drill</span></div>
+            <h1 class="auth-card__title">建立帳號</h1>
+            <p class="auth-card__sub">免費 — 100 題情境模擬訓練</p>
+
+            <div class="auth-tabs"><button class="auth-tab">登入</button><button class="auth-tab is-active">註冊</button></div>
+
+            <div class="field">
+              <label class="field__label">Email</label>
+              <input class="field__input" type="email" placeholder="you@example.com" autocomplete="email">
+            </div>
+            <div class="field">
+              <label class="field__label"><span>密碼</span><span style="font-size:var(--t-cap); color:var(--c-ink-3);">至少 6 字</span></label>
+              <input class="field__input" type="password" placeholder="設定密碼" autocomplete="new-password">
+            </div>
+
+            <button class="auth-submit">註冊並開始練習</button>
+
+            <hr class="auth-divider">
+            <p class="auth-switch">已經有帳號？<a href="#">直接登入</a></p>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <div class="vp-frame">
+      <div class="vp-frame__label"><span>Tablet · email 已註冊</span><span>768 px</span></div>
+      <div class="vp-frame__body">
+        <div class="navbar"><button class="navbar__icon-btn"><i class="ph ph-list"></i></button><div class="navbar__brand"><span class="navbar__brand-icon"><i class="ph ph-circles-three"></i></span><span class="navbar__brand-name">PM Drill</span></div></div>
+        <div class="auth-page">
+          <div class="auth-card">
+            <div class="auth-card__brand"><span class="auth-card__brand-icon"><i class="ph ph-circles-three"></i></span><span class="auth-card__brand-name">PM Drill</span></div>
+            <h1 class="auth-card__title">建立帳號</h1>
+            <div class="auth-tabs"><button class="auth-tab">登入</button><button class="auth-tab is-active">註冊</button></div>
+
+            <div class="auth-error-banner">
+              <i class="ph ph-info"></i>
+              <div>
+                <strong>這個 email 已經註冊過</strong>
+                改<a href="#" style="color:var(--c-danger); text-decoration:underline;">登入</a>，或<a href="#" style="color:var(--c-danger); text-decoration:underline;">忘記密碼</a> 重設。
+              </div>
+            </div>
+
+            <div class="field field--error">
+              <label class="field__label"><span style="color:var(--c-danger);">Email</span></label>
+              <input class="field__input" type="email" value="albert.peng@example.com">
+            </div>
+            <div class="field">
+              <label class="field__label"><span>密碼</span><span style="font-size:var(--t-cap); color:var(--c-ink-3);">至少 6 字</span></label>
+              <input class="field__input" type="password" value="••••••••">
+            </div>
+
+            <button class="auth-submit">註冊並開始練習</button>
+            <hr class="auth-divider">
+            <p class="auth-switch">已經有帳號？<a href="#">直接登入</a></p>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <div class="vp-frame">
+      <div class="vp-frame__label"><span>Desktop · 弱密碼</span><span>1280 px</span></div>
+      <div class="vp-frame__body">
+        <div class="navbar"><button class="navbar__icon-btn"><i class="ph ph-list"></i></button><div class="navbar__brand"><span class="navbar__brand-icon"><i class="ph ph-circles-three"></i></span><span class="navbar__brand-name">PM Drill</span></div></div>
+        <div class="auth-page" style="min-height: 560px;">
+          <div class="auth-card">
+            <div class="auth-card__brand"><span class="auth-card__brand-icon"><i class="ph ph-circles-three"></i></span><span class="auth-card__brand-name">PM Drill</span></div>
+            <h1 class="auth-card__title">建立帳號</h1>
+            <p class="auth-card__sub">免費 — 100 題情境模擬訓練</p>
+            <div class="auth-tabs"><button class="auth-tab">登入</button><button class="auth-tab is-active">註冊</button></div>
+
+            <div class="field">
+              <label class="field__label">Email</label>
+              <input class="field__input" type="email" value="newuser@example.com">
+            </div>
+            <div class="field field--error">
+              <label class="field__label"><span style="color:var(--c-danger);">密碼</span><span style="font-size:var(--t-cap); color:var(--c-danger);">過短</span></label>
+              <input class="field__input" type="password" value="•••">
+              <div class="field__error"><i class="ph ph-warning-circle"></i>密碼至少 6 字。建議用記得住但別人猜不到的句子，例如「我家狗叫小白」。</div>
+            </div>
+
+            <button class="auth-submit" disabled>註冊並開始練習</button>
+            <hr class="auth-divider">
+            <p class="auth-switch">已經有帳號？<a href="#">直接登入</a></p>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <p class="anno">
+    <strong>D · 註冊：</strong>同 layout 變化 — title 改「建立帳號」/ tagline 改「免費 100 題」/ 密碼欄位 inline 提示「至少 6 字」/ CTA 改「註冊並開始練習」<br>
+    <strong>錯誤狀態：</strong>email 已註冊用 `ph-info`（不是 warning — 這是中性提示，建議改路）/ 弱密碼 inline error 寫具體建議例子（「我家狗叫小白」這種好記不好猜的句子）/ submit 按鈕在密碼無效時 disabled<br>
+    <strong>Production 鎖：</strong>email + password only，無 email confirm（後端 `email_confirm: true` 直接過）— 註冊成功立刻登入。
+  </p>
+
+  <!-- ═══════════════════ E. Auth flow 整合（已登入 navbar / 登出 / migration / token expiry）═══════════════════ -->
+  <h2 class="vp-section-title">E. Auth flow 整合 <span class="vp-section-title__sub">已登入 navbar / 登出 / guest→authed migration / token expiry 重新登入</span></h2>
+
+  <div class="vp-grid">
+
+    <!-- mobile: logged-in navbar + logout -->
+    <div class="vp-frame">
+      <div class="vp-frame__label"><span>Mobile · 已登入</span><span>360 px</span></div>
+      <div class="vp-frame__body">
+        <div class="navbar">
+          <button class="navbar__icon-btn"><i class="ph ph-list"></i></button>
+          <div class="navbar__brand"><span class="navbar__brand-icon"><i class="ph ph-circles-three"></i></span><span class="navbar__brand-name">PM Drill</span></div>
+          <div class="navbar__actions">
+            <button class="navbar__icon-btn" aria-label="albert.peng@example.com — 登出"><i class="ph ph-sign-out"></i></button>
+          </div>
+        </div>
+
+        <div style="padding: var(--s-5);">
+          <h2 style="font-size: var(--t-h2); margin-bottom: var(--s-4);">已登入 navbar（mobile）</h2>
+          <ul style="font-size: var(--t-body-sm); color: var(--c-ink-2); padding-left: var(--s-5); line-height: 1.7;">
+            <li>email 隱藏（mobile 寬度不足顯示）— 只留 ph-sign-out icon</li>
+            <li>tooltip on long-press: email 全文</li>
+            <li>aria-label 含 email 給 screen reader</li>
+            <li>點擊登出 = 立即登出（不彈確認 — UX 簡單；session 會清除）</li>
+          </ul>
+
+          <h2 style="font-size: var(--t-h2); margin-top: var(--s-6); margin-bottom: var(--s-3);">登出後 → 訪客模式</h2>
+          <div class="navbar" style="border-radius: var(--r-input); border: 1px solid var(--c-rule);">
+            <button class="navbar__icon-btn"><i class="ph ph-list"></i></button>
+            <div class="navbar__brand"><span class="navbar__brand-icon"><i class="ph ph-circles-three"></i></span><span class="navbar__brand-name">PM Drill</span></div>
+            <div class="navbar__actions">
+              <button class="navbar__login">登入</button>
+            </div>
+          </div>
+          <p style="font-size: var(--t-cap); color: var(--c-ink-3); margin-top: var(--s-3);">點 sign-out → 立即清 token → guest mode + 「登入」按鈕浮現</p>
+        </div>
+      </div>
+    </div>
+
+    <!-- tablet: migration banner 全 desktop 一起 -->
+    <div class="vp-frame">
+      <div class="vp-frame__label"><span>Tablet · 登入後 migration 提示</span><span>768 px</span></div>
+      <div class="vp-frame__body">
+        <div class="navbar">
+          <button class="navbar__icon-btn"><i class="ph ph-list"></i></button>
+          <div class="navbar__brand"><span class="navbar__brand-icon"><i class="ph ph-circles-three"></i></span><span class="navbar__brand-name">PM Drill</span></div>
+          <div class="navbar__actions">
+            <span class="navbar__email">albert.peng@example.com</span>
+            <button class="navbar__icon-btn"><i class="ph ph-sign-out"></i></button>
+          </div>
+        </div>
+
+        <div style="padding: var(--s-5);">
+          <div class="migration-banner" style="margin-bottom: var(--s-5);">
+            <i class="ph ph-cloud-arrow-up"></i>
+            <div>
+              <strong>已合併 3 場練習記錄到你的帳號</strong>
+              這些是你之前以遊客模式練的紀錄，現在永久保留在雲端。可從練習記錄查看。
+            </div>
+          </div>
+
+          <h2 style="font-size: var(--t-h2); margin-bottom: var(--s-3);">migration 行為</h2>
+          <ul style="font-size: var(--t-body-sm); color: var(--c-ink-2); padding-left: var(--s-5); line-height: 1.7;">
+            <li><strong>觸發：</strong>guest 已有 N ≥ 1 場 session → 第一次登入成功</li>
+            <li><strong>API：</strong>`POST /api/migrate-guest` 自動帶 X-Guest-ID header + Bearer token（Master Spec §1.1）</li>
+            <li><strong>Banner：</strong>登入後落地頁頂端顯示 success-lt 條 + 標題 + 動作引導</li>
+            <li><strong>Dismiss：</strong>5s 後 fade-out OR 點 ph-x 主動關</li>
+            <li><strong>沒 session 時：</strong>不顯示 banner（避免無謂提示）</li>
+          </ul>
+        </div>
+      </div>
+    </div>
+
+    <!-- desktop: token expiry overlay -->
+    <div class="vp-frame">
+      <div class="vp-frame__label"><span>Desktop · token 逾期</span><span>1280 px</span></div>
+      <div class="vp-frame__body">
+        <div class="navbar">
+          <button class="navbar__icon-btn"><i class="ph ph-list"></i></button>
+          <div class="navbar__brand"><span class="navbar__brand-icon"><i class="ph ph-circles-three"></i></span><span class="navbar__brand-name">PM Drill</span></div>
+          <div class="navbar__actions">
+            <span class="navbar__email">albert.peng@example.com</span>
+            <button class="navbar__icon-btn"><i class="ph ph-sign-out"></i></button>
+          </div>
+        </div>
+
+        <div style="padding: var(--s-7) var(--s-5);">
+          <h2 style="font-size: var(--t-h2); margin-bottom: var(--s-4);">Token 逾期 — 重新登入提示</h2>
+
+          <div class="token-expiry">
+            <span class="token-expiry__icon"><i class="ph ph-clock-countdown"></i></span>
+            <div class="token-expiry__main">
+              <div class="token-expiry__title">登入逾期，請重新登入</div>
+              <div class="token-expiry__body">
+                為保護帳號安全，登入狀態定期失效。你的草稿已存於本機，重新登入後會接續到剛才的位置。
+              </div>
+              <button class="token-expiry__btn"><i class="ph ph-arrow-right" style="font-size:14px;"></i>重新登入</button>
+            </div>
+          </div>
+
+          <h3 style="font-size: var(--t-h3); margin: var(--s-7) 0 var(--s-3);">技術細節</h3>
+          <ul style="font-size: var(--t-body-sm); color: var(--c-ink-2); padding-left: var(--s-5); line-height: 1.7; max-width: 720px;">
+            <li><strong>觸發：</strong>API 回 401（Bearer token expired / invalid）</li>
+            <li><strong>非阻擋式：</strong>warn-tinted card 浮在當前畫面頂端（不蓋住所有內容）— 用戶可以先把目前輸入存起來</li>
+            <li><strong>preserve view：</strong>點重新登入 → 紀錄當前 `AppState.view + circlesPhase` → login → 登入成功後 redirect 回原處</li>
+            <li><strong>草稿保留：</strong>Phase 1 framework_draft 已 auto-save 到 localStorage（master spec §1.1 PATCH /progress）— 重新登入後從 server 拉同步</li>
+            <li><strong>Auth context loss：</strong>navbar 暫時還顯示 email + sign-out，因為前端 state 還沒清；點重新登入後才清</li>
+          </ul>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <p class="anno">
+    <strong>E · Auth flow 整合：</strong>
+    <ul style="margin:var(--s-2) 0 0 var(--s-5); padding-left:var(--s-3); line-height:1.7;">
+      <li><strong>已登入 navbar：</strong>email truncate（max 180px）+ ph-sign-out icon button；mobile 寬度不足時 email 隱藏</li>
+      <li><strong>登出：</strong>立即執行 — 清 Supabase session + localStorage token + AppState reset → guest mode；不彈確認彈窗（UX 簡單，反正可以再登入）</li>
+      <li><strong>Migration：</strong>guest sessions ≥ 1 + 第一次登入成功 → 自動 POST /api/migrate-guest → 落地頁顯示 success-lt 「已合併 N 場」banner（5s auto-dismiss）</li>
+      <li><strong>Token expiry：</strong>API 401 → warn-tinted card 浮在內容頂；preserve 當前 view 到 localStorage → 登入後 redirect 回；草稿不會丟（已 auto-save）</li>
+    </ul>
+    <strong>不做的：</strong>無確認彈窗的 logout 流（UX 簡）/ 無 email 驗證信（production 已 lock email_confirm: true）/ 無 magic link / 無 OAuth。<br>
+    <strong>Production 來源：</strong>app.js:5029 `renderAuth` / Supabase JWT Bearer / X-Guest-ID UUIDv4 / `/api/migrate-guest` (master-spec §1.1)
+  </p>
+
+  <footer style="max-width:1880px; margin:var(--s-9) auto var(--s-7); padding-top:var(--s-6); border-top:1px solid var(--c-rule); display:flex; gap:var(--s-5); flex-wrap:wrap; color:var(--c-ink-3); font-size:var(--t-meta);">
+    <div><strong style="color:var(--c-ink); display:block;">Mockup</strong>02 · 登入登出流程（批次 A）</div>
+    <div><strong style="color:var(--c-ink); display:block;">Sections</strong>A 登入 default / B 表單狀態 / C 錯誤 / D 註冊 / E flow 整合</div>
+    <div><strong style="color:var(--c-ink); display:block;">Status</strong>等 user 放行</div>
+    <div><strong style="color:var(--c-ink); display:block;">Next</strong>03 — Phase 1 表單（如 02 OK）</div>
+    <div><strong style="color:var(--c-ink); display:block;">繼承自</strong>00-design-system §1-§21（含色系、tooltip、modal、toast、save-indicator）</div>
+  </footer>
+
+</div>
+
+</body>
+</html>
