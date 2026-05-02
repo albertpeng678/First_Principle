@@ -1,10 +1,8 @@
 # PM Drill 前端重寫 — Master Spec（總規格凍結書）
 
-> **Goal:** 後端 / API / DB / OpenAI prompt / 商業邏輯 / jest 測試 100% 不動。前端 CSS + render 結構從 0 重寫，達到 https://aistockmap.com 在 iOS Safari 手機上的滑順度。
->
-> **Authority:** 本文件是「重寫的對齊基準」。實作完成後逐條打勾驗收，未對齊 = 未完成。
->
-> **Source:** 由三個並行 Explore agent 對 `public/` `routes/` `prompts/` `circles_plan/` `nsm_plan/` `db/` 全盤掃描合成。每條規格都有 `file:line` 引用，重寫時遇到模糊一律查原檔。
+> **Goal:** 後端 / API / DB / OpenAI prompt / 商業邏輯 / jest 100% 不動；前端 CSS + render 從 0 重寫；目標 iOS Safari 滑順度 ≥ aistockmap.com。
+> **Authority:** 重寫對齊基準。實作完成後逐條打勾，未對齊 = 未完成。
+> **Last updated:** 2026-05-03（mockup 03 放行）
 
 ---
 
@@ -44,18 +42,7 @@
 - HTML class 用真產品類名，不自創，方便 1:1 對映實作
 - 每張 mockup 需 user 「放行」才往下做
 
-### 0.5 視覺對齊測試 Stack（過去 SP2 失敗模式針對性補強）
-
-**過去失敗 root causes（按頻率）：**
-1. DOM 通過但視覺錯（`count() > 0` 綠不代表排版對）
-2. Chromium 通過 Safari 錯（過去只跑 chromium）
-3. 我自宣稱「看起來好」其實沒用 Read tool 看 PNG
-4. Mockup 通過 production 失敗（兩邊沒 pixel diff）
-5. 1px 偏移 visual diff threshold 抓不到
-6. Hover / focus / disabled / empty / error / loading / overflow / 長短文 各狀態漏覆蓋
-7. Bundle 改 A 動到 B、cross-screen 一致性沒鎖
-
-**Stack（每層都必須執行，缺一 bundle 不過）：**
+### 0.5 視覺對齊測試 Stack（8 層，每層都必執行，缺一 bundle 不過）
 
 #### Layer 1 — Mockup-as-Spec（基準凍結）
 - 每張 mockup HTML 含 per-state 矩陣（default / hover / focus / disabled / empty / error / loading / long-text / short-text）
@@ -593,45 +580,25 @@ System prompt 固定段落（prompts/circles-coach.js:14-66）：
 
 ## 6. 重寫流程 gate
 
-### 6.1 並行階段（user 放行後啟動）
-- **背景：** 開 worktree `feat/sp3-backend` → subagent 跑 SP3 plan Task 2-4（evaluator schema + routes timeout）→ jest 全綠 → merge main → 更新本 Master Spec §1.4 + §2.9（移除 §1.4 ⚠ 提示框）
-- **前景：** `frontend-design` skill 啟動 → 出圖批次 A 共 11 張 → 每張 user 放行
+### 6.1 流程
+1. **Mockup 階段**（in progress）— 16 張 mockup 逐張 user 放行 → §5.1 索引追蹤
+2. **Plan 階段** — `writing-plans` → bite-sized CSS rewrite + render 結構 plan
+3. **實作階段** — `using-git-worktrees` 開隔離分支 → `subagent-driven-development` bundle-by-bundle → 每 bundle webkit+chromium × 8 viewport 截圖 + Read PNG → `verification-before-completion`
+4. **收尾** — `finishing-a-development-branch` 14-box gate（§0.2 iOS checklist 全綠）→ merge main
 
-### 6.2 解鎖階段（SP3 backend 已 merge）
-- 出圖批次 B 共 3 張（Phase 3 / Phase 3 error/loading / Phase 4）→ 每張 user 放行
-- 出圖批次 C 共 2 張（NSM Step 4 / Error 全集）→ 每張 user 放行
+### 6.2 Bundle 完工強制產出（缺一不過 — 對應 §0.5 Stack）
+每 bundle PR 必含 **4 樣產出**：
+1. jest output 全綠 log
+2. Playwright output（chromium + webkit × 8 viewport）全綠 log
+3. `tests/visual/diffs/bundle-N-report.md` — pixel diff < 0.5% + invariant 全綠
+4. `audit/eyeball-bundle-N.md` — Director eyeball walk：每張 PNG path + Read tool 證據 + ≥ 1 句評論
 
-### 6.3 實作階段
-- `writing-plans` → bite-sized CSS rewrite + render 結構調整 plan
-- `using-git-worktrees` → 開隔離分支
-- `subagent-driven-development` → bundle-by-bundle 執行
-- 每 bundle 後：webkit + chromium × 8 viewport screenshot + Read PNG 親看
-- `verification-before-completion` 自查
-- `finishing-a-development-branch` 14-box gate（含 §0.2 iOS checklist 全綠）
-- Merge to main
+**CI gate：** 任一缺 → PR 不能 merge。我 / user / --no-verify 都不能 bypass。
 
-### 6.4 硬性順序鎖定（不准違反）
-1. SP3 backend merge **必須早於** 批次 B 任何一張 mockup 開畫
-2. 批次 A 的 11 張完全不依賴 SP3，可在 SP3 跑期間並行畫
-3. 任何 SP3 bundle 失敗 → 暫停 mockup（避免畫了又改）
-4. 批次 B 開畫前必須先驗 §1.4 ⚠ 提示框已移除（代表 schema 已更新）
+### 6.3 User 殺手鐧 SOP（紀律外部稽核）
+User 隨時可打 3 問：
+1. 「你 Read 過 PNG 沒？貼最後一張 viewport + 評論」
+2. 「給我 5 條 boundingBox invariant 數字」
+3. 「mockup ↔ production pixel diff 結果？引 report 路徑」
 
-### 6.5 Bundle 完工強制產出（缺一不過 — 對應 §0.5 Stack）
-每 bundle PR 必含 **4 樣產出**，無此檔 = bundle 不過：
-1. **jest output** — 全綠 log
-2. **Playwright output** — `chromium` + `webkit` × 8 viewport 全綠 log
-3. **`tests/visual/diffs/bundle-N-report.md`** — Layer 2 mockup ↔ production pixel diff 結果（每張 < 0.5%）+ Layer 3 invariant 全綠 log
-4. **`audit/eyeball-bundle-N.md`** — Layer 6 director eyeball walk：每張 PNG path + Read tool 證據 + ≥ 1 句評論
-
-**CI gate 寫死：**
-- 任一 layer 失敗 → PR 不能 merge
-- 缺任一產物檔 → PR 不能 merge
-- 我不能 bypass、user 不能 bypass、--no-verify 不能 bypass
-
-### 6.6 User 隨時抽問 SOP（紀律外部稽核）
-User 保留三個「殺手鐧」問題隨時可打：
-1. 「你 Read 過 PNG 沒？貼最後一張的 viewport 名 + 評論」
-2. 「給我 5 條 boundingBox invariant 數字（這個 bundle 改動的畫面）」
-3. 「mockup ↔ production pixel diff 結果是？引 diff report 路徑」
-
-**任一答不出 = 我跳了步驟 = 該 bundle 重來**
+**任一答不出 = 跳步驟 = bundle 重來**
