@@ -32,7 +32,7 @@ const STEP_RUBRICS = {
   },
 };
 
-async function evaluateCirclesStep({ step, frameworkDraft, conversation, questionJson, mode }) {
+async function evaluateCirclesStep({ step, frameworkDraft, conversation, questionJson, mode, signal }) {
   const rubric = STEP_RUBRICS[step];
   if (!rubric) throw new Error('Unknown step: ' + step);
 
@@ -86,7 +86,7 @@ ${coachAnswer}
   const userMsg = `框架填寫：\n${Object.entries(frameworkDraft).map(([k,v])=>`${k}: ${v||'未填'}`).join('\n')}\n\n對話記錄：\n${convText}`;
 
   // No retry — callers (route handlers) own retry/error boundary decisions.
-  const resp = await openai.chat.completions.create({
+  const body = {
     model: 'gpt-4o',
     messages: [
       { role: 'system', content: systemPrompt },
@@ -95,7 +95,11 @@ ${coachAnswer}
     temperature: 0.3,
     max_tokens: 1500,
     response_format: { type: 'json_object' },
-  });
+  };
+  // openai v6 supports per-request options as the 2nd arg (incl. AbortSignal)
+  const resp = signal
+    ? await openai.chat.completions.create(body, { signal })
+    : await openai.chat.completions.create(body);
 
   return JSON.parse(resp.choices[0].message.content);
 }

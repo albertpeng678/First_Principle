@@ -222,6 +222,8 @@ router.post('/:id/evaluate-step', requireAuth, async (req, res) => {
     .eq('user_id', req.user.id)
     .single();
   if (error || !session) return res.status(404).json({ error: 'not_found' });
+  const controller = new AbortController();
+  const timeoutId = setTimeout(() => controller.abort(), 30000);
   try {
     const result = await evaluateCirclesStep({
       step: session.drill_step || 'C1',
@@ -229,7 +231,9 @@ router.post('/:id/evaluate-step', requireAuth, async (req, res) => {
       conversation: session.conversation || [],
       questionJson: session.question_json,
       mode: session.mode,
+      signal: controller.signal,
     });
+    clearTimeout(timeoutId);
     const stepKey = session.drill_step || 'C1';
     const updatedScores = { ...(session.step_scores || {}), [stepKey]: result };
     // B4-1 — derive completion from the post-merge step_scores rather than
@@ -242,7 +246,15 @@ router.post('/:id/evaluate-step', requireAuth, async (req, res) => {
       status: (session.mode === 'drill' || isLastStep) ? 'completed' : 'active',
     }).eq('id', req.params.id).eq('user_id', req.user.id);
     res.json(result);
-  } catch (e) { res.status(500).json({ error: e.message }); }
+  } catch (e) {
+    clearTimeout(timeoutId);
+    let code = 'EVAL_API_ERROR';
+    if (e.name === 'AbortError' || /timeout|aborted/i.test(e.message || '')) code = 'EVAL_TIMEOUT';
+    else if (/JSON|parse/i.test(e.message || '')) code = 'EVAL_PARSE_ERROR';
+    else if (e.status === 401 || /401|auth/i.test(e.message || '')) code = 'EVAL_AUTH_ERROR';
+    console.warn('[evaluate-step]', code, e.message);
+    res.status(500).json({ error: e.message, code });
+  }
 });
 
 // POST /api/circles-sessions/:id/conclusion-check
