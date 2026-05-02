@@ -581,6 +581,24 @@ describe('POST /api/circles-sessions/:id/message', () => {
 
 // ── POST /:id/evaluate-step ───────────────────────────────────────────────────
 
+// SP3 (M3): the route now validates evaluator output shape before DB write —
+// `coachVersion` must be { context, perField, reasoning }. Tests that don't
+// care about the shape merge in this minimum-valid stub.
+function validEvalResult(overrides = {}) {
+  return {
+    totalScore: 80,
+    dimensions: [],
+    highlight: 'ok',
+    improvement: 'ok',
+    coachVersion: {
+      context: 'ctx',
+      perField: [{ field: 'f', demo: 'd' }],
+      reasoning: 'why',
+    },
+    ...overrides,
+  };
+}
+
 describe('POST /api/circles-sessions/:id/evaluate-step', () => {
   test('returns 404 when session not found', async () => {
     db.single.mockResolvedValue({ data: null, error: { message: 'not found' } });
@@ -596,26 +614,31 @@ describe('POST /api/circles-sessions/:id/evaluate-step', () => {
   test('calls evaluateCirclesStep with correct params', async () => {
     const session = makeSession({ drill_step: 'I', framework_draft: { user: 'PM' }, conversation: [] });
     db.single.mockResolvedValue({ data: session, error: null });
-    evaluateCirclesStep.mockResolvedValue({ totalScore: 80, dimensions: [] });
+    evaluateCirclesStep.mockResolvedValue(validEvalResult({ totalScore: 80 }));
 
     await request(app)
       .post('/api/circles-sessions/session-abc/evaluate-step')
       .set(AUTH_HEADER)
       .send({});
 
-    expect(evaluateCirclesStep).toHaveBeenCalledWith({
+    // SP3: route now also forwards a `signal` (AbortSignal) for 30s timeout —
+    // assert the relevant fields rather than exact-match the whole object.
+    expect(evaluateCirclesStep).toHaveBeenCalledWith(expect.objectContaining({
       step: 'I',
       frameworkDraft: { user: 'PM' },
       conversation: [],
       questionJson: session.question_json,
       mode: 'drill',
-    });
+    }));
+    const callArg = evaluateCirclesStep.mock.calls[0][0];
+    expect(callArg.signal).toBeDefined();
+    expect(callArg.signal.aborted).toBe(false);
   });
 
   test('returns evaluateCirclesStep result', async () => {
     const session = makeSession();
     db.single.mockResolvedValue({ data: session, error: null });
-    const evalResult = { totalScore: 75, highlight: '不錯', improvement: '補充', dimensions: [] };
+    const evalResult = validEvalResult({ totalScore: 75, highlight: '不錯', improvement: '補充' });
     evaluateCirclesStep.mockResolvedValue(evalResult);
 
     const res = await request(app)
@@ -630,7 +653,7 @@ describe('POST /api/circles-sessions/:id/evaluate-step', () => {
   test('sets status to completed for drill mode', async () => {
     const session = makeSession({ mode: 'drill', drill_step: 'C1', sim_step_index: 0 });
     db.single.mockResolvedValue({ data: session, error: null });
-    evaluateCirclesStep.mockResolvedValue({ totalScore: 80 });
+    evaluateCirclesStep.mockResolvedValue(validEvalResult({ totalScore: 80 }));
 
     await request(app)
       .post('/api/circles-sessions/session-abc/evaluate-step')
@@ -654,7 +677,7 @@ describe('POST /api/circles-sessions/:id/evaluate-step', () => {
       step_scores: { C1: {}, I: {}, R: {}, C2: {}, L: {}, E: {} },
     });
     db.single.mockResolvedValue({ data: session, error: null });
-    evaluateCirclesStep.mockResolvedValue({ totalScore: 90 });
+    evaluateCirclesStep.mockResolvedValue(validEvalResult({ totalScore: 90 }));
 
     await request(app)
       .post('/api/circles-sessions/session-abc/evaluate-step')
@@ -669,7 +692,7 @@ describe('POST /api/circles-sessions/:id/evaluate-step', () => {
   test('sets status to active for simulation mode at non-last step', async () => {
     const session = makeSession({ mode: 'simulation', sim_step_index: 3 });
     db.single.mockResolvedValue({ data: session, error: null });
-    evaluateCirclesStep.mockResolvedValue({ totalScore: 85 });
+    evaluateCirclesStep.mockResolvedValue(validEvalResult({ totalScore: 85 }));
 
     await request(app)
       .post('/api/circles-sessions/session-abc/evaluate-step')
@@ -684,7 +707,7 @@ describe('POST /api/circles-sessions/:id/evaluate-step', () => {
   test('saves step score under drill_step key', async () => {
     const session = makeSession({ drill_step: 'C1', step_scores: {} });
     db.single.mockResolvedValue({ data: session, error: null });
-    const evalResult = { totalScore: 80 };
+    const evalResult = validEvalResult({ totalScore: 80 });
     evaluateCirclesStep.mockResolvedValue(evalResult);
 
     await request(app)
@@ -718,6 +741,134 @@ describe('POST /api/circles-sessions/:id/evaluate-step', () => {
       .post('/api/circles-sessions/session-abc/evaluate-step')
       .send({});
     expect(res.status).toBe(401);
+  });
+
+  // SP3 (M3) — guard against legacy coachVersion shape (string instead of
+  // structured object). The route must reject before DB write, returning
+  // EVAL_PARSE_ERROR so the front-end knows the LLM drifted.
+  test('legacy coachVersion (string) → 500 EVAL_PARSE_ERROR (not persisted)', async () => {
+    const session = makeSession();
+    db.single.mockResolvedValue({ data: session, error: null });
+    evaluateCirclesStep.mockResolvedValue({
+      totalScore: 80,
+      dimensions: [],
+      highlight: 'ok',
+      improvement: 'ok',
+      coachVersion: '舊版字串提示', // <-- legacy shape
+    });
+
+    const res = await request(app)
+      .post('/api/circles-sessions/session-abc/evaluate-step')
+      .set(AUTH_HEADER)
+      .send({});
+
+    expect(res.status).toBe(500);
+    expect(res.body.code).toBe('EVAL_PARSE_ERROR');
+    // Must NOT have written step_scores.
+    expect(db.update).not.toHaveBeenCalledWith(
+      expect.objectContaining({ step_scores: expect.anything() })
+    );
+  });
+
+  test('coachVersion missing perField array → 500 EVAL_PARSE_ERROR', async () => {
+    const session = makeSession();
+    db.single.mockResolvedValue({ data: session, error: null });
+    evaluateCirclesStep.mockResolvedValue({
+      totalScore: 80,
+      dimensions: [],
+      highlight: 'ok',
+      improvement: 'ok',
+      coachVersion: { context: 'c', reasoning: 'r' }, // <-- no perField
+    });
+
+    const res = await request(app)
+      .post('/api/circles-sessions/session-abc/evaluate-step')
+      .set(AUTH_HEADER)
+      .send({});
+
+    expect(res.status).toBe(500);
+    expect(res.body.code).toBe('EVAL_PARSE_ERROR');
+  });
+});
+
+// SP3 (M4) — route-level error code mapping tests. Spec 驗收 requires that
+// evaluate-step return the right `code` for timeout / 5xx / parse / auth so
+// the front-end can show the right toast. These tests mock the evaluator to
+// throw each error class and assert the mapping.
+describe('POST /api/circles-sessions/:id/evaluate-step — error code mapping', () => {
+  beforeEach(() => {
+    const session = makeSession();
+    db.single.mockResolvedValue({ data: session, error: null });
+  });
+
+  test('AbortError → 500 EVAL_TIMEOUT', async () => {
+    const err = new Error('aborted');
+    err.name = 'AbortError';
+    evaluateCirclesStep.mockRejectedValueOnce(err);
+
+    const res = await request(app)
+      .post('/api/circles-sessions/session-abc/evaluate-step')
+      .set(AUTH_HEADER)
+      .send({});
+
+    expect(res.status).toBe(500);
+    expect(res.body.code).toBe('EVAL_TIMEOUT');
+  });
+
+  test('SyntaxError (JSON.parse failure) → 500 EVAL_PARSE_ERROR', async () => {
+    // SyntaxError is what JSON.parse natively throws on bad JSON — exactly
+    // what propagates from the evaluator when the LLM returns non-JSON.
+    evaluateCirclesStep.mockRejectedValueOnce(new SyntaxError('Unexpected token < in JSON'));
+
+    const res = await request(app)
+      .post('/api/circles-sessions/session-abc/evaluate-step')
+      .set(AUTH_HEADER)
+      .send({});
+
+    expect(res.status).toBe(500);
+    expect(res.body.code).toBe('EVAL_PARSE_ERROR');
+  });
+
+  test('e.status === 401 → 500 EVAL_AUTH_ERROR', async () => {
+    // OpenAI v6 SDK shape: HTTP errors expose e.status numerically.
+    const err = Object.assign(new Error('401 Unauthorized'), { status: 401 });
+    evaluateCirclesStep.mockRejectedValueOnce(err);
+
+    const res = await request(app)
+      .post('/api/circles-sessions/session-abc/evaluate-step')
+      .set(AUTH_HEADER)
+      .send({});
+
+    expect(res.status).toBe(500);
+    expect(res.body.code).toBe('EVAL_AUTH_ERROR');
+  });
+
+  test('generic Error (5xx, network, etc) → 500 EVAL_API_ERROR', async () => {
+    const err = Object.assign(new Error('Internal server error'), { status: 502 });
+    evaluateCirclesStep.mockRejectedValueOnce(err);
+
+    const res = await request(app)
+      .post('/api/circles-sessions/session-abc/evaluate-step')
+      .set(AUTH_HEADER)
+      .send({});
+
+    expect(res.status).toBe(500);
+    expect(res.body.code).toBe('EVAL_API_ERROR');
+  });
+
+  test('plain Error with no status → 500 EVAL_API_ERROR (no false-positive on message)', async () => {
+    // Regression guard for the old regex /JSON|parse/i — an OpenAI error
+    // mentioning the word "json" in `response_format` validation should NOT
+    // be misclassified as parse error.
+    evaluateCirclesStep.mockRejectedValueOnce(new Error('invalid response_format json_object usage'));
+
+    const res = await request(app)
+      .post('/api/circles-sessions/session-abc/evaluate-step')
+      .set(AUTH_HEADER)
+      .send({});
+
+    expect(res.status).toBe(500);
+    expect(res.body.code).toBe('EVAL_API_ERROR');
   });
 });
 

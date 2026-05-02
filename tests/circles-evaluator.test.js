@@ -99,7 +99,7 @@ describe('evaluateCirclesStep — OpenAI call', () => {
     };
   }
 
-  test('calls OpenAI with model gpt-4o, temperature 0.3, max_tokens 800', async () => {
+  test('calls OpenAI with model gpt-4o, temperature 0.3, max_tokens 1500', async () => {
     const mockCreate = new OpenAI().chat.completions.create;
     mockCreate.mockResolvedValue(makeMockResponse());
 
@@ -115,7 +115,7 @@ describe('evaluateCirclesStep — OpenAI call', () => {
     const callArg = mockCreate.mock.calls[0][0];
     expect(callArg.model).toBe('gpt-4o');
     expect(callArg.temperature).toBe(0.3);
-    expect(callArg.max_tokens).toBe(800);
+    expect(callArg.max_tokens).toBe(1500);
   });
 
   test('calls OpenAI with response_format json_object', async () => {
@@ -231,6 +231,60 @@ describe('evaluateCirclesStep — simulation vs drill mode', () => {
     const messages = mockCreate.mock.calls[0][0].messages;
     const systemContent = messages.find(m => m.role === 'system').content;
     expect(systemContent).toContain('簡短提示');
+  });
+
+  // SP3: callers may pass either `mode` (legacy) or `isSimulation` (boolean).
+  // Explicit `isSimulation` wins; otherwise we derive from `mode === 'simulation'`.
+  test('isSimulation:true → simulation prompt (preferred over absent mode)', async () => {
+    const mockCreate = new OpenAI().chat.completions.create;
+    mockCreate.mockResolvedValue(makeMockResponse());
+
+    await evaluateCirclesStep({
+      step: 'C1',
+      frameworkDraft: {},
+      conversation: [],
+      questionJson: { problem_statement: 'test', company: 'TestCo' },
+      isSimulation: true,
+    });
+
+    const messages = mockCreate.mock.calls[0][0].messages;
+    const systemContent = messages.find(m => m.role === 'system').content;
+    expect(systemContent).toContain('完整示範答案');
+  });
+
+  test('isSimulation:false → drill prompt (preferred over absent mode)', async () => {
+    const mockCreate = new OpenAI().chat.completions.create;
+    mockCreate.mockResolvedValue(makeMockResponse());
+
+    await evaluateCirclesStep({
+      step: 'C1',
+      frameworkDraft: {},
+      conversation: [],
+      questionJson: { problem_statement: 'test', company: 'TestCo' },
+      isSimulation: false,
+    });
+
+    const messages = mockCreate.mock.calls[0][0].messages;
+    const systemContent = messages.find(m => m.role === 'system').content;
+    expect(systemContent).toContain('簡短提示');
+  });
+
+  test('explicit isSimulation overrides legacy mode (isSimulation:true wins over mode:drill)', async () => {
+    const mockCreate = new OpenAI().chat.completions.create;
+    mockCreate.mockResolvedValue(makeMockResponse());
+
+    await evaluateCirclesStep({
+      step: 'C1',
+      frameworkDraft: {},
+      conversation: [],
+      questionJson: { problem_statement: 'test', company: 'TestCo' },
+      mode: 'drill',
+      isSimulation: true,
+    });
+
+    const messages = mockCreate.mock.calls[0][0].messages;
+    const systemContent = messages.find(m => m.role === 'system').content;
+    expect(systemContent).toContain('完整示範答案');
   });
 });
 
@@ -396,3 +450,7 @@ describe('evaluateCirclesStep — conversation formatting', () => {
     expect(userContent).toContain('學員：請問範圍？\n教練：範圍是全球');
   });
 });
+
+// ── SP3 — coachVersion structured object schema (live integration) ────────────
+// The live-API contract test moved to tests/integration/circles-evaluator.live.test.js
+// to avoid `jest.unmock('openai')` leaking into other tests in this worker.

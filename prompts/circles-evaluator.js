@@ -32,16 +32,28 @@ const STEP_RUBRICS = {
   },
 };
 
-async function evaluateCirclesStep({ step, frameworkDraft, conversation, questionJson, mode }) {
+async function evaluateCirclesStep({ step, frameworkDraft, conversation, questionJson, mode, isSimulation, signal }) {
   const rubric = STEP_RUBRICS[step];
   if (!rubric) throw new Error('Unknown step: ' + step);
 
   const coachAnswer = (questionJson.coach_circles || {})[step] || '';
-  const isSimulation = mode === 'simulation';
+  // SP3: accept either `isSimulation` (boolean) or legacy `mode` ('simulation' | 'drill').
+  // Explicit `isSimulation` wins so the new test contract is honoured; otherwise we
+  // derive from `mode` for backward-compat with existing route callers.
+  const _isSim = (typeof isSimulation === 'boolean') ? isSimulation : (mode === 'simulation');
 
   const convText = (conversation || [])
     .map(t => `學員：${t.userMessage}\n教練：${t.interviewee}`)
     .join('\n\n');
+
+  // Field names for perField come from frameworkDraft keys (one entry per filled field)
+  const fieldNames = Object.keys(frameworkDraft || {});
+  const fieldNamesHint = fieldNames.length
+    ? fieldNames.map(n => `"${n}"`).join('、')
+    : '（依步驟對應欄位）';
+  const styleHint = _isSim
+    ? '完整示範答案（展示給學員，可以直接給出具體解法）'
+    : '簡短提示（不完全給答案，只引導思路方向）';
 
   const systemPrompt = `你是 PM 面試評審，正在評分學員在「${rubric.name}」步驟的表現。
 
@@ -53,7 +65,7 @@ ${coachAnswer}
 
 評分維度：${rubric.dimensions.join('、')}
 
-回傳嚴格 JSON，不加 markdown：
+回傳嚴格 JSON，不加 markdown。注意：coachVersion 必須是物件（不是字串），其中 perField 陣列每一筆對應一個框架欄位（本步驟的欄位是：${fieldNamesHint}），請為每個欄位產生一筆 demo（${styleHint}）：
 {
   "dimensions": [
     {
@@ -65,22 +77,32 @@ ${coachAnswer}
   "totalScore": 數字（dimensions scores 加總 × 4，最高 100 分的比例換算 = sum * 100 / (${rubric.dimensions.length} * 5)）,
   "highlight": "最強的表現（20字內）",
   "improvement": "最需改進的點（25字內）",
-  "coachVersion": "${isSimulation ? '完整示範答案（展示給學員）' : '簡短提示（不完全給答案）'}"
+  "coachVersion": {
+    "context": "情境前置（這個步驟的核心任務是什麼，為什麼重要，1 段，60-100 字）",
+    "perField": [
+      { "field": "欄位名稱", "demo": "教練會這樣寫的具體答案（30-80 字，${styleHint}）" }
+    ],
+    "reasoning": "為什麼這樣答（解釋背後思路，1-2 句，40-80 字）"
+  }
 }`;
 
   const userMsg = `框架填寫：\n${Object.entries(frameworkDraft).map(([k,v])=>`${k}: ${v||'未填'}`).join('\n')}\n\n對話記錄：\n${convText}`;
 
   // No retry — callers (route handlers) own retry/error boundary decisions.
-  const resp = await openai.chat.completions.create({
+  const body = {
     model: 'gpt-4o',
     messages: [
       { role: 'system', content: systemPrompt },
       { role: 'user', content: userMsg },
     ],
     temperature: 0.3,
-    max_tokens: 800,
+    max_tokens: 1500,
     response_format: { type: 'json_object' },
-  });
+  };
+  // openai v6 supports per-request options as the 2nd arg (incl. AbortSignal)
+  const resp = signal
+    ? await openai.chat.completions.create(body, { signal })
+    : await openai.chat.completions.create(body);
 
   return JSON.parse(resp.choices[0].message.content);
 }

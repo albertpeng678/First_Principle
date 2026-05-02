@@ -6,7 +6,7 @@ const db = require('../db/client');
 const { requireGuestId } = require('../middleware/guest');
 const { reviewFramework } = require('../prompts/circles-gate');
 const { streamCirclesReply } = require('../prompts/circles-coach');
-const { evaluateCirclesStep } = require('../prompts/circles-evaluator');
+const { runEvaluateStep, EvaluatorError } = require('../lib/evaluate-step-handler');
 const { checkConclusion } = require('../prompts/circles-conclusion-check');
 const { generateFinalReport } = require('../prompts/circles-final-report');
 const { generateCirclesHint } = require('../prompts/circles-hint');
@@ -217,24 +217,16 @@ router.post('/:id/evaluate-step', requireGuestId, async (req, res) => {
     .single();
   if (error || !session) return res.status(404).json({ error: 'not_found' });
   try {
-    const result = await evaluateCirclesStep({
-      step: session.drill_step || 'C1',
-      frameworkDraft: session.framework_draft || {},
-      conversation: session.conversation || [],
-      questionJson: session.question_json,
-      mode: session.mode,
+    const { result } = await runEvaluateStep({
+      session,
+      supabase: db,
+      ownerFilter: (q) => q.eq('guest_id', req.guestId),
     });
-    const stepKey = session.drill_step || 'C1';
-    const updatedScores = { ...(session.step_scores || {}), [stepKey]: result };
-    // B4-1 — derive completion from server-side scores, not client step idx.
-    const isLastStep = Object.keys(updatedScores).length === 7;
-    await db.from('circles_sessions').update({
-      step_scores: updatedScores,
-      current_phase: 3,
-      status: (session.mode === 'drill' || isLastStep) ? 'completed' : 'active',
-    }).eq('id', req.params.id).eq('guest_id', req.guestId);
     res.json(result);
-  } catch (e) { res.status(500).json({ error: e.message }); }
+  } catch (err) {
+    if (err instanceof EvaluatorError) return res.status(err.status).json({ error: err.message, code: err.code });
+    res.status(500).json({ error: (err && err.message) || 'unknown_error' });
+  }
 });
 
 // POST /api/guest-circles-sessions/:id/conclusion-check

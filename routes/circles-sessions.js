@@ -6,7 +6,7 @@ const db = require('../db/client');
 const { requireAuth } = require('../middleware/auth');
 const { reviewFramework } = require('../prompts/circles-gate');
 const { streamCirclesReply } = require('../prompts/circles-coach');
-const { evaluateCirclesStep } = require('../prompts/circles-evaluator');
+const { runEvaluateStep, EvaluatorError } = require('../lib/evaluate-step-handler');
 const { checkConclusion } = require('../prompts/circles-conclusion-check');
 const { generateFinalReport } = require('../prompts/circles-final-report');
 const { generateCirclesHint } = require('../prompts/circles-hint');
@@ -223,26 +223,16 @@ router.post('/:id/evaluate-step', requireAuth, async (req, res) => {
     .single();
   if (error || !session) return res.status(404).json({ error: 'not_found' });
   try {
-    const result = await evaluateCirclesStep({
-      step: session.drill_step || 'C1',
-      frameworkDraft: session.framework_draft || {},
-      conversation: session.conversation || [],
-      questionJson: session.question_json,
-      mode: session.mode,
+    const { result } = await runEvaluateStep({
+      session,
+      supabase: db,
+      ownerFilter: (q) => q.eq('user_id', req.user.id),
     });
-    const stepKey = session.drill_step || 'C1';
-    const updatedScores = { ...(session.step_scores || {}), [stepKey]: result };
-    // B4-1 — derive completion from the post-merge step_scores rather than
-    // a client-controlled sim_step_index. Otherwise a malicious client can
-    // POST sim_step_index=6 on the very first step and flip status=completed.
-    const isLastStep = Object.keys(updatedScores).length === 7;
-    await db.from('circles_sessions').update({
-      step_scores: updatedScores,
-      current_phase: 3,
-      status: (session.mode === 'drill' || isLastStep) ? 'completed' : 'active',
-    }).eq('id', req.params.id).eq('user_id', req.user.id);
     res.json(result);
-  } catch (e) { res.status(500).json({ error: e.message }); }
+  } catch (err) {
+    if (err instanceof EvaluatorError) return res.status(err.status).json({ error: err.message, code: err.code });
+    res.status(500).json({ error: (err && err.message) || 'unknown_error' });
+  }
 });
 
 // POST /api/circles-sessions/:id/conclusion-check
