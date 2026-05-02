@@ -315,7 +315,7 @@ analysis: { traps, business, users, insight }
 ### 2.4 Stale / Locked / Gate 三種鎖狀態
 1. **Stale mode** — `computeStaleFlag()` 比對 question snapshot 是否與 DB 同步（app.js:93-99）。觸發 `.stale-mode` wrapper / `.stale-banner` / 全表單唯讀。解鎖只能「回首頁」清掉。
 2. **Locked step** — 該 step 已評分（`stepScores[stepKey]` 存在）。觸發 `.locked-banner`。Phase 2 chat readonly。無解鎖路徑（需重新 session）。
-3. **Phase 1.5 Gate 阻擋** — drill mode 若有 error 不能進 Phase 2；simulation mode 強制可進但保留 status。
+3. **Phase 1.5 Gate 阻擋** — `overallStatus === 'error'` 一律擋（drill / simulation 行為一致），唯一動作「返回修改」；ok / warn 通行。**無「帶風險繼續」/ simulation override 路徑**（2026-05-03 user 定案）。
 
 ### 2.5 表單輸入（rt-field 結構 — CONTRACT-LOCKED 視覺契約）
 每個 input block：
@@ -533,7 +533,7 @@ System prompt 固定段落（prompts/circles-coach.js:14-66）：
 | 01 | ✅ **放行 v4** | `docs/superpowers/specs/mockups/2026-05-02-frontend-rewrite/01-circles-home.html` | CIRCLES Home — A 預設 / B drill mode / C 搜尋有 / D 搜尋無 / E loading / F edge cases / **G 題目展開（card-based blocks — §0.7.1 pattern）** |
 | 02 | ✅ **放行** | `docs/superpowers/specs/mockups/2026-05-02-frontend-rewrite/02-auth-flow.html` | 登入登出流程 — A 登入 default / B 表單狀態 / C 錯誤 / D 註冊 / E flow 整合（已登入 navbar / 登出 / migration / token expiry） |
 | 03 | ✅ **放行** | `docs/superpowers/specs/mockups/2026-05-02-frontend-rewrite/03-phase-1-form.html` | Phase 1 表單 v8（7 sections × 3 viewport = 21 variations）— A 4-field 標準 / B L solution-multi / C S 3 main + 4 tracking 含 hint+example / D hint overlay 觸發鏈 / E locked-stale 唯讀仍可看 hint / F save+sticky / G qchip 題目展開（card-based 套 §0.7.1）|
-| 04 | 待畫 | `docs/superpowers/specs/mockups/2026-05-02-frontend-rewrite/04-phase-1-5-gate.html` | Phase 1.5 Gate 三態 error/warn/ok |
+| 04 | ✅ 放行 | `docs/superpowers/specs/mockups/2026-05-02-frontend-rewrite/04-phase-1-5-gate.html` | Phase 1.5 Gate 三態 ok/warn/error（紅 = 必擋，drill+sim 一致）+ loading |
 | 05 | 待畫 | `docs/superpowers/specs/mockups/2026-05-02-frontend-rewrite/05-phase-2-chat.html` | Phase 2 對話（三角色 bubble × streaming/done/error）|
 | 06 | 待畫 | `docs/superpowers/specs/mockups/2026-05-02-frontend-rewrite/06-nsm-step-1.html` | NSM Step 1 選題 + 4 欄分析 |
 | 07 | 待畫 | `docs/superpowers/specs/mockups/2026-05-02-frontend-rewrite/07-nsm-step-2.html` | NSM Step 2 表單（4-dim 動態 label）|

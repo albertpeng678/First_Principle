@@ -1,7 +1,7 @@
 # PM Drill — 專案狀態看板
 
 > 即時狀態 single source of truth。重大事件即時 Edit。不放歷史（git log 有）。
-> **Last updated:** 2026-05-03
+> **Last updated:** 2026-05-03（04 放行 + SP4 backend 完成停 worktree）
 
 ---
 
@@ -18,7 +18,7 @@
 | 全盤掃描（122 項 UI / 47% baseline）| ✅ 完成 — `path-2-ui-coverage-audit.md` |
 | Master Spec 凍結 | ✅ 完成 |
 | SP3 backend 並行 | ✅ Merged 到 main（13 commits / jest 142 綠 / 兩階段 review × 2 round 全綠）|
-| Mockup（共 16 張）| 🟡 4/16 放行，下一張 04 |
+| Mockup（共 16 張）| 🟡 5/16 放行，下一張 05 |
 | writing-plans → CSS rewrite plan | ⏳ 待 mockup 全完 |
 | subagent-driven-development | ⏳ 待 plan |
 | 14-box gate → merge main | ⏳ 待全綠 |
@@ -33,8 +33,8 @@
 | 01 | ✅ 放行 v4 | `docs/superpowers/specs/mockups/2026-05-02-frontend-rewrite/01-circles-home.html` | CIRCLES Home A-G 7 sections |
 | 02 | ✅ 放行 | `docs/superpowers/specs/mockups/2026-05-02-frontend-rewrite/02-auth-flow.html` | 登入登出 A-E 5 sections |
 | 03 | ✅ 放行 | `docs/superpowers/specs/mockups/2026-05-02-frontend-rewrite/03-phase-1-form.html` | Phase 1 表單 A-G 7 sections |
-| 04 | 待畫（NEXT）| `docs/superpowers/specs/mockups/2026-05-02-frontend-rewrite/04-phase-1-5-gate.html` | Phase 1.5 Gate 三態 error/warn/ok |
-| 05 | 待畫 | `docs/superpowers/specs/mockups/2026-05-02-frontend-rewrite/05-phase-2-chat.html` | Phase 2 對話三角色 bubble |
+| 04 | ✅ 放行 | `docs/superpowers/specs/mockups/2026-05-02-frontend-rewrite/04-phase-1-5-gate.html` | Phase 1.5 Gate 三態 ok/warn/error（紅 = 必擋，drill+sim 一致）+ loading |
+| 05 | 待畫（NEXT）| `docs/superpowers/specs/mockups/2026-05-02-frontend-rewrite/05-phase-2-chat.html` | Phase 2 對話三角色 bubble |
 | 06 | 待畫 | `docs/superpowers/specs/mockups/2026-05-02-frontend-rewrite/06-nsm-step-1.html` | NSM Step 1 |
 | 07 | 待畫 | `docs/superpowers/specs/mockups/2026-05-02-frontend-rewrite/07-nsm-step-2.html` | NSM Step 2（4-dim 動態 label）|
 | 08 | 待畫 | `docs/superpowers/specs/mockups/2026-05-02-frontend-rewrite/08-nsm-step-3-gate.html` | NSM Step 3 Gate |

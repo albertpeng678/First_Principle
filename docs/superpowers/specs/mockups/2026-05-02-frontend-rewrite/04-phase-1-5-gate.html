@@ -1,0 +1,1670 @@
+<!doctype html>
+<html lang="zh-TW">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover, interactive-widget=resizes-visual">
+  <title>PM Drill — 04 Phase 1.5 Gate（三態 error / warn / ok）</title>
+
+  <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/@phosphor-icons/web@2.1.1/src/regular/style.css">
+  <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/@phosphor-icons/web@2.1.1/src/fill/style.css">
+  <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Instrument+Serif:ital@0;1&display=swap">
+
+  <style>
+    /* tokens */
+    :root {
+      --c-bg: #F2F0EB; --c-bg-soft: #ECE9E1; --c-bg-deep: #E5E1D7;
+      --c-card: #FFFFFF; --c-surface: #FAFAF7;
+      --c-ink: #1F1D1B; --c-ink-2: #5A5046; --c-ink-3: #8A7E70; --c-ink-4: #B8AC9D;
+      --c-rule: rgba(60,45,30,0.10); --c-rule-bold: rgba(60,45,30,0.18);
+      --c-primary: #1A56DB;
+      --c-navy: #1B2D5C; --c-navy-2: #142347; --c-navy-lt: rgba(27,45,92,0.08);
+      --c-success: #137A3D; --c-success-lt: #DCEFE0;
+      --c-warn: #B85C00; --c-warn-lt: #FBE9D0;
+      --c-danger: #B61F1F; --c-danger-lt: #FADCDC;
+      --font-sans: system-ui, -apple-system, BlinkMacSystemFont, 'PingFang TC', 'Microsoft JhengHei', 'Heiti TC', 'Noto Sans TC', sans-serif;
+      --font-serif: 'Instrument Serif', 'Times New Roman', serif;
+      --t-h1: 24px; --t-h2: 19px; --t-h3: 16px; --t-body: 15px; --t-body-sm: 14px; --t-meta: 13px; --t-cap: 12px;
+      --s-1: 4px; --s-2: 8px; --s-3: 12px; --s-4: 16px; --s-5: 20px; --s-6: 24px; --s-7: 32px; --s-8: 40px; --s-9: 56px; --s-10: 80px;
+      --r-input: 6px; --r-card: 10px; --r-pill: 999px;
+      --touch-min: 44px;
+      --t-fast: 120ms; --t-norm: 200ms; --t-slow: 300ms;
+      --ease: cubic-bezier(0.4, 0, 0.2, 1);
+      --shadow-1: 0 1px 0 rgba(60,45,30,0.04);
+      --shadow-2: 0 1px 2px rgba(60,45,30,0.06);
+      --shadow-3: 0 4px 12px rgba(60,45,30,0.08);
+      --shadow-focus: 0 0 0 3px rgba(26,86,219,0.18);
+    }
+
+    *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+    html, body {
+      background: var(--c-bg);
+      color: var(--c-ink);
+      font-family: var(--font-sans);
+      font-size: var(--t-body);
+      line-height: 1.55;
+      -webkit-font-smoothing: antialiased;
+      -webkit-tap-highlight-color: transparent;
+    }
+    button { font: inherit; color: inherit; cursor: pointer; background: none; border: none; }
+    a { color: inherit; text-decoration: none; }
+    @media (max-width: 767px) { input, textarea, select { font-size: 16px !important; } }
+
+    /* viewport demo */
+    .vp-grid {
+      display: grid;
+      grid-template-columns: 360px 768px 1280px;
+      gap: var(--s-6);
+      padding: var(--s-6);
+      align-items: start;
+      overflow-x: auto;
+    }
+    .vp-frame {
+      border: 1px solid var(--c-rule-bold);
+      border-radius: var(--r-card);
+      background: var(--c-bg);
+      overflow: hidden;
+    }
+    .vp-frame__label {
+      padding: var(--s-3) var(--s-4);
+      border-bottom: 1px solid var(--c-rule);
+      background: var(--c-card);
+      display: flex;
+      justify-content: space-between;
+      font-size: var(--t-cap);
+      letter-spacing: 0.08em;
+      text-transform: uppercase;
+      color: var(--c-ink-2);
+    }
+    .vp-frame__label span:last-child { font-family: ui-monospace, 'SF Mono', monospace; color: var(--c-ink-3); }
+
+    .ds-page { padding: var(--s-6); }
+    .ds-header { max-width: 1880px; margin: 0 auto var(--s-7); padding-bottom: var(--s-6); border-bottom: 1px solid var(--c-rule); }
+    .ds-header h1 { font-size: var(--t-h1); margin-top: var(--s-2); }
+    .ds-header__eyebrow { font-size: var(--t-cap); letter-spacing: 0.12em; text-transform: uppercase; color: var(--c-ink-3); }
+    .ds-header__sub { color: var(--c-ink-2); font-size: var(--t-body-sm); margin-top: var(--s-3); max-width: 720px; }
+
+    .vp-section-title { max-width: 1880px; margin: var(--s-7) auto var(--s-3); padding-bottom: var(--s-2); border-bottom: 1px solid var(--c-rule); font-size: var(--t-h2); display: flex; align-items: baseline; gap: var(--s-3); }
+    .vp-section-title__sub { font-size: var(--t-cap); color: var(--c-ink-3); letter-spacing: 0.04em; text-transform: uppercase; }
+    .anno {
+      background: var(--c-bg-soft);
+      border-left: 2px solid var(--c-ink-3);
+      padding: var(--s-3) var(--s-4);
+      font-size: var(--t-meta);
+      color: var(--c-ink-2);
+      margin: var(--s-4) auto;
+      max-width: 1180px;
+      line-height: 1.7;
+    }
+    .anno strong { color: var(--c-ink); }
+    .anno code { font-family: ui-monospace, 'SF Mono', monospace; font-size: 12px; background: var(--c-card); padding: 1px 6px; border-radius: 4px; border: 1px solid var(--c-rule); }
+
+    /* ───── PRODUCTION COMPONENTS ───── */
+    .navbar {
+      display: flex;
+      align-items: center;
+      gap: var(--s-3);
+      padding: var(--s-3) var(--s-4);
+      background: rgba(255,255,255,0.85);
+      -webkit-backdrop-filter: saturate(140%) blur(10px);
+      backdrop-filter: saturate(140%) blur(10px);
+      border-bottom: 1px solid var(--c-rule);
+    }
+    .navbar__icon-btn { width: 40px; height: 40px; border-radius: var(--r-pill); display: inline-flex; align-items: center; justify-content: center; color: var(--c-ink-2); }
+    .navbar__icon-btn:hover { background: var(--c-bg-soft); color: var(--c-ink); }
+    .navbar__brand {
+      display: flex;
+      align-items: center;
+      gap: var(--s-2);
+      padding: 4px var(--s-2);
+      border-radius: var(--r-input);
+      cursor: pointer;
+      transition: background var(--t-fast) var(--ease);
+    }
+    .navbar__brand:hover { background: var(--c-bg-soft); }
+    .navbar__brand-icon { width: 28px; height: 28px; border-radius: 6px; background: var(--c-navy); color: #fff; display: inline-flex; align-items: center; justify-content: center; font-size: 16px; }
+    .navbar__brand-name { font-size: var(--t-body-sm); font-weight: 500; }
+    .navbar__tabs { display: flex; gap: var(--s-2); margin-left: var(--s-4); }
+    .navbar__tab { padding: 6px var(--s-3); border-radius: var(--r-pill); font-size: var(--t-meta); color: var(--c-ink-3); }
+    .navbar__tab.is-active { background: var(--c-navy); color: #fff; }
+    .navbar__actions { margin-left: auto; display: flex; align-items: center; gap: var(--s-2); }
+    .navbar__email { font-size: var(--t-cap); color: var(--c-ink-3); max-width: 180px; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+
+    /* progress (simulation 7-step) */
+    .progress {
+      padding: var(--s-3) var(--s-4);
+      background: var(--c-bg-soft);
+      border-bottom: 1px solid var(--c-rule);
+      display: flex;
+      gap: var(--s-2);
+      align-items: center;
+      overflow-x: auto;
+      white-space: nowrap;
+    }
+    .progress__step {
+      flex: 0 0 auto;
+      padding: 4px 10px;
+      border-radius: var(--r-pill);
+      font-size: var(--t-cap);
+      color: var(--c-ink-3);
+    }
+    .progress__step.is-done { color: var(--c-ink); }
+    .progress__step.is-active { background: var(--c-navy); color: #fff; }
+    .progress__step .step-letter { font-family: var(--font-serif); font-style: italic; margin-right: 4px; font-size: 14px; }
+
+    /* phase head */
+    .phase-head {
+      padding: var(--s-3) var(--s-5);
+      background: var(--c-bg-soft);
+      border-bottom: 1px solid var(--c-rule);
+      display: flex;
+      align-items: center;
+      gap: var(--s-3);
+    }
+    .phase-head__num { font-family: var(--font-serif); font-style: italic; font-size: 22px; color: var(--c-navy); line-height: 1; flex: 0 0 auto; }
+    .phase-head__main { flex: 1; min-width: 0; }
+    .phase-head__eyebrow { font-size: var(--t-cap); letter-spacing: 0.08em; text-transform: uppercase; color: var(--c-ink-3); }
+    .phase-head__title { font-size: var(--t-h3); color: var(--c-ink); margin-top: 2px; letter-spacing: -0.005em; }
+    .phase-head__meta { flex: 0 0 auto; font-size: var(--t-meta); color: var(--c-ink-3); display: flex; gap: var(--s-3); align-items: center; flex-wrap: wrap; justify-content: flex-end; }
+    @media (max-width: 480px) {
+      .phase-head__meta { gap: var(--s-2); }
+      .phase-head__meta-sep { display: none; }
+      .phase-head__meta > *:not(.save-indicator) { display: none; }
+    }
+    .phase-head__save .save-indicator { margin: 0; }
+    .phase-head__meta-sep { color: var(--c-rule-bold); }
+
+    /* qchip persistent */
+    .qchip {
+      padding: var(--s-3) var(--s-5);
+      background: var(--c-card);
+      border-bottom: 1px solid var(--c-rule);
+      display: flex;
+      gap: var(--s-3);
+      align-items: center;
+      cursor: pointer;
+      transition: background var(--t-fast) var(--ease);
+    }
+    .qchip:hover { background: var(--c-bg-soft); }
+    .qchip__icon { width: 28px; height: 28px; flex: 0 0 auto; border-radius: var(--r-pill); background: var(--c-navy-lt); color: var(--c-navy); display: inline-flex; align-items: center; justify-content: center; font-size: 14px; }
+    .qchip__main { flex: 1; min-width: 0; }
+    .qchip__company { font-size: var(--t-cap); color: var(--c-ink-3); margin-bottom: 2px; }
+    .qchip__title {
+      font-size: var(--t-body-sm);
+      color: var(--c-ink);
+      overflow: hidden;
+      text-overflow: ellipsis;
+      white-space: nowrap;
+    }
+    .qchip__caret { color: var(--c-ink-3); font-size: 16px; flex: 0 0 auto; }
+
+    /* ───── GATE — page-level ───── */
+    .gate-wrap {
+      padding: var(--s-5) var(--s-4);
+      max-width: 920px;
+      margin: 0 auto;
+    }
+    @media (min-width: 768px) {
+      .gate-wrap { padding: var(--s-6) var(--s-5); }
+    }
+    @media (min-width: 1024px) {
+      .gate-wrap { padding: var(--s-7) var(--s-6); }
+    }
+
+    /* transition bar */
+    .gate-transition {
+      display: flex;
+      align-items: center;
+      gap: var(--s-3);
+      padding: var(--s-4) var(--s-5);
+      border-radius: var(--r-card);
+      margin-bottom: var(--s-5);
+      box-shadow: var(--shadow-1);
+    }
+    .gate-transition--ok {
+      background: linear-gradient(0deg, rgba(19,122,61,0.06), rgba(19,122,61,0.06)), var(--c-card);
+      border: 1px solid rgba(19,122,61,0.22);
+    }
+    .gate-transition--ok .gate-transition__icon { color: var(--c-success); }
+    .gate-transition--warn {
+      background: linear-gradient(0deg, rgba(19,122,61,0.06), rgba(19,122,61,0.06)), var(--c-card);
+      border: 1px solid rgba(19,122,61,0.22);
+    }
+    .gate-transition--warn .gate-transition__icon { color: var(--c-success); }
+    .gate-transition--error {
+      background: linear-gradient(0deg, rgba(182,31,31,0.05), rgba(182,31,31,0.05)), var(--c-card);
+      border: 1px solid rgba(182,31,31,0.22);
+    }
+    .gate-transition--error .gate-transition__icon { color: var(--c-danger); }
+    .gate-transition__icon { font-size: 24px; flex: 0 0 auto; line-height: 1; }
+    .gate-transition__main { flex: 1; min-width: 0; }
+    .gate-transition__title { font-size: var(--t-h3); font-weight: 600; color: var(--c-ink); letter-spacing: -0.005em; }
+    .gate-transition__sub { font-size: var(--t-meta); color: var(--c-ink-2); margin-top: 2px; }
+    .gate-transition__action {
+      flex: 0 0 auto;
+      padding: 10px var(--s-4);
+      border-radius: var(--r-input);
+      background: var(--c-navy);
+      color: #fff;
+      font-size: var(--t-body-sm);
+      font-weight: 500;
+      display: inline-flex;
+      align-items: center;
+      gap: var(--s-1);
+      min-height: 40px;
+    }
+    .gate-transition__action:hover { background: var(--c-navy-2); }
+    @media (max-width: 480px) {
+      .gate-transition { flex-wrap: wrap; }
+      .gate-transition__action { width: 100%; justify-content: center; margin-top: var(--s-2); order: 3; }
+    }
+
+    /* gate summary section label */
+    .gate-section-label {
+      display: flex;
+      align-items: center;
+      gap: var(--s-3);
+      margin: var(--s-6) 0 var(--s-4);
+      font-size: var(--t-h3);
+      font-weight: 600;
+      color: var(--c-navy);
+      letter-spacing: -0.005em;
+    }
+    .gate-section-label::before {
+      content: '';
+      width: 24px;
+      height: 2px;
+      background: var(--c-navy);
+      flex: 0 0 auto;
+    }
+    .gate-section-label__count {
+      margin-left: auto;
+      font-size: var(--t-cap);
+      font-weight: 400;
+      letter-spacing: 0.04em;
+      color: var(--c-ink-3);
+      text-transform: uppercase;
+    }
+
+    /* gate items — card-based blocks */
+    .gate-list {
+      display: flex;
+      flex-direction: column;
+      gap: var(--s-3);
+    }
+    .gate-item {
+      padding: var(--s-4) var(--s-5);
+      background: var(--c-card);
+      border: 1px solid var(--c-rule);
+      border-radius: var(--r-input);
+      display: flex;
+      gap: var(--s-3);
+      align-items: flex-start;
+    }
+    .gate-item__icon {
+      width: 24px;
+      flex: 0 0 auto;
+      font-size: 20px;
+      line-height: 1.2;
+      text-align: center;
+      padding-top: 2px;
+    }
+    .gate-item__main { flex: 1; min-width: 0; }
+    .gate-item__field {
+      font-size: var(--t-cap);
+      letter-spacing: 0.06em;
+      text-transform: uppercase;
+      color: var(--c-ink-3);
+      margin-bottom: 2px;
+    }
+    .gate-item__title {
+      font-size: var(--t-body);
+      font-weight: 600;
+      color: var(--c-ink);
+      letter-spacing: -0.005em;
+    }
+    .gate-item__reason {
+      font-size: var(--t-body-sm);
+      line-height: 1.7;
+      color: var(--c-ink-2);
+      margin-top: var(--s-2);
+      max-width: 60ch;
+    }
+    .gate-item__suggestion {
+      margin-top: var(--s-3);
+      padding: var(--s-3);
+      border-radius: var(--r-input);
+      font-size: var(--t-body-sm);
+      line-height: 1.7;
+      display: flex;
+      gap: var(--s-2);
+      align-items: flex-start;
+    }
+    .gate-item__suggestion strong {
+      flex: 0 0 auto;
+      font-weight: 600;
+      letter-spacing: 0.04em;
+    }
+    .gate-item__suggestion-body { flex: 1; min-width: 0; color: var(--c-ink-2); }
+
+    /* item — ok variant */
+    .gate-item--ok { /* default white card */ }
+    .gate-item--ok .gate-item__icon { color: var(--c-success); }
+
+    /* item — warn variant (sidebar style — not error red) */
+    .gate-item--warn {
+      background: linear-gradient(0deg, rgba(184,92,0,0.04), rgba(184,92,0,0.04)), var(--c-card);
+      border-color: rgba(184,92,0,0.22);
+    }
+    .gate-item--warn .gate-item__icon { color: var(--c-warn); }
+    .gate-item--warn .gate-item__suggestion {
+      background: rgba(184,92,0,0.07);
+      border: 1px solid rgba(184,92,0,0.18);
+    }
+    .gate-item--warn .gate-item__suggestion strong { color: var(--c-warn); }
+
+    /* item — error variant */
+    .gate-item--error {
+      background: linear-gradient(0deg, rgba(182,31,31,0.04), rgba(182,31,31,0.04)), var(--c-card);
+      border-color: rgba(182,31,31,0.24);
+    }
+    .gate-item--error .gate-item__icon { color: var(--c-danger); }
+    .gate-item--error .gate-item__suggestion {
+      background: rgba(182,31,31,0.06);
+      border: 1px solid rgba(182,31,31,0.20);
+    }
+    .gate-item--error .gate-item__suggestion strong { color: var(--c-danger); }
+
+    /* sticky submit bar — LOCKED from 03 */
+    .submit-bar {
+      position: sticky;
+      bottom: 0;
+      background: rgba(255,255,255,0.92);
+      -webkit-backdrop-filter: saturate(140%) blur(10px);
+      backdrop-filter: saturate(140%) blur(10px);
+      border-top: 1px solid var(--c-rule);
+      padding: var(--s-3) var(--s-4) max(var(--s-3), env(safe-area-inset-bottom));
+      display: flex;
+      gap: var(--s-3);
+      justify-content: space-between;
+      align-items: center;
+    }
+    .submit-bar__left, .submit-bar__right { display: flex; gap: var(--s-2); align-items: center; flex-wrap: wrap; }
+    .btn {
+      display: inline-flex;
+      align-items: center;
+      gap: var(--s-2);
+      min-height: var(--touch-min);
+      padding: 0 var(--s-5);
+      border-radius: var(--r-input);
+      font-size: var(--t-body-sm);
+      font-weight: 500;
+      transition: all var(--t-fast) var(--ease);
+    }
+    .btn--primary { background: var(--c-navy); color: #fff; }
+    .btn--primary:hover { background: var(--c-navy-2); }
+    .btn--ghost { background: transparent; color: var(--c-ink-2); border: 1px solid var(--c-rule-bold); }
+    .btn--ghost:hover { background: var(--c-bg-soft); color: var(--c-ink); }
+
+    /* loading state */
+    .gate-loading-wrap {
+      padding: var(--s-9) var(--s-5);
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      gap: var(--s-4);
+      max-width: 480px;
+      margin: 0 auto;
+      text-align: center;
+    }
+    .gate-spinner {
+      width: 48px;
+      height: 48px;
+      border: 3px solid var(--c-rule);
+      border-top-color: var(--c-navy);
+      border-radius: 50%;
+      animation: spin 0.8s linear infinite;
+    }
+    @keyframes spin { to { transform: rotate(360deg); } }
+    .gate-loading-title {
+      font-size: var(--t-h3);
+      font-weight: 600;
+      color: var(--c-ink);
+      letter-spacing: -0.005em;
+    }
+    .gate-loading-sub {
+      font-size: var(--t-meta);
+      color: var(--c-ink-3);
+      max-width: 320px;
+    }
+    .gate-loading-checklist {
+      display: flex;
+      flex-direction: column;
+      gap: var(--s-2);
+      margin-top: var(--s-4);
+      width: 100%;
+      max-width: 320px;
+      align-items: flex-start;
+    }
+    .gate-loading-step {
+      display: flex;
+      align-items: center;
+      gap: var(--s-3);
+      font-size: var(--t-body-sm);
+      color: var(--c-ink-3);
+      width: 100%;
+    }
+    .gate-loading-step.is-done { color: var(--c-ink-2); }
+    .gate-loading-step.is-active { color: var(--c-ink); }
+    .gate-loading-step__icon {
+      width: 20px;
+      height: 20px;
+      flex: 0 0 auto;
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+      font-size: 16px;
+    }
+    .gate-loading-step.is-done .gate-loading-step__icon { color: var(--c-success); }
+    .gate-loading-step.is-active .gate-loading-step__icon { color: var(--c-navy); }
+    .gate-loading-step.is-pending .gate-loading-step__icon { color: var(--c-ink-4); }
+
+    .vp-frame__inner {
+      background: var(--c-bg);
+      min-height: 800px;
+      display: flex;
+      flex-direction: column;
+    }
+    .vp-frame__inner > .gate-content { flex: 1; }
+
+    /* readme tag */
+    .legend-grid {
+      display: grid;
+      gap: var(--s-3);
+      grid-template-columns: 1fr;
+      max-width: 1180px;
+      margin: var(--s-4) auto var(--s-7);
+    }
+    @media (min-width: 768px) {
+      .legend-grid { grid-template-columns: 1fr 1fr 1fr; }
+    }
+    .legend-card {
+      padding: var(--s-4);
+      background: var(--c-card);
+      border: 1px solid var(--c-rule);
+      border-radius: var(--r-input);
+    }
+    .legend-card__head {
+      font-size: var(--t-meta);
+      font-weight: 600;
+      color: var(--c-ink);
+      letter-spacing: 0.02em;
+      margin-bottom: var(--s-2);
+      display: flex;
+      align-items: center;
+      gap: var(--s-2);
+    }
+    .legend-card__head i { font-size: 16px; }
+    .legend-card--ok .legend-card__head i { color: var(--c-success); }
+    .legend-card--warn .legend-card__head i { color: var(--c-warn); }
+    .legend-card--error .legend-card__head i { color: var(--c-danger); }
+    .legend-card__body { font-size: var(--t-meta); color: var(--c-ink-2); line-height: 1.7; }
+    .legend-card__body code { font-family: ui-monospace, 'SF Mono', monospace; font-size: 11px; background: var(--c-bg-soft); padding: 1px 6px; border-radius: 4px; }
+  </style>
+</head>
+<body>
+  <div class="ds-page">
+    <header class="ds-header">
+      <div class="ds-header__eyebrow">Path 2 · Mockup 04 · CONTRACT-LOCKED 草稿</div>
+      <h1>Phase 1.5 Gate — 三態 error / warn / ok（含 loading + simulation override）</h1>
+      <p class="ds-header__sub">
+        Phase 1 表單提交後，AI 對四個欄位（C1 / I / R / C2 等步驟對應欄位）做框架審核，回 <code>overallStatus</code> + <code>items[]</code>。
+        任一 error item = 必擋（drill / simulation 一致），唯一動作「返回修改」；warn / ok 通行。三裝置並排：mobile 360 / tablet 768 / desktop 1280。
+      </p>
+    </header>
+
+    <!-- Legend -->
+    <div class="legend-grid">
+      <div class="legend-card legend-card--ok">
+        <div class="legend-card__head"><i class="ph-fill ph-check-circle"></i>OK 通行 · drill + simulation</div>
+        <div class="legend-card__body">綠色 transition + 全 ok items；可直接點「繼續到 Phase 2」。<code>overallStatus = "ok"</code></div>
+      </div>
+      <div class="legend-card legend-card--warn">
+        <div class="legend-card__head"><i class="ph-fill ph-warning"></i>WARN 通行附提醒</div>
+        <div class="legend-card__body">綠色 transition（仍通過）+ 1-2 個 warn item 提示可優化點；繼續按鈕仍可用。<code>overallStatus = "warn"</code></div>
+      </div>
+      <div class="legend-card legend-card--error">
+        <div class="legend-card__head"><i class="ph-fill ph-x-circle"></i>ERROR 阻擋 · drill + simulation 一致</div>
+        <div class="legend-card__body">紅色 transition + 阻擋 inline 繼續；底部 sticky bar 唯一動作「返回修改」。任一紅 item = 必擋，無風險繼續路徑。<code>overallStatus = "error"</code></div>
+      </div>
+    </div>
+
+    <!-- ============================================================ -->
+    <!-- Section A — OK state                                         -->
+    <!-- ============================================================ -->
+    <h2 class="vp-section-title">A · 全通過（ok） <span class="vp-section-title__sub">drill mode · 點繼續直接進 Phase 2</span></h2>
+    <div class="anno"><strong>視覺契約：</strong>綠色 transition bar 帶 inline「繼續」CTA → 不出 sticky bottom bar。每個 item 是白底 card + 綠色 check icon + 簡短 reason，不出 suggestion。Section label 用 <code>navy bar + 16px 600</code>。</div>
+    <div class="vp-grid">
+
+      <!-- ===== A · Mobile 360 ===== -->
+      <div class="vp-frame">
+        <div class="vp-frame__label"><span>Mobile</span><span>360 × 760</span></div>
+        <div class="vp-frame__inner" style="width:360px">
+          <div class="navbar">
+            <button class="navbar__icon-btn" aria-label="menu"><i class="ph ph-list"></i></button>
+            <div class="navbar__brand"><span class="navbar__brand-icon">PM</span></div>
+            <div class="navbar__actions">
+              <button class="navbar__icon-btn" aria-label="home"><i class="ph ph-house"></i></button>
+            </div>
+          </div>
+          <div class="progress">
+            <span class="progress__step is-done"><span class="step-letter">C</span><span>澄清</span></span>
+            <span class="progress__step is-active"><span class="step-letter">I</span><span>用戶</span></span>
+            <span class="progress__step"><span class="step-letter">R</span><span>需求</span></span>
+            <span class="progress__step"><span class="step-letter">C</span><span>排序</span></span>
+            <span class="progress__step"><span class="step-letter">L</span><span>方案</span></span>
+            <span class="progress__step"><span class="step-letter">E</span><span>取捨</span></span>
+            <span class="progress__step"><span class="step-letter">S</span><span>總結</span></span>
+          </div>
+          <div class="phase-head">
+            <span class="phase-head__num">1.5</span>
+            <div class="phase-head__main">
+              <div class="phase-head__eyebrow">Phase 1.5 · 框架審核</div>
+              <div class="phase-head__title">I · 定義用戶</div>
+            </div>
+          </div>
+          <button class="qchip">
+            <span class="qchip__icon"><i class="ph ph-bookmark-simple"></i></span>
+            <div class="qchip__main">
+              <div class="qchip__company">Spotify · 主動探索</div>
+              <div class="qchip__title">提升 podcast 新用戶 7 日留存</div>
+            </div>
+            <i class="ph ph-caret-right qchip__caret"></i>
+          </button>
+          <div class="gate-content">
+            <div class="gate-wrap">
+              <div class="gate-transition gate-transition--ok">
+                <i class="ph-fill ph-check-circle gate-transition__icon"></i>
+                <div class="gate-transition__main">
+                  <div class="gate-transition__title">框架完整</div>
+                  <div class="gate-transition__sub">四個欄位都對齊到 I 步核心定義</div>
+                </div>
+                <button class="gate-transition__action">繼續 <i class="ph ph-arrow-right"></i></button>
+              </div>
+
+              <div class="gate-section-label">逐欄位回饋 <span class="gate-section-label__count">4 / 4 通過</span></div>
+              <div class="gate-list">
+                <div class="gate-item gate-item--ok">
+                  <i class="ph-fill ph-check-circle gate-item__icon"></i>
+                  <div class="gate-item__main">
+                    <div class="gate-item__field">目標用戶分群</div>
+                    <div class="gate-item__title">用戶輪廓清晰可分群</div>
+                    <div class="gate-item__reason">你寫到「30 天內註冊但未養成日常收聽習慣的新用戶」 — 用戶切分明確且可量化，避開「全用戶都受影響」的籠統敘述。</div>
+                  </div>
+                </div>
+                <div class="gate-item gate-item--ok">
+                  <i class="ph-fill ph-check-circle gate-item__icon"></i>
+                  <div class="gate-item__main">
+                    <div class="gate-item__field">選定焦點對象</div>
+                    <div class="gate-item__title">焦點對象明確可操作</div>
+                    <div class="gate-item__reason">從多個分群中選定「第 1 週新用戶」作為主要焦點，避免後續探索同時處理多群體導致失焦。</div>
+                  </div>
+                </div>
+                <div class="gate-item gate-item--ok">
+                  <i class="ph-fill ph-check-circle gate-item__icon"></i>
+                  <div class="gate-item__main">
+                    <div class="gate-item__field">用戶動機假設</div>
+                    <div class="gate-item__title">動機假設可被檢驗</div>
+                    <div class="gate-item__reason">寫到「新用戶想要 podcast 取代 commute 時段背景音」 — 是可被訪談 / 數據驗證的 belief，不是「我覺得用戶喜歡」這種主觀宣告。</div>
+                  </div>
+                </div>
+                <div class="gate-item gate-item--ok">
+                  <i class="ph-fill ph-check-circle gate-item__icon"></i>
+                  <div class="gate-item__main">
+                    <div class="gate-item__field">排除對象</div>
+                    <div class="gate-item__title">明確標出不處理的群</div>
+                    <div class="gate-item__reason">排除「3 個月以上的老用戶」與「已付費 podcast 用戶」 — 避免後續 Phase 2 對話被無關群體稀釋焦點。</div>
+                  </div>
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- ===== A · Tablet 768 ===== -->
+      <div class="vp-frame">
+        <div class="vp-frame__label"><span>Tablet</span><span>768 × 760</span></div>
+        <div class="vp-frame__inner" style="width:768px">
+          <div class="navbar">
+            <button class="navbar__icon-btn" aria-label="menu"><i class="ph ph-list"></i></button>
+            <div class="navbar__brand"><span class="navbar__brand-icon">PM</span><span class="navbar__brand-name">PM Drill</span></div>
+            <nav class="navbar__tabs">
+              <button class="navbar__tab is-active">CIRCLES</button>
+              <button class="navbar__tab">北極星</button>
+            </nav>
+            <div class="navbar__actions">
+              <button class="navbar__icon-btn" aria-label="search"><i class="ph ph-magnifying-glass"></i></button>
+              <button class="navbar__icon-btn" aria-label="home"><i class="ph ph-house"></i></button>
+            </div>
+          </div>
+          <div class="progress">
+            <span class="progress__step is-done"><span class="step-letter">C</span><span>澄清</span></span>
+            <span class="progress__step is-active"><span class="step-letter">I</span><span>用戶</span></span>
+            <span class="progress__step"><span class="step-letter">R</span><span>需求</span></span>
+            <span class="progress__step"><span class="step-letter">C</span><span>排序</span></span>
+            <span class="progress__step"><span class="step-letter">L</span><span>方案</span></span>
+            <span class="progress__step"><span class="step-letter">E</span><span>取捨</span></span>
+            <span class="progress__step"><span class="step-letter">S</span><span>總結</span></span>
+          </div>
+          <div class="phase-head">
+            <span class="phase-head__num">1.5</span>
+            <div class="phase-head__main">
+              <div class="phase-head__eyebrow">Phase 1.5 · 框架審核</div>
+              <div class="phase-head__title">I · 定義用戶</div>
+            </div>
+            <div class="phase-head__meta">
+              <span><i class="ph ph-timer" style="font-size:14px;vertical-align:-2px"></i> 11.4 秒</span>
+            </div>
+          </div>
+          <button class="qchip">
+            <span class="qchip__icon"><i class="ph ph-bookmark-simple"></i></span>
+            <div class="qchip__main">
+              <div class="qchip__company">Spotify · 主動探索（Drill · Improve）</div>
+              <div class="qchip__title">提升 podcast 新用戶 7 日留存率（從 18% 到 25%）</div>
+            </div>
+            <i class="ph ph-caret-right qchip__caret"></i>
+          </button>
+          <div class="gate-content">
+            <div class="gate-wrap">
+              <div class="gate-transition gate-transition--ok">
+                <i class="ph-fill ph-check-circle gate-transition__icon"></i>
+                <div class="gate-transition__main">
+                  <div class="gate-transition__title">框架完整</div>
+                  <div class="gate-transition__sub">四個欄位都對齊到 I 步核心定義，沒有需要修正</div>
+                </div>
+                <button class="gate-transition__action">繼續 <i class="ph ph-arrow-right"></i></button>
+              </div>
+
+              <div class="gate-section-label">逐欄位回饋 <span class="gate-section-label__count">4 / 4 通過</span></div>
+              <div class="gate-list">
+                <div class="gate-item gate-item--ok">
+                  <i class="ph-fill ph-check-circle gate-item__icon"></i>
+                  <div class="gate-item__main">
+                    <div class="gate-item__field">目標用戶分群</div>
+                    <div class="gate-item__title">用戶輪廓清晰可分群</div>
+                    <div class="gate-item__reason">你寫到「30 天內註冊但未養成日常收聽習慣的新用戶」 — 用戶切分明確且可量化，避開「全用戶都受影響」的籠統敘述。</div>
+                  </div>
+                </div>
+                <div class="gate-item gate-item--ok">
+                  <i class="ph-fill ph-check-circle gate-item__icon"></i>
+                  <div class="gate-item__main">
+                    <div class="gate-item__field">選定焦點對象</div>
+                    <div class="gate-item__title">焦點對象明確可操作</div>
+                    <div class="gate-item__reason">從多個分群中選定「第 1 週新用戶」作為主要焦點，避免後續探索同時處理多群體導致失焦。</div>
+                  </div>
+                </div>
+                <div class="gate-item gate-item--ok">
+                  <i class="ph-fill ph-check-circle gate-item__icon"></i>
+                  <div class="gate-item__main">
+                    <div class="gate-item__field">用戶動機假設</div>
+                    <div class="gate-item__title">動機假設可被檢驗</div>
+                    <div class="gate-item__reason">寫到「新用戶想要 podcast 取代 commute 時段背景音」 — 是可被訪談 / 數據驗證的 belief，不是「我覺得用戶喜歡」這種主觀宣告。</div>
+                  </div>
+                </div>
+                <div class="gate-item gate-item--ok">
+                  <i class="ph-fill ph-check-circle gate-item__icon"></i>
+                  <div class="gate-item__main">
+                    <div class="gate-item__field">排除對象</div>
+                    <div class="gate-item__title">明確標出不處理的群</div>
+                    <div class="gate-item__reason">排除「3 個月以上的老用戶」與「已付費 podcast 用戶」 — 避免後續 Phase 2 對話被無關群體稀釋焦點。</div>
+                  </div>
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- ===== A · Desktop 1280 ===== -->
+      <div class="vp-frame">
+        <div class="vp-frame__label"><span>Desktop</span><span>1280 × 760</span></div>
+        <div class="vp-frame__inner" style="width:1280px">
+          <div class="navbar">
+            <button class="navbar__icon-btn" aria-label="menu"><i class="ph ph-list"></i></button>
+            <div class="navbar__brand"><span class="navbar__brand-icon">PM</span><span class="navbar__brand-name">PM Drill</span></div>
+            <nav class="navbar__tabs">
+              <button class="navbar__tab is-active">CIRCLES</button>
+              <button class="navbar__tab">北極星</button>
+            </nav>
+            <div class="navbar__actions">
+              <span class="navbar__email">albertpeng678@gmail.com</span>
+              <button class="navbar__icon-btn" aria-label="search"><i class="ph ph-magnifying-glass"></i></button>
+              <button class="navbar__icon-btn" aria-label="home"><i class="ph ph-house"></i></button>
+            </div>
+          </div>
+          <div class="progress">
+            <span class="progress__step is-done"><span class="step-letter">C</span><span>澄清</span></span>
+            <span class="progress__step is-active"><span class="step-letter">I</span><span>用戶 · 進行中</span></span>
+            <span class="progress__step"><span class="step-letter">R</span><span>需求</span></span>
+            <span class="progress__step"><span class="step-letter">C</span><span>排序</span></span>
+            <span class="progress__step"><span class="step-letter">L</span><span>方案</span></span>
+            <span class="progress__step"><span class="step-letter">E</span><span>取捨</span></span>
+            <span class="progress__step"><span class="step-letter">S</span><span>總結</span></span>
+          </div>
+          <div class="phase-head">
+            <span class="phase-head__num">1.5</span>
+            <div class="phase-head__main">
+              <div class="phase-head__eyebrow">Phase 1.5 · 框架審核</div>
+              <div class="phase-head__title">I · 定義用戶</div>
+            </div>
+            <div class="phase-head__meta">
+              <span><i class="ph ph-timer" style="font-size:14px;vertical-align:-2px"></i> 審核耗時 11.4 秒</span>
+              <span class="phase-head__meta-sep">·</span>
+              <span>4 個欄位 · 全部通過</span>
+            </div>
+          </div>
+          <button class="qchip">
+            <span class="qchip__icon"><i class="ph ph-bookmark-simple"></i></span>
+            <div class="qchip__main">
+              <div class="qchip__company">Spotify · 主動探索（Drill mode · Improve type）</div>
+              <div class="qchip__title">提升 podcast 新用戶 7 日留存率（從 18% 到 25%），鎖定 30 天內註冊但仍未養成日常收聽習慣的用戶</div>
+            </div>
+            <i class="ph ph-caret-right qchip__caret"></i>
+          </button>
+          <div class="gate-content">
+            <div class="gate-wrap">
+              <div class="gate-transition gate-transition--ok">
+                <i class="ph-fill ph-check-circle gate-transition__icon"></i>
+                <div class="gate-transition__main">
+                  <div class="gate-transition__title">框架完整</div>
+                  <div class="gate-transition__sub">四個欄位都對齊到 I 步核心定義，沒有需要修正</div>
+                </div>
+                <button class="gate-transition__action">繼續 <i class="ph ph-arrow-right"></i></button>
+              </div>
+
+              <div class="gate-section-label">逐欄位回饋 <span class="gate-section-label__count">4 / 4 通過</span></div>
+              <div class="gate-list">
+                <div class="gate-item gate-item--ok">
+                  <i class="ph-fill ph-check-circle gate-item__icon"></i>
+                  <div class="gate-item__main">
+                    <div class="gate-item__field">目標用戶分群</div>
+                    <div class="gate-item__title">用戶輪廓清晰可分群</div>
+                    <div class="gate-item__reason">你寫到「30 天內註冊但未養成日常收聽習慣的新用戶」 — 用戶切分明確且可量化，避開「全用戶都受影響」的籠統敘述。</div>
+                  </div>
+                </div>
+                <div class="gate-item gate-item--ok">
+                  <i class="ph-fill ph-check-circle gate-item__icon"></i>
+                  <div class="gate-item__main">
+                    <div class="gate-item__field">選定焦點對象</div>
+                    <div class="gate-item__title">焦點對象明確可操作</div>
+                    <div class="gate-item__reason">從多個分群中選定「第 1 週新用戶」作為主要焦點，避免後續探索同時處理多群體導致失焦。</div>
+                  </div>
+                </div>
+                <div class="gate-item gate-item--ok">
+                  <i class="ph-fill ph-check-circle gate-item__icon"></i>
+                  <div class="gate-item__main">
+                    <div class="gate-item__field">用戶動機假設</div>
+                    <div class="gate-item__title">動機假設可被檢驗</div>
+                    <div class="gate-item__reason">寫到「新用戶想要 podcast 取代 commute 時段背景音」 — 是可被訪談 / 數據驗證的 belief，不是「我覺得用戶喜歡」這種主觀宣告。</div>
+                  </div>
+                </div>
+                <div class="gate-item gate-item--ok">
+                  <i class="ph-fill ph-check-circle gate-item__icon"></i>
+                  <div class="gate-item__main">
+                    <div class="gate-item__field">排除對象</div>
+                    <div class="gate-item__title">明確標出不處理的群</div>
+                    <div class="gate-item__reason">排除「3 個月以上的老用戶」與「已付費 podcast 用戶」 — 避免後續 Phase 2 對話被無關群體稀釋焦點。</div>
+                  </div>
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+
+    </div>
+
+    <!-- ============================================================ -->
+    <!-- Section B — WARN state (still pass)                          -->
+    <!-- ============================================================ -->
+    <h2 class="vp-section-title">B · 通過附提醒（warn） <span class="vp-section-title__sub">drill + simulation 都可繼續，提示可優化</span></h2>
+    <div class="anno"><strong>視覺契約：</strong>仍是綠色 transition bar（warn ≠ block）+ inline 繼續鍵；warn item 用 4% 暖橘 bg + 22% border tint 與其它 ok item 區分；warn item 帶建議盒（橘色 7% bg）。</div>
+    <div class="vp-grid">
+
+      <!-- ===== B · Mobile 360 ===== -->
+      <div class="vp-frame">
+        <div class="vp-frame__label"><span>Mobile</span><span>360 × 800</span></div>
+        <div class="vp-frame__inner" style="width:360px">
+          <div class="navbar">
+            <button class="navbar__icon-btn" aria-label="menu"><i class="ph ph-list"></i></button>
+            <div class="navbar__brand"><span class="navbar__brand-icon">PM</span></div>
+            <div class="navbar__actions">
+              <button class="navbar__icon-btn" aria-label="home"><i class="ph ph-house"></i></button>
+            </div>
+          </div>
+          <div class="progress">
+            <span class="progress__step is-done"><span class="step-letter">C</span><span>澄清</span></span>
+            <span class="progress__step is-active"><span class="step-letter">R</span><span>需求</span></span>
+            <span class="progress__step"><span class="step-letter">C</span><span>排序</span></span>
+            <span class="progress__step"><span class="step-letter">L</span><span>方案</span></span>
+            <span class="progress__step"><span class="step-letter">E</span><span>取捨</span></span>
+            <span class="progress__step"><span class="step-letter">S</span><span>總結</span></span>
+          </div>
+          <div class="phase-head">
+            <span class="phase-head__num">1.5</span>
+            <div class="phase-head__main">
+              <div class="phase-head__eyebrow">Phase 1.5 · 框架審核</div>
+              <div class="phase-head__title">R · 發掘需求</div>
+            </div>
+          </div>
+          <button class="qchip">
+            <span class="qchip__icon"><i class="ph ph-bookmark-simple"></i></span>
+            <div class="qchip__main">
+              <div class="qchip__company">Notion · 主動探索</div>
+              <div class="qchip__title">提升新用戶第一週建檔率</div>
+            </div>
+            <i class="ph ph-caret-right qchip__caret"></i>
+          </button>
+          <div class="gate-content">
+            <div class="gate-wrap">
+              <div class="gate-transition gate-transition--warn">
+                <i class="ph-fill ph-check-circle gate-transition__icon"></i>
+                <div class="gate-transition__main">
+                  <div class="gate-transition__title">通過附提醒</div>
+                  <div class="gate-transition__sub">2 處可優化，繼續 Phase 2 不會卡</div>
+                </div>
+                <button class="gate-transition__action">繼續 <i class="ph ph-arrow-right"></i></button>
+              </div>
+
+              <div class="gate-section-label">逐欄位回饋 <span class="gate-section-label__count">2 通過 · 2 提醒</span></div>
+              <div class="gate-list">
+                <div class="gate-item gate-item--ok">
+                  <i class="ph-fill ph-check-circle gate-item__icon"></i>
+                  <div class="gate-item__main">
+                    <div class="gate-item__field">功能性需求</div>
+                    <div class="gate-item__title">功能性需求具體</div>
+                    <div class="gate-item__reason">寫到「新用戶想快速找到第一個能完成的 page template」 — 功能訴求具體，可直接對映 onboarding 流程設計。</div>
+                  </div>
+                </div>
+                <div class="gate-item gate-item--warn">
+                  <i class="ph-fill ph-warning gate-item__icon"></i>
+                  <div class="gate-item__main">
+                    <div class="gate-item__field">情感性需求</div>
+                    <div class="gate-item__title">情感需求停在表面</div>
+                    <div class="gate-item__reason">只寫「希望容易上手」 — 太籠統。情感需求要切到「為什麼想容易上手 / 過去用其他工具失敗的挫敗」這層，後續對話才有 belief 可驗。</div>
+                    <div class="gate-item__suggestion">
+                      <strong>建議</strong>
+                      <div class="gate-item__suggestion-body">改寫成「想避開過去 Evernote / OneNote 過度自由導致無從下手的挫折感」 — 把情感放到具體 anchor，後續才能設計信號。</div>
+                    </div>
+                  </div>
+                </div>
+                <div class="gate-item gate-item--ok">
+                  <i class="ph-fill ph-check-circle gate-item__icon"></i>
+                  <div class="gate-item__main">
+                    <div class="gate-item__field">社交性需求</div>
+                    <div class="gate-item__title">社交需求有區分情境</div>
+                    <div class="gate-item__reason">明確區分「個人筆記場景」與「協作邀請場景」的不同社交動機 — 後續可分 segment 設計。</div>
+                  </div>
+                </div>
+                <div class="gate-item gate-item--warn">
+                  <i class="ph-fill ph-warning gate-item__icon"></i>
+                  <div class="gate-item__main">
+                    <div class="gate-item__field">核心痛點</div>
+                    <div class="gate-item__title">痛點未排序，可能不是最痛</div>
+                    <div class="gate-item__reason">列了 3 個痛點但沒指出哪一個是阻擋上手的核心。沒排序的話 Phase 2 對話會被次要痛點佔用空間。</div>
+                    <div class="gate-item__suggestion">
+                      <strong>建議</strong>
+                      <div class="gate-item__suggestion-body">把 3 個痛點按「擋住第一週建檔的影響度」排序，或直接圈出「最核心 1 個」 — 其他兩個放後續優先級討論。</div>
+                    </div>
+                  </div>
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- ===== B · Tablet 768 ===== -->
+      <div class="vp-frame">
+        <div class="vp-frame__label"><span>Tablet</span><span>768 × 800</span></div>
+        <div class="vp-frame__inner" style="width:768px">
+          <div class="navbar">
+            <button class="navbar__icon-btn" aria-label="menu"><i class="ph ph-list"></i></button>
+            <div class="navbar__brand"><span class="navbar__brand-icon">PM</span><span class="navbar__brand-name">PM Drill</span></div>
+            <nav class="navbar__tabs">
+              <button class="navbar__tab is-active">CIRCLES</button>
+              <button class="navbar__tab">北極星</button>
+            </nav>
+            <div class="navbar__actions">
+              <button class="navbar__icon-btn" aria-label="search"><i class="ph ph-magnifying-glass"></i></button>
+              <button class="navbar__icon-btn" aria-label="home"><i class="ph ph-house"></i></button>
+            </div>
+          </div>
+          <div class="progress">
+            <span class="progress__step is-done"><span class="step-letter">C</span><span>澄清</span></span>
+            <span class="progress__step is-done"><span class="step-letter">I</span><span>用戶</span></span>
+            <span class="progress__step is-active"><span class="step-letter">R</span><span>需求 · 進行中</span></span>
+            <span class="progress__step"><span class="step-letter">C</span><span>排序</span></span>
+            <span class="progress__step"><span class="step-letter">L</span><span>方案</span></span>
+            <span class="progress__step"><span class="step-letter">E</span><span>取捨</span></span>
+            <span class="progress__step"><span class="step-letter">S</span><span>總結</span></span>
+          </div>
+          <div class="phase-head">
+            <span class="phase-head__num">1.5</span>
+            <div class="phase-head__main">
+              <div class="phase-head__eyebrow">Phase 1.5 · 框架審核</div>
+              <div class="phase-head__title">R · 發掘需求</div>
+            </div>
+            <div class="phase-head__meta">
+              <span><i class="ph ph-timer" style="font-size:14px;vertical-align:-2px"></i> 9.8 秒</span>
+            </div>
+          </div>
+          <button class="qchip">
+            <span class="qchip__icon"><i class="ph ph-bookmark-simple"></i></span>
+            <div class="qchip__main">
+              <div class="qchip__company">Notion · 主動探索（Drill · Improve）</div>
+              <div class="qchip__title">提升新用戶第一週建檔率（從 38% 到 50%）</div>
+            </div>
+            <i class="ph ph-caret-right qchip__caret"></i>
+          </button>
+          <div class="gate-content">
+            <div class="gate-wrap">
+              <div class="gate-transition gate-transition--warn">
+                <i class="ph-fill ph-check-circle gate-transition__icon"></i>
+                <div class="gate-transition__main">
+                  <div class="gate-transition__title">通過附提醒</div>
+                  <div class="gate-transition__sub">2 處可優化 — 帶進對話一起釐清會更精準</div>
+                </div>
+                <button class="gate-transition__action">繼續 <i class="ph ph-arrow-right"></i></button>
+              </div>
+
+              <div class="gate-section-label">逐欄位回饋 <span class="gate-section-label__count">2 通過 · 2 提醒</span></div>
+              <div class="gate-list">
+                <div class="gate-item gate-item--ok">
+                  <i class="ph-fill ph-check-circle gate-item__icon"></i>
+                  <div class="gate-item__main">
+                    <div class="gate-item__field">功能性需求</div>
+                    <div class="gate-item__title">功能性需求具體</div>
+                    <div class="gate-item__reason">寫到「新用戶想快速找到第一個能完成的 page template」 — 功能訴求具體，可直接對映 onboarding 流程設計。</div>
+                  </div>
+                </div>
+                <div class="gate-item gate-item--warn">
+                  <i class="ph-fill ph-warning gate-item__icon"></i>
+                  <div class="gate-item__main">
+                    <div class="gate-item__field">情感性需求</div>
+                    <div class="gate-item__title">情感需求停在表面</div>
+                    <div class="gate-item__reason">只寫「希望容易上手」 — 太籠統。情感需求要切到「為什麼想容易上手 / 過去用其他工具失敗的挫敗」這層，後續對話才有 belief 可驗。</div>
+                    <div class="gate-item__suggestion">
+                      <strong>建議</strong>
+                      <div class="gate-item__suggestion-body">改寫成「想避開過去 Evernote / OneNote 過度自由導致無從下手的挫折感」 — 把情感放到具體 anchor，後續才能設計信號。</div>
+                    </div>
+                  </div>
+                </div>
+                <div class="gate-item gate-item--ok">
+                  <i class="ph-fill ph-check-circle gate-item__icon"></i>
+                  <div class="gate-item__main">
+                    <div class="gate-item__field">社交性需求</div>
+                    <div class="gate-item__title">社交需求有區分情境</div>
+                    <div class="gate-item__reason">明確區分「個人筆記場景」與「協作邀請場景」的不同社交動機 — 後續可分 segment 設計。</div>
+                  </div>
+                </div>
+                <div class="gate-item gate-item--warn">
+                  <i class="ph-fill ph-warning gate-item__icon"></i>
+                  <div class="gate-item__main">
+                    <div class="gate-item__field">核心痛點</div>
+                    <div class="gate-item__title">痛點未排序，可能不是最痛</div>
+                    <div class="gate-item__reason">列了 3 個痛點但沒指出哪一個是阻擋上手的核心。沒排序的話 Phase 2 對話會被次要痛點佔用空間。</div>
+                    <div class="gate-item__suggestion">
+                      <strong>建議</strong>
+                      <div class="gate-item__suggestion-body">把 3 個痛點按「擋住第一週建檔的影響度」排序，或直接圈出「最核心 1 個」 — 其他兩個放後續優先級討論。</div>
+                    </div>
+                  </div>
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- ===== B · Desktop 1280 ===== -->
+      <div class="vp-frame">
+        <div class="vp-frame__label"><span>Desktop</span><span>1280 × 800</span></div>
+        <div class="vp-frame__inner" style="width:1280px">
+          <div class="navbar">
+            <button class="navbar__icon-btn" aria-label="menu"><i class="ph ph-list"></i></button>
+            <div class="navbar__brand"><span class="navbar__brand-icon">PM</span><span class="navbar__brand-name">PM Drill</span></div>
+            <nav class="navbar__tabs">
+              <button class="navbar__tab is-active">CIRCLES</button>
+              <button class="navbar__tab">北極星</button>
+            </nav>
+            <div class="navbar__actions">
+              <span class="navbar__email">albertpeng678@gmail.com</span>
+              <button class="navbar__icon-btn" aria-label="search"><i class="ph ph-magnifying-glass"></i></button>
+              <button class="navbar__icon-btn" aria-label="home"><i class="ph ph-house"></i></button>
+            </div>
+          </div>
+          <div class="progress">
+            <span class="progress__step is-done"><span class="step-letter">C</span><span>澄清</span></span>
+            <span class="progress__step is-done"><span class="step-letter">I</span><span>用戶</span></span>
+            <span class="progress__step is-active"><span class="step-letter">R</span><span>需求 · 進行中</span></span>
+            <span class="progress__step"><span class="step-letter">C</span><span>排序</span></span>
+            <span class="progress__step"><span class="step-letter">L</span><span>方案</span></span>
+            <span class="progress__step"><span class="step-letter">E</span><span>取捨</span></span>
+            <span class="progress__step"><span class="step-letter">S</span><span>總結</span></span>
+          </div>
+          <div class="phase-head">
+            <span class="phase-head__num">1.5</span>
+            <div class="phase-head__main">
+              <div class="phase-head__eyebrow">Phase 1.5 · 框架審核</div>
+              <div class="phase-head__title">R · 發掘需求</div>
+            </div>
+            <div class="phase-head__meta">
+              <span><i class="ph ph-timer" style="font-size:14px;vertical-align:-2px"></i> 審核耗時 9.8 秒</span>
+              <span class="phase-head__meta-sep">·</span>
+              <span>4 個欄位 · 2 通過 · 2 提醒</span>
+            </div>
+          </div>
+          <button class="qchip">
+            <span class="qchip__icon"><i class="ph ph-bookmark-simple"></i></span>
+            <div class="qchip__main">
+              <div class="qchip__company">Notion · 主動探索（Drill mode · Improve type）</div>
+              <div class="qchip__title">提升新用戶第一週建檔率（從 38% 到 50%），鎖定協作邀請與個人筆記兩個進入路徑</div>
+            </div>
+            <i class="ph ph-caret-right qchip__caret"></i>
+          </button>
+          <div class="gate-content">
+            <div class="gate-wrap">
+              <div class="gate-transition gate-transition--warn">
+                <i class="ph-fill ph-check-circle gate-transition__icon"></i>
+                <div class="gate-transition__main">
+                  <div class="gate-transition__title">通過附提醒</div>
+                  <div class="gate-transition__sub">2 處可優化 — 帶進對話一起釐清會更精準</div>
+                </div>
+                <button class="gate-transition__action">繼續 <i class="ph ph-arrow-right"></i></button>
+              </div>
+
+              <div class="gate-section-label">逐欄位回饋 <span class="gate-section-label__count">2 通過 · 2 提醒</span></div>
+              <div class="gate-list">
+                <div class="gate-item gate-item--ok">
+                  <i class="ph-fill ph-check-circle gate-item__icon"></i>
+                  <div class="gate-item__main">
+                    <div class="gate-item__field">功能性需求</div>
+                    <div class="gate-item__title">功能性需求具體</div>
+                    <div class="gate-item__reason">寫到「新用戶想快速找到第一個能完成的 page template」 — 功能訴求具體，可直接對映 onboarding 流程設計。</div>
+                  </div>
+                </div>
+                <div class="gate-item gate-item--warn">
+                  <i class="ph-fill ph-warning gate-item__icon"></i>
+                  <div class="gate-item__main">
+                    <div class="gate-item__field">情感性需求</div>
+                    <div class="gate-item__title">情感需求停在表面</div>
+                    <div class="gate-item__reason">只寫「希望容易上手」 — 太籠統。情感需求要切到「為什麼想容易上手 / 過去用其他工具失敗的挫敗」這層，後續對話才有 belief 可驗。</div>
+                    <div class="gate-item__suggestion">
+                      <strong>建議</strong>
+                      <div class="gate-item__suggestion-body">改寫成「想避開過去 Evernote / OneNote 過度自由導致無從下手的挫折感」 — 把情感放到具體 anchor，後續才能設計信號。</div>
+                    </div>
+                  </div>
+                </div>
+                <div class="gate-item gate-item--ok">
+                  <i class="ph-fill ph-check-circle gate-item__icon"></i>
+                  <div class="gate-item__main">
+                    <div class="gate-item__field">社交性需求</div>
+                    <div class="gate-item__title">社交需求有區分情境</div>
+                    <div class="gate-item__reason">明確區分「個人筆記場景」與「協作邀請場景」的不同社交動機 — 後續可分 segment 設計。</div>
+                  </div>
+                </div>
+                <div class="gate-item gate-item--warn">
+                  <i class="ph-fill ph-warning gate-item__icon"></i>
+                  <div class="gate-item__main">
+                    <div class="gate-item__field">核心痛點</div>
+                    <div class="gate-item__title">痛點未排序，可能不是最痛</div>
+                    <div class="gate-item__reason">列了 3 個痛點但沒指出哪一個是阻擋上手的核心。沒排序的話 Phase 2 對話會被次要痛點佔用空間。</div>
+                    <div class="gate-item__suggestion">
+                      <strong>建議</strong>
+                      <div class="gate-item__suggestion-body">把 3 個痛點按「擋住第一週建檔的影響度」排序，或直接圈出「最核心 1 個」 — 其他兩個放後續優先級討論。</div>
+                    </div>
+                  </div>
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+
+    </div>
+
+    <!-- ============================================================ -->
+    <!-- Section C — ERROR state (drill mode block)                   -->
+    <!-- ============================================================ -->
+    <h2 class="vp-section-title">C · 阻擋（error） <span class="vp-section-title__sub">drill + simulation 一致 — 紅色 transition + 底部 sticky 返回修改</span></h2>
+    <div class="anno"><strong>視覺契約：</strong>紅 transition bar <em>不</em>出 inline 繼續鍵；error item 用 4% 紅 bg + 24% border tint；底部 sticky bar 出單顆「返回修改」（drill / simulation 唯一路徑）。Section count 顯示「N 通過 · M 阻擋」。</div>
+    <div class="vp-grid">
+
+      <!-- ===== C · Mobile 360 ===== -->
+      <div class="vp-frame">
+        <div class="vp-frame__label"><span>Mobile</span><span>360 × 880</span></div>
+        <div class="vp-frame__inner" style="width:360px">
+          <div class="navbar">
+            <button class="navbar__icon-btn" aria-label="menu"><i class="ph ph-list"></i></button>
+            <div class="navbar__brand"><span class="navbar__brand-icon">PM</span></div>
+            <div class="navbar__actions">
+              <button class="navbar__icon-btn" aria-label="home"><i class="ph ph-house"></i></button>
+            </div>
+          </div>
+          <div class="progress">
+            <span class="progress__step is-active"><span class="step-letter">C</span><span>澄清</span></span>
+            <span class="progress__step"><span class="step-letter">I</span><span>用戶</span></span>
+            <span class="progress__step"><span class="step-letter">R</span><span>需求</span></span>
+            <span class="progress__step"><span class="step-letter">C</span><span>排序</span></span>
+            <span class="progress__step"><span class="step-letter">L</span><span>方案</span></span>
+            <span class="progress__step"><span class="step-letter">E</span><span>取捨</span></span>
+            <span class="progress__step"><span class="step-letter">S</span><span>總結</span></span>
+          </div>
+          <div class="phase-head">
+            <span class="phase-head__num">1.5</span>
+            <div class="phase-head__main">
+              <div class="phase-head__eyebrow">Phase 1.5 · 框架審核</div>
+              <div class="phase-head__title">C · 澄清情境</div>
+            </div>
+          </div>
+          <button class="qchip">
+            <span class="qchip__icon"><i class="ph ph-bookmark-simple"></i></span>
+            <div class="qchip__main">
+              <div class="qchip__company">Airbnb · 主動探索</div>
+              <div class="qchip__title">設計新用戶推薦旅遊體驗</div>
+            </div>
+            <i class="ph ph-caret-right qchip__caret"></i>
+          </button>
+          <div class="gate-content">
+            <div class="gate-wrap">
+              <div class="gate-transition gate-transition--error">
+                <i class="ph-fill ph-x-circle gate-transition__icon"></i>
+                <div class="gate-transition__main">
+                  <div class="gate-transition__title">需要修正方向</div>
+                  <div class="gate-transition__sub">2 個欄位偏離 C 步核心，請回頭調整</div>
+                </div>
+              </div>
+
+              <div class="gate-section-label">逐欄位回饋 <span class="gate-section-label__count">2 通過 · 2 阻擋</span></div>
+              <div class="gate-list">
+                <div class="gate-item gate-item--error">
+                  <i class="ph-fill ph-x-circle gate-item__icon"></i>
+                  <div class="gate-item__main">
+                    <div class="gate-item__field">問題範圍</div>
+                    <div class="gate-item__title">邊界沒劃清，跳到方案</div>
+                    <div class="gate-item__reason">這個欄位該回答「題目的問題是什麼類型 / 涵蓋哪些場景 / 哪些明確排除」，但你寫的是「做一個推薦演算法」 — 這是答案而不是範圍。</div>
+                    <div class="gate-item__suggestion">
+                      <strong>修正</strong>
+                      <div class="gate-item__suggestion-body">改寫成「聚焦新用戶第一次訂房後 30 天內的 探索 → 體驗預訂 路徑，排除已多次預訂的老用戶與住宿轉換」 — 這才是問題範圍。</div>
+                    </div>
+                  </div>
+                </div>
+                <div class="gate-item gate-item--ok">
+                  <i class="ph-fill ph-check-circle gate-item__icon"></i>
+                  <div class="gate-item__main">
+                    <div class="gate-item__field">時間範圍</div>
+                    <div class="gate-item__title">時間視窗明確</div>
+                    <div class="gate-item__reason">寫到「6 個月內看到 30% 提升」 — 時間軸具體，避免「儘快」這種無法驗收的模糊承諾。</div>
+                  </div>
+                </div>
+                <div class="gate-item gate-item--ok">
+                  <i class="ph-fill ph-check-circle gate-item__icon"></i>
+                  <div class="gate-item__main">
+                    <div class="gate-item__field">業務影響</div>
+                    <div class="gate-item__title">量化影響合理</div>
+                    <div class="gate-item__reason">把問題與「體驗業務年營收佔比」連起來，避免「重要」這類無依據的價值宣告。</div>
+                  </div>
+                </div>
+                <div class="gate-item gate-item--error">
+                  <i class="ph-fill ph-x-circle gate-item__icon"></i>
+                  <div class="gate-item__main">
+                    <div class="gate-item__field">假設確認</div>
+                    <div class="gate-item__title">假設只列 KPI，不是 belief</div>
+                    <div class="gate-item__reason">「轉換率提升 30%」是 target 而不是 assumption；缺了「為什麼會提升 / 用戶會接受推薦」這層 belief，後續實驗設計沒有信念可驗。</div>
+                    <div class="gate-item__suggestion">
+                      <strong>修正</strong>
+                      <div class="gate-item__suggestion-body">改寫成「假設新用戶在訂房後對在地探索仍有興趣，且 30 天內推薦相關體驗能在情境內接住」 — 這是可被檢驗的 belief，而不是 KPI。</div>
+                    </div>
+                  </div>
+                </div>
+              </div>
+            </div>
+          </div>
+          <div class="submit-bar">
+            <div class="submit-bar__left"></div>
+            <div class="submit-bar__right">
+              <button class="btn btn--primary"><i class="ph ph-arrow-left"></i>返回修改</button>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- ===== C · Tablet 768 ===== -->
+      <div class="vp-frame">
+        <div class="vp-frame__label"><span>Tablet</span><span>768 × 880</span></div>
+        <div class="vp-frame__inner" style="width:768px">
+          <div class="navbar">
+            <button class="navbar__icon-btn" aria-label="menu"><i class="ph ph-list"></i></button>
+            <div class="navbar__brand"><span class="navbar__brand-icon">PM</span><span class="navbar__brand-name">PM Drill</span></div>
+            <nav class="navbar__tabs">
+              <button class="navbar__tab is-active">CIRCLES</button>
+              <button class="navbar__tab">北極星</button>
+            </nav>
+            <div class="navbar__actions">
+              <button class="navbar__icon-btn" aria-label="search"><i class="ph ph-magnifying-glass"></i></button>
+              <button class="navbar__icon-btn" aria-label="home"><i class="ph ph-house"></i></button>
+            </div>
+          </div>
+          <div class="progress">
+            <span class="progress__step is-active"><span class="step-letter">C</span><span>澄清</span></span>
+            <span class="progress__step"><span class="step-letter">I</span><span>用戶</span></span>
+            <span class="progress__step"><span class="step-letter">R</span><span>需求</span></span>
+            <span class="progress__step"><span class="step-letter">C</span><span>排序</span></span>
+            <span class="progress__step"><span class="step-letter">L</span><span>方案</span></span>
+            <span class="progress__step"><span class="step-letter">E</span><span>取捨</span></span>
+            <span class="progress__step"><span class="step-letter">S</span><span>總結</span></span>
+          </div>
+          <div class="phase-head">
+            <span class="phase-head__num">1.5</span>
+            <div class="phase-head__main">
+              <div class="phase-head__eyebrow">Phase 1.5 · 框架審核</div>
+              <div class="phase-head__title">C · 澄清情境</div>
+            </div>
+            <div class="phase-head__meta">
+              <span><i class="ph ph-timer" style="font-size:14px;vertical-align:-2px"></i> 12.6 秒</span>
+            </div>
+          </div>
+          <button class="qchip">
+            <span class="qchip__icon"><i class="ph ph-bookmark-simple"></i></span>
+            <div class="qchip__main">
+              <div class="qchip__company">Airbnb · 主動探索（Drill · Design）</div>
+              <div class="qchip__title">為新用戶設計推薦旅遊體驗的入口</div>
+            </div>
+            <i class="ph ph-caret-right qchip__caret"></i>
+          </button>
+          <div class="gate-content">
+            <div class="gate-wrap">
+              <div class="gate-transition gate-transition--error">
+                <i class="ph-fill ph-x-circle gate-transition__icon"></i>
+                <div class="gate-transition__main">
+                  <div class="gate-transition__title">需要修正方向</div>
+                  <div class="gate-transition__sub">2 個欄位偏離 C 步核心，直接進 Phase 2 會把對話帶歪</div>
+                </div>
+              </div>
+
+              <div class="gate-section-label">逐欄位回饋 <span class="gate-section-label__count">2 通過 · 2 阻擋</span></div>
+              <div class="gate-list">
+                <div class="gate-item gate-item--error">
+                  <i class="ph-fill ph-x-circle gate-item__icon"></i>
+                  <div class="gate-item__main">
+                    <div class="gate-item__field">問題範圍</div>
+                    <div class="gate-item__title">邊界沒劃清，跳到方案</div>
+                    <div class="gate-item__reason">這個欄位該回答「題目的問題是什麼類型 / 涵蓋哪些場景 / 哪些明確排除」，但你寫的是「做一個推薦演算法」 — 這是答案而不是範圍。</div>
+                    <div class="gate-item__suggestion">
+                      <strong>修正</strong>
+                      <div class="gate-item__suggestion-body">改寫成「聚焦新用戶第一次訂房後 30 天內的 探索 → 體驗預訂 路徑，排除已多次預訂的老用戶與住宿轉換」 — 這才是問題範圍。</div>
+                    </div>
+                  </div>
+                </div>
+                <div class="gate-item gate-item--ok">
+                  <i class="ph-fill ph-check-circle gate-item__icon"></i>
+                  <div class="gate-item__main">
+                    <div class="gate-item__field">時間範圍</div>
+                    <div class="gate-item__title">時間視窗明確</div>
+                    <div class="gate-item__reason">寫到「6 個月內看到 30% 提升」 — 時間軸具體，避免「儘快」這種無法驗收的模糊承諾。</div>
+                  </div>
+                </div>
+                <div class="gate-item gate-item--ok">
+                  <i class="ph-fill ph-check-circle gate-item__icon"></i>
+                  <div class="gate-item__main">
+                    <div class="gate-item__field">業務影響</div>
+                    <div class="gate-item__title">量化影響合理</div>
+                    <div class="gate-item__reason">把問題與「體驗業務年營收佔比」連起來，避免「重要」這類無依據的價值宣告。</div>
+                  </div>
+                </div>
+                <div class="gate-item gate-item--error">
+                  <i class="ph-fill ph-x-circle gate-item__icon"></i>
+                  <div class="gate-item__main">
+                    <div class="gate-item__field">假設確認</div>
+                    <div class="gate-item__title">假設只列 KPI，不是 belief</div>
+                    <div class="gate-item__reason">「轉換率提升 30%」是 target 而不是 assumption；缺了「為什麼會提升 / 用戶會接受推薦」這層 belief，後續實驗設計沒有信念可驗。</div>
+                    <div class="gate-item__suggestion">
+                      <strong>修正</strong>
+                      <div class="gate-item__suggestion-body">改寫成「假設新用戶在訂房後對在地探索仍有興趣，且 30 天內推薦相關體驗能在情境內接住」 — 這是可被檢驗的 belief，而不是 KPI。</div>
+                    </div>
+                  </div>
+                </div>
+              </div>
+            </div>
+          </div>
+          <div class="submit-bar">
+            <div class="submit-bar__left"></div>
+            <div class="submit-bar__right">
+              <button class="btn btn--primary"><i class="ph ph-arrow-left"></i>返回修改</button>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- ===== C · Desktop 1280 ===== -->
+      <div class="vp-frame">
+        <div class="vp-frame__label"><span>Desktop</span><span>1280 × 880</span></div>
+        <div class="vp-frame__inner" style="width:1280px">
+          <div class="navbar">
+            <button class="navbar__icon-btn" aria-label="menu"><i class="ph ph-list"></i></button>
+            <div class="navbar__brand"><span class="navbar__brand-icon">PM</span><span class="navbar__brand-name">PM Drill</span></div>
+            <nav class="navbar__tabs">
+              <button class="navbar__tab is-active">CIRCLES</button>
+              <button class="navbar__tab">北極星</button>
+            </nav>
+            <div class="navbar__actions">
+              <span class="navbar__email">albertpeng678@gmail.com</span>
+              <button class="navbar__icon-btn" aria-label="search"><i class="ph ph-magnifying-glass"></i></button>
+              <button class="navbar__icon-btn" aria-label="home"><i class="ph ph-house"></i></button>
+            </div>
+          </div>
+          <div class="progress">
+            <span class="progress__step is-active"><span class="step-letter">C</span><span>澄清 · 進行中</span></span>
+            <span class="progress__step"><span class="step-letter">I</span><span>用戶</span></span>
+            <span class="progress__step"><span class="step-letter">R</span><span>需求</span></span>
+            <span class="progress__step"><span class="step-letter">C</span><span>排序</span></span>
+            <span class="progress__step"><span class="step-letter">L</span><span>方案</span></span>
+            <span class="progress__step"><span class="step-letter">E</span><span>取捨</span></span>
+            <span class="progress__step"><span class="step-letter">S</span><span>總結</span></span>
+          </div>
+          <div class="phase-head">
+            <span class="phase-head__num">1.5</span>
+            <div class="phase-head__main">
+              <div class="phase-head__eyebrow">Phase 1.5 · 框架審核</div>
+              <div class="phase-head__title">C · 澄清情境</div>
+            </div>
+            <div class="phase-head__meta">
+              <span><i class="ph ph-timer" style="font-size:14px;vertical-align:-2px"></i> 審核耗時 12.6 秒</span>
+              <span class="phase-head__meta-sep">·</span>
+              <span>4 個欄位 · 2 通過 · 2 阻擋</span>
+            </div>
+          </div>
+          <button class="qchip">
+            <span class="qchip__icon"><i class="ph ph-bookmark-simple"></i></span>
+            <div class="qchip__main">
+              <div class="qchip__company">Airbnb · 主動探索（Drill mode · Design type）</div>
+              <div class="qchip__title">為新用戶設計推薦旅遊體驗的入口；目標是把第一次訂房後 30 天內的探索流量轉成體驗預訂</div>
+            </div>
+            <i class="ph ph-caret-right qchip__caret"></i>
+          </button>
+          <div class="gate-content">
+            <div class="gate-wrap">
+              <div class="gate-transition gate-transition--error">
+                <i class="ph-fill ph-x-circle gate-transition__icon"></i>
+                <div class="gate-transition__main">
+                  <div class="gate-transition__title">需要修正方向</div>
+                  <div class="gate-transition__sub">2 個欄位偏離 C 步核心，直接進 Phase 2 會把對話帶歪</div>
+                </div>
+              </div>
+
+              <div class="gate-section-label">逐欄位回饋 <span class="gate-section-label__count">2 通過 · 2 阻擋</span></div>
+              <div class="gate-list">
+                <div class="gate-item gate-item--error">
+                  <i class="ph-fill ph-x-circle gate-item__icon"></i>
+                  <div class="gate-item__main">
+                    <div class="gate-item__field">問題範圍</div>
+                    <div class="gate-item__title">邊界沒劃清，跳到方案</div>
+                    <div class="gate-item__reason">這個欄位該回答「題目的問題是什麼類型 / 涵蓋哪些場景 / 哪些明確排除」，但你寫的是「做一個推薦演算法」 — 這是答案而不是範圍。</div>
+                    <div class="gate-item__suggestion">
+                      <strong>修正</strong>
+                      <div class="gate-item__suggestion-body">改寫成「聚焦新用戶第一次訂房後 30 天內的 探索 → 體驗預訂 路徑，排除已多次預訂的老用戶與住宿轉換」 — 這才是問題範圍。</div>
+                    </div>
+                  </div>
+                </div>
+                <div class="gate-item gate-item--ok">
+                  <i class="ph-fill ph-check-circle gate-item__icon"></i>
+                  <div class="gate-item__main">
+                    <div class="gate-item__field">時間範圍</div>
+                    <div class="gate-item__title">時間視窗明確</div>
+                    <div class="gate-item__reason">寫到「6 個月內看到 30% 提升」 — 時間軸具體，避免「儘快」這種無法驗收的模糊承諾。</div>
+                  </div>
+                </div>
+                <div class="gate-item gate-item--ok">
+                  <i class="ph-fill ph-check-circle gate-item__icon"></i>
+                  <div class="gate-item__main">
+                    <div class="gate-item__field">業務影響</div>
+                    <div class="gate-item__title">量化影響合理</div>
+                    <div class="gate-item__reason">把問題與「體驗業務年營收佔比」連起來，避免「重要」這類無依據的價值宣告。</div>
+                  </div>
+                </div>
+                <div class="gate-item gate-item--error">
+                  <i class="ph-fill ph-x-circle gate-item__icon"></i>
+                  <div class="gate-item__main">
+                    <div class="gate-item__field">假設確認</div>
+                    <div class="gate-item__title">假設只列 KPI，不是 belief</div>
+                    <div class="gate-item__reason">「轉換率提升 30%」是 target 而不是 assumption；缺了「為什麼會提升 / 用戶會接受推薦」這層 belief，後續實驗設計沒有信念可驗。</div>
+                    <div class="gate-item__suggestion">
+                      <strong>修正</strong>
+                      <div class="gate-item__suggestion-body">改寫成「假設新用戶在訂房後對在地探索仍有興趣，且 30 天內推薦相關體驗能在情境內接住」 — 這是可被檢驗的 belief，而不是 KPI。</div>
+                    </div>
+                  </div>
+                </div>
+              </div>
+            </div>
+          </div>
+          <div class="submit-bar">
+            <div class="submit-bar__left"></div>
+            <div class="submit-bar__right">
+              <button class="btn btn--primary"><i class="ph ph-arrow-left"></i>返回修改</button>
+            </div>
+          </div>
+        </div>
+      </div>
+
+    </div>
+
+    <!-- ============================================================ -->
+    <!-- Section E — Loading state                                    -->
+    <!-- ============================================================ -->
+    <h2 class="vp-section-title">D · Loading（POST gate in flight） <span class="vp-section-title__sub">checklist 5 階段；20s 顯示「較慢」+ 重試；30s 進 error</span></h2>
+    <div class="anno"><strong>視覺契約：</strong>主視覺只有 spinner + 一句 title + 一句 sub；checklist 5 階段橫線與 phase-head 對齊；保留 navbar / progress / phase-head 維持 context（不是裸 spinner 頁）。</div>
+    <div class="vp-grid">
+
+      <!-- ===== E · Mobile 360 ===== -->
+      <div class="vp-frame">
+        <div class="vp-frame__label"><span>Mobile · Loading</span><span>360 × 640</span></div>
+        <div class="vp-frame__inner" style="width:360px">
+          <div class="navbar">
+            <button class="navbar__icon-btn" aria-label="menu"><i class="ph ph-list"></i></button>
+            <div class="navbar__brand"><span class="navbar__brand-icon">PM</span></div>
+            <div class="navbar__actions">
+              <button class="navbar__icon-btn" aria-label="home"><i class="ph ph-house"></i></button>
+            </div>
+          </div>
+          <div class="progress">
+            <span class="progress__step is-done"><span class="step-letter">C</span><span>澄清</span></span>
+            <span class="progress__step is-active"><span class="step-letter">I</span><span>用戶</span></span>
+            <span class="progress__step"><span class="step-letter">R</span><span>需求</span></span>
+            <span class="progress__step"><span class="step-letter">C</span><span>排序</span></span>
+            <span class="progress__step"><span class="step-letter">L</span><span>方案</span></span>
+            <span class="progress__step"><span class="step-letter">E</span><span>取捨</span></span>
+            <span class="progress__step"><span class="step-letter">S</span><span>總結</span></span>
+          </div>
+          <div class="phase-head">
+            <span class="phase-head__num">1.5</span>
+            <div class="phase-head__main">
+              <div class="phase-head__eyebrow">Phase 1.5 · 框架審核中</div>
+              <div class="phase-head__title">I · 定義用戶</div>
+            </div>
+          </div>
+          <div class="gate-loading-wrap">
+            <div class="gate-spinner"></div>
+            <div>
+              <div class="gate-loading-title">AI 正在審核你的框架</div>
+              <div class="gate-loading-sub">通常需要 8 - 15 秒</div>
+            </div>
+            <div class="gate-loading-checklist">
+              <div class="gate-loading-step is-done">
+                <span class="gate-loading-step__icon"><i class="ph-fill ph-check-circle"></i></span>
+                解析框架草稿
+              </div>
+              <div class="gate-loading-step is-active">
+                <span class="gate-loading-step__icon"><i class="ph ph-circle-notch" style="animation:spin 0.8s linear infinite"></i></span>
+                檢查欄位對齊步驟核心
+              </div>
+              <div class="gate-loading-step is-pending">
+                <span class="gate-loading-step__icon"><i class="ph ph-circle"></i></span>
+                偵測陷阱方向
+              </div>
+              <div class="gate-loading-step is-pending">
+                <span class="gate-loading-step__icon"><i class="ph ph-circle"></i></span>
+                生成具體建議
+              </div>
+              <div class="gate-loading-step is-pending">
+                <span class="gate-loading-step__icon"><i class="ph ph-circle"></i></span>
+                整合通行判斷
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- ===== E · Tablet 768 ===== -->
+      <div class="vp-frame">
+        <div class="vp-frame__label"><span>Tablet · Loading</span><span>768 × 640</span></div>
+        <div class="vp-frame__inner" style="width:768px">
+          <div class="navbar">
+            <button class="navbar__icon-btn" aria-label="menu"><i class="ph ph-list"></i></button>
+            <div class="navbar__brand"><span class="navbar__brand-icon">PM</span><span class="navbar__brand-name">PM Drill</span></div>
+            <nav class="navbar__tabs">
+              <button class="navbar__tab is-active">CIRCLES</button>
+              <button class="navbar__tab">北極星</button>
+            </nav>
+            <div class="navbar__actions">
+              <button class="navbar__icon-btn" aria-label="home"><i class="ph ph-house"></i></button>
+            </div>
+          </div>
+          <div class="progress">
+            <span class="progress__step is-done"><span class="step-letter">C</span><span>澄清</span></span>
+            <span class="progress__step is-active"><span class="step-letter">I</span><span>用戶</span></span>
+            <span class="progress__step"><span class="step-letter">R</span><span>需求</span></span>
+            <span class="progress__step"><span class="step-letter">C</span><span>排序</span></span>
+            <span class="progress__step"><span class="step-letter">L</span><span>方案</span></span>
+            <span class="progress__step"><span class="step-letter">E</span><span>取捨</span></span>
+            <span class="progress__step"><span class="step-letter">S</span><span>總結</span></span>
+          </div>
+          <div class="phase-head">
+            <span class="phase-head__num">1.5</span>
+            <div class="phase-head__main">
+              <div class="phase-head__eyebrow">Phase 1.5 · 框架審核中</div>
+              <div class="phase-head__title">I · 定義用戶</div>
+            </div>
+            <div class="phase-head__meta">
+              <span>等待 AI 審核回應</span>
+            </div>
+          </div>
+          <div class="gate-loading-wrap">
+            <div class="gate-spinner"></div>
+            <div>
+              <div class="gate-loading-title">AI 正在審核你的框架</div>
+              <div class="gate-loading-sub">通常需要 8 - 15 秒；超過 20 秒會顯示重試按鈕</div>
+            </div>
+            <div class="gate-loading-checklist">
+              <div class="gate-loading-step is-done">
+                <span class="gate-loading-step__icon"><i class="ph-fill ph-check-circle"></i></span>
+                解析框架草稿
+              </div>
+              <div class="gate-loading-step is-done">
+                <span class="gate-loading-step__icon"><i class="ph-fill ph-check-circle"></i></span>
+                檢查欄位對齊步驟核心
+              </div>
+              <div class="gate-loading-step is-active">
+                <span class="gate-loading-step__icon"><i class="ph ph-circle-notch" style="animation:spin 0.8s linear infinite"></i></span>
+                偵測陷阱方向
+              </div>
+              <div class="gate-loading-step is-pending">
+                <span class="gate-loading-step__icon"><i class="ph ph-circle"></i></span>
+                生成具體建議
+              </div>
+              <div class="gate-loading-step is-pending">
+                <span class="gate-loading-step__icon"><i class="ph ph-circle"></i></span>
+                整合通行判斷
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- ===== E · Desktop 1280 ===== -->
+      <div class="vp-frame">
+        <div class="vp-frame__label"><span>Desktop · Loading</span><span>1280 × 640</span></div>
+        <div class="vp-frame__inner" style="width:1280px">
+          <div class="navbar">
+            <button class="navbar__icon-btn" aria-label="menu"><i class="ph ph-list"></i></button>
+            <div class="navbar__brand"><span class="navbar__brand-icon">PM</span><span class="navbar__brand-name">PM Drill</span></div>
+            <nav class="navbar__tabs">
+              <button class="navbar__tab is-active">CIRCLES</button>
+              <button class="navbar__tab">北極星</button>
+            </nav>
+            <div class="navbar__actions">
+              <span class="navbar__email">albertpeng678@gmail.com</span>
+              <button class="navbar__icon-btn" aria-label="home"><i class="ph ph-house"></i></button>
+            </div>
+          </div>
+          <div class="progress">
+            <span class="progress__step is-done"><span class="step-letter">C</span><span>澄清</span></span>
+            <span class="progress__step is-active"><span class="step-letter">I</span><span>用戶 · 進行中</span></span>
+            <span class="progress__step"><span class="step-letter">R</span><span>需求</span></span>
+            <span class="progress__step"><span class="step-letter">C</span><span>排序</span></span>
+            <span class="progress__step"><span class="step-letter">L</span><span>方案</span></span>
+            <span class="progress__step"><span class="step-letter">E</span><span>取捨</span></span>
+            <span class="progress__step"><span class="step-letter">S</span><span>總結</span></span>
+          </div>
+          <div class="phase-head">
+            <span class="phase-head__num">1.5</span>
+            <div class="phase-head__main">
+              <div class="phase-head__eyebrow">Phase 1.5 · 框架審核中</div>
+              <div class="phase-head__title">I · 定義用戶</div>
+            </div>
+            <div class="phase-head__meta">
+              <span><i class="ph ph-timer" style="font-size:14px;vertical-align:-2px"></i> 等待 AI 審核回應</span>
+              <span class="phase-head__meta-sep">·</span>
+              <span>已 4 秒</span>
+            </div>
+          </div>
+          <div class="gate-loading-wrap">
+            <div class="gate-spinner"></div>
+            <div>
+              <div class="gate-loading-title">AI 正在審核你的框架</div>
+              <div class="gate-loading-sub">通常需要 8 - 15 秒；超過 20 秒會顯示重試按鈕，超過 30 秒會進錯誤頁</div>
+            </div>
+            <div class="gate-loading-checklist">
+              <div class="gate-loading-step is-done">
+                <span class="gate-loading-step__icon"><i class="ph-fill ph-check-circle"></i></span>
+                解析框架草稿
+              </div>
+              <div class="gate-loading-step is-done">
+                <span class="gate-loading-step__icon"><i class="ph-fill ph-check-circle"></i></span>
+                檢查欄位對齊步驟核心
+              </div>
+              <div class="gate-loading-step is-active">
+                <span class="gate-loading-step__icon"><i class="ph ph-circle-notch" style="animation:spin 0.8s linear infinite"></i></span>
+                偵測陷阱方向
+              </div>
+              <div class="gate-loading-step is-pending">
+                <span class="gate-loading-step__icon"><i class="ph ph-circle"></i></span>
+                生成具體建議
+              </div>
+              <div class="gate-loading-step is-pending">
+                <span class="gate-loading-step__icon"><i class="ph ph-circle"></i></span>
+                整合通行判斷
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+
+    </div>
+
+    <!-- closing footer -->
+    <div class="anno" style="margin-top:var(--s-9)">
+      <strong>下一張：</strong>05 — Phase 2 對話三角色（user / system / coach bubbles），等放行 04 後開工。
+    </div>
+  </div>
+</body>
+</html>
