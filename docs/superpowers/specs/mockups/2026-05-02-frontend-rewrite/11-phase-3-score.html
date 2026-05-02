@@ -1,0 +1,1459 @@
+<!doctype html>
+<html lang="zh-TW">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover, interactive-widget=resizes-visual">
+  <title>PM Drill — 11 Phase 3 步驟分數（評分頁 + coach demo + loading + error）</title>
+
+  <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/@phosphor-icons/web@2.1.1/src/regular/style.css">
+  <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/@phosphor-icons/web@2.1.1/src/fill/style.css">
+  <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Instrument+Serif:ital@0;1&display=swap">
+
+  <style>
+    /* ───── LOCKED CSS — verbatim from 03/04/06/07/08/09/10 ───── */
+    :root {
+      --c-bg: #F2F0EB; --c-bg-soft: #ECE9E1; --c-bg-deep: #E5E1D7;
+      --c-card: #FFFFFF; --c-surface: #FAFAF7;
+      --c-ink: #1F1D1B; --c-ink-2: #5A5046; --c-ink-3: #8A7E70; --c-ink-4: #B8AC9D;
+      --c-rule: rgba(60,45,30,0.10); --c-rule-bold: rgba(60,45,30,0.18);
+      --c-primary: #1A56DB;
+      --c-navy: #1B2D5C; --c-navy-2: #142347; --c-navy-lt: rgba(27,45,92,0.08);
+      --c-success: #137A3D; --c-success-lt: #DCEFE0;
+      --c-warn: #B85C00; --c-warn-lt: #FBE9D0;
+      --c-danger: #B61F1F; --c-danger-lt: #FADCDC;
+      --font-sans: system-ui, -apple-system, BlinkMacSystemFont, 'PingFang TC', 'Microsoft JhengHei', 'Heiti TC', 'Noto Sans TC', sans-serif;
+      --font-serif: 'Instrument Serif', 'Times New Roman', serif;
+      --t-h1: 24px; --t-h2: 19px; --t-h3: 16px; --t-body: 15px; --t-body-sm: 14px; --t-meta: 13px; --t-cap: 12px;
+      --s-1: 4px; --s-2: 8px; --s-3: 12px; --s-4: 16px; --s-5: 20px; --s-6: 24px; --s-7: 32px; --s-8: 40px; --s-9: 56px; --s-10: 80px;
+      --r-input: 6px; --r-card: 10px; --r-pill: 999px;
+      --touch-min: 44px;
+      --t-fast: 120ms; --t-norm: 200ms; --t-slow: 300ms;
+      --ease: cubic-bezier(0.4, 0, 0.2, 1);
+      --shadow-1: 0 1px 0 rgba(60,45,30,0.04);
+      --shadow-2: 0 1px 2px rgba(60,45,30,0.06);
+      --shadow-3: 0 4px 12px rgba(60,45,30,0.08);
+    }
+
+    *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+    html, body { background: var(--c-bg); color: var(--c-ink); font-family: var(--font-sans); font-size: var(--t-body); line-height: 1.55; -webkit-font-smoothing: antialiased; -webkit-tap-highlight-color: transparent; }
+    button { font: inherit; color: inherit; cursor: pointer; background: none; border: none; }
+    @media (max-width: 767px) { input, textarea, select { font-size: 16px !important; } }
+
+    .vp-grid { display: grid; grid-template-columns: 360px 768px 1280px; gap: var(--s-6); padding: var(--s-6); align-items: start; overflow-x: auto; }
+    .vp-frame { border: 1px solid var(--c-rule-bold); border-radius: var(--r-card); background: var(--c-bg); overflow: hidden; }
+    .vp-frame__label { padding: var(--s-3) var(--s-4); border-bottom: 1px solid var(--c-rule); background: var(--c-card); display: flex; justify-content: space-between; font-size: var(--t-cap); letter-spacing: 0.08em; text-transform: uppercase; color: var(--c-ink-2); }
+    .vp-frame__label span:last-child { font-family: ui-monospace, 'SF Mono', monospace; color: var(--c-ink-3); }
+    .vp-frame__inner { background: var(--c-bg); min-height: 1100px; display: flex; flex-direction: column; }
+
+    .ds-page { padding: var(--s-6); }
+    .ds-header { max-width: 1880px; margin: 0 auto var(--s-7); padding-bottom: var(--s-6); border-bottom: 1px solid var(--c-rule); }
+    .ds-header h1 { font-size: var(--t-h1); margin-top: var(--s-2); }
+    .ds-header__eyebrow { font-size: var(--t-cap); letter-spacing: 0.12em; text-transform: uppercase; color: var(--c-ink-3); }
+    .ds-header__sub { color: var(--c-ink-2); font-size: var(--t-body-sm); margin-top: var(--s-3); max-width: 720px; }
+
+    .vp-section-title { max-width: 1880px; margin: var(--s-7) auto var(--s-3); padding-bottom: var(--s-2); border-bottom: 1px solid var(--c-rule); font-size: var(--t-h2); display: flex; align-items: baseline; gap: var(--s-3); }
+    .vp-section-title__sub { font-size: var(--t-cap); color: var(--c-ink-3); letter-spacing: 0.04em; text-transform: uppercase; }
+    .anno { background: var(--c-bg-soft); border-left: 2px solid var(--c-ink-3); padding: var(--s-3) var(--s-4); font-size: var(--t-meta); color: var(--c-ink-2); margin: var(--s-4) auto; max-width: 1180px; line-height: 1.7; }
+    .anno strong { color: var(--c-ink); }
+    .anno code { font-family: ui-monospace, 'SF Mono', monospace; font-size: 12px; background: var(--c-card); padding: 1px 6px; border-radius: 4px; border: 1px solid var(--c-rule); }
+
+    /* ───── PRODUCTION COMPONENTS LOCKED ───── */
+    .navbar { display: flex; align-items: center; gap: var(--s-3); padding: var(--s-3) var(--s-4); background: rgba(255,255,255,0.85); -webkit-backdrop-filter: saturate(140%) blur(10px); backdrop-filter: saturate(140%) blur(10px); border-bottom: 1px solid var(--c-rule); }
+    .navbar__icon-btn { width: 40px; height: 40px; border-radius: var(--r-pill); display: inline-flex; align-items: center; justify-content: center; color: var(--c-ink-2); }
+    .navbar__icon-btn:hover { background: var(--c-bg-soft); color: var(--c-ink); }
+    .navbar__brand { display: flex; align-items: center; gap: var(--s-2); padding: 4px var(--s-2); border-radius: var(--r-input); cursor: pointer; }
+    .navbar__brand-icon { width: 28px; height: 28px; border-radius: 6px; background: var(--c-navy); color: #fff; display: inline-flex; align-items: center; justify-content: center; font-size: 16px; }
+    .navbar__brand-name { font-size: var(--t-body-sm); font-weight: 500; }
+    .navbar__tabs { display: flex; gap: var(--s-2); margin-left: var(--s-4); }
+    .navbar__tab { padding: 6px var(--s-3); border-radius: var(--r-pill); font-size: var(--t-meta); color: var(--c-ink-3); }
+    .navbar__tab.is-active { background: var(--c-navy); color: #fff; }
+    .navbar__actions { margin-left: auto; display: flex; align-items: center; gap: var(--s-2); }
+    .navbar__email { font-size: var(--t-cap); color: var(--c-ink-3); max-width: 180px; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+
+    .phase-head { padding: var(--s-3) var(--s-5); background: var(--c-bg-soft); border-bottom: 1px solid var(--c-rule); display: flex; align-items: center; gap: var(--s-3); }
+    .phase-head__num { font-family: var(--font-serif); font-style: italic; font-size: 22px; color: var(--c-navy); line-height: 1; flex: 0 0 auto; }
+    .phase-head__main { flex: 1; min-width: 0; }
+    .phase-head__eyebrow { font-size: var(--t-cap); letter-spacing: 0.08em; text-transform: uppercase; color: var(--c-ink-3); }
+    .phase-head__title { font-size: var(--t-h3); color: var(--c-ink); margin-top: 2px; letter-spacing: -0.005em; }
+    .phase-head__meta { flex: 0 0 auto; font-size: var(--t-meta); color: var(--c-ink-3); }
+
+    .submit-bar { position: sticky; bottom: 0; background: rgba(255,255,255,0.92); -webkit-backdrop-filter: saturate(140%) blur(10px); backdrop-filter: saturate(140%) blur(10px); border-top: 1px solid var(--c-rule); padding: var(--s-3) var(--s-4) max(var(--s-3), env(safe-area-inset-bottom)); display: flex; gap: var(--s-3); justify-content: space-between; align-items: center; }
+    .submit-bar__left, .submit-bar__right { display: flex; gap: var(--s-2); align-items: center; flex-wrap: wrap; }
+    .btn { display: inline-flex; align-items: center; gap: var(--s-2); min-height: var(--touch-min); padding: 0 var(--s-5); border-radius: var(--r-input); font-size: var(--t-body-sm); font-weight: 500; transition: all var(--t-fast) var(--ease); }
+    .btn--primary { background: var(--c-navy); color: #fff; }
+    .btn--primary:hover { background: var(--c-navy-2); }
+    .btn--ghost { background: transparent; color: var(--c-ink-2); border: 1px solid var(--c-rule-bold); }
+    .btn--ghost:hover { background: var(--c-bg-soft); color: var(--c-ink); }
+
+    /* CIRCLES progress bar (7-step) */
+    .circles-progress { padding: var(--s-3) var(--s-4); background: var(--c-bg-soft); border-bottom: 1px solid var(--c-rule); display: flex; align-items: center; gap: var(--s-2); }
+    .circles-progress__step { display: flex; flex-direction: column; align-items: center; gap: 4px; flex: 0 0 auto; }
+    .circles-progress__dot { width: 28px; height: 28px; border-radius: 50%; background: var(--c-card); border: 1.5px solid var(--c-rule-bold); display: inline-flex; align-items: center; justify-content: center; font-family: var(--font-serif); font-style: italic; font-size: 14px; color: var(--c-ink-3); }
+    .circles-progress__step.is-done .circles-progress__dot { background: var(--c-navy); border-color: var(--c-navy); color: #fff; }
+    .circles-progress__step.is-active .circles-progress__dot { background: var(--c-navy); border-color: var(--c-navy); color: #fff; box-shadow: 0 0 0 3px var(--c-navy-lt); }
+    .circles-progress__line { flex: 1; height: 2px; background: var(--c-rule); margin-bottom: 14px; min-width: 6px; }
+    .circles-progress__line.is-done { background: var(--c-navy); }
+    .circles-progress__label { font-size: 10px; color: var(--c-ink-3); }
+    .circles-progress__step.is-active .circles-progress__label { color: var(--c-navy); font-weight: 600; }
+
+    /* Body container */
+    .score-body { padding: var(--s-5) var(--s-4); max-width: 920px; margin: 0 auto; width: 100%; flex: 1; }
+    @media (min-width: 768px) { .score-body { padding: var(--s-6) var(--s-5); } }
+
+    /* ───── 11-specific NEW components ───── */
+
+    /* circles-nav (back + title + home) */
+    .circles-nav { display: flex; align-items: center; gap: var(--s-3); padding: var(--s-3) var(--s-4); background: var(--c-bg-soft); border-bottom: 1px solid var(--c-rule); }
+    .circles-nav__back { width: 40px; height: 40px; border-radius: var(--r-pill); display: inline-flex; align-items: center; justify-content: center; color: var(--c-ink-2); flex: 0 0 auto; }
+    .circles-nav__back:hover { background: var(--c-card); color: var(--c-ink); }
+    .circles-nav__main { flex: 1; min-width: 0; }
+    .circles-nav__title { font-size: var(--t-body-sm); font-weight: 600; color: var(--c-ink); letter-spacing: -0.005em; }
+    .circles-nav__sub { font-size: var(--t-cap); color: var(--c-ink-3); margin-top: 2px; }
+
+    /* score-total (big number) */
+    .score-total {
+      background: var(--c-card);
+      border: 1px solid var(--c-rule);
+      border-radius: var(--r-card);
+      padding: var(--s-6) var(--s-4);
+      margin-bottom: var(--s-4);
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      gap: var(--s-2);
+      box-shadow: var(--shadow-1);
+    }
+    .score-total__num {
+      font-family: var(--font-serif);
+      font-style: italic;
+      font-size: 80px;
+      color: var(--c-navy);
+      line-height: 1;
+      letter-spacing: -0.02em;
+    }
+    .score-total__sub {
+      font-size: var(--t-meta);
+      color: var(--c-ink-3);
+    }
+    .score-total__sub strong { color: var(--c-ink-2); font-weight: 600; }
+
+    /* dim-row collapsible */
+    .dim-list {
+      background: var(--c-card);
+      border: 1px solid var(--c-rule);
+      border-radius: var(--r-card);
+      margin-bottom: var(--s-4);
+      overflow: hidden;
+    }
+    .dim-row { padding: 0; border-top: 1px solid var(--c-rule); }
+    .dim-row:first-child { border-top: 0; }
+    .dim-row__head {
+      display: flex;
+      align-items: center;
+      gap: var(--s-3);
+      padding: var(--s-3) var(--s-4);
+      cursor: pointer;
+      transition: background var(--t-fast) var(--ease);
+    }
+    .dim-row__head:hover { background: var(--c-bg-soft); }
+    .dim-row__caret {
+      color: var(--c-ink-3);
+      font-size: 14px;
+      flex: 0 0 auto;
+      transition: transform var(--t-fast) var(--ease);
+    }
+    .dim-row.is-open .dim-row__caret { transform: rotate(90deg); }
+    .dim-row__main { flex: 1; min-width: 0; }
+    .dim-row__head-row { display: flex; align-items: baseline; justify-content: space-between; gap: var(--s-3); margin-bottom: var(--s-1); }
+    .dim-row__name { font-size: var(--t-body-sm); color: var(--c-ink); font-weight: 600; }
+    .dim-row__score {
+      font-size: var(--t-body-sm);
+      color: var(--c-navy);
+      font-weight: 700;
+    }
+    .dim-row__score-max { font-size: var(--t-cap); color: var(--c-ink-3); font-weight: 400; }
+    .dim-row__bar-wrap { height: 6px; background: var(--c-bg-deep); border-radius: var(--r-pill); overflow: hidden; }
+    .dim-row__bar-fill { height: 100%; background: var(--c-navy); border-radius: var(--r-pill); transition: width var(--t-norm) var(--ease); }
+    .dim-row.is-low .dim-row__bar-fill { background: var(--c-warn); }
+    .dim-row.is-low .dim-row__score { color: var(--c-warn); }
+
+    .dim-row__body {
+      padding: 0 var(--s-4) var(--s-4);
+      display: none;
+    }
+    .dim-row.is-open .dim-row__body { display: block; }
+
+    .dim-row__comment {
+      font-size: var(--t-meta);
+      color: var(--c-ink-2);
+      line-height: 1.7;
+      padding: var(--s-3);
+      background: var(--c-bg-soft);
+      border-radius: var(--r-input);
+      margin-bottom: var(--s-3);
+    }
+    .dim-row__coach-version {
+      border-left: 3px solid var(--c-navy);
+      padding: var(--s-3);
+      background: var(--c-navy-lt);
+      border-radius: 0 var(--r-input) var(--r-input) 0;
+      margin-bottom: var(--s-3);
+    }
+    .dim-row__coach-version-label {
+      font-size: var(--t-cap);
+      letter-spacing: 0.06em;
+      text-transform: uppercase;
+      color: var(--c-navy);
+      font-weight: 600;
+      margin-bottom: var(--s-1);
+    }
+    .dim-row__coach-version-text {
+      font-size: var(--t-meta);
+      color: var(--c-ink-2);
+      line-height: 1.7;
+    }
+    .dim-row__tip {
+      display: flex;
+      gap: var(--s-2);
+      align-items: flex-start;
+      font-size: var(--t-meta);
+      color: var(--c-ink-2);
+      line-height: 1.6;
+    }
+    .dim-row__tip i { color: var(--c-warn); font-size: 14px; flex: 0 0 auto; margin-top: 2px; }
+
+    /* highlight cards (good / improve) */
+    .highlight-grid {
+      display: grid;
+      gap: var(--s-3);
+      grid-template-columns: 1fr;
+      margin-bottom: var(--s-4);
+    }
+    @media (min-width: 768px) { .highlight-grid { grid-template-columns: 1fr 1fr; } }
+    .highlight-card {
+      padding: var(--s-3) var(--s-4);
+      border-radius: var(--r-card);
+      border: 1px solid;
+    }
+    .highlight-card--good { background: linear-gradient(0deg, rgba(19,122,61,0.06), rgba(19,122,61,0.06)), var(--c-card); border-color: rgba(19,122,61,0.22); }
+    .highlight-card--improve { background: linear-gradient(0deg, rgba(184,92,0,0.05), rgba(184,92,0,0.05)), var(--c-card); border-color: rgba(184,92,0,0.22); }
+    .highlight-card__label {
+      font-size: var(--t-cap);
+      letter-spacing: 0.06em;
+      text-transform: uppercase;
+      font-weight: 600;
+      margin-bottom: var(--s-1);
+      display: inline-flex;
+      align-items: center;
+      gap: 4px;
+    }
+    .highlight-card--good .highlight-card__label { color: var(--c-success); }
+    .highlight-card--improve .highlight-card__label { color: var(--c-warn); }
+    .highlight-card__label i { font-size: 14px; }
+    .highlight-card__text {
+      font-size: var(--t-body-sm);
+      color: var(--c-ink-2);
+      line-height: 1.7;
+    }
+
+    /* coach demo collapsible (3-section content when open) */
+    .coach-demo {
+      background: var(--c-card);
+      border: 1px solid var(--c-rule);
+      border-radius: var(--r-card);
+      margin-bottom: var(--s-4);
+      overflow: hidden;
+    }
+    .coach-demo__head {
+      display: flex;
+      align-items: center;
+      gap: var(--s-3);
+      padding: var(--s-3) var(--s-4);
+      cursor: pointer;
+      transition: background var(--t-fast) var(--ease);
+    }
+    .coach-demo__head:hover { background: var(--c-bg-soft); }
+    .coach-demo__icon {
+      width: 32px; height: 32px;
+      border-radius: var(--r-pill);
+      background: var(--c-navy-lt);
+      color: var(--c-navy);
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+      font-size: 16px;
+      flex: 0 0 auto;
+    }
+    .coach-demo__title {
+      flex: 1;
+      font-size: var(--t-body-sm);
+      color: var(--c-ink);
+      font-weight: 600;
+    }
+    .coach-demo__caret {
+      color: var(--c-ink-3);
+      font-size: 14px;
+      flex: 0 0 auto;
+      transition: transform var(--t-fast) var(--ease);
+    }
+    .coach-demo.is-open .coach-demo__caret { transform: rotate(90deg); }
+    .coach-demo__body {
+      padding: 0 var(--s-4) var(--s-4);
+      display: none;
+      border-top: 1px solid var(--c-rule);
+      padding-top: var(--s-4);
+    }
+    .coach-demo.is-open .coach-demo__body { display: block; }
+
+    .coach-section { margin-bottom: var(--s-4); }
+    .coach-section:last-child { margin-bottom: 0; }
+    .coach-section__title {
+      font-size: var(--t-cap);
+      letter-spacing: 0.06em;
+      text-transform: uppercase;
+      color: var(--c-ink-3);
+      font-weight: 600;
+      margin-bottom: var(--s-2);
+      display: inline-flex;
+      align-items: center;
+      gap: 4px;
+    }
+    .coach-section__title i { color: var(--c-navy); font-size: 14px; }
+    .coach-section__body {
+      font-size: var(--t-meta);
+      color: var(--c-ink-2);
+      line-height: 1.7;
+    }
+    .coach-fields {
+      display: flex;
+      flex-direction: column;
+      gap: var(--s-2);
+    }
+    .coach-field {
+      padding: var(--s-3);
+      background: var(--c-bg-soft);
+      border-radius: var(--r-input);
+    }
+    .coach-field__label {
+      font-size: var(--t-cap);
+      color: var(--c-navy);
+      font-weight: 600;
+      margin-bottom: var(--s-1);
+    }
+    .coach-field__text {
+      font-size: var(--t-meta);
+      color: var(--c-ink-2);
+      line-height: 1.7;
+    }
+    .coach-reasoning {
+      border-left: 3px solid var(--c-navy);
+      padding: var(--s-3);
+      background: var(--c-navy-lt);
+      border-radius: 0 var(--r-input) var(--r-input) 0;
+      font-size: var(--t-meta);
+      color: var(--c-ink-2);
+      line-height: 1.7;
+      font-style: italic;
+    }
+
+    /* loading state */
+    .loading-wrap {
+      flex: 1;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: center;
+      padding: var(--s-9) var(--s-5);
+      gap: var(--s-4);
+      max-width: 480px;
+      margin: 0 auto;
+      text-align: center;
+    }
+    .loading-spinner {
+      width: 56px; height: 56px;
+      border: 4px solid var(--c-rule);
+      border-top-color: var(--c-navy);
+      border-radius: 50%;
+      animation: spin 0.8s linear infinite;
+    }
+    @keyframes spin { to { transform: rotate(360deg); } }
+    .loading-title { font-size: var(--t-h3); font-weight: 600; color: var(--c-ink); }
+    .loading-sub { font-size: var(--t-meta); color: var(--c-ink-3); max-width: 320px; }
+    .loading-checklist { display: flex; flex-direction: column; gap: var(--s-2); margin-top: var(--s-4); width: fit-content; max-width: 100%; align-items: flex-start; }
+    .loading-step { display: flex; align-items: center; gap: var(--s-3); font-size: var(--t-body-sm); color: var(--c-ink-3); }
+    .loading-step.is-done { color: var(--c-ink-2); }
+    .loading-step.is-active { color: var(--c-ink); }
+    .loading-step__icon { width: 20px; height: 20px; flex: 0 0 auto; display: inline-flex; align-items: center; justify-content: center; font-size: 16px; }
+    .loading-step.is-done .loading-step__icon { color: var(--c-success); }
+    .loading-step.is-active .loading-step__icon { color: var(--c-navy); }
+    .loading-step.is-pending .loading-step__icon { color: var(--c-ink-4); }
+
+    /* error state */
+    .error-wrap {
+      flex: 1;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: center;
+      padding: var(--s-9) var(--s-5);
+      gap: var(--s-3);
+      max-width: 480px;
+      margin: 0 auto;
+      text-align: center;
+    }
+    .error-wrap__icon {
+      width: 64px; height: 64px;
+      border-radius: 50%;
+      background: var(--c-danger-lt);
+      color: var(--c-danger);
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+      font-size: 32px;
+      margin-bottom: var(--s-2);
+    }
+    .error-wrap__title { font-size: var(--t-h3); font-weight: 600; color: var(--c-ink); }
+    .error-wrap__sub { font-size: var(--t-meta); color: var(--c-ink-3); max-width: 320px; line-height: 1.7; }
+    .error-wrap__code { font-family: ui-monospace, 'SF Mono', monospace; font-size: var(--t-cap); color: var(--c-ink-4); background: var(--c-bg-soft); padding: 2px 8px; border-radius: var(--r-input); margin-top: var(--s-1); }
+    .error-wrap__actions { display: flex; gap: var(--s-2); margin-top: var(--s-4); flex-wrap: wrap; justify-content: center; }
+
+    /* score-body flex layout — works across viewports
+       Mobile/Tablet: score-col-left is display:contents (flat), CSS order places dim between score and highlights.
+       Desktop: 2-col flex, score-col-left becomes proper flex column containing score+highlights+coach.
+       Avoids grid-row span issue (previous version stretched col-1 rows to match dim-list height). */
+    .score-body { display: flex; flex-direction: column; gap: var(--s-4); }
+    .score-col-left { display: contents; }
+    .score-body > .score-col-left > .score-total { order: 1; }
+    .score-body > .dim-list { order: 2; }
+    .score-body > .score-col-left > .highlight-grid { order: 3; }
+    .score-body > .score-col-left > .coach-demo { order: 4; }
+
+    @media (min-width: 1024px) {
+      .score-body--desktop {
+        max-width: 1180px;
+        flex-direction: row;
+        align-items: flex-start;
+        gap: var(--s-6);
+      }
+      .score-body--desktop > .score-col-left {
+        display: flex;
+        flex-direction: column;
+        gap: var(--s-4);
+        flex: 0 0 380px;
+      }
+      .score-body--desktop > .score-col-left > * { order: 0; }
+      .score-body--desktop > .dim-list { flex: 1; order: 0; }
+    }
+  </style>
+</head>
+<body>
+  <div class="ds-page">
+    <header class="ds-header">
+      <div class="ds-header__eyebrow">Path 2 · Mockup 11 · CONTRACT-LOCKED 草稿</div>
+      <h1>Phase 3 步驟分數 — 評分頁 + 教練示範 + Loading + Error（4 sections × 3 viewports = 12 frames）</h1>
+      <p class="ds-header__sub">
+        SP3 backend 已 merge unlock。Phase 3 評分頁針對 CIRCLES 七步驟之一，AI 評分後顯示總分（big number）+ 4 dim breakdown（dim-row collapsible，分數 ≤ 2 自動展開）+ 最強/最需改進 highlight + 教練示範答案（多段結構：情境前置 + 逐欄位示範 + 為什麼這樣答）。
+        Mobile/Tablet 維度預設折疊；Desktop 2-col layout 預設展開。<br>
+        Loading: spinner 56 + checklist 4 項（解析框架 → 計算分數 → 生成示範答案 → 整理建議）。
+        Error: cloud-warning + 重新評分 / 返回修改答案 + error code（EVAL_TIMEOUT / EVAL_API_ERROR / EVAL_PARSE_ERROR）。
+      </p>
+    </header>
+
+    <!-- ============================================================ -->
+    <!-- Section A — 預設狀態：步驟分數頁（drill 模式 I 步驟完成）        -->
+    <!-- ============================================================ -->
+    <h2 class="vp-section-title">A · 預設狀態（drill 模式 I 步驟完成）<span class="vp-section-title__sub">mobile/tablet 維度折疊 · desktop 2-col 全展開 · 教練示範折疊</span></h2>
+    <div class="anno"><strong>視覺契約：</strong>navbar + circles-nav（back + 「I 步驟評分結果」+ 「Spotify · Spotify Podcast」+ home）+ progress-bar（C/I active / R-S 未練）+ score-total 大 78 分 + 4 dim collapsible（清晰度 4/5、邏輯性 3/5、完整度 3/5、洞察力 4/5）+ highlight grid（最強/最需改進）+ 教練示範折疊 + submit-bar（回首頁 ghost / 再練一題 primary with shuffle icon）。Desktop 改 2-col：左欄 score+highlights+coach / 右欄 dim list 預設展開。</div>
+    <div class="vp-grid">
+
+      <!-- A · Mobile 360 -->
+      <div class="vp-frame">
+        <div class="vp-frame__label"><span>Mobile</span><span>360 × 1100</span></div>
+        <div class="vp-frame__inner" style="width:360px">
+          <div class="navbar">
+            <button class="navbar__icon-btn"><i class="ph ph-list"></i></button>
+            <div class="navbar__brand"><span class="navbar__brand-icon"><i class="ph ph-circles-three"></i></span><span class="navbar__brand-name">PM Drill</span></div>
+            <div class="navbar__actions"><button class="navbar__icon-btn"><i class="ph ph-house"></i></button></div>
+          </div>
+          <div class="circles-nav">
+            <button class="circles-nav__back"><i class="ph ph-arrow-left"></i></button>
+            <div class="circles-nav__main">
+              <div class="circles-nav__title">用戶分析 評分結果</div>
+              <div class="circles-nav__sub">Spotify · Spotify Podcast</div>
+            </div>
+          </div>
+          <div class="circles-progress">
+            <div class="circles-progress__step is-done"><div class="circles-progress__dot">C</div><div class="circles-progress__label">釐清</div></div>
+            <div class="circles-progress__line is-done"></div>
+            <div class="circles-progress__step is-active"><div class="circles-progress__dot">I</div><div class="circles-progress__label">用戶</div></div>
+            <div class="circles-progress__line"></div>
+            <div class="circles-progress__step"><div class="circles-progress__dot">R</div><div class="circles-progress__label">需求</div></div>
+            <div class="circles-progress__line"></div>
+            <div class="circles-progress__step"><div class="circles-progress__dot">C</div><div class="circles-progress__label">排序</div></div>
+            <div class="circles-progress__line"></div>
+            <div class="circles-progress__step"><div class="circles-progress__dot">L</div><div class="circles-progress__label">方案</div></div>
+            <div class="circles-progress__line"></div>
+            <div class="circles-progress__step"><div class="circles-progress__dot">E</div><div class="circles-progress__label">取捨</div></div>
+            <div class="circles-progress__line"></div>
+            <div class="circles-progress__step"><div class="circles-progress__dot">S</div><div class="circles-progress__label">總結</div></div>
+          </div>
+          <div class="score-body">
+            <div class="score-col-left">
+              <div class="score-total">
+              <div class="score-total__num">78</div>
+              <div class="score-total__sub"><strong>I — 用戶分析</strong> 步驟得分</div>
+            </div>
+              <div class="highlight-grid">
+              <div class="highlight-card highlight-card--good">
+                <div class="highlight-card__label"><i class="ph-fill ph-check-circle"></i>最強表現</div>
+                <div class="highlight-card__text">明確區分付費 / 免費用戶兩個分群，並指出付費用戶聽 Podcast 比例不到 12%，是清楚的目標焦點。</div>
+              </div>
+              <div class="highlight-card highlight-card--improve">
+                <div class="highlight-card__label"><i class="ph-fill ph-warning-circle"></i>最需改進</div>
+                <div class="highlight-card__text">用戶動機假設「用戶喜歡 podcast」缺乏可檢驗性，建議補上具體訪談或數據佐證。</div>
+              </div>
+            </div>
+              <div class="coach-demo">
+              <div class="coach-demo__head">
+                <span class="coach-demo__icon"><i class="ph-fill ph-graduation-cap"></i></span>
+                <span class="coach-demo__title">教練示範答案</span>
+                <i class="ph ph-caret-right coach-demo__caret"></i>
+              </div>
+            </div>
+            </div>
+            <div class="dim-list">
+              <div class="dim-row">
+                <div class="dim-row__head">
+                  <div class="dim-row__main">
+                    <div class="dim-row__head-row">
+                      <span class="dim-row__name">清晰度</span>
+                      <span class="dim-row__score">4<span class="dim-row__score-max"> / 5</span></span>
+                    </div>
+                    <div class="dim-row__bar-wrap"><div class="dim-row__bar-fill" style="width:80%"></div></div>
+                  </div>
+                  <i class="ph ph-caret-right dim-row__caret"></i>
+                </div>
+              </div>
+              <div class="dim-row">
+                <div class="dim-row__head">
+                  <div class="dim-row__main">
+                    <div class="dim-row__head-row">
+                      <span class="dim-row__name">邏輯性</span>
+                      <span class="dim-row__score">3<span class="dim-row__score-max"> / 5</span></span>
+                    </div>
+                    <div class="dim-row__bar-wrap"><div class="dim-row__bar-fill" style="width:60%"></div></div>
+                  </div>
+                  <i class="ph ph-caret-right dim-row__caret"></i>
+                </div>
+              </div>
+              <div class="dim-row">
+                <div class="dim-row__head">
+                  <div class="dim-row__main">
+                    <div class="dim-row__head-row">
+                      <span class="dim-row__name">完整度</span>
+                      <span class="dim-row__score">3<span class="dim-row__score-max"> / 5</span></span>
+                    </div>
+                    <div class="dim-row__bar-wrap"><div class="dim-row__bar-fill" style="width:60%"></div></div>
+                  </div>
+                  <i class="ph ph-caret-right dim-row__caret"></i>
+                </div>
+              </div>
+              <div class="dim-row">
+                <div class="dim-row__head">
+                  <div class="dim-row__main">
+                    <div class="dim-row__head-row">
+                      <span class="dim-row__name">洞察力</span>
+                      <span class="dim-row__score">4<span class="dim-row__score-max"> / 5</span></span>
+                    </div>
+                    <div class="dim-row__bar-wrap"><div class="dim-row__bar-fill" style="width:80%"></div></div>
+                  </div>
+                  <i class="ph ph-caret-right dim-row__caret"></i>
+                </div>
+              </div>
+            </div>
+          </div>
+          <div class="submit-bar">
+            <div class="submit-bar__left"><button class="btn btn--ghost"><i class="ph ph-house"></i>回首頁</button></div>
+            <div class="submit-bar__right"><button class="btn btn--primary"><i class="ph ph-shuffle"></i>再練一題</button></div>
+          </div>
+        </div>
+      </div>
+
+      <!-- A · Tablet 768 -->
+      <div class="vp-frame">
+        <div class="vp-frame__label"><span>Tablet</span><span>768 × 1100</span></div>
+        <div class="vp-frame__inner" style="width:768px">
+          <div class="navbar">
+            <button class="navbar__icon-btn"><i class="ph ph-list"></i></button>
+            <div class="navbar__brand"><span class="navbar__brand-icon"><i class="ph ph-circles-three"></i></span><span class="navbar__brand-name">PM Drill</span></div>
+            <div class="navbar__tabs"><button class="navbar__tab is-active">CIRCLES</button><button class="navbar__tab">北極星</button></div>
+            <div class="navbar__actions"><button class="navbar__icon-btn"><i class="ph ph-magnifying-glass"></i></button><button class="navbar__icon-btn"><i class="ph ph-house"></i></button></div>
+          </div>
+          <div class="circles-nav">
+            <button class="circles-nav__back"><i class="ph ph-arrow-left"></i></button>
+            <div class="circles-nav__main">
+              <div class="circles-nav__title">用戶分析 評分結果</div>
+              <div class="circles-nav__sub">Spotify · Spotify Podcast</div>
+            </div>
+          </div>
+          <div class="circles-progress">
+            <div class="circles-progress__step is-done"><div class="circles-progress__dot">C</div><div class="circles-progress__label">釐清</div></div>
+            <div class="circles-progress__line is-done"></div>
+            <div class="circles-progress__step is-active"><div class="circles-progress__dot">I</div><div class="circles-progress__label">用戶</div></div>
+            <div class="circles-progress__line"></div>
+            <div class="circles-progress__step"><div class="circles-progress__dot">R</div><div class="circles-progress__label">需求</div></div>
+            <div class="circles-progress__line"></div>
+            <div class="circles-progress__step"><div class="circles-progress__dot">C</div><div class="circles-progress__label">排序</div></div>
+            <div class="circles-progress__line"></div>
+            <div class="circles-progress__step"><div class="circles-progress__dot">L</div><div class="circles-progress__label">方案</div></div>
+            <div class="circles-progress__line"></div>
+            <div class="circles-progress__step"><div class="circles-progress__dot">E</div><div class="circles-progress__label">取捨</div></div>
+            <div class="circles-progress__line"></div>
+            <div class="circles-progress__step"><div class="circles-progress__dot">S</div><div class="circles-progress__label">總結</div></div>
+          </div>
+          <div class="score-body">
+            <div class="score-col-left">
+              <div class="score-total">
+              <div class="score-total__num">78</div>
+              <div class="score-total__sub"><strong>I — 用戶分析</strong> 步驟得分</div>
+            </div>
+              <div class="highlight-grid">
+              <div class="highlight-card highlight-card--good">
+                <div class="highlight-card__label"><i class="ph-fill ph-check-circle"></i>最強表現</div>
+                <div class="highlight-card__text">明確區分付費 / 免費用戶兩個分群，並指出付費用戶聽 Podcast 比例不到 12%，是清楚的目標焦點。</div>
+              </div>
+              <div class="highlight-card highlight-card--improve">
+                <div class="highlight-card__label"><i class="ph-fill ph-warning-circle"></i>最需改進</div>
+                <div class="highlight-card__text">用戶動機假設「用戶喜歡 podcast」缺乏可檢驗性，建議補上具體訪談或數據佐證。</div>
+              </div>
+            </div>
+              <div class="coach-demo">
+              <div class="coach-demo__head">
+                <span class="coach-demo__icon"><i class="ph-fill ph-graduation-cap"></i></span>
+                <span class="coach-demo__title">教練示範答案</span>
+                <i class="ph ph-caret-right coach-demo__caret"></i>
+              </div>
+            </div>
+            </div>
+            <div class="dim-list">
+              <div class="dim-row">
+                <div class="dim-row__head">
+                  <div class="dim-row__main">
+                    <div class="dim-row__head-row"><span class="dim-row__name">清晰度</span><span class="dim-row__score">4<span class="dim-row__score-max"> / 5</span></span></div>
+                    <div class="dim-row__bar-wrap"><div class="dim-row__bar-fill" style="width:80%"></div></div>
+                  </div>
+                  <i class="ph ph-caret-right dim-row__caret"></i>
+                </div>
+              </div>
+              <div class="dim-row">
+                <div class="dim-row__head">
+                  <div class="dim-row__main">
+                    <div class="dim-row__head-row"><span class="dim-row__name">邏輯性</span><span class="dim-row__score">3<span class="dim-row__score-max"> / 5</span></span></div>
+                    <div class="dim-row__bar-wrap"><div class="dim-row__bar-fill" style="width:60%"></div></div>
+                  </div>
+                  <i class="ph ph-caret-right dim-row__caret"></i>
+                </div>
+              </div>
+              <div class="dim-row">
+                <div class="dim-row__head">
+                  <div class="dim-row__main">
+                    <div class="dim-row__head-row"><span class="dim-row__name">完整度</span><span class="dim-row__score">3<span class="dim-row__score-max"> / 5</span></span></div>
+                    <div class="dim-row__bar-wrap"><div class="dim-row__bar-fill" style="width:60%"></div></div>
+                  </div>
+                  <i class="ph ph-caret-right dim-row__caret"></i>
+                </div>
+              </div>
+              <div class="dim-row">
+                <div class="dim-row__head">
+                  <div class="dim-row__main">
+                    <div class="dim-row__head-row"><span class="dim-row__name">洞察力</span><span class="dim-row__score">4<span class="dim-row__score-max"> / 5</span></span></div>
+                    <div class="dim-row__bar-wrap"><div class="dim-row__bar-fill" style="width:80%"></div></div>
+                  </div>
+                  <i class="ph ph-caret-right dim-row__caret"></i>
+                </div>
+              </div>
+            </div>
+          </div>
+          <div class="submit-bar">
+            <div class="submit-bar__left"><button class="btn btn--ghost"><i class="ph ph-house"></i>回首頁</button></div>
+            <div class="submit-bar__right"><button class="btn btn--primary"><i class="ph ph-shuffle"></i>再練一題</button></div>
+          </div>
+        </div>
+      </div>
+
+      <!-- A · Desktop 1280 (2-col layout, dims expanded) -->
+      <div class="vp-frame">
+        <div class="vp-frame__label"><span>Desktop</span><span>1280 × 1100</span></div>
+        <div class="vp-frame__inner" style="width:1280px">
+          <div class="navbar">
+            <button class="navbar__icon-btn"><i class="ph ph-list"></i></button>
+            <div class="navbar__brand"><span class="navbar__brand-icon"><i class="ph ph-circles-three"></i></span><span class="navbar__brand-name">PM Drill</span></div>
+            <div class="navbar__tabs"><button class="navbar__tab is-active">CIRCLES</button><button class="navbar__tab">北極星</button></div>
+            <div class="navbar__actions"><span class="navbar__email">albertpeng678@gmail.com</span><button class="navbar__icon-btn"><i class="ph ph-magnifying-glass"></i></button><button class="navbar__icon-btn"><i class="ph ph-house"></i></button></div>
+          </div>
+          <div class="circles-nav">
+            <button class="circles-nav__back"><i class="ph ph-arrow-left"></i></button>
+            <div class="circles-nav__main">
+              <div class="circles-nav__title">用戶分析 評分結果</div>
+              <div class="circles-nav__sub">Spotify · Spotify Podcast</div>
+            </div>
+          </div>
+          <div class="circles-progress">
+            <div class="circles-progress__step is-done"><div class="circles-progress__dot">C</div><div class="circles-progress__label">釐清</div></div>
+            <div class="circles-progress__line is-done"></div>
+            <div class="circles-progress__step is-active"><div class="circles-progress__dot">I</div><div class="circles-progress__label">用戶</div></div>
+            <div class="circles-progress__line"></div>
+            <div class="circles-progress__step"><div class="circles-progress__dot">R</div><div class="circles-progress__label">需求</div></div>
+            <div class="circles-progress__line"></div>
+            <div class="circles-progress__step"><div class="circles-progress__dot">C</div><div class="circles-progress__label">排序</div></div>
+            <div class="circles-progress__line"></div>
+            <div class="circles-progress__step"><div class="circles-progress__dot">L</div><div class="circles-progress__label">方案</div></div>
+            <div class="circles-progress__line"></div>
+            <div class="circles-progress__step"><div class="circles-progress__dot">E</div><div class="circles-progress__label">取捨</div></div>
+            <div class="circles-progress__line"></div>
+            <div class="circles-progress__step"><div class="circles-progress__dot">S</div><div class="circles-progress__label">總結</div></div>
+          </div>
+          <div class="score-body score-body--desktop">
+            <div class="score-col-left">
+              <div class="score-total">
+              <div class="score-total__num">78</div>
+              <div class="score-total__sub"><strong>I — 用戶分析</strong> 步驟得分</div>
+            </div>
+              <div class="highlight-grid">
+              <div class="highlight-card highlight-card--good">
+                <div class="highlight-card__label"><i class="ph-fill ph-check-circle"></i>最強表現</div>
+                <div class="highlight-card__text">明確區分付費 / 免費用戶兩個分群，並指出付費用戶聽 Podcast 比例不到 12%，是清楚的目標焦點。</div>
+              </div>
+              <div class="highlight-card highlight-card--improve">
+                <div class="highlight-card__label"><i class="ph-fill ph-warning-circle"></i>最需改進</div>
+                <div class="highlight-card__text">用戶動機假設「用戶喜歡 podcast」缺乏可檢驗性，建議補上具體訪談或數據佐證。</div>
+              </div>
+            </div>
+              <div class="coach-demo">
+              <div class="coach-demo__head">
+                <span class="coach-demo__icon"><i class="ph-fill ph-graduation-cap"></i></span>
+                <span class="coach-demo__title">教練示範答案</span>
+                <i class="ph ph-caret-right coach-demo__caret"></i>
+              </div>
+            </div>
+            </div>
+            <div class="dim-list">
+              <div class="dim-row is-open">
+                <div class="dim-row__head">
+                  <div class="dim-row__main">
+                    <div class="dim-row__head-row"><span class="dim-row__name">清晰度</span><span class="dim-row__score">4<span class="dim-row__score-max"> / 5</span></span></div>
+                    <div class="dim-row__bar-wrap"><div class="dim-row__bar-fill" style="width:80%"></div></div>
+                  </div>
+                  <i class="ph ph-caret-right dim-row__caret"></i>
+                </div>
+                <div class="dim-row__body">
+                  <div class="dim-row__comment">用戶分群清楚切出付費 / 免費兩個 segment，命名與選擇邏輯都直接，讀者一看就知道你關注誰。</div>
+                  <div class="dim-row__coach-version">
+                    <div class="dim-row__coach-version-label">教練版本</div>
+                    <div class="dim-row__coach-version-text">把目標用戶切成「30 天內註冊但未養成日常收聽習慣的免費用戶」，並用一句話標明選這群的原因（市場規模 + 留存槓桿）。</div>
+                  </div>
+                  <div class="dim-row__tip"><i class="ph ph-lightbulb"></i>進一步：在分群名稱後加上規模量化（例：~ 850 萬人 / 月），會更具體。</div>
+                </div>
+              </div>
+              <div class="dim-row is-open">
+                <div class="dim-row__head">
+                  <div class="dim-row__main">
+                    <div class="dim-row__head-row"><span class="dim-row__name">邏輯性</span><span class="dim-row__score">3<span class="dim-row__score-max"> / 5</span></span></div>
+                    <div class="dim-row__bar-wrap"><div class="dim-row__bar-fill" style="width:60%"></div></div>
+                  </div>
+                  <i class="ph ph-caret-right dim-row__caret"></i>
+                </div>
+                <div class="dim-row__body">
+                  <div class="dim-row__comment">分群與場景之間的因果鏈不夠緊：你跳過「為什麼這群人留存差」就直接給 podcast 解法，中間需要一個檢驗假設的步驟。</div>
+                  <div class="dim-row__coach-version">
+                    <div class="dim-row__coach-version-label">教練版本</div>
+                    <div class="dim-row__coach-version-text">先列「假設這群人留存差是因為缺乏 daily habit anchor」，再用 1 句話說明 podcast 為何適合當錨點（時長、被動消費、無需專注）。</div>
+                  </div>
+                  <div class="dim-row__tip"><i class="ph ph-lightbulb"></i>進一步：把你的假設寫成可驗證的「If X, then Y」格式。</div>
+                </div>
+              </div>
+              <div class="dim-row is-open">
+                <div class="dim-row__head">
+                  <div class="dim-row__main">
+                    <div class="dim-row__head-row"><span class="dim-row__name">完整度</span><span class="dim-row__score">3<span class="dim-row__score-max"> / 5</span></span></div>
+                    <div class="dim-row__bar-wrap"><div class="dim-row__bar-fill" style="width:60%"></div></div>
+                  </div>
+                  <i class="ph ph-caret-right dim-row__caret"></i>
+                </div>
+                <div class="dim-row__body">
+                  <div class="dim-row__comment">少了「次要分群」的對照（例如：付費但不聽 podcast 的人）— 沒有對照組會讓焦點分群的論述少一個強度。</div>
+                  <div class="dim-row__coach-version">
+                    <div class="dim-row__coach-version-label">教練版本</div>
+                    <div class="dim-row__coach-version-text">補一個「對照分群：已養成日常 podcast 習慣的付費用戶」並指出他們的 30 日留存比例（例：92%）做為 anchor 來反證問題。</div>
+                  </div>
+                  <div class="dim-row__tip"><i class="ph ph-lightbulb"></i>進一步：為每個分群提供 1 個量化指標。</div>
+                </div>
+              </div>
+              <div class="dim-row is-open">
+                <div class="dim-row__head">
+                  <div class="dim-row__main">
+                    <div class="dim-row__head-row"><span class="dim-row__name">洞察力</span><span class="dim-row__score">4<span class="dim-row__score-max"> / 5</span></span></div>
+                    <div class="dim-row__bar-wrap"><div class="dim-row__bar-fill" style="width:80%"></div></div>
+                  </div>
+                  <i class="ph ph-caret-right dim-row__caret"></i>
+                </div>
+                <div class="dim-row__body">
+                  <div class="dim-row__comment">「免費用戶聽 podcast 比例 < 12%」是個有 power 的觀察 — 你抓到了一個量化、不顯而易見的洞察。</div>
+                  <div class="dim-row__coach-version">
+                    <div class="dim-row__coach-version-label">教練版本</div>
+                    <div class="dim-row__coach-version-text">繼續挖：那 12% 的人在用什麼 podcast 類型？是音樂類 / 知識類 / 娛樂類？這會直接影響你後面的方案設計。</div>
+                  </div>
+                  <div class="dim-row__tip"><i class="ph ph-lightbulb"></i>進一步：把這個觀察與後續方案的 hypothesis 串起來。</div>
+                </div>
+              </div>
+            </div>
+          </div>
+          <div class="submit-bar">
+            <div class="submit-bar__left"><button class="btn btn--ghost"><i class="ph ph-house"></i>回首頁</button></div>
+            <div class="submit-bar__right"><button class="btn btn--primary"><i class="ph ph-shuffle"></i>再練一題</button></div>
+          </div>
+        </div>
+      </div>
+
+    </div>
+
+    <!-- ============================================================ -->
+    <!-- Section B — 教練示範展開 + 低分維度自動展開                    -->
+    <!-- ============================================================ -->
+    <h2 class="vp-section-title">B · 低分維度自動展開 + 教練示範 3-section 全展開<span class="vp-section-title__sub">分數 ≤ 2 維度自動 is-open · coach-demo 多段內容（情境 / 逐欄位 / reasoning）</span></h2>
+    <div class="anno"><strong>視覺契約：</strong>同 A 但「邏輯性 1/5」維度 <code>is-low</code>（warn 橘 bar + 橘 score）+ <code>is-open</code> 自動展開；coach-demo <code>is-open</code> 顯示 3 個 coach-section：① 情境前置（為什麼這個步驟重要）② 逐欄位示範（4 framework 欄位各給示範答案 with coach-field）③ 為什麼這樣答（quote-style reasoning）</div>
+    <div class="vp-grid">
+
+      <!-- B · Mobile 360 -->
+      <div class="vp-frame">
+        <div class="vp-frame__label"><span>Mobile</span><span>360 × 1100</span></div>
+        <div class="vp-frame__inner" style="width:360px">
+          <div class="navbar">
+            <button class="navbar__icon-btn"><i class="ph ph-list"></i></button>
+            <div class="navbar__brand"><span class="navbar__brand-icon"><i class="ph ph-circles-three"></i></span><span class="navbar__brand-name">PM Drill</span></div>
+            <div class="navbar__actions"><button class="navbar__icon-btn"><i class="ph ph-house"></i></button></div>
+          </div>
+          <div class="circles-nav">
+            <button class="circles-nav__back"><i class="ph ph-arrow-left"></i></button>
+            <div class="circles-nav__main">
+              <div class="circles-nav__title">用戶分析 評分結果</div>
+              <div class="circles-nav__sub">Spotify · Spotify Podcast</div>
+            </div>
+          </div>
+          <div class="circles-progress">
+            <div class="circles-progress__step is-done"><div class="circles-progress__dot">C</div><div class="circles-progress__label">釐清</div></div>
+            <div class="circles-progress__line is-done"></div>
+            <div class="circles-progress__step is-active"><div class="circles-progress__dot">I</div><div class="circles-progress__label">用戶</div></div>
+            <div class="circles-progress__line"></div>
+            <div class="circles-progress__step"><div class="circles-progress__dot">R</div><div class="circles-progress__label">需求</div></div>
+            <div class="circles-progress__line"></div>
+            <div class="circles-progress__step"><div class="circles-progress__dot">C</div><div class="circles-progress__label">排序</div></div>
+            <div class="circles-progress__line"></div>
+            <div class="circles-progress__step"><div class="circles-progress__dot">L</div><div class="circles-progress__label">方案</div></div>
+            <div class="circles-progress__line"></div>
+            <div class="circles-progress__step"><div class="circles-progress__dot">E</div><div class="circles-progress__label">取捨</div></div>
+            <div class="circles-progress__line"></div>
+            <div class="circles-progress__step"><div class="circles-progress__dot">S</div><div class="circles-progress__label">總結</div></div>
+          </div>
+          <div class="score-body">
+            <div class="score-col-left">
+              <div class="score-total">
+              <div class="score-total__num">52</div>
+              <div class="score-total__sub"><strong>I — 用戶分析</strong> 步驟得分</div>
+            </div>
+              <div class="highlight-grid">
+              <div class="highlight-card highlight-card--good">
+                <div class="highlight-card__label"><i class="ph-fill ph-check-circle"></i>最強表現</div>
+                <div class="highlight-card__text">識別了「30 歲女性」這個明確分群，命名清楚不模糊。</div>
+              </div>
+              <div class="highlight-card highlight-card--improve">
+                <div class="highlight-card__label"><i class="ph-fill ph-warning-circle"></i>最需改進</div>
+                <div class="highlight-card__text">缺少「為什麼選這群」的論述邏輯與量化依據，這是邏輯性低分主因。</div>
+              </div>
+            </div>
+              <div class="coach-demo is-open">
+              <div class="coach-demo__head">
+                <span class="coach-demo__icon"><i class="ph-fill ph-graduation-cap"></i></span>
+                <span class="coach-demo__title">教練示範答案</span>
+                <i class="ph ph-caret-right coach-demo__caret"></i>
+              </div>
+              <div class="coach-demo__body">
+                <div class="coach-section">
+                  <div class="coach-section__title"><i class="ph ph-flag"></i>為什麼這個步驟重要</div>
+                  <div class="coach-section__body">用戶分析（Identify users）是 CIRCLES 的第二步，目的是把問題從「全部用戶」收斂到「具體分群」。沒有清楚的目標用戶，後面的需求 / 方案會散開、無法 prioritise。本步驟看的是<strong>分群清晰度 + 選擇邏輯</strong>。</div>
+                </div>
+            </div>
+            <div class="dim-list">
+              <div class="dim-row">
+                <div class="dim-row__head">
+                  <div class="dim-row__main">
+                    <div class="dim-row__head-row"><span class="dim-row__name">清晰度</span><span class="dim-row__score">3<span class="dim-row__score-max"> / 5</span></span></div>
+                    <div class="dim-row__bar-wrap"><div class="dim-row__bar-fill" style="width:60%"></div></div>
+                  </div>
+                  <i class="ph ph-caret-right dim-row__caret"></i>
+                </div>
+              </div>
+              <div class="dim-row is-low is-open">
+                <div class="dim-row__head">
+                  <div class="dim-row__main">
+                    <div class="dim-row__head-row"><span class="dim-row__name">邏輯性</span><span class="dim-row__score">1<span class="dim-row__score-max"> / 5</span></span></div>
+                    <div class="dim-row__bar-wrap"><div class="dim-row__bar-fill" style="width:20%"></div></div>
+                  </div>
+                  <i class="ph ph-caret-right dim-row__caret"></i>
+                </div>
+                <div class="dim-row__body">
+                  <div class="dim-row__comment">分群選擇沒有理由：直接寫「目標用戶 = 30 歲女性」沒有解釋為什麼這群人是焦點，也沒有對應的留存或營收數據佐證。</div>
+                  <div class="dim-row__coach-version">
+                    <div class="dim-row__coach-version-label">教練版本</div>
+                    <div class="dim-row__coach-version-text">先列出 3-5 個候選分群（每群附量化指標 + 1 句業務影響），再從中選 1 群為焦點，並用「商業重要 × 可解性」做選擇依據。</div>
+                  </div>
+                  <div class="dim-row__tip"><i class="ph ph-lightbulb"></i>進一步：補一句「我選這群是因為 ___（量化原因）」。</div>
+                </div>
+              </div>
+              <div class="dim-row">
+                <div class="dim-row__head">
+                  <div class="dim-row__main">
+                    <div class="dim-row__head-row"><span class="dim-row__name">完整度</span><span class="dim-row__score">3<span class="dim-row__score-max"> / 5</span></span></div>
+                    <div class="dim-row__bar-wrap"><div class="dim-row__bar-fill" style="width:60%"></div></div>
+                  </div>
+                  <i class="ph ph-caret-right dim-row__caret"></i>
+                </div>
+              </div>
+              <div class="dim-row">
+                <div class="dim-row__head">
+                  <div class="dim-row__main">
+                    <div class="dim-row__head-row"><span class="dim-row__name">洞察力</span><span class="dim-row__score">3<span class="dim-row__score-max"> / 5</span></span></div>
+                    <div class="dim-row__bar-wrap"><div class="dim-row__bar-fill" style="width:60%"></div></div>
+                  </div>
+                  <i class="ph ph-caret-right dim-row__caret"></i>
+                </div>
+              </div>
+            </div>
+                <div class="coach-section">
+                  <div class="coach-section__title"><i class="ph ph-list-numbers"></i>逐欄位示範</div>
+                  <div class="coach-fields">
+                    <div class="coach-field">
+                      <div class="coach-field__label">列出候選分群</div>
+                      <div class="coach-field__text">付費用戶（~ 1.2 億）/ 免費用戶（~ 4 億）/ 新註冊未養成習慣（~ 850 萬 / 月）/ 既有但流失中（~ 1500 萬 / 季）。</div>
+                    </div>
+                    <div class="coach-field">
+                      <div class="coach-field__label">選定焦點分群</div>
+                      <div class="coach-field__text">焦點：「新註冊但 30 天內未養成日常收聽習慣」的免費用戶（~ 850 萬 / 月）。</div>
+                    </div>
+                    <div class="coach-field">
+                      <div class="coach-field__label">選擇理由</div>
+                      <div class="coach-field__text">商業重要：30 天留存是付費轉換最強的領先指標。可解性：podcast 比音樂更易養成 daily habit（時長足夠、被動消費）。</div>
+                    </div>
+                    <div class="coach-field">
+                      <div class="coach-field__label">用戶動機假設</div>
+                      <div class="coach-field__text">假設：「新用戶想要每日通勤時段的背景音」，可被訪談 / 數據驗證（用 commute window 收聽行為）。</div>
+                    </div>
+                  </div>
+                </div>
+                <div class="coach-section">
+                  <div class="coach-section__title"><i class="ph ph-quotes"></i>為什麼這樣答</div>
+                  <div class="coach-reasoning">分群必須附量化規模 + 商業重要性，否則只是描述不是論述。選定理由用「商業重要 × 可解性」二維度，比單一理由更有說服力。動機假設用「If X, then Y」格式才能被驗證，避免陷入「我覺得用戶喜歡 podcast」的主觀宣告陷阱。</div>
+                </div>
+              </div>
+            </div>
+          </div>
+          <div class="submit-bar">
+            <div class="submit-bar__left"><button class="btn btn--ghost"><i class="ph ph-house"></i>回首頁</button></div>
+            <div class="submit-bar__right"><button class="btn btn--primary"><i class="ph ph-shuffle"></i>再練一題</button></div>
+          </div>
+        </div>
+      </div>
+
+      <!-- B · Tablet 768 -->
+      <div class="vp-frame">
+        <div class="vp-frame__label"><span>Tablet</span><span>768 × 1100</span></div>
+        <div class="vp-frame__inner" style="width:768px">
+          <div class="navbar">
+            <button class="navbar__icon-btn"><i class="ph ph-list"></i></button>
+            <div class="navbar__brand"><span class="navbar__brand-icon"><i class="ph ph-circles-three"></i></span><span class="navbar__brand-name">PM Drill</span></div>
+            <div class="navbar__tabs"><button class="navbar__tab is-active">CIRCLES</button><button class="navbar__tab">北極星</button></div>
+            <div class="navbar__actions"><button class="navbar__icon-btn"><i class="ph ph-magnifying-glass"></i></button><button class="navbar__icon-btn"><i class="ph ph-house"></i></button></div>
+          </div>
+          <div class="circles-nav">
+            <button class="circles-nav__back"><i class="ph ph-arrow-left"></i></button>
+            <div class="circles-nav__main">
+              <div class="circles-nav__title">用戶分析 評分結果</div>
+              <div class="circles-nav__sub">Spotify · Spotify Podcast</div>
+            </div>
+          </div>
+          <div class="circles-progress">
+            <div class="circles-progress__step is-done"><div class="circles-progress__dot">C</div><div class="circles-progress__label">釐清</div></div>
+            <div class="circles-progress__line is-done"></div>
+            <div class="circles-progress__step is-active"><div class="circles-progress__dot">I</div><div class="circles-progress__label">用戶</div></div>
+            <div class="circles-progress__line"></div>
+            <div class="circles-progress__step"><div class="circles-progress__dot">R</div><div class="circles-progress__label">需求</div></div>
+            <div class="circles-progress__line"></div>
+            <div class="circles-progress__step"><div class="circles-progress__dot">C</div><div class="circles-progress__label">排序</div></div>
+            <div class="circles-progress__line"></div>
+            <div class="circles-progress__step"><div class="circles-progress__dot">L</div><div class="circles-progress__label">方案</div></div>
+            <div class="circles-progress__line"></div>
+            <div class="circles-progress__step"><div class="circles-progress__dot">E</div><div class="circles-progress__label">取捨</div></div>
+            <div class="circles-progress__line"></div>
+            <div class="circles-progress__step"><div class="circles-progress__dot">S</div><div class="circles-progress__label">總結</div></div>
+          </div>
+          <div class="score-body">
+            <div class="score-col-left">
+              <div class="score-total">
+              <div class="score-total__num">52</div>
+              <div class="score-total__sub"><strong>I — 用戶分析</strong> 步驟得分</div>
+            </div>
+              <div class="highlight-grid">
+              <div class="highlight-card highlight-card--good">
+                <div class="highlight-card__label"><i class="ph-fill ph-check-circle"></i>最強表現</div>
+                <div class="highlight-card__text">識別了「30 歲女性」這個明確分群，命名清楚不模糊。</div>
+              </div>
+              <div class="highlight-card highlight-card--improve">
+                <div class="highlight-card__label"><i class="ph-fill ph-warning-circle"></i>最需改進</div>
+                <div class="highlight-card__text">缺少「為什麼選這群」的論述邏輯與量化依據，這是邏輯性低分主因。</div>
+              </div>
+            </div>
+              <div class="coach-demo is-open">
+              <div class="coach-demo__head">
+                <span class="coach-demo__icon"><i class="ph-fill ph-graduation-cap"></i></span>
+                <span class="coach-demo__title">教練示範答案</span>
+                <i class="ph ph-caret-right coach-demo__caret"></i>
+              </div>
+              <div class="coach-demo__body">
+                <div class="coach-section">
+                  <div class="coach-section__title"><i class="ph ph-flag"></i>為什麼這個步驟重要</div>
+                  <div class="coach-section__body">用戶分析（Identify users）是 CIRCLES 的第二步，目的是把問題從「全部用戶」收斂到「具體分群」。沒有清楚的目標用戶，後面的需求 / 方案會散開、無法 prioritise。本步驟看的是<strong>分群清晰度 + 選擇邏輯</strong>。</div>
+                </div>
+            </div>
+            <div class="dim-list">
+              <div class="dim-row"><div class="dim-row__head"><div class="dim-row__main"><div class="dim-row__head-row"><span class="dim-row__name">清晰度</span><span class="dim-row__score">3<span class="dim-row__score-max"> / 5</span></span></div><div class="dim-row__bar-wrap"><div class="dim-row__bar-fill" style="width:60%"></div></div></div><i class="ph ph-caret-right dim-row__caret"></i></div></div>
+              <div class="dim-row is-low is-open">
+                <div class="dim-row__head"><div class="dim-row__main"><div class="dim-row__head-row"><span class="dim-row__name">邏輯性</span><span class="dim-row__score">1<span class="dim-row__score-max"> / 5</span></span></div><div class="dim-row__bar-wrap"><div class="dim-row__bar-fill" style="width:20%"></div></div></div><i class="ph ph-caret-right dim-row__caret"></i></div>
+                <div class="dim-row__body">
+                  <div class="dim-row__comment">分群選擇沒有理由：直接寫「目標用戶 = 30 歲女性」沒有解釋為什麼這群人是焦點，也沒有對應的留存或營收數據佐證。</div>
+                  <div class="dim-row__coach-version">
+                    <div class="dim-row__coach-version-label">教練版本</div>
+                    <div class="dim-row__coach-version-text">先列出 3-5 個候選分群（每群附量化指標 + 1 句業務影響），再從中選 1 群為焦點，並用「商業重要 × 可解性」做選擇依據。</div>
+                  </div>
+                  <div class="dim-row__tip"><i class="ph ph-lightbulb"></i>進一步：補一句「我選這群是因為 ___（量化原因）」。</div>
+                </div>
+              </div>
+              <div class="dim-row"><div class="dim-row__head"><div class="dim-row__main"><div class="dim-row__head-row"><span class="dim-row__name">完整度</span><span class="dim-row__score">3<span class="dim-row__score-max"> / 5</span></span></div><div class="dim-row__bar-wrap"><div class="dim-row__bar-fill" style="width:60%"></div></div></div><i class="ph ph-caret-right dim-row__caret"></i></div></div>
+              <div class="dim-row"><div class="dim-row__head"><div class="dim-row__main"><div class="dim-row__head-row"><span class="dim-row__name">洞察力</span><span class="dim-row__score">3<span class="dim-row__score-max"> / 5</span></span></div><div class="dim-row__bar-wrap"><div class="dim-row__bar-fill" style="width:60%"></div></div></div><i class="ph ph-caret-right dim-row__caret"></i></div></div>
+            </div>
+                <div class="coach-section">
+                  <div class="coach-section__title"><i class="ph ph-list-numbers"></i>逐欄位示範</div>
+                  <div class="coach-fields">
+                    <div class="coach-field"><div class="coach-field__label">列出候選分群</div><div class="coach-field__text">付費用戶（~ 1.2 億）/ 免費用戶（~ 4 億）/ 新註冊未養成習慣（~ 850 萬 / 月）/ 既有但流失中（~ 1500 萬 / 季）。</div></div>
+                    <div class="coach-field"><div class="coach-field__label">選定焦點分群</div><div class="coach-field__text">焦點：「新註冊但 30 天內未養成日常收聽習慣」的免費用戶（~ 850 萬 / 月）。</div></div>
+                    <div class="coach-field"><div class="coach-field__label">選擇理由</div><div class="coach-field__text">商業重要：30 天留存是付費轉換最強的領先指標。可解性：podcast 比音樂更易養成 daily habit（時長足夠、被動消費）。</div></div>
+                    <div class="coach-field"><div class="coach-field__label">用戶動機假設</div><div class="coach-field__text">假設：「新用戶想要每日通勤時段的背景音」，可被訪談 / 數據驗證（用 commute window 收聽行為）。</div></div>
+                  </div>
+                </div>
+                <div class="coach-section">
+                  <div class="coach-section__title"><i class="ph ph-quotes"></i>為什麼這樣答</div>
+                  <div class="coach-reasoning">分群必須附量化規模 + 商業重要性，否則只是描述不是論述。選定理由用「商業重要 × 可解性」二維度，比單一理由更有說服力。動機假設用「If X, then Y」格式才能被驗證，避免陷入「我覺得用戶喜歡 podcast」的主觀宣告陷阱。</div>
+                </div>
+              </div>
+            </div>
+          </div>
+          <div class="submit-bar">
+            <div class="submit-bar__left"><button class="btn btn--ghost"><i class="ph ph-house"></i>回首頁</button></div>
+            <div class="submit-bar__right"><button class="btn btn--primary"><i class="ph ph-shuffle"></i>再練一題</button></div>
+          </div>
+        </div>
+      </div>
+
+      <!-- B · Desktop 1280 -->
+      <div class="vp-frame">
+        <div class="vp-frame__label"><span>Desktop</span><span>1280 × 1100</span></div>
+        <div class="vp-frame__inner" style="width:1280px">
+          <div class="navbar">
+            <button class="navbar__icon-btn"><i class="ph ph-list"></i></button>
+            <div class="navbar__brand"><span class="navbar__brand-icon"><i class="ph ph-circles-three"></i></span><span class="navbar__brand-name">PM Drill</span></div>
+            <div class="navbar__tabs"><button class="navbar__tab is-active">CIRCLES</button><button class="navbar__tab">北極星</button></div>
+            <div class="navbar__actions"><span class="navbar__email">albertpeng678@gmail.com</span><button class="navbar__icon-btn"><i class="ph ph-magnifying-glass"></i></button><button class="navbar__icon-btn"><i class="ph ph-house"></i></button></div>
+          </div>
+          <div class="circles-nav">
+            <button class="circles-nav__back"><i class="ph ph-arrow-left"></i></button>
+            <div class="circles-nav__main">
+              <div class="circles-nav__title">用戶分析 評分結果</div>
+              <div class="circles-nav__sub">Spotify · Spotify Podcast</div>
+            </div>
+          </div>
+          <div class="circles-progress">
+            <div class="circles-progress__step is-done"><div class="circles-progress__dot">C</div><div class="circles-progress__label">釐清</div></div>
+            <div class="circles-progress__line is-done"></div>
+            <div class="circles-progress__step is-active"><div class="circles-progress__dot">I</div><div class="circles-progress__label">用戶</div></div>
+            <div class="circles-progress__line"></div>
+            <div class="circles-progress__step"><div class="circles-progress__dot">R</div><div class="circles-progress__label">需求</div></div>
+            <div class="circles-progress__line"></div>
+            <div class="circles-progress__step"><div class="circles-progress__dot">C</div><div class="circles-progress__label">排序</div></div>
+            <div class="circles-progress__line"></div>
+            <div class="circles-progress__step"><div class="circles-progress__dot">L</div><div class="circles-progress__label">方案</div></div>
+            <div class="circles-progress__line"></div>
+            <div class="circles-progress__step"><div class="circles-progress__dot">E</div><div class="circles-progress__label">取捨</div></div>
+            <div class="circles-progress__line"></div>
+            <div class="circles-progress__step"><div class="circles-progress__dot">S</div><div class="circles-progress__label">總結</div></div>
+          </div>
+          <div class="score-body score-body--desktop">
+            <div class="score-col-left">
+              <div class="score-total">
+                <div class="score-total__num">52</div>
+                <div class="score-total__sub"><strong>I — 用戶分析</strong> 步驟得分</div>
+              </div>
+              <div class="highlight-grid">
+                <div class="highlight-card highlight-card--good"><div class="highlight-card__label"><i class="ph-fill ph-check-circle"></i>最強表現</div><div class="highlight-card__text">識別了「30 歲女性」這個明確分群，命名清楚不模糊。</div></div>
+                <div class="highlight-card highlight-card--improve"><div class="highlight-card__label"><i class="ph-fill ph-warning-circle"></i>最需改進</div><div class="highlight-card__text">缺少「為什麼選這群」的論述邏輯與量化依據，這是邏輯性低分主因。</div></div>
+              </div>
+              <div class="coach-demo is-open">
+                <div class="coach-demo__head">
+                  <span class="coach-demo__icon"><i class="ph-fill ph-graduation-cap"></i></span>
+                  <span class="coach-demo__title">教練示範答案</span>
+                  <i class="ph ph-caret-right coach-demo__caret"></i>
+                </div>
+                <div class="coach-demo__body">
+                  <div class="coach-section"><div class="coach-section__title"><i class="ph ph-flag"></i>為什麼這個步驟重要</div><div class="coach-section__body">用戶分析（Identify users）是 CIRCLES 的第二步，目的是把問題從「全部用戶」收斂到「具體分群」。沒有清楚的目標用戶，後面的需求 / 方案會散開、無法 prioritise。本步驟看的是<strong>分群清晰度 + 選擇邏輯</strong>。</div></div>
+                  <div class="coach-section"><div class="coach-section__title"><i class="ph ph-list-numbers"></i>逐欄位示範</div>
+                    <div class="coach-fields">
+                      <div class="coach-field"><div class="coach-field__label">列出候選分群</div><div class="coach-field__text">付費用戶（~ 1.2 億）/ 免費用戶（~ 4 億）/ 新註冊未養成習慣（~ 850 萬 / 月）/ 既有但流失中（~ 1500 萬 / 季）。</div></div>
+                      <div class="coach-field"><div class="coach-field__label">選定焦點分群</div><div class="coach-field__text">焦點：「新註冊但 30 天內未養成日常收聽習慣」的免費用戶（~ 850 萬 / 月）。</div></div>
+                      <div class="coach-field"><div class="coach-field__label">選擇理由</div><div class="coach-field__text">商業重要：30 天留存是付費轉換最強的領先指標。可解性：podcast 比音樂更易養成 daily habit。</div></div>
+                      <div class="coach-field"><div class="coach-field__label">用戶動機假設</div><div class="coach-field__text">假設：「新用戶想要每日通勤時段的背景音」，可被訪談 / 數據驗證。</div></div>
+                    </div>
+                  </div>
+                  <div class="coach-section"><div class="coach-section__title"><i class="ph ph-quotes"></i>為什麼這樣答</div><div class="coach-reasoning">分群必須附量化規模 + 商業重要性，否則只是描述不是論述。選定理由用「商業重要 × 可解性」二維度，比單一理由更有說服力。動機假設用「If X, then Y」格式才能被驗證。</div></div>
+                </div>
+              </div>
+            </div>
+            <div class="dim-list">
+              <div class="dim-row is-open"><div class="dim-row__head"><div class="dim-row__main"><div class="dim-row__head-row"><span class="dim-row__name">清晰度</span><span class="dim-row__score">3<span class="dim-row__score-max"> / 5</span></span></div><div class="dim-row__bar-wrap"><div class="dim-row__bar-fill" style="width:60%"></div></div></div><i class="ph ph-caret-right dim-row__caret"></i></div>
+                <div class="dim-row__body">
+                  <div class="dim-row__comment">分群命名直接（30 歲女性）— 但缺少業務脈絡的解釋。</div>
+                  <div class="dim-row__coach-version"><div class="dim-row__coach-version-label">教練版本</div><div class="dim-row__coach-version-text">「30 歲女性中，每月使用 podcast 少於 2 小時的免費訂戶」— 加 1 個量化條件就把「形容詞」轉成「行為」。</div></div>
+                  <div class="dim-row__tip"><i class="ph ph-lightbulb"></i>進一步：每個分群附 1 個行為量化標準。</div>
+                </div>
+              </div>
+              <div class="dim-row is-low is-open"><div class="dim-row__head"><div class="dim-row__main"><div class="dim-row__head-row"><span class="dim-row__name">邏輯性</span><span class="dim-row__score">1<span class="dim-row__score-max"> / 5</span></span></div><div class="dim-row__bar-wrap"><div class="dim-row__bar-fill" style="width:20%"></div></div></div><i class="ph ph-caret-right dim-row__caret"></i></div>
+                <div class="dim-row__body">
+                  <div class="dim-row__comment">分群選擇沒有理由：直接寫「目標用戶 = 30 歲女性」沒有解釋為什麼這群人是焦點，也沒有對應的留存或營收數據佐證。</div>
+                  <div class="dim-row__coach-version"><div class="dim-row__coach-version-label">教練版本</div><div class="dim-row__coach-version-text">先列出 3-5 個候選分群（每群附量化指標 + 1 句業務影響），再從中選 1 群為焦點，並用「商業重要 × 可解性」做選擇依據。</div></div>
+                  <div class="dim-row__tip"><i class="ph ph-lightbulb"></i>進一步：補一句「我選這群是因為 ___（量化原因）」。</div>
+                </div>
+              </div>
+              <div class="dim-row is-open"><div class="dim-row__head"><div class="dim-row__main"><div class="dim-row__head-row"><span class="dim-row__name">完整度</span><span class="dim-row__score">3<span class="dim-row__score-max"> / 5</span></span></div><div class="dim-row__bar-wrap"><div class="dim-row__bar-fill" style="width:60%"></div></div></div><i class="ph ph-caret-right dim-row__caret"></i></div>
+                <div class="dim-row__body">
+                  <div class="dim-row__comment">只列了一個分群，缺少對照組讓論述沒有錨點。</div>
+                  <div class="dim-row__coach-version"><div class="dim-row__coach-version-label">教練版本</div><div class="dim-row__coach-version-text">至少列 3 個候選分群並寫對照（例：付費 vs 免費的留存差異 ~ 30%）。</div></div>
+                  <div class="dim-row__tip"><i class="ph ph-lightbulb"></i>進一步：補對照分群增加論述厚度。</div>
+                </div>
+              </div>
+              <div class="dim-row is-open"><div class="dim-row__head"><div class="dim-row__main"><div class="dim-row__head-row"><span class="dim-row__name">洞察力</span><span class="dim-row__score">3<span class="dim-row__score-max"> / 5</span></span></div><div class="dim-row__bar-wrap"><div class="dim-row__bar-fill" style="width:60%"></div></div></div><i class="ph ph-caret-right dim-row__caret"></i></div>
+                <div class="dim-row__body">
+                  <div class="dim-row__comment">沒有量化的「不顯而易見」觀察 — 純 demographic 描述。</div>
+                  <div class="dim-row__coach-version"><div class="dim-row__coach-version-label">教練版本</div><div class="dim-row__coach-version-text">提一個「業內人才知道」的觀察，例：30 歲女性 podcast 收聽集中在通勤前 15 分鐘 + 睡前 30 分鐘兩個 window。</div></div>
+                  <div class="dim-row__tip"><i class="ph ph-lightbulb"></i>進一步：用行為時序資料找 non-trivial pattern。</div>
+                </div>
+              </div>
+            </div>
+          </div>
+          <div class="submit-bar">
+            <div class="submit-bar__left"><button class="btn btn--ghost"><i class="ph ph-house"></i>回首頁</button></div>
+            <div class="submit-bar__right"><button class="btn btn--primary"><i class="ph ph-shuffle"></i>再練一題</button></div>
+          </div>
+        </div>
+      </div>
+
+    </div>
+
+    <!-- ============================================================ -->
+    <!-- Section C — Loading                                          -->
+    <!-- ============================================================ -->
+    <h2 class="vp-section-title">C · Loading 評分中（POST evaluate-step in flight）<span class="vp-section-title__sub">spinner 56 + 4-step checklist · 15s toast「比預期慢一些…」/ 30s 進 error</span></h2>
+    <div class="anno"><strong>視覺契約：</strong>navbar + circles-nav 同 A + circles-progress（I active）+ <code>loading-wrap</code>：56px navy spinner + title「正在生成評分」+ 副文「AI 正在評估你的回答，需要約 5-10 秒」+ <code>loading-checklist</code> 4 步 fit-content 置中：解析框架 done · 計算分數 active · 生成示範答案 pending · 整理建議 pending。**無 submit-bar**（loading 期間禁離開）。</div>
+    <div class="vp-grid">
+
+      <!-- C · Mobile -->
+      <div class="vp-frame">
+        <div class="vp-frame__label"><span>Mobile</span><span>360 × 1100</span></div>
+        <div class="vp-frame__inner" style="width:360px">
+          <div class="navbar">
+            <button class="navbar__icon-btn"><i class="ph ph-list"></i></button>
+            <div class="navbar__brand"><span class="navbar__brand-icon"><i class="ph ph-circles-three"></i></span><span class="navbar__brand-name">PM Drill</span></div>
+            <div class="navbar__actions"><button class="navbar__icon-btn"><i class="ph ph-house"></i></button></div>
+          </div>
+          <div class="circles-nav">
+            <button class="circles-nav__back"><i class="ph ph-arrow-left"></i></button>
+            <div class="circles-nav__main">
+              <div class="circles-nav__title">用戶分析 評分結果</div>
+              <div class="circles-nav__sub">Spotify · Spotify Podcast</div>
+            </div>
+          </div>
+          <div class="circles-progress">
+            <div class="circles-progress__step is-done"><div class="circles-progress__dot">C</div><div class="circles-progress__label">釐清</div></div>
+            <div class="circles-progress__line is-done"></div>
+            <div class="circles-progress__step is-active"><div class="circles-progress__dot">I</div><div class="circles-progress__label">用戶</div></div>
+            <div class="circles-progress__line"></div>
+            <div class="circles-progress__step"><div class="circles-progress__dot">R</div><div class="circles-progress__label">需求</div></div>
+            <div class="circles-progress__line"></div>
+            <div class="circles-progress__step"><div class="circles-progress__dot">C</div><div class="circles-progress__label">排序</div></div>
+            <div class="circles-progress__line"></div>
+            <div class="circles-progress__step"><div class="circles-progress__dot">L</div><div class="circles-progress__label">方案</div></div>
+            <div class="circles-progress__line"></div>
+            <div class="circles-progress__step"><div class="circles-progress__dot">E</div><div class="circles-progress__label">取捨</div></div>
+            <div class="circles-progress__line"></div>
+            <div class="circles-progress__step"><div class="circles-progress__dot">S</div><div class="circles-progress__label">總結</div></div>
+          </div>
+          <div class="loading-wrap">
+            <div class="loading-spinner"></div>
+            <div class="loading-title">正在生成評分</div>
+            <div class="loading-sub">AI 正在評估你的回答，需要約 5-10 秒。請勿關閉本頁。</div>
+            <div class="loading-checklist">
+              <div class="loading-step is-done"><span class="loading-step__icon"><i class="ph ph-check"></i></span>解析框架</div>
+              <div class="loading-step is-active"><span class="loading-step__icon"><i class="ph ph-circle-notch"></i></span>計算分數</div>
+              <div class="loading-step is-pending"><span class="loading-step__icon"><i class="ph ph-circle"></i></span>生成示範答案</div>
+              <div class="loading-step is-pending"><span class="loading-step__icon"><i class="ph ph-circle"></i></span>整理建議</div>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- C · Tablet -->
+      <div class="vp-frame">
+        <div class="vp-frame__label"><span>Tablet</span><span>768 × 1100</span></div>
+        <div class="vp-frame__inner" style="width:768px">
+          <div class="navbar">
+            <button class="navbar__icon-btn"><i class="ph ph-list"></i></button>
+            <div class="navbar__brand"><span class="navbar__brand-icon"><i class="ph ph-circles-three"></i></span><span class="navbar__brand-name">PM Drill</span></div>
+            <div class="navbar__tabs"><button class="navbar__tab is-active">CIRCLES</button><button class="navbar__tab">北極星</button></div>
+            <div class="navbar__actions"><button class="navbar__icon-btn"><i class="ph ph-magnifying-glass"></i></button><button class="navbar__icon-btn"><i class="ph ph-house"></i></button></div>
+          </div>
+          <div class="circles-nav">
+            <button class="circles-nav__back"><i class="ph ph-arrow-left"></i></button>
+            <div class="circles-nav__main">
+              <div class="circles-nav__title">用戶分析 評分結果</div>
+              <div class="circles-nav__sub">Spotify · Spotify Podcast</div>
+            </div>
+          </div>
+          <div class="circles-progress">
+            <div class="circles-progress__step is-done"><div class="circles-progress__dot">C</div><div class="circles-progress__label">釐清</div></div>
+            <div class="circles-progress__line is-done"></div>
+            <div class="circles-progress__step is-active"><div class="circles-progress__dot">I</div><div class="circles-progress__label">用戶</div></div>
+            <div class="circles-progress__line"></div>
+            <div class="circles-progress__step"><div class="circles-progress__dot">R</div><div class="circles-progress__label">需求</div></div>
+            <div class="circles-progress__line"></div>
+            <div class="circles-progress__step"><div class="circles-progress__dot">C</div><div class="circles-progress__label">排序</div></div>
+            <div class="circles-progress__line"></div>
+            <div class="circles-progress__step"><div class="circles-progress__dot">L</div><div class="circles-progress__label">方案</div></div>
+            <div class="circles-progress__line"></div>
+            <div class="circles-progress__step"><div class="circles-progress__dot">E</div><div class="circles-progress__label">取捨</div></div>
+            <div class="circles-progress__line"></div>
+            <div class="circles-progress__step"><div class="circles-progress__dot">S</div><div class="circles-progress__label">總結</div></div>
+          </div>
+          <div class="loading-wrap">
+            <div class="loading-spinner"></div>
+            <div class="loading-title">正在生成評分</div>
+            <div class="loading-sub">AI 正在評估你的回答，需要約 5-10 秒。請勿關閉本頁。</div>
+            <div class="loading-checklist">
+              <div class="loading-step is-done"><span class="loading-step__icon"><i class="ph ph-check"></i></span>解析框架</div>
+              <div class="loading-step is-active"><span class="loading-step__icon"><i class="ph ph-circle-notch"></i></span>計算分數</div>
+              <div class="loading-step is-pending"><span class="loading-step__icon"><i class="ph ph-circle"></i></span>生成示範答案</div>
+              <div class="loading-step is-pending"><span class="loading-step__icon"><i class="ph ph-circle"></i></span>整理建議</div>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- C · Desktop -->
+      <div class="vp-frame">
+        <div class="vp-frame__label"><span>Desktop</span><span>1280 × 1100</span></div>
+        <div class="vp-frame__inner" style="width:1280px">
+          <div class="navbar">
+            <button class="navbar__icon-btn"><i class="ph ph-list"></i></button>
+            <div class="navbar__brand"><span class="navbar__brand-icon"><i class="ph ph-circles-three"></i></span><span class="navbar__brand-name">PM Drill</span></div>
+            <div class="navbar__tabs"><button class="navbar__tab is-active">CIRCLES</button><button class="navbar__tab">北極星</button></div>
+            <div class="navbar__actions"><span class="navbar__email">albertpeng678@gmail.com</span><button class="navbar__icon-btn"><i class="ph ph-magnifying-glass"></i></button><button class="navbar__icon-btn"><i class="ph ph-house"></i></button></div>
+          </div>
+          <div class="circles-nav">
+            <button class="circles-nav__back"><i class="ph ph-arrow-left"></i></button>
+            <div class="circles-nav__main">
+              <div class="circles-nav__title">用戶分析 評分結果</div>
+              <div class="circles-nav__sub">Spotify · Spotify Podcast</div>
+            </div>
+          </div>
+          <div class="circles-progress">
+            <div class="circles-progress__step is-done"><div class="circles-progress__dot">C</div><div class="circles-progress__label">釐清</div></div>
+            <div class="circles-progress__line is-done"></div>
+            <div class="circles-progress__step is-active"><div class="circles-progress__dot">I</div><div class="circles-progress__label">用戶</div></div>
+            <div class="circles-progress__line"></div>
+            <div class="circles-progress__step"><div class="circles-progress__dot">R</div><div class="circles-progress__label">需求</div></div>
+            <div class="circles-progress__line"></div>
+            <div class="circles-progress__step"><div class="circles-progress__dot">C</div><div class="circles-progress__label">排序</div></div>
+            <div class="circles-progress__line"></div>
+            <div class="circles-progress__step"><div class="circles-progress__dot">L</div><div class="circles-progress__label">方案</div></div>
+            <div class="circles-progress__line"></div>
+            <div class="circles-progress__step"><div class="circles-progress__dot">E</div><div class="circles-progress__label">取捨</div></div>
+            <div class="circles-progress__line"></div>
+            <div class="circles-progress__step"><div class="circles-progress__dot">S</div><div class="circles-progress__label">總結</div></div>
+          </div>
+          <div class="loading-wrap">
+            <div class="loading-spinner"></div>
+            <div class="loading-title">正在生成評分</div>
+            <div class="loading-sub">AI 正在評估你的回答，需要約 5-10 秒。請勿關閉本頁。</div>
+            <div class="loading-checklist">
+              <div class="loading-step is-done"><span class="loading-step__icon"><i class="ph ph-check"></i></span>解析框架</div>
+              <div class="loading-step is-active"><span class="loading-step__icon"><i class="ph ph-circle-notch"></i></span>計算分數</div>
+              <div class="loading-step is-pending"><span class="loading-step__icon"><i class="ph ph-circle"></i></span>生成示範答案</div>
+              <div class="loading-step is-pending"><span class="loading-step__icon"><i class="ph ph-circle"></i></span>整理建議</div>
+            </div>
+          </div>
+        </div>
+      </div>
+
+    </div>
+
+    <!-- ============================================================ -->
+    <!-- Section D — Error                                            -->
+    <!-- ============================================================ -->
+    <h2 class="vp-section-title">D · Error 評分生成失敗<span class="vp-section-title__sub">EVAL_TIMEOUT / EVAL_API_ERROR / EVAL_PARSE_ERROR · 重新評分 / 返回修改答案</span></h2>
+    <div class="anno"><strong>視覺契約：</strong>navbar + circles-nav + circles-progress（I active）+ <code>error-wrap</code>：64px 紅圓 ph-cloud-warning + title「評分生成失敗」+ 副文「AI 服務暫時無法回應，請稍後再試。你的答案已自動保存。」+ error-code「EVAL_TIMEOUT」+ 兩 button：重新評分 primary / 返回修改答案 ghost。**無 submit-bar**（兩 button 即動作出口）。</div>
+    <div class="vp-grid">
+
+      <!-- D · Mobile -->
+      <div class="vp-frame">
+        <div class="vp-frame__label"><span>Mobile</span><span>360 × 1100</span></div>
+        <div class="vp-frame__inner" style="width:360px">
+          <div class="navbar">
+            <button class="navbar__icon-btn"><i class="ph ph-list"></i></button>
+            <div class="navbar__brand"><span class="navbar__brand-icon"><i class="ph ph-circles-three"></i></span><span class="navbar__brand-name">PM Drill</span></div>
+            <div class="navbar__actions"><button class="navbar__icon-btn"><i class="ph ph-house"></i></button></div>
+          </div>
+          <div class="circles-nav">
+            <button class="circles-nav__back"><i class="ph ph-arrow-left"></i></button>
+            <div class="circles-nav__main">
+              <div class="circles-nav__title">用戶分析 評分結果</div>
+              <div class="circles-nav__sub">Spotify · Spotify Podcast</div>
+            </div>
+          </div>
+          <div class="circles-progress">
+            <div class="circles-progress__step is-done"><div class="circles-progress__dot">C</div><div class="circles-progress__label">釐清</div></div>
+            <div class="circles-progress__line is-done"></div>
+            <div class="circles-progress__step is-active"><div class="circles-progress__dot">I</div><div class="circles-progress__label">用戶</div></div>
+            <div class="circles-progress__line"></div>
+            <div class="circles-progress__step"><div class="circles-progress__dot">R</div><div class="circles-progress__label">需求</div></div>
+            <div class="circles-progress__line"></div>
+            <div class="circles-progress__step"><div class="circles-progress__dot">C</div><div class="circles-progress__label">排序</div></div>
+            <div class="circles-progress__line"></div>
+            <div class="circles-progress__step"><div class="circles-progress__dot">L</div><div class="circles-progress__label">方案</div></div>
+            <div class="circles-progress__line"></div>
+            <div class="circles-progress__step"><div class="circles-progress__dot">E</div><div class="circles-progress__label">取捨</div></div>
+            <div class="circles-progress__line"></div>
+            <div class="circles-progress__step"><div class="circles-progress__dot">S</div><div class="circles-progress__label">總結</div></div>
+          </div>
+          <div class="error-wrap">
+            <div class="error-wrap__icon"><i class="ph-fill ph-cloud-warning"></i></div>
+            <div class="error-wrap__title">評分生成失敗</div>
+            <div class="error-wrap__sub">AI 服務暫時無法回應，請稍後再試。你的答案已自動保存。</div>
+            <code class="error-wrap__code">EVAL_TIMEOUT</code>
+            <div class="error-wrap__actions">
+              <button class="btn btn--ghost"><i class="ph ph-arrow-left"></i>返回修改答案</button>
+              <button class="btn btn--primary"><i class="ph ph-arrow-clockwise"></i>重新評分</button>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- D · Tablet -->
+      <div class="vp-frame">
+        <div class="vp-frame__label"><span>Tablet</span><span>768 × 1100</span></div>
+        <div class="vp-frame__inner" style="width:768px">
+          <div class="navbar">
+            <button class="navbar__icon-btn"><i class="ph ph-list"></i></button>
+            <div class="navbar__brand"><span class="navbar__brand-icon"><i class="ph ph-circles-three"></i></span><span class="navbar__brand-name">PM Drill</span></div>
+            <div class="navbar__tabs"><button class="navbar__tab is-active">CIRCLES</button><button class="navbar__tab">北極星</button></div>
+            <div class="navbar__actions"><button class="navbar__icon-btn"><i class="ph ph-magnifying-glass"></i></button><button class="navbar__icon-btn"><i class="ph ph-house"></i></button></div>
+          </div>
+          <div class="circles-nav">
+            <button class="circles-nav__back"><i class="ph ph-arrow-left"></i></button>
+            <div class="circles-nav__main">
+              <div class="circles-nav__title">用戶分析 評分結果</div>
+              <div class="circles-nav__sub">Spotify · Spotify Podcast</div>
+            </div>
+          </div>
+          <div class="circles-progress">
+            <div class="circles-progress__step is-done"><div class="circles-progress__dot">C</div><div class="circles-progress__label">釐清</div></div>
+            <div class="circles-progress__line is-done"></div>
+            <div class="circles-progress__step is-active"><div class="circles-progress__dot">I</div><div class="circles-progress__label">用戶</div></div>
+            <div class="circles-progress__line"></div>
+            <div class="circles-progress__step"><div class="circles-progress__dot">R</div><div class="circles-progress__label">需求</div></div>
+            <div class="circles-progress__line"></div>
+            <div class="circles-progress__step"><div class="circles-progress__dot">C</div><div class="circles-progress__label">排序</div></div>
+            <div class="circles-progress__line"></div>
+            <div class="circles-progress__step"><div class="circles-progress__dot">L</div><div class="circles-progress__label">方案</div></div>
+            <div class="circles-progress__line"></div>
+            <div class="circles-progress__step"><div class="circles-progress__dot">E</div><div class="circles-progress__label">取捨</div></div>
+            <div class="circles-progress__line"></div>
+            <div class="circles-progress__step"><div class="circles-progress__dot">S</div><div class="circles-progress__label">總結</div></div>
+          </div>
+          <div class="error-wrap">
+            <div class="error-wrap__icon"><i class="ph-fill ph-cloud-warning"></i></div>
+            <div class="error-wrap__title">評分生成失敗</div>
+            <div class="error-wrap__sub">AI 服務暫時無法回應，請稍後再試。你的答案已自動保存。</div>
+            <code class="error-wrap__code">EVAL_TIMEOUT</code>
+            <div class="error-wrap__actions">
+              <button class="btn btn--ghost"><i class="ph ph-arrow-left"></i>返回修改答案</button>
+              <button class="btn btn--primary"><i class="ph ph-arrow-clockwise"></i>重新評分</button>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- D · Desktop -->
+      <div class="vp-frame">
+        <div class="vp-frame__label"><span>Desktop</span><span>1280 × 1100</span></div>
+        <div class="vp-frame__inner" style="width:1280px">
+          <div class="navbar">
+            <button class="navbar__icon-btn"><i class="ph ph-list"></i></button>
+            <div class="navbar__brand"><span class="navbar__brand-icon"><i class="ph ph-circles-three"></i></span><span class="navbar__brand-name">PM Drill</span></div>
+            <div class="navbar__tabs"><button class="navbar__tab is-active">CIRCLES</button><button class="navbar__tab">北極星</button></div>
+            <div class="navbar__actions"><span class="navbar__email">albertpeng678@gmail.com</span><button class="navbar__icon-btn"><i class="ph ph-magnifying-glass"></i></button><button class="navbar__icon-btn"><i class="ph ph-house"></i></button></div>
+          </div>
+          <div class="circles-nav">
+            <button class="circles-nav__back"><i class="ph ph-arrow-left"></i></button>
+            <div class="circles-nav__main">
+              <div class="circles-nav__title">用戶分析 評分結果</div>
+              <div class="circles-nav__sub">Spotify · Spotify Podcast</div>
+            </div>
+          </div>
+          <div class="circles-progress">
+            <div class="circles-progress__step is-done"><div class="circles-progress__dot">C</div><div class="circles-progress__label">釐清</div></div>
+            <div class="circles-progress__line is-done"></div>
+            <div class="circles-progress__step is-active"><div class="circles-progress__dot">I</div><div class="circles-progress__label">用戶</div></div>
+            <div class="circles-progress__line"></div>
+            <div class="circles-progress__step"><div class="circles-progress__dot">R</div><div class="circles-progress__label">需求</div></div>
+            <div class="circles-progress__line"></div>
+            <div class="circles-progress__step"><div class="circles-progress__dot">C</div><div class="circles-progress__label">排序</div></div>
+            <div class="circles-progress__line"></div>
+            <div class="circles-progress__step"><div class="circles-progress__dot">L</div><div class="circles-progress__label">方案</div></div>
+            <div class="circles-progress__line"></div>
+            <div class="circles-progress__step"><div class="circles-progress__dot">E</div><div class="circles-progress__label">取捨</div></div>
+            <div class="circles-progress__line"></div>
+            <div class="circles-progress__step"><div class="circles-progress__dot">S</div><div class="circles-progress__label">總結</div></div>
+          </div>
+          <div class="error-wrap">
+            <div class="error-wrap__icon"><i class="ph-fill ph-cloud-warning"></i></div>
+            <div class="error-wrap__title">評分生成失敗</div>
+            <div class="error-wrap__sub">AI 服務暫時無法回應，請稍後再試。你的答案已自動保存。</div>
+            <code class="error-wrap__code">EVAL_TIMEOUT</code>
+            <div class="error-wrap__actions">
+              <button class="btn btn--ghost"><i class="ph ph-arrow-left"></i>返回修改答案</button>
+              <button class="btn btn--primary"><i class="ph ph-arrow-clockwise"></i>重新評分</button>
+            </div>
+          </div>
+        </div>
+      </div>
+
+    </div>
+
+  </div>
+</body>
+</html>
