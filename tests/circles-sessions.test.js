@@ -791,6 +791,87 @@ describe('POST /api/circles-sessions/:id/evaluate-step', () => {
   });
 });
 
+// SP3 (M4) — route-level error code mapping tests. Spec 驗收 requires that
+// evaluate-step return the right `code` for timeout / 5xx / parse / auth so
+// the front-end can show the right toast. These tests mock the evaluator to
+// throw each error class and assert the mapping.
+describe('POST /api/circles-sessions/:id/evaluate-step — error code mapping', () => {
+  beforeEach(() => {
+    const session = makeSession();
+    db.single.mockResolvedValue({ data: session, error: null });
+  });
+
+  test('AbortError → 500 EVAL_TIMEOUT', async () => {
+    const err = new Error('aborted');
+    err.name = 'AbortError';
+    evaluateCirclesStep.mockRejectedValueOnce(err);
+
+    const res = await request(app)
+      .post('/api/circles-sessions/session-abc/evaluate-step')
+      .set(AUTH_HEADER)
+      .send({});
+
+    expect(res.status).toBe(500);
+    expect(res.body.code).toBe('EVAL_TIMEOUT');
+  });
+
+  test('SyntaxError (JSON.parse failure) → 500 EVAL_PARSE_ERROR', async () => {
+    // SyntaxError is what JSON.parse natively throws on bad JSON — exactly
+    // what propagates from the evaluator when the LLM returns non-JSON.
+    evaluateCirclesStep.mockRejectedValueOnce(new SyntaxError('Unexpected token < in JSON'));
+
+    const res = await request(app)
+      .post('/api/circles-sessions/session-abc/evaluate-step')
+      .set(AUTH_HEADER)
+      .send({});
+
+    expect(res.status).toBe(500);
+    expect(res.body.code).toBe('EVAL_PARSE_ERROR');
+  });
+
+  test('e.status === 401 → 500 EVAL_AUTH_ERROR', async () => {
+    // OpenAI v6 SDK shape: HTTP errors expose e.status numerically.
+    const err = Object.assign(new Error('401 Unauthorized'), { status: 401 });
+    evaluateCirclesStep.mockRejectedValueOnce(err);
+
+    const res = await request(app)
+      .post('/api/circles-sessions/session-abc/evaluate-step')
+      .set(AUTH_HEADER)
+      .send({});
+
+    expect(res.status).toBe(500);
+    expect(res.body.code).toBe('EVAL_AUTH_ERROR');
+  });
+
+  test('generic Error (5xx, network, etc) → 500 EVAL_API_ERROR', async () => {
+    const err = Object.assign(new Error('Internal server error'), { status: 502 });
+    evaluateCirclesStep.mockRejectedValueOnce(err);
+
+    const res = await request(app)
+      .post('/api/circles-sessions/session-abc/evaluate-step')
+      .set(AUTH_HEADER)
+      .send({});
+
+    expect(res.status).toBe(500);
+    expect(res.body.code).toBe('EVAL_API_ERROR');
+  });
+
+  test('plain Error with no status → 500 EVAL_API_ERROR (no false-positive on message)', async () => {
+    // Regression guard for the old regex /JSON|parse/i — an OpenAI error
+    // mentioning the word "json" in `response_format` validation should NOT
+    // be misclassified as parse error.
+    evaluateCirclesStep.mockRejectedValueOnce(new Error('invalid response_format json_object usage'));
+
+    const res = await request(app)
+      .post('/api/circles-sessions/session-abc/evaluate-step')
+      .set(AUTH_HEADER)
+      .send({});
+
+    expect(res.status).toBe(500);
+    expect(res.body.code).toBe('EVAL_API_ERROR');
+  });
+});
+
 // ── PATCH /:id/progress ───────────────────────────────────────────────────────
 
 describe('PATCH /api/circles-sessions/:id/progress', () => {
