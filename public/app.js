@@ -6011,7 +6011,27 @@ function bindNSMStep1Cards() {
   });
 }
 
-// Card selection: set selected, fetch context if not cached, refresh in place.
+// Decide which context source to use for an NSM question:
+//   'pregenerated' — q.context has all 4 fields (model/users/traps/insight) → use directly, no fetch
+//   'cached'       — AppState already holds context for this same qid → reuse
+//   'fetch'        — no q.context and no cache → call /api/nsm-context (lazy fallback)
+function getNsmContextSource(q, currentContext, currentQid) {
+  if (!q) return 'fetch';
+  var c = q.context;
+  if (c &&
+      typeof c.model === 'string' && c.model.trim() &&
+      typeof c.users === 'string' && c.users.trim() &&
+      typeof c.traps === 'string' && c.traps.trim() &&
+      typeof c.insight === 'string' && c.insight.trim()) {
+    return 'pregenerated';
+  }
+  if (currentContext && currentQid === q.id) {
+    return 'cached';
+  }
+  return 'fetch';
+}
+
+// Card selection: set selected, prefer pregenerated q.context, fall back to /api/nsm-context.
 async function handleNSMCardSelect(qid) {
   var q = NSM_QUESTIONS.find(function(item) { return item.id === qid; }) || null;
   if (!q) return;
@@ -6025,43 +6045,56 @@ async function handleNSMCardSelect(qid) {
     AppState.nsmContext = null;
   }
 
-  // Fetch context if we don't have it for this question yet.
-  // Note: nsmContextLoading guards against in-flight fetches *for this same q*; switching
-  // to a different question implicitly invalidates the in-flight one (the async guard
-  // below checks selectedQuestion at completion time and discards stale responses).
-  var needFetch = !AppState.nsmContext || AppState.nsmContextQuestionId !== q.id;
-  if (needFetch) {
-    AppState.nsmContextLoading = true;
+  var source = getNsmContextSource(q, AppState.nsmContext, AppState.nsmContextQuestionId);
+
+  if (source === 'pregenerated') {
+    // 直接用題庫預生成的 context，無 loading state、無 fetch
+    AppState.nsmContext = {
+      model: q.context.model,
+      users: q.context.users,
+      traps: q.context.traps,
+      insight: q.context.insight,
+    };
     AppState.nsmContextQuestionId = q.id;
-    refreshNSMStep1List();
-    var ctx = null;
-    try {
-      var res = await fetch('/api/nsm-context', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ questionJson: q }),
-      });
-      if (res.ok) ctx = await res.json();
-    } catch (_) { /* swallow; ctx stays null */ }
-
-    // Async guard: discard the response if user navigated away or selected a different
-    // question while we were awaiting. Don't touch nsmContextLoading either, since a
-    // newer in-flight fetch might own that flag now.
-    if (!document.querySelector('.nsm-question-list')) return;
-    if (!AppState.nsmSelectedQuestion || AppState.nsmSelectedQuestion.id !== q.id) return;
-    if (AppState.nsmContextQuestionId !== q.id) return;
-
     AppState.nsmContextLoading = false;
-    if (ctx) {
-      AppState.nsmContext = ctx;
-    } else {
-      AppState.nsmContext = null;
-      AppState.nsmContextQuestionId = null;
-    }
     refreshNSMStep1List();
-  } else {
-    refreshNSMStep1List();
+    return;
   }
+
+  if (source === 'cached') {
+    // 已有同 qid 的 cached context，沿用
+    refreshNSMStep1List();
+    return;
+  }
+
+  // source === 'fetch' — lazy fallback：題庫沒有 context（例如未來新增的題目）
+  AppState.nsmContextLoading = true;
+  AppState.nsmContextQuestionId = q.id;
+  refreshNSMStep1List();
+  var ctx = null;
+  try {
+    var res = await fetch('/api/nsm-context', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ questionJson: q }),
+    });
+    if (res.ok) ctx = await res.json();
+  } catch (_) { /* swallow; ctx stays null */ }
+
+  // Async guard: discard the response if user navigated away or selected a different
+  // question while we were awaiting.
+  if (!document.querySelector('.nsm-question-list')) return;
+  if (!AppState.nsmSelectedQuestion || AppState.nsmSelectedQuestion.id !== q.id) return;
+  if (AppState.nsmContextQuestionId !== q.id) return;
+
+  AppState.nsmContextLoading = false;
+  if (ctx) {
+    AppState.nsmContext = ctx;
+  } else {
+    AppState.nsmContext = null;
+    AppState.nsmContextQuestionId = null;
+  }
+  refreshNSMStep1List();
 }
 
 // Sub-tabs for Screen 8 (NSM Step 2 / Gate / Step 3) — only step 2 enabled until gate run, gate enabled once a result exists, step 3 only after gate passed.
