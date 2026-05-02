@@ -404,7 +404,7 @@
     }
     .recent-rail__see-all {
       font-size: var(--t-cap);
-      color: var(--c-primary);
+      color: var(--c-navy);
       text-transform: none;
       letter-spacing: 0;
     }
@@ -500,16 +500,20 @@
       .vp-frame:nth-child(2), .vp-frame:nth-child(3) { display: none; }
     }
 
-    /* ───── q-card 展開（看完整題目）─────
-       Production: app.js:1786 renderQCardHtml + app.js:1829 expandQCard
-       展開時：collapsed brief 保留 line-clamp:2、新內容透過 .circles-q-card-expand-area 顯示在下方
-       內容：完整題目陳述 + 4 行分析（商業背景 / 用戶輪廓 / 常見誤區 / 破題切入）
-              + drill mode 才顯示「練習步驟：C1」hint
-              + action-row（確認，開始練習 primary + 取消 ghost）
-    */
+    /* ═══════════════════════════════════════════════════════════════
+       q-card 展開（看完整題目）— v4 senior UI/UX redesign
+       Production source: app.js:1786 / 1829 / 1757
+       設計理念（從 v3 失敗中學到）：
+         (1) 每個分析必須視覺自成 card — 邊界明確，眼睛知道「這是一塊」
+         (2) 完整題目用 surface 底色 + 細邊框，視覺像「題卡內的題卡」
+         (3) Section label 用 16px navy + 24px 短線 anchor — 不再是縮小 eyebrow
+         (4) Trap 用 warn-tinted card bg + warn label，不用紅底也不只是左 rule
+         (5) 全面 navy 色統一（不混 primary 藍） — 配暖紙基調
+       ═══════════════════════════════════════════════════════════════ */
     .qcard.is-expanded {
-      border-color: var(--c-primary);
-      box-shadow: 0 0 0 1px var(--c-primary), var(--shadow-2);
+      border-color: var(--c-navy);
+      box-shadow: 0 0 0 1px var(--c-navy), var(--shadow-2);
+      padding: var(--s-5) var(--s-6) var(--s-6);
     }
     .qcard__more {
       display: inline-flex;
@@ -517,68 +521,114 @@
       gap: var(--s-1);
       margin-top: var(--s-3);
       font-size: var(--t-meta);
-      color: var(--c-primary);
+      color: var(--c-navy);
       cursor: pointer;
     }
     .qcard__expand {
-      margin-top: var(--s-4);
-      padding-top: var(--s-4);
+      margin-top: var(--s-5);
+      padding-top: var(--s-5);
       border-top: 1px solid var(--c-rule);
     }
-    .qcard__full-block {
-      background: var(--c-surface);
-      border-left: 2px solid var(--c-rule-bold);
-      padding: var(--s-3) var(--s-4);
-      border-radius: 0 var(--r-input) var(--r-input) 0;
-      margin-bottom: var(--s-4);
+
+    /* ─── Section label（強化版 — 不再是縮小 eyebrow）─── */
+    .qcard__section-label {
+      display: flex;
+      align-items: center;
+      gap: var(--s-3);
+      margin: var(--s-7) 0 var(--s-4);
+      font-size: var(--t-h3);
+      font-weight: 600;
+      color: var(--c-navy);
+      letter-spacing: -0.005em;
     }
-    .qcard__full-label {
-      font-size: var(--t-cap);
-      letter-spacing: 0.04em;
-      text-transform: uppercase;
-      color: var(--c-ink-3);
-      margin-bottom: var(--s-1);
+    .qcard__section-label::before {
+      content: '';
+      display: block;
+      width: 24px;
+      height: 2px;
+      background: var(--c-navy);
+      flex: 0 0 auto;
     }
-    .qcard__full-text {
-      font-size: var(--t-body-sm);
+    .qcard__section-label:first-child { margin-top: 0; }
+
+    /* ─── 完整題目（surface 底色 + 細邊框，視覺像被 quote 的內容）─── */
+    .qcard__full-statement {
+      font-size: 16px;
+      line-height: 1.8;
       color: var(--c-ink);
-      line-height: var(--lh-norm);
+      max-width: 64ch;
+      margin: 0;
+      padding: var(--s-4) var(--s-5);
+      background: var(--c-surface);
+      border: 1px solid var(--c-rule);
+      border-radius: var(--r-input);
+      letter-spacing: 0.005em;
     }
+    .qcard__full-statement strong {
+      font-weight: 600;
+      color: var(--c-navy);
+    }
+
+    /* ─── 4 個分析改 card-based blocks（這次是真的 card）─── */
     .qcard-analysis {
       display: flex;
       flex-direction: column;
-      gap: var(--s-3);
-      margin-bottom: var(--s-4);
+      gap: var(--s-4);          /* 16px gap — 卡片有邊界，不需巨大空白 */
     }
-    .ana-row {
-      display: grid;
-      grid-template-columns: 96px 1fr;
-      gap: var(--s-3);
-      align-items: baseline;
-      font-size: var(--t-body-sm);
-      line-height: var(--lh-norm);
+    .ana-block {
+      background: var(--c-card);
+      border: 1px solid var(--c-rule);
+      border-radius: var(--r-input);
+      padding: var(--s-4) var(--s-5);
+      transition: border-color var(--t-fast) var(--ease);
     }
-    .ana-row .ana-label {
-      display: inline-flex;
+    .ana-block:hover { border-color: var(--c-rule-bold); }
+
+    .ana-block__head {
+      display: flex;
       align-items: center;
-      gap: var(--s-1);
-      font-size: var(--t-meta);
-      color: var(--c-ink-3);
-      letter-spacing: 0.02em;
-      flex: 0 0 auto;
-    }
-    .ana-row .ana-label i { font-size: 14px; color: var(--c-ink-2); }
-    .ana-row.trap .ana-label { color: var(--c-danger); }
-    .ana-row.trap .ana-label i { color: var(--c-danger); }
-    .ana-row .ana-val {
+      gap: var(--s-2);
+      margin-bottom: var(--s-3);   /* 12px clear gap to body */
+      font-size: var(--t-body);    /* 15px — 比 v3 大一級 */
+      font-weight: 600;
       color: var(--c-ink);
+      letter-spacing: -0.005em;
+    }
+    .ana-block__head i {
+      font-size: 20px;
+      color: var(--c-navy);
+      flex: 0 0 auto;
+      width: 24px;
+      text-align: center;
+    }
+
+    .ana-block__body {
+      font-size: var(--t-body-sm);   /* 14px */
+      line-height: 1.75;
+      color: var(--c-ink-2);
+      max-width: 60ch;
+      padding-left: 32px;            /* icon 24 + gap 8 */
       word-break: break-word;
       overflow-wrap: anywhere;
     }
-    .ana-row.trap .ana-val { color: var(--c-danger-fg, var(--c-danger)); background: var(--c-danger-lt); padding: 4px var(--s-2); border-radius: 4px; }
+    .ana-block__body strong {
+      font-weight: 600;
+      color: var(--c-navy);
+    }
+
+    /* ─── Trap variant（subtle warn-tinted card）─── */
+    .ana-block--trap {
+      background: linear-gradient(0deg, rgba(184,92,0,0.04), rgba(184,92,0,0.04)), var(--c-card);
+      border-color: rgba(184,92,0,0.18);
+    }
+    .ana-block--trap .ana-block__head { color: var(--c-warn); }
+    .ana-block--trap .ana-block__head i { color: var(--c-warn); }
+    .ana-block--trap .ana-block__body { color: var(--c-ink-2); }
+
+    /* ─── Drill hint + action row ─── */
     .qcard__drill-hint {
-      margin-bottom: var(--s-3);
-      padding: var(--s-2) var(--s-3);
+      margin: var(--s-6) 0 0;
+      padding: var(--s-3) var(--s-4);
       background: var(--c-navy-lt);
       border-radius: var(--r-input);
       font-size: var(--t-meta);
@@ -590,26 +640,35 @@
     .qcard__drill-hint .step-letter {
       font-family: var(--font-serif);
       font-style: italic;
-      font-size: 16px;
+      font-size: 18px;
+      line-height: 1;
     }
     .qcard__action-row {
       display: flex;
-      gap: var(--s-2);
+      gap: var(--s-3);
       justify-content: flex-end;
       flex-wrap: wrap;
+      margin-top: var(--s-7);
+      padding-top: var(--s-5);
+      border-top: 1px solid var(--c-rule);
     }
     .qcard__btn {
       padding: var(--s-3) var(--s-5);
       border-radius: var(--r-input);
       font-size: var(--t-body-sm);
       min-height: var(--touch-min);
+      display: inline-flex;
+      align-items: center;
+      gap: var(--s-2);
       transition: all var(--t-fast) var(--ease);
+      letter-spacing: 0.005em;
     }
     .qcard__btn--primary {
-      background: var(--c-primary);
+      background: var(--c-navy);
       color: #fff;
+      font-weight: 500;
     }
-    .qcard__btn--primary:hover { background: #1448B8; }
+    .qcard__btn--primary:hover { background: var(--c-navy-2); }
     .qcard__btn--ghost {
       background: transparent;
       color: var(--c-ink-2);
@@ -617,13 +676,21 @@
     }
     .qcard__btn--ghost:hover { background: var(--c-bg-soft); color: var(--c-ink); }
 
-    /* mobile：分析 row 直立堆疊 */
+    /* ─── Mobile (≤ 600px)：保留可讀性、不過度縮小 ─── */
     @media (max-width: 600px) {
-      .ana-row { grid-template-columns: 1fr; gap: 4px; }
-      .ana-row .ana-label { margin-bottom: 0; }
-      .qcard__action-row { flex-direction: column-reverse; }
-      .qcard__btn { width: 100%; }
-    }
+      .qcard.is-expanded { padding: var(--s-4) var(--s-5) var(--s-5); }
+      .qcard__full-statement { font-size: 15px; line-height: 1.7; padding: var(--s-3) var(--s-4); }
+      .qcard__section-label { margin: var(--s-6) 0 var(--s-3); font-size: var(--t-h3); }
+      .ana-block { padding: var(--s-3) var(--s-4); }
+      .ana-block__head { font-size: var(--t-body-sm); margin-bottom: var(--s-2); }
+      .ana-block__head i { font-size: 18px; width: 22px; }
+      .ana-block__body { padding-left: 30px; font-size: var(--t-meta); line-height: 1.7; }
+      .qcard__action-row {
+        flex-direction: column-reverse;
+        margin-top: var(--s-6);
+      }
+      .qcard__btn { width: 100%; justify-content: center; }
+    }    }
   </style>
 </head>
 <body>
@@ -1203,13 +1270,13 @@
 
           <div class="q-list">
             <div class="qcard">
-              <div class="qcard__head"><span class="qcard__num">01</span><h3 class="qcard__title"><mark style="background:var(--c-primary-lt); color:var(--c-primary); padding:0 2px;">Spotify</mark> Podcast 留存率</h3></div>
-              <div class="qcard__meta"><span class="mode-tag mode-tag--sim">完整</span><span class="qcard__meta-sep">·</span><mark style="background:var(--c-primary-lt); color:var(--c-primary); padding:0 2px;">Spotify</mark></div>
+              <div class="qcard__head"><span class="qcard__num">01</span><h3 class="qcard__title"><mark style="background:var(--c-navy-lt); color:var(--c-navy); padding:0 2px;">Spotify</mark> Podcast 留存率</h3></div>
+              <div class="qcard__meta"><span class="mode-tag mode-tag--sim">完整</span><span class="qcard__meta-sep">·</span><mark style="background:var(--c-navy-lt); color:var(--c-navy); padding:0 2px;">Spotify</mark></div>
               <p class="qcard__body">既有用戶聽 Podcast 的留存比聽音樂低…</p>
             </div>
             <div class="qcard">
-              <div class="qcard__head"><span class="qcard__num">02</span><h3 class="qcard__title"><mark style="background:var(--c-primary-lt); color:var(--c-primary); padding:0 2px;">Spotify</mark> 廣告體驗優化</h3></div>
-              <div class="qcard__meta"><span class="mode-tag mode-tag--sim">完整</span><span class="qcard__meta-sep">·</span><mark style="background:var(--c-primary-lt); color:var(--c-primary); padding:0 2px;">Spotify</mark></div>
+              <div class="qcard__head"><span class="qcard__num">02</span><h3 class="qcard__title"><mark style="background:var(--c-navy-lt); color:var(--c-navy); padding:0 2px;">Spotify</mark> 廣告體驗優化</h3></div>
+              <div class="qcard__meta"><span class="mode-tag mode-tag--sim">完整</span><span class="qcard__meta-sep">·</span><mark style="background:var(--c-navy-lt); color:var(--c-navy); padding:0 2px;">Spotify</mark></div>
               <p class="qcard__body">免費版用戶對廣告負感升高…</p>
             </div>
           </div>
@@ -1239,12 +1306,12 @@
           </div>
           <div class="q-list">
             <div class="qcard">
-              <div class="qcard__head"><span class="qcard__num">01</span><h3 class="qcard__title">Spotify Podcast 用戶<mark style="background:var(--c-primary-lt); color:var(--c-primary); padding:0 2px;">留存</mark></h3></div>
+              <div class="qcard__head"><span class="qcard__num">01</span><h3 class="qcard__title">Spotify Podcast 用戶<mark style="background:var(--c-navy-lt); color:var(--c-navy); padding:0 2px;">留存</mark></h3></div>
               <div class="qcard__meta"><span class="mode-tag mode-tag--sim">完整</span><span class="qcard__meta-sep">·</span>Spotify</div>
-              <p class="qcard__body">既有用戶聽 Podcast 的<mark style="background:var(--c-primary-lt); color:var(--c-primary); padding:0 2px;">留存</mark>比聽音樂低…</p>
+              <p class="qcard__body">既有用戶聽 Podcast 的<mark style="background:var(--c-navy-lt); color:var(--c-navy); padding:0 2px;">留存</mark>比聽音樂低…</p>
             </div>
             <div class="qcard">
-              <div class="qcard__head"><span class="qcard__num">02</span><h3 class="qcard__title">Notion 新用戶啟用率與<mark style="background:var(--c-primary-lt); color:var(--c-primary); padding:0 2px;">留存</mark></h3></div>
+              <div class="qcard__head"><span class="qcard__num">02</span><h3 class="qcard__title">Notion 新用戶啟用率與<mark style="background:var(--c-navy-lt); color:var(--c-navy); padding:0 2px;">留存</mark></h3></div>
               <div class="qcard__meta"><span class="mode-tag mode-tag--sim">完整</span><span class="qcard__meta-sep">·</span>Notion</div>
               <p class="qcard__body">空白工作區的「冷啟動」問題…</p>
             </div>
@@ -1280,19 +1347,19 @@
             </div>
             <div class="q-list">
               <div class="qcard">
-                <div class="qcard__head"><span class="qcard__num">01</span><h3 class="qcard__title">Spotify Podcast 用戶<mark style="background:var(--c-primary-lt); color:var(--c-primary); padding:0 2px;">留存</mark>率</h3></div>
+                <div class="qcard__head"><span class="qcard__num">01</span><h3 class="qcard__title">Spotify Podcast 用戶<mark style="background:var(--c-navy-lt); color:var(--c-navy); padding:0 2px;">留存</mark>率</h3></div>
                 <div class="qcard__meta"><span class="mode-tag mode-tag--sim">完整模擬</span><span class="qcard__meta-sep">·</span>Spotify<span class="qcard__meta-sep">·</span><span style="color:var(--c-ink-4);">難度 中</span></div>
-                <p class="qcard__body">既有用戶聽 Podcast 的<mark style="background:var(--c-primary-lt); color:var(--c-primary); padding:0 2px;">留存</mark>比聽音樂低；產品經理需要找出主因並提出策略。</p>
+                <p class="qcard__body">既有用戶聽 Podcast 的<mark style="background:var(--c-navy-lt); color:var(--c-navy); padding:0 2px;">留存</mark>比聽音樂低；產品經理需要找出主因並提出策略。</p>
               </div>
               <div class="qcard">
-                <div class="qcard__head"><span class="qcard__num">02</span><h3 class="qcard__title">Notion 新用戶啟用率與<mark style="background:var(--c-primary-lt); color:var(--c-primary); padding:0 2px;">留存</mark></h3></div>
+                <div class="qcard__head"><span class="qcard__num">02</span><h3 class="qcard__title">Notion 新用戶啟用率與<mark style="background:var(--c-navy-lt); color:var(--c-navy); padding:0 2px;">留存</mark></h3></div>
                 <div class="qcard__meta"><span class="mode-tag mode-tag--sim">完整模擬</span><span class="qcard__meta-sep">·</span>Notion<span class="qcard__meta-sep">·</span><span style="color:var(--c-ink-4);">難度 中</span></div>
                 <p class="qcard__body">空白工作區的「冷啟動」問題：用戶下載後三天內回流率僅 28%。</p>
               </div>
               <div class="qcard">
-                <div class="qcard__head"><span class="qcard__num">03</span><h3 class="qcard__title">Discord <mark style="background:var(--c-primary-lt); color:var(--c-primary); padding:0 2px;">retention</mark> deep dive</h3></div>
+                <div class="qcard__head"><span class="qcard__num">03</span><h3 class="qcard__title">Discord <mark style="background:var(--c-navy-lt); color:var(--c-navy); padding:0 2px;">retention</mark> deep dive</h3></div>
                 <div class="qcard__meta"><span class="mode-tag mode-tag--sim">完整模擬</span><span class="qcard__meta-sep">·</span>Discord<span class="qcard__meta-sep">·</span><span style="color:var(--c-ink-4);">難度 高</span></div>
-                <p class="qcard__body">青少年群體 30 天<mark style="background:var(--c-primary-lt); color:var(--c-primary); padding:0 2px;">retention</mark> 下滑 12% — 找出根本原因。</p>
+                <p class="qcard__body">青少年群體 30 天<mark style="background:var(--c-navy-lt); color:var(--c-navy); padding:0 2px;">retention</mark> 下滑 12% — 找出根本原因。</p>
               </div>
             </div>
           </div>
@@ -1498,8 +1565,8 @@
           </div>
         </div>
         <div class="home">
-          <div style="background:var(--c-primary-lt); border-left:2px solid var(--c-primary); padding:var(--s-3) var(--s-4); border-radius:var(--r-input); margin-bottom:var(--s-4); font-size:var(--t-meta); color:var(--c-ink-2);">
-            <strong style="color:var(--c-primary); display:block; margin-bottom:2px;">遊客模式</strong>
+          <div style="background:var(--c-navy-lt); border-left:2px solid var(--c-navy); padding:var(--s-3) var(--s-4); border-radius:var(--r-input); margin-bottom:var(--s-4); font-size:var(--t-meta); color:var(--c-ink-2);">
+            <strong style="color:var(--c-navy); display:block; margin-bottom:2px;">遊客模式</strong>
             練習記錄存於本機 7 天。登入後自動同步到雲端。
           </div>
           <p style="font-size:var(--t-meta); color:var(--c-ink-3); margin-bottom:var(--s-3);">尚未練習過任何題目</p>
@@ -1530,10 +1597,10 @@
         <div class="navbar"><button class="navbar__hamburger"><i class="ph ph-list"></i></button><div class="navbar__brand"><span class="navbar__brand-icon"><i class="ph ph-circles-three"></i></span><span class="navbar__brand-name">PM Drill</span></div><nav class="navbar__tabs"><span class="navbar__tab is-active">CIRCLES</span><span class="navbar__tab">北極星指標</span></nav><div class="navbar__actions"><button style="padding:6px 12px; border-radius:var(--r-pill); font-size:var(--t-meta); color:var(--c-navy); border:1px solid var(--c-navy);">登入</button></div></div>
         <div class="home home--desktop home--desktop-no-drill">
           <div>
-            <div style="background:var(--c-primary-lt); border-left:2px solid var(--c-primary); padding:var(--s-3) var(--s-5); border-radius:var(--r-input); margin-bottom:var(--s-5); font-size:var(--t-body-sm); color:var(--c-ink-2);">
-              <strong style="color:var(--c-primary);">歡迎使用 PM Drill — 100 題情境模擬訓練</strong><br>
+            <div style="background:var(--c-navy-lt); border-left:2px solid var(--c-navy); padding:var(--s-3) var(--s-5); border-radius:var(--r-input); margin-bottom:var(--s-5); font-size:var(--t-body-sm); color:var(--c-ink-2);">
+              <strong style="color:var(--c-navy);">歡迎使用 PM Drill — 100 題情境模擬訓練</strong><br>
               先選一個模式：完整模擬適合系統訓練、個別步驟適合 5-15 分鐘的零碎時間。<br>
-              <a href="#" style="color:var(--c-primary); text-decoration:underline;">看 60 秒 onboarding 引導 →</a>
+              <a href="#" style="color:var(--c-navy); text-decoration:underline;">看 60 秒 onboarding 引導 →</a>
             </div>
             <div class="mode-selector">
               <button class="mode-card is-active">
@@ -1577,8 +1644,8 @@
 
   <p class="anno"><strong>F · edge cases：</strong>(mobile) guest mode 顯示登入入口 + 遊客提示 banner / (tablet) 載入失敗 → 紅 cloud-warning + 重新載入 / (desktop) 首次訪客 → primary-lt 歡迎 banner + 推薦難度中題目 + recent rail empty「還沒練習過」。</p>
 
-  <!-- ═══════════════════ G. q-card 展開 ═══════════════════ -->
-  <h2 class="vp-section-title">G. 題目卡展開（看完整題目）<span class="vp-section-title__sub">點「看完整題目 ▾」/ 完整陳述 + 分析 4 欄 + drill hint + action 雙鈕</span></h2>
+    <!-- ═══════════════════ G. q-card 展開（v4 senior UI/UX redesign）═══════════════════ -->
+  <h2 class="vp-section-title">G. 題目卡展開（card-based blocks）<span class="vp-section-title__sub">每塊獨立 card 邊界 / 完整題目用 surface 底襯 / trap 用 warn-tinted bg / 全 navy 統一色系</span></h2>
 
   <div class="vp-grid">
 
@@ -1592,19 +1659,31 @@
           <div class="qcard is-expanded">
             <div class="qcard__head"><span class="qcard__num">01</span><h3 class="qcard__title">如何提升 Spotify Podcast 的用戶留存率？</h3></div>
             <div class="qcard__meta"><span class="mode-tag mode-tag--sim"><i class="ph ph-list-checks"></i>完整模擬</span><span class="qcard__meta-sep">·</span>Spotify<span class="qcard__meta-sep">·</span>難度 中</div>
-            <p class="qcard__body">既有用戶聽 Podcast 的留存比聽音樂低；產品經理需要找出主因…</p>
 
             <div class="qcard__expand">
-              <div class="qcard__full-block">
-                <div class="qcard__full-label">完整題目</div>
-                <div class="qcard__full-text">既有用戶聽 Podcast 的留存比聽音樂低；產品經理需要找出主因並提出策略，但不能影響廣告收入或訂閱轉換率。請設計一個改善方案。</div>
-              </div>
+              <h4 class="qcard__section-label">完整題目</h4>
+              <p class="qcard__full-statement">
+                既有用戶聽 Podcast 的留存比聽音樂低（30 天留存 35% vs 音樂 62%）；產品經理需要找出主因並提出策略，但<strong>不能影響廣告收入或訂閱轉換率</strong>。
+              </p>
 
+              <h4 class="qcard__section-label">深入分析</h4>
               <div class="qcard-analysis">
-                <div class="ana-row"><span class="ana-label"><i class="ph ph-buildings"></i>商業背景</span><span class="ana-val">Spotify 廣告收入仰賴 ad-supported tier；Podcast 與音樂共享同一個聽眾池，但商業模型不同。</span></div>
-                <div class="ana-row"><span class="ana-label"><i class="ph ph-users"></i>用戶輪廓</span><span class="ana-val">免費用戶為主，多為通勤 / 運動場景使用者。</span></div>
-                <div class="ana-row trap"><span class="ana-label"><i class="ph ph-warning"></i>常見誤區</span><span class="ana-val">直接套用音樂留存策略 — 但 Podcast 的「subscribe → listen」漏斗本質上不同。</span></div>
-                <div class="ana-row"><span class="ana-label"><i class="ph ph-lightbulb"></i>破題切入</span><span class="ana-val">先界定「留存」是什麼層面 — 是訂閱留存、播放留存還是回流留存？</span></div>
+                <div class="ana-block">
+                  <div class="ana-block__head"><i class="ph ph-buildings"></i>商業背景</div>
+                  <div class="ana-block__body">Spotify 廣告收入仰賴 ad-supported tier；Podcast 與音樂共享聽眾池但商業模型不同。Podcast 留存低 → 壓縮整體 ARPU。</div>
+                </div>
+                <div class="ana-block">
+                  <div class="ana-block__head"><i class="ph ph-users"></i>用戶輪廓</div>
+                  <div class="ana-block__body">免費 + 訂閱混合的通勤 / 運動 / 開車場景用戶。多數人訂閱後 7 天內未開啟單集。</div>
+                </div>
+                <div class="ana-block ana-block--trap">
+                  <div class="ana-block__head"><i class="ph ph-warning"></i>常見誤區</div>
+                  <div class="ana-block__body">直接套用音樂留存策略 — 但<strong>「subscribe → listen」漏斗本質不同</strong>：音樂是 mood-driven，Podcast 是 content-driven。</div>
+                </div>
+                <div class="ana-block">
+                  <div class="ana-block__head"><i class="ph ph-lightbulb"></i>破題切入</div>
+                  <div class="ana-block__body">先界定「留存」具體指什麼：訂閱留存、播放留存還是回流留存？</div>
+                </div>
               </div>
 
               <div class="qcard__action-row">
@@ -1627,30 +1706,30 @@
           <div class="qcard is-expanded">
             <div class="qcard__head"><span class="qcard__num">01</span><h3 class="qcard__title">如何提升 Spotify Podcast 的用戶留存率？</h3></div>
             <div class="qcard__meta"><span class="mode-tag mode-tag--sim"><i class="ph ph-list-checks"></i>完整模擬</span><span class="qcard__meta-sep">·</span>Spotify<span class="qcard__meta-sep">·</span>Spotify Podcast<span class="qcard__meta-sep">·</span>難度 中</div>
-            <p class="qcard__body">既有用戶聽 Podcast 的留存比聽音樂低；產品經理需要找出主因並提出策略，但不能影響廣告收入…</p>
 
             <div class="qcard__expand">
-              <div class="qcard__full-block">
-                <div class="qcard__full-label">完整題目</div>
-                <div class="qcard__full-text">既有用戶聽 Podcast 的留存比聽音樂低（30 天留存 35% vs 音樂 62%）；產品經理需要找出主因並提出策略，但<strong>不能影響廣告收入或訂閱轉換率</strong>。請設計一個改善方案，包含目標族群定義、優先解的痛點、提出 2-3 個方案並評估取捨。</div>
-              </div>
+              <h4 class="qcard__section-label">完整題目</h4>
+              <p class="qcard__full-statement">
+                既有用戶聽 Podcast 的留存比聽音樂低（30 天留存 35% vs 音樂 62%）；產品經理需要找出主因並提出策略，但<strong>不能影響廣告收入或訂閱轉換率</strong>。請設計一個改善方案，包含目標族群定義、優先解的痛點、提出 2-3 個方案並評估取捨。
+              </p>
 
+              <h4 class="qcard__section-label">深入分析</h4>
               <div class="qcard-analysis">
-                <div class="ana-row">
-                  <span class="ana-label"><i class="ph ph-buildings"></i>商業背景</span>
-                  <span class="ana-val">Spotify 廣告收入仰賴 ad-supported tier；Podcast 與音樂共享聽眾池但商業模型不同（廣告 vs 訂閱）。Podcast 留存低會壓縮整體 ARPU。</span>
+                <div class="ana-block">
+                  <div class="ana-block__head"><i class="ph ph-buildings"></i>商業背景</div>
+                  <div class="ana-block__body">Spotify 廣告收入仰賴 ad-supported tier；Podcast 與音樂共享聽眾池但商業模型不同（廣告 vs 訂閱）。Podcast 留存低會壓縮整體 ARPU + 降低 ad inventory。</div>
                 </div>
-                <div class="ana-row">
-                  <span class="ana-label"><i class="ph ph-users"></i>用戶輪廓</span>
-                  <span class="ana-val">主要為免費 + 訂閱混合的通勤 / 運動 / 開車場景用戶。Podcast 「subscribe → listen」漏斗轉換差。</span>
+                <div class="ana-block">
+                  <div class="ana-block__head"><i class="ph ph-users"></i>用戶輪廓</div>
+                  <div class="ana-block__body">主要為免費 + 訂閱混合的通勤 / 運動 / 開車場景用戶。Podcast「subscribe → listen」漏斗轉換差，多數人訂閱後 7 天內未開啟單集。</div>
                 </div>
-                <div class="ana-row trap">
-                  <span class="ana-label"><i class="ph ph-warning"></i>常見誤區</span>
-                  <span class="ana-val">把音樂留存策略直接套用到 Podcast — 但兩者的「習慣養成路徑」不同：音樂是 mood-driven，Podcast 是 content-driven。</span>
+                <div class="ana-block ana-block--trap">
+                  <div class="ana-block__head"><i class="ph ph-warning"></i>常見誤區</div>
+                  <div class="ana-block__body">把音樂留存策略直接套用到 Podcast — 但兩者的<strong>「習慣養成路徑」</strong>不同：音樂是 mood-driven、隨手即用；Podcast 是 content-driven、需要更高的注意力承諾。</div>
                 </div>
-                <div class="ana-row">
-                  <span class="ana-label"><i class="ph ph-lightbulb"></i>破題切入</span>
-                  <span class="ana-val">先界定「留存」具體指什麼：訂閱留存（subscribe 後 N 天回來播放）、播放留存（單集完播率）、還是回流留存（30 天再次開啟）？</span>
+                <div class="ana-block">
+                  <div class="ana-block__head"><i class="ph ph-lightbulb"></i>破題切入</div>
+                  <div class="ana-block__body">先界定「留存」具體指什麼：訂閱留存（subscribe 後 N 天回來播放）、播放留存（單集完播率）、還是回流留存（30 天再次開啟）？三種解法路徑完全不同。</div>
                 </div>
               </div>
 
@@ -1675,36 +1754,36 @@
             <div class="qcard is-expanded">
               <div class="qcard__head"><span class="qcard__num">01</span><h3 class="qcard__title">Spotify Podcast 留存 — 練 R · 發掘需求</h3></div>
               <div class="qcard__meta"><span class="mode-tag mode-tag--drill"><i class="ph ph-target"></i>個別 R</span><span class="qcard__meta-sep">·</span>Spotify<span class="qcard__meta-sep">·</span>Spotify Podcast<span class="qcard__meta-sep">·</span>難度 中</div>
-              <p class="qcard__body">專注練習「發掘需求」一步：練習區分表面訴求與根本需求…</p>
 
               <div class="qcard__expand">
-                <div class="qcard__full-block">
-                  <div class="qcard__full-label">完整題目</div>
-                  <div class="qcard__full-text">既有用戶聽 Podcast 的留存比聽音樂低（30 天留存 35% vs 音樂 62%）；產品經理需要找出主因並提出策略，但<strong>不能影響廣告收入或訂閱轉換率</strong>。本次練習聚焦於 R 步驟：<strong>挖掘用戶真正的痛點，區分功能性 / 情感性 / 社交性需求，並指出核心痛點</strong>。</div>
-                </div>
+                <h4 class="qcard__section-label">完整題目</h4>
+                <p class="qcard__full-statement">
+                  既有用戶聽 Podcast 的留存比聽音樂低（30 天留存 35% vs 音樂 62%）；產品經理需要找出主因並提出策略，但<strong>不能影響廣告收入或訂閱轉換率</strong>。本次練習聚焦於 R 步驟：<strong>挖掘用戶真正的痛點，區分功能性 / 情感性 / 社交性需求，並指出核心痛點</strong>。
+                </p>
 
+                <h4 class="qcard__section-label">深入分析</h4>
                 <div class="qcard-analysis">
-                  <div class="ana-row">
-                    <span class="ana-label"><i class="ph ph-buildings"></i>商業背景</span>
-                    <span class="ana-val">Spotify 廣告收入仰賴 ad-supported tier；Podcast 與音樂共享聽眾池但商業模型不同。Podcast 留存低 → 壓縮整體 ARPU + 降低 ad inventory。</span>
+                  <div class="ana-block">
+                    <div class="ana-block__head"><i class="ph ph-buildings"></i>商業背景</div>
+                    <div class="ana-block__body">Spotify 廣告收入仰賴 ad-supported tier；Podcast 與音樂共享聽眾池但商業模型不同。Podcast 留存低 → 壓縮整體 ARPU + 降低 ad inventory，所以解法不能單純犧牲廣告體驗。</div>
                   </div>
-                  <div class="ana-row">
-                    <span class="ana-label"><i class="ph ph-users"></i>用戶輪廓</span>
-                    <span class="ana-val">免費 + 訂閱混合的通勤 / 運動 / 開車場景用戶。Podcast 「subscribe → listen」漏斗轉換差，多數人訂閱後 7 天內未開啟單集。</span>
+                  <div class="ana-block">
+                    <div class="ana-block__head"><i class="ph ph-users"></i>用戶輪廓</div>
+                    <div class="ana-block__body">免費 + 訂閱混合的通勤 / 運動 / 開車場景用戶。Podcast「subscribe → listen」漏斗轉換差，多數人訂閱後 7 天內未開啟單集 — 顯示 onboarding 與發現機制有 gap。</div>
                   </div>
-                  <div class="ana-row trap">
-                    <span class="ana-label"><i class="ph ph-warning"></i>常見誤區</span>
-                    <span class="ana-val">只列「想要更好的推薦演算法」這種空話 — R 步驟要分到功能 / 情感 / 社交三層。例如「不想被打斷情緒」是情感層，「想跟朋友討論最新一集」是社交層。</span>
+                  <div class="ana-block ana-block--trap">
+                    <div class="ana-block__head"><i class="ph ph-warning"></i>常見誤區</div>
+                    <div class="ana-block__body">只列「想要更好的推薦演算法」這種空話 — R 步驟要分到<strong>功能 / 情感 / 社交</strong>三層。例如「不想被打斷情緒」是情感層，「想跟朋友討論最新一集」是社交層；單壓功能層會錯過真正的 retention drivers。</div>
                   </div>
-                  <div class="ana-row">
-                    <span class="ana-label"><i class="ph ph-lightbulb"></i>破題切入</span>
-                    <span class="ana-val">用戶真正的痛點不是「找不到好聽的」，是<strong>「沒有時間 / 心境去聽長內容」</strong> — 這是情感層的核心痛點。Podcast 比音樂需要更高的注意力承諾。</span>
+                  <div class="ana-block">
+                    <div class="ana-block__head"><i class="ph ph-lightbulb"></i>破題切入</div>
+                    <div class="ana-block__body">用戶真正的痛點不是「找不到好聽的」，是<strong>「沒有時間 / 心境去聽長內容」</strong> — 這是情感層的核心痛點。Podcast 比音樂需要更高的注意力承諾，這個摩擦是基礎假設，所有方案都要繞著它設計。</div>
                   </div>
                 </div>
 
                 <div class="qcard__drill-hint">
                   <i class="ph ph-target"></i>
-                  <span>練習步驟：<span class="step-letter">R</span>發掘需求（個別練習 — 結束即完成 session）</span>
+                  <span>練習步驟：<span class="step-letter">R</span>發掘需求 — 個別練習，結束即完成 session</span>
                 </div>
 
                 <div class="qcard__action-row">
@@ -1728,15 +1807,23 @@
   </div>
 
   <p class="anno">
-    <strong>G · 題目展開：</strong>點 collapsed brief 任意處（或「看完整題目 ▾」連結）→ <code>.qcard.is-expanded</code> + 1px 藍邊 / brief 不變動（仍 line-clamp:2 — A1 spec：展開帶來新資訊不重複預覽）/ 揭露 4 欄分析 + 完整陳述 + drill hint（drill mode 才有）+ action 雙鈕（取消 ghost + 確認 primary）。<br>
-    <strong>Layout：</strong>
+    <strong>G · 題目展開（v4 senior UI/UX redesign）：</strong><br>
     <ul style="margin:var(--s-2) 0 0 var(--s-5); padding-left:var(--s-3); line-height:var(--lh-loose);">
-      <li><strong>Desktop / Tablet：</strong>分析 4 欄 grid（96px label + 1fr value），baseline 對齊</li>
-      <li><strong>Mobile：</strong>label 在上 / value 在下單欄堆疊；action 按鈕全寬反向（confirm 在下方因為 thumb-zone）</li>
-      <li><strong>常見誤區（trap）特殊：</strong>danger-lt 底色 + danger 字 + ph-warning 紅 icon — 視覺警示用</li>
+      <li><strong>Section label：</strong>「完整題目」/「深入分析」改成 <strong>16px navy 600 weight</strong> + 24px 短 navy bar 作為視覺 anchor — 不再是縮小 eyebrow，眼睛一掃就鎖定章節</li>
+      <li><strong>完整題目：</strong>用 <code>--c-surface</code> 底色 + 1px 細邊框 + 16-20px padding，<strong>視覺像「題卡內的題卡」</strong>；16 px / 1.8 / 64ch；strong 套 navy</li>
+      <li><strong>4 個分析改 card-based blocks：</strong>每塊獨立 card（white bg + 1px rule + 8px radius + 16-20px padding），間距 16 px；<strong>邊界明確眼睛知道「這是一塊」</strong>；head 用 20px icon + 15px 600 weight；body 14px / 1.75 / 32px 左 padding</li>
+      <li><strong>常見誤區（trap）特殊：</strong><strong>warn 4% 微著色 bg + warn 18% border + warn head + warn icon</strong> — 像 print 雜誌的警語邊欄，視覺重要但不像錯誤訊息</li>
+      <li><strong>全 navy 色統一：</strong>section label / strong text / icon accent / drill hint / 確認 CTA 都用 navy；<strong>不再混 primary 藍</strong>（user 親自指出色系不搭 — 已修）</li>
+      <li><strong>Drill hint：</strong>navy-lt bar + ph-target + step letter（serif italic）；只 drill mode 顯示</li>
+      <li><strong>Action row：</strong>32px gap + 1px hairline；mobile 全寬 column-reverse</li>
     </ul>
-    <strong>Drill mode hint：</strong>navy-lt 條 + ph-target icon + 練習步驟字母（serif italic）— 提醒用戶這是個別練習、結束即完成；只在 <code>circlesMode === 'drill'</code> 時 render。<br>
-    <strong>Production 來源：</strong>app.js:1786 <code>renderQCardHtml</code> + app.js:1829 <code>expandQCard</code> + app.js:1757 <code>renderQuestionAnalysisBlock</code>（4 ana-rows: business / users / traps / insight）。
+    <strong>從 v3 失敗中學到：</strong>
+    <ul style="margin:var(--s-2) 0 0 var(--s-5); padding-left:var(--s-3); line-height:var(--lh-loose);">
+      <li>v3 用 12px uppercase eyebrow 做章節 label — 太弱、被內文蓋過 → v4 改 16px navy + 短 bar</li>
+      <li>v3 用 hairline divider 區分區塊 — 在 mobile 太細看不出 → v4 改 card 邊界</li>
+      <li>v3 用 trap 左 rule — 太細不夠醒目 → v4 改整塊 warn-tinted bg + 更明顯邊</li>
+      <li>v3 head 與 body 太近 → v4 加 12px gap + 強化 head 字級</li>
+    </ul>
   </p>
 
   <footer style="max-width:1880px; margin:var(--s-9) auto var(--s-7); padding-top:var(--s-6); border-top:1px solid var(--c-rule); display:flex; gap:var(--s-5); flex-wrap:wrap; color:var(--c-ink-3); font-size:var(--t-meta);">
