@@ -535,7 +535,7 @@ System prompt 固定段落（prompts/circles-coach.js:14-66）：
 | 03 | ✅ **放行** | `docs/superpowers/specs/mockups/2026-05-02-frontend-rewrite/03-phase-1-form.html` | Phase 1 表單 v8（7 sections × 3 viewport = 21 variations）— A 4-field 標準 / B L solution-multi / C S 3 main + 4 tracking 含 hint+example / D hint overlay 觸發鏈 / E locked-stale 唯讀仍可看 hint / F save+sticky / G qchip 題目展開（card-based 套 §0.7.1）|
 | 04 | ✅ 放行 | `docs/superpowers/specs/mockups/2026-05-02-frontend-rewrite/04-phase-1-5-gate.html` | Phase 1.5 Gate 三態 ok/warn/error（紅 = 必擋，drill+sim 一致）+ loading |
 | 05 | ✅ 放行 | `docs/superpowers/specs/mockups/2026-05-02-frontend-rewrite/05-phase-2-chat.html` | Phase 2 對話三角色 bubble（user / 被訪談者 / 教練點評）+ 4 種底部狀態（input / submit-row / streaming / conclusion / locked）|
-| 06 | 待畫 | `docs/superpowers/specs/mockups/2026-05-02-frontend-rewrite/06-nsm-step-1.html` | NSM Step 1 選題 + 4 欄分析 |
+| 06 | ✅ 放行 | `docs/superpowers/specs/mockups/2026-05-02-frontend-rewrite/06-nsm-step-1.html` | NSM Step 1 — 5 卡未選 / 已選展開 4-欄 context（商業模式 / 使用者 / 常見陷阱 / 破題切入，預生成 from `q.context`）/ 4-type pill 集合（注意力 navy / 交易 success / 創造 warn / SaaS primary）+ Loading；桌面 3-col grid（左 200px 產業 filter / 中 1fr cards / 右 220px 近期練習 + search）；4-step nsm-progress（情境/指標/拆解/總結 — 情境 active）；component CSS（navbar / phase-head / submit-bar / btn）= LOCKED 整段 copy 03；**全棧無紫色，--c-accent-nsm token 已從 root 移除** |
 | 07 | 待畫 | `docs/superpowers/specs/mockups/2026-05-02-frontend-rewrite/07-nsm-step-2.html` | NSM Step 2 表單（4-dim 動態 label）|
 | 08 | 待畫 | `docs/superpowers/specs/mockups/2026-05-02-frontend-rewrite/08-nsm-step-3-gate.html` | NSM Step 3 Gate |
 | 09 | 待畫 | `docs/superpowers/specs/mockups/2026-05-02-frontend-rewrite/09-offcanvas-history.html` | Offcanvas 完整歷史紀錄 |

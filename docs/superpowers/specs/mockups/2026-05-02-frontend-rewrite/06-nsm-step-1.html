@@ -1,0 +1,1489 @@
+<!doctype html>
+<html lang="zh-TW">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover, interactive-widget=resizes-visual">
+  <title>PM Drill — 06 NSM Step 1 選擇情境</title>
+
+  <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/@phosphor-icons/web@2.1.1/src/regular/style.css">
+  <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/@phosphor-icons/web@2.1.1/src/fill/style.css">
+  <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Instrument+Serif:ital@0;1&display=swap">
+
+  <style>
+    /* ───────────────────────────────────────────
+       LOCKED CSS — verbatim from 03
+       ─────────────────────────────────────────── */
+    /* tokens */
+    :root {
+      --c-bg: #F2F0EB; --c-bg-soft: #ECE9E1; --c-bg-deep: #E5E1D7;
+      --c-card: #FFFFFF; --c-surface: #FAFAF7;
+      --c-ink: #1F1D1B; --c-ink-2: #5A5046; --c-ink-3: #8A7E70; --c-ink-4: #B8AC9D;
+      --c-rule: rgba(60,45,30,0.10); --c-rule-bold: rgba(60,45,30,0.18);
+      --c-primary: #1A56DB;
+      --c-navy: #1B2D5C; --c-navy-2: #142347; --c-navy-lt: rgba(27,45,92,0.08);
+      --c-success: #137A3D; --c-success-lt: #DCEFE0;
+      --c-warn: #B85C00; --c-warn-lt: #FBE9D0;
+      --c-danger: #B61F1F; --c-danger-lt: #FADCDC;
+      --font-sans: system-ui, -apple-system, BlinkMacSystemFont, 'PingFang TC', 'Microsoft JhengHei', 'Heiti TC', 'Noto Sans TC', sans-serif;
+      --font-serif: 'Instrument Serif', 'Times New Roman', serif;
+      --t-h1: 24px; --t-h2: 19px; --t-h3: 16px; --t-body: 15px; --t-body-sm: 14px; --t-meta: 13px; --t-cap: 12px;
+      --s-1: 4px; --s-2: 8px; --s-3: 12px; --s-4: 16px; --s-5: 20px; --s-6: 24px; --s-7: 32px; --s-8: 40px; --s-9: 56px; --s-10: 80px;
+      --r-input: 6px; --r-card: 10px; --r-pill: 999px;
+      --touch-min: 44px;
+      --t-fast: 120ms; --t-norm: 200ms; --t-slow: 300ms;
+      --ease: cubic-bezier(0.4, 0, 0.2, 1);
+      --shadow-1: 0 1px 0 rgba(60,45,30,0.04);
+      --shadow-2: 0 1px 2px rgba(60,45,30,0.06);
+      --shadow-3: 0 4px 12px rgba(60,45,30,0.08);
+      --shadow-focus: 0 0 0 3px rgba(26,86,219,0.18);
+    }
+
+    *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+    html, body {
+      background: var(--c-bg);
+      color: var(--c-ink);
+      font-family: var(--font-sans);
+      font-size: var(--t-body);
+      line-height: 1.55;
+      -webkit-font-smoothing: antialiased;
+      -webkit-tap-highlight-color: transparent;
+    }
+    button { font: inherit; color: inherit; cursor: pointer; background: none; border: none; }
+    a { color: inherit; text-decoration: none; }
+    @media (max-width: 767px) { input, textarea, select { font-size: 16px !important; } }
+
+    /* viewport demo */
+    .vp-grid {
+      display: grid;
+      grid-template-columns: 360px 768px 1280px;
+      gap: var(--s-6);
+      padding: var(--s-6);
+      align-items: start;
+      overflow-x: auto;
+    }
+    .vp-frame {
+      border: 1px solid var(--c-rule-bold);
+      border-radius: var(--r-card);
+      background: var(--c-bg);
+      overflow: hidden;
+    }
+    .vp-frame__label {
+      padding: var(--s-3) var(--s-4);
+      border-bottom: 1px solid var(--c-rule);
+      background: var(--c-card);
+      display: flex;
+      justify-content: space-between;
+      font-size: var(--t-cap);
+      letter-spacing: 0.08em;
+      text-transform: uppercase;
+      color: var(--c-ink-2);
+    }
+    .vp-frame__label span:last-child { font-family: ui-monospace, 'SF Mono', monospace; color: var(--c-ink-3); }
+
+    .ds-page { padding: var(--s-6); }
+    .ds-header { max-width: 1880px; margin: 0 auto var(--s-7); padding-bottom: var(--s-6); border-bottom: 1px solid var(--c-rule); }
+    .ds-header h1 { font-size: var(--t-h1); margin-top: var(--s-2); }
+    .ds-header__eyebrow { font-size: var(--t-cap); letter-spacing: 0.12em; text-transform: uppercase; color: var(--c-ink-3); }
+    .ds-header__sub { color: var(--c-ink-2); font-size: var(--t-body-sm); margin-top: var(--s-3); max-width: 720px; }
+
+    .vp-section-title { max-width: 1880px; margin: var(--s-7) auto var(--s-3); padding-bottom: var(--s-2); border-bottom: 1px solid var(--c-rule); font-size: var(--t-h2); display: flex; align-items: baseline; gap: var(--s-3); }
+    .vp-section-title__sub { font-size: var(--t-cap); color: var(--c-ink-3); letter-spacing: 0.04em; text-transform: uppercase; }
+    .anno {
+      background: var(--c-bg-soft);
+      border-left: 2px solid var(--c-ink-3);
+      padding: var(--s-3) var(--s-4);
+      font-size: var(--t-meta);
+      color: var(--c-ink-2);
+      margin: var(--s-4) auto;
+      max-width: 1180px;
+      line-height: 1.7;
+    }
+    .anno strong { color: var(--c-ink); }
+    .anno code { font-family: ui-monospace, 'SF Mono', monospace; font-size: 12px; background: var(--c-card); padding: 1px 6px; border-radius: 4px; border: 1px solid var(--c-rule); }
+
+    /* ───── PRODUCTION COMPONENTS ───── */
+    .navbar {
+      display: flex;
+      align-items: center;
+      gap: var(--s-3);
+      padding: var(--s-3) var(--s-4);
+      background: rgba(255,255,255,0.85);
+      -webkit-backdrop-filter: saturate(140%) blur(10px);
+      backdrop-filter: saturate(140%) blur(10px);
+      border-bottom: 1px solid var(--c-rule);
+    }
+    .navbar__icon-btn { width: 40px; height: 40px; border-radius: var(--r-pill); display: inline-flex; align-items: center; justify-content: center; color: var(--c-ink-2); }
+    .navbar__icon-btn:hover { background: var(--c-bg-soft); color: var(--c-ink); }
+    .navbar__brand {
+      display: flex;
+      align-items: center;
+      gap: var(--s-2);
+      padding: 4px var(--s-2);
+      border-radius: var(--r-input);
+      cursor: pointer;
+      transition: background var(--t-fast) var(--ease);
+    }
+    .navbar__brand:hover { background: var(--c-bg-soft); }
+    .navbar__brand-icon { width: 28px; height: 28px; border-radius: 6px; background: var(--c-navy); color: #fff; display: inline-flex; align-items: center; justify-content: center; font-size: 16px; }
+    .navbar__brand-name { font-size: var(--t-body-sm); font-weight: 500; }
+    .navbar__tabs { display: flex; gap: var(--s-2); margin-left: var(--s-4); }
+    .navbar__tab { padding: 6px var(--s-3); border-radius: var(--r-pill); font-size: var(--t-meta); color: var(--c-ink-3); }
+    .navbar__tab.is-active { background: var(--c-navy); color: #fff; }
+    .navbar__actions { margin-left: auto; display: flex; align-items: center; gap: var(--s-2); }
+    .navbar__email { font-size: var(--t-cap); color: var(--c-ink-3); max-width: 180px; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+
+    /* phase head */
+    .phase-head {
+      padding: var(--s-3) var(--s-5);
+      background: var(--c-bg-soft);
+      border-bottom: 1px solid var(--c-rule);
+      display: flex;
+      align-items: center;
+      gap: var(--s-3);
+    }
+    .phase-head__num { font-family: var(--font-serif); font-style: italic; font-size: 22px; color: var(--c-navy); line-height: 1; flex: 0 0 auto; }
+    .phase-head__main { flex: 1; min-width: 0; }
+    .phase-head__eyebrow { font-size: var(--t-cap); letter-spacing: 0.08em; text-transform: uppercase; color: var(--c-ink-3); }
+    .phase-head__title { font-size: var(--t-h3); color: var(--c-ink); margin-top: 2px; letter-spacing: -0.005em; }
+    .phase-head__meta { flex: 0 0 auto; font-size: var(--t-meta); color: var(--c-ink-3); display: flex; gap: var(--s-3); align-items: center; flex-wrap: wrap; justify-content: flex-end; }
+    @media (max-width: 480px) {
+      .phase-head__meta { gap: var(--s-2); }
+      .phase-head__meta-sep { display: none; }
+      .phase-head__meta > *:not(.save-indicator) { display: none; }
+    }
+    .phase-head__save .save-indicator { margin: 0; }
+    .phase-head__meta-sep { color: var(--c-rule-bold); }
+
+    /* sticky submit bar — LOCKED from 03 */
+    .submit-bar {
+      position: sticky;
+      bottom: 0;
+      background: rgba(255,255,255,0.92);
+      -webkit-backdrop-filter: saturate(140%) blur(10px);
+      backdrop-filter: saturate(140%) blur(10px);
+      border-top: 1px solid var(--c-rule);
+      padding: var(--s-3) var(--s-4) max(var(--s-3), env(safe-area-inset-bottom));
+      display: flex;
+      gap: var(--s-3);
+      justify-content: space-between;
+      align-items: center;
+    }
+    .submit-bar__left, .submit-bar__right { display: flex; gap: var(--s-2); align-items: center; flex-wrap: wrap; }
+    .btn {
+      display: inline-flex;
+      align-items: center;
+      gap: var(--s-2);
+      min-height: var(--touch-min);
+      padding: 0 var(--s-5);
+      border-radius: var(--r-input);
+      font-size: var(--t-body-sm);
+      font-weight: 500;
+      transition: all var(--t-fast) var(--ease);
+    }
+    .btn--primary { background: var(--c-navy); color: #fff; }
+    .btn--primary:hover { background: var(--c-navy-2); }
+    .btn--ghost { background: transparent; color: var(--c-ink-2); border: 1px solid var(--c-rule-bold); }
+    .btn--ghost:hover { background: var(--c-bg-soft); color: var(--c-ink); }
+    .btn[disabled], .btn.is-disabled { background: var(--c-ink-4); color: #fff; cursor: not-allowed; opacity: 0.6; }
+
+    /* ───────────────────────────────────────────
+       06-specific NEW components — NSM Step 1
+       ─────────────────────────────────────────── */
+
+    /* NSM 4-step progress */
+    .nsm-progress {
+      padding: var(--s-3) var(--s-4);
+      background: var(--c-bg-soft);
+      border-bottom: 1px solid var(--c-rule);
+      display: flex;
+      align-items: center;
+      gap: var(--s-2);
+    }
+    .nsm-progress__step {
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      gap: 4px;
+      flex: 0 0 auto;
+    }
+    .nsm-progress__dot {
+      width: 26px; height: 26px;
+      border-radius: 50%;
+      background: var(--c-card);
+      border: 1.5px solid var(--c-rule-bold);
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+      font-family: var(--font-serif);
+      font-style: italic;
+      font-size: 13px;
+      color: var(--c-ink-3);
+    }
+    .nsm-progress__step.is-active .nsm-progress__dot {
+      background: var(--c-navy);
+      border-color: var(--c-navy);
+      color: #fff;
+      box-shadow: 0 0 0 3px var(--c-navy-lt);
+    }
+    .nsm-progress__step.is-done .nsm-progress__dot {
+      background: var(--c-navy);
+      border-color: var(--c-navy);
+      color: #fff;
+    }
+    .nsm-progress__label {
+      font-size: var(--t-cap);
+      color: var(--c-ink-3);
+    }
+    .nsm-progress__step.is-active .nsm-progress__label { color: var(--c-navy); font-weight: 600; }
+    .nsm-progress__step.is-done .nsm-progress__label { color: var(--c-ink-2); }
+    .nsm-progress__line {
+      flex: 1;
+      height: 2px;
+      background: var(--c-rule);
+      margin-bottom: 18px;
+      min-width: 16px;
+    }
+    .nsm-progress__line.is-done { background: var(--c-navy); }
+
+    /* NSM body container */
+    .nsm-body {
+      padding: var(--s-5) var(--s-4);
+      max-width: 920px;
+      margin: 0 auto;
+      width: 100%;
+    }
+    @media (min-width: 768px) {
+      .nsm-body { padding: var(--s-6) var(--s-5); max-width: 720px; }
+    }
+    .nsm-instruction {
+      font-size: var(--t-body-sm);
+      color: var(--c-ink-2);
+      line-height: 1.7;
+      margin-bottom: var(--s-4);
+    }
+
+    /* list header */
+    .nsm-list-head {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      margin-bottom: var(--s-3);
+      gap: var(--s-3);
+    }
+    .nsm-list-head__label {
+      font-size: var(--t-cap);
+      letter-spacing: 0.06em;
+      text-transform: uppercase;
+      color: var(--c-ink-3);
+      font-weight: 500;
+    }
+    .nsm-shuffle {
+      display: inline-flex;
+      align-items: center;
+      gap: var(--s-1);
+      padding: 6px 10px;
+      font-size: var(--t-meta);
+      color: var(--c-navy);
+      border-radius: var(--r-input);
+      transition: background var(--t-fast) var(--ease);
+    }
+    .nsm-shuffle i { font-size: 14px; }
+    .nsm-shuffle:hover { background: var(--c-navy-lt); }
+
+    /* question card */
+    .nsm-q-list {
+      display: grid;
+      gap: var(--s-3);
+      grid-template-columns: 1fr;
+    }
+    @media (min-width: 768px) {
+      .nsm-q-list { grid-template-columns: 1fr 1fr; }
+    }
+    .nsm-q-card {
+      padding: var(--s-4);
+      background: var(--c-card);
+      border: 1px solid var(--c-rule);
+      border-radius: var(--r-card);
+      cursor: pointer;
+      transition: all var(--t-fast) var(--ease);
+      display: flex;
+      flex-direction: column;
+      gap: var(--s-2);
+    }
+    .nsm-q-card:hover {
+      border-color: var(--c-rule-bold);
+      box-shadow: var(--shadow-2);
+    }
+    .nsm-q-card.is-selected {
+      border-color: var(--c-navy);
+      box-shadow: 0 0 0 1px var(--c-navy), var(--shadow-2);
+      grid-column: 1 / -1;
+    }
+    .nsm-q-card__head {
+      display: flex;
+      align-items: center;
+      gap: var(--s-2);
+      flex-wrap: wrap;
+    }
+    .nsm-q-card__company {
+      padding: 3px var(--s-2);
+      background: var(--c-navy);
+      color: #fff;
+      border-radius: var(--r-input);
+      font-size: var(--t-cap);
+      font-weight: 600;
+      letter-spacing: 0.02em;
+    }
+    .nsm-q-card__industry {
+      font-size: var(--t-cap);
+      color: var(--c-ink-3);
+      letter-spacing: 0.02em;
+    }
+    .nsm-q-card__type {
+      margin-left: auto;
+      padding: 2px var(--s-2);
+      border-radius: var(--r-pill);
+      font-size: var(--t-cap);
+      font-weight: 500;
+      display: inline-flex;
+      align-items: center;
+      gap: 4px;
+    }
+    .nsm-q-card__type i { font-size: 12px; }
+    .nsm-q-card__type--attention   { background: var(--c-navy-lt); color: var(--c-navy); border: 1px solid rgba(27,45,92,0.22); }
+    .nsm-q-card__type--transaction { background: rgba(19,122,61,0.10); color: var(--c-success); border: 1px solid rgba(19,122,61,0.22); }
+    .nsm-q-card__type--creator     { background: rgba(184,92,0,0.10); color: var(--c-warn); border: 1px solid rgba(184,92,0,0.22); }
+    .nsm-q-card__type--saas        { background: rgba(26,86,219,0.10); color: var(--c-primary); border: 1px solid rgba(26,86,219,0.22); }
+    .nsm-q-card__scenario {
+      font-size: var(--t-body-sm);
+      color: var(--c-ink-2);
+      line-height: 1.7;
+    }
+
+    /* selected card 4-context */
+    .nsm-context {
+      margin-top: var(--s-3);
+      padding-top: var(--s-3);
+      border-top: 1px solid var(--c-rule);
+      display: grid;
+      gap: var(--s-3);
+      grid-template-columns: 1fr;
+    }
+    @media (min-width: 768px) {
+      .nsm-context { grid-template-columns: 1fr 1fr; gap: var(--s-3) var(--s-4); }
+    }
+    .nsm-ctx-row {
+      display: flex;
+      flex-direction: column;
+      gap: var(--s-1);
+    }
+    .nsm-ctx-row__label {
+      display: inline-flex;
+      align-items: center;
+      gap: 4px;
+      font-size: var(--t-cap);
+      font-weight: 600;
+      color: var(--c-navy);
+      letter-spacing: 0.04em;
+    }
+    .nsm-ctx-row__label i { font-size: 14px; }
+    .nsm-ctx-row__val {
+      font-size: var(--t-body-sm);
+      color: var(--c-ink-2);
+      line-height: 1.7;
+      padding-left: 18px;
+    }
+    .nsm-ctx-row--trap .nsm-ctx-row__label { color: var(--c-warn); }
+    .nsm-ctx-row--trap .nsm-ctx-row__label i { color: var(--c-warn); }
+    .nsm-ctx-row--insight .nsm-ctx-row__label { color: var(--c-success); }
+    .nsm-ctx-row--insight .nsm-ctx-row__label i { color: var(--c-success); }
+
+    /* loading state */
+    .nsm-context.is-loading {
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      padding: var(--s-5);
+      gap: var(--s-2);
+      color: var(--c-ink-3);
+      font-size: var(--t-meta);
+    }
+    .nsm-context.is-loading i { animation: spin 0.8s linear infinite; font-size: 16px; }
+    @keyframes spin { to { transform: rotate(360deg); } }
+
+    /* Desktop 3-col grid layout */
+    .nsm-desktop-shell {
+      display: grid;
+      grid-template-columns: 200px 1fr 220px;
+      gap: var(--s-6);
+      padding: var(--s-7) var(--s-6);
+      max-width: 1280px;
+      margin: 0 auto;
+    }
+
+    /* filter rail (desktop only) */
+    .nsm-filter-rail {
+      display: flex;
+      flex-direction: column;
+      gap: var(--s-1);
+    }
+    .nsm-filter-rail__label {
+      font-size: var(--t-cap);
+      letter-spacing: 0.06em;
+      text-transform: uppercase;
+      color: var(--c-ink-3);
+      font-weight: 500;
+      margin-bottom: var(--s-2);
+    }
+    .nsm-filter-row {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      padding: 8px var(--s-3);
+      border-radius: var(--r-input);
+      font-size: var(--t-body-sm);
+      color: var(--c-ink-2);
+      cursor: pointer;
+      transition: background var(--t-fast) var(--ease);
+    }
+    .nsm-filter-row:hover { background: var(--c-bg-soft); }
+    .nsm-filter-row.is-active { background: var(--c-navy-lt); color: var(--c-ink); font-weight: 500; }
+    .nsm-filter-row__count {
+      font-size: var(--t-cap);
+      color: var(--c-ink-3);
+    }
+    .nsm-filter-row.is-active .nsm-filter-row__count { color: var(--c-navy); }
+
+    /* search input (desktop) */
+    .nsm-search {
+      display: flex;
+      align-items: center;
+      gap: var(--s-2);
+      background: var(--c-card);
+      border: 1px solid var(--c-rule-bold);
+      border-radius: var(--r-input);
+      padding: 0 var(--s-3);
+      margin-bottom: var(--s-4);
+      transition: border-color var(--t-fast) var(--ease);
+    }
+    .nsm-search:focus-within { border-color: var(--c-navy); box-shadow: 0 0 0 3px var(--c-navy-lt); }
+    .nsm-search i { color: var(--c-ink-3); font-size: 16px; flex: 0 0 auto; }
+    .nsm-search input {
+      flex: 1;
+      padding: 10px 0;
+      border: none;
+      background: transparent;
+      font-size: var(--t-body-sm);
+      color: var(--c-ink);
+      outline: none;
+    }
+    .nsm-search input::placeholder { color: var(--c-ink-3); }
+
+    /* recent rail (desktop) */
+    .nsm-recent {
+      display: flex;
+      flex-direction: column;
+      gap: var(--s-2);
+    }
+    .nsm-recent__label {
+      font-size: var(--t-cap);
+      letter-spacing: 0.06em;
+      text-transform: uppercase;
+      color: var(--c-ink-3);
+      font-weight: 500;
+      margin-bottom: var(--s-1);
+    }
+    .nsm-recent__item {
+      padding: var(--s-3);
+      background: var(--c-card);
+      border: 1px solid var(--c-rule);
+      border-radius: var(--r-input);
+      cursor: pointer;
+      transition: border-color var(--t-fast) var(--ease);
+    }
+    .nsm-recent__item:hover { border-color: var(--c-rule-bold); }
+    .nsm-recent__item-co {
+      font-size: var(--t-cap);
+      color: var(--c-navy);
+      font-weight: 600;
+      margin-bottom: 2px;
+    }
+    .nsm-recent__item-meta {
+      font-size: var(--t-cap);
+      color: var(--c-ink-3);
+      display: flex;
+      align-items: center;
+      gap: 4px;
+    }
+    .nsm-recent__item-meta strong { color: var(--c-ink-2); font-weight: 500; }
+
+    /* mobile/tablet center column when in desktop shell */
+    .nsm-center {
+      display: flex;
+      flex-direction: column;
+      min-width: 0;
+    }
+
+    /* viewport frame internal layout */
+    .vp-frame__inner {
+      background: var(--c-bg);
+      min-height: 880px;
+      display: flex;
+      flex-direction: column;
+    }
+    .vp-frame__inner > .nsm-content {
+      flex: 1;
+      min-height: 0;
+      overflow-y: auto;
+    }
+  </style>
+</head>
+<body>
+  <div class="ds-page">
+    <header class="ds-header">
+      <div class="ds-header__eyebrow">Path 2 · Mockup 06 · CONTRACT-LOCKED 草稿</div>
+      <h1>NSM Step 1 — 選擇情境（5 卡 + 4-欄 context + 桌面 3-col rail）</h1>
+      <p class="ds-header__sub">
+        進入 NSM 北極星指標訓練的第一步：從 5 個隨機題目中選一個企業情境。卡片含 公司 + 產業 + type pill（4 種：注意力 / 交易量 / 創造力 / SaaS）+ 場景敘述。
+        Selected → 自動展開 4-欄 context（商業模式 / 使用者 / 常見陷阱 / 破題切入，預生成 from <code>q.context</code>）。
+        Mobile/Tablet：垂直堆疊；Desktop：3-col grid（左 200px 產業 filter / 中 cards / 右 220px 近期練習）+ search input。
+      </p>
+    </header>
+
+    <!-- ============================================================ -->
+    <!-- Section A — Default 5 cards no selection                     -->
+    <!-- ============================================================ -->
+    <h2 class="vp-section-title">A · 進入頁 5 卡未選 <span class="vp-section-title__sub">隨機 5 卡 collapsed · 顯示 公司+產業+scenario · CTA disabled</span></h2>
+    <div class="anno"><strong>視覺契約：</strong>navbar（北極星指標 active）+ phase-head（Step 1 · 選題 · NSM 訓練）+ 4-step nsm-progress（情境 active）+ instruction + list-head（選擇題目 + 隨機選題 shuffle button）+ 5 個卡（mobile 1-col / tablet 2-col / desktop 3-col grid 含 filter rail + 近期練習 rail + search）+ submit-bar（CTA disabled「請先選擇一個情境」）</div>
+    <div class="vp-grid">
+
+      <!-- A · Mobile 360 -->
+      <div class="vp-frame">
+        <div class="vp-frame__label"><span>Mobile</span><span>360 × 880</span></div>
+        <div class="vp-frame__inner" style="width:360px">
+          <div class="navbar">
+            <button class="navbar__icon-btn" aria-label="menu"><i class="ph ph-list"></i></button>
+            <div class="navbar__brand"><span class="navbar__brand-icon">PM</span></div>
+            <div class="navbar__actions">
+              <button class="navbar__icon-btn" aria-label="home"><i class="ph ph-house"></i></button>
+            </div>
+          </div>
+          <div class="phase-head">
+            <span class="phase-head__num">1</span>
+            <div class="phase-head__main">
+              <div class="phase-head__eyebrow">NSM · 北極星訓練</div>
+              <div class="phase-head__title">選擇企業情境</div>
+            </div>
+          </div>
+          <div class="nsm-progress">
+            <div class="nsm-progress__step is-active">
+              <div class="nsm-progress__dot">1</div>
+              <div class="nsm-progress__label">情境</div>
+            </div>
+            <div class="nsm-progress__line"></div>
+            <div class="nsm-progress__step">
+              <div class="nsm-progress__dot">2</div>
+              <div class="nsm-progress__label">指標</div>
+            </div>
+            <div class="nsm-progress__line"></div>
+            <div class="nsm-progress__step">
+              <div class="nsm-progress__dot">3</div>
+              <div class="nsm-progress__label">拆解</div>
+            </div>
+            <div class="nsm-progress__line"></div>
+            <div class="nsm-progress__step">
+              <div class="nsm-progress__dot">4</div>
+              <div class="nsm-progress__label">總結</div>
+            </div>
+          </div>
+          <div class="nsm-content">
+            <div class="nsm-body">
+              <p class="nsm-instruction">選一個企業情境，開始定義它的北極星指標。</p>
+              <div class="nsm-list-head">
+                <span class="nsm-list-head__label">選擇題目</span>
+                <button class="nsm-shuffle"><i class="ph ph-shuffle"></i>隨機選題</button>
+              </div>
+              <div class="nsm-q-list">
+                <div class="nsm-q-card">
+                  <div class="nsm-q-card__head">
+                    <span class="nsm-q-card__company">Spotify</span>
+                    <span class="nsm-q-card__industry">音樂串流</span>
+                  </div>
+                  <p class="nsm-q-card__scenario">為 Spotify Podcast 業務定義北極星指標，目標是衡量新用戶能否養成日常收聽習慣。</p>
+                </div>
+                <div class="nsm-q-card">
+                  <div class="nsm-q-card__head">
+                    <span class="nsm-q-card__company">Notion</span>
+                    <span class="nsm-q-card__industry">協作工具 SaaS</span>
+                  </div>
+                  <p class="nsm-q-card__scenario">為 Notion 團隊版定義北極星指標，要能反映「企業是否真的依賴 Notion 處理日常工作」。</p>
+                </div>
+                <div class="nsm-q-card">
+                  <div class="nsm-q-card__head">
+                    <span class="nsm-q-card__company">Uber Eats</span>
+                    <span class="nsm-q-card__industry">外賣平台</span>
+                  </div>
+                  <p class="nsm-q-card__scenario">為 Uber Eats 重新定義北極星指標，要兼顧供給商家的活躍與消費者的回購。</p>
+                </div>
+                <div class="nsm-q-card">
+                  <div class="nsm-q-card__head">
+                    <span class="nsm-q-card__company">Substack</span>
+                    <span class="nsm-q-card__industry">創作者平台</span>
+                  </div>
+                  <p class="nsm-q-card__scenario">為 Substack 定義北極星指標，要能反映「創作者能不能靠這個平台養活自己」。</p>
+                </div>
+                <div class="nsm-q-card">
+                  <div class="nsm-q-card__head">
+                    <span class="nsm-q-card__company">Airbnb</span>
+                    <span class="nsm-q-card__industry">短租平台</span>
+                  </div>
+                  <p class="nsm-q-card__scenario">為 Airbnb 體驗（experiences）業務定義北極星指標，目前佔總營收 5% 但策略目標 25%。</p>
+                </div>
+              </div>
+            </div>
+          </div>
+          <div class="submit-bar">
+            <div class="submit-bar__left"><span style="font-size:var(--t-meta);color:var(--c-ink-3)">請先選擇一個情境</span></div>
+            <div class="submit-bar__right">
+              <button class="btn btn--primary is-disabled" disabled>開始 NSM 訓練 <i class="ph ph-arrow-right"></i></button>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- A · Tablet 768 -->
+      <div class="vp-frame">
+        <div class="vp-frame__label"><span>Tablet</span><span>768 × 880</span></div>
+        <div class="vp-frame__inner" style="width:768px">
+          <div class="navbar">
+            <button class="navbar__icon-btn" aria-label="menu"><i class="ph ph-list"></i></button>
+            <div class="navbar__brand"><span class="navbar__brand-icon">PM</span><span class="navbar__brand-name">PM Drill</span></div>
+            <nav class="navbar__tabs">
+              <button class="navbar__tab">CIRCLES</button>
+              <button class="navbar__tab is-active">北極星</button>
+            </nav>
+            <div class="navbar__actions">
+              <button class="navbar__icon-btn" aria-label="search"><i class="ph ph-magnifying-glass"></i></button>
+              <button class="navbar__icon-btn" aria-label="home"><i class="ph ph-house"></i></button>
+            </div>
+          </div>
+          <div class="phase-head">
+            <span class="phase-head__num">1</span>
+            <div class="phase-head__main">
+              <div class="phase-head__eyebrow">NSM · 北極星訓練</div>
+              <div class="phase-head__title">選擇企業情境</div>
+            </div>
+          </div>
+          <div class="nsm-progress">
+            <div class="nsm-progress__step is-active">
+              <div class="nsm-progress__dot">1</div>
+              <div class="nsm-progress__label">情境</div>
+            </div>
+            <div class="nsm-progress__line"></div>
+            <div class="nsm-progress__step">
+              <div class="nsm-progress__dot">2</div>
+              <div class="nsm-progress__label">指標</div>
+            </div>
+            <div class="nsm-progress__line"></div>
+            <div class="nsm-progress__step">
+              <div class="nsm-progress__dot">3</div>
+              <div class="nsm-progress__label">拆解</div>
+            </div>
+            <div class="nsm-progress__line"></div>
+            <div class="nsm-progress__step">
+              <div class="nsm-progress__dot">4</div>
+              <div class="nsm-progress__label">總結</div>
+            </div>
+          </div>
+          <div class="nsm-content">
+            <div class="nsm-body">
+              <p class="nsm-instruction">選一個企業情境，開始定義它的北極星指標。 5 題從 100+ 題庫中隨機抽選。</p>
+              <div class="nsm-list-head">
+                <span class="nsm-list-head__label">選擇題目</span>
+                <button class="nsm-shuffle"><i class="ph ph-shuffle"></i>隨機選題</button>
+              </div>
+              <div class="nsm-q-list">
+                <div class="nsm-q-card">
+                  <div class="nsm-q-card__head">
+                    <span class="nsm-q-card__company">Spotify</span>
+                    <span class="nsm-q-card__industry">音樂串流</span>
+                  </div>
+                  <p class="nsm-q-card__scenario">為 Spotify Podcast 業務定義北極星指標，目標是衡量新用戶能否養成日常收聽習慣。</p>
+                </div>
+                <div class="nsm-q-card">
+                  <div class="nsm-q-card__head">
+                    <span class="nsm-q-card__company">Notion</span>
+                    <span class="nsm-q-card__industry">協作工具 SaaS</span>
+                  </div>
+                  <p class="nsm-q-card__scenario">為 Notion 團隊版定義北極星指標，要能反映「企業是否真的依賴 Notion 處理日常工作」。</p>
+                </div>
+                <div class="nsm-q-card">
+                  <div class="nsm-q-card__head">
+                    <span class="nsm-q-card__company">Uber Eats</span>
+                    <span class="nsm-q-card__industry">外賣平台</span>
+                  </div>
+                  <p class="nsm-q-card__scenario">為 Uber Eats 重新定義北極星指標，要兼顧供給商家的活躍與消費者的回購。</p>
+                </div>
+                <div class="nsm-q-card">
+                  <div class="nsm-q-card__head">
+                    <span class="nsm-q-card__company">Substack</span>
+                    <span class="nsm-q-card__industry">創作者平台</span>
+                  </div>
+                  <p class="nsm-q-card__scenario">為 Substack 定義北極星指標，要能反映「創作者能不能靠這個平台養活自己」。</p>
+                </div>
+                <div class="nsm-q-card">
+                  <div class="nsm-q-card__head">
+                    <span class="nsm-q-card__company">Airbnb</span>
+                    <span class="nsm-q-card__industry">短租平台</span>
+                  </div>
+                  <p class="nsm-q-card__scenario">為 Airbnb 體驗（experiences）業務定義北極星指標，目前佔總營收 5% 但策略目標 25%。</p>
+                </div>
+              </div>
+            </div>
+          </div>
+          <div class="submit-bar">
+            <div class="submit-bar__left"><span style="font-size:var(--t-meta);color:var(--c-ink-3)">請先選擇一個情境</span></div>
+            <div class="submit-bar__right">
+              <button class="btn btn--primary is-disabled" disabled>開始 NSM 訓練 <i class="ph ph-arrow-right"></i></button>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- A · Desktop 1280 — 3-col grid -->
+      <div class="vp-frame">
+        <div class="vp-frame__label"><span>Desktop · 3-col</span><span>1280 × 880</span></div>
+        <div class="vp-frame__inner" style="width:1280px">
+          <div class="navbar">
+            <button class="navbar__icon-btn" aria-label="menu"><i class="ph ph-list"></i></button>
+            <div class="navbar__brand"><span class="navbar__brand-icon">PM</span><span class="navbar__brand-name">PM Drill</span></div>
+            <nav class="navbar__tabs">
+              <button class="navbar__tab">CIRCLES</button>
+              <button class="navbar__tab is-active">北極星</button>
+            </nav>
+            <div class="navbar__actions">
+              <span class="navbar__email">albertpeng678@gmail.com</span>
+              <button class="navbar__icon-btn" aria-label="search"><i class="ph ph-magnifying-glass"></i></button>
+              <button class="navbar__icon-btn" aria-label="home"><i class="ph ph-house"></i></button>
+            </div>
+          </div>
+          <div class="phase-head">
+            <span class="phase-head__num">1</span>
+            <div class="phase-head__main">
+              <div class="phase-head__eyebrow">NSM · 北極星訓練</div>
+              <div class="phase-head__title">選擇企業情境</div>
+            </div>
+            <div class="phase-head__meta">
+              <span>共 100 題 · 隨機抽 5</span>
+            </div>
+          </div>
+          <div class="nsm-progress">
+            <div class="nsm-progress__step is-active">
+              <div class="nsm-progress__dot">1</div>
+              <div class="nsm-progress__label">情境</div>
+            </div>
+            <div class="nsm-progress__line"></div>
+            <div class="nsm-progress__step">
+              <div class="nsm-progress__dot">2</div>
+              <div class="nsm-progress__label">指標</div>
+            </div>
+            <div class="nsm-progress__line"></div>
+            <div class="nsm-progress__step">
+              <div class="nsm-progress__dot">3</div>
+              <div class="nsm-progress__label">拆解</div>
+            </div>
+            <div class="nsm-progress__line"></div>
+            <div class="nsm-progress__step">
+              <div class="nsm-progress__dot">4</div>
+              <div class="nsm-progress__label">總結</div>
+            </div>
+          </div>
+          <div class="nsm-content">
+            <div class="nsm-desktop-shell">
+              <!-- left filter rail -->
+              <aside class="nsm-filter-rail">
+                <div class="nsm-filter-rail__label">產業類型</div>
+                <div class="nsm-filter-row is-active">
+                  <span>全部</span>
+                  <span class="nsm-filter-row__count">100</span>
+                </div>
+                <div class="nsm-filter-row">
+                  <span><i class="ph ph-play-circle" style="color:var(--c-navy);font-size:14px;vertical-align:-2px;margin-right:6px"></i>注意力型</span>
+                  <span class="nsm-filter-row__count">24</span>
+                </div>
+                <div class="nsm-filter-row">
+                  <span><i class="ph ph-shopping-cart" style="color:var(--c-success);font-size:14px;vertical-align:-2px;margin-right:6px"></i>交易量型</span>
+                  <span class="nsm-filter-row__count">28</span>
+                </div>
+                <div class="nsm-filter-row">
+                  <span><i class="ph ph-pencil-simple" style="color:var(--c-warn);font-size:14px;vertical-align:-2px;margin-right:6px"></i>創造力型</span>
+                  <span class="nsm-filter-row__count">18</span>
+                </div>
+                <div class="nsm-filter-row">
+                  <span><i class="ph ph-buildings" style="color:var(--c-primary);font-size:14px;vertical-align:-2px;margin-right:6px"></i>SaaS 型</span>
+                  <span class="nsm-filter-row__count">30</span>
+                </div>
+              </aside>
+
+              <!-- center cards -->
+              <div class="nsm-center">
+                <p class="nsm-instruction">選一個企業情境，開始定義它的北極星指標。 5 題從 100+ 題庫中隨機抽選 — 可用左側產業 filter 或上方搜尋縮窄。</p>
+                <div class="nsm-search">
+                  <i class="ph ph-magnifying-glass"></i>
+                  <input type="text" placeholder="搜尋公司或產業關鍵字...">
+                </div>
+                <div class="nsm-list-head">
+                  <span class="nsm-list-head__label">選擇題目</span>
+                  <button class="nsm-shuffle"><i class="ph ph-shuffle"></i>隨機選題</button>
+                </div>
+                <div class="nsm-q-list">
+                  <div class="nsm-q-card">
+                    <div class="nsm-q-card__head">
+                      <span class="nsm-q-card__company">Spotify</span>
+                      <span class="nsm-q-card__industry">音樂串流</span>
+                    </div>
+                    <p class="nsm-q-card__scenario">為 Spotify Podcast 業務定義北極星指標，目標是衡量新用戶能否養成日常收聽習慣。</p>
+                  </div>
+                  <div class="nsm-q-card">
+                    <div class="nsm-q-card__head">
+                      <span class="nsm-q-card__company">Notion</span>
+                      <span class="nsm-q-card__industry">協作工具 SaaS</span>
+                    </div>
+                    <p class="nsm-q-card__scenario">為 Notion 團隊版定義北極星指標，要能反映「企業是否真的依賴 Notion 處理日常工作」。</p>
+                  </div>
+                  <div class="nsm-q-card">
+                    <div class="nsm-q-card__head">
+                      <span class="nsm-q-card__company">Uber Eats</span>
+                      <span class="nsm-q-card__industry">外賣平台</span>
+                    </div>
+                    <p class="nsm-q-card__scenario">為 Uber Eats 重新定義北極星指標，要兼顧供給商家的活躍與消費者的回購。</p>
+                  </div>
+                  <div class="nsm-q-card">
+                    <div class="nsm-q-card__head">
+                      <span class="nsm-q-card__company">Substack</span>
+                      <span class="nsm-q-card__industry">創作者平台</span>
+                    </div>
+                    <p class="nsm-q-card__scenario">為 Substack 定義北極星指標，要能反映「創作者能不能靠這個平台養活自己」。</p>
+                  </div>
+                  <div class="nsm-q-card">
+                    <div class="nsm-q-card__head">
+                      <span class="nsm-q-card__company">Airbnb</span>
+                      <span class="nsm-q-card__industry">短租平台</span>
+                    </div>
+                    <p class="nsm-q-card__scenario">為 Airbnb 體驗（experiences）業務定義北極星指標，目前佔總營收 5% 但策略目標 25%。</p>
+                  </div>
+                </div>
+              </div>
+
+              <!-- right recent rail -->
+              <aside class="nsm-recent">
+                <div class="nsm-recent__label">近期練習</div>
+                <div class="nsm-recent__item">
+                  <div class="nsm-recent__item-co">Stripe · 支付 SaaS</div>
+                  <div class="nsm-recent__item-meta"><strong>2 天前</strong> · 得分 84</div>
+                </div>
+                <div class="nsm-recent__item">
+                  <div class="nsm-recent__item-co">Discord · 社群</div>
+                  <div class="nsm-recent__item-meta"><strong>5 天前</strong> · 得分 72</div>
+                </div>
+                <div class="nsm-recent__item">
+                  <div class="nsm-recent__item-co">Shopify · 電商 SaaS</div>
+                  <div class="nsm-recent__item-meta"><strong>11 天前</strong> · 得分 78</div>
+                </div>
+              </aside>
+            </div>
+          </div>
+          <div class="submit-bar">
+            <div class="submit-bar__left"><span style="font-size:var(--t-meta);color:var(--c-ink-3)">請先選擇一個情境</span></div>
+            <div class="submit-bar__right">
+              <button class="btn btn--primary is-disabled" disabled>開始 NSM 訓練 <i class="ph ph-arrow-right"></i></button>
+            </div>
+          </div>
+        </div>
+      </div>
+
+    </div>
+
+    <!-- ============================================================ -->
+    <!-- Section B — Selected card with 4-col context expanded         -->
+    <!-- ============================================================ -->
+    <h2 class="vp-section-title">B · 已選展開 4-欄 context <span class="vp-section-title__sub">selected card 自動展開預生成 4 欄 + type pill 顯示 + CTA enabled</span></h2>
+    <div class="anno"><strong>視覺契約：</strong>點任一卡 → is-selected 樣式（navy 邊 + 1px ring）→ 自動展開 nsm-context（4 欄：商業模式 ph-buildings / 使用者 ph-users / 常見陷阱 ph-warning warn / 破題切入 ph-lightbulb success）+ type pill 顯示在 head 右；mobile 4 欄縱排，tablet/desktop 2×2 grid；submit-bar CTA enable navy。</div>
+    <div class="vp-grid">
+
+      <!-- B · Mobile 360 -->
+      <div class="vp-frame">
+        <div class="vp-frame__label"><span>Mobile</span><span>360 × 880</span></div>
+        <div class="vp-frame__inner" style="width:360px">
+          <div class="navbar">
+            <button class="navbar__icon-btn" aria-label="menu"><i class="ph ph-list"></i></button>
+            <div class="navbar__brand"><span class="navbar__brand-icon">PM</span></div>
+            <div class="navbar__actions">
+              <button class="navbar__icon-btn" aria-label="home"><i class="ph ph-house"></i></button>
+            </div>
+          </div>
+          <div class="phase-head">
+            <span class="phase-head__num">1</span>
+            <div class="phase-head__main">
+              <div class="phase-head__eyebrow">NSM · 北極星訓練</div>
+              <div class="phase-head__title">選擇企業情境</div>
+            </div>
+          </div>
+          <div class="nsm-progress">
+            <div class="nsm-progress__step is-active">
+              <div class="nsm-progress__dot">1</div>
+              <div class="nsm-progress__label">情境</div>
+            </div>
+            <div class="nsm-progress__line"></div>
+            <div class="nsm-progress__step">
+              <div class="nsm-progress__dot">2</div>
+              <div class="nsm-progress__label">指標</div>
+            </div>
+            <div class="nsm-progress__line"></div>
+            <div class="nsm-progress__step">
+              <div class="nsm-progress__dot">3</div>
+              <div class="nsm-progress__label">拆解</div>
+            </div>
+            <div class="nsm-progress__line"></div>
+            <div class="nsm-progress__step">
+              <div class="nsm-progress__dot">4</div>
+              <div class="nsm-progress__label">總結</div>
+            </div>
+          </div>
+          <div class="nsm-content">
+            <div class="nsm-body">
+              <div class="nsm-list-head">
+                <span class="nsm-list-head__label">選擇題目（已選 1）</span>
+                <button class="nsm-shuffle"><i class="ph ph-shuffle"></i>隨機選題</button>
+              </div>
+              <div class="nsm-q-list">
+                <div class="nsm-q-card is-selected">
+                  <div class="nsm-q-card__head">
+                    <span class="nsm-q-card__company">Spotify</span>
+                    <span class="nsm-q-card__industry">音樂串流</span>
+                    <span class="nsm-q-card__type nsm-q-card__type--attention"><i class="ph ph-play-circle"></i>注意力型</span>
+                  </div>
+                  <p class="nsm-q-card__scenario">為 Spotify Podcast 業務定義北極星指標，目標是衡量新用戶能否養成日常收聽習慣。</p>
+                  <div class="nsm-context">
+                    <div class="nsm-ctx-row">
+                      <span class="nsm-ctx-row__label"><i class="ph ph-buildings"></i>商業模式</span>
+                      <span class="nsm-ctx-row__val">免費 + Premium 雙軌訂閱；廣告播送與訂閱費並行。Podcast 是內容拓展戰場。</span>
+                    </div>
+                    <div class="nsm-ctx-row">
+                      <span class="nsm-ctx-row__label"><i class="ph ph-users"></i>使用者</span>
+                      <span class="nsm-ctx-row__val">新註冊 30 天內用戶；通勤族 + 居家放鬆兩類核心場景。</span>
+                    </div>
+                    <div class="nsm-ctx-row nsm-ctx-row--trap">
+                      <span class="nsm-ctx-row__label"><i class="ph ph-warning"></i>常見陷阱</span>
+                      <span class="nsm-ctx-row__val">把 DAU / 收聽時長當主指標 — 易受廣告或自動播放灌水，未真正反映黏著。</span>
+                    </div>
+                    <div class="nsm-ctx-row nsm-ctx-row--insight">
+                      <span class="nsm-ctx-row__label"><i class="ph ph-lightbulb"></i>破題切入</span>
+                      <span class="nsm-ctx-row__val">先問「什麼樣的行為代表用戶在 podcast 上獲得真實價值」，再從中找頻率與深度兼具的 leading indicator。</span>
+                    </div>
+                  </div>
+                </div>
+                <div class="nsm-q-card">
+                  <div class="nsm-q-card__head">
+                    <span class="nsm-q-card__company">Notion</span>
+                    <span class="nsm-q-card__industry">協作工具 SaaS</span>
+                  </div>
+                  <p class="nsm-q-card__scenario">為 Notion 團隊版定義北極星指標，要能反映「企業是否真的依賴 Notion 處理日常工作」。</p>
+                </div>
+                <div class="nsm-q-card">
+                  <div class="nsm-q-card__head">
+                    <span class="nsm-q-card__company">Uber Eats</span>
+                    <span class="nsm-q-card__industry">外賣平台</span>
+                  </div>
+                  <p class="nsm-q-card__scenario">為 Uber Eats 重新定義北極星指標，要兼顧供給商家的活躍與消費者的回購。</p>
+                </div>
+              </div>
+            </div>
+          </div>
+          <div class="submit-bar">
+            <div class="submit-bar__left"></div>
+            <div class="submit-bar__right">
+              <button class="btn btn--primary">開始 NSM 訓練 <i class="ph ph-arrow-right"></i></button>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- B · Tablet 768 -->
+      <div class="vp-frame">
+        <div class="vp-frame__label"><span>Tablet</span><span>768 × 880</span></div>
+        <div class="vp-frame__inner" style="width:768px">
+          <div class="navbar">
+            <button class="navbar__icon-btn" aria-label="menu"><i class="ph ph-list"></i></button>
+            <div class="navbar__brand"><span class="navbar__brand-icon">PM</span><span class="navbar__brand-name">PM Drill</span></div>
+            <nav class="navbar__tabs">
+              <button class="navbar__tab">CIRCLES</button>
+              <button class="navbar__tab is-active">北極星</button>
+            </nav>
+            <div class="navbar__actions">
+              <button class="navbar__icon-btn" aria-label="search"><i class="ph ph-magnifying-glass"></i></button>
+              <button class="navbar__icon-btn" aria-label="home"><i class="ph ph-house"></i></button>
+            </div>
+          </div>
+          <div class="phase-head">
+            <span class="phase-head__num">1</span>
+            <div class="phase-head__main">
+              <div class="phase-head__eyebrow">NSM · 北極星訓練</div>
+              <div class="phase-head__title">選擇企業情境</div>
+            </div>
+            <div class="phase-head__meta"><span>已選：Spotify</span></div>
+          </div>
+          <div class="nsm-progress">
+            <div class="nsm-progress__step is-active">
+              <div class="nsm-progress__dot">1</div>
+              <div class="nsm-progress__label">情境</div>
+            </div>
+            <div class="nsm-progress__line"></div>
+            <div class="nsm-progress__step">
+              <div class="nsm-progress__dot">2</div>
+              <div class="nsm-progress__label">指標</div>
+            </div>
+            <div class="nsm-progress__line"></div>
+            <div class="nsm-progress__step">
+              <div class="nsm-progress__dot">3</div>
+              <div class="nsm-progress__label">拆解</div>
+            </div>
+            <div class="nsm-progress__line"></div>
+            <div class="nsm-progress__step">
+              <div class="nsm-progress__dot">4</div>
+              <div class="nsm-progress__label">總結</div>
+            </div>
+          </div>
+          <div class="nsm-content">
+            <div class="nsm-body">
+              <div class="nsm-list-head">
+                <span class="nsm-list-head__label">選擇題目（已選 1）</span>
+                <button class="nsm-shuffle"><i class="ph ph-shuffle"></i>隨機選題</button>
+              </div>
+              <div class="nsm-q-list">
+                <div class="nsm-q-card is-selected">
+                  <div class="nsm-q-card__head">
+                    <span class="nsm-q-card__company">Spotify</span>
+                    <span class="nsm-q-card__industry">音樂串流</span>
+                    <span class="nsm-q-card__type nsm-q-card__type--attention"><i class="ph ph-play-circle"></i>注意力型</span>
+                  </div>
+                  <p class="nsm-q-card__scenario">為 Spotify Podcast 業務定義北極星指標，目標是衡量新用戶能否養成日常收聽習慣。</p>
+                  <div class="nsm-context">
+                    <div class="nsm-ctx-row">
+                      <span class="nsm-ctx-row__label"><i class="ph ph-buildings"></i>商業模式</span>
+                      <span class="nsm-ctx-row__val">免費 + Premium 雙軌訂閱；廣告播送與訂閱費並行。Podcast 是內容拓展戰場。</span>
+                    </div>
+                    <div class="nsm-ctx-row">
+                      <span class="nsm-ctx-row__label"><i class="ph ph-users"></i>使用者</span>
+                      <span class="nsm-ctx-row__val">新註冊 30 天內用戶；通勤族 + 居家放鬆兩類核心場景。</span>
+                    </div>
+                    <div class="nsm-ctx-row nsm-ctx-row--trap">
+                      <span class="nsm-ctx-row__label"><i class="ph ph-warning"></i>常見陷阱</span>
+                      <span class="nsm-ctx-row__val">把 DAU / 收聽時長當主指標 — 易受廣告或自動播放灌水，未真正反映黏著。</span>
+                    </div>
+                    <div class="nsm-ctx-row nsm-ctx-row--insight">
+                      <span class="nsm-ctx-row__label"><i class="ph ph-lightbulb"></i>破題切入</span>
+                      <span class="nsm-ctx-row__val">先問「什麼樣的行為代表用戶在 podcast 上獲得真實價值」，再從中找頻率與深度兼具的 leading indicator。</span>
+                    </div>
+                  </div>
+                </div>
+                <div class="nsm-q-card">
+                  <div class="nsm-q-card__head">
+                    <span class="nsm-q-card__company">Notion</span>
+                    <span class="nsm-q-card__industry">協作工具 SaaS</span>
+                  </div>
+                  <p class="nsm-q-card__scenario">為 Notion 團隊版定義北極星指標，要能反映「企業是否真的依賴 Notion 處理日常工作」。</p>
+                </div>
+                <div class="nsm-q-card">
+                  <div class="nsm-q-card__head">
+                    <span class="nsm-q-card__company">Uber Eats</span>
+                    <span class="nsm-q-card__industry">外賣平台</span>
+                  </div>
+                  <p class="nsm-q-card__scenario">為 Uber Eats 重新定義北極星指標，要兼顧供給商家的活躍與消費者的回購。</p>
+                </div>
+                <div class="nsm-q-card">
+                  <div class="nsm-q-card__head">
+                    <span class="nsm-q-card__company">Substack</span>
+                    <span class="nsm-q-card__industry">創作者平台</span>
+                  </div>
+                  <p class="nsm-q-card__scenario">為 Substack 定義北極星指標，要能反映「創作者能不能靠這個平台養活自己」。</p>
+                </div>
+              </div>
+            </div>
+          </div>
+          <div class="submit-bar">
+            <div class="submit-bar__left"></div>
+            <div class="submit-bar__right">
+              <button class="btn btn--primary">開始 NSM 訓練 <i class="ph ph-arrow-right"></i></button>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- B · Desktop 1280 — 3-col grid + selected card -->
+      <div class="vp-frame">
+        <div class="vp-frame__label"><span>Desktop · 已選</span><span>1280 × 880</span></div>
+        <div class="vp-frame__inner" style="width:1280px">
+          <div class="navbar">
+            <button class="navbar__icon-btn" aria-label="menu"><i class="ph ph-list"></i></button>
+            <div class="navbar__brand"><span class="navbar__brand-icon">PM</span><span class="navbar__brand-name">PM Drill</span></div>
+            <nav class="navbar__tabs">
+              <button class="navbar__tab">CIRCLES</button>
+              <button class="navbar__tab is-active">北極星</button>
+            </nav>
+            <div class="navbar__actions">
+              <span class="navbar__email">albertpeng678@gmail.com</span>
+              <button class="navbar__icon-btn" aria-label="search"><i class="ph ph-magnifying-glass"></i></button>
+              <button class="navbar__icon-btn" aria-label="home"><i class="ph ph-house"></i></button>
+            </div>
+          </div>
+          <div class="phase-head">
+            <span class="phase-head__num">1</span>
+            <div class="phase-head__main">
+              <div class="phase-head__eyebrow">NSM · 北極星訓練</div>
+              <div class="phase-head__title">選擇企業情境</div>
+            </div>
+            <div class="phase-head__meta">
+              <span>已選：Spotify · 注意力型</span>
+              <span class="phase-head__meta-sep">·</span>
+              <span>共 100 題</span>
+            </div>
+          </div>
+          <div class="nsm-progress">
+            <div class="nsm-progress__step is-active">
+              <div class="nsm-progress__dot">1</div>
+              <div class="nsm-progress__label">情境</div>
+            </div>
+            <div class="nsm-progress__line"></div>
+            <div class="nsm-progress__step">
+              <div class="nsm-progress__dot">2</div>
+              <div class="nsm-progress__label">指標</div>
+            </div>
+            <div class="nsm-progress__line"></div>
+            <div class="nsm-progress__step">
+              <div class="nsm-progress__dot">3</div>
+              <div class="nsm-progress__label">拆解</div>
+            </div>
+            <div class="nsm-progress__line"></div>
+            <div class="nsm-progress__step">
+              <div class="nsm-progress__dot">4</div>
+              <div class="nsm-progress__label">總結</div>
+            </div>
+          </div>
+          <div class="nsm-content">
+            <div class="nsm-desktop-shell">
+              <aside class="nsm-filter-rail">
+                <div class="nsm-filter-rail__label">產業類型</div>
+                <div class="nsm-filter-row is-active"><span>全部</span><span class="nsm-filter-row__count">100</span></div>
+                <div class="nsm-filter-row"><span><i class="ph ph-play-circle" style="color:var(--c-navy);font-size:14px;vertical-align:-2px;margin-right:6px"></i>注意力型</span><span class="nsm-filter-row__count">24</span></div>
+                <div class="nsm-filter-row"><span><i class="ph ph-shopping-cart" style="color:var(--c-success);font-size:14px;vertical-align:-2px;margin-right:6px"></i>交易量型</span><span class="nsm-filter-row__count">28</span></div>
+                <div class="nsm-filter-row"><span><i class="ph ph-pencil-simple" style="color:var(--c-warn);font-size:14px;vertical-align:-2px;margin-right:6px"></i>創造力型</span><span class="nsm-filter-row__count">18</span></div>
+                <div class="nsm-filter-row"><span><i class="ph ph-buildings" style="color:var(--c-primary);font-size:14px;vertical-align:-2px;margin-right:6px"></i>SaaS 型</span><span class="nsm-filter-row__count">30</span></div>
+              </aside>
+
+              <div class="nsm-center">
+                <div class="nsm-search">
+                  <i class="ph ph-magnifying-glass"></i>
+                  <input type="text" placeholder="搜尋公司或產業關鍵字...">
+                </div>
+                <div class="nsm-list-head">
+                  <span class="nsm-list-head__label">選擇題目（已選 1）</span>
+                  <button class="nsm-shuffle"><i class="ph ph-shuffle"></i>隨機選題</button>
+                </div>
+                <div class="nsm-q-list">
+                  <div class="nsm-q-card is-selected">
+                    <div class="nsm-q-card__head">
+                      <span class="nsm-q-card__company">Spotify</span>
+                      <span class="nsm-q-card__industry">音樂串流</span>
+                      <span class="nsm-q-card__type nsm-q-card__type--attention"><i class="ph ph-play-circle"></i>注意力型</span>
+                    </div>
+                    <p class="nsm-q-card__scenario">為 Spotify Podcast 業務定義北極星指標，目標是衡量新用戶能否養成日常收聽習慣。</p>
+                    <div class="nsm-context">
+                      <div class="nsm-ctx-row">
+                        <span class="nsm-ctx-row__label"><i class="ph ph-buildings"></i>商業模式</span>
+                        <span class="nsm-ctx-row__val">免費 + Premium 雙軌訂閱；廣告播送與訂閱費並行。Podcast 是內容拓展戰場，影響整體留存。</span>
+                      </div>
+                      <div class="nsm-ctx-row">
+                        <span class="nsm-ctx-row__label"><i class="ph ph-users"></i>使用者</span>
+                        <span class="nsm-ctx-row__val">新註冊 30 天內用戶；通勤族 + 居家放鬆兩類核心場景，行為差異大。</span>
+                      </div>
+                      <div class="nsm-ctx-row nsm-ctx-row--trap">
+                        <span class="nsm-ctx-row__label"><i class="ph ph-warning"></i>常見陷阱</span>
+                        <span class="nsm-ctx-row__val">把 DAU / 收聽時長當主指標 — 易受廣告或自動播放灌水，未真正反映黏著。</span>
+                      </div>
+                      <div class="nsm-ctx-row nsm-ctx-row--insight">
+                        <span class="nsm-ctx-row__label"><i class="ph ph-lightbulb"></i>破題切入</span>
+                        <span class="nsm-ctx-row__val">先問「什麼樣的行為代表用戶在 podcast 上獲得真實價值」，再從中找頻率與深度兼具的 leading indicator。</span>
+                      </div>
+                    </div>
+                  </div>
+                  <div class="nsm-q-card">
+                    <div class="nsm-q-card__head">
+                      <span class="nsm-q-card__company">Notion</span>
+                      <span class="nsm-q-card__industry">協作工具 SaaS</span>
+                    </div>
+                    <p class="nsm-q-card__scenario">為 Notion 團隊版定義北極星指標，要能反映「企業是否真的依賴 Notion 處理日常工作」。</p>
+                  </div>
+                  <div class="nsm-q-card">
+                    <div class="nsm-q-card__head">
+                      <span class="nsm-q-card__company">Uber Eats</span>
+                      <span class="nsm-q-card__industry">外賣平台</span>
+                    </div>
+                    <p class="nsm-q-card__scenario">為 Uber Eats 重新定義北極星指標，要兼顧供給商家的活躍與消費者的回購。</p>
+                  </div>
+                  <div class="nsm-q-card">
+                    <div class="nsm-q-card__head">
+                      <span class="nsm-q-card__company">Substack</span>
+                      <span class="nsm-q-card__industry">創作者平台</span>
+                    </div>
+                    <p class="nsm-q-card__scenario">為 Substack 定義北極星指標，要能反映「創作者能不能靠這個平台養活自己」。</p>
+                  </div>
+                  <div class="nsm-q-card">
+                    <div class="nsm-q-card__head">
+                      <span class="nsm-q-card__company">Airbnb</span>
+                      <span class="nsm-q-card__industry">短租平台</span>
+                    </div>
+                    <p class="nsm-q-card__scenario">為 Airbnb 體驗（experiences）業務定義北極星指標，目前佔總營收 5% 但策略目標 25%。</p>
+                  </div>
+                </div>
+              </div>
+
+              <aside class="nsm-recent">
+                <div class="nsm-recent__label">近期練習</div>
+                <div class="nsm-recent__item">
+                  <div class="nsm-recent__item-co">Stripe · 支付 SaaS</div>
+                  <div class="nsm-recent__item-meta"><strong>2 天前</strong> · 得分 84</div>
+                </div>
+                <div class="nsm-recent__item">
+                  <div class="nsm-recent__item-co">Discord · 社群</div>
+                  <div class="nsm-recent__item-meta"><strong>5 天前</strong> · 得分 72</div>
+                </div>
+                <div class="nsm-recent__item">
+                  <div class="nsm-recent__item-co">Shopify · 電商 SaaS</div>
+                  <div class="nsm-recent__item-meta"><strong>11 天前</strong> · 得分 78</div>
+                </div>
+              </aside>
+            </div>
+          </div>
+          <div class="submit-bar">
+            <div class="submit-bar__left"></div>
+            <div class="submit-bar__right">
+              <button class="btn btn--primary">開始 NSM 訓練 <i class="ph ph-arrow-right"></i></button>
+            </div>
+          </div>
+        </div>
+      </div>
+
+    </div>
+
+    <!-- ============================================================ -->
+    <!-- Section C — 4 type pills 集合 + Loading state                -->
+    <!-- ============================================================ -->
+    <h2 class="vp-section-title">C · 4 種 type pill 集合 + Loading <span class="vp-section-title__sub">展示 4 種類型 · 含 loading 狀態（OpenAI fallback fetch context）</span></h2>
+    <div class="anno"><strong>視覺契約：</strong>展示 4 種 type pill 完整視覺差異（attention purple / transaction success / creator warn / saas primary）+ Loading 卡（context 預生成失敗 fallback 至 lazy fetch 時）spinner + 「分析情境中…」。production 中所有題目 context 已 SP4 預生成，loading 只發生在新題首次添加。</div>
+    <div class="vp-grid">
+
+      <!-- C · Mobile 360 -->
+      <div class="vp-frame">
+        <div class="vp-frame__label"><span>Mobile</span><span>360 × 760</span></div>
+        <div class="vp-frame__inner" style="width:360px">
+          <div class="phase-head">
+            <span class="phase-head__num">1</span>
+            <div class="phase-head__main">
+              <div class="phase-head__eyebrow">NSM · type pill 集合</div>
+              <div class="phase-head__title">4 種產業類型示範</div>
+            </div>
+          </div>
+          <div class="nsm-content">
+            <div class="nsm-body">
+              <div class="nsm-q-list">
+                <div class="nsm-q-card is-selected" style="grid-column:auto">
+                  <div class="nsm-q-card__head">
+                    <span class="nsm-q-card__company">YouTube</span>
+                    <span class="nsm-q-card__industry">影音平台</span>
+                    <span class="nsm-q-card__type nsm-q-card__type--attention"><i class="ph ph-play-circle"></i>注意力型</span>
+                  </div>
+                  <p class="nsm-q-card__scenario">影音內容平台 — 核心是讓觀眾停留並回訪。</p>
+                </div>
+                <div class="nsm-q-card is-selected" style="grid-column:auto">
+                  <div class="nsm-q-card__head">
+                    <span class="nsm-q-card__company">Uber Eats</span>
+                    <span class="nsm-q-card__industry">外賣平台</span>
+                    <span class="nsm-q-card__type nsm-q-card__type--transaction"><i class="ph ph-shopping-cart"></i>交易量型</span>
+                  </div>
+                  <p class="nsm-q-card__scenario">外賣撮合平台 — 核心是促成有效交易。</p>
+                </div>
+                <div class="nsm-q-card is-selected" style="grid-column:auto">
+                  <div class="nsm-q-card__head">
+                    <span class="nsm-q-card__company">Medium</span>
+                    <span class="nsm-q-card__industry">創作者平台</span>
+                    <span class="nsm-q-card__type nsm-q-card__type--creator"><i class="ph ph-pencil-simple"></i>創造力型</span>
+                  </div>
+                  <p class="nsm-q-card__scenario">寫作創作平台 — 核心是創作者持續產出且有讀者。</p>
+                </div>
+                <div class="nsm-q-card is-selected" style="grid-column:auto">
+                  <div class="nsm-q-card__head">
+                    <span class="nsm-q-card__company">Notion</span>
+                    <span class="nsm-q-card__industry">協作工具</span>
+                    <span class="nsm-q-card__type nsm-q-card__type--saas"><i class="ph ph-buildings"></i>SaaS 型</span>
+                  </div>
+                  <p class="nsm-q-card__scenario">企業協作工具 — 核心是團隊真的依賴它工作。</p>
+                </div>
+                <div class="nsm-q-card is-selected" style="grid-column:auto">
+                  <div class="nsm-q-card__head">
+                    <span class="nsm-q-card__company">新題</span>
+                    <span class="nsm-q-card__industry">未預生成</span>
+                  </div>
+                  <p class="nsm-q-card__scenario">範例：新題首次選取，正在 fetch context...</p>
+                  <div class="nsm-context is-loading">
+                    <i class="ph ph-circle-notch"></i>
+                    <span>分析情境中…</span>
+                  </div>
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- C · Tablet 768 -->
+      <div class="vp-frame">
+        <div class="vp-frame__label"><span>Tablet</span><span>768 × 760</span></div>
+        <div class="vp-frame__inner" style="width:768px">
+          <div class="phase-head">
+            <span class="phase-head__num">1</span>
+            <div class="phase-head__main">
+              <div class="phase-head__eyebrow">NSM · type pill 集合</div>
+              <div class="phase-head__title">4 種產業類型示範</div>
+            </div>
+            <div class="phase-head__meta"><span>4 type × 1 loading 狀態</span></div>
+          </div>
+          <div class="nsm-content">
+            <div class="nsm-body">
+              <div class="nsm-q-list">
+                <div class="nsm-q-card">
+                  <div class="nsm-q-card__head">
+                    <span class="nsm-q-card__company">YouTube</span>
+                    <span class="nsm-q-card__industry">影音平台</span>
+                    <span class="nsm-q-card__type nsm-q-card__type--attention"><i class="ph ph-play-circle"></i>注意力型</span>
+                  </div>
+                  <p class="nsm-q-card__scenario">影音內容平台 — 核心是讓觀眾停留並回訪。對應 NSM 4 維：reach / depth / frequency / impact。</p>
+                </div>
+                <div class="nsm-q-card">
+                  <div class="nsm-q-card__head">
+                    <span class="nsm-q-card__company">Uber Eats</span>
+                    <span class="nsm-q-card__industry">外賣平台</span>
+                    <span class="nsm-q-card__type nsm-q-card__type--transaction"><i class="ph ph-shopping-cart"></i>交易量型</span>
+                  </div>
+                  <p class="nsm-q-card__scenario">外賣撮合平台 — 核心是促成有效交易。對應 NSM 4 維：供給廣度 / 需求深度 / 匹配效率 / 復購留存。</p>
+                </div>
+                <div class="nsm-q-card">
+                  <div class="nsm-q-card__head">
+                    <span class="nsm-q-card__company">Medium</span>
+                    <span class="nsm-q-card__industry">創作者平台</span>
+                    <span class="nsm-q-card__type nsm-q-card__type--creator"><i class="ph ph-pencil-simple"></i>創造力型</span>
+                  </div>
+                  <p class="nsm-q-card__scenario">寫作創作平台 — 核心是創作者持續產出且有讀者。對應 NSM 4 維：創造廣度 / 成果品質 / 採用廣度 / 商業轉化。</p>
+                </div>
+                <div class="nsm-q-card">
+                  <div class="nsm-q-card__head">
+                    <span class="nsm-q-card__company">Notion</span>
+                    <span class="nsm-q-card__industry">協作工具</span>
+                    <span class="nsm-q-card__type nsm-q-card__type--saas"><i class="ph ph-buildings"></i>SaaS 型</span>
+                  </div>
+                  <p class="nsm-q-card__scenario">企業協作工具 — 核心是團隊真的依賴它工作。對應 NSM 4 維：啟用廣度 / 席次深度 / 黏著頻率 / 擴張信號。</p>
+                </div>
+                <div class="nsm-q-card is-selected">
+                  <div class="nsm-q-card__head">
+                    <span class="nsm-q-card__company">範例</span>
+                    <span class="nsm-q-card__industry">新題首次選取</span>
+                  </div>
+                  <p class="nsm-q-card__scenario">production 中，所有題目 context 已 SP4 backend 預生成；只有新增題目首次選取會走 lazy fetch。</p>
+                  <div class="nsm-context is-loading">
+                    <i class="ph ph-circle-notch"></i>
+                    <span>分析情境中…</span>
+                  </div>
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- C · Desktop 1280 -->
+      <div class="vp-frame">
+        <div class="vp-frame__label"><span>Desktop</span><span>1280 × 760</span></div>
+        <div class="vp-frame__inner" style="width:1280px">
+          <div class="phase-head">
+            <span class="phase-head__num">1</span>
+            <div class="phase-head__main">
+              <div class="phase-head__eyebrow">NSM · type pill 集合 + loading state</div>
+              <div class="phase-head__title">4 種產業類型示範 + lazy fetch fallback</div>
+            </div>
+            <div class="phase-head__meta">
+              <span>4 type colors</span>
+              <span class="phase-head__meta-sep">·</span>
+              <span>1 loading bubble</span>
+            </div>
+          </div>
+          <div class="nsm-content">
+            <div class="nsm-body" style="max-width:1100px">
+              <div class="nsm-q-list" style="grid-template-columns:1fr 1fr">
+                <div class="nsm-q-card">
+                  <div class="nsm-q-card__head">
+                    <span class="nsm-q-card__company">YouTube</span>
+                    <span class="nsm-q-card__industry">影音平台</span>
+                    <span class="nsm-q-card__type nsm-q-card__type--attention"><i class="ph ph-play-circle"></i>注意力型</span>
+                  </div>
+                  <p class="nsm-q-card__scenario">影音內容平台 — 核心是讓觀眾停留並回訪。對應 NSM 4 維：reach 觸及廣度 / depth 互動深度 / frequency 習慣頻率 / impact 留存驅力。</p>
+                </div>
+                <div class="nsm-q-card">
+                  <div class="nsm-q-card__head">
+                    <span class="nsm-q-card__company">Uber Eats</span>
+                    <span class="nsm-q-card__industry">外賣平台</span>
+                    <span class="nsm-q-card__type nsm-q-card__type--transaction"><i class="ph ph-shopping-cart"></i>交易量型</span>
+                  </div>
+                  <p class="nsm-q-card__scenario">外賣撮合平台 — 核心是促成有效交易。對應 NSM 4 維：供給廣度 / 需求深度 / 匹配效率 / 復購留存。</p>
+                </div>
+                <div class="nsm-q-card">
+                  <div class="nsm-q-card__head">
+                    <span class="nsm-q-card__company">Medium</span>
+                    <span class="nsm-q-card__industry">創作者平台</span>
+                    <span class="nsm-q-card__type nsm-q-card__type--creator"><i class="ph ph-pencil-simple"></i>創造力型</span>
+                  </div>
+                  <p class="nsm-q-card__scenario">寫作創作平台 — 核心是創作者持續產出且有讀者。對應 NSM 4 維：創造廣度 / 成果品質 / 採用廣度 / 商業轉化。</p>
+                </div>
+                <div class="nsm-q-card">
+                  <div class="nsm-q-card__head">
+                    <span class="nsm-q-card__company">Notion</span>
+                    <span class="nsm-q-card__industry">協作工具</span>
+                    <span class="nsm-q-card__type nsm-q-card__type--saas"><i class="ph ph-buildings"></i>SaaS 型</span>
+                  </div>
+                  <p class="nsm-q-card__scenario">企業協作工具 — 核心是團隊真的依賴它工作。對應 NSM 4 維：啟用廣度 / 席次深度 / 黏著頻率 / 擴張信號。</p>
+                </div>
+                <div class="nsm-q-card is-selected">
+                  <div class="nsm-q-card__head">
+                    <span class="nsm-q-card__company">範例</span>
+                    <span class="nsm-q-card__industry">新題首次選取（lazy fetch fallback）</span>
+                  </div>
+                  <p class="nsm-q-card__scenario">production 中，所有題目 context 已 SP4 backend 預生成（103 題 × 4 欄）；只有新增題目首次選取會走 <code style="font-family:ui-monospace,'SF Mono',monospace;font-size:12px;background:var(--c-bg-soft);padding:1px 6px;border-radius:4px">/api/nsm-context</code> 的 lazy fetch fallback。</p>
+                  <div class="nsm-context is-loading">
+                    <i class="ph ph-circle-notch"></i>
+                    <span>分析情境中…通常需 5-10 秒</span>
+                  </div>
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+
+    </div>
+
+    <!-- closing footer -->
+    <div class="anno" style="margin-top:var(--s-9)">
+      <strong>下一張：</strong>07 — NSM Step 2 表單（4-dim 動態 label per product type · 等放行 06 後開工）。
+    </div>
+  </div>
+</body>
+</html>
