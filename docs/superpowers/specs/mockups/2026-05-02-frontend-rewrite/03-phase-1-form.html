@@ -241,7 +241,12 @@
     .phase-head__main { flex: 1; min-width: 0; }
     .phase-head__eyebrow { font-size: var(--t-cap); letter-spacing: 0.08em; text-transform: uppercase; color: var(--c-ink-3); }
     .phase-head__title { font-size: var(--t-h3); color: var(--c-ink); margin-top: 2px; letter-spacing: -0.005em; }
-    .phase-head__meta { flex: 0 0 auto; font-size: var(--t-meta); color: var(--c-ink-3); display: flex; gap: var(--s-3); align-items: center; }
+    .phase-head__meta { flex: 0 0 auto; font-size: var(--t-meta); color: var(--c-ink-3); display: flex; gap: var(--s-3); align-items: center; flex-wrap: wrap; justify-content: flex-end; }
+    @media (max-width: 480px) {
+      .phase-head__meta { gap: var(--s-2); }
+      .phase-head__meta-sep { display: none; }
+      .phase-head__meta > *:not(.save-indicator) { display: none; }
+    }
     .phase-head__save .save-indicator { margin: 0; }
     .phase-head__meta-sep { color: var(--c-rule-bold); }
 
@@ -302,6 +307,11 @@
       justify-content: space-between;
       gap: var(--s-3);
       margin-bottom: var(--s-2);
+      flex-wrap: wrap;
+    }
+    .field__hint-row {
+      flex: 0 0 auto;
+      margin-left: auto;  /* 強制靠右，即使 wrap */
     }
     .field__label {
       font-size: var(--t-body-sm);
@@ -789,7 +799,8 @@
           <div class="phase-head__main">
             <div class="phase-head__eyebrow">Phase 1 · 寫框架</div>
             <div class="phase-head__title">C · 澄清情境</div>
-          </div>
+          <span class="phase-head__meta"><span class="save-indicator save-indicator--saved"><i class="ph ph-check" style="font-size:12px;"></i>已儲存</span></span>
+        </div>
         </div>
 
         <div class="qchip">
@@ -915,9 +926,7 @@
         </div>
 
         <div class="submit-bar">
-          <div class="submit-bar__left">
-            <span class="save-indicator save-indicator--saved"><i class="ph ph-check" style="font-size:12px;"></i>已儲存</span>
-          </div>
+          <div class="submit-bar__left"></div>
           <div class="submit-bar__right">
             <button class="btn btn--primary">下一步<i class="ph ph-arrow-right"></i></button>
           </div>
@@ -946,7 +955,8 @@
           <div class="phase-head__main">
             <div class="phase-head__eyebrow">Phase 1 · 寫框架</div>
             <div class="phase-head__title">C · 澄清情境</div>
-          </div>
+          <span class="phase-head__meta"><span class="save-indicator save-indicator--saved"><i class="ph ph-check" style="font-size:12px;"></i>已儲存</span></span>
+        </div>
           <span class="phase-head__meta"><span class="save-indicator save-indicator--saved" style="margin-right: var(--s-3);"><i class="ph ph-check" style="font-size:12px;"></i>已儲存</span><span class="phase-head__meta-sep" style="margin-right: var(--s-3);">·</span>完整模擬 · 1 / 7 步</span>
         </div>
 
@@ -1060,7 +1070,8 @@
           <div class="phase-head__main">
             <div class="phase-head__eyebrow">Phase 1 · 個別步驟練習</div>
             <div class="phase-head__title">C · 澄清情境（題目邊界 / 業務影響 / 假設）</div>
-          </div>
+          <span class="phase-head__meta"><span class="save-indicator save-indicator--saved"><i class="ph ph-check" style="font-size:12px;"></i>已儲存</span></span>
+        </div>
           <span class="phase-head__meta"><span class="save-indicator save-indicator--saved" style="margin-right: var(--s-3);"><i class="ph ph-check" style="font-size:12px;"></i>已儲存</span><span class="phase-head__meta-sep" style="margin-right: var(--s-3);">·</span>drill 模式 · 此步驟結束即完成</span>
         </div>
 
@@ -1222,7 +1233,8 @@
           <div class="phase-head__main">
             <div class="phase-head__eyebrow">Phase 1 · 寫框架</div>
             <div class="phase-head__title">L · 提出方案</div>
-          </div>
+          <span class="phase-head__meta"><span class="save-indicator save-indicator--saved"><i class="ph ph-check" style="font-size:12px;"></i>已儲存</span></span>
+        </div>
         </div>
         <div class="qchip"><span class="qchip__icon"><i class="ph ph-info"></i></span><div class="qchip__main"><div class="qchip__company">Spotify · Spotify Podcast</div><div class="qchip__title">如何提升 Spotify Podcast 的用戶留存率？</div></div><i class="ph ph-caret-down qchip__caret"></i></div>
 
@@ -1278,7 +1290,7 @@
         </div>
 
         <div class="submit-bar">
-          <div class="submit-bar__left"><span class="save-indicator save-indicator--saved"><i class="ph ph-check" style="font-size:12px;"></i>已儲存</span></div>
+          <div class="submit-bar__left"></div>
           <div class="submit-bar__right"><button class="btn btn--primary">下一步<i class="ph ph-arrow-right"></i></button></div>
         </div>
       </div>
@@ -1289,7 +1301,9 @@
       <div class="vp-frame__body">
         <div class="navbar"><button class="navbar__icon-btn"><i class="ph ph-list"></i></button><div class="navbar__brand"><span class="navbar__brand-icon"><i class="ph ph-circles-three"></i></span><span class="navbar__brand-name">PM Drill</span></div><nav class="navbar__tabs"><span class="navbar__tab is-active">CIRCLES</span><span class="navbar__tab">北極星指標</span></nav></div>
         <div class="progress"><span class="progress__step is-done"><span class="step-letter">C</span>澄清</span><span class="progress__step is-done"><span class="step-letter">I</span>用戶</span><span class="progress__step is-done"><span class="step-letter">R</span>需求</span><span class="progress__step is-done"><span class="step-letter">C</span>排序</span><span class="progress__step is-active"><span class="step-letter">L</span>方案</span><span class="progress__step"><span class="step-letter">E</span>取捨</span><span class="progress__step"><span class="step-letter">S</span>總結</span></div>
-        <div class="phase-head"><span class="phase-head__num">05</span><div class="phase-head__main"><div class="phase-head__eyebrow">Phase 1 · 寫框架</div><div class="phase-head__title">L · 提出方案</div></div><span class="phase-head__meta"><span class="save-indicator save-indicator--saved" style="margin-right: var(--s-3);"><i class="ph ph-check" style="font-size:12px;"></i>已儲存</span><span class="phase-head__meta-sep" style="margin-right: var(--s-3);">·</span>完整模擬 · 5 / 7 步</span></div>
+        <div class="phase-head"><span class="phase-head__num">05</span><div class="phase-head__main"><div class="phase-head__eyebrow">Phase 1 · 寫框架</div><div class="phase-head__title">L · 提出方案</div>
+          <span class="phase-head__meta"><span class="save-indicator save-indicator--saved"><i class="ph ph-check" style="font-size:12px;"></i>已儲存</span></span>
+        </div><span class="phase-head__meta"><span class="save-indicator save-indicator--saved" style="margin-right: var(--s-3);"><i class="ph ph-check" style="font-size:12px;"></i>已儲存</span><span class="phase-head__meta-sep" style="margin-right: var(--s-3);">·</span>完整模擬 · 5 / 7 步</span></div>
         <div class="qchip"><span class="qchip__icon"><i class="ph ph-info"></i></span><div class="qchip__main"><div class="qchip__company">Spotify · Spotify Podcast</div><div class="qchip__title">如何提升 Spotify Podcast 的用戶留存率？</div></div><i class="ph ph-caret-down qchip__caret"></i></div>
 
         <div class="phase-body">
@@ -1358,7 +1372,9 @@
       <div class="vp-frame__body">
         <div class="navbar"><button class="navbar__icon-btn"><i class="ph ph-list"></i></button><div class="navbar__brand"><span class="navbar__brand-icon"><i class="ph ph-circles-three"></i></span><span class="navbar__brand-name">PM Drill</span></div><nav class="navbar__tabs"><span class="navbar__tab is-active">CIRCLES</span><span class="navbar__tab">北極星指標</span></nav><div class="navbar__actions"><span class="navbar__email">albert.peng@example.com</span><button class="navbar__icon-btn"><i class="ph ph-sign-out"></i></button></div></div>
         <div class="progress"><span class="progress__step is-done"><span class="step-letter">C</span>澄清</span><span class="progress__step is-done"><span class="step-letter">I</span>用戶</span><span class="progress__step is-done"><span class="step-letter">R</span>需求</span><span class="progress__step is-done"><span class="step-letter">C</span>排序</span><span class="progress__step is-active"><span class="step-letter">L</span>方案</span><span class="progress__step"><span class="step-letter">E</span>取捨</span><span class="progress__step"><span class="step-letter">S</span>總結</span></div>
-        <div class="phase-head"><span class="phase-head__num">05</span><div class="phase-head__main"><div class="phase-head__eyebrow">Phase 1 · 寫框架</div><div class="phase-head__title">L · 提出方案（2-3 個方案）</div></div><span class="phase-head__meta"><span class="save-indicator save-indicator--saved" style="margin-right: var(--s-3);"><i class="ph ph-check" style="font-size:12px;"></i>已儲存</span><span class="phase-head__meta-sep" style="margin-right: var(--s-3);">·</span>完整模擬 · 5 / 7 步</span></div>
+        <div class="phase-head"><span class="phase-head__num">05</span><div class="phase-head__main"><div class="phase-head__eyebrow">Phase 1 · 寫框架</div><div class="phase-head__title">L · 提出方案（2-3 個方案）</div>
+          <span class="phase-head__meta"><span class="save-indicator save-indicator--saved"><i class="ph ph-check" style="font-size:12px;"></i>已儲存</span></span>
+        </div><span class="phase-head__meta"><span class="save-indicator save-indicator--saved" style="margin-right: var(--s-3);"><i class="ph ph-check" style="font-size:12px;"></i>已儲存</span><span class="phase-head__meta-sep" style="margin-right: var(--s-3);">·</span>完整模擬 · 5 / 7 步</span></div>
         <div class="qchip"><span class="qchip__icon"><i class="ph ph-info"></i></span><div class="qchip__main"><div class="qchip__company">Spotify · Spotify Podcast · 設計題 · 難度 中</div><div class="qchip__title">如何提升 Spotify Podcast 的用戶留存率？</div></div><i class="ph ph-caret-down qchip__caret"></i></div>
 
         <div class="phase-body phase-body--with-rail">
@@ -1450,7 +1466,9 @@
       <div class="vp-frame__body">
         <div class="navbar"><button class="navbar__icon-btn"><i class="ph ph-list"></i></button><div class="navbar__brand"><span class="navbar__brand-icon"><i class="ph ph-circles-three"></i></span><span class="navbar__brand-name">PM Drill</span></div></div>
         <div class="progress"><span class="progress__step is-done"><span class="step-letter">C</span>澄清</span><span class="progress__step is-done"><span class="step-letter">I</span>用戶</span><span class="progress__step is-done"><span class="step-letter">R</span>需求</span><span class="progress__step is-done"><span class="step-letter">C</span>排序</span><span class="progress__step is-done"><span class="step-letter">L</span>方案</span><span class="progress__step is-done"><span class="step-letter">E</span>取捨</span><span class="progress__step is-active"><span class="step-letter">S</span>總結</span></div>
-        <div class="phase-head"><span class="phase-head__num">07</span><div class="phase-head__main"><div class="phase-head__eyebrow">Phase 1 · 寫框架（最後一步）</div><div class="phase-head__title">S · 總結推薦</div></div></div>
+        <div class="phase-head"><span class="phase-head__num">07</span><div class="phase-head__main"><div class="phase-head__eyebrow">Phase 1 · 寫框架（最後一步）</div><div class="phase-head__title">S · 總結推薦</div>
+          <span class="phase-head__meta"><span class="save-indicator save-indicator--saved"><i class="ph ph-check" style="font-size:12px;"></i>已儲存</span></span>
+        </div></div>
         <div class="qchip"><span class="qchip__icon"><i class="ph ph-info"></i></span><div class="qchip__main"><div class="qchip__company">Spotify · Spotify Podcast</div><div class="qchip__title">如何提升 Spotify Podcast 的用戶留存率？</div></div><i class="ph ph-caret-down qchip__caret"></i></div>
 
         <div class="phase-body" style="padding: var(--s-5) var(--s-4) calc(var(--s-9) + var(--s-9));">
@@ -1494,25 +1512,29 @@
             <div class="tracking-grid">
               <div class="tracking-card" data-dim="reach">
                   <span class="tracking-card__num">01</span>
-                  <div><div class="tracking-card__head">觸及廣度（reach）</div>
+                  <div>
+                    <div style="display:flex; justify-content:space-between; align-items:baseline; gap:var(--s-3); margin-bottom:var(--s-1);"><div class="tracking-card__head">觸及廣度（reach）</div><div class="field__hint-row" style="font-size: var(--t-cap);"><button class="field__hint-link"><i class="ph ph-lightbulb"></i>提示</button><button class="field-example-toggle" aria-expanded="false"><i class="ph ph-quotes"></i>範例答案<i class="ph ph-caret-down toggle-caret"></i></button></div></div>
                 <div class="tracking-card__sub">每月至少播放 1 首歌的 MAU 數</div>
                 <input type="text" placeholder="例：MAU ≥ 1.2M"></div>
                 </div>
               <div class="tracking-card" data-dim="depth">
                   <span class="tracking-card__num">02</span>
-                  <div><div class="tracking-card__head">互動深度（depth）</div>
+                  <div>
+                    <div style="display:flex; justify-content:space-between; align-items:baseline; gap:var(--s-3); margin-bottom:var(--s-1);"><div class="tracking-card__head">互動深度（depth）</div><div class="field__hint-row" style="font-size: var(--t-cap);"><button class="field__hint-link"><i class="ph ph-lightbulb"></i>提示</button><button class="field-example-toggle" aria-expanded="false"><i class="ph ph-quotes"></i>範例答案<i class="ph ph-caret-down toggle-caret"></i></button></div></div>
                 <div class="tracking-card__sub">每 session 平均聆聽時長（分鐘）</div>
                 <input type="text" placeholder="例：avg 25 min/session"></div>
                 </div>
               <div class="tracking-card" data-dim="frequency">
                   <span class="tracking-card__num">03</span>
-                  <div><div class="tracking-card__head">習慣頻率（frequency）</div>
+                  <div>
+                    <div style="display:flex; justify-content:space-between; align-items:baseline; gap:var(--s-3); margin-bottom:var(--s-1);"><div class="tracking-card__head">習慣頻率（frequency）</div><div class="field__hint-row" style="font-size: var(--t-cap);"><button class="field__hint-link"><i class="ph ph-lightbulb"></i>提示</button><button class="field-example-toggle" aria-expanded="false"><i class="ph ph-quotes"></i>範例答案<i class="ph ph-caret-down toggle-caret"></i></button></div></div>
                 <div class="tracking-card__sub">每週使用 ≥ 3 天的用戶佔比</div>
                 <input type="text" placeholder="例：65% 用戶 weekly ≥ 3 days"></div>
                 </div>
               <div class="tracking-card" data-dim="impact">
                   <span class="tracking-card__num">04</span>
-                  <div><div class="tracking-card__head">留存驅力（impact）</div>
+                  <div>
+                    <div style="display:flex; justify-content:space-between; align-items:baseline; gap:var(--s-3); margin-bottom:var(--s-1);"><div class="tracking-card__head">留存驅力（impact）</div><div class="field__hint-row" style="font-size: var(--t-cap);"><button class="field__hint-link"><i class="ph ph-lightbulb"></i>提示</button><button class="field-example-toggle" aria-expanded="false"><i class="ph ph-quotes"></i>範例答案<i class="ph ph-caret-down toggle-caret"></i></button></div></div>
                 <div class="tracking-card__sub">擁有 ≥ 5 首收藏歌曲的 30 日留存率</div>
                 <input type="text" placeholder="例：70% retention"></div>
                 </div>
@@ -1521,7 +1543,7 @@
         </div>
 
         <div class="submit-bar">
-          <div class="submit-bar__left"><span class="save-indicator save-indicator--saved"><i class="ph ph-check" style="font-size:12px;"></i>已儲存</span></div>
+          <div class="submit-bar__left"></div>
           <div class="submit-bar__right"><button class="btn btn--primary">下一步<i class="ph ph-arrow-right"></i></button></div>
         </div>
       </div>
@@ -1532,7 +1554,9 @@
       <div class="vp-frame__body">
         <div class="navbar"><button class="navbar__icon-btn"><i class="ph ph-list"></i></button><div class="navbar__brand"><span class="navbar__brand-icon"><i class="ph ph-circles-three"></i></span><span class="navbar__brand-name">PM Drill</span></div><nav class="navbar__tabs"><span class="navbar__tab is-active">CIRCLES</span><span class="navbar__tab">北極星指標</span></nav></div>
         <div class="progress"><span class="progress__step is-done"><span class="step-letter">C</span>澄清</span><span class="progress__step is-done"><span class="step-letter">I</span>用戶</span><span class="progress__step is-done"><span class="step-letter">R</span>需求</span><span class="progress__step is-done"><span class="step-letter">C</span>排序</span><span class="progress__step is-done"><span class="step-letter">L</span>方案</span><span class="progress__step is-done"><span class="step-letter">E</span>取捨</span><span class="progress__step is-active"><span class="step-letter">S</span>總結</span></div>
-        <div class="phase-head"><span class="phase-head__num">07</span><div class="phase-head__main"><div class="phase-head__eyebrow">Phase 1 · 寫框架（最後一步）</div><div class="phase-head__title">S · 總結推薦</div></div><span class="phase-head__meta"><span class="save-indicator save-indicator--saved" style="margin-right: var(--s-3);"><i class="ph ph-check" style="font-size:12px;"></i>已儲存</span><span class="phase-head__meta-sep" style="margin-right: var(--s-3);">·</span>完整模擬 · 7 / 7 步</span></div>
+        <div class="phase-head"><span class="phase-head__num">07</span><div class="phase-head__main"><div class="phase-head__eyebrow">Phase 1 · 寫框架（最後一步）</div><div class="phase-head__title">S · 總結推薦</div>
+          <span class="phase-head__meta"><span class="save-indicator save-indicator--saved"><i class="ph ph-check" style="font-size:12px;"></i>已儲存</span></span>
+        </div><span class="phase-head__meta"><span class="save-indicator save-indicator--saved" style="margin-right: var(--s-3);"><i class="ph ph-check" style="font-size:12px;"></i>已儲存</span><span class="phase-head__meta-sep" style="margin-right: var(--s-3);">·</span>完整模擬 · 7 / 7 步</span></div>
         <div class="qchip"><span class="qchip__icon"><i class="ph ph-info"></i></span><div class="qchip__main"><div class="qchip__company">Spotify · Spotify Podcast</div><div class="qchip__title">如何提升 Spotify Podcast 的用戶留存率？</div></div><i class="ph ph-caret-down qchip__caret"></i></div>
 
         <div class="phase-body">
@@ -1576,25 +1600,29 @@
             <div class="tracking-grid">
               <div class="tracking-card" data-dim="reach">
                   <span class="tracking-card__num">01</span>
-                  <div><div class="tracking-card__head">觸及廣度（reach）</div>
+                  <div>
+                    <div style="display:flex; justify-content:space-between; align-items:baseline; gap:var(--s-3); margin-bottom:var(--s-1);"><div class="tracking-card__head">觸及廣度（reach）</div><div class="field__hint-row" style="font-size: var(--t-cap);"><button class="field__hint-link"><i class="ph ph-lightbulb"></i>提示</button><button class="field-example-toggle" aria-expanded="false"><i class="ph ph-quotes"></i>範例答案<i class="ph ph-caret-down toggle-caret"></i></button></div></div>
                 <div class="tracking-card__sub">每月至少完播 1 集的 MAU 數</div>
                 <input type="text" value="MAU ≥ 1.2M（年增 +15%）"></div>
                 </div>
               <div class="tracking-card" data-dim="depth">
                   <span class="tracking-card__num">02</span>
-                  <div><div class="tracking-card__head">互動深度（depth）</div>
+                  <div>
+                    <div style="display:flex; justify-content:space-between; align-items:baseline; gap:var(--s-3); margin-bottom:var(--s-1);"><div class="tracking-card__head">互動深度（depth）</div><div class="field__hint-row" style="font-size: var(--t-cap);"><button class="field__hint-link"><i class="ph ph-lightbulb"></i>提示</button><button class="field-example-toggle" aria-expanded="false"><i class="ph ph-quotes"></i>範例答案<i class="ph ph-caret-down toggle-caret"></i></button></div></div>
                 <div class="tracking-card__sub">每 session 平均聆聽時長</div>
                 <input type="text" value="avg ≥ 25 min/session"></div>
                 </div>
               <div class="tracking-card" data-dim="frequency">
                   <span class="tracking-card__num">03</span>
-                  <div><div class="tracking-card__head">習慣頻率（frequency）</div>
+                  <div>
+                    <div style="display:flex; justify-content:space-between; align-items:baseline; gap:var(--s-3); margin-bottom:var(--s-1);"><div class="tracking-card__head">習慣頻率（frequency）</div><div class="field__hint-row" style="font-size: var(--t-cap);"><button class="field__hint-link"><i class="ph ph-lightbulb"></i>提示</button><button class="field-example-toggle" aria-expanded="false"><i class="ph ph-quotes"></i>範例答案<i class="ph ph-caret-down toggle-caret"></i></button></div></div>
                 <div class="tracking-card__sub">每週使用 ≥ 3 天用戶佔比</div>
                 <input type="text" placeholder="例：65% weekly ≥ 3 days"></div>
                 </div>
               <div class="tracking-card" data-dim="impact">
                   <span class="tracking-card__num">04</span>
-                  <div><div class="tracking-card__head">留存驅力（impact）</div>
+                  <div>
+                    <div style="display:flex; justify-content:space-between; align-items:baseline; gap:var(--s-3); margin-bottom:var(--s-1);"><div class="tracking-card__head">留存驅力（impact）</div><div class="field__hint-row" style="font-size: var(--t-cap);"><button class="field__hint-link"><i class="ph ph-lightbulb"></i>提示</button><button class="field-example-toggle" aria-expanded="false"><i class="ph ph-quotes"></i>範例答案<i class="ph ph-caret-down toggle-caret"></i></button></div></div>
                 <div class="tracking-card__sub">收藏 ≥ 5 集後 30 日留存率</div>
                 <input type="text" placeholder="例：70% retention"></div>
                 </div>
@@ -1614,7 +1642,9 @@
       <div class="vp-frame__body">
         <div class="navbar"><button class="navbar__icon-btn"><i class="ph ph-list"></i></button><div class="navbar__brand"><span class="navbar__brand-icon"><i class="ph ph-circles-three"></i></span><span class="navbar__brand-name">PM Drill</span></div><nav class="navbar__tabs"><span class="navbar__tab is-active">CIRCLES</span><span class="navbar__tab">北極星指標</span></nav><div class="navbar__actions"><span class="navbar__email">albert.peng@example.com</span><button class="navbar__icon-btn"><i class="ph ph-sign-out"></i></button></div></div>
         <div class="progress"><span class="progress__step is-done"><span class="step-letter">C</span>澄清</span><span class="progress__step is-done"><span class="step-letter">I</span>用戶</span><span class="progress__step is-done"><span class="step-letter">R</span>需求</span><span class="progress__step is-done"><span class="step-letter">C</span>排序</span><span class="progress__step is-done"><span class="step-letter">L</span>方案</span><span class="progress__step is-done"><span class="step-letter">E</span>取捨</span><span class="progress__step is-active"><span class="step-letter">S</span>總結</span></div>
-        <div class="phase-head"><span class="phase-head__num">07</span><div class="phase-head__main"><div class="phase-head__eyebrow">Phase 1 · 寫框架（最後一步）</div><div class="phase-head__title">S · 總結推薦（含 NSM 與 4 追蹤維度）</div></div><span class="phase-head__meta"><span class="save-indicator save-indicator--saved" style="margin-right: var(--s-3);"><i class="ph ph-check" style="font-size:12px;"></i>已儲存</span><span class="phase-head__meta-sep" style="margin-right: var(--s-3);">·</span>完整模擬 · 7 / 7 步</span></div>
+        <div class="phase-head"><span class="phase-head__num">07</span><div class="phase-head__main"><div class="phase-head__eyebrow">Phase 1 · 寫框架（最後一步）</div><div class="phase-head__title">S · 總結推薦（含 NSM 與 4 追蹤維度）</div>
+          <span class="phase-head__meta"><span class="save-indicator save-indicator--saved"><i class="ph ph-check" style="font-size:12px;"></i>已儲存</span></span>
+        </div><span class="phase-head__meta"><span class="save-indicator save-indicator--saved" style="margin-right: var(--s-3);"><i class="ph ph-check" style="font-size:12px;"></i>已儲存</span><span class="phase-head__meta-sep" style="margin-right: var(--s-3);">·</span>完整模擬 · 7 / 7 步</span></div>
         <div class="qchip"><span class="qchip__icon"><i class="ph ph-info"></i></span><div class="qchip__main"><div class="qchip__company">Spotify · Spotify Podcast · 設計題 · 難度 中</div><div class="qchip__title">如何提升 Spotify Podcast 的用戶留存率？</div></div><i class="ph ph-caret-down qchip__caret"></i></div>
 
         <div class="phase-body phase-body--with-rail">
@@ -1659,25 +1689,29 @@
               <div class="tracking-grid">
                 <div class="tracking-card" data-dim="reach">
                   <span class="tracking-card__num">01</span>
-                  <div><div class="tracking-card__head">觸及廣度（reach）</div>
+                  <div>
+                    <div style="display:flex; justify-content:space-between; align-items:baseline; gap:var(--s-3); margin-bottom:var(--s-1);"><div class="tracking-card__head">觸及廣度（reach）</div><div class="field__hint-row" style="font-size: var(--t-cap);"><button class="field__hint-link"><i class="ph ph-lightbulb"></i>提示</button><button class="field-example-toggle" aria-expanded="false"><i class="ph ph-quotes"></i>範例答案<i class="ph ph-caret-down toggle-caret"></i></button></div></div>
                   <div class="tracking-card__sub">有多少用戶真的觸碰到核心功能 — 每月至少完播 1 集的 MAU 數</div>
                   <input type="text" value="MAU ≥ 1.2M（年增 +15%）"></div>
                 </div>
                 <div class="tracking-card" data-dim="depth">
                   <span class="tracking-card__num">02</span>
-                  <div><div class="tracking-card__head">互動深度（depth）</div>
+                  <div>
+                    <div style="display:flex; justify-content:space-between; align-items:baseline; gap:var(--s-3); margin-bottom:var(--s-1);"><div class="tracking-card__head">互動深度（depth）</div><div class="field__hint-row" style="font-size: var(--t-cap);"><button class="field__hint-link"><i class="ph ph-lightbulb"></i>提示</button><button class="field-example-toggle" aria-expanded="false"><i class="ph ph-quotes"></i>範例答案<i class="ph ph-caret-down toggle-caret"></i></button></div></div>
                   <div class="tracking-card__sub">每位用戶每次的品質 — 每 session 平均聆聽時長</div>
                   <input type="text" value="avg ≥ 25 min/session（vs 目前 18 min）"></div>
                 </div>
                 <div class="tracking-card" data-dim="frequency">
                   <span class="tracking-card__num">03</span>
-                  <div><div class="tracking-card__head">習慣頻率（frequency）</div>
+                  <div>
+                    <div style="display:flex; justify-content:space-between; align-items:baseline; gap:var(--s-3); margin-bottom:var(--s-1);"><div class="tracking-card__head">習慣頻率（frequency）</div><div class="field__hint-row" style="font-size: var(--t-cap);"><button class="field__hint-link"><i class="ph ph-lightbulb"></i>提示</button><button class="field-example-toggle" aria-expanded="false"><i class="ph ph-quotes"></i>範例答案<i class="ph ph-caret-down toggle-caret"></i></button></div></div>
                   <div class="tracking-card__sub">是否形成定期回訪習慣 — 每週使用 ≥ 3 天用戶佔比</div>
                   <input type="text" value="65% weekly ≥ 3 days（vs 目前 52%）"></div>
                 </div>
                 <div class="tracking-card" data-dim="impact">
                   <span class="tracking-card__num">04</span>
-                  <div><div class="tracking-card__head">留存驅力（impact）</div>
+                  <div>
+                    <div style="display:flex; justify-content:space-between; align-items:baseline; gap:var(--s-3); margin-bottom:var(--s-1);"><div class="tracking-card__head">留存驅力（impact）</div><div class="field__hint-row" style="font-size: var(--t-cap);"><button class="field__hint-link"><i class="ph ph-lightbulb"></i>提示</button><button class="field-example-toggle" aria-expanded="false"><i class="ph ph-quotes"></i>範例答案<i class="ph ph-caret-down toggle-caret"></i></button></div></div>
                   <div class="tracking-card__sub">什麼讓用戶持續回訪 — 收藏 ≥ 5 集後 30 日留存率</div>
                   <input type="text" placeholder="例：70% retention（vs 目前 58%）"></div>
                 </div>
@@ -1721,7 +1755,9 @@
       <div class="vp-frame__label"><span>Mobile · 第 1 層 hardcoded（bottom sheet）</span><span>360 px</span></div>
       <div class="vp-frame__body">
         <div class="navbar"><button class="navbar__icon-btn"><i class="ph ph-list"></i></button><div class="navbar__brand"><span class="navbar__brand-icon"><i class="ph ph-circles-three"></i></span><span class="navbar__brand-name">PM Drill</span></div></div>
-        <div class="phase-head"><span class="phase-head__num">01</span><div class="phase-head__main"><div class="phase-head__eyebrow">Phase 1 · 寫框架</div><div class="phase-head__title">C · 澄清情境</div></div></div>
+        <div class="phase-head"><span class="phase-head__num">01</span><div class="phase-head__main"><div class="phase-head__eyebrow">Phase 1 · 寫框架</div><div class="phase-head__title">C · 澄清情境</div>
+          <span class="phase-head__meta"><span class="save-indicator save-indicator--saved"><i class="ph ph-check" style="font-size:12px;"></i>已儲存</span></span>
+        </div></div>
         <div class="overlay-frame overlay-frame--bottom">
           <!-- form behind dim -->
           <div style="padding: var(--s-4); opacity: 0.45;">
@@ -1768,7 +1804,9 @@
       <div class="vp-frame__label"><span>Tablet · 第 2 層 AI 個人化（loading）</span><span>768 px</span></div>
       <div class="vp-frame__body">
         <div class="navbar"><button class="navbar__icon-btn"><i class="ph ph-list"></i></button><div class="navbar__brand"><span class="navbar__brand-icon"><i class="ph ph-circles-three"></i></span><span class="navbar__brand-name">PM Drill</span></div></div>
-        <div class="phase-head"><span class="phase-head__num">01</span><div class="phase-head__main"><div class="phase-head__eyebrow">Phase 1 · 寫框架</div><div class="phase-head__title">C · 澄清情境</div></div></div>
+        <div class="phase-head"><span class="phase-head__num">01</span><div class="phase-head__main"><div class="phase-head__eyebrow">Phase 1 · 寫框架</div><div class="phase-head__title">C · 澄清情境</div>
+          <span class="phase-head__meta"><span class="save-indicator save-indicator--saved"><i class="ph ph-check" style="font-size:12px;"></i>已儲存</span></span>
+        </div></div>
         <div class="overlay-frame">
           <!-- form behind -->
           <div style="padding: var(--s-5); opacity: 0.45;">
@@ -1820,7 +1858,9 @@
       <div class="vp-frame__label"><span>Desktop · 點「範例答案」inline 展開（非 modal）</span><span>1280 px</span></div>
       <div class="vp-frame__body">
         <div class="navbar"><button class="navbar__icon-btn"><i class="ph ph-list"></i></button><div class="navbar__brand"><span class="navbar__brand-icon"><i class="ph ph-circles-three"></i></span><span class="navbar__brand-name">PM Drill</span></div><nav class="navbar__tabs"><span class="navbar__tab is-active">CIRCLES</span><span class="navbar__tab">北極星指標</span></nav></div>
-        <div class="phase-head"><span class="phase-head__num">01</span><div class="phase-head__main"><div class="phase-head__eyebrow">Phase 1 · 寫框架</div><div class="phase-head__title">C · 澄清情境</div></div></div>
+        <div class="phase-head"><span class="phase-head__num">01</span><div class="phase-head__main"><div class="phase-head__eyebrow">Phase 1 · 寫框架</div><div class="phase-head__title">C · 澄清情境</div>
+          <span class="phase-head__meta"><span class="save-indicator save-indicator--saved"><i class="ph ph-check" style="font-size:12px;"></i>已儲存</span></span>
+        </div></div>
 
         <div style="max-width: 920px; margin: 0 auto; padding: var(--s-5);">
           <div class="field">
@@ -1898,7 +1938,9 @@
       <div class="vp-frame__label"><span>Mobile · locked</span><span>360 px</span></div>
       <div class="vp-frame__body">
         <div class="navbar"><button class="navbar__icon-btn"><i class="ph ph-list"></i></button><div class="navbar__brand"><span class="navbar__brand-icon"><i class="ph ph-circles-three"></i></span><span class="navbar__brand-name">PM Drill</span></div></div>
-        <div class="phase-head"><span class="phase-head__num">01</span><div class="phase-head__main"><div class="phase-head__eyebrow">Phase 1 · 已評分</div><div class="phase-head__title">C · 澄清情境 · 76 / 100</div></div></div>
+        <div class="phase-head"><span class="phase-head__num">01</span><div class="phase-head__main"><div class="phase-head__eyebrow">Phase 1 · 已評分</div><div class="phase-head__title">C · 澄清情境 · 76 / 100</div>
+          <span class="phase-head__meta"><span class="save-indicator save-indicator--saved"><i class="ph ph-check" style="font-size:12px;"></i>已儲存</span></span>
+        </div></div>
 
         <div class="banner banner--locked">
           <i class="ph ph-lock-key"></i>
@@ -1939,7 +1981,9 @@
       <div class="vp-frame__label"><span>Tablet · stale</span><span>768 px</span></div>
       <div class="vp-frame__body">
         <div class="navbar"><button class="navbar__icon-btn"><i class="ph ph-list"></i></button><div class="navbar__brand"><span class="navbar__brand-icon"><i class="ph ph-circles-three"></i></span><span class="navbar__brand-name">PM Drill</span></div><nav class="navbar__tabs"><span class="navbar__tab is-active">CIRCLES</span><span class="navbar__tab">北極星指標</span></nav></div>
-        <div class="phase-head"><span class="phase-head__num">01</span><div class="phase-head__main"><div class="phase-head__eyebrow">Phase 1 · 唯讀</div><div class="phase-head__title">C · 澄清情境（題庫已更新）</div></div></div>
+        <div class="phase-head"><span class="phase-head__num">01</span><div class="phase-head__main"><div class="phase-head__eyebrow">Phase 1 · 唯讀</div><div class="phase-head__title">C · 澄清情境（題庫已更新）</div>
+          <span class="phase-head__meta"><span class="save-indicator save-indicator--saved"><i class="ph ph-check" style="font-size:12px;"></i>已儲存</span></span>
+        </div></div>
 
         <div class="banner banner--stale">
           <i class="ph ph-warning-octagon"></i>
@@ -1977,7 +2021,9 @@
       <div class="vp-frame__body">
         <div class="navbar"><button class="navbar__icon-btn"><i class="ph ph-list"></i></button><div class="navbar__brand"><span class="navbar__brand-icon"><i class="ph ph-circles-three"></i></span><span class="navbar__brand-name">PM Drill</span></div><nav class="navbar__tabs"><span class="navbar__tab is-active">CIRCLES</span><span class="navbar__tab">北極星指標</span></nav><div class="navbar__actions"><span class="navbar__email">albert.peng@example.com</span><button class="navbar__icon-btn"><i class="ph ph-sign-out"></i></button></div></div>
         <div class="progress"><span class="progress__step is-active"><span class="step-letter">C</span>澄清</span><span class="progress__step"><span class="step-letter">I</span>用戶</span><span class="progress__step"><span class="step-letter">R</span>需求</span><span class="progress__step"><span class="step-letter">C</span>排序</span><span class="progress__step"><span class="step-letter">L</span>方案</span><span class="progress__step"><span class="step-letter">E</span>取捨</span><span class="progress__step"><span class="step-letter">S</span>總結</span></div>
-        <div class="phase-head"><span class="phase-head__num">01</span><div class="phase-head__main"><div class="phase-head__eyebrow">Phase 1 · 寫框架</div><div class="phase-head__title">C · 澄清情境</div></div></div>
+        <div class="phase-head"><span class="phase-head__num">01</span><div class="phase-head__main"><div class="phase-head__eyebrow">Phase 1 · 寫框架</div><div class="phase-head__title">C · 澄清情境</div>
+          <span class="phase-head__meta"><span class="save-indicator save-indicator--saved"><i class="ph ph-check" style="font-size:12px;"></i>已儲存</span></span>
+        </div></div>
 
         <div style="max-width: 920px; margin: 0 auto; padding: var(--s-5) var(--s-5) 0;">
           <div class="banner" style="background: var(--c-danger-lt); color: var(--c-danger); border-left: 2px solid var(--c-danger); margin-bottom: var(--s-4);">
@@ -2004,7 +2050,7 @@
         </div>
 
         <div class="submit-bar">
-          <div class="submit-bar__left"><span class="save-indicator save-indicator--error"><i class="ph ph-warning-circle" style="font-size:12px;"></i>儲存失敗 · 點擊重試</span></div>
+          <div class="submit-bar__left"></div>
           <div class="submit-bar__right"><button class="btn btn--primary" disabled>下一步（請先恢復連線）</button></div>
         </div>
       </div>
@@ -2030,7 +2076,9 @@
       <div class="vp-frame__label"><span>Mobile · iOS 鍵盤彈出</span><span>360 px</span></div>
       <div class="vp-frame__body" style="position: relative; min-height: 600px;">
         <div class="navbar"><button class="navbar__icon-btn"><i class="ph ph-list"></i></button><div class="navbar__brand"><span class="navbar__brand-icon"><i class="ph ph-circles-three"></i></span><span class="navbar__brand-name">PM Drill</span></div></div>
-        <div class="phase-head"><span class="phase-head__num">01</span><div class="phase-head__main"><div class="phase-head__eyebrow">Phase 1</div><div class="phase-head__title">C · 澄清情境</div></div></div>
+        <div class="phase-head"><span class="phase-head__num">01</span><div class="phase-head__main"><div class="phase-head__eyebrow">Phase 1</div><div class="phase-head__title">C · 澄清情境</div>
+          <span class="phase-head__meta"><span class="save-indicator save-indicator--saved"><i class="ph ph-check" style="font-size:12px;"></i>已儲存</span></span>
+        </div></div>
 
         <div style="padding: var(--s-4); height: 350px; overflow-y: auto;">
           <div class="field">
@@ -2052,7 +2100,7 @@
 
         <!-- sticky bar pinned above keyboard -->
         <div class="submit-bar" style="position: absolute; bottom: 200px; left: 0; right: 0; z-index: 5;">
-          <div class="submit-bar__left"><span class="save-indicator save-indicator--saving">儲存中</span></div>
+          <div class="submit-bar__left"></div>
           <div class="submit-bar__right"><button class="btn btn--primary">下一題</button></div>
         </div>
       </div>
@@ -2091,7 +2139,7 @@
         </div>
 
         <div class="submit-bar">
-          <div class="submit-bar__left"><span class="save-indicator save-indicator--saved"><i class="ph ph-check" style="font-size:12px;"></i>已儲存</span></div>
+          <div class="submit-bar__left"></div>
           <div class="submit-bar__right"><button class="btn btn--primary">下一步</button></div>
         </div>
       </div>
@@ -2115,10 +2163,7 @@
         </div>
 
         <div class="submit-bar">
-          <div class="submit-bar__left">
-            <span class="save-indicator save-indicator--saved"><i class="ph ph-check" style="font-size:12px;"></i>已儲存到雲端</span>
-            <span style="font-size: var(--t-cap); color: var(--c-ink-3); margin-left: var(--s-2);">10 秒前</span>
-          </div>
+          <div class="submit-bar__left"></div>
           <div class="submit-bar__right">
             <button class="btn btn--ghost"><i class="ph ph-arrow-left"></i>上一步</button>
             <button class="btn btn--primary">下一步<i class="ph ph-arrow-right"></i></button>
@@ -2149,7 +2194,9 @@
       <div class="vp-frame__label"><span>Mobile · qchip expanded</span><span>360 px</span></div>
       <div class="vp-frame__body">
         <div class="navbar"><button class="navbar__icon-btn"><i class="ph ph-list"></i></button><div class="navbar__brand"><span class="navbar__brand-icon"><i class="ph ph-circles-three"></i></span><span class="navbar__brand-name">PM Drill</span></div></div>
-        <div class="phase-head"><span class="phase-head__num">01</span><div class="phase-head__main"><div class="phase-head__eyebrow">Phase 1 · 寫框架</div><div class="phase-head__title">C · 澄清情境</div></div></div>
+        <div class="phase-head"><span class="phase-head__num">01</span><div class="phase-head__main"><div class="phase-head__eyebrow">Phase 1 · 寫框架</div><div class="phase-head__title">C · 澄清情境</div>
+          <span class="phase-head__meta"><span class="save-indicator save-indicator--saved"><i class="ph ph-check" style="font-size:12px;"></i>已儲存</span></span>
+        </div></div>
 
         <div class="qchip is-expanded">
           <span class="qchip__icon"><i class="ph ph-info"></i></span>
@@ -2193,7 +2240,9 @@
       <div class="vp-frame__label"><span>Tablet · qchip expanded</span><span>768 px</span></div>
       <div class="vp-frame__body">
         <div class="navbar"><button class="navbar__icon-btn"><i class="ph ph-list"></i></button><div class="navbar__brand"><span class="navbar__brand-icon"><i class="ph ph-circles-three"></i></span><span class="navbar__brand-name">PM Drill</span></div><nav class="navbar__tabs"><span class="navbar__tab is-active">CIRCLES</span><span class="navbar__tab">北極星指標</span></nav></div>
-        <div class="phase-head"><span class="phase-head__num">01</span><div class="phase-head__main"><div class="phase-head__eyebrow">Phase 1 · 寫框架</div><div class="phase-head__title">C · 澄清情境</div></div></div>
+        <div class="phase-head"><span class="phase-head__num">01</span><div class="phase-head__main"><div class="phase-head__eyebrow">Phase 1 · 寫框架</div><div class="phase-head__title">C · 澄清情境</div>
+          <span class="phase-head__meta"><span class="save-indicator save-indicator--saved"><i class="ph ph-check" style="font-size:12px;"></i>已儲存</span></span>
+        </div></div>
 
         <div class="qchip is-expanded">
           <span class="qchip__icon"><i class="ph ph-info"></i></span>
@@ -2237,7 +2286,9 @@
       <div class="vp-frame__label"><span>Desktop · qchip expanded</span><span>1280 px</span></div>
       <div class="vp-frame__body">
         <div class="navbar"><button class="navbar__icon-btn"><i class="ph ph-list"></i></button><div class="navbar__brand"><span class="navbar__brand-icon"><i class="ph ph-circles-three"></i></span><span class="navbar__brand-name">PM Drill</span></div><nav class="navbar__tabs"><span class="navbar__tab is-active">CIRCLES</span><span class="navbar__tab">北極星指標</span></nav><div class="navbar__actions"><span class="navbar__email">albert.peng@example.com</span><button class="navbar__icon-btn"><i class="ph ph-sign-out"></i></button></div></div>
-        <div class="phase-head"><span class="phase-head__num">01</span><div class="phase-head__main"><div class="phase-head__eyebrow">Phase 1 · 寫框架</div><div class="phase-head__title">C · 澄清情境</div></div><span class="phase-head__meta"><span class="save-indicator save-indicator--saved"><i class="ph ph-check" style="font-size:12px;"></i>已儲存</span></span></div>
+        <div class="phase-head"><span class="phase-head__num">01</span><div class="phase-head__main"><div class="phase-head__eyebrow">Phase 1 · 寫框架</div><div class="phase-head__title">C · 澄清情境</div>
+          <span class="phase-head__meta"><span class="save-indicator save-indicator--saved"><i class="ph ph-check" style="font-size:12px;"></i>已儲存</span></span>
+        </div><span class="phase-head__meta"><span class="save-indicator save-indicator--saved"><i class="ph ph-check" style="font-size:12px;"></i>已儲存</span></span></div>
 
         <div class="qchip is-expanded">
           <span class="qchip__icon"><i class="ph ph-info"></i></span>
