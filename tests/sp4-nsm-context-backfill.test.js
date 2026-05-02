@@ -43,3 +43,29 @@ describe('scripts/backfill-nsm-context.js', () => {
     expect(reloaded.map(q => q.id)).toEqual(original.map(q => q.id));
   });
 });
+
+describe('NSM context completeness post-backfill', () => {
+  const vm = require('vm');
+  const NSM_DB_PATH = path.join(__dirname, '..', 'public', 'nsm-db.js');
+
+  test('all 103 questions have non-empty context.{model,users,traps,insight}', () => {
+    const src = fs.readFileSync(NSM_DB_PATH, 'utf8');
+    const sandbox = { window: {} };
+    vm.createContext(sandbox);
+    vm.runInContext(src, sandbox);
+    const qs = sandbox.window.NSM_QUESTIONS;
+    expect(qs.length).toBe(103);
+    const bad = qs.filter(q => {
+      if (!q.context) return true;
+      const c = q.context;
+      return !(typeof c.model === 'string' && c.model.trim()) ||
+             !(typeof c.users === 'string' && c.users.trim()) ||
+             !(typeof c.traps === 'string' && c.traps.trim()) ||
+             !(typeof c.insight === 'string' && c.insight.trim());
+    });
+    if (bad.length > 0) {
+      throw new Error('Incomplete context: ' + bad.map(q => q.id).join(', '));
+    }
+    expect(bad.length).toBe(0);
+  });
+});
