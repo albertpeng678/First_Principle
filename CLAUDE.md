@@ -124,6 +124,35 @@ frontend-design (獨立 plugin) → writing-plans → using-git-worktrees
 
 ---
 
+## Mockup Index（視覺契約 — `docs/superpowers/specs/mockups/2026-05-02-frontend-rewrite/`）
+
+| # | 狀態 | 檔案 | 內容 |
+|---|---|---|---|
+| 00 | ✅ 放行 | `00-design-system.html` | 21 sections（tokens / typography / forms / cards / chips / overlays / etc）|
+| 01 | ✅ 放行 v4 | `01-circles-home.html` | CIRCLES Home（含 A-G 7 sections）|
+| 02 | ✅ 放行 | `02-auth-flow.html` | 登入登出流程（A-E 5 sections）|
+| 03 | 待畫 | `03-phase-1-form.html` | Phase 1 表單（C1/L 兩結構 + qchip + hint）|
+| 04 | 待畫 | `04-phase-1-5-gate.html` | Phase 1.5 Gate 三態 |
+| 05 | 待畫 | `05-phase-2-chat.html` | Phase 2 對話（三角色 bubble）|
+| 06-08 | 待畫 | NSM Step 1/2/3 | NSM workshop |
+| 09 | 待畫 | `09-offcanvas-history.html` | Offcanvas 完整歷史 |
+| 10 | 待畫 | `10-onboarding.html` | Onboarding spotlight |
+| 11-13 | 解鎖 | Phase 3/4（SP3 merge 後）| 步驟分數 + 錯誤 + 報告 |
+| 14 | 待畫 | NSM Step 4 | 4 tabs × 3 viewport |
+| 15 | 待畫 | Error/Empty 全集 | 收尾對齊 |
+
+完整路徑表 + compliance 規則：Master Spec §5.1 + §5.2
+
+### Mockup-as-Spec 嚴格規則（不准違反）
+
+**Implementer：** 開工前必先打開對應 mockup；mockup 是 source of truth；偏離 = bundle 不過
+
+**Auditor：** 用 PNG pixel-diff（threshold 0.5%）對 mockup baseline 跑；**禁止自然語言判斷**；diff > threshold = BLOCK
+
+完整規則 → Master Spec §5.2
+
+---
+
 ## 視覺對齊測試 Stack（防止 SP2 那種 5 輪重做）
 
 完整定義見 Master Spec §0.5 / §0.6 / §6.5 / §6.6。

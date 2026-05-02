@@ -536,6 +536,61 @@ System prompt 固定段落（prompts/circles-coach.js:14-66）：
 
 ---
 
+### 5.1 Mockup Index（CONTRACT-LOCKED — 視覺契約檔案路徑）
+
+每個 mockup HTML 在 user 放行那一刻起就是**視覺契約**（不是設計稿、不是參考）。
+
+| # | 狀態 | 路徑 | 內容 / 對映 spec section |
+|---|---|---|---|
+| 00 | ✅ 放行 | `docs/superpowers/specs/mockups/2026-05-02-frontend-rewrite/00-design-system.html` | Design system 21 sections — 色票 / 字型 / 間距 / 按鈕 / 表單 / chips / cards / banners / wrappers / breakpoints / motion / tooltip / modal / example-bullet / save-indicator / toast / overflow / char-counter / phase-head / mode-tag / onboarding-coachmark |
+| 01 | ✅ 放行 v4 | `docs/superpowers/specs/mockups/2026-05-02-frontend-rewrite/01-circles-home.html` | CIRCLES Home — A 預設 / B drill mode / C 搜尋有 / D 搜尋無 / E loading / F edge cases / **G 題目展開（card-based blocks — §0.7.1 pattern）** |
+| 02 | ✅ 放行 | `docs/superpowers/specs/mockups/2026-05-02-frontend-rewrite/02-auth-flow.html` | 登入登出流程 — A 登入 default / B 表單狀態 / C 錯誤 / D 註冊 / E flow 整合（已登入 navbar / 登出 / migration / token expiry） |
+| 03 | 待畫 | `03-phase-1-form.html` | Phase 1 表單（C1 / L 兩種結構 + qchip + hint icons + save indicator + char counter） |
+| 04 | 待畫 | `04-phase-1-5-gate.html` | Phase 1.5 Gate 三態 error/warn/ok |
+| 05 | 待畫 | `05-phase-2-chat.html` | Phase 2 對話（三角色 bubble × streaming/done/error）|
+| 06 | 待畫 | `06-nsm-step-1.html` | NSM Step 1 選題 + 4 欄分析 |
+| 07 | 待畫 | `07-nsm-step-2.html` | NSM Step 2 表單（4-dim 動態 label）|
+| 08 | 待畫 | `08-nsm-step-3-gate.html` | NSM Step 3 Gate |
+| 09 | 待畫 | `09-offcanvas-history.html` | Offcanvas 完整歷史紀錄 |
+| 10 | 待畫 | `10-onboarding.html` | Onboarding 多步 spotlight |
+| 11 | 解鎖待畫 | `11-phase-3-score.html` | Phase 3 步驟分數（grade letter + collapsible coach demo three-section）— **SP3 backend 已 merge unlock** |
+| 12 | 解鎖待畫 | `12-phase-3-error-loading.html` | Phase 3 error 4 codes + loading checklist |
+| 13 | 解鎖待畫 | `13-phase-4-final.html` | Phase 4 報告（7-axis radar + tracking 4 dim cards）|
+| 14 | 待畫 | `14-nsm-step-4.html` | NSM Step 4（4 tabs × 3 viewport）|
+| 15 | 待畫 | `15-error-empty-collation.html` | Error / Empty / Loading 全集對齊檢查 |
+
+### 5.2 Mockup-as-Spec 嚴格遵守規則（不准違反）
+
+**任何 implementer subagent 開工前必做：**
+1. 在瀏覽器打開對應 mockup 檔（`open path/to/XX-name.html`）
+2. Bundle plan 第一條 task 必須是「比對 mockup `XX-name.html` 第 N 區，列出所要對齊的 class / spacing / 元素」
+3. 若 production 既有 code 與 mockup 衝突 → **mockup 是 source of truth**（除非 user 明示變更）
+4. 「我覺得這樣比較好」的偏離 = bundle 不過
+5. PR description 必含 `mockup: docs/superpowers/specs/mockups/.../XX.html#section-Y`
+
+**任何 auditor / UI/UX 稽核 subagent 必做：**
+1. 截圖矩陣：對「mockup file × viewport × state」+「production route × 對映 viewport × state」分別存 PNG
+2. 用 `pixelmatch` 跑 pixel-diff（threshold 0.5%）
+3. **不准用自然語言「看起來很像 / 大致一致」當判斷依據**
+4. 任一 PNG diff > threshold → BLOCK，diff PNG 存 `tests/visual/diffs/bundle-N/`
+5. Auditor 報告必引用 `mockup file: ...` + `baseline PNG: tests/visual/baselines/...`
+
+**Mockup baseline 凍結時機：**
+- User 放行當下 → Playwright 跑 mockup file 截圖 8 viewport × all states → 存 `tests/visual/baselines/{viewport}/{mockup-name}/{state}.png`
+- baseline PNG commit 進 repo（git LFS 不開，因為 PNG 不大）
+- 後續 production bundle 對這份 baseline diff，不對「設計師主觀判斷」diff
+
+**14-box gate Box 2 強化：**
+- 「Mockup vs production 視覺一致」必須附：
+  1. mockup 檔名 + section anchor
+  2. baseline PNG 路徑（不是「mockup 截圖」）
+  3. 跑出的 diff report 路徑
+  4. 每張 diff < 0.5% pixel 證據
+
+**為什麼這條規則 lock：** SP2 第 5 輪失敗根因之一就是 implementer 自己詮釋 mockup + auditor 用文字描述判斷。視覺契約必須是 PNG baseline、機械式 diff，不是主觀判斷。
+
+---
+
 ## 6. 重寫流程 gate
 
 ### 6.1 並行階段（user 放行後啟動）
