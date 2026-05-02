@@ -124,24 +124,28 @@ frontend-design (獨立 plugin) → writing-plans → using-git-worktrees
 
 ---
 
-## Mockup Index（視覺契約 — `docs/superpowers/specs/mockups/2026-05-02-frontend-rewrite/`）
+## Mockup Index（視覺契約 — 完整路徑）
 
-| # | 狀態 | 檔案 | 內容 |
+| # | 狀態 | 完整路徑 | 內容 |
 |---|---|---|---|
-| 00 | ✅ 放行 | `00-design-system.html` | 21 sections（tokens / typography / forms / cards / chips / overlays / etc）|
-| 01 | ✅ 放行 v4 | `01-circles-home.html` | CIRCLES Home（含 A-G 7 sections）|
-| 02 | ✅ 放行 | `02-auth-flow.html` | 登入登出流程（A-E 5 sections）|
-| 03 | ✅ 待放行 | `03-phase-1-form.html` | Phase 1 表單（6 sections × 3 = 18 variations：4-field / L sol-multi / S 3+4tracking / hint / locked-stale / save+sticky）|
-| 04 | 待畫 | `04-phase-1-5-gate.html` | Phase 1.5 Gate 三態 |
-| 05 | 待畫 | `05-phase-2-chat.html` | Phase 2 對話（三角色 bubble）|
-| 06-08 | 待畫 | NSM Step 1/2/3 | NSM workshop |
-| 09 | 待畫 | `09-offcanvas-history.html` | Offcanvas 完整歷史 |
-| 10 | 待畫 | `10-onboarding.html` | Onboarding spotlight |
-| 11-13 | 解鎖 | Phase 3/4（SP3 merge 後）| 步驟分數 + 錯誤 + 報告 |
-| 14 | 待畫 | NSM Step 4 | 4 tabs × 3 viewport |
-| 15 | 待畫 | Error/Empty 全集 | 收尾對齊 |
+| 00 | ✅ **放行** | `docs/superpowers/specs/mockups/2026-05-02-frontend-rewrite/00-design-system.html` | Design system 21 sections（tokens / typography / forms / cards / chips / overlays / motion etc）|
+| 01 | ✅ **放行 v4** | `docs/superpowers/specs/mockups/2026-05-02-frontend-rewrite/01-circles-home.html` | CIRCLES Home A-G 7 sections × 3 viewport（含 G 題目展開 card-based）|
+| 02 | ✅ **放行** | `docs/superpowers/specs/mockups/2026-05-02-frontend-rewrite/02-auth-flow.html` | 登入登出流程 A-E 5 sections |
+| 03 | ✅ **放行 v8** | `docs/superpowers/specs/mockups/2026-05-02-frontend-rewrite/03-phase-1-form.html` | Phase 1 表單 7 sections × 3 = 21 variations（4-field / L sol-multi / S 3+4tracking 含 hint+example / hint overlay / locked-stale 唯讀仍可看 hint / save+sticky / qchip 展開）|
+| 04 | 待畫 | `docs/superpowers/specs/mockups/2026-05-02-frontend-rewrite/04-phase-1-5-gate.html` | Phase 1.5 Gate 三態 error/warn/ok |
+| 05 | 待畫 | `docs/superpowers/specs/mockups/2026-05-02-frontend-rewrite/05-phase-2-chat.html` | Phase 2 對話（三角色 bubble × streaming/done/error）|
+| 06 | 待畫 | `docs/superpowers/specs/mockups/2026-05-02-frontend-rewrite/06-nsm-step-1.html` | NSM Step 1 選題 + 4 欄分析 |
+| 07 | 待畫 | `docs/superpowers/specs/mockups/2026-05-02-frontend-rewrite/07-nsm-step-2.html` | NSM Step 2 表單（4-dim 動態 label）|
+| 08 | 待畫 | `docs/superpowers/specs/mockups/2026-05-02-frontend-rewrite/08-nsm-step-3-gate.html` | NSM Step 3 Gate |
+| 09 | 待畫 | `docs/superpowers/specs/mockups/2026-05-02-frontend-rewrite/09-offcanvas-history.html` | Offcanvas 完整歷史 |
+| 10 | 待畫 | `docs/superpowers/specs/mockups/2026-05-02-frontend-rewrite/10-onboarding.html` | Onboarding 多步 spotlight |
+| 11 | 解鎖待畫 | `docs/superpowers/specs/mockups/2026-05-02-frontend-rewrite/11-phase-3-score.html` | Phase 3 步驟分數（grade letter + coach demo collapsible）|
+| 12 | 解鎖待畫 | `docs/superpowers/specs/mockups/2026-05-02-frontend-rewrite/12-phase-3-error-loading.html` | Phase 3 error 4 codes + loading checklist |
+| 13 | 解鎖待畫 | `docs/superpowers/specs/mockups/2026-05-02-frontend-rewrite/13-phase-4-final.html` | Phase 4 報告（7-axis radar + tracking 4 dim cards）|
+| 14 | 待畫 | `docs/superpowers/specs/mockups/2026-05-02-frontend-rewrite/14-nsm-step-4.html` | NSM Step 4（4 tabs × 3 viewport）|
+| 15 | 待畫 | `docs/superpowers/specs/mockups/2026-05-02-frontend-rewrite/15-error-empty-collation.html` | Error / Empty / Loading 全集 |
 
-完整路徑表 + compliance 規則：Master Spec §5.1 + §5.2
+完整 compliance 規則：Master Spec §5.1（路徑表）+ §5.2（implementer / auditor 嚴格規則）
 
 ### Mockup-as-Spec 嚴格規則（不准違反）
 
