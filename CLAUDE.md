@@ -131,7 +131,7 @@ frontend-design (獨立 plugin) → writing-plans → using-git-worktrees
 | 00 | ✅ 放行 | `00-design-system.html` | 21 sections（tokens / typography / forms / cards / chips / overlays / etc）|
 | 01 | ✅ 放行 v4 | `01-circles-home.html` | CIRCLES Home（含 A-G 7 sections）|
 | 02 | ✅ 放行 | `02-auth-flow.html` | 登入登出流程（A-E 5 sections）|
-| 03 | 待畫 | `03-phase-1-form.html` | Phase 1 表單（C1/L 兩結構 + qchip + hint）|
+| 03 | ✅ 待放行 | `03-phase-1-form.html` | Phase 1 表單（6 sections × 3 = 18 variations：4-field / L sol-multi / S 3+4tracking / hint / locked-stale / save+sticky）|
 | 04 | 待畫 | `04-phase-1-5-gate.html` | Phase 1.5 Gate 三態 |
 | 05 | 待畫 | `05-phase-2-chat.html` | Phase 2 對話（三角色 bubble）|
 | 06-08 | 待畫 | NSM Step 1/2/3 | NSM workshop |

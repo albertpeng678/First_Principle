@@ -545,7 +545,7 @@ System prompt 固定段落（prompts/circles-coach.js:14-66）：
 | 00 | ✅ 放行 | `docs/superpowers/specs/mockups/2026-05-02-frontend-rewrite/00-design-system.html` | Design system 21 sections — 色票 / 字型 / 間距 / 按鈕 / 表單 / chips / cards / banners / wrappers / breakpoints / motion / tooltip / modal / example-bullet / save-indicator / toast / overflow / char-counter / phase-head / mode-tag / onboarding-coachmark |
 | 01 | ✅ 放行 v4 | `docs/superpowers/specs/mockups/2026-05-02-frontend-rewrite/01-circles-home.html` | CIRCLES Home — A 預設 / B drill mode / C 搜尋有 / D 搜尋無 / E loading / F edge cases / **G 題目展開（card-based blocks — §0.7.1 pattern）** |
 | 02 | ✅ 放行 | `docs/superpowers/specs/mockups/2026-05-02-frontend-rewrite/02-auth-flow.html` | 登入登出流程 — A 登入 default / B 表單狀態 / C 錯誤 / D 註冊 / E flow 整合（已登入 navbar / 登出 / migration / token expiry） |
-| 03 | 待畫 | `03-phase-1-form.html` | Phase 1 表單（C1 / L 兩種結構 + qchip + hint icons + save indicator + char counter） |
+| 03 | ✅ 完成（待放行）| `03-phase-1-form.html` | Phase 1 表單（A 4-field 標準 / B L solution-multi / C S 3+4tracking / D hint trigger / E locked-stale / F save+sticky）|
 | 04 | 待畫 | `04-phase-1-5-gate.html` | Phase 1.5 Gate 三態 error/warn/ok |
 | 05 | 待畫 | `05-phase-2-chat.html` | Phase 2 對話（三角色 bubble × streaming/done/error）|
 | 06 | 待畫 | `06-nsm-step-1.html` | NSM Step 1 選題 + 4 欄分析 |
