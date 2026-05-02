@@ -1,0 +1,1643 @@
+<!doctype html>
+<html lang="zh-TW">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover, interactive-widget=resizes-visual">
+  <title>PM Drill — 07 NSM 步驟 2/3 定義 + 4-dim 拆解</title>
+
+  <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/@phosphor-icons/web@2.1.1/src/regular/style.css">
+  <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/@phosphor-icons/web@2.1.1/src/fill/style.css">
+  <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Instrument+Serif:ital@0;1&display=swap">
+
+  <style>
+    /* ───────────────────────────────────────────
+       LOCKED CSS — verbatim from 06 (origin 03)
+       ─────────────────────────────────────────── */
+    :root {
+      --c-bg: #F2F0EB; --c-bg-soft: #ECE9E1; --c-bg-deep: #E5E1D7;
+      --c-card: #FFFFFF; --c-surface: #FAFAF7;
+      --c-ink: #1F1D1B; --c-ink-2: #5A5046; --c-ink-3: #8A7E70; --c-ink-4: #B8AC9D;
+      --c-rule: rgba(60,45,30,0.10); --c-rule-bold: rgba(60,45,30,0.18);
+      --c-primary: #1A56DB;
+      --c-navy: #1B2D5C; --c-navy-2: #142347; --c-navy-lt: rgba(27,45,92,0.08);
+      --c-success: #137A3D; --c-success-lt: #DCEFE0;
+      --c-warn: #B85C00; --c-warn-lt: #FBE9D0;
+      --c-danger: #B61F1F; --c-danger-lt: #FADCDC;
+      --font-sans: system-ui, -apple-system, BlinkMacSystemFont, 'PingFang TC', 'Microsoft JhengHei', 'Heiti TC', 'Noto Sans TC', sans-serif;
+      --font-serif: 'Instrument Serif', 'Times New Roman', serif;
+      --t-h1: 24px; --t-h2: 19px; --t-h3: 16px; --t-body: 15px; --t-body-sm: 14px; --t-meta: 13px; --t-cap: 12px;
+      --s-1: 4px; --s-2: 8px; --s-3: 12px; --s-4: 16px; --s-5: 20px; --s-6: 24px; --s-7: 32px; --s-8: 40px; --s-9: 56px; --s-10: 80px;
+      --r-input: 6px; --r-card: 10px; --r-pill: 999px;
+      --touch-min: 44px;
+      --t-fast: 120ms; --t-norm: 200ms; --t-slow: 300ms;
+      --ease: cubic-bezier(0.4, 0, 0.2, 1);
+      --shadow-1: 0 1px 0 rgba(60,45,30,0.04);
+      --shadow-2: 0 1px 2px rgba(60,45,30,0.06);
+      --shadow-3: 0 4px 12px rgba(60,45,30,0.08);
+      --shadow-focus: 0 0 0 3px rgba(26,86,219,0.18);
+    }
+
+    *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+    html, body {
+      background: var(--c-bg);
+      color: var(--c-ink);
+      font-family: var(--font-sans);
+      font-size: var(--t-body);
+      line-height: 1.55;
+      -webkit-font-smoothing: antialiased;
+      -webkit-tap-highlight-color: transparent;
+    }
+    button { font: inherit; color: inherit; cursor: pointer; background: none; border: none; }
+    a { color: inherit; text-decoration: none; }
+    @media (max-width: 767px) { input, textarea, select { font-size: 16px !important; } }
+
+    /* viewport demo */
+    .vp-grid {
+      display: grid;
+      grid-template-columns: 360px 768px 1280px;
+      gap: var(--s-6);
+      padding: var(--s-6);
+      align-items: start;
+      overflow-x: auto;
+    }
+    .vp-frame {
+      border: 1px solid var(--c-rule-bold);
+      border-radius: var(--r-card);
+      background: var(--c-bg);
+      overflow: hidden;
+    }
+    .vp-frame__label {
+      padding: var(--s-3) var(--s-4);
+      border-bottom: 1px solid var(--c-rule);
+      background: var(--c-card);
+      display: flex;
+      justify-content: space-between;
+      font-size: var(--t-cap);
+      letter-spacing: 0.08em;
+      text-transform: uppercase;
+      color: var(--c-ink-2);
+    }
+    .vp-frame__label span:last-child { font-family: ui-monospace, 'SF Mono', monospace; color: var(--c-ink-3); }
+
+    .ds-page { padding: var(--s-6); }
+    .ds-header { max-width: 1880px; margin: 0 auto var(--s-7); padding-bottom: var(--s-6); border-bottom: 1px solid var(--c-rule); }
+    .ds-header h1 { font-size: var(--t-h1); margin-top: var(--s-2); }
+    .ds-header__eyebrow { font-size: var(--t-cap); letter-spacing: 0.12em; text-transform: uppercase; color: var(--c-ink-3); }
+    .ds-header__sub { color: var(--c-ink-2); font-size: var(--t-body-sm); margin-top: var(--s-3); max-width: 720px; }
+
+    .vp-section-title { max-width: 1880px; margin: var(--s-7) auto var(--s-3); padding-bottom: var(--s-2); border-bottom: 1px solid var(--c-rule); font-size: var(--t-h2); display: flex; align-items: baseline; gap: var(--s-3); }
+    .vp-section-title__sub { font-size: var(--t-cap); color: var(--c-ink-3); letter-spacing: 0.04em; text-transform: uppercase; }
+    .anno {
+      background: var(--c-bg-soft);
+      border-left: 2px solid var(--c-ink-3);
+      padding: var(--s-3) var(--s-4);
+      font-size: var(--t-meta);
+      color: var(--c-ink-2);
+      margin: var(--s-4) auto;
+      max-width: 1180px;
+      line-height: 1.7;
+    }
+    .anno strong { color: var(--c-ink); }
+    .anno code { font-family: ui-monospace, 'SF Mono', monospace; font-size: 12px; background: var(--c-card); padding: 1px 6px; border-radius: 4px; border: 1px solid var(--c-rule); }
+
+    /* ───── PRODUCTION COMPONENTS — LOCKED from 03/06 ───── */
+    .navbar {
+      display: flex;
+      align-items: center;
+      gap: var(--s-3);
+      padding: var(--s-3) var(--s-4);
+      background: rgba(255,255,255,0.85);
+      -webkit-backdrop-filter: saturate(140%) blur(10px);
+      backdrop-filter: saturate(140%) blur(10px);
+      border-bottom: 1px solid var(--c-rule);
+    }
+    .navbar__icon-btn { width: 40px; height: 40px; border-radius: var(--r-pill); display: inline-flex; align-items: center; justify-content: center; color: var(--c-ink-2); }
+    .navbar__icon-btn:hover { background: var(--c-bg-soft); color: var(--c-ink); }
+    .navbar__brand {
+      display: flex;
+      align-items: center;
+      gap: var(--s-2);
+      padding: 4px var(--s-2);
+      border-radius: var(--r-input);
+      cursor: pointer;
+      transition: background var(--t-fast) var(--ease);
+    }
+    .navbar__brand:hover { background: var(--c-bg-soft); }
+    .navbar__brand-icon { width: 28px; height: 28px; border-radius: 6px; background: var(--c-navy); color: #fff; display: inline-flex; align-items: center; justify-content: center; font-size: 16px; }
+    .navbar__brand-name { font-size: var(--t-body-sm); font-weight: 500; }
+    .navbar__tabs { display: flex; gap: var(--s-2); margin-left: var(--s-4); }
+    .navbar__tab { padding: 6px var(--s-3); border-radius: var(--r-pill); font-size: var(--t-meta); color: var(--c-ink-3); }
+    .navbar__tab.is-active { background: var(--c-navy); color: #fff; }
+    .navbar__actions { margin-left: auto; display: flex; align-items: center; gap: var(--s-2); }
+    .navbar__email { font-size: var(--t-cap); color: var(--c-ink-3); max-width: 180px; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+
+    /* phase head */
+    .phase-head {
+      padding: var(--s-3) var(--s-5);
+      background: var(--c-bg-soft);
+      border-bottom: 1px solid var(--c-rule);
+      display: flex;
+      align-items: center;
+      gap: var(--s-3);
+    }
+    .phase-head__num { font-family: var(--font-serif); font-style: italic; font-size: 22px; color: var(--c-navy); line-height: 1; flex: 0 0 auto; }
+    .phase-head__main { flex: 1; min-width: 0; }
+    .phase-head__eyebrow { font-size: var(--t-cap); letter-spacing: 0.08em; text-transform: uppercase; color: var(--c-ink-3); }
+    .phase-head__title { font-size: var(--t-h3); color: var(--c-ink); margin-top: 2px; letter-spacing: -0.005em; }
+    .phase-head__meta { flex: 0 0 auto; font-size: var(--t-meta); color: var(--c-ink-3); display: flex; gap: var(--s-3); align-items: center; flex-wrap: wrap; justify-content: flex-end; }
+    @media (max-width: 480px) {
+      .phase-head__meta { gap: var(--s-2); }
+      .phase-head__meta-sep { display: none; }
+      .phase-head__meta > *:not(.save-indicator) { display: none; }
+    }
+    .phase-head__save .save-indicator { margin: 0; }
+    .phase-head__meta-sep { color: var(--c-rule-bold); }
+
+    /* sticky submit bar — LOCKED from 03 */
+    .submit-bar {
+      position: sticky;
+      bottom: 0;
+      background: rgba(255,255,255,0.92);
+      -webkit-backdrop-filter: saturate(140%) blur(10px);
+      backdrop-filter: saturate(140%) blur(10px);
+      border-top: 1px solid var(--c-rule);
+      padding: var(--s-3) var(--s-4) max(var(--s-3), env(safe-area-inset-bottom));
+      display: flex;
+      gap: var(--s-3);
+      justify-content: space-between;
+      align-items: center;
+    }
+    .submit-bar__left, .submit-bar__right { display: flex; gap: var(--s-2); align-items: center; flex-wrap: wrap; }
+    .btn {
+      display: inline-flex;
+      align-items: center;
+      gap: var(--s-2);
+      min-height: var(--touch-min);
+      padding: 0 var(--s-5);
+      border-radius: var(--r-input);
+      font-size: var(--t-body-sm);
+      font-weight: 500;
+      transition: all var(--t-fast) var(--ease);
+    }
+    .btn--primary { background: var(--c-navy); color: #fff; }
+    .btn--primary:hover { background: var(--c-navy-2); }
+    .btn--ghost { background: transparent; color: var(--c-ink-2); border: 1px solid var(--c-rule-bold); }
+    .btn--ghost:hover { background: var(--c-bg-soft); color: var(--c-ink); }
+    .btn[disabled], .btn.is-disabled { background: var(--c-ink-4); color: #fff; cursor: not-allowed; opacity: 0.6; }
+
+    /* nsm-progress (4-step) — LOCKED from 06 */
+    .nsm-progress {
+      padding: var(--s-3) var(--s-4);
+      background: var(--c-bg-soft);
+      border-bottom: 1px solid var(--c-rule);
+      display: flex;
+      align-items: center;
+      gap: var(--s-2);
+    }
+    .nsm-progress__step {
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      gap: 4px;
+      flex: 0 0 auto;
+    }
+    .nsm-progress__dot {
+      width: 26px; height: 26px;
+      border-radius: 50%;
+      background: var(--c-card);
+      border: 1.5px solid var(--c-rule-bold);
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+      font-family: var(--font-serif);
+      font-style: italic;
+      font-size: 13px;
+      color: var(--c-ink-3);
+    }
+    .nsm-progress__step.is-active .nsm-progress__dot {
+      background: var(--c-navy);
+      border-color: var(--c-navy);
+      color: #fff;
+      box-shadow: 0 0 0 3px var(--c-navy-lt);
+    }
+    .nsm-progress__step.is-done .nsm-progress__dot {
+      background: var(--c-navy);
+      border-color: var(--c-navy);
+      color: #fff;
+    }
+    .nsm-progress__label { font-size: var(--t-cap); color: var(--c-ink-3); }
+    .nsm-progress__step.is-active .nsm-progress__label { color: var(--c-navy); font-weight: 600; }
+    .nsm-progress__step.is-done .nsm-progress__label { color: var(--c-ink-2); }
+    .nsm-progress__line {
+      flex: 1;
+      height: 2px;
+      background: var(--c-rule);
+      margin-bottom: 18px;
+      min-width: 16px;
+    }
+    .nsm-progress__line.is-done { background: var(--c-navy); }
+
+    /* body container — LOCKED from 06 */
+    .nsm-body {
+      padding: var(--s-5) var(--s-4);
+      max-width: 920px;
+      margin: 0 auto;
+      width: 100%;
+    }
+    @media (min-width: 768px) {
+      .nsm-body { padding: var(--s-6) var(--s-5); max-width: 720px; }
+    }
+
+    /* ───────────────────────────────────────────
+       07-specific NEW components — Screen 8 sub-tabs + 定義 + 4-dim
+       ─────────────────────────────────────────── */
+
+    /* sub-tabs (步驟 2 / NSM 審核 / 步驟 3) */
+    .nsm-sub-tabs {
+      display: flex;
+      gap: 0;
+      padding: 0 var(--s-4);
+      background: var(--c-bg-soft);
+      border-bottom: 1px solid var(--c-rule);
+      overflow-x: auto;
+      -webkit-overflow-scrolling: touch;
+    }
+    .nsm-sub-tab {
+      flex: 0 0 auto;
+      padding: var(--s-3) var(--s-3);
+      font-size: var(--t-body-sm);
+      color: var(--c-ink-3);
+      border-bottom: 2px solid transparent;
+      white-space: nowrap;
+      transition: color var(--t-fast) var(--ease), border-color var(--t-fast) var(--ease);
+    }
+    .nsm-sub-tab:hover:not([disabled]) { color: var(--c-ink-2); }
+    .nsm-sub-tab.is-active { color: var(--c-navy); border-bottom-color: var(--c-navy); font-weight: 600; }
+    .nsm-sub-tab[disabled] { color: var(--c-ink-4); cursor: not-allowed; }
+    @media (min-width: 768px) {
+      .nsm-sub-tabs { padding: 0 var(--s-5); }
+      .nsm-sub-tab { padding: var(--s-3) var(--s-4); }
+    }
+
+    /* context card (selected company + scenario header) */
+    .nsm-context-card {
+      background: var(--c-card);
+      border: 1px solid var(--c-rule);
+      border-radius: var(--r-card);
+      padding: var(--s-4);
+      margin-bottom: var(--s-4);
+      display: flex;
+      flex-direction: column;
+      gap: var(--s-2);
+    }
+    .nsm-context-card__top {
+      display: flex;
+      align-items: center;
+      gap: var(--s-2);
+      flex-wrap: wrap;
+    }
+    .nsm-context-card__company {
+      padding: 3px var(--s-2);
+      background: var(--c-navy);
+      color: #fff;
+      border-radius: var(--r-input);
+      font-size: var(--t-cap);
+      font-weight: 600;
+    }
+    .nsm-context-card__industry {
+      font-size: var(--t-cap);
+      color: var(--c-ink-3);
+    }
+    .nsm-context-card__type {
+      margin-left: auto;
+      padding: 2px var(--s-2);
+      border-radius: var(--r-pill);
+      font-size: var(--t-cap);
+      font-weight: 500;
+      display: inline-flex;
+      align-items: center;
+      gap: 4px;
+    }
+    .nsm-context-card__type i { font-size: 12px; }
+    .nsm-context-card__type--attention   { background: var(--c-navy-lt); color: var(--c-navy); border: 1px solid rgba(27,45,92,0.22); }
+    .nsm-context-card__type--transaction { background: rgba(19,122,61,0.10); color: var(--c-success); border: 1px solid rgba(19,122,61,0.22); }
+    .nsm-context-card__type--creator     { background: rgba(184,92,0,0.10); color: var(--c-warn); border: 1px solid rgba(184,92,0,0.22); }
+    .nsm-context-card__type--saas        { background: rgba(26,86,219,0.10); color: var(--c-primary); border: 1px solid rgba(26,86,219,0.22); }
+    .nsm-context-card__scenario {
+      font-size: var(--t-body-sm);
+      color: var(--c-ink-2);
+      line-height: 1.7;
+    }
+    .nsm-context-card__hint {
+      font-size: var(--t-cap);
+      color: var(--c-ink-3);
+      display: inline-flex;
+      align-items: flex-start;
+      gap: 4px;
+      padding-top: var(--s-2);
+      border-top: 1px solid var(--c-rule);
+    }
+    .nsm-context-card__hint i { font-size: 13px; color: var(--c-ink-3); flex: 0 0 auto; margin-top: 2px; }
+
+    /* 3-step guide (找 AHA / 量化 / 虛榮檢驗) */
+    .nsm-guide {
+      background: var(--c-bg-soft);
+      border: 1px solid var(--c-rule);
+      border-radius: var(--r-card);
+      padding: var(--s-4);
+      margin-bottom: var(--s-5);
+    }
+    .nsm-guide__title {
+      font-size: var(--t-cap);
+      letter-spacing: 0.06em;
+      text-transform: uppercase;
+      color: var(--c-ink-3);
+      font-weight: 500;
+      margin-bottom: var(--s-3);
+      display: inline-flex;
+      align-items: center;
+      gap: 4px;
+    }
+    .nsm-guide__title i { font-size: 13px; color: var(--c-navy); }
+    .nsm-guide__step {
+      display: flex;
+      gap: var(--s-3);
+      align-items: flex-start;
+      padding: var(--s-2) 0;
+    }
+    .nsm-guide__step + .nsm-guide__step { border-top: 1px solid var(--c-rule); }
+    .nsm-guide__num {
+      width: 22px; height: 22px;
+      border-radius: 50%;
+      background: var(--c-navy);
+      color: #fff;
+      font-family: var(--font-serif);
+      font-style: italic;
+      font-size: 13px;
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+      flex: 0 0 auto;
+      margin-top: 2px;
+    }
+    .nsm-guide__body { flex: 1; min-width: 0; }
+    .nsm-guide__body strong { font-size: var(--t-body-sm); color: var(--c-ink); font-weight: 600; }
+    .nsm-guide__body p { font-size: var(--t-meta); color: var(--c-ink-2); line-height: 1.7; margin-top: 2px; }
+
+    /* field group (label + 範例 toggle + input/textarea) */
+    .nsm-field { margin-bottom: var(--s-5); }
+    .nsm-field__head {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      margin-bottom: var(--s-2);
+      gap: var(--s-3);
+    }
+    .nsm-field__label {
+      font-size: var(--t-meta);
+      color: var(--c-ink-2);
+      font-weight: 600;
+      letter-spacing: 0.02em;
+    }
+    .nsm-field__example-toggle {
+      display: inline-flex;
+      align-items: center;
+      gap: 4px;
+      font-size: var(--t-cap);
+      color: var(--c-navy);
+      padding: 4px var(--s-2);
+      border-radius: var(--r-input);
+      transition: background var(--t-fast) var(--ease);
+    }
+    .nsm-field__example-toggle:hover { background: var(--c-navy-lt); }
+    .nsm-field__example-toggle i { font-size: 12px; }
+    .nsm-field__example {
+      background: var(--c-navy-lt);
+      border-left: 2px solid var(--c-navy);
+      padding: var(--s-3);
+      margin-bottom: var(--s-2);
+      font-size: var(--t-meta);
+      color: var(--c-ink-2);
+      line-height: 1.7;
+      border-radius: 0 var(--r-input) var(--r-input) 0;
+    }
+    .nsm-field__example strong { color: var(--c-navy); font-weight: 600; }
+    .nsm-input, .nsm-textarea {
+      width: 100%;
+      background: var(--c-card);
+      border: 1px solid var(--c-rule-bold);
+      border-radius: var(--r-input);
+      padding: 10px var(--s-3);
+      font-size: var(--t-body-sm);
+      color: var(--c-ink);
+      font-family: inherit;
+      line-height: 1.6;
+      transition: border-color var(--t-fast) var(--ease), box-shadow var(--t-fast) var(--ease);
+    }
+    .nsm-textarea { padding: var(--s-3); resize: vertical; min-height: 76px; }
+    .nsm-input:focus, .nsm-textarea:focus { outline: none; border-color: var(--c-navy); box-shadow: 0 0 0 3px var(--c-navy-lt); }
+    .nsm-input::placeholder, .nsm-textarea::placeholder { color: var(--c-ink-4); }
+    .nsm-input.is-filled, .nsm-textarea.is-filled { background: var(--c-card); }
+
+    /* rich-text toolbar (mock — 與 03 phase1 textarea 對齊) */
+    .nsm-rt-field {
+      border: 1px solid var(--c-rule-bold);
+      border-radius: var(--r-input);
+      background: var(--c-card);
+      transition: border-color var(--t-fast) var(--ease), box-shadow var(--t-fast) var(--ease);
+      overflow: hidden;
+    }
+    .nsm-rt-field:focus-within { border-color: var(--c-navy); box-shadow: 0 0 0 3px var(--c-navy-lt); }
+    .nsm-rt-toolbar {
+      display: flex;
+      gap: 2px;
+      padding: 4px var(--s-2);
+      border-bottom: 1px solid var(--c-rule);
+      background: var(--c-bg-soft);
+    }
+    .nsm-rt-tbtn {
+      width: 28px; height: 28px;
+      border-radius: 4px;
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+      color: var(--c-ink-2);
+      font-size: 12px;
+      transition: background var(--t-fast) var(--ease);
+    }
+    .nsm-rt-tbtn:hover { background: var(--c-bg-deep); color: var(--c-ink); }
+    .nsm-rt-field textarea {
+      width: 100%;
+      border: none;
+      background: transparent;
+      padding: var(--s-3);
+      font-size: var(--t-body-sm);
+      color: var(--c-ink);
+      font-family: inherit;
+      line-height: 1.7;
+      resize: vertical;
+      min-height: 88px;
+      outline: none;
+    }
+
+    /* vanity warning banner — NO bypass (per red-blocks rule) */
+    .nsm-vanity {
+      background: var(--c-warn-lt);
+      border: 1px solid var(--c-warn);
+      border-radius: var(--r-card);
+      padding: var(--s-4);
+      margin-bottom: var(--s-4);
+    }
+    .nsm-vanity__head {
+      display: flex;
+      align-items: center;
+      gap: var(--s-2);
+      margin-bottom: var(--s-2);
+      color: var(--c-warn);
+    }
+    .nsm-vanity__head i { font-size: 18px; }
+    .nsm-vanity__head strong { font-size: var(--t-body-sm); font-weight: 600; }
+    .nsm-vanity__body {
+      font-size: var(--t-meta);
+      color: var(--c-ink-2);
+      line-height: 1.7;
+      margin-bottom: var(--s-3);
+    }
+    .nsm-vanity__hint {
+      display: flex;
+      gap: var(--s-2);
+      padding: var(--s-3);
+      background: rgba(255,255,255,0.6);
+      border-radius: var(--r-input);
+      font-size: var(--t-meta);
+      color: var(--c-ink-2);
+      line-height: 1.7;
+      margin-bottom: var(--s-3);
+    }
+    .nsm-vanity__hint i { color: var(--c-warn); font-size: 16px; flex: 0 0 auto; }
+    .nsm-vanity__actions { display: flex; gap: var(--s-2); }
+
+    /* step3 NSM reminder banner (top of 拆解) */
+    .nsm-step3-banner {
+      background: var(--c-navy-lt);
+      border: 1px solid rgba(27,45,92,0.18);
+      border-radius: var(--r-input);
+      padding: var(--s-3) var(--s-4);
+      margin-bottom: var(--s-4);
+      display: flex;
+      gap: var(--s-2);
+      align-items: flex-start;
+      font-size: var(--t-meta);
+      color: var(--c-navy-2);
+      line-height: 1.7;
+    }
+    .nsm-step3-banner i { color: var(--c-navy); font-size: 16px; flex: 0 0 auto; margin-top: 2px; }
+    .nsm-step3-banner strong { color: var(--c-navy); font-weight: 600; margin-right: 4px; }
+
+    /* step3 type intro (with type badge + 4-dim hint) */
+    .nsm-step3-intro {
+      background: var(--c-bg-soft);
+      border: 1px solid var(--c-rule);
+      border-radius: var(--r-card);
+      padding: var(--s-4);
+      margin-bottom: var(--s-5);
+      display: flex;
+      flex-direction: column;
+      gap: var(--s-2);
+    }
+    .nsm-step3-intro__top {
+      display: flex;
+      align-items: center;
+      gap: var(--s-2);
+      flex-wrap: wrap;
+    }
+    .nsm-step3-intro__type {
+      padding: 2px var(--s-2);
+      border-radius: var(--r-pill);
+      font-size: var(--t-cap);
+      font-weight: 500;
+      display: inline-flex;
+      align-items: center;
+      gap: 4px;
+    }
+    .nsm-step3-intro__type i { font-size: 12px; }
+    .nsm-step3-intro__type--attention { background: var(--c-navy-lt); color: var(--c-navy); border: 1px solid rgba(27,45,92,0.22); }
+    .nsm-step3-intro__type--saas { background: rgba(26,86,219,0.10); color: var(--c-primary); border: 1px solid rgba(26,86,219,0.22); }
+    .nsm-step3-intro p {
+      font-size: var(--t-meta);
+      color: var(--c-ink-2);
+      line-height: 1.7;
+    }
+    .nsm-step3-intro strong { color: var(--c-ink); font-weight: 600; }
+
+    /* 4-dim section card (動態 label) */
+    .nsm-dim {
+      background: var(--c-card);
+      border: 1px solid var(--c-rule);
+      border-radius: var(--r-card);
+      margin-bottom: var(--s-3);
+      overflow: hidden;
+    }
+    .nsm-dim__head {
+      padding: var(--s-3) var(--s-4);
+      border-left: 4px solid var(--c-navy);
+      background: var(--c-surface);
+      border-bottom: 1px solid var(--c-rule);
+    }
+    .nsm-dim__label {
+      font-size: var(--t-body-sm);
+      color: var(--c-ink);
+      font-weight: 600;
+      letter-spacing: -0.005em;
+    }
+    .nsm-dim__desc {
+      font-size: var(--t-cap);
+      color: var(--c-ink-3);
+      margin-top: 2px;
+      line-height: 1.6;
+    }
+    .nsm-dim__body { padding: var(--s-4); }
+    .nsm-dim__coach {
+      display: flex;
+      gap: var(--s-2);
+      padding: var(--s-3);
+      background: var(--c-bg-soft);
+      border-radius: var(--r-input);
+      margin-bottom: var(--s-3);
+      font-size: var(--t-meta);
+      color: var(--c-ink-2);
+      line-height: 1.6;
+    }
+    .nsm-dim__coach i { color: var(--c-navy); font-size: 14px; flex: 0 0 auto; margin-top: 2px; }
+    .nsm-dim__hint-btn {
+      display: inline-flex;
+      align-items: center;
+      gap: 4px;
+      padding: 6px var(--s-2);
+      font-size: var(--t-cap);
+      color: var(--c-navy);
+      border-radius: var(--r-input);
+      margin-bottom: var(--s-3);
+      transition: background var(--t-fast) var(--ease);
+    }
+    .nsm-dim__hint-btn:hover { background: var(--c-navy-lt); }
+    .nsm-dim__hint-btn i { font-size: 12px; }
+    .nsm-dim__hint-content {
+      background: var(--c-navy-lt);
+      border-left: 2px solid var(--c-navy);
+      padding: var(--s-3);
+      margin-bottom: var(--s-3);
+      font-size: var(--t-meta);
+      color: var(--c-ink-2);
+      line-height: 1.7;
+      border-radius: 0 var(--r-input) var(--r-input) 0;
+    }
+    .nsm-dim__hint-content strong { color: var(--c-navy); }
+
+    /* viewport frame internal */
+    .vp-frame__inner {
+      background: var(--c-bg);
+      min-height: 1240px;
+      display: flex;
+      flex-direction: column;
+    }
+  </style>
+</head>
+<body>
+  <div class="ds-page">
+    <header class="ds-header">
+      <div class="ds-header__eyebrow">Path 2 · Mockup 07 · CONTRACT-LOCKED 草稿</div>
+      <h1>NSM 步驟 2 / 步驟 3 — 定義 NSM + 4-dim 動態拆解</h1>
+      <p class="ds-header__sub">
+        Screen 8 兩個內容 sub-tab：步驟 2「定義 NSM」（3 fields：北極星指標 / 定義說明 / 與業務目標連結 + 3 步定義法 guide）
+        與 步驟 3「拆解輸入指標」（4-dim section cards，<strong>label / subtitle / coachQ / placeholder 全動態</strong> 隨 product type 切換 — 規格詳見
+        <code>NSM_DIMENSION_CONFIGS</code>，4 type × 4 dim = 16 組組合）。
+        中間 sub-tab「NSM 審核」是 08 mockup 的範圍（gate result 紅 = 必擋）。
+        Component 樣式整段 LOCKED copy 自 06（root tokens / navbar / phase-head / submit-bar / btn / nsm-progress / nsm-body）。
+      </p>
+    </header>
+
+    <!-- ============================================================ -->
+    <!-- Section A — Step 2 sub-tab · 定義 NSM 空白                   -->
+    <!-- ============================================================ -->
+    <h2 class="vp-section-title">A · 步驟 2 定義 NSM <span class="vp-section-title__sub">empty · 第一張查看範例展開 · sub-tab Step2 active / Gate disabled / Step3 disabled</span></h2>
+    <div class="anno"><strong>視覺契約：</strong>navbar + phase-head（Step 2 · 定義 NSM）+ <code>nsm-sub-tabs</code>（步驟 2 active / NSM 審核 disabled / 步驟 3 disabled）+ <code>nsm-progress</code>（情境 done · 指標 active · 拆解 / 總結 pending）+ context-card（Spotify · 音樂串流 · 注意力型 navy）+ 3 步定義法 guide + 3 fields（NSM input / 定義說明 / 業務連結，第一張查看範例展開）+ submit-bar（提交審核 disabled，等 NSM 與業務連結都填寫）。</div>
+    <div class="vp-grid">
+
+      <!-- A · Mobile 360 -->
+      <div class="vp-frame">
+        <div class="vp-frame__label"><span>Mobile</span><span>360 × 1240</span></div>
+        <div class="vp-frame__inner" style="width:360px">
+          <div class="navbar">
+            <button class="navbar__icon-btn" aria-label="menu"><i class="ph ph-list"></i></button>
+            <div class="navbar__brand"><span class="navbar__brand-icon">PM</span></div>
+            <div class="navbar__actions"><button class="navbar__icon-btn" aria-label="home"><i class="ph ph-house"></i></button></div>
+          </div>
+          <div class="phase-head">
+            <span class="phase-head__num">2</span>
+            <div class="phase-head__main">
+              <div class="phase-head__eyebrow">NSM · 北極星訓練</div>
+              <div class="phase-head__title">定義 NSM</div>
+            </div>
+          </div>
+          <div class="nsm-sub-tabs">
+            <button class="nsm-sub-tab is-active">步驟 2：定義 NSM</button>
+            <button class="nsm-sub-tab" disabled>NSM 審核</button>
+            <button class="nsm-sub-tab" disabled>步驟 3：拆解</button>
+          </div>
+          <div class="nsm-progress">
+            <div class="nsm-progress__step is-done"><div class="nsm-progress__dot">1</div><div class="nsm-progress__label">情境</div></div>
+            <div class="nsm-progress__line is-done"></div>
+            <div class="nsm-progress__step is-active"><div class="nsm-progress__dot">2</div><div class="nsm-progress__label">指標</div></div>
+            <div class="nsm-progress__line"></div>
+            <div class="nsm-progress__step"><div class="nsm-progress__dot">3</div><div class="nsm-progress__label">拆解</div></div>
+            <div class="nsm-progress__line"></div>
+            <div class="nsm-progress__step"><div class="nsm-progress__dot">4</div><div class="nsm-progress__label">總結</div></div>
+          </div>
+          <div class="nsm-body">
+            <div class="nsm-context-card">
+              <div class="nsm-context-card__top">
+                <span class="nsm-context-card__company">Spotify</span>
+                <span class="nsm-context-card__industry">音樂串流</span>
+                <span class="nsm-context-card__type nsm-context-card__type--attention"><i class="ph ph-play-circle"></i>注意力型</span>
+              </div>
+              <p class="nsm-context-card__scenario">為 Spotify Podcast 業務定義北極星指標，目標是衡量新用戶能否養成日常收聽習慣。</p>
+              <span class="nsm-context-card__hint"><i class="ph ph-info"></i>核心價值在於讓用戶在產品上花有意義的時間（社交、媒體、遊戲）。</span>
+            </div>
+            <div class="nsm-guide">
+              <div class="nsm-guide__title"><i class="ph ph-path"></i>3 步定義法</div>
+              <div class="nsm-guide__step">
+                <span class="nsm-guide__num">1</span>
+                <div class="nsm-guide__body">
+                  <strong>找 AHA 時刻</strong>
+                  <p>用戶第一次真正感受到 Spotify 價值的那個動作是什麼？</p>
+                </div>
+              </div>
+              <div class="nsm-guide__step">
+                <span class="nsm-guide__num">2</span>
+                <div class="nsm-guide__body">
+                  <strong>轉成可量化指標</strong>
+                  <p>把那個動作表達成「誰 × 做了什麼行為 × 多少量/頻率」的具體數字。</p>
+                </div>
+              </div>
+              <div class="nsm-guide__step">
+                <span class="nsm-guide__num">3</span>
+                <div class="nsm-guide__body">
+                  <strong>做虛榮指標檢驗</strong>
+                  <p>問自己：如果這個數字翻倍，Spotify 的商業收益一定增加嗎？</p>
+                </div>
+              </div>
+            </div>
+            <div class="nsm-field">
+              <div class="nsm-field__head">
+                <label class="nsm-field__label">北極星指標 (NSM)</label>
+                <button class="nsm-field__example-toggle"><i class="ph ph-caret-down"></i>查看範例</button>
+              </div>
+              <div class="nsm-field__example">
+                <strong>例 (Spotify)：</strong>每月完成至少一首完整曲目播放的活躍月用戶數 — 反映真正的聆聽行為，非背景播放。
+              </div>
+              <input class="nsm-input" placeholder="用一句話定義你的 NSM，包含量化描述...">
+            </div>
+            <div class="nsm-field">
+              <div class="nsm-field__head">
+                <label class="nsm-field__label">定義說明</label>
+                <button class="nsm-field__example-toggle"><i class="ph ph-caret-right"></i>查看範例</button>
+              </div>
+              <div class="nsm-rt-field">
+                <div class="nsm-rt-toolbar">
+                  <button class="nsm-rt-tbtn" title="粗體"><strong>B</strong></button>
+                  <button class="nsm-rt-tbtn" title="列點"><i class="ph ph-list-bullets"></i></button>
+                  <button class="nsm-rt-tbtn" title="縮排"><i class="ph ph-text-indent"></i></button>
+                  <button class="nsm-rt-tbtn" title="退縮"><i class="ph ph-text-outdent"></i></button>
+                </div>
+                <textarea placeholder="解釋為什麼要這樣定義，避免哪些虛榮陷阱..." rows="3"></textarea>
+              </div>
+            </div>
+            <div class="nsm-field">
+              <div class="nsm-field__head">
+                <label class="nsm-field__label">與業務目標的連結</label>
+                <button class="nsm-field__example-toggle"><i class="ph ph-caret-right"></i>查看範例</button>
+              </div>
+              <div class="nsm-rt-field">
+                <div class="nsm-rt-toolbar">
+                  <button class="nsm-rt-tbtn" title="粗體"><strong>B</strong></button>
+                  <button class="nsm-rt-tbtn" title="列點"><i class="ph ph-list-bullets"></i></button>
+                  <button class="nsm-rt-tbtn" title="縮排"><i class="ph ph-text-indent"></i></button>
+                  <button class="nsm-rt-tbtn" title="退縮"><i class="ph ph-text-outdent"></i></button>
+                </div>
+                <textarea placeholder="這個 NSM 如何驅動營收/留存/獲利..." rows="3"></textarea>
+              </div>
+            </div>
+          </div>
+          <div class="submit-bar">
+            <div class="submit-bar__left"><button class="btn btn--ghost"><i class="ph ph-arrow-left"></i>上一步</button></div>
+            <div class="submit-bar__right"><button class="btn btn--primary" disabled>提交審核<i class="ph ph-arrow-right"></i></button></div>
+          </div>
+        </div>
+      </div>
+
+      <!-- A · Tablet 768 -->
+      <div class="vp-frame">
+        <div class="vp-frame__label"><span>Tablet</span><span>768 × 1240</span></div>
+        <div class="vp-frame__inner" style="width:768px">
+          <div class="navbar">
+            <button class="navbar__icon-btn" aria-label="menu"><i class="ph ph-list"></i></button>
+            <div class="navbar__brand"><span class="navbar__brand-icon">PM</span><span class="navbar__brand-name">PM Drill</span></div>
+            <div class="navbar__tabs">
+              <button class="navbar__tab">CIRCLES</button>
+              <button class="navbar__tab is-active">北極星</button>
+            </div>
+            <div class="navbar__actions">
+              <button class="navbar__icon-btn" aria-label="search"><i class="ph ph-magnifying-glass"></i></button>
+              <button class="navbar__icon-btn" aria-label="home"><i class="ph ph-house"></i></button>
+            </div>
+          </div>
+          <div class="phase-head">
+            <span class="phase-head__num">2</span>
+            <div class="phase-head__main">
+              <div class="phase-head__eyebrow">NSM · 北極星訓練</div>
+              <div class="phase-head__title">定義 NSM</div>
+            </div>
+            <div class="phase-head__meta"><span>Spotify · 音樂串流</span></div>
+          </div>
+          <div class="nsm-sub-tabs">
+            <button class="nsm-sub-tab is-active">步驟 2：定義 NSM</button>
+            <button class="nsm-sub-tab" disabled>NSM 審核</button>
+            <button class="nsm-sub-tab" disabled>步驟 3：拆解指標</button>
+          </div>
+          <div class="nsm-progress">
+            <div class="nsm-progress__step is-done"><div class="nsm-progress__dot">1</div><div class="nsm-progress__label">情境</div></div>
+            <div class="nsm-progress__line is-done"></div>
+            <div class="nsm-progress__step is-active"><div class="nsm-progress__dot">2</div><div class="nsm-progress__label">指標</div></div>
+            <div class="nsm-progress__line"></div>
+            <div class="nsm-progress__step"><div class="nsm-progress__dot">3</div><div class="nsm-progress__label">拆解</div></div>
+            <div class="nsm-progress__line"></div>
+            <div class="nsm-progress__step"><div class="nsm-progress__dot">4</div><div class="nsm-progress__label">總結</div></div>
+          </div>
+          <div class="nsm-body">
+            <div class="nsm-context-card">
+              <div class="nsm-context-card__top">
+                <span class="nsm-context-card__company">Spotify</span>
+                <span class="nsm-context-card__industry">音樂串流</span>
+                <span class="nsm-context-card__type nsm-context-card__type--attention"><i class="ph ph-play-circle"></i>注意力型</span>
+              </div>
+              <p class="nsm-context-card__scenario">為 Spotify Podcast 業務定義北極星指標，目標是衡量新用戶能否養成日常收聽習慣。</p>
+              <span class="nsm-context-card__hint"><i class="ph ph-info"></i>核心價值在於讓用戶在產品上花有意義的時間（社交、媒體、遊戲）。</span>
+            </div>
+            <div class="nsm-guide">
+              <div class="nsm-guide__title"><i class="ph ph-path"></i>3 步定義法</div>
+              <div class="nsm-guide__step">
+                <span class="nsm-guide__num">1</span>
+                <div class="nsm-guide__body"><strong>找 AHA 時刻</strong><p>用戶第一次真正感受到 Spotify 價值的那個動作是什麼？</p></div>
+              </div>
+              <div class="nsm-guide__step">
+                <span class="nsm-guide__num">2</span>
+                <div class="nsm-guide__body"><strong>轉成可量化指標</strong><p>把那個動作表達成「誰 × 做了什麼行為 × 多少量/頻率」的具體數字。</p></div>
+              </div>
+              <div class="nsm-guide__step">
+                <span class="nsm-guide__num">3</span>
+                <div class="nsm-guide__body"><strong>做虛榮指標檢驗</strong><p>問自己：如果這個數字翻倍，Spotify 的商業收益一定增加嗎？</p></div>
+              </div>
+            </div>
+            <div class="nsm-field">
+              <div class="nsm-field__head">
+                <label class="nsm-field__label">北極星指標 (NSM)</label>
+                <button class="nsm-field__example-toggle"><i class="ph ph-caret-down"></i>查看範例</button>
+              </div>
+              <div class="nsm-field__example"><strong>例 (Spotify)：</strong>每月完成至少一首完整曲目播放的活躍月用戶數 — 反映真正的聆聽行為，非背景播放。</div>
+              <input class="nsm-input" placeholder="用一句話定義你的 NSM，包含量化描述...">
+            </div>
+            <div class="nsm-field">
+              <div class="nsm-field__head">
+                <label class="nsm-field__label">定義說明</label>
+                <button class="nsm-field__example-toggle"><i class="ph ph-caret-right"></i>查看範例</button>
+              </div>
+              <div class="nsm-rt-field">
+                <div class="nsm-rt-toolbar">
+                  <button class="nsm-rt-tbtn"><strong>B</strong></button>
+                  <button class="nsm-rt-tbtn"><i class="ph ph-list-bullets"></i></button>
+                  <button class="nsm-rt-tbtn"><i class="ph ph-text-indent"></i></button>
+                  <button class="nsm-rt-tbtn"><i class="ph ph-text-outdent"></i></button>
+                </div>
+                <textarea placeholder="解釋為什麼要這樣定義，避免哪些虛榮陷阱..." rows="3"></textarea>
+              </div>
+            </div>
+            <div class="nsm-field">
+              <div class="nsm-field__head">
+                <label class="nsm-field__label">與業務目標的連結</label>
+                <button class="nsm-field__example-toggle"><i class="ph ph-caret-right"></i>查看範例</button>
+              </div>
+              <div class="nsm-rt-field">
+                <div class="nsm-rt-toolbar">
+                  <button class="nsm-rt-tbtn"><strong>B</strong></button>
+                  <button class="nsm-rt-tbtn"><i class="ph ph-list-bullets"></i></button>
+                  <button class="nsm-rt-tbtn"><i class="ph ph-text-indent"></i></button>
+                  <button class="nsm-rt-tbtn"><i class="ph ph-text-outdent"></i></button>
+                </div>
+                <textarea placeholder="這個 NSM 如何驅動營收/留存/獲利..." rows="3"></textarea>
+              </div>
+            </div>
+          </div>
+          <div class="submit-bar">
+            <div class="submit-bar__left"><button class="btn btn--ghost"><i class="ph ph-arrow-left"></i>上一步</button></div>
+            <div class="submit-bar__right"><button class="btn btn--primary" disabled>提交審核<i class="ph ph-arrow-right"></i></button></div>
+          </div>
+        </div>
+      </div>
+
+      <!-- A · Desktop 1280 -->
+      <div class="vp-frame">
+        <div class="vp-frame__label"><span>Desktop</span><span>1280 × 1240</span></div>
+        <div class="vp-frame__inner" style="width:1280px">
+          <div class="navbar">
+            <button class="navbar__icon-btn" aria-label="menu"><i class="ph ph-list"></i></button>
+            <div class="navbar__brand"><span class="navbar__brand-icon">PM</span><span class="navbar__brand-name">PM Drill</span></div>
+            <div class="navbar__tabs">
+              <button class="navbar__tab">CIRCLES</button>
+              <button class="navbar__tab is-active">北極星</button>
+            </div>
+            <div class="navbar__actions">
+              <span class="navbar__email">albertpeng678@gmail.com</span>
+              <button class="navbar__icon-btn" aria-label="search"><i class="ph ph-magnifying-glass"></i></button>
+              <button class="navbar__icon-btn" aria-label="home"><i class="ph ph-house"></i></button>
+            </div>
+          </div>
+          <div class="phase-head">
+            <span class="phase-head__num">2</span>
+            <div class="phase-head__main">
+              <div class="phase-head__eyebrow">NSM · 北極星訓練</div>
+              <div class="phase-head__title">定義 NSM</div>
+            </div>
+            <div class="phase-head__meta">
+              <span>Spotify · 音樂串流</span>
+              <span class="phase-head__meta-sep">·</span>
+              <span>3 步定義法</span>
+            </div>
+          </div>
+          <div class="nsm-sub-tabs">
+            <button class="nsm-sub-tab is-active">步驟 2：定義 NSM</button>
+            <button class="nsm-sub-tab" disabled>NSM 審核</button>
+            <button class="nsm-sub-tab" disabled>步驟 3：拆解指標</button>
+          </div>
+          <div class="nsm-progress">
+            <div class="nsm-progress__step is-done"><div class="nsm-progress__dot">1</div><div class="nsm-progress__label">情境</div></div>
+            <div class="nsm-progress__line is-done"></div>
+            <div class="nsm-progress__step is-active"><div class="nsm-progress__dot">2</div><div class="nsm-progress__label">指標</div></div>
+            <div class="nsm-progress__line"></div>
+            <div class="nsm-progress__step"><div class="nsm-progress__dot">3</div><div class="nsm-progress__label">拆解</div></div>
+            <div class="nsm-progress__line"></div>
+            <div class="nsm-progress__step"><div class="nsm-progress__dot">4</div><div class="nsm-progress__label">總結</div></div>
+          </div>
+          <div class="nsm-body">
+            <div class="nsm-context-card">
+              <div class="nsm-context-card__top">
+                <span class="nsm-context-card__company">Spotify</span>
+                <span class="nsm-context-card__industry">音樂串流</span>
+                <span class="nsm-context-card__type nsm-context-card__type--attention"><i class="ph ph-play-circle"></i>注意力型</span>
+              </div>
+              <p class="nsm-context-card__scenario">為 Spotify Podcast 業務定義北極星指標，目標是衡量新用戶能否養成日常收聽習慣。</p>
+              <span class="nsm-context-card__hint"><i class="ph ph-info"></i>核心價值在於讓用戶在產品上花有意義的時間（社交、媒體、遊戲）。</span>
+            </div>
+            <div class="nsm-guide">
+              <div class="nsm-guide__title"><i class="ph ph-path"></i>3 步定義法</div>
+              <div class="nsm-guide__step">
+                <span class="nsm-guide__num">1</span>
+                <div class="nsm-guide__body"><strong>找 AHA 時刻</strong><p>用戶第一次真正感受到 Spotify 價值的那個動作是什麼？</p></div>
+              </div>
+              <div class="nsm-guide__step">
+                <span class="nsm-guide__num">2</span>
+                <div class="nsm-guide__body"><strong>轉成可量化指標</strong><p>把那個動作表達成「誰 × 做了什麼行為 × 多少量/頻率」的具體數字。</p></div>
+              </div>
+              <div class="nsm-guide__step">
+                <span class="nsm-guide__num">3</span>
+                <div class="nsm-guide__body"><strong>做虛榮指標檢驗</strong><p>問自己：如果這個數字翻倍，Spotify 的商業收益一定增加嗎？</p></div>
+              </div>
+            </div>
+            <div class="nsm-field">
+              <div class="nsm-field__head">
+                <label class="nsm-field__label">北極星指標 (NSM)</label>
+                <button class="nsm-field__example-toggle"><i class="ph ph-caret-down"></i>查看範例</button>
+              </div>
+              <div class="nsm-field__example"><strong>例 (Spotify)：</strong>每月完成至少一首完整曲目播放的活躍月用戶數 — 反映真正的聆聽行為，非背景播放。</div>
+              <input class="nsm-input" placeholder="用一句話定義你的 NSM，包含量化描述...">
+            </div>
+            <div class="nsm-field">
+              <div class="nsm-field__head">
+                <label class="nsm-field__label">定義說明</label>
+                <button class="nsm-field__example-toggle"><i class="ph ph-caret-right"></i>查看範例</button>
+              </div>
+              <div class="nsm-rt-field">
+                <div class="nsm-rt-toolbar">
+                  <button class="nsm-rt-tbtn"><strong>B</strong></button>
+                  <button class="nsm-rt-tbtn"><i class="ph ph-list-bullets"></i></button>
+                  <button class="nsm-rt-tbtn"><i class="ph ph-text-indent"></i></button>
+                  <button class="nsm-rt-tbtn"><i class="ph ph-text-outdent"></i></button>
+                </div>
+                <textarea placeholder="解釋為什麼要這樣定義，避免哪些虛榮陷阱..." rows="3"></textarea>
+              </div>
+            </div>
+            <div class="nsm-field">
+              <div class="nsm-field__head">
+                <label class="nsm-field__label">與業務目標的連結</label>
+                <button class="nsm-field__example-toggle"><i class="ph ph-caret-right"></i>查看範例</button>
+              </div>
+              <div class="nsm-rt-field">
+                <div class="nsm-rt-toolbar">
+                  <button class="nsm-rt-tbtn"><strong>B</strong></button>
+                  <button class="nsm-rt-tbtn"><i class="ph ph-list-bullets"></i></button>
+                  <button class="nsm-rt-tbtn"><i class="ph ph-text-indent"></i></button>
+                  <button class="nsm-rt-tbtn"><i class="ph ph-text-outdent"></i></button>
+                </div>
+                <textarea placeholder="這個 NSM 如何驅動營收/留存/獲利..." rows="3"></textarea>
+              </div>
+            </div>
+          </div>
+          <div class="submit-bar">
+            <div class="submit-bar__left"><button class="btn btn--ghost"><i class="ph ph-arrow-left"></i>上一步</button></div>
+            <div class="submit-bar__right"><button class="btn btn--primary" disabled>提交審核<i class="ph ph-arrow-right"></i></button></div>
+          </div>
+        </div>
+      </div>
+
+    </div>
+
+    <!-- ============================================================ -->
+    <!-- Section B — Step 3 sub-tab · attention 型 4-dim 空白          -->
+    <!-- ============================================================ -->
+    <h2 class="vp-section-title">B · 步驟 3 拆解（注意力型 4-dim 空白）<span class="vp-section-title__sub">attention 動態 label：觸及廣度 / 互動深度 / 習慣頻率 / 留存驅力</span></h2>
+    <div class="anno"><strong>視覺契約：</strong>sub-tab Step3 active（前提：Gate 已通過）+ <code>nsm-progress</code> 拆解 active + step3-banner（你的 NSM）+ step3-intro（type badge attention navy + 4-dim 隨產品特性說明）+ 4 張 nsm-dim card（label / desc / coachQ / 查看教練提示 button / textarea + rt-toolbar）。<strong>動態 label 來源：</strong><code>NSM_DIMENSION_CONFIGS.attention</code> — 觸及廣度（reach）/ 互動深度（depth）/ 習慣頻率（frequency）/ 留存驅力（impact）。submit-bar：「送出，取得 AI 評分」disabled。</div>
+    <div class="vp-grid">
+
+      <!-- B · Mobile 360 -->
+      <div class="vp-frame">
+        <div class="vp-frame__label"><span>Mobile</span><span>360 × 1240</span></div>
+        <div class="vp-frame__inner" style="width:360px">
+          <div class="navbar">
+            <button class="navbar__icon-btn"><i class="ph ph-list"></i></button>
+            <div class="navbar__brand"><span class="navbar__brand-icon">PM</span></div>
+            <div class="navbar__actions"><button class="navbar__icon-btn"><i class="ph ph-house"></i></button></div>
+          </div>
+          <div class="phase-head">
+            <span class="phase-head__num">3</span>
+            <div class="phase-head__main">
+              <div class="phase-head__eyebrow">NSM · 北極星訓練</div>
+              <div class="phase-head__title">拆解輸入指標</div>
+            </div>
+          </div>
+          <div class="nsm-sub-tabs">
+            <button class="nsm-sub-tab">步驟 2</button>
+            <button class="nsm-sub-tab">NSM 審核</button>
+            <button class="nsm-sub-tab is-active">步驟 3：拆解</button>
+          </div>
+          <div class="nsm-progress">
+            <div class="nsm-progress__step is-done"><div class="nsm-progress__dot">1</div><div class="nsm-progress__label">情境</div></div>
+            <div class="nsm-progress__line is-done"></div>
+            <div class="nsm-progress__step is-done"><div class="nsm-progress__dot">2</div><div class="nsm-progress__label">指標</div></div>
+            <div class="nsm-progress__line is-done"></div>
+            <div class="nsm-progress__step is-active"><div class="nsm-progress__dot">3</div><div class="nsm-progress__label">拆解</div></div>
+            <div class="nsm-progress__line"></div>
+            <div class="nsm-progress__step"><div class="nsm-progress__dot">4</div><div class="nsm-progress__label">總結</div></div>
+          </div>
+          <div class="nsm-body">
+            <div class="nsm-step3-banner">
+              <i class="ph ph-target"></i>
+              <span><strong>你的 NSM：</strong>每月完成至少一首完整曲目播放的活躍月用戶數</span>
+            </div>
+            <div class="nsm-step3-intro">
+              <div class="nsm-step3-intro__top">
+                <span class="nsm-step3-intro__type nsm-step3-intro__type--attention"><i class="ph ph-play-circle"></i>注意力型</span>
+              </div>
+              <p>輸入指標是驅動 NSM 的<strong>領先訊號</strong>——這些指標翻倍，NSM 應該跟著成長。以下 4 個維度依 <strong>注意力型</strong> 產品特性設計，你可根據情境調整詮釋角度。</p>
+            </div>
+
+            <div class="nsm-dim">
+              <div class="nsm-dim__head">
+                <div class="nsm-dim__label">觸及廣度</div>
+                <div class="nsm-dim__desc">有多少用戶真正觸碰到核心功能（非僅登入）</div>
+              </div>
+              <div class="nsm-dim__body">
+                <div class="nsm-dim__coach"><i class="ph ph-chat-dots"></i>AHA 時刻是什麼動作？做到這個動作的人有多少？</div>
+                <button class="nsm-dim__hint-btn"><i class="ph ph-lightbulb"></i>查看教練提示</button>
+                <div class="nsm-rt-field">
+                  <div class="nsm-rt-toolbar">
+                    <button class="nsm-rt-tbtn"><strong>B</strong></button>
+                    <button class="nsm-rt-tbtn"><i class="ph ph-list-bullets"></i></button>
+                    <button class="nsm-rt-tbtn"><i class="ph ph-text-indent"></i></button>
+                    <button class="nsm-rt-tbtn"><i class="ph ph-text-outdent"></i></button>
+                  </div>
+                  <textarea placeholder="例：每月至少播放 1 首歌的月活用戶數（不是登入數）" rows="2"></textarea>
+                </div>
+              </div>
+            </div>
+
+            <div class="nsm-dim">
+              <div class="nsm-dim__head">
+                <div class="nsm-dim__label">互動深度</div>
+                <div class="nsm-dim__desc">每位用戶每次使用的品質與投入程度</div>
+              </div>
+              <div class="nsm-dim__body">
+                <div class="nsm-dim__coach"><i class="ph ph-chat-dots"></i>用戶停得夠深嗎？時長、完播率、互動次數哪個更能反映價值？</div>
+                <button class="nsm-dim__hint-btn"><i class="ph ph-lightbulb"></i>查看教練提示</button>
+                <div class="nsm-rt-field">
+                  <div class="nsm-rt-toolbar">
+                    <button class="nsm-rt-tbtn"><strong>B</strong></button>
+                    <button class="nsm-rt-tbtn"><i class="ph ph-list-bullets"></i></button>
+                    <button class="nsm-rt-tbtn"><i class="ph ph-text-indent"></i></button>
+                    <button class="nsm-rt-tbtn"><i class="ph ph-text-outdent"></i></button>
+                  </div>
+                  <textarea placeholder="例：每個 session 平均聆聽時長（分鐘）" rows="2"></textarea>
+                </div>
+              </div>
+            </div>
+
+            <div class="nsm-dim">
+              <div class="nsm-dim__head">
+                <div class="nsm-dim__label">習慣頻率</div>
+                <div class="nsm-dim__desc">用戶是否形成定期回訪的使用習慣</div>
+              </div>
+              <div class="nsm-dim__body">
+                <div class="nsm-dim__coach"><i class="ph ph-chat-dots"></i>每週/每月回來幾次？DAU/MAU 比越高代表黏性越強</div>
+                <button class="nsm-dim__hint-btn"><i class="ph ph-lightbulb"></i>查看教練提示</button>
+                <div class="nsm-rt-field">
+                  <div class="nsm-rt-toolbar">
+                    <button class="nsm-rt-tbtn"><strong>B</strong></button>
+                    <button class="nsm-rt-tbtn"><i class="ph ph-list-bullets"></i></button>
+                    <button class="nsm-rt-tbtn"><i class="ph ph-text-indent"></i></button>
+                    <button class="nsm-rt-tbtn"><i class="ph ph-text-outdent"></i></button>
+                  </div>
+                  <textarea placeholder="例：每週平均使用天數 ≥ 3 的用戶佔比" rows="2"></textarea>
+                </div>
+              </div>
+            </div>
+
+            <div class="nsm-dim">
+              <div class="nsm-dim__head">
+                <div class="nsm-dim__label">留存驅力</div>
+                <div class="nsm-dim__desc">什麼讓用戶持續回訪而非逐漸流失</div>
+              </div>
+              <div class="nsm-dim__body">
+                <div class="nsm-dim__coach"><i class="ph ph-chat-dots"></i>社交關係？個人化推薦？收藏習慣？找出最強的留存槓桿</div>
+                <button class="nsm-dim__hint-btn"><i class="ph ph-lightbulb"></i>查看教練提示</button>
+                <div class="nsm-rt-field">
+                  <div class="nsm-rt-toolbar">
+                    <button class="nsm-rt-tbtn"><strong>B</strong></button>
+                    <button class="nsm-rt-tbtn"><i class="ph ph-list-bullets"></i></button>
+                    <button class="nsm-rt-tbtn"><i class="ph ph-text-indent"></i></button>
+                    <button class="nsm-rt-tbtn"><i class="ph ph-text-outdent"></i></button>
+                  </div>
+                  <textarea placeholder="例：擁有 ≥5 首收藏歌曲的用戶 30 日留存率" rows="2"></textarea>
+                </div>
+              </div>
+            </div>
+          </div>
+          <div class="submit-bar">
+            <div class="submit-bar__left"><button class="btn btn--ghost"><i class="ph ph-arrow-left"></i>上一步</button></div>
+            <div class="submit-bar__right"><button class="btn btn--primary" disabled>送出，取得 AI 評分<i class="ph ph-arrow-right"></i></button></div>
+          </div>
+        </div>
+      </div>
+
+      <!-- B · Tablet 768 -->
+      <div class="vp-frame">
+        <div class="vp-frame__label"><span>Tablet</span><span>768 × 1240</span></div>
+        <div class="vp-frame__inner" style="width:768px">
+          <div class="navbar">
+            <button class="navbar__icon-btn"><i class="ph ph-list"></i></button>
+            <div class="navbar__brand"><span class="navbar__brand-icon">PM</span><span class="navbar__brand-name">PM Drill</span></div>
+            <div class="navbar__tabs"><button class="navbar__tab">CIRCLES</button><button class="navbar__tab is-active">北極星</button></div>
+            <div class="navbar__actions"><button class="navbar__icon-btn"><i class="ph ph-magnifying-glass"></i></button><button class="navbar__icon-btn"><i class="ph ph-house"></i></button></div>
+          </div>
+          <div class="phase-head">
+            <span class="phase-head__num">3</span>
+            <div class="phase-head__main">
+              <div class="phase-head__eyebrow">NSM · 北極星訓練</div>
+              <div class="phase-head__title">拆解輸入指標</div>
+            </div>
+            <div class="phase-head__meta"><span>注意力型</span></div>
+          </div>
+          <div class="nsm-sub-tabs">
+            <button class="nsm-sub-tab">步驟 2：定義 NSM</button>
+            <button class="nsm-sub-tab">NSM 審核</button>
+            <button class="nsm-sub-tab is-active">步驟 3：拆解指標</button>
+          </div>
+          <div class="nsm-progress">
+            <div class="nsm-progress__step is-done"><div class="nsm-progress__dot">1</div><div class="nsm-progress__label">情境</div></div>
+            <div class="nsm-progress__line is-done"></div>
+            <div class="nsm-progress__step is-done"><div class="nsm-progress__dot">2</div><div class="nsm-progress__label">指標</div></div>
+            <div class="nsm-progress__line is-done"></div>
+            <div class="nsm-progress__step is-active"><div class="nsm-progress__dot">3</div><div class="nsm-progress__label">拆解</div></div>
+            <div class="nsm-progress__line"></div>
+            <div class="nsm-progress__step"><div class="nsm-progress__dot">4</div><div class="nsm-progress__label">總結</div></div>
+          </div>
+          <div class="nsm-body">
+            <div class="nsm-step3-banner">
+              <i class="ph ph-target"></i>
+              <span><strong>你的 NSM：</strong>每月完成至少一首完整曲目播放的活躍月用戶數</span>
+            </div>
+            <div class="nsm-step3-intro">
+              <div class="nsm-step3-intro__top">
+                <span class="nsm-step3-intro__type nsm-step3-intro__type--attention"><i class="ph ph-play-circle"></i>注意力型</span>
+              </div>
+              <p>輸入指標是驅動 NSM 的<strong>領先訊號</strong>——這些指標翻倍，NSM 應該跟著成長。以下 4 個維度依 <strong>注意力型</strong> 產品特性設計，你可根據情境調整詮釋角度。</p>
+            </div>
+
+            <div class="nsm-dim">
+              <div class="nsm-dim__head"><div class="nsm-dim__label">觸及廣度</div><div class="nsm-dim__desc">有多少用戶真正觸碰到核心功能（非僅登入）</div></div>
+              <div class="nsm-dim__body">
+                <div class="nsm-dim__coach"><i class="ph ph-chat-dots"></i>AHA 時刻是什麼動作？做到這個動作的人有多少？</div>
+                <button class="nsm-dim__hint-btn"><i class="ph ph-lightbulb"></i>查看教練提示</button>
+                <div class="nsm-rt-field">
+                  <div class="nsm-rt-toolbar"><button class="nsm-rt-tbtn"><strong>B</strong></button><button class="nsm-rt-tbtn"><i class="ph ph-list-bullets"></i></button><button class="nsm-rt-tbtn"><i class="ph ph-text-indent"></i></button><button class="nsm-rt-tbtn"><i class="ph ph-text-outdent"></i></button></div>
+                  <textarea placeholder="例：每月至少播放 1 首歌的月活用戶數（不是登入數）" rows="2"></textarea>
+                </div>
+              </div>
+            </div>
+            <div class="nsm-dim">
+              <div class="nsm-dim__head"><div class="nsm-dim__label">互動深度</div><div class="nsm-dim__desc">每位用戶每次使用的品質與投入程度</div></div>
+              <div class="nsm-dim__body">
+                <div class="nsm-dim__coach"><i class="ph ph-chat-dots"></i>用戶停得夠深嗎？時長、完播率、互動次數哪個更能反映價值？</div>
+                <button class="nsm-dim__hint-btn"><i class="ph ph-lightbulb"></i>查看教練提示</button>
+                <div class="nsm-rt-field">
+                  <div class="nsm-rt-toolbar"><button class="nsm-rt-tbtn"><strong>B</strong></button><button class="nsm-rt-tbtn"><i class="ph ph-list-bullets"></i></button><button class="nsm-rt-tbtn"><i class="ph ph-text-indent"></i></button><button class="nsm-rt-tbtn"><i class="ph ph-text-outdent"></i></button></div>
+                  <textarea placeholder="例：每個 session 平均聆聽時長（分鐘）" rows="2"></textarea>
+                </div>
+              </div>
+            </div>
+            <div class="nsm-dim">
+              <div class="nsm-dim__head"><div class="nsm-dim__label">習慣頻率</div><div class="nsm-dim__desc">用戶是否形成定期回訪的使用習慣</div></div>
+              <div class="nsm-dim__body">
+                <div class="nsm-dim__coach"><i class="ph ph-chat-dots"></i>每週/每月回來幾次？DAU/MAU 比越高代表黏性越強</div>
+                <button class="nsm-dim__hint-btn"><i class="ph ph-lightbulb"></i>查看教練提示</button>
+                <div class="nsm-rt-field">
+                  <div class="nsm-rt-toolbar"><button class="nsm-rt-tbtn"><strong>B</strong></button><button class="nsm-rt-tbtn"><i class="ph ph-list-bullets"></i></button><button class="nsm-rt-tbtn"><i class="ph ph-text-indent"></i></button><button class="nsm-rt-tbtn"><i class="ph ph-text-outdent"></i></button></div>
+                  <textarea placeholder="例：每週平均使用天數 ≥ 3 的用戶佔比" rows="2"></textarea>
+                </div>
+              </div>
+            </div>
+            <div class="nsm-dim">
+              <div class="nsm-dim__head"><div class="nsm-dim__label">留存驅力</div><div class="nsm-dim__desc">什麼讓用戶持續回訪而非逐漸流失</div></div>
+              <div class="nsm-dim__body">
+                <div class="nsm-dim__coach"><i class="ph ph-chat-dots"></i>社交關係？個人化推薦？收藏習慣？找出最強的留存槓桿</div>
+                <button class="nsm-dim__hint-btn"><i class="ph ph-lightbulb"></i>查看教練提示</button>
+                <div class="nsm-rt-field">
+                  <div class="nsm-rt-toolbar"><button class="nsm-rt-tbtn"><strong>B</strong></button><button class="nsm-rt-tbtn"><i class="ph ph-list-bullets"></i></button><button class="nsm-rt-tbtn"><i class="ph ph-text-indent"></i></button><button class="nsm-rt-tbtn"><i class="ph ph-text-outdent"></i></button></div>
+                  <textarea placeholder="例：擁有 ≥5 首收藏歌曲的用戶 30 日留存率" rows="2"></textarea>
+                </div>
+              </div>
+            </div>
+          </div>
+          <div class="submit-bar">
+            <div class="submit-bar__left"><button class="btn btn--ghost"><i class="ph ph-arrow-left"></i>上一步</button></div>
+            <div class="submit-bar__right"><button class="btn btn--primary" disabled>送出，取得 AI 評分<i class="ph ph-arrow-right"></i></button></div>
+          </div>
+        </div>
+      </div>
+
+      <!-- B · Desktop 1280 -->
+      <div class="vp-frame">
+        <div class="vp-frame__label"><span>Desktop</span><span>1280 × 1240</span></div>
+        <div class="vp-frame__inner" style="width:1280px">
+          <div class="navbar">
+            <button class="navbar__icon-btn"><i class="ph ph-list"></i></button>
+            <div class="navbar__brand"><span class="navbar__brand-icon">PM</span><span class="navbar__brand-name">PM Drill</span></div>
+            <div class="navbar__tabs"><button class="navbar__tab">CIRCLES</button><button class="navbar__tab is-active">北極星</button></div>
+            <div class="navbar__actions"><span class="navbar__email">albertpeng678@gmail.com</span><button class="navbar__icon-btn"><i class="ph ph-magnifying-glass"></i></button><button class="navbar__icon-btn"><i class="ph ph-house"></i></button></div>
+          </div>
+          <div class="phase-head">
+            <span class="phase-head__num">3</span>
+            <div class="phase-head__main">
+              <div class="phase-head__eyebrow">NSM · 北極星訓練</div>
+              <div class="phase-head__title">拆解輸入指標</div>
+            </div>
+            <div class="phase-head__meta"><span>Spotify · 注意力型</span><span class="phase-head__meta-sep">·</span><span>4 維度</span></div>
+          </div>
+          <div class="nsm-sub-tabs">
+            <button class="nsm-sub-tab">步驟 2：定義 NSM</button>
+            <button class="nsm-sub-tab">NSM 審核</button>
+            <button class="nsm-sub-tab is-active">步驟 3：拆解指標</button>
+          </div>
+          <div class="nsm-progress">
+            <div class="nsm-progress__step is-done"><div class="nsm-progress__dot">1</div><div class="nsm-progress__label">情境</div></div>
+            <div class="nsm-progress__line is-done"></div>
+            <div class="nsm-progress__step is-done"><div class="nsm-progress__dot">2</div><div class="nsm-progress__label">指標</div></div>
+            <div class="nsm-progress__line is-done"></div>
+            <div class="nsm-progress__step is-active"><div class="nsm-progress__dot">3</div><div class="nsm-progress__label">拆解</div></div>
+            <div class="nsm-progress__line"></div>
+            <div class="nsm-progress__step"><div class="nsm-progress__dot">4</div><div class="nsm-progress__label">總結</div></div>
+          </div>
+          <div class="nsm-body">
+            <div class="nsm-step3-banner">
+              <i class="ph ph-target"></i>
+              <span><strong>你的 NSM：</strong>每月完成至少一首完整曲目播放的活躍月用戶數</span>
+            </div>
+            <div class="nsm-step3-intro">
+              <div class="nsm-step3-intro__top">
+                <span class="nsm-step3-intro__type nsm-step3-intro__type--attention"><i class="ph ph-play-circle"></i>注意力型</span>
+              </div>
+              <p>輸入指標是驅動 NSM 的<strong>領先訊號</strong>——這些指標翻倍，NSM 應該跟著成長。以下 4 個維度依 <strong>注意力型</strong> 產品特性設計，你可根據情境調整詮釋角度。</p>
+            </div>
+
+            <div class="nsm-dim">
+              <div class="nsm-dim__head"><div class="nsm-dim__label">觸及廣度</div><div class="nsm-dim__desc">有多少用戶真正觸碰到核心功能（非僅登入）</div></div>
+              <div class="nsm-dim__body">
+                <div class="nsm-dim__coach"><i class="ph ph-chat-dots"></i>AHA 時刻是什麼動作？做到這個動作的人有多少？</div>
+                <button class="nsm-dim__hint-btn"><i class="ph ph-lightbulb"></i>查看教練提示</button>
+                <div class="nsm-rt-field">
+                  <div class="nsm-rt-toolbar"><button class="nsm-rt-tbtn"><strong>B</strong></button><button class="nsm-rt-tbtn"><i class="ph ph-list-bullets"></i></button><button class="nsm-rt-tbtn"><i class="ph ph-text-indent"></i></button><button class="nsm-rt-tbtn"><i class="ph ph-text-outdent"></i></button></div>
+                  <textarea placeholder="例：每月至少播放 1 首歌的月活用戶數（不是登入數）" rows="2"></textarea>
+                </div>
+              </div>
+            </div>
+            <div class="nsm-dim">
+              <div class="nsm-dim__head"><div class="nsm-dim__label">互動深度</div><div class="nsm-dim__desc">每位用戶每次使用的品質與投入程度</div></div>
+              <div class="nsm-dim__body">
+                <div class="nsm-dim__coach"><i class="ph ph-chat-dots"></i>用戶停得夠深嗎？時長、完播率、互動次數哪個更能反映價值？</div>
+                <button class="nsm-dim__hint-btn"><i class="ph ph-lightbulb"></i>查看教練提示</button>
+                <div class="nsm-rt-field">
+                  <div class="nsm-rt-toolbar"><button class="nsm-rt-tbtn"><strong>B</strong></button><button class="nsm-rt-tbtn"><i class="ph ph-list-bullets"></i></button><button class="nsm-rt-tbtn"><i class="ph ph-text-indent"></i></button><button class="nsm-rt-tbtn"><i class="ph ph-text-outdent"></i></button></div>
+                  <textarea placeholder="例：每個 session 平均聆聽時長（分鐘）" rows="2"></textarea>
+                </div>
+              </div>
+            </div>
+            <div class="nsm-dim">
+              <div class="nsm-dim__head"><div class="nsm-dim__label">習慣頻率</div><div class="nsm-dim__desc">用戶是否形成定期回訪的使用習慣</div></div>
+              <div class="nsm-dim__body">
+                <div class="nsm-dim__coach"><i class="ph ph-chat-dots"></i>每週/每月回來幾次？DAU/MAU 比越高代表黏性越強</div>
+                <button class="nsm-dim__hint-btn"><i class="ph ph-lightbulb"></i>查看教練提示</button>
+                <div class="nsm-rt-field">
+                  <div class="nsm-rt-toolbar"><button class="nsm-rt-tbtn"><strong>B</strong></button><button class="nsm-rt-tbtn"><i class="ph ph-list-bullets"></i></button><button class="nsm-rt-tbtn"><i class="ph ph-text-indent"></i></button><button class="nsm-rt-tbtn"><i class="ph ph-text-outdent"></i></button></div>
+                  <textarea placeholder="例：每週平均使用天數 ≥ 3 的用戶佔比" rows="2"></textarea>
+                </div>
+              </div>
+            </div>
+            <div class="nsm-dim">
+              <div class="nsm-dim__head"><div class="nsm-dim__label">留存驅力</div><div class="nsm-dim__desc">什麼讓用戶持續回訪而非逐漸流失</div></div>
+              <div class="nsm-dim__body">
+                <div class="nsm-dim__coach"><i class="ph ph-chat-dots"></i>社交關係？個人化推薦？收藏習慣？找出最強的留存槓桿</div>
+                <button class="nsm-dim__hint-btn"><i class="ph ph-lightbulb"></i>查看教練提示</button>
+                <div class="nsm-rt-field">
+                  <div class="nsm-rt-toolbar"><button class="nsm-rt-tbtn"><strong>B</strong></button><button class="nsm-rt-tbtn"><i class="ph ph-list-bullets"></i></button><button class="nsm-rt-tbtn"><i class="ph ph-text-indent"></i></button><button class="nsm-rt-tbtn"><i class="ph ph-text-outdent"></i></button></div>
+                  <textarea placeholder="例：擁有 ≥5 首收藏歌曲的用戶 30 日留存率" rows="2"></textarea>
+                </div>
+              </div>
+            </div>
+          </div>
+          <div class="submit-bar">
+            <div class="submit-bar__left"><button class="btn btn--ghost"><i class="ph ph-arrow-left"></i>上一步</button></div>
+            <div class="submit-bar__right"><button class="btn btn--primary" disabled>送出，取得 AI 評分<i class="ph ph-arrow-right"></i></button></div>
+          </div>
+        </div>
+      </div>
+
+    </div>
+
+    <!-- ============================================================ -->
+    <!-- Section C — Step 3 sub-tab · saas 型 4-dim 已填 + 教練提示展開 -->
+    <!-- ============================================================ -->
+    <h2 class="vp-section-title">C · 步驟 3 拆解（SaaS 型 4-dim 已填 + 教練提示展開）<span class="vp-section-title__sub">saas 動態 label：啟用廣度 / 席次深度 / 黏著頻率 / 擴張信號 — 證明 4-dim 隨 product type 動態切換</span></h2>
+    <div class="anno"><strong>視覺契約：</strong>同 B 結構但 type 切換為 <strong>SaaS 型</strong>（primary blue badge）+ 4-dim label 全變：啟用廣度 / 席次深度 / 黏著頻率 / 擴張信號（<code>NSM_DIMENSION_CONFIGS.saas</code>）。第 1 dim 已填、第 2 dim 教練提示展開（顯示 <code>nsmHints</code> 內容）、第 3-4 dim 空白。submit-bar：「送出，取得 AI 評分」<strong>enabled</strong>（部分填寫即可送出，AI 評分會檢查完整度）。</div>
+    <div class="vp-grid">
+
+      <!-- C · Mobile 360 -->
+      <div class="vp-frame">
+        <div class="vp-frame__label"><span>Mobile</span><span>360 × 1240</span></div>
+        <div class="vp-frame__inner" style="width:360px">
+          <div class="navbar">
+            <button class="navbar__icon-btn"><i class="ph ph-list"></i></button>
+            <div class="navbar__brand"><span class="navbar__brand-icon">PM</span></div>
+            <div class="navbar__actions"><button class="navbar__icon-btn"><i class="ph ph-house"></i></button></div>
+          </div>
+          <div class="phase-head">
+            <span class="phase-head__num">3</span>
+            <div class="phase-head__main">
+              <div class="phase-head__eyebrow">NSM · 北極星訓練</div>
+              <div class="phase-head__title">拆解輸入指標</div>
+            </div>
+          </div>
+          <div class="nsm-sub-tabs">
+            <button class="nsm-sub-tab">步驟 2</button>
+            <button class="nsm-sub-tab">NSM 審核</button>
+            <button class="nsm-sub-tab is-active">步驟 3：拆解</button>
+          </div>
+          <div class="nsm-progress">
+            <div class="nsm-progress__step is-done"><div class="nsm-progress__dot">1</div><div class="nsm-progress__label">情境</div></div>
+            <div class="nsm-progress__line is-done"></div>
+            <div class="nsm-progress__step is-done"><div class="nsm-progress__dot">2</div><div class="nsm-progress__label">指標</div></div>
+            <div class="nsm-progress__line is-done"></div>
+            <div class="nsm-progress__step is-active"><div class="nsm-progress__dot">3</div><div class="nsm-progress__label">拆解</div></div>
+            <div class="nsm-progress__line"></div>
+            <div class="nsm-progress__step"><div class="nsm-progress__dot">4</div><div class="nsm-progress__label">總結</div></div>
+          </div>
+          <div class="nsm-body">
+            <div class="nsm-step3-banner">
+              <i class="ph ph-target"></i>
+              <span><strong>你的 NSM：</strong>每月完成首次核心工作流的活躍企業帳號數</span>
+            </div>
+            <div class="nsm-step3-intro">
+              <div class="nsm-step3-intro__top">
+                <span class="nsm-step3-intro__type nsm-step3-intro__type--saas"><i class="ph ph-buildings"></i>SaaS 型</span>
+              </div>
+              <p>輸入指標是驅動 NSM 的<strong>領先訊號</strong>——這些指標翻倍，NSM 應該跟著成長。以下 4 個維度依 <strong>SaaS 型</strong> 產品特性設計，你可根據情境調整詮釋角度。</p>
+            </div>
+
+            <div class="nsm-dim">
+              <div class="nsm-dim__head"><div class="nsm-dim__label">啟用廣度</div><div class="nsm-dim__desc">新客戶中有多少真正完成啟用（Activation）</div></div>
+              <div class="nsm-dim__body">
+                <div class="nsm-dim__coach"><i class="ph ph-chat-dots"></i>注意是 activation，不是 signup——誰真正跑完了核心工作流？</div>
+                <button class="nsm-dim__hint-btn"><i class="ph ph-lightbulb"></i>查看教練提示</button>
+                <div class="nsm-rt-field">
+                  <div class="nsm-rt-toolbar"><button class="nsm-rt-tbtn"><strong>B</strong></button><button class="nsm-rt-tbtn"><i class="ph ph-list-bullets"></i></button><button class="nsm-rt-tbtn"><i class="ph ph-text-indent"></i></button><button class="nsm-rt-tbtn"><i class="ph ph-text-outdent"></i></button></div>
+                  <textarea rows="3">建立 7 天內完成至少 3 次核心工作流（建專案 + 邀請成員 + 提交首份成果）的新帳號比例 — 這比 signup 更能預測 90 日續訂率。</textarea>
+                </div>
+              </div>
+            </div>
+
+            <div class="nsm-dim">
+              <div class="nsm-dim__head"><div class="nsm-dim__label">席次深度</div><div class="nsm-dim__desc">每個帳號內有多少人在真正使用核心功能</div></div>
+              <div class="nsm-dim__body">
+                <div class="nsm-dim__coach"><i class="ph ph-chat-dots"></i>企業付費，但有幾個人實際在用？席次利用率多高？</div>
+                <button class="nsm-dim__hint-btn" aria-expanded="true"><i class="ph ph-lightbulb"></i>收起教練提示</button>
+                <div class="nsm-dim__hint-content">
+                  <strong>席次利用率拆法：</strong>分母用「已開通席次數」、分子用「過去 30 天有登入並完成核心動作的人數」。注意排除 admin、IT、純 viewer 角色 — 那些是「被動觀察」非「主動使用」。例如：100 席的客戶若 60 人活躍，席次利用率 = 60%；低於 40% 通常代表續約風險。
+                </div>
+                <div class="nsm-rt-field">
+                  <div class="nsm-rt-toolbar"><button class="nsm-rt-tbtn"><strong>B</strong></button><button class="nsm-rt-tbtn"><i class="ph ph-list-bullets"></i></button><button class="nsm-rt-tbtn"><i class="ph ph-text-indent"></i></button><button class="nsm-rt-tbtn"><i class="ph ph-text-outdent"></i></button></div>
+                  <textarea placeholder="例：每個帳號每月平均活躍使用者數（席次利用率）" rows="2"></textarea>
+                </div>
+              </div>
+            </div>
+
+            <div class="nsm-dim">
+              <div class="nsm-dim__head"><div class="nsm-dim__label">黏著頻率</div><div class="nsm-dim__desc">使用頻率是否顯示產品已嵌入日常工作流</div></div>
+              <div class="nsm-dim__body">
+                <div class="nsm-dim__coach"><i class="ph ph-chat-dots"></i>每天都用 vs 偶爾用——是剛需工具嗎？DAU/MAU 比多高？</div>
+                <button class="nsm-dim__hint-btn"><i class="ph ph-lightbulb"></i>查看教練提示</button>
+                <div class="nsm-rt-field">
+                  <div class="nsm-rt-toolbar"><button class="nsm-rt-tbtn"><strong>B</strong></button><button class="nsm-rt-tbtn"><i class="ph ph-list-bullets"></i></button><button class="nsm-rt-tbtn"><i class="ph ph-text-indent"></i></button><button class="nsm-rt-tbtn"><i class="ph ph-text-outdent"></i></button></div>
+                  <textarea placeholder="例：每週使用核心功能 ≥ 3 次的帳號佔比" rows="2"></textarea>
+                </div>
+              </div>
+            </div>
+
+            <div class="nsm-dim">
+              <div class="nsm-dim__head"><div class="nsm-dim__label">擴張信號</div><div class="nsm-dim__desc">現有客戶是否在增加使用（NRR 指標）</div></div>
+              <div class="nsm-dim__body">
+                <div class="nsm-dim__coach"><i class="ph ph-chat-dots"></i>NRR &gt; 100% 代表客戶在擴張——多少比例帳號在 90 天內擴展？</div>
+                <button class="nsm-dim__hint-btn"><i class="ph ph-lightbulb"></i>查看教練提示</button>
+                <div class="nsm-rt-field">
+                  <div class="nsm-rt-toolbar"><button class="nsm-rt-tbtn"><strong>B</strong></button><button class="nsm-rt-tbtn"><i class="ph ph-list-bullets"></i></button><button class="nsm-rt-tbtn"><i class="ph ph-text-indent"></i></button><button class="nsm-rt-tbtn"><i class="ph ph-text-outdent"></i></button></div>
+                  <textarea placeholder="例：90 天內增加席次或升級方案的帳號比例" rows="2"></textarea>
+                </div>
+              </div>
+            </div>
+          </div>
+          <div class="submit-bar">
+            <div class="submit-bar__left"><button class="btn btn--ghost"><i class="ph ph-arrow-left"></i>上一步</button></div>
+            <div class="submit-bar__right"><button class="btn btn--primary">送出，取得 AI 評分<i class="ph ph-arrow-right"></i></button></div>
+          </div>
+        </div>
+      </div>
+
+      <!-- C · Tablet 768 -->
+      <div class="vp-frame">
+        <div class="vp-frame__label"><span>Tablet</span><span>768 × 1240</span></div>
+        <div class="vp-frame__inner" style="width:768px">
+          <div class="navbar">
+            <button class="navbar__icon-btn"><i class="ph ph-list"></i></button>
+            <div class="navbar__brand"><span class="navbar__brand-icon">PM</span><span class="navbar__brand-name">PM Drill</span></div>
+            <div class="navbar__tabs"><button class="navbar__tab">CIRCLES</button><button class="navbar__tab is-active">北極星</button></div>
+            <div class="navbar__actions"><button class="navbar__icon-btn"><i class="ph ph-magnifying-glass"></i></button><button class="navbar__icon-btn"><i class="ph ph-house"></i></button></div>
+          </div>
+          <div class="phase-head">
+            <span class="phase-head__num">3</span>
+            <div class="phase-head__main">
+              <div class="phase-head__eyebrow">NSM · 北極星訓練</div>
+              <div class="phase-head__title">拆解輸入指標</div>
+            </div>
+            <div class="phase-head__meta"><span>SaaS 型</span></div>
+          </div>
+          <div class="nsm-sub-tabs">
+            <button class="nsm-sub-tab">步驟 2：定義 NSM</button>
+            <button class="nsm-sub-tab">NSM 審核</button>
+            <button class="nsm-sub-tab is-active">步驟 3：拆解指標</button>
+          </div>
+          <div class="nsm-progress">
+            <div class="nsm-progress__step is-done"><div class="nsm-progress__dot">1</div><div class="nsm-progress__label">情境</div></div>
+            <div class="nsm-progress__line is-done"></div>
+            <div class="nsm-progress__step is-done"><div class="nsm-progress__dot">2</div><div class="nsm-progress__label">指標</div></div>
+            <div class="nsm-progress__line is-done"></div>
+            <div class="nsm-progress__step is-active"><div class="nsm-progress__dot">3</div><div class="nsm-progress__label">拆解</div></div>
+            <div class="nsm-progress__line"></div>
+            <div class="nsm-progress__step"><div class="nsm-progress__dot">4</div><div class="nsm-progress__label">總結</div></div>
+          </div>
+          <div class="nsm-body">
+            <div class="nsm-step3-banner">
+              <i class="ph ph-target"></i>
+              <span><strong>你的 NSM：</strong>每月完成首次核心工作流的活躍企業帳號數</span>
+            </div>
+            <div class="nsm-step3-intro">
+              <div class="nsm-step3-intro__top">
+                <span class="nsm-step3-intro__type nsm-step3-intro__type--saas"><i class="ph ph-buildings"></i>SaaS 型</span>
+              </div>
+              <p>輸入指標是驅動 NSM 的<strong>領先訊號</strong>——這些指標翻倍，NSM 應該跟著成長。以下 4 個維度依 <strong>SaaS 型</strong> 產品特性設計，你可根據情境調整詮釋角度。</p>
+            </div>
+
+            <div class="nsm-dim">
+              <div class="nsm-dim__head"><div class="nsm-dim__label">啟用廣度</div><div class="nsm-dim__desc">新客戶中有多少真正完成啟用（Activation）</div></div>
+              <div class="nsm-dim__body">
+                <div class="nsm-dim__coach"><i class="ph ph-chat-dots"></i>注意是 activation，不是 signup——誰真正跑完了核心工作流？</div>
+                <button class="nsm-dim__hint-btn"><i class="ph ph-lightbulb"></i>查看教練提示</button>
+                <div class="nsm-rt-field">
+                  <div class="nsm-rt-toolbar"><button class="nsm-rt-tbtn"><strong>B</strong></button><button class="nsm-rt-tbtn"><i class="ph ph-list-bullets"></i></button><button class="nsm-rt-tbtn"><i class="ph ph-text-indent"></i></button><button class="nsm-rt-tbtn"><i class="ph ph-text-outdent"></i></button></div>
+                  <textarea rows="3">建立 7 天內完成至少 3 次核心工作流（建專案 + 邀請成員 + 提交首份成果）的新帳號比例 — 這比 signup 更能預測 90 日續訂率。</textarea>
+                </div>
+              </div>
+            </div>
+            <div class="nsm-dim">
+              <div class="nsm-dim__head"><div class="nsm-dim__label">席次深度</div><div class="nsm-dim__desc">每個帳號內有多少人在真正使用核心功能</div></div>
+              <div class="nsm-dim__body">
+                <div class="nsm-dim__coach"><i class="ph ph-chat-dots"></i>企業付費，但有幾個人實際在用？席次利用率多高？</div>
+                <button class="nsm-dim__hint-btn" aria-expanded="true"><i class="ph ph-lightbulb"></i>收起教練提示</button>
+                <div class="nsm-dim__hint-content">
+                  <strong>席次利用率拆法：</strong>分母用「已開通席次數」、分子用「過去 30 天有登入並完成核心動作的人數」。注意排除 admin、IT、純 viewer 角色 — 那些是「被動觀察」非「主動使用」。例如：100 席的客戶若 60 人活躍，席次利用率 = 60%；低於 40% 通常代表續約風險。
+                </div>
+                <div class="nsm-rt-field">
+                  <div class="nsm-rt-toolbar"><button class="nsm-rt-tbtn"><strong>B</strong></button><button class="nsm-rt-tbtn"><i class="ph ph-list-bullets"></i></button><button class="nsm-rt-tbtn"><i class="ph ph-text-indent"></i></button><button class="nsm-rt-tbtn"><i class="ph ph-text-outdent"></i></button></div>
+                  <textarea placeholder="例：每個帳號每月平均活躍使用者數（席次利用率）" rows="2"></textarea>
+                </div>
+              </div>
+            </div>
+            <div class="nsm-dim">
+              <div class="nsm-dim__head"><div class="nsm-dim__label">黏著頻率</div><div class="nsm-dim__desc">使用頻率是否顯示產品已嵌入日常工作流</div></div>
+              <div class="nsm-dim__body">
+                <div class="nsm-dim__coach"><i class="ph ph-chat-dots"></i>每天都用 vs 偶爾用——是剛需工具嗎？DAU/MAU 比多高？</div>
+                <button class="nsm-dim__hint-btn"><i class="ph ph-lightbulb"></i>查看教練提示</button>
+                <div class="nsm-rt-field">
+                  <div class="nsm-rt-toolbar"><button class="nsm-rt-tbtn"><strong>B</strong></button><button class="nsm-rt-tbtn"><i class="ph ph-list-bullets"></i></button><button class="nsm-rt-tbtn"><i class="ph ph-text-indent"></i></button><button class="nsm-rt-tbtn"><i class="ph ph-text-outdent"></i></button></div>
+                  <textarea placeholder="例：每週使用核心功能 ≥ 3 次的帳號佔比" rows="2"></textarea>
+                </div>
+              </div>
+            </div>
+            <div class="nsm-dim">
+              <div class="nsm-dim__head"><div class="nsm-dim__label">擴張信號</div><div class="nsm-dim__desc">現有客戶是否在增加使用（NRR 指標）</div></div>
+              <div class="nsm-dim__body">
+                <div class="nsm-dim__coach"><i class="ph ph-chat-dots"></i>NRR &gt; 100% 代表客戶在擴張——多少比例帳號在 90 天內擴展？</div>
+                <button class="nsm-dim__hint-btn"><i class="ph ph-lightbulb"></i>查看教練提示</button>
+                <div class="nsm-rt-field">
+                  <div class="nsm-rt-toolbar"><button class="nsm-rt-tbtn"><strong>B</strong></button><button class="nsm-rt-tbtn"><i class="ph ph-list-bullets"></i></button><button class="nsm-rt-tbtn"><i class="ph ph-text-indent"></i></button><button class="nsm-rt-tbtn"><i class="ph ph-text-outdent"></i></button></div>
+                  <textarea placeholder="例：90 天內增加席次或升級方案的帳號比例" rows="2"></textarea>
+                </div>
+              </div>
+            </div>
+          </div>
+          <div class="submit-bar">
+            <div class="submit-bar__left"><button class="btn btn--ghost"><i class="ph ph-arrow-left"></i>上一步</button></div>
+            <div class="submit-bar__right"><button class="btn btn--primary">送出，取得 AI 評分<i class="ph ph-arrow-right"></i></button></div>
+          </div>
+        </div>
+      </div>
+
+      <!-- C · Desktop 1280 -->
+      <div class="vp-frame">
+        <div class="vp-frame__label"><span>Desktop</span><span>1280 × 1240</span></div>
+        <div class="vp-frame__inner" style="width:1280px">
+          <div class="navbar">
+            <button class="navbar__icon-btn"><i class="ph ph-list"></i></button>
+            <div class="navbar__brand"><span class="navbar__brand-icon">PM</span><span class="navbar__brand-name">PM Drill</span></div>
+            <div class="navbar__tabs"><button class="navbar__tab">CIRCLES</button><button class="navbar__tab is-active">北極星</button></div>
+            <div class="navbar__actions"><span class="navbar__email">albertpeng678@gmail.com</span><button class="navbar__icon-btn"><i class="ph ph-magnifying-glass"></i></button><button class="navbar__icon-btn"><i class="ph ph-house"></i></button></div>
+          </div>
+          <div class="phase-head">
+            <span class="phase-head__num">3</span>
+            <div class="phase-head__main">
+              <div class="phase-head__eyebrow">NSM · 北極星訓練</div>
+              <div class="phase-head__title">拆解輸入指標</div>
+            </div>
+            <div class="phase-head__meta"><span>Asana 風 · SaaS 型</span><span class="phase-head__meta-sep">·</span><span>4 維度</span></div>
+          </div>
+          <div class="nsm-sub-tabs">
+            <button class="nsm-sub-tab">步驟 2：定義 NSM</button>
+            <button class="nsm-sub-tab">NSM 審核</button>
+            <button class="nsm-sub-tab is-active">步驟 3：拆解指標</button>
+          </div>
+          <div class="nsm-progress">
+            <div class="nsm-progress__step is-done"><div class="nsm-progress__dot">1</div><div class="nsm-progress__label">情境</div></div>
+            <div class="nsm-progress__line is-done"></div>
+            <div class="nsm-progress__step is-done"><div class="nsm-progress__dot">2</div><div class="nsm-progress__label">指標</div></div>
+            <div class="nsm-progress__line is-done"></div>
+            <div class="nsm-progress__step is-active"><div class="nsm-progress__dot">3</div><div class="nsm-progress__label">拆解</div></div>
+            <div class="nsm-progress__line"></div>
+            <div class="nsm-progress__step"><div class="nsm-progress__dot">4</div><div class="nsm-progress__label">總結</div></div>
+          </div>
+          <div class="nsm-body">
+            <div class="nsm-step3-banner">
+              <i class="ph ph-target"></i>
+              <span><strong>你的 NSM：</strong>每月完成首次核心工作流的活躍企業帳號數</span>
+            </div>
+            <div class="nsm-step3-intro">
+              <div class="nsm-step3-intro__top">
+                <span class="nsm-step3-intro__type nsm-step3-intro__type--saas"><i class="ph ph-buildings"></i>SaaS 型</span>
+              </div>
+              <p>輸入指標是驅動 NSM 的<strong>領先訊號</strong>——這些指標翻倍，NSM 應該跟著成長。以下 4 個維度依 <strong>SaaS 型</strong> 產品特性設計，你可根據情境調整詮釋角度。</p>
+            </div>
+
+            <div class="nsm-dim">
+              <div class="nsm-dim__head"><div class="nsm-dim__label">啟用廣度</div><div class="nsm-dim__desc">新客戶中有多少真正完成啟用（Activation）</div></div>
+              <div class="nsm-dim__body">
+                <div class="nsm-dim__coach"><i class="ph ph-chat-dots"></i>注意是 activation，不是 signup——誰真正跑完了核心工作流？</div>
+                <button class="nsm-dim__hint-btn"><i class="ph ph-lightbulb"></i>查看教練提示</button>
+                <div class="nsm-rt-field">
+                  <div class="nsm-rt-toolbar"><button class="nsm-rt-tbtn"><strong>B</strong></button><button class="nsm-rt-tbtn"><i class="ph ph-list-bullets"></i></button><button class="nsm-rt-tbtn"><i class="ph ph-text-indent"></i></button><button class="nsm-rt-tbtn"><i class="ph ph-text-outdent"></i></button></div>
+                  <textarea rows="3">建立 7 天內完成至少 3 次核心工作流（建專案 + 邀請成員 + 提交首份成果）的新帳號比例 — 這比 signup 更能預測 90 日續訂率。</textarea>
+                </div>
+              </div>
+            </div>
+            <div class="nsm-dim">
+              <div class="nsm-dim__head"><div class="nsm-dim__label">席次深度</div><div class="nsm-dim__desc">每個帳號內有多少人在真正使用核心功能</div></div>
+              <div class="nsm-dim__body">
+                <div class="nsm-dim__coach"><i class="ph ph-chat-dots"></i>企業付費，但有幾個人實際在用？席次利用率多高？</div>
+                <button class="nsm-dim__hint-btn" aria-expanded="true"><i class="ph ph-lightbulb"></i>收起教練提示</button>
+                <div class="nsm-dim__hint-content">
+                  <strong>席次利用率拆法：</strong>分母用「已開通席次數」、分子用「過去 30 天有登入並完成核心動作的人數」。注意排除 admin、IT、純 viewer 角色 — 那些是「被動觀察」非「主動使用」。例如：100 席的客戶若 60 人活躍，席次利用率 = 60%；低於 40% 通常代表續約風險。
+                </div>
+                <div class="nsm-rt-field">
+                  <div class="nsm-rt-toolbar"><button class="nsm-rt-tbtn"><strong>B</strong></button><button class="nsm-rt-tbtn"><i class="ph ph-list-bullets"></i></button><button class="nsm-rt-tbtn"><i class="ph ph-text-indent"></i></button><button class="nsm-rt-tbtn"><i class="ph ph-text-outdent"></i></button></div>
+                  <textarea placeholder="例：每個帳號每月平均活躍使用者數（席次利用率）" rows="2"></textarea>
+                </div>
+              </div>
+            </div>
+            <div class="nsm-dim">
+              <div class="nsm-dim__head"><div class="nsm-dim__label">黏著頻率</div><div class="nsm-dim__desc">使用頻率是否顯示產品已嵌入日常工作流</div></div>
+              <div class="nsm-dim__body">
+                <div class="nsm-dim__coach"><i class="ph ph-chat-dots"></i>每天都用 vs 偶爾用——是剛需工具嗎？DAU/MAU 比多高？</div>
+                <button class="nsm-dim__hint-btn"><i class="ph ph-lightbulb"></i>查看教練提示</button>
+                <div class="nsm-rt-field">
+                  <div class="nsm-rt-toolbar"><button class="nsm-rt-tbtn"><strong>B</strong></button><button class="nsm-rt-tbtn"><i class="ph ph-list-bullets"></i></button><button class="nsm-rt-tbtn"><i class="ph ph-text-indent"></i></button><button class="nsm-rt-tbtn"><i class="ph ph-text-outdent"></i></button></div>
+                  <textarea placeholder="例：每週使用核心功能 ≥ 3 次的帳號佔比" rows="2"></textarea>
+                </div>
+              </div>
+            </div>
+            <div class="nsm-dim">
+              <div class="nsm-dim__head"><div class="nsm-dim__label">擴張信號</div><div class="nsm-dim__desc">現有客戶是否在增加使用（NRR 指標）</div></div>
+              <div class="nsm-dim__body">
+                <div class="nsm-dim__coach"><i class="ph ph-chat-dots"></i>NRR &gt; 100% 代表客戶在擴張——多少比例帳號在 90 天內擴展？</div>
+                <button class="nsm-dim__hint-btn"><i class="ph ph-lightbulb"></i>查看教練提示</button>
+                <div class="nsm-rt-field">
+                  <div class="nsm-rt-toolbar"><button class="nsm-rt-tbtn"><strong>B</strong></button><button class="nsm-rt-tbtn"><i class="ph ph-list-bullets"></i></button><button class="nsm-rt-tbtn"><i class="ph ph-text-indent"></i></button><button class="nsm-rt-tbtn"><i class="ph ph-text-outdent"></i></button></div>
+                  <textarea placeholder="例：90 天內增加席次或升級方案的帳號比例" rows="2"></textarea>
+                </div>
+              </div>
+            </div>
+          </div>
+          <div class="submit-bar">
+            <div class="submit-bar__left"><button class="btn btn--ghost"><i class="ph ph-arrow-left"></i>上一步</button></div>
+            <div class="submit-bar__right"><button class="btn btn--primary">送出，取得 AI 評分<i class="ph ph-arrow-right"></i></button></div>
+          </div>
+        </div>
+      </div>
+
+    </div>
+
+  </div>
+</body>
+</html>
