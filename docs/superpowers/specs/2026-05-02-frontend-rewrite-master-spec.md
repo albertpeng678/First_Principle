@@ -185,18 +185,38 @@ data: {"error":"code","raw":"first 500 chars"}
 | Function | Endpoint | 模式 | 溫度 | max_tok |
 |---|---|---|---|---|
 | streamCirclesReply | /message | streaming | 0.7 | 600 |
-| evaluateCirclesStep ⚠ | /evaluate-step | JSON 一次回 | 0.3 | 800 |
+| evaluateCirclesStep | /evaluate-step | JSON 一次回 | 0.3 | **1500** |
 | reviewFramework | /gate | JSON + 3 retry | 0.3 | 800 |
 | generateFinalReport | /final-report | JSON | - | - |
 | generateCirclesHint / Example | /hint /example | JSON | - | - |
 | evaluateNSM / reviewNSMGate / generateNSMContext / generateNSMHints | NSM endpoints | JSON | - | - |
 
-> **⚠ SP3 backend bundle 待 merge — 本表將在 SP3 完成後更新：**
-> - `evaluateCirclesStep` 的 response schema：`coachVersion` 從 `string` 改為 `{ context: string, perField: [{key, example}], reasoning: string }`
-> - `/evaluate-step` route 加 `EVAL_TIMEOUT` / `EVAL_API_ERROR` / `EVAL_PARSE_ERROR` / `EVAL_AUTH_ERROR` 四種 error code
-> - `/evaluate-step` 加 30s AbortController timeout
-> - SP3 backend merge 前：**Phase 3 / Phase 4 / Phase 3 error / loading mockup 不准開畫**（rendering 結構直接吃此 schema）
-> - SP3 backend merge 後：本表 + §2.9 同步更新並把此提示框移除
+#### `evaluateCirclesStep` response schema（SP3 已 merge — CONTRACT-LOCKED）
+```ts
+{
+  dimensions: [{ name: string, score: 1..5, comment: string }],
+  totalScore: number (0..100),
+  highlight: string (≤20 chars),
+  improvement: string (≤25 chars),
+  coachVersion: {                    // ← was string before SP3
+    context: string (60-100 字),       //   情境前置
+    perField: [{ field: string, demo: string }],  // 每 framework 欄位一筆
+    reasoning: string (40-80 字),      //   為什麼這樣答
+  }
+}
+```
+- 透過 `lib/evaluate-step-handler.js`（共用 helper）持久化前先用 `isValidEvaluatorResult()` 驗 shape — schema-drift 直接歸類為 `EVAL_PARSE_ERROR`，不寫 DB
+- `evaluateCirclesStep` 接受 `signal` 參數（AbortController）+ `isSimulation` / `mode` 雙來源相容
+
+#### `/evaluate-step` route 錯誤映射（SP3 — CONTRACT-LOCKED）
+| Error code | 觸發條件 | HTTP status | console log level |
+|---|---|---|---|
+| `EVAL_TIMEOUT` | `e.name === 'AbortError'`（30s timeout 觸發 controller.abort）| 500 | warn |
+| `EVAL_PARSE_ERROR` | `e instanceof SyntaxError`（JSON.parse 失敗 OR coachVersion shape-drift）| 500 | warn |
+| `EVAL_AUTH_ERROR` | `e.status === 401`（OpenAI auth 失敗）| 500 | error |
+| `EVAL_API_ERROR` | 其他（5xx / 一般 Error / 未知）| 500 | error |
+- Response shape：`{ error: string, code: 'EVAL_*' }`
+- 拋出機制：helper throw `EvaluatorError` subclass；route 用 `instanceof EvaluatorError` 判斷
 
 ### 1.5 Auth 機制
 - Supabase JWT in `Authorization: Bearer <token>` header（無 cookie）
