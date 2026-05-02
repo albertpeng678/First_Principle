@@ -1,0 +1,1228 @@
+<!doctype html>
+<html lang="zh-TW">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover, interactive-widget=resizes-visual">
+  <title>PM Drill — 08 NSM 審核 Gate（紅 = 必擋 · 無 override）</title>
+
+  <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/@phosphor-icons/web@2.1.1/src/regular/style.css">
+  <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/@phosphor-icons/web@2.1.1/src/fill/style.css">
+  <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Instrument+Serif:ital@0;1&display=swap">
+
+  <style>
+    /* ───── LOCKED CSS — verbatim from 04 / 06 / 07 ───── */
+    :root {
+      --c-bg: #F2F0EB; --c-bg-soft: #ECE9E1; --c-bg-deep: #E5E1D7;
+      --c-card: #FFFFFF; --c-surface: #FAFAF7;
+      --c-ink: #1F1D1B; --c-ink-2: #5A5046; --c-ink-3: #8A7E70; --c-ink-4: #B8AC9D;
+      --c-rule: rgba(60,45,30,0.10); --c-rule-bold: rgba(60,45,30,0.18);
+      --c-primary: #1A56DB;
+      --c-navy: #1B2D5C; --c-navy-2: #142347; --c-navy-lt: rgba(27,45,92,0.08);
+      --c-success: #137A3D; --c-success-lt: #DCEFE0;
+      --c-warn: #B85C00; --c-warn-lt: #FBE9D0;
+      --c-danger: #B61F1F; --c-danger-lt: #FADCDC;
+      --font-sans: system-ui, -apple-system, BlinkMacSystemFont, 'PingFang TC', 'Microsoft JhengHei', 'Heiti TC', 'Noto Sans TC', sans-serif;
+      --font-serif: 'Instrument Serif', 'Times New Roman', serif;
+      --t-h1: 24px; --t-h2: 19px; --t-h3: 16px; --t-body: 15px; --t-body-sm: 14px; --t-meta: 13px; --t-cap: 12px;
+      --s-1: 4px; --s-2: 8px; --s-3: 12px; --s-4: 16px; --s-5: 20px; --s-6: 24px; --s-7: 32px; --s-8: 40px; --s-9: 56px; --s-10: 80px;
+      --r-input: 6px; --r-card: 10px; --r-pill: 999px;
+      --touch-min: 44px;
+      --t-fast: 120ms; --t-norm: 200ms; --t-slow: 300ms;
+      --ease: cubic-bezier(0.4, 0, 0.2, 1);
+      --shadow-1: 0 1px 0 rgba(60,45,30,0.04);
+      --shadow-2: 0 1px 2px rgba(60,45,30,0.06);
+      --shadow-3: 0 4px 12px rgba(60,45,30,0.08);
+      --shadow-focus: 0 0 0 3px rgba(26,86,219,0.18);
+    }
+
+    *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+    html, body {
+      background: var(--c-bg);
+      color: var(--c-ink);
+      font-family: var(--font-sans);
+      font-size: var(--t-body);
+      line-height: 1.55;
+      -webkit-font-smoothing: antialiased;
+      -webkit-tap-highlight-color: transparent;
+    }
+    button { font: inherit; color: inherit; cursor: pointer; background: none; border: none; }
+    a { color: inherit; text-decoration: none; }
+    @media (max-width: 767px) { input, textarea, select { font-size: 16px !important; } }
+
+    /* viewport demo */
+    .vp-grid {
+      display: grid;
+      grid-template-columns: 360px 768px 1280px;
+      gap: var(--s-6);
+      padding: var(--s-6);
+      align-items: start;
+      overflow-x: auto;
+    }
+    .vp-frame { border: 1px solid var(--c-rule-bold); border-radius: var(--r-card); background: var(--c-bg); overflow: hidden; }
+    .vp-frame__label { padding: var(--s-3) var(--s-4); border-bottom: 1px solid var(--c-rule); background: var(--c-card); display: flex; justify-content: space-between; font-size: var(--t-cap); letter-spacing: 0.08em; text-transform: uppercase; color: var(--c-ink-2); }
+    .vp-frame__label span:last-child { font-family: ui-monospace, 'SF Mono', monospace; color: var(--c-ink-3); }
+
+    .ds-page { padding: var(--s-6); }
+    .ds-header { max-width: 1880px; margin: 0 auto var(--s-7); padding-bottom: var(--s-6); border-bottom: 1px solid var(--c-rule); }
+    .ds-header h1 { font-size: var(--t-h1); margin-top: var(--s-2); }
+    .ds-header__eyebrow { font-size: var(--t-cap); letter-spacing: 0.12em; text-transform: uppercase; color: var(--c-ink-3); }
+    .ds-header__sub { color: var(--c-ink-2); font-size: var(--t-body-sm); margin-top: var(--s-3); max-width: 720px; }
+
+    .vp-section-title { max-width: 1880px; margin: var(--s-7) auto var(--s-3); padding-bottom: var(--s-2); border-bottom: 1px solid var(--c-rule); font-size: var(--t-h2); display: flex; align-items: baseline; gap: var(--s-3); }
+    .vp-section-title__sub { font-size: var(--t-cap); color: var(--c-ink-3); letter-spacing: 0.04em; text-transform: uppercase; }
+    .anno { background: var(--c-bg-soft); border-left: 2px solid var(--c-ink-3); padding: var(--s-3) var(--s-4); font-size: var(--t-meta); color: var(--c-ink-2); margin: var(--s-4) auto; max-width: 1180px; line-height: 1.7; }
+    .anno strong { color: var(--c-ink); }
+    .anno code { font-family: ui-monospace, 'SF Mono', monospace; font-size: 12px; background: var(--c-card); padding: 1px 6px; border-radius: 4px; border: 1px solid var(--c-rule); }
+
+    /* ───── PRODUCTION COMPONENTS — LOCKED ───── */
+    .navbar {
+      display: flex; align-items: center; gap: var(--s-3);
+      padding: var(--s-3) var(--s-4);
+      background: rgba(255,255,255,0.85);
+      -webkit-backdrop-filter: saturate(140%) blur(10px);
+      backdrop-filter: saturate(140%) blur(10px);
+      border-bottom: 1px solid var(--c-rule);
+    }
+    .navbar__icon-btn { width: 40px; height: 40px; border-radius: var(--r-pill); display: inline-flex; align-items: center; justify-content: center; color: var(--c-ink-2); }
+    .navbar__icon-btn:hover { background: var(--c-bg-soft); color: var(--c-ink); }
+    .navbar__brand { display: flex; align-items: center; gap: var(--s-2); padding: 4px var(--s-2); border-radius: var(--r-input); cursor: pointer; transition: background var(--t-fast) var(--ease); }
+    .navbar__brand:hover { background: var(--c-bg-soft); }
+    .navbar__brand-icon { width: 28px; height: 28px; border-radius: 6px; background: var(--c-navy); color: #fff; display: inline-flex; align-items: center; justify-content: center; font-size: 16px; }
+    .navbar__brand-name { font-size: var(--t-body-sm); font-weight: 500; }
+    .navbar__tabs { display: flex; gap: var(--s-2); margin-left: var(--s-4); }
+    .navbar__tab { padding: 6px var(--s-3); border-radius: var(--r-pill); font-size: var(--t-meta); color: var(--c-ink-3); }
+    .navbar__tab.is-active { background: var(--c-navy); color: #fff; }
+    .navbar__actions { margin-left: auto; display: flex; align-items: center; gap: var(--s-2); }
+    .navbar__email { font-size: var(--t-cap); color: var(--c-ink-3); max-width: 180px; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+
+    /* phase head */
+    .phase-head { padding: var(--s-3) var(--s-5); background: var(--c-bg-soft); border-bottom: 1px solid var(--c-rule); display: flex; align-items: center; gap: var(--s-3); }
+    .phase-head__num { font-family: var(--font-serif); font-style: italic; font-size: 22px; color: var(--c-navy); line-height: 1; flex: 0 0 auto; }
+    .phase-head__main { flex: 1; min-width: 0; }
+    .phase-head__eyebrow { font-size: var(--t-cap); letter-spacing: 0.08em; text-transform: uppercase; color: var(--c-ink-3); }
+    .phase-head__title { font-size: var(--t-h3); color: var(--c-ink); margin-top: 2px; letter-spacing: -0.005em; }
+    .phase-head__meta { flex: 0 0 auto; font-size: var(--t-meta); color: var(--c-ink-3); display: flex; gap: var(--s-3); align-items: center; flex-wrap: wrap; justify-content: flex-end; }
+    @media (max-width: 480px) {
+      .phase-head__meta { gap: var(--s-2); }
+      .phase-head__meta-sep { display: none; }
+      .phase-head__meta > *:not(.save-indicator) { display: none; }
+    }
+    .phase-head__meta-sep { color: var(--c-rule-bold); }
+
+    /* submit-bar — LOCKED */
+    .submit-bar {
+      position: sticky; bottom: 0;
+      background: rgba(255,255,255,0.92);
+      -webkit-backdrop-filter: saturate(140%) blur(10px);
+      backdrop-filter: saturate(140%) blur(10px);
+      border-top: 1px solid var(--c-rule);
+      padding: var(--s-3) var(--s-4) max(var(--s-3), env(safe-area-inset-bottom));
+      display: flex; gap: var(--s-3); justify-content: space-between; align-items: center;
+    }
+    .submit-bar__left, .submit-bar__right { display: flex; gap: var(--s-2); align-items: center; flex-wrap: wrap; }
+    .btn { display: inline-flex; align-items: center; gap: var(--s-2); min-height: var(--touch-min); padding: 0 var(--s-5); border-radius: var(--r-input); font-size: var(--t-body-sm); font-weight: 500; transition: all var(--t-fast) var(--ease); }
+    .btn--primary { background: var(--c-navy); color: #fff; }
+    .btn--primary:hover { background: var(--c-navy-2); }
+    .btn--ghost { background: transparent; color: var(--c-ink-2); border: 1px solid var(--c-rule-bold); }
+    .btn--ghost:hover { background: var(--c-bg-soft); color: var(--c-ink); }
+    .btn[disabled], .btn.is-disabled { background: var(--c-ink-4); color: #fff; cursor: not-allowed; opacity: 0.6; }
+
+    /* ───── SUB-TABS — LOCKED from 07 ───── */
+    .nsm-sub-tabs {
+      display: flex; gap: 0;
+      padding: 0 var(--s-4);
+      background: var(--c-bg-soft);
+      border-bottom: 1px solid var(--c-rule);
+      overflow-x: auto;
+      -webkit-overflow-scrolling: touch;
+    }
+    .nsm-sub-tab {
+      flex: 0 0 auto;
+      padding: var(--s-3) var(--s-3);
+      font-size: var(--t-body-sm);
+      color: var(--c-ink-3);
+      border-bottom: 2px solid transparent;
+      white-space: nowrap;
+      transition: color var(--t-fast) var(--ease), border-color var(--t-fast) var(--ease);
+    }
+    .nsm-sub-tab:hover:not([disabled]) { color: var(--c-ink-2); }
+    .nsm-sub-tab.is-active { color: var(--c-navy); border-bottom-color: var(--c-navy); font-weight: 600; }
+    .nsm-sub-tab[disabled] { color: var(--c-ink-4); cursor: not-allowed; }
+    @media (min-width: 768px) {
+      .nsm-sub-tabs { padding: 0 var(--s-5); }
+      .nsm-sub-tab { padding: var(--s-3) var(--s-4); }
+    }
+
+    /* ───── GATE — LOCKED from 04 ───── */
+    .gate-wrap {
+      padding: var(--s-5) var(--s-4);
+      max-width: 920px;
+      margin: 0 auto;
+    }
+    @media (min-width: 768px) { .gate-wrap { padding: var(--s-6) var(--s-5); } }
+    @media (min-width: 1024px) { .gate-wrap { padding: var(--s-7) var(--s-6); } }
+
+    /* transition bar */
+    .gate-transition {
+      display: flex; align-items: center;
+      gap: var(--s-3);
+      padding: var(--s-4) var(--s-5);
+      border-radius: var(--r-card);
+      margin-bottom: var(--s-5);
+      box-shadow: var(--shadow-1);
+    }
+    .gate-transition--ok {
+      background: linear-gradient(0deg, rgba(19,122,61,0.06), rgba(19,122,61,0.06)), var(--c-card);
+      border: 1px solid rgba(19,122,61,0.22);
+    }
+    .gate-transition--ok .gate-transition__icon { color: var(--c-success); }
+    .gate-transition--warn {
+      background: linear-gradient(0deg, rgba(19,122,61,0.06), rgba(19,122,61,0.06)), var(--c-card);
+      border: 1px solid rgba(19,122,61,0.22);
+    }
+    .gate-transition--warn .gate-transition__icon { color: var(--c-success); }
+    .gate-transition--error {
+      background: linear-gradient(0deg, rgba(182,31,31,0.05), rgba(182,31,31,0.05)), var(--c-card);
+      border: 1px solid rgba(182,31,31,0.22);
+    }
+    .gate-transition--error .gate-transition__icon { color: var(--c-danger); }
+    .gate-transition__icon { font-size: 24px; flex: 0 0 auto; line-height: 1; }
+    .gate-transition__main { flex: 1; min-width: 0; }
+    .gate-transition__title { font-size: var(--t-h3); font-weight: 600; color: var(--c-ink); letter-spacing: -0.005em; }
+    .gate-transition__sub { font-size: var(--t-meta); color: var(--c-ink-2); margin-top: 2px; }
+
+    /* nsm-gate-summary (公司情境 + 你的 NSM) */
+    .gate-summary {
+      background: var(--c-bg-soft);
+      border: 1px solid var(--c-rule);
+      border-radius: var(--r-input);
+      padding: var(--s-3) var(--s-4);
+      margin-bottom: var(--s-5);
+      font-size: var(--t-meta);
+      color: var(--c-ink-2);
+      display: flex;
+      flex-direction: column;
+      gap: var(--s-1);
+      line-height: 1.7;
+    }
+    .gate-summary__row { display: flex; gap: var(--s-2); align-items: flex-start; }
+    .gate-summary__row strong { color: var(--c-navy); font-weight: 600; flex: 0 0 auto; }
+    .gate-summary__row span { flex: 1; min-width: 0; }
+
+    /* gate section label */
+    .gate-section-label {
+      display: flex; align-items: center;
+      gap: var(--s-3);
+      margin: var(--s-6) 0 var(--s-4);
+      font-size: var(--t-h3);
+      font-weight: 600;
+      color: var(--c-navy);
+      letter-spacing: -0.005em;
+    }
+    .gate-section-label::before {
+      content: ''; width: 24px; height: 2px;
+      background: var(--c-navy);
+      flex: 0 0 auto;
+    }
+    .gate-section-label__count {
+      margin-left: auto;
+      font-size: var(--t-cap);
+      font-weight: 400;
+      letter-spacing: 0.04em;
+      color: var(--c-ink-3);
+      text-transform: uppercase;
+    }
+
+    /* gate items */
+    .gate-list { display: flex; flex-direction: column; gap: var(--s-3); }
+    .gate-item {
+      padding: var(--s-4) var(--s-5);
+      background: var(--c-card);
+      border: 1px solid var(--c-rule);
+      border-radius: var(--r-input);
+      display: flex;
+      gap: var(--s-3);
+      align-items: flex-start;
+    }
+    .gate-item__icon { width: 24px; flex: 0 0 auto; font-size: 20px; line-height: 1.2; text-align: center; padding-top: 2px; }
+    .gate-item__main { flex: 1; min-width: 0; }
+    .gate-item__field { font-size: var(--t-cap); letter-spacing: 0.06em; text-transform: uppercase; color: var(--c-ink-3); margin-bottom: 2px; }
+    .gate-item__title { font-size: var(--t-body); font-weight: 600; color: var(--c-ink); letter-spacing: -0.005em; }
+    .gate-item__reason { font-size: var(--t-body-sm); line-height: 1.7; color: var(--c-ink-2); margin-top: var(--s-2); max-width: 60ch; }
+    .gate-item__suggestion {
+      margin-top: var(--s-3);
+      padding: var(--s-3);
+      border-radius: var(--r-input);
+      font-size: var(--t-body-sm);
+      line-height: 1.7;
+    }
+    .gate-item__suggestion strong { font-weight: 600; letter-spacing: 0.04em; margin-right: 4px; }
+    .gate-item__suggestion-body { color: var(--c-ink-2); }
+
+    .gate-item--ok { /* default */ }
+    .gate-item--ok .gate-item__icon { color: var(--c-success); }
+    .gate-item--warn {
+      background: linear-gradient(0deg, rgba(184,92,0,0.04), rgba(184,92,0,0.04)), var(--c-card);
+      border-color: rgba(184,92,0,0.22);
+    }
+    .gate-item--warn .gate-item__icon { color: var(--c-warn); }
+    .gate-item--warn .gate-item__suggestion {
+      background: rgba(184,92,0,0.07);
+      border: 1px solid rgba(184,92,0,0.18);
+    }
+    .gate-item--warn .gate-item__suggestion strong { color: var(--c-warn); }
+    .gate-item--error {
+      background: linear-gradient(0deg, rgba(182,31,31,0.04), rgba(182,31,31,0.04)), var(--c-card);
+      border-color: rgba(182,31,31,0.24);
+    }
+    .gate-item--error .gate-item__icon { color: var(--c-danger); }
+    .gate-item--error .gate-item__suggestion {
+      background: rgba(182,31,31,0.06);
+      border: 1px solid rgba(182,31,31,0.20);
+    }
+    .gate-item--error .gate-item__suggestion strong { color: var(--c-danger); }
+
+    /* loading state */
+    .gate-loading-wrap {
+      padding: var(--s-9) var(--s-5);
+      display: flex; flex-direction: column;
+      align-items: center; gap: var(--s-4);
+      max-width: 480px; margin: 0 auto;
+      text-align: center;
+    }
+    .gate-spinner {
+      width: 48px; height: 48px;
+      border: 3px solid var(--c-rule);
+      border-top-color: var(--c-navy);
+      border-radius: 50%;
+      animation: spin 0.8s linear infinite;
+    }
+    @keyframes spin { to { transform: rotate(360deg); } }
+    .gate-loading-title { font-size: var(--t-h3); font-weight: 600; color: var(--c-ink); letter-spacing: -0.005em; }
+    .gate-loading-sub { font-size: var(--t-meta); color: var(--c-ink-3); max-width: 320px; }
+    .gate-loading-checklist { display: flex; flex-direction: column; gap: var(--s-2); margin: var(--s-4) auto 0; width: fit-content; max-width: 100%; align-items: flex-start; }
+    .gate-loading-step { display: flex; align-items: center; gap: var(--s-3); font-size: var(--t-body-sm); color: var(--c-ink-3); }
+    .gate-loading-step.is-done { color: var(--c-ink-2); }
+    .gate-loading-step.is-active { color: var(--c-ink); }
+    .gate-loading-step__icon { width: 20px; height: 20px; flex: 0 0 auto; display: inline-flex; align-items: center; justify-content: center; font-size: 16px; }
+    .gate-loading-step.is-done .gate-loading-step__icon { color: var(--c-success); }
+    .gate-loading-step.is-active .gate-loading-step__icon { color: var(--c-navy); }
+    .gate-loading-step.is-pending .gate-loading-step__icon { color: var(--c-ink-4); }
+
+    .vp-frame__inner { background: var(--c-bg); min-height: 1100px; display: flex; flex-direction: column; }
+    .vp-frame__inner > .gate-content { flex: 1; }
+  </style>
+</head>
+<body>
+  <div class="ds-page">
+    <header class="ds-header">
+      <div class="ds-header__eyebrow">Path 2 · Mockup 08 · CONTRACT-LOCKED 草稿</div>
+      <h1>NSM 審核 Gate — 5 criteria 三態 + Loading（紅 = 必擋 · 無 simulation override）</h1>
+      <p class="ds-header__sub">
+        Screen 8 中間 sub-tab「NSM 審核」。AI 對學員填寫的 NSM 定義跑 5 維度檢核：
+        <strong>價值關聯性 / 領先指標性 / 操作性 / 可理解性 / 週期敏感</strong>（見 <code>nsm_trainer_full_spec.md</code>）。
+        三態 + Loading：A 全綠 ok / B 含黃 warn（仍通過）/ C 含紅 error（必擋）/ D Loading 審核中。
+        <strong>紅 = 必擋規則：</strong>任一紅 item =「返回修改」<strong>唯一動作</strong>，無「帶風險繼續」、無 simulation override，drill 與 simulation 行為一致（Master Spec § 2.4）。
+        Component CSS 整段 LOCKED copy 自 04（gate-transition / gate-item / gate-loading）+ 07（nsm-sub-tabs）+ 03（navbar / phase-head / submit-bar / btn）。
+      </p>
+    </header>
+
+    <!-- ============================================================ -->
+    <!-- Section A — OK 通過                                          -->
+    <!-- ============================================================ -->
+    <h2 class="vp-section-title">A · 通過（5 綠）<span class="vp-section-title__sub">overallStatus = ok · canProceed true · CTA 繼續到 步驟 3</span></h2>
+    <div class="anno"><strong>視覺契約：</strong>navbar + phase-head（NSM 品質審核）+ sub-tabs（步驟 2 / <strong>NSM 審核 active</strong> / 步驟 3 enabled）+ gate-transition--ok（綠勾 · 通過審核 · 可進入拆解）+ gate-summary（公司情境 · 你的 NSM）+ gate-list（5 張 ok cards：價值關聯 / 領先指標 / 操作性 / 可理解 / 週期敏感）+ submit-bar（「上一步」ghost + 「繼續到 步驟 3」primary）。</div>
+    <div class="vp-grid">
+
+      <!-- A · Mobile 360 -->
+      <div class="vp-frame">
+        <div class="vp-frame__label"><span>Mobile</span><span>360 × 1100</span></div>
+        <div class="vp-frame__inner" style="width:360px">
+          <div class="navbar">
+            <button class="navbar__icon-btn"><i class="ph ph-list"></i></button>
+            <div class="navbar__brand"><span class="navbar__brand-icon">PM</span></div>
+            <div class="navbar__actions"><button class="navbar__icon-btn"><i class="ph ph-house"></i></button></div>
+          </div>
+          <div class="phase-head">
+            <span class="phase-head__num">2.5</span>
+            <div class="phase-head__main">
+              <div class="phase-head__eyebrow">NSM · 北極星訓練</div>
+              <div class="phase-head__title">NSM 品質審核</div>
+            </div>
+          </div>
+          <div class="nsm-sub-tabs">
+            <button class="nsm-sub-tab">步驟 2</button>
+            <button class="nsm-sub-tab is-active">NSM 審核</button>
+            <button class="nsm-sub-tab">步驟 3：拆解</button>
+          </div>
+          <div class="gate-content">
+            <div class="gate-wrap">
+              <div class="gate-transition gate-transition--ok">
+                <i class="ph-fill ph-check-circle gate-transition__icon"></i>
+                <div class="gate-transition__main">
+                  <div class="gate-transition__title">NSM 定義通過審核</div>
+                  <div class="gate-transition__sub">5 / 5 條件達標 — 可以進入拆解指標</div>
+                </div>
+              </div>
+              <div class="gate-summary">
+                <div class="gate-summary__row"><strong>公司：</strong><span>Spotify · 音樂串流</span></div>
+                <div class="gate-summary__row"><strong>你的 NSM：</strong><span>每月完成至少一首完整曲目播放的活躍月用戶數</span></div>
+              </div>
+              <div class="gate-section-label">5 維度檢核<span class="gate-section-label__count">5 / 5 OK</span></div>
+              <div class="gate-list">
+                <div class="gate-item gate-item--ok">
+                  <i class="ph-fill ph-check-circle gate-item__icon"></i>
+                  <div class="gate-item__main">
+                    <div class="gate-item__field">價值關聯性</div>
+                    <div class="gate-item__title">能反映商業價值</div>
+                    <div class="gate-item__reason">「完整曲目播放」直接對應 Spotify 的核心價值（深度聆聽），翻倍意味用戶停留更深、訂閱／廣告營收都會跟著拉動。</div>
+                  </div>
+                </div>
+                <div class="gate-item gate-item--ok">
+                  <i class="ph-fill ph-check-circle gate-item__icon"></i>
+                  <div class="gate-item__main">
+                    <div class="gate-item__field">領先指標性</div>
+                    <div class="gate-item__title">可預測未來營收</div>
+                    <div class="gate-item__reason">深度聆聽人數上升 → 30 天留存提升 → 訂閱續費或廣告 CPM 提升，是清晰的領先 → 落後因果鏈。</div>
+                  </div>
+                </div>
+                <div class="gate-item gate-item--ok">
+                  <i class="ph-fill ph-check-circle gate-item__icon"></i>
+                  <div class="gate-item__main">
+                    <div class="gate-item__field">操作性</div>
+                    <div class="gate-item__title">團隊可影響</div>
+                    <div class="gate-item__reason">推薦演算法、首頁編排、新手 onboarding 都能直接拉動「完整播放」，PM 可拆出明確的 lever。</div>
+                  </div>
+                </div>
+                <div class="gate-item gate-item--ok">
+                  <i class="ph-fill ph-check-circle gate-item__icon"></i>
+                  <div class="gate-item__main">
+                    <div class="gate-item__field">可理解性</div>
+                    <div class="gate-item__title">直觀易懂</div>
+                    <div class="gate-item__reason">「完整播放」對 PM／工程／高層都是同一個語意，不需要額外解釋如何 trade-off 也能達成共識。</div>
+                  </div>
+                </div>
+                <div class="gate-item gate-item--ok">
+                  <i class="ph-fill ph-check-circle gate-item__icon"></i>
+                  <div class="gate-item__main">
+                    <div class="gate-item__field">週期敏感</div>
+                    <div class="gate-item__title">短週期可觀測</div>
+                    <div class="gate-item__reason">月活週期足以快速回饋 A/B 結果，又不會被一日波動干擾，符合 product cycle 節奏。</div>
+                  </div>
+                </div>
+              </div>
+            </div>
+          </div>
+          <div class="submit-bar">
+            <div class="submit-bar__left"><button class="btn btn--ghost"><i class="ph ph-arrow-left"></i>上一步</button></div>
+            <div class="submit-bar__right"><button class="btn btn--primary">繼續到 步驟 3<i class="ph ph-arrow-right"></i></button></div>
+          </div>
+        </div>
+      </div>
+
+      <!-- A · Tablet 768 -->
+      <div class="vp-frame">
+        <div class="vp-frame__label"><span>Tablet</span><span>768 × 1100</span></div>
+        <div class="vp-frame__inner" style="width:768px">
+          <div class="navbar">
+            <button class="navbar__icon-btn"><i class="ph ph-list"></i></button>
+            <div class="navbar__brand"><span class="navbar__brand-icon">PM</span><span class="navbar__brand-name">PM Drill</span></div>
+            <div class="navbar__tabs"><button class="navbar__tab">CIRCLES</button><button class="navbar__tab is-active">北極星</button></div>
+            <div class="navbar__actions"><button class="navbar__icon-btn"><i class="ph ph-magnifying-glass"></i></button><button class="navbar__icon-btn"><i class="ph ph-house"></i></button></div>
+          </div>
+          <div class="phase-head">
+            <span class="phase-head__num">2.5</span>
+            <div class="phase-head__main">
+              <div class="phase-head__eyebrow">NSM · 北極星訓練</div>
+              <div class="phase-head__title">NSM 品質審核</div>
+            </div>
+            <div class="phase-head__meta"><span>5 維度</span></div>
+          </div>
+          <div class="nsm-sub-tabs">
+            <button class="nsm-sub-tab">步驟 2：定義 NSM</button>
+            <button class="nsm-sub-tab is-active">NSM 審核</button>
+            <button class="nsm-sub-tab">步驟 3：拆解指標</button>
+          </div>
+          <div class="gate-content">
+            <div class="gate-wrap">
+              <div class="gate-transition gate-transition--ok">
+                <i class="ph-fill ph-check-circle gate-transition__icon"></i>
+                <div class="gate-transition__main">
+                  <div class="gate-transition__title">NSM 定義通過審核</div>
+                  <div class="gate-transition__sub">5 / 5 條件達標 — 可以進入拆解指標</div>
+                </div>
+              </div>
+              <div class="gate-summary">
+                <div class="gate-summary__row"><strong>公司：</strong><span>Spotify · 音樂串流</span></div>
+                <div class="gate-summary__row"><strong>你的 NSM：</strong><span>每月完成至少一首完整曲目播放的活躍月用戶數</span></div>
+              </div>
+              <div class="gate-section-label">5 維度檢核<span class="gate-section-label__count">5 / 5 OK</span></div>
+              <div class="gate-list">
+                <div class="gate-item gate-item--ok">
+                  <i class="ph-fill ph-check-circle gate-item__icon"></i>
+                  <div class="gate-item__main">
+                    <div class="gate-item__field">價值關聯性</div>
+                    <div class="gate-item__title">能反映商業價值</div>
+                    <div class="gate-item__reason">「完整曲目播放」直接對應 Spotify 的核心價值（深度聆聽），翻倍意味用戶停留更深、訂閱／廣告營收都會跟著拉動。</div>
+                  </div>
+                </div>
+                <div class="gate-item gate-item--ok">
+                  <i class="ph-fill ph-check-circle gate-item__icon"></i>
+                  <div class="gate-item__main">
+                    <div class="gate-item__field">領先指標性</div>
+                    <div class="gate-item__title">可預測未來營收</div>
+                    <div class="gate-item__reason">深度聆聽人數上升 → 30 天留存提升 → 訂閱續費或廣告 CPM 提升，是清晰的領先 → 落後因果鏈。</div>
+                  </div>
+                </div>
+                <div class="gate-item gate-item--ok">
+                  <i class="ph-fill ph-check-circle gate-item__icon"></i>
+                  <div class="gate-item__main">
+                    <div class="gate-item__field">操作性</div>
+                    <div class="gate-item__title">團隊可影響</div>
+                    <div class="gate-item__reason">推薦演算法、首頁編排、新手 onboarding 都能直接拉動「完整播放」，PM 可拆出明確的 lever。</div>
+                  </div>
+                </div>
+                <div class="gate-item gate-item--ok">
+                  <i class="ph-fill ph-check-circle gate-item__icon"></i>
+                  <div class="gate-item__main">
+                    <div class="gate-item__field">可理解性</div>
+                    <div class="gate-item__title">直觀易懂</div>
+                    <div class="gate-item__reason">「完整播放」對 PM／工程／高層都是同一個語意，不需要額外解釋如何 trade-off 也能達成共識。</div>
+                  </div>
+                </div>
+                <div class="gate-item gate-item--ok">
+                  <i class="ph-fill ph-check-circle gate-item__icon"></i>
+                  <div class="gate-item__main">
+                    <div class="gate-item__field">週期敏感</div>
+                    <div class="gate-item__title">短週期可觀測</div>
+                    <div class="gate-item__reason">月活週期足以快速回饋 A/B 結果，又不會被一日波動干擾，符合 product cycle 節奏。</div>
+                  </div>
+                </div>
+              </div>
+            </div>
+          </div>
+          <div class="submit-bar">
+            <div class="submit-bar__left"><button class="btn btn--ghost"><i class="ph ph-arrow-left"></i>上一步</button></div>
+            <div class="submit-bar__right"><button class="btn btn--primary">繼續到 步驟 3<i class="ph ph-arrow-right"></i></button></div>
+          </div>
+        </div>
+      </div>
+
+      <!-- A · Desktop 1280 -->
+      <div class="vp-frame">
+        <div class="vp-frame__label"><span>Desktop</span><span>1280 × 1100</span></div>
+        <div class="vp-frame__inner" style="width:1280px">
+          <div class="navbar">
+            <button class="navbar__icon-btn"><i class="ph ph-list"></i></button>
+            <div class="navbar__brand"><span class="navbar__brand-icon">PM</span><span class="navbar__brand-name">PM Drill</span></div>
+            <div class="navbar__tabs"><button class="navbar__tab">CIRCLES</button><button class="navbar__tab is-active">北極星</button></div>
+            <div class="navbar__actions"><span class="navbar__email">albertpeng678@gmail.com</span><button class="navbar__icon-btn"><i class="ph ph-magnifying-glass"></i></button><button class="navbar__icon-btn"><i class="ph ph-house"></i></button></div>
+          </div>
+          <div class="phase-head">
+            <span class="phase-head__num">2.5</span>
+            <div class="phase-head__main">
+              <div class="phase-head__eyebrow">NSM · 北極星訓練</div>
+              <div class="phase-head__title">NSM 品質審核</div>
+            </div>
+            <div class="phase-head__meta"><span>Spotify · 音樂串流</span><span class="phase-head__meta-sep">·</span><span>5 維度</span></div>
+          </div>
+          <div class="nsm-sub-tabs">
+            <button class="nsm-sub-tab">步驟 2：定義 NSM</button>
+            <button class="nsm-sub-tab is-active">NSM 審核</button>
+            <button class="nsm-sub-tab">步驟 3：拆解指標</button>
+          </div>
+          <div class="gate-content">
+            <div class="gate-wrap">
+              <div class="gate-transition gate-transition--ok">
+                <i class="ph-fill ph-check-circle gate-transition__icon"></i>
+                <div class="gate-transition__main">
+                  <div class="gate-transition__title">NSM 定義通過審核</div>
+                  <div class="gate-transition__sub">5 / 5 條件達標 — 可以進入拆解指標</div>
+                </div>
+              </div>
+              <div class="gate-summary">
+                <div class="gate-summary__row"><strong>公司：</strong><span>Spotify · 音樂串流</span></div>
+                <div class="gate-summary__row"><strong>你的 NSM：</strong><span>每月完成至少一首完整曲目播放的活躍月用戶數</span></div>
+              </div>
+              <div class="gate-section-label">5 維度檢核<span class="gate-section-label__count">5 / 5 OK</span></div>
+              <div class="gate-list">
+                <div class="gate-item gate-item--ok">
+                  <i class="ph-fill ph-check-circle gate-item__icon"></i>
+                  <div class="gate-item__main">
+                    <div class="gate-item__field">價值關聯性</div>
+                    <div class="gate-item__title">能反映商業價值</div>
+                    <div class="gate-item__reason">「完整曲目播放」直接對應 Spotify 的核心價值（深度聆聽），翻倍意味用戶停留更深、訂閱／廣告營收都會跟著拉動。</div>
+                  </div>
+                </div>
+                <div class="gate-item gate-item--ok">
+                  <i class="ph-fill ph-check-circle gate-item__icon"></i>
+                  <div class="gate-item__main">
+                    <div class="gate-item__field">領先指標性</div>
+                    <div class="gate-item__title">可預測未來營收</div>
+                    <div class="gate-item__reason">深度聆聽人數上升 → 30 天留存提升 → 訂閱續費或廣告 CPM 提升，是清晰的領先 → 落後因果鏈。</div>
+                  </div>
+                </div>
+                <div class="gate-item gate-item--ok">
+                  <i class="ph-fill ph-check-circle gate-item__icon"></i>
+                  <div class="gate-item__main">
+                    <div class="gate-item__field">操作性</div>
+                    <div class="gate-item__title">團隊可影響</div>
+                    <div class="gate-item__reason">推薦演算法、首頁編排、新手 onboarding 都能直接拉動「完整播放」，PM 可拆出明確的 lever。</div>
+                  </div>
+                </div>
+                <div class="gate-item gate-item--ok">
+                  <i class="ph-fill ph-check-circle gate-item__icon"></i>
+                  <div class="gate-item__main">
+                    <div class="gate-item__field">可理解性</div>
+                    <div class="gate-item__title">直觀易懂</div>
+                    <div class="gate-item__reason">「完整播放」對 PM／工程／高層都是同一個語意，不需要額外解釋如何 trade-off 也能達成共識。</div>
+                  </div>
+                </div>
+                <div class="gate-item gate-item--ok">
+                  <i class="ph-fill ph-check-circle gate-item__icon"></i>
+                  <div class="gate-item__main">
+                    <div class="gate-item__field">週期敏感</div>
+                    <div class="gate-item__title">短週期可觀測</div>
+                    <div class="gate-item__reason">月活週期足以快速回饋 A/B 結果，又不會被一日波動干擾，符合 product cycle 節奏。</div>
+                  </div>
+                </div>
+              </div>
+            </div>
+          </div>
+          <div class="submit-bar">
+            <div class="submit-bar__left"><button class="btn btn--ghost"><i class="ph ph-arrow-left"></i>上一步</button></div>
+            <div class="submit-bar__right"><button class="btn btn--primary">繼續到 步驟 3<i class="ph ph-arrow-right"></i></button></div>
+          </div>
+        </div>
+      </div>
+
+    </div>
+
+    <!-- ============================================================ -->
+    <!-- Section B — WARN 通過附提醒                                  -->
+    <!-- ============================================================ -->
+    <h2 class="vp-section-title">B · 通過附提醒（4 綠 + 1 黃）<span class="vp-section-title__sub">overallStatus = warn · canProceed true · CTA 繼續到 步驟 3</span></h2>
+    <div class="anno"><strong>視覺契約：</strong>同 A 結構但 1 張卡 <code>gate-item--warn</code>（黃 警示三角 + 黃底色）+ 含 <code>gate-item__suggestion</code>（黃底建議框）。Transition bar 仍為 <code>--warn</code>（產品決定：warn 仍可通過）— title「通過附提醒」+ sub「4 / 5 達標 · 1 項可優化」。submit-bar：「上一步」+「繼續到 步驟 3」（warn 不擋）。</div>
+    <div class="vp-grid">
+
+      <!-- B · Mobile 360 -->
+      <div class="vp-frame">
+        <div class="vp-frame__label"><span>Mobile</span><span>360 × 1100</span></div>
+        <div class="vp-frame__inner" style="width:360px">
+          <div class="navbar">
+            <button class="navbar__icon-btn"><i class="ph ph-list"></i></button>
+            <div class="navbar__brand"><span class="navbar__brand-icon">PM</span></div>
+            <div class="navbar__actions"><button class="navbar__icon-btn"><i class="ph ph-house"></i></button></div>
+          </div>
+          <div class="phase-head">
+            <span class="phase-head__num">2.5</span>
+            <div class="phase-head__main">
+              <div class="phase-head__eyebrow">NSM · 北極星訓練</div>
+              <div class="phase-head__title">NSM 品質審核</div>
+            </div>
+          </div>
+          <div class="nsm-sub-tabs">
+            <button class="nsm-sub-tab">步驟 2</button>
+            <button class="nsm-sub-tab is-active">NSM 審核</button>
+            <button class="nsm-sub-tab">步驟 3：拆解</button>
+          </div>
+          <div class="gate-content">
+            <div class="gate-wrap">
+              <div class="gate-transition gate-transition--warn">
+                <i class="ph-fill ph-check-circle gate-transition__icon"></i>
+                <div class="gate-transition__main">
+                  <div class="gate-transition__title">通過審核（附提醒）</div>
+                  <div class="gate-transition__sub">4 / 5 達標 · 1 項可優化 — 可以進入拆解指標</div>
+                </div>
+              </div>
+              <div class="gate-summary">
+                <div class="gate-summary__row"><strong>公司：</strong><span>蝦皮 · 電商</span></div>
+                <div class="gate-summary__row"><strong>你的 NSM：</strong><span>每月成功完成支付且未退款的下單筆數</span></div>
+              </div>
+              <div class="gate-section-label">5 維度檢核<span class="gate-section-label__count">4 OK · 1 WARN</span></div>
+              <div class="gate-list">
+                <div class="gate-item gate-item--ok">
+                  <i class="ph-fill ph-check-circle gate-item__icon"></i>
+                  <div class="gate-item__main">
+                    <div class="gate-item__field">價值關聯性</div>
+                    <div class="gate-item__title">直接對應 GMV</div>
+                    <div class="gate-item__reason">成交且不退款的下單數和 take rate 直接相乘＝營收，是純度很高的價值代理。</div>
+                  </div>
+                </div>
+                <div class="gate-item gate-item--ok">
+                  <i class="ph-fill ph-check-circle gate-item__icon"></i>
+                  <div class="gate-item__main">
+                    <div class="gate-item__field">領先指標性</div>
+                    <div class="gate-item__title">能預測月營收</div>
+                    <div class="gate-item__reason">月初下單上升通常領先當月 take rate 收入 7-10 天，可作為調節廣告投放的訊號。</div>
+                  </div>
+                </div>
+                <div class="gate-item gate-item--warn">
+                  <i class="ph-fill ph-warning gate-item__icon"></i>
+                  <div class="gate-item__main">
+                    <div class="gate-item__field">操作性</div>
+                    <div class="gate-item__title">部分依賴外部因素</div>
+                    <div class="gate-item__reason">「成功支付」受第三方金流穩定度影響，PM／工程不一定能完全控制；遇到金流故障 NSM 會誤判團隊績效下滑。</div>
+                    <div class="gate-item__suggestion">
+                      <strong>建議：</strong>
+                      <span class="gate-item__suggestion-body">補一個次指標「下單成功率」（成功 ÷ 嘗試）監控金流健康，當 NSM 異常下跌先看次指標排除外部干擾。</span>
+                    </div>
+                  </div>
+                </div>
+                <div class="gate-item gate-item--ok">
+                  <i class="ph-fill ph-check-circle gate-item__icon"></i>
+                  <div class="gate-item__main">
+                    <div class="gate-item__field">可理解性</div>
+                    <div class="gate-item__title">跨部門共識高</div>
+                    <div class="gate-item__reason">營運／財務／工程都用同一個語意，不需要再翻譯成商業語言。</div>
+                  </div>
+                </div>
+                <div class="gate-item gate-item--ok">
+                  <i class="ph-fill ph-check-circle gate-item__icon"></i>
+                  <div class="gate-item__main">
+                    <div class="gate-item__field">週期敏感</div>
+                    <div class="gate-item__title">月週期適中</div>
+                    <div class="gate-item__reason">電商促檔多以月為單位，月活週期可承擔大促波動又能對齊財務報表。</div>
+                  </div>
+                </div>
+              </div>
+            </div>
+          </div>
+          <div class="submit-bar">
+            <div class="submit-bar__left"><button class="btn btn--ghost"><i class="ph ph-arrow-left"></i>上一步</button></div>
+            <div class="submit-bar__right"><button class="btn btn--primary">繼續到 步驟 3<i class="ph ph-arrow-right"></i></button></div>
+          </div>
+        </div>
+      </div>
+
+      <!-- B · Tablet 768 -->
+      <div class="vp-frame">
+        <div class="vp-frame__label"><span>Tablet</span><span>768 × 1100</span></div>
+        <div class="vp-frame__inner" style="width:768px">
+          <div class="navbar">
+            <button class="navbar__icon-btn"><i class="ph ph-list"></i></button>
+            <div class="navbar__brand"><span class="navbar__brand-icon">PM</span><span class="navbar__brand-name">PM Drill</span></div>
+            <div class="navbar__tabs"><button class="navbar__tab">CIRCLES</button><button class="navbar__tab is-active">北極星</button></div>
+            <div class="navbar__actions"><button class="navbar__icon-btn"><i class="ph ph-magnifying-glass"></i></button><button class="navbar__icon-btn"><i class="ph ph-house"></i></button></div>
+          </div>
+          <div class="phase-head">
+            <span class="phase-head__num">2.5</span>
+            <div class="phase-head__main">
+              <div class="phase-head__eyebrow">NSM · 北極星訓練</div>
+              <div class="phase-head__title">NSM 品質審核</div>
+            </div>
+            <div class="phase-head__meta"><span>4 OK · 1 WARN</span></div>
+          </div>
+          <div class="nsm-sub-tabs">
+            <button class="nsm-sub-tab">步驟 2：定義 NSM</button>
+            <button class="nsm-sub-tab is-active">NSM 審核</button>
+            <button class="nsm-sub-tab">步驟 3：拆解指標</button>
+          </div>
+          <div class="gate-content">
+            <div class="gate-wrap">
+              <div class="gate-transition gate-transition--warn">
+                <i class="ph-fill ph-check-circle gate-transition__icon"></i>
+                <div class="gate-transition__main">
+                  <div class="gate-transition__title">通過審核（附提醒）</div>
+                  <div class="gate-transition__sub">4 / 5 達標 · 1 項可優化 — 可以進入拆解指標</div>
+                </div>
+              </div>
+              <div class="gate-summary">
+                <div class="gate-summary__row"><strong>公司：</strong><span>蝦皮 · 電商</span></div>
+                <div class="gate-summary__row"><strong>你的 NSM：</strong><span>每月成功完成支付且未退款的下單筆數</span></div>
+              </div>
+              <div class="gate-section-label">5 維度檢核<span class="gate-section-label__count">4 OK · 1 WARN</span></div>
+              <div class="gate-list">
+                <div class="gate-item gate-item--ok">
+                  <i class="ph-fill ph-check-circle gate-item__icon"></i>
+                  <div class="gate-item__main"><div class="gate-item__field">價值關聯性</div><div class="gate-item__title">直接對應 GMV</div><div class="gate-item__reason">成交且不退款的下單數和 take rate 直接相乘＝營收，是純度很高的價值代理。</div></div>
+                </div>
+                <div class="gate-item gate-item--ok">
+                  <i class="ph-fill ph-check-circle gate-item__icon"></i>
+                  <div class="gate-item__main"><div class="gate-item__field">領先指標性</div><div class="gate-item__title">能預測月營收</div><div class="gate-item__reason">月初下單上升通常領先當月 take rate 收入 7-10 天，可作為調節廣告投放的訊號。</div></div>
+                </div>
+                <div class="gate-item gate-item--warn">
+                  <i class="ph-fill ph-warning gate-item__icon"></i>
+                  <div class="gate-item__main">
+                    <div class="gate-item__field">操作性</div>
+                    <div class="gate-item__title">部分依賴外部因素</div>
+                    <div class="gate-item__reason">「成功支付」受第三方金流穩定度影響，PM／工程不一定能完全控制；遇到金流故障 NSM 會誤判團隊績效下滑。</div>
+                    <div class="gate-item__suggestion"><strong>建議：</strong><span class="gate-item__suggestion-body">補一個次指標「下單成功率」（成功 ÷ 嘗試）監控金流健康，當 NSM 異常下跌先看次指標排除外部干擾。</span></div>
+                  </div>
+                </div>
+                <div class="gate-item gate-item--ok">
+                  <i class="ph-fill ph-check-circle gate-item__icon"></i>
+                  <div class="gate-item__main"><div class="gate-item__field">可理解性</div><div class="gate-item__title">跨部門共識高</div><div class="gate-item__reason">營運／財務／工程都用同一個語意，不需要再翻譯成商業語言。</div></div>
+                </div>
+                <div class="gate-item gate-item--ok">
+                  <i class="ph-fill ph-check-circle gate-item__icon"></i>
+                  <div class="gate-item__main"><div class="gate-item__field">週期敏感</div><div class="gate-item__title">月週期適中</div><div class="gate-item__reason">電商促檔多以月為單位，月活週期可承擔大促波動又能對齊財務報表。</div></div>
+                </div>
+              </div>
+            </div>
+          </div>
+          <div class="submit-bar">
+            <div class="submit-bar__left"><button class="btn btn--ghost"><i class="ph ph-arrow-left"></i>上一步</button></div>
+            <div class="submit-bar__right"><button class="btn btn--primary">繼續到 步驟 3<i class="ph ph-arrow-right"></i></button></div>
+          </div>
+        </div>
+      </div>
+
+      <!-- B · Desktop 1280 -->
+      <div class="vp-frame">
+        <div class="vp-frame__label"><span>Desktop</span><span>1280 × 1100</span></div>
+        <div class="vp-frame__inner" style="width:1280px">
+          <div class="navbar">
+            <button class="navbar__icon-btn"><i class="ph ph-list"></i></button>
+            <div class="navbar__brand"><span class="navbar__brand-icon">PM</span><span class="navbar__brand-name">PM Drill</span></div>
+            <div class="navbar__tabs"><button class="navbar__tab">CIRCLES</button><button class="navbar__tab is-active">北極星</button></div>
+            <div class="navbar__actions"><span class="navbar__email">albertpeng678@gmail.com</span><button class="navbar__icon-btn"><i class="ph ph-magnifying-glass"></i></button><button class="navbar__icon-btn"><i class="ph ph-house"></i></button></div>
+          </div>
+          <div class="phase-head">
+            <span class="phase-head__num">2.5</span>
+            <div class="phase-head__main">
+              <div class="phase-head__eyebrow">NSM · 北極星訓練</div>
+              <div class="phase-head__title">NSM 品質審核</div>
+            </div>
+            <div class="phase-head__meta"><span>蝦皮 · 電商</span><span class="phase-head__meta-sep">·</span><span>4 OK · 1 WARN</span></div>
+          </div>
+          <div class="nsm-sub-tabs">
+            <button class="nsm-sub-tab">步驟 2：定義 NSM</button>
+            <button class="nsm-sub-tab is-active">NSM 審核</button>
+            <button class="nsm-sub-tab">步驟 3：拆解指標</button>
+          </div>
+          <div class="gate-content">
+            <div class="gate-wrap">
+              <div class="gate-transition gate-transition--warn">
+                <i class="ph-fill ph-check-circle gate-transition__icon"></i>
+                <div class="gate-transition__main">
+                  <div class="gate-transition__title">通過審核（附提醒）</div>
+                  <div class="gate-transition__sub">4 / 5 達標 · 1 項可優化 — 可以進入拆解指標</div>
+                </div>
+              </div>
+              <div class="gate-summary">
+                <div class="gate-summary__row"><strong>公司：</strong><span>蝦皮 · 電商</span></div>
+                <div class="gate-summary__row"><strong>你的 NSM：</strong><span>每月成功完成支付且未退款的下單筆數</span></div>
+              </div>
+              <div class="gate-section-label">5 維度檢核<span class="gate-section-label__count">4 OK · 1 WARN</span></div>
+              <div class="gate-list">
+                <div class="gate-item gate-item--ok">
+                  <i class="ph-fill ph-check-circle gate-item__icon"></i>
+                  <div class="gate-item__main"><div class="gate-item__field">價值關聯性</div><div class="gate-item__title">直接對應 GMV</div><div class="gate-item__reason">成交且不退款的下單數和 take rate 直接相乘＝營收，是純度很高的價值代理。</div></div>
+                </div>
+                <div class="gate-item gate-item--ok">
+                  <i class="ph-fill ph-check-circle gate-item__icon"></i>
+                  <div class="gate-item__main"><div class="gate-item__field">領先指標性</div><div class="gate-item__title">能預測月營收</div><div class="gate-item__reason">月初下單上升通常領先當月 take rate 收入 7-10 天，可作為調節廣告投放的訊號。</div></div>
+                </div>
+                <div class="gate-item gate-item--warn">
+                  <i class="ph-fill ph-warning gate-item__icon"></i>
+                  <div class="gate-item__main">
+                    <div class="gate-item__field">操作性</div>
+                    <div class="gate-item__title">部分依賴外部因素</div>
+                    <div class="gate-item__reason">「成功支付」受第三方金流穩定度影響，PM／工程不一定能完全控制；遇到金流故障 NSM 會誤判團隊績效下滑。</div>
+                    <div class="gate-item__suggestion"><strong>建議：</strong><span class="gate-item__suggestion-body">補一個次指標「下單成功率」（成功 ÷ 嘗試）監控金流健康，當 NSM 異常下跌先看次指標排除外部干擾。</span></div>
+                  </div>
+                </div>
+                <div class="gate-item gate-item--ok">
+                  <i class="ph-fill ph-check-circle gate-item__icon"></i>
+                  <div class="gate-item__main"><div class="gate-item__field">可理解性</div><div class="gate-item__title">跨部門共識高</div><div class="gate-item__reason">營運／財務／工程都用同一個語意，不需要再翻譯成商業語言。</div></div>
+                </div>
+                <div class="gate-item gate-item--ok">
+                  <i class="ph-fill ph-check-circle gate-item__icon"></i>
+                  <div class="gate-item__main"><div class="gate-item__field">週期敏感</div><div class="gate-item__title">月週期適中</div><div class="gate-item__reason">電商促檔多以月為單位，月活週期可承擔大促波動又能對齊財務報表。</div></div>
+                </div>
+              </div>
+            </div>
+          </div>
+          <div class="submit-bar">
+            <div class="submit-bar__left"><button class="btn btn--ghost"><i class="ph ph-arrow-left"></i>上一步</button></div>
+            <div class="submit-bar__right"><button class="btn btn--primary">繼續到 步驟 3<i class="ph ph-arrow-right"></i></button></div>
+          </div>
+        </div>
+      </div>
+
+    </div>
+
+    <!-- ============================================================ -->
+    <!-- Section C — ERROR 需修正方向（紅 = 必擋 · 無 override）       -->
+    <!-- ============================================================ -->
+    <h2 class="vp-section-title">C · 需修正方向（含紅）<span class="vp-section-title__sub">overallStatus = error · canProceed false · CTA 唯一「上一步修改」 · 步驟 3 sub-tab 仍 disabled</span></h2>
+    <div class="anno"><strong>視覺契約：</strong>含至少 1 張 <code>gate-item--error</code>（紅 X · 紅底 · 紅建議框）。Transition bar 為 <code>--error</code>（紅 · 「需修正方向」）。Sub-tab「步驟 3：拆解」<strong>保持 disabled</strong>（gatePassed false）。submit-bar：<strong>只有「上一步修改」一顆 primary 按鈕</strong>（無 ghost 上一步、無「帶風險繼續」、無 simulation override — Master Spec § 2.4）。本案例：「DAU」是經典虛榮指標 — 觸發 alignment + leading 雙紅。</div>
+    <div class="vp-grid">
+
+      <!-- C · Mobile 360 -->
+      <div class="vp-frame">
+        <div class="vp-frame__label"><span>Mobile</span><span>360 × 1100</span></div>
+        <div class="vp-frame__inner" style="width:360px">
+          <div class="navbar">
+            <button class="navbar__icon-btn"><i class="ph ph-list"></i></button>
+            <div class="navbar__brand"><span class="navbar__brand-icon">PM</span></div>
+            <div class="navbar__actions"><button class="navbar__icon-btn"><i class="ph ph-house"></i></button></div>
+          </div>
+          <div class="phase-head">
+            <span class="phase-head__num">2.5</span>
+            <div class="phase-head__main">
+              <div class="phase-head__eyebrow">NSM · 北極星訓練</div>
+              <div class="phase-head__title">NSM 品質審核</div>
+            </div>
+          </div>
+          <div class="nsm-sub-tabs">
+            <button class="nsm-sub-tab">步驟 2</button>
+            <button class="nsm-sub-tab is-active">NSM 審核</button>
+            <button class="nsm-sub-tab" disabled>步驟 3：拆解</button>
+          </div>
+          <div class="gate-content">
+            <div class="gate-wrap">
+              <div class="gate-transition gate-transition--error">
+                <i class="ph-fill ph-x-circle gate-transition__icon"></i>
+                <div class="gate-transition__main">
+                  <div class="gate-transition__title">需要修正方向</div>
+                  <div class="gate-transition__sub">2 項根本性問題 — 請回上一步重新定義 NSM</div>
+                </div>
+              </div>
+              <div class="gate-summary">
+                <div class="gate-summary__row"><strong>公司：</strong><span>Spotify · 音樂串流</span></div>
+                <div class="gate-summary__row"><strong>你的 NSM：</strong><span>每月活躍用戶數（DAU 月平均）</span></div>
+              </div>
+              <div class="gate-section-label">5 維度檢核<span class="gate-section-label__count">2 ERROR · 1 WARN · 2 OK</span></div>
+              <div class="gate-list">
+                <div class="gate-item gate-item--error">
+                  <i class="ph-fill ph-x-circle gate-item__icon"></i>
+                  <div class="gate-item__main">
+                    <div class="gate-item__field">價值關聯性</div>
+                    <div class="gate-item__title">這是經典的虛榮指標</div>
+                    <div class="gate-item__reason">DAU 翻倍不一定代表 Spotify 賺更多錢——大量「打開 app 但沒聽完一首」的用戶會被算進去，但對訂閱／廣告營收的拉動極弱。</div>
+                    <div class="gate-item__suggestion">
+                      <strong>修正方向：</strong>
+                      <span class="gate-item__suggestion-body">改成「行為深度」型指標，例如「每月完成至少一首完整曲目播放的活躍用戶數」，這樣翻倍才真的對應價值。</span>
+                    </div>
+                  </div>
+                </div>
+                <div class="gate-item gate-item--error">
+                  <i class="ph-fill ph-x-circle gate-item__icon"></i>
+                  <div class="gate-item__main">
+                    <div class="gate-item__field">領先指標性</div>
+                    <div class="gate-item__title">無法預測營收走向</div>
+                    <div class="gate-item__reason">DAU 與訂閱續費 / 廣告 CPM 的相關性低；歷史上 DAU 持平甚至上升的月份，營收仍可能下滑（活躍但不深度的觀眾不會付費也不耐廣告）。</div>
+                    <div class="gate-item__suggestion">
+                      <strong>修正方向：</strong>
+                      <span class="gate-item__suggestion-body">先想 Spotify 的 AHA 時刻是什麼動作（例：聽完整首歌 / 收藏第一首）— 那個動作的次數才是真正的領先指標。</span>
+                    </div>
+                  </div>
+                </div>
+                <div class="gate-item gate-item--warn">
+                  <i class="ph-fill ph-warning gate-item__icon"></i>
+                  <div class="gate-item__main">
+                    <div class="gate-item__field">操作性</div>
+                    <div class="gate-item__title">過度仰賴行銷推廣</div>
+                    <div class="gate-item__reason">DAU 容易被獲客成本（廣告投放、促銷）短期拉抬，但這不代表產品變好。</div>
+                  </div>
+                </div>
+                <div class="gate-item gate-item--ok">
+                  <i class="ph-fill ph-check-circle gate-item__icon"></i>
+                  <div class="gate-item__main">
+                    <div class="gate-item__field">可理解性</div>
+                    <div class="gate-item__title">直觀易懂</div>
+                    <div class="gate-item__reason">DAU 是業界共通語言，溝通成本低（這是它唯一的優點）。</div>
+                  </div>
+                </div>
+                <div class="gate-item gate-item--ok">
+                  <i class="ph-fill ph-check-circle gate-item__icon"></i>
+                  <div class="gate-item__main">
+                    <div class="gate-item__field">週期敏感</div>
+                    <div class="gate-item__title">每日可觀測</div>
+                    <div class="gate-item__reason">DAU 即時可看，A/B 結果回饋很快。</div>
+                  </div>
+                </div>
+              </div>
+            </div>
+          </div>
+          <div class="submit-bar">
+            <div class="submit-bar__right" style="margin-left:auto"><button class="btn btn--primary"><i class="ph ph-arrow-left"></i>上一步修改</button></div>
+          </div>
+        </div>
+      </div>
+
+      <!-- C · Tablet 768 -->
+      <div class="vp-frame">
+        <div class="vp-frame__label"><span>Tablet</span><span>768 × 1100</span></div>
+        <div class="vp-frame__inner" style="width:768px">
+          <div class="navbar">
+            <button class="navbar__icon-btn"><i class="ph ph-list"></i></button>
+            <div class="navbar__brand"><span class="navbar__brand-icon">PM</span><span class="navbar__brand-name">PM Drill</span></div>
+            <div class="navbar__tabs"><button class="navbar__tab">CIRCLES</button><button class="navbar__tab is-active">北極星</button></div>
+            <div class="navbar__actions"><button class="navbar__icon-btn"><i class="ph ph-magnifying-glass"></i></button><button class="navbar__icon-btn"><i class="ph ph-house"></i></button></div>
+          </div>
+          <div class="phase-head">
+            <span class="phase-head__num">2.5</span>
+            <div class="phase-head__main">
+              <div class="phase-head__eyebrow">NSM · 北極星訓練</div>
+              <div class="phase-head__title">NSM 品質審核</div>
+            </div>
+            <div class="phase-head__meta"><span>2 ERROR · 1 WARN · 2 OK</span></div>
+          </div>
+          <div class="nsm-sub-tabs">
+            <button class="nsm-sub-tab">步驟 2：定義 NSM</button>
+            <button class="nsm-sub-tab is-active">NSM 審核</button>
+            <button class="nsm-sub-tab" disabled>步驟 3：拆解指標</button>
+          </div>
+          <div class="gate-content">
+            <div class="gate-wrap">
+              <div class="gate-transition gate-transition--error">
+                <i class="ph-fill ph-x-circle gate-transition__icon"></i>
+                <div class="gate-transition__main">
+                  <div class="gate-transition__title">需要修正方向</div>
+                  <div class="gate-transition__sub">2 項根本性問題 — 請回上一步重新定義 NSM</div>
+                </div>
+              </div>
+              <div class="gate-summary">
+                <div class="gate-summary__row"><strong>公司：</strong><span>Spotify · 音樂串流</span></div>
+                <div class="gate-summary__row"><strong>你的 NSM：</strong><span>每月活躍用戶數（DAU 月平均）</span></div>
+              </div>
+              <div class="gate-section-label">5 維度檢核<span class="gate-section-label__count">2 ERROR · 1 WARN · 2 OK</span></div>
+              <div class="gate-list">
+                <div class="gate-item gate-item--error">
+                  <i class="ph-fill ph-x-circle gate-item__icon"></i>
+                  <div class="gate-item__main">
+                    <div class="gate-item__field">價值關聯性</div>
+                    <div class="gate-item__title">這是經典的虛榮指標</div>
+                    <div class="gate-item__reason">DAU 翻倍不一定代表 Spotify 賺更多錢——大量「打開 app 但沒聽完一首」的用戶會被算進去，但對訂閱／廣告營收的拉動極弱。</div>
+                    <div class="gate-item__suggestion"><strong>修正方向：</strong><span class="gate-item__suggestion-body">改成「行為深度」型指標，例如「每月完成至少一首完整曲目播放的活躍用戶數」，這樣翻倍才真的對應價值。</span></div>
+                  </div>
+                </div>
+                <div class="gate-item gate-item--error">
+                  <i class="ph-fill ph-x-circle gate-item__icon"></i>
+                  <div class="gate-item__main">
+                    <div class="gate-item__field">領先指標性</div>
+                    <div class="gate-item__title">無法預測營收走向</div>
+                    <div class="gate-item__reason">DAU 與訂閱續費 / 廣告 CPM 的相關性低；歷史上 DAU 持平甚至上升的月份，營收仍可能下滑（活躍但不深度的觀眾不會付費也不耐廣告）。</div>
+                    <div class="gate-item__suggestion"><strong>修正方向：</strong><span class="gate-item__suggestion-body">先想 Spotify 的 AHA 時刻是什麼動作（例：聽完整首歌 / 收藏第一首）— 那個動作的次數才是真正的領先指標。</span></div>
+                  </div>
+                </div>
+                <div class="gate-item gate-item--warn">
+                  <i class="ph-fill ph-warning gate-item__icon"></i>
+                  <div class="gate-item__main"><div class="gate-item__field">操作性</div><div class="gate-item__title">過度仰賴行銷推廣</div><div class="gate-item__reason">DAU 容易被獲客成本（廣告投放、促銷）短期拉抬，但這不代表產品變好。</div></div>
+                </div>
+                <div class="gate-item gate-item--ok">
+                  <i class="ph-fill ph-check-circle gate-item__icon"></i>
+                  <div class="gate-item__main"><div class="gate-item__field">可理解性</div><div class="gate-item__title">直觀易懂</div><div class="gate-item__reason">DAU 是業界共通語言，溝通成本低（這是它唯一的優點）。</div></div>
+                </div>
+                <div class="gate-item gate-item--ok">
+                  <i class="ph-fill ph-check-circle gate-item__icon"></i>
+                  <div class="gate-item__main"><div class="gate-item__field">週期敏感</div><div class="gate-item__title">每日可觀測</div><div class="gate-item__reason">DAU 即時可看，A/B 結果回饋很快。</div></div>
+                </div>
+              </div>
+            </div>
+          </div>
+          <div class="submit-bar">
+            <div class="submit-bar__right" style="margin-left:auto"><button class="btn btn--primary"><i class="ph ph-arrow-left"></i>上一步修改</button></div>
+          </div>
+        </div>
+      </div>
+
+      <!-- C · Desktop 1280 -->
+      <div class="vp-frame">
+        <div class="vp-frame__label"><span>Desktop</span><span>1280 × 1100</span></div>
+        <div class="vp-frame__inner" style="width:1280px">
+          <div class="navbar">
+            <button class="navbar__icon-btn"><i class="ph ph-list"></i></button>
+            <div class="navbar__brand"><span class="navbar__brand-icon">PM</span><span class="navbar__brand-name">PM Drill</span></div>
+            <div class="navbar__tabs"><button class="navbar__tab">CIRCLES</button><button class="navbar__tab is-active">北極星</button></div>
+            <div class="navbar__actions"><span class="navbar__email">albertpeng678@gmail.com</span><button class="navbar__icon-btn"><i class="ph ph-magnifying-glass"></i></button><button class="navbar__icon-btn"><i class="ph ph-house"></i></button></div>
+          </div>
+          <div class="phase-head">
+            <span class="phase-head__num">2.5</span>
+            <div class="phase-head__main">
+              <div class="phase-head__eyebrow">NSM · 北極星訓練</div>
+              <div class="phase-head__title">NSM 品質審核</div>
+            </div>
+            <div class="phase-head__meta"><span>Spotify · 音樂串流</span><span class="phase-head__meta-sep">·</span><span>2 ERROR · 1 WARN · 2 OK</span></div>
+          </div>
+          <div class="nsm-sub-tabs">
+            <button class="nsm-sub-tab">步驟 2：定義 NSM</button>
+            <button class="nsm-sub-tab is-active">NSM 審核</button>
+            <button class="nsm-sub-tab" disabled>步驟 3：拆解指標</button>
+          </div>
+          <div class="gate-content">
+            <div class="gate-wrap">
+              <div class="gate-transition gate-transition--error">
+                <i class="ph-fill ph-x-circle gate-transition__icon"></i>
+                <div class="gate-transition__main">
+                  <div class="gate-transition__title">需要修正方向</div>
+                  <div class="gate-transition__sub">2 項根本性問題 — 請回上一步重新定義 NSM</div>
+                </div>
+              </div>
+              <div class="gate-summary">
+                <div class="gate-summary__row"><strong>公司：</strong><span>Spotify · 音樂串流</span></div>
+                <div class="gate-summary__row"><strong>你的 NSM：</strong><span>每月活躍用戶數（DAU 月平均）</span></div>
+              </div>
+              <div class="gate-section-label">5 維度檢核<span class="gate-section-label__count">2 ERROR · 1 WARN · 2 OK</span></div>
+              <div class="gate-list">
+                <div class="gate-item gate-item--error">
+                  <i class="ph-fill ph-x-circle gate-item__icon"></i>
+                  <div class="gate-item__main">
+                    <div class="gate-item__field">價值關聯性</div>
+                    <div class="gate-item__title">這是經典的虛榮指標</div>
+                    <div class="gate-item__reason">DAU 翻倍不一定代表 Spotify 賺更多錢——大量「打開 app 但沒聽完一首」的用戶會被算進去，但對訂閱／廣告營收的拉動極弱。</div>
+                    <div class="gate-item__suggestion"><strong>修正方向：</strong><span class="gate-item__suggestion-body">改成「行為深度」型指標，例如「每月完成至少一首完整曲目播放的活躍用戶數」，這樣翻倍才真的對應價值。</span></div>
+                  </div>
+                </div>
+                <div class="gate-item gate-item--error">
+                  <i class="ph-fill ph-x-circle gate-item__icon"></i>
+                  <div class="gate-item__main">
+                    <div class="gate-item__field">領先指標性</div>
+                    <div class="gate-item__title">無法預測營收走向</div>
+                    <div class="gate-item__reason">DAU 與訂閱續費 / 廣告 CPM 的相關性低；歷史上 DAU 持平甚至上升的月份，營收仍可能下滑（活躍但不深度的觀眾不會付費也不耐廣告）。</div>
+                    <div class="gate-item__suggestion"><strong>修正方向：</strong><span class="gate-item__suggestion-body">先想 Spotify 的 AHA 時刻是什麼動作（例：聽完整首歌 / 收藏第一首）— 那個動作的次數才是真正的領先指標。</span></div>
+                  </div>
+                </div>
+                <div class="gate-item gate-item--warn">
+                  <i class="ph-fill ph-warning gate-item__icon"></i>
+                  <div class="gate-item__main"><div class="gate-item__field">操作性</div><div class="gate-item__title">過度仰賴行銷推廣</div><div class="gate-item__reason">DAU 容易被獲客成本（廣告投放、促銷）短期拉抬，但這不代表產品變好。</div></div>
+                </div>
+                <div class="gate-item gate-item--ok">
+                  <i class="ph-fill ph-check-circle gate-item__icon"></i>
+                  <div class="gate-item__main"><div class="gate-item__field">可理解性</div><div class="gate-item__title">直觀易懂</div><div class="gate-item__reason">DAU 是業界共通語言，溝通成本低（這是它唯一的優點）。</div></div>
+                </div>
+                <div class="gate-item gate-item--ok">
+                  <i class="ph-fill ph-check-circle gate-item__icon"></i>
+                  <div class="gate-item__main"><div class="gate-item__field">週期敏感</div><div class="gate-item__title">每日可觀測</div><div class="gate-item__reason">DAU 即時可看，A/B 結果回饋很快。</div></div>
+                </div>
+              </div>
+            </div>
+          </div>
+          <div class="submit-bar">
+            <div class="submit-bar__right" style="margin-left:auto"><button class="btn btn--primary"><i class="ph ph-arrow-left"></i>上一步修改</button></div>
+          </div>
+        </div>
+      </div>
+
+    </div>
+
+    <!-- ============================================================ -->
+    <!-- Section D — Loading                                          -->
+    <!-- ============================================================ -->
+    <h2 class="vp-section-title">D · Loading 審核中<span class="vp-section-title__sub">AppState.nsmGateLoading=true · spinner + checklist · sub-tab Step3 disabled · 無 submit-bar</span></h2>
+    <div class="anno"><strong>視覺契約：</strong>navbar + phase-head + sub-tabs（NSM 審核 active · 步驟 3 disabled）+ <code>gate-loading-wrap</code>（48px navy 旋轉 spinner + title + sub）+ <code>gate-loading-checklist</code> 4 步：解析 NSM 語意 done · 對齊產品價值 active · 檢查領先性 pending · 評估操作性 pending。**無 submit-bar**（loading 期間不允許離開）。</div>
+    <div class="vp-grid">
+
+      <!-- D · Mobile 360 -->
+      <div class="vp-frame">
+        <div class="vp-frame__label"><span>Mobile</span><span>360 × 1100</span></div>
+        <div class="vp-frame__inner" style="width:360px">
+          <div class="navbar">
+            <button class="navbar__icon-btn"><i class="ph ph-list"></i></button>
+            <div class="navbar__brand"><span class="navbar__brand-icon">PM</span></div>
+            <div class="navbar__actions"><button class="navbar__icon-btn"><i class="ph ph-house"></i></button></div>
+          </div>
+          <div class="phase-head">
+            <span class="phase-head__num">2.5</span>
+            <div class="phase-head__main">
+              <div class="phase-head__eyebrow">NSM · 北極星訓練</div>
+              <div class="phase-head__title">NSM 品質審核</div>
+            </div>
+          </div>
+          <div class="nsm-sub-tabs">
+            <button class="nsm-sub-tab">步驟 2</button>
+            <button class="nsm-sub-tab is-active">NSM 審核</button>
+            <button class="nsm-sub-tab" disabled>步驟 3：拆解</button>
+          </div>
+          <div class="gate-content">
+            <div class="gate-loading-wrap">
+              <div class="gate-spinner"></div>
+              <div class="gate-loading-title">AI 正在審核你的 NSM 定義</div>
+              <div class="gate-loading-sub">5 維度全檢核中，需要約 8-12 秒。請勿關閉本頁。</div>
+              <div class="gate-loading-checklist">
+                <div class="gate-loading-step is-done"><span class="gate-loading-step__icon"><i class="ph ph-check"></i></span>解析 NSM 語意</div>
+                <div class="gate-loading-step is-active"><span class="gate-loading-step__icon"><i class="ph ph-circle-notch ph-spin"></i></span>對齊產品價值</div>
+                <div class="gate-loading-step is-pending"><span class="gate-loading-step__icon"><i class="ph ph-circle"></i></span>檢查領先性</div>
+                <div class="gate-loading-step is-pending"><span class="gate-loading-step__icon"><i class="ph ph-circle"></i></span>評估操作性</div>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- D · Tablet 768 -->
+      <div class="vp-frame">
+        <div class="vp-frame__label"><span>Tablet</span><span>768 × 1100</span></div>
+        <div class="vp-frame__inner" style="width:768px">
+          <div class="navbar">
+            <button class="navbar__icon-btn"><i class="ph ph-list"></i></button>
+            <div class="navbar__brand"><span class="navbar__brand-icon">PM</span><span class="navbar__brand-name">PM Drill</span></div>
+            <div class="navbar__tabs"><button class="navbar__tab">CIRCLES</button><button class="navbar__tab is-active">北極星</button></div>
+            <div class="navbar__actions"><button class="navbar__icon-btn"><i class="ph ph-magnifying-glass"></i></button><button class="navbar__icon-btn"><i class="ph ph-house"></i></button></div>
+          </div>
+          <div class="phase-head">
+            <span class="phase-head__num">2.5</span>
+            <div class="phase-head__main">
+              <div class="phase-head__eyebrow">NSM · 北極星訓練</div>
+              <div class="phase-head__title">NSM 品質審核</div>
+            </div>
+            <div class="phase-head__meta"><span>審核中</span></div>
+          </div>
+          <div class="nsm-sub-tabs">
+            <button class="nsm-sub-tab">步驟 2：定義 NSM</button>
+            <button class="nsm-sub-tab is-active">NSM 審核</button>
+            <button class="nsm-sub-tab" disabled>步驟 3：拆解指標</button>
+          </div>
+          <div class="gate-content">
+            <div class="gate-loading-wrap">
+              <div class="gate-spinner"></div>
+              <div class="gate-loading-title">AI 正在審核你的 NSM 定義</div>
+              <div class="gate-loading-sub">5 維度全檢核中，需要約 8-12 秒。請勿關閉本頁。</div>
+              <div class="gate-loading-checklist">
+                <div class="gate-loading-step is-done"><span class="gate-loading-step__icon"><i class="ph ph-check"></i></span>解析 NSM 語意</div>
+                <div class="gate-loading-step is-active"><span class="gate-loading-step__icon"><i class="ph ph-circle-notch ph-spin"></i></span>對齊產品價值</div>
+                <div class="gate-loading-step is-pending"><span class="gate-loading-step__icon"><i class="ph ph-circle"></i></span>檢查領先性</div>
+                <div class="gate-loading-step is-pending"><span class="gate-loading-step__icon"><i class="ph ph-circle"></i></span>評估操作性</div>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- D · Desktop 1280 -->
+      <div class="vp-frame">
+        <div class="vp-frame__label"><span>Desktop</span><span>1280 × 1100</span></div>
+        <div class="vp-frame__inner" style="width:1280px">
+          <div class="navbar">
+            <button class="navbar__icon-btn"><i class="ph ph-list"></i></button>
+            <div class="navbar__brand"><span class="navbar__brand-icon">PM</span><span class="navbar__brand-name">PM Drill</span></div>
+            <div class="navbar__tabs"><button class="navbar__tab">CIRCLES</button><button class="navbar__tab is-active">北極星</button></div>
+            <div class="navbar__actions"><span class="navbar__email">albertpeng678@gmail.com</span><button class="navbar__icon-btn"><i class="ph ph-magnifying-glass"></i></button><button class="navbar__icon-btn"><i class="ph ph-house"></i></button></div>
+          </div>
+          <div class="phase-head">
+            <span class="phase-head__num">2.5</span>
+            <div class="phase-head__main">
+              <div class="phase-head__eyebrow">NSM · 北極星訓練</div>
+              <div class="phase-head__title">NSM 品質審核</div>
+            </div>
+            <div class="phase-head__meta"><span>審核中 · 約 8-12 秒</span></div>
+          </div>
+          <div class="nsm-sub-tabs">
+            <button class="nsm-sub-tab">步驟 2：定義 NSM</button>
+            <button class="nsm-sub-tab is-active">NSM 審核</button>
+            <button class="nsm-sub-tab" disabled>步驟 3：拆解指標</button>
+          </div>
+          <div class="gate-content">
+            <div class="gate-loading-wrap">
+              <div class="gate-spinner"></div>
+              <div class="gate-loading-title">AI 正在審核你的 NSM 定義</div>
+              <div class="gate-loading-sub">5 維度全檢核中，需要約 8-12 秒。請勿關閉本頁。</div>
+              <div class="gate-loading-checklist">
+                <div class="gate-loading-step is-done"><span class="gate-loading-step__icon"><i class="ph ph-check"></i></span>解析 NSM 語意</div>
+                <div class="gate-loading-step is-active"><span class="gate-loading-step__icon"><i class="ph ph-circle-notch ph-spin"></i></span>對齊產品價值</div>
+                <div class="gate-loading-step is-pending"><span class="gate-loading-step__icon"><i class="ph ph-circle"></i></span>檢查領先性</div>
+                <div class="gate-loading-step is-pending"><span class="gate-loading-step__icon"><i class="ph ph-circle"></i></span>評估操作性</div>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+
+    </div>
+
+  </div>
+</body>
+</html>

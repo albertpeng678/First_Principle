@@ -1,7 +1,7 @@
 # PM Drill — 專案狀態看板
 
 > 即時狀態 single source of truth。重大事件即時 Edit。不放歷史（git log 有）。
-> **Last updated:** 2026-05-03（07 NSM 步驟 2/3 放行 / 4-dim 動態 label 驗證 / 下一張 08）
+> **Last updated:** 2026-05-03（08 NSM 審核 Gate 放行 / 紅 = 必擋無 override / 下一張 09）
 
 ---
 
@@ -19,7 +19,7 @@
 | Master Spec 凍結 | ✅ 完成 |
 | SP3 backend 並行 | ✅ Merged 到 main（13 commits / jest 142 綠 / 兩階段 review × 2 round 全綠）|
 | SP4 backend 並行 | ✅ Merged 到 main（jest 142 → 157 / 103 題 NSM context 預生成 idempotent 雙跑驗證）|
-| Mockup（共 16 張）| 🟡 8/16 放行，下一張 08 |
+| Mockup（共 16 張）| 🟡 9/16 放行，下一張 09 |
 | writing-plans → CSS rewrite plan | ⏳ 待 mockup 全完 |
 | subagent-driven-development | ⏳ 待 plan |
 | 14-box gate → merge main | ⏳ 待全綠 |
@@ -38,8 +38,8 @@
 | 05 | ✅ 放行 | `docs/superpowers/specs/mockups/2026-05-02-frontend-rewrite/05-phase-2-chat.html` | Phase 2 對話三角色 bubble + 4 種底部狀態（input / submit-row / streaming / conclusion / locked）|
 | 06 | ✅ 放行 | `docs/superpowers/specs/mockups/2026-05-02-frontend-rewrite/06-nsm-step-1.html` | NSM Step 1 — 5 卡 + 4-欄 context + 桌面 3-col rail（200px filter / 1fr cards / 220px 近期練習）；4-step nsm-progress（情境/指標/拆解/總結）；4 type pills 全 navy/success/warn/primary（**全棧無紫色**）|
 | 07 | ✅ 放行 | `docs/superpowers/specs/mockups/2026-05-02-frontend-rewrite/07-nsm-step-2.html` | NSM 步驟 2/3 — Screen 8 內容 sub-tabs：步驟 2 定義 NSM（context-card + 3 步定義法 guide + 3 fields 北極星指標 / 定義說明 / 業務連結 + 查看範例 toggle）+ 步驟 3 拆解 4-dim card（label / desc / coachQ / 教練提示 + rt-toolbar textarea）；**4-dim 動態 label 隨 product type 切換** — attention（觸及廣度 / 互動深度 / 習慣頻率 / 留存驅力）vs saas（啟用廣度 / 席次深度 / 黏著頻率 / 擴張信號）；submit「上一步」統一語彙；component CSS 整段 LOCKED copy 自 06 |
-| 08 | 待畫（NEXT）| `docs/superpowers/specs/mockups/2026-05-02-frontend-rewrite/08-nsm-step-3-gate.html` | NSM Step 3 Gate |
-| 09 | 待畫 | `docs/superpowers/specs/mockups/2026-05-02-frontend-rewrite/09-offcanvas-history.html` | Offcanvas 歷史 |
+| 08 | ✅ 放行 | `docs/superpowers/specs/mockups/2026-05-02-frontend-rewrite/08-nsm-step-3-gate.html` | NSM 審核 Gate — 5 維度檢核（價值關聯 / 領先指標 / 操作性 / 可理解 / 週期敏感）三態 + Loading；A 通過 5 綠 / B 通過附提醒 4 綠+1 黃 / C 需修正方向含紅（**唯一動作「上一步修改」**，無「帶風險繼續」、無 simulation override）/ D Loading spinner + 4-step checklist；component CSS LOCKED copy 04（gate-transition / gate-item / gate-loading）+ 07（sub-tabs）+ 03（navbar / phase-head / submit-bar / btn）|
+| 09 | 待畫（NEXT）| `docs/superpowers/specs/mockups/2026-05-02-frontend-rewrite/09-offcanvas-history.html` | Offcanvas 歷史 |
 | 10 | 待畫 | `docs/superpowers/specs/mockups/2026-05-02-frontend-rewrite/10-onboarding.html` | Onboarding spotlight |
 | 11 | 待畫 | `docs/superpowers/specs/mockups/2026-05-02-frontend-rewrite/11-phase-3-score.html` | Phase 3 步驟分數 |
 | 12 | 待畫 | `docs/superpowers/specs/mockups/2026-05-02-frontend-rewrite/12-phase-3-error-loading.html` | Phase 3 error + loading |
