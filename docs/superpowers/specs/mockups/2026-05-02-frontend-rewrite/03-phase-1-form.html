@@ -684,6 +684,10 @@
     .btn--primary:hover { background: var(--c-navy-2); }
     .btn--ghost { background: transparent; color: var(--c-ink-2); border: 1px solid var(--c-rule-bold); }
     .btn--ghost:hover { background: var(--c-bg-soft); color: var(--c-ink); }
+    @media (max-width: 480px) {
+      .btn--home .btn__label { display: none; }
+      .btn--home { padding: 0; width: 44px; justify-content: center; }
+    }
 
     /* banners */
     .banner {
@@ -926,7 +930,7 @@
         </div>
 
         <div class="submit-bar">
-          <div class="submit-bar__left"></div>
+          <div class="submit-bar__left"><button class="btn btn--ghost btn--home"><i class="ph ph-house"></i><span class="btn__label">回首頁</span></button></div>
           <div class="submit-bar__right">
             <button class="btn btn--primary">下一步<i class="ph ph-arrow-right"></i></button>
           </div>
@@ -1048,9 +1052,7 @@
         </div>
 
         <div class="submit-bar">
-          <div class="submit-bar__left">
-            <button class="btn btn--ghost"><i class="ph ph-arrow-left"></i>上一步</button>
-          </div>
+          <div class="submit-bar__left"><button class="btn btn--ghost btn--home"><i class="ph ph-house"></i><span class="btn__label">回首頁</span></button> <button class="btn btn--ghost"><i class="ph ph-arrow-left"></i>上一步</button></div>
           <div class="submit-bar__right">
             <button class="btn btn--primary">下一步<i class="ph ph-arrow-right"></i></button>
           </div>
@@ -1198,7 +1200,7 @@
 
         <div class="submit-bar">
           <div class="submit-bar__left">
-            <button class="btn btn--ghost"><i class="ph ph-house"></i>回首頁</button>
+            <button class="btn btn--ghost btn--home"><i class="ph ph-house"></i><span class="btn__label">回首頁</span></button>
           </div>
           <div class="submit-bar__right">
             <button class="btn btn--primary">下一步<i class="ph ph-arrow-right"></i></button>
@@ -1290,7 +1292,7 @@
         </div>
 
         <div class="submit-bar">
-          <div class="submit-bar__left"></div>
+          <div class="submit-bar__left"><button class="btn btn--ghost btn--home"><i class="ph ph-house"></i><span class="btn__label">回首頁</span></button></div>
           <div class="submit-bar__right"><button class="btn btn--primary">下一步<i class="ph ph-arrow-right"></i></button></div>
         </div>
       </div>
@@ -1361,7 +1363,7 @@
         </div>
 
         <div class="submit-bar">
-          <div class="submit-bar__left"><button class="btn btn--ghost"><i class="ph ph-arrow-left"></i>上一步</button></div>
+          <div class="submit-bar__left"><button class="btn btn--ghost btn--home"><i class="ph ph-house"></i><span class="btn__label">回首頁</span></button> <button class="btn btn--ghost"><i class="ph ph-arrow-left"></i>上一步</button></div>
           <div class="submit-bar__right"><button class="btn btn--primary">下一步<i class="ph ph-arrow-right"></i></button></div>
         </div>
       </div>
@@ -1443,7 +1445,7 @@
         </div>
 
         <div class="submit-bar">
-          <div class="submit-bar__left"><button class="btn btn--ghost"><i class="ph ph-arrow-left"></i>上一步</button></div>
+          <div class="submit-bar__left"><button class="btn btn--ghost btn--home"><i class="ph ph-house"></i><span class="btn__label">回首頁</span></button> <button class="btn btn--ghost"><i class="ph ph-arrow-left"></i>上一步</button></div>
           <div class="submit-bar__right"><button class="btn btn--primary">下一步<i class="ph ph-arrow-right"></i></button></div>
         </div>
       </div>
@@ -1543,7 +1545,7 @@
         </div>
 
         <div class="submit-bar">
-          <div class="submit-bar__left"></div>
+          <div class="submit-bar__left"><button class="btn btn--ghost btn--home"><i class="ph ph-house"></i><span class="btn__label">回首頁</span></button></div>
           <div class="submit-bar__right"><button class="btn btn--primary">下一步<i class="ph ph-arrow-right"></i></button></div>
         </div>
       </div>
@@ -1631,7 +1633,7 @@
         </div>
 
         <div class="submit-bar">
-          <div class="submit-bar__left"><button class="btn btn--ghost"><i class="ph ph-arrow-left"></i>上一步</button></div>
+          <div class="submit-bar__left"><button class="btn btn--ghost btn--home"><i class="ph ph-house"></i><span class="btn__label">回首頁</span></button> <button class="btn btn--ghost"><i class="ph ph-arrow-left"></i>上一步</button></div>
           <div class="submit-bar__right"><button class="btn btn--primary">下一步<i class="ph ph-arrow-right"></i></button></div>
         </div>
       </div>
@@ -1731,7 +1733,7 @@
         </div>
 
         <div class="submit-bar">
-          <div class="submit-bar__left"><button class="btn btn--ghost"><i class="ph ph-arrow-left"></i>上一步</button></div>
+          <div class="submit-bar__left"><button class="btn btn--ghost btn--home"><i class="ph ph-house"></i><span class="btn__label">回首頁</span></button> <button class="btn btn--ghost"><i class="ph ph-arrow-left"></i>上一步</button></div>
           <div class="submit-bar__right"><button class="btn btn--primary">下一步<i class="ph ph-arrow-right"></i></button></div>
         </div>
       </div>
@@ -1971,7 +1973,7 @@
         </div>
 
         <div class="submit-bar">
-          <div class="submit-bar__left"><button class="btn btn--ghost"><i class="ph ph-house"></i>回首頁</button></div>
+          <div class="submit-bar__left"><button class="btn btn--ghost btn--home"><i class="ph ph-house"></i><span class="btn__label">回首頁</span></button></div>
           <div class="submit-bar__right"><button class="btn btn--primary">看評分結果<i class="ph ph-arrow-right"></i></button></div>
         </div>
       </div>
@@ -2010,7 +2012,7 @@
         </div>
 
         <div class="submit-bar">
-          <div class="submit-bar__left"><button class="btn btn--ghost"><i class="ph ph-house"></i>回首頁</button></div>
+          <div class="submit-bar__left"><button class="btn btn--ghost btn--home"><i class="ph ph-house"></i><span class="btn__label">回首頁</span></button></div>
           <div class="submit-bar__right"><button class="btn btn--primary"><i class="ph ph-arrow-clockwise"></i>用最新題目重練</button></div>
         </div>
       </div>
@@ -2050,7 +2052,7 @@
         </div>
 
         <div class="submit-bar">
-          <div class="submit-bar__left"></div>
+          <div class="submit-bar__left"><button class="btn btn--ghost btn--home"><i class="ph ph-house"></i><span class="btn__label">回首頁</span></button></div>
           <div class="submit-bar__right"><button class="btn btn--primary" disabled>下一步（請先恢復連線）</button></div>
         </div>
       </div>
@@ -2100,7 +2102,7 @@
 
         <!-- sticky bar pinned above keyboard -->
         <div class="submit-bar" style="position: absolute; bottom: 200px; left: 0; right: 0; z-index: 5;">
-          <div class="submit-bar__left"></div>
+          <div class="submit-bar__left"><button class="btn btn--ghost btn--home"><i class="ph ph-house"></i><span class="btn__label">回首頁</span></button></div>
           <div class="submit-bar__right"><button class="btn btn--primary">下一題</button></div>
         </div>
       </div>
@@ -2139,7 +2141,7 @@
         </div>
 
         <div class="submit-bar">
-          <div class="submit-bar__left"></div>
+          <div class="submit-bar__left"><button class="btn btn--ghost btn--home"><i class="ph ph-house"></i><span class="btn__label">回首頁</span></button></div>
           <div class="submit-bar__right"><button class="btn btn--primary">下一步</button></div>
         </div>
       </div>
@@ -2163,7 +2165,7 @@
         </div>
 
         <div class="submit-bar">
-          <div class="submit-bar__left"></div>
+          <div class="submit-bar__left"><button class="btn btn--ghost btn--home"><i class="ph ph-house"></i><span class="btn__label">回首頁</span></button></div>
           <div class="submit-bar__right">
             <button class="btn btn--ghost"><i class="ph ph-arrow-left"></i>上一步</button>
             <button class="btn btn--primary">下一步<i class="ph ph-arrow-right"></i></button>
