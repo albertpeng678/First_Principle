@@ -48,10 +48,12 @@ frontend-design (獨立 plugin) → writing-plans → using-git-worktrees
 - [x] SP3 / SP4 後端待辦盤點完成
 - [x] 並行執行順序鎖定 + 兩份文件更新
 - [x] 視覺對齊測試 Stack 8 層 + 紀律強制機制寫入 Master Spec §0.5/§6.5/§6.6
-- [x] 開 worktree `feat/sp3-backend` + SP3 backend subagent 完成（4 commits, jest 132/132 綠，待 user 確認 merge）
+- [x] **SP3 backend 已 merge 到 main**（13 commits / jest 142/142 綠 / 兩階段 review × 2 round 全綠 + EvaluatorError subclass + EVAL_PARSE_ERROR shape-drift 註記）
+- [x] Master Spec §1.4 ⚠ 提示框移除 + 新增 evaluateCirclesStep schema 表 + 4 個 error code 表
+- [x] **批次 B（Phase 3 / 4 / error）mockup 解鎖**
 - [x] Design system mockup v1 完成（13 sections）→ user 抓到漏洞 → 全盤掃描 122 項 UI（覆蓋率 47%）→ 擴充到 **21 sections**（補 example-bullet / save-indicator / toast / overflow / char-counter / phase-head / mode-tag / onboarding-coachmark），覆蓋率 ~85%
 - [x] UI 覆蓋盤點存到 `docs/superpowers/specs/path-2-ui-coverage-audit.md`
-- [x] **批次 A 01 — CIRCLES Home mockup 完成**（含 simulation mode / drill mode 變體 / 搜尋有結果 / 搜尋無 / loading / edge cases — 6 sections × 3 viewport = 18 變化）
+- [x] **批次 A 01 — CIRCLES Home mockup 完成**（v2 — 7 sections × 3 viewport = 21 變化，新增 G 題目展開 + Q1 recent rail vs offcanvas 註解）
 - [x] SP3 backend 兩階段 review 完成 → 找到 2 critical + 4 major + 3 minor 問題 → fix subagent 在背景跑（agentId `aa807c0e7618aa574`，自動通知完成）
 - [ ] **NEXT — 雙軌等 user：** ①SP3 backend merge ②design system 放行
 - [ ] SP3 backend merge → 更新 Master Spec §1.4 ⚠ 提示框移除
