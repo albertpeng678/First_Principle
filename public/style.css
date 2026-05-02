@@ -4813,3 +4813,27 @@ textarea.has-error {
   font-weight: 700;
   margin-bottom: 2px;
 }
+
+/* SP1.5-bugfix — stale mode compact merged banner (replaces locked-banner + stale-banner) */
+.stale-locked-bar {
+  display: flex; align-items: center; gap: 8px;
+  padding: 10px var(--pad-block);
+  background: var(--c-warn-bg);
+  border-bottom: 1px solid var(--c-warn-border);
+  color: #78350f; font-size: 12.5px; line-height: 1.4;
+}
+.stale-locked-bar .icon-warn { color: var(--c-warn); font-size: 16px; flex-shrink: 0; }
+.stale-locked-bar .core { flex: 1; min-width: 0; font-weight: 600; }
+.stale-locked-bar .pill {
+  flex-shrink: 0; padding: 3px 9px; border-radius: 999px;
+  background: var(--c-success-soft); border: 1px solid #a7f3d0;
+  color: #065f46; font-size: 11px; font-weight: 700;
+  display: inline-flex; align-items: center; gap: 4px;
+}
+.stale-locked-bar .pill i { font-size: 11px; }
+@media (min-width: 768px) {
+  .stale-locked-bar { padding-left: var(--pad-block-tablet); padding-right: var(--pad-block-tablet); }
+}
+@media (min-width: 1280px) {
+  .stale-locked-bar { padding-left: var(--pad-block-desktop); padding-right: var(--pad-block-desktop); }
+}
