@@ -1,0 +1,3232 @@
+<!doctype html>
+<html lang="zh-TW">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover, interactive-widget=resizes-visual">
+  <title>PM Drill — Design System（Path 2 重寫）</title>
+
+  <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/@phosphor-icons/web@2.1.1/src/regular/style.css">
+  <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Instrument+Serif:ital@0;1&display=swap">
+
+  <!-- 此 mockup 不 link 產品 CSS（因為這 mockup 本身就是定義新 CSS 的依據）。
+       後續所有畫面 mockup 才 link production CSS 做對齊驗證。 -->
+
+  <style>
+    /* ───────────────────────────────────────────────────────────────
+       PATH 2 Design Tokens — Architect's Notebook
+       Source of truth for the new public/style.css rewrite
+       ─────────────────────────────────────────────────────────────── */
+    :root {
+      /* ── Color: warm paper + restrained accents ───────────────── */
+      --c-bg:        #F2F0EB;     /* paper warm cream */
+      --c-bg-soft:   #ECE9E1;     /* subdued strip */
+      --c-bg-deep:   #E5E1D7;     /* deeper edge / grid-break */
+      --c-card:      #FFFFFF;
+      --c-surface:   #FAFAF7;     /* alt surface */
+
+      --c-ink:       #1F1D1B;     /* warm dark brown — body text only */
+      --c-ink-2:     #5A5046;     /* secondary text */
+      --c-ink-3:     #8A7E70;     /* tertiary / hint */
+      --c-ink-4:     #B8AC9D;     /* quaternary */
+
+      --c-navy:      #1B2D5C;     /* signature navy — active surface / brand mark */
+      --c-navy-2:    #142347;     /* navy hover (深 8%) */
+      --c-navy-lt:   rgba(27,45,92,0.08);
+
+      --c-rule:      rgba(60,45,30,0.10);  /* 1px hairline */
+      --c-rule-bold: rgba(60,45,30,0.18);
+
+      --c-primary:    #1A56DB;     /* signature blue — action only */
+      --c-primary-lt: rgba(26,86,219,0.08);
+      --c-primary-mid: rgba(26,86,219,0.18);
+
+      --c-accent-nsm: #6B4FBC;     /* NSM purple — context-only */
+
+      --c-success:    #137A3D;
+      --c-success-lt: #DCEFE0;
+      --c-warn:       #B85C00;
+      --c-warn-lt:    #FBE9D0;
+      --c-danger:     #B61F1F;
+      --c-danger-lt:  #FADCDC;
+
+      --c-grade-a:    #137A3D;
+      --c-grade-b:    #1A56DB;
+      --c-grade-c:    #B85C00;
+      --c-grade-d:    #B61F1F;
+
+      /* ── Type ──────────────────────────────────────────────────── */
+      --font-sans: system-ui, -apple-system, BlinkMacSystemFont,
+                   'PingFang TC', 'Microsoft JhengHei', 'Heiti TC', 'Noto Sans TC', sans-serif;
+      --font-serif: 'Instrument Serif', 'Times New Roman', serif;
+                   /* exception: ONLY grade letters A/B/C/D */
+
+      --t-display: 32px;   /* hero only — used for grade letter */
+      --t-h1: 24px;
+      --t-h2: 19px;
+      --t-h3: 16px;
+      --t-body: 15px;
+      --t-body-sm: 14px;
+      --t-meta: 13px;
+      --t-cap: 12px;
+      --t-mono: 12px;       /* technical callout */
+
+      --lh-tight: 1.25;
+      --lh-norm: 1.55;
+      --lh-loose: 1.7;
+
+      /* ── Spacing scale (4-grid) ───────────────────────────────── */
+      --s-1: 4px;
+      --s-2: 8px;
+      --s-3: 12px;
+      --s-4: 16px;
+      --s-5: 20px;
+      --s-6: 24px;
+      --s-7: 32px;
+      --s-8: 40px;
+      --s-9: 56px;
+      --s-10: 80px;
+
+      /* ── Block padding (per breakpoint) ───────────────────────── */
+      --pad-block-mobile:  16px;
+      --pad-block-tablet:  20px;
+      --pad-block-desktop: 24px;
+
+      /* ── Radius ───────────────────────────────────────────────── */
+      --r-input: 6px;
+      --r-card:  10px;
+      --r-pill:  999px;
+
+      /* ── Touch ────────────────────────────────────────────────── */
+      --touch-min: 44px;
+
+      /* ── Sticky bar safe area ─────────────────────────────────── */
+      --sticky-pad-mobile: max(16px, env(safe-area-inset-bottom));
+      --sticky-pad-desktop: 24px;
+
+      /* ── Wrappers ─────────────────────────────────────────────── */
+      --wrap-body:    920px;     /* centered content body */
+      --wrap-chrome: 1880px;     /* edge-to-edge chrome max */
+
+      /* ── Motion ───────────────────────────────────────────────── */
+      --t-fast:  120ms;
+      --t-norm:  200ms;
+      --t-slow:  300ms;
+      --ease:    cubic-bezier(0.4, 0, 0.2, 1);
+      --ease-out: cubic-bezier(0, 0, 0.2, 1);
+
+      /* ── Shadow (restrained) ──────────────────────────────────── */
+      --shadow-1: 0 1px 0 rgba(60,45,30,0.04);          /* hairline only */
+      --shadow-2: 0 1px 2px rgba(60,45,30,0.06);
+      --shadow-3: 0 4px 12px rgba(60,45,30,0.08);       /* modal / offcanvas */
+      --shadow-focus: 0 0 0 3px rgba(26,86,219,0.18);   /* focus ring */
+    }
+
+    /* ── Reset & base ────────────────────────────────────────────── */
+    *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+    html, body {
+      background: var(--c-bg);
+      color: var(--c-ink);
+      font-family: var(--font-sans);
+      font-size: var(--t-body);
+      line-height: var(--lh-norm);
+      -webkit-font-smoothing: antialiased;
+      -webkit-tap-highlight-color: transparent;
+      text-rendering: optimizeLegibility;
+    }
+    img, svg { display: block; max-width: 100%; }
+    button { font: inherit; color: inherit; cursor: pointer; background: none; border: none; }
+    input, textarea, select { font: inherit; color: inherit; }
+    a { color: inherit; text-decoration: none; }
+
+    /* iOS prevent zoom on focus */
+    @media (max-width: 767px) {
+      input, textarea, select { font-size: 16px !important; }
+    }
+
+    /* ───────────────────────────────────────────────────────────────
+       Mockup container — three viewports side-by-side
+       ─────────────────────────────────────────────────────────────── */
+    .ds-page {
+      max-width: 100%;
+      padding: var(--s-6);
+    }
+
+    .ds-header {
+      max-width: 1880px;
+      margin: 0 auto var(--s-7);
+      padding-bottom: var(--s-6);
+      border-bottom: 1px solid var(--c-rule);
+    }
+    .ds-header__eyebrow {
+      font-size: var(--t-cap);
+      letter-spacing: 0.12em;
+      text-transform: uppercase;
+      color: var(--c-ink-3);
+    }
+    .ds-header h1 {
+      font-size: var(--t-h1);
+      line-height: var(--lh-tight);
+      margin-top: var(--s-2);
+      letter-spacing: -0.01em;
+    }
+    .ds-header__sub {
+      color: var(--c-ink-2);
+      font-size: var(--t-body-sm);
+      margin-top: var(--s-3);
+      max-width: 640px;
+    }
+
+    .ds-section {
+      max-width: 1880px;
+      margin: 0 auto var(--s-9);
+    }
+    .ds-section__head {
+      display: flex;
+      align-items: baseline;
+      gap: var(--s-3);
+      margin-bottom: var(--s-5);
+      padding-bottom: var(--s-3);
+      border-bottom: 1px solid var(--c-rule);
+    }
+    .ds-section__num {
+      font-family: var(--font-serif);
+      font-size: 28px;
+      line-height: 1;
+      color: var(--c-ink-3);
+      font-style: italic;
+    }
+    .ds-section__title {
+      font-size: var(--t-h2);
+      letter-spacing: -0.005em;
+    }
+    .ds-section__note {
+      margin-left: auto;
+      color: var(--c-ink-3);
+      font-size: var(--t-meta);
+    }
+
+    /* Viewport-stack grid */
+    .vp-grid {
+      display: grid;
+      grid-template-columns: 360px 768px 1280px;
+      gap: var(--s-6);
+      align-items: start;
+      overflow-x: auto;
+      padding-bottom: var(--s-4);
+    }
+    .vp-frame {
+      border: 1px solid var(--c-rule-bold);
+      border-radius: var(--r-card);
+      background: var(--c-card);
+      overflow: hidden;
+      box-shadow: var(--shadow-2);
+    }
+    .vp-frame__label {
+      padding: var(--s-3) var(--s-4);
+      border-bottom: 1px solid var(--c-rule);
+      background: var(--c-bg-soft);
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      font-size: var(--t-cap);
+      letter-spacing: 0.08em;
+      text-transform: uppercase;
+      color: var(--c-ink-2);
+    }
+    .vp-frame__label span:last-child { color: var(--c-ink-3); font-family: ui-monospace, 'SF Mono', monospace; }
+    .vp-frame__body {
+      padding: var(--s-5);
+    }
+
+    /* ───────────────────────────────────────────────────────────────
+       § 1 — Color palette
+       ─────────────────────────────────────────────────────────────── */
+    .swatch-grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fill, minmax(160px, 1fr));
+      gap: var(--s-3);
+    }
+    .swatch {
+      border: 1px solid var(--c-rule);
+      border-radius: var(--r-input);
+      overflow: hidden;
+    }
+    .swatch__color {
+      height: 64px;
+    }
+    .swatch__meta {
+      padding: var(--s-2) var(--s-3);
+      background: var(--c-card);
+      font-size: var(--t-cap);
+      display: flex;
+      justify-content: space-between;
+      align-items: baseline;
+    }
+    .swatch__name { color: var(--c-ink); font-weight: 500; }
+    .swatch__hex  { color: var(--c-ink-3); font-family: ui-monospace, 'SF Mono', monospace; }
+
+    /* ───────────────────────────────────────────────────────────────
+       § 2 — Type scale
+       ─────────────────────────────────────────────────────────────── */
+    .type-row {
+      display: grid;
+      grid-template-columns: 100px 1fr 100px;
+      gap: var(--s-4);
+      padding: var(--s-3) 0;
+      border-bottom: 1px solid var(--c-rule);
+      align-items: baseline;
+    }
+    .type-row:last-child { border-bottom: 0; }
+    .type-row__token { font-family: ui-monospace, 'SF Mono', monospace; font-size: var(--t-meta); color: var(--c-ink-3); }
+    .type-row__sample { color: var(--c-ink); }
+    .type-row__size { color: var(--c-ink-3); font-size: var(--t-meta); text-align: right; font-family: ui-monospace, 'SF Mono', monospace; }
+
+    .grade-letter {
+      font-family: var(--font-serif);
+      font-style: italic;
+      font-size: 56px;
+      line-height: 1;
+      color: var(--c-grade-a);
+      display: inline-block;
+      vertical-align: middle;
+      margin-right: var(--s-3);
+    }
+
+    /* ───────────────────────────────────────────────────────────────
+       § 3 — Spacing & radius
+       ─────────────────────────────────────────────────────────────── */
+    .scale-row {
+      display: flex;
+      align-items: center;
+      gap: var(--s-4);
+      padding: var(--s-2) 0;
+      border-bottom: 1px solid var(--c-rule);
+      font-size: var(--t-meta);
+    }
+    .scale-row:last-child { border-bottom: 0; }
+    .scale-row__token { width: 72px; font-family: ui-monospace, 'SF Mono', monospace; color: var(--c-ink-3); }
+    .scale-row__bar { background: var(--c-primary); height: 12px; border-radius: 2px; }
+    .scale-row__val { width: 72px; text-align: right; color: var(--c-ink-2); font-family: ui-monospace, 'SF Mono', monospace; }
+
+    .radius-row { display: flex; gap: var(--s-4); flex-wrap: wrap; padding: var(--s-3) 0; }
+    .radius-sample {
+      width: 64px;
+      height: 64px;
+      background: var(--c-card);
+      border: 1px solid var(--c-rule-bold);
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-size: var(--t-cap);
+      font-family: ui-monospace, 'SF Mono', monospace;
+      color: var(--c-ink-3);
+    }
+
+    /* ───────────────────────────────────────────────────────────────
+       § 4 — Buttons (state matrix)
+       ─────────────────────────────────────────────────────────────── */
+    .btn {
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+      gap: var(--s-2);
+      min-height: var(--touch-min);
+      padding: 0 var(--s-5);
+      border-radius: var(--r-input);
+      font-size: var(--t-body-sm);
+      font-weight: 500;
+      letter-spacing: 0.005em;
+      transition: background var(--t-fast) var(--ease),
+                  color var(--t-fast) var(--ease),
+                  border-color var(--t-fast) var(--ease),
+                  box-shadow var(--t-fast) var(--ease),
+                  transform var(--t-fast) var(--ease);
+      will-change: transform;
+      user-select: none;
+      -webkit-user-select: none;
+    }
+    .btn:active { transform: translateY(1px); }
+    .btn:focus-visible { outline: none; box-shadow: var(--shadow-focus); }
+
+    .btn--primary {
+      background: var(--c-primary);
+      color: #fff;
+    }
+    .btn--primary:hover { background: #1448B8; }
+    .btn--primary[disabled] { background: var(--c-ink-4); cursor: not-allowed; opacity: 0.7; }
+
+    .btn--ghost {
+      background: transparent;
+      color: var(--c-ink);
+      border: 1px solid var(--c-rule-bold);
+    }
+    .btn--ghost:hover { background: var(--c-bg-soft); }
+    .btn--ghost[disabled] { color: var(--c-ink-4); border-color: var(--c-rule); cursor: not-allowed; }
+
+    .btn--danger {
+      background: transparent;
+      color: var(--c-danger);
+      border: 1px solid var(--c-danger);
+    }
+    .btn--danger:hover { background: var(--c-danger-lt); }
+
+    .btn--icon {
+      width: 40px;
+      height: 40px;
+      min-height: unset;
+      padding: 0;
+      border-radius: var(--r-pill);
+      color: var(--c-ink-2);
+    }
+    .btn--icon:hover { background: var(--c-bg-soft); color: var(--c-ink); }
+
+    .btn--loading { color: transparent; position: relative; }
+    .btn--loading::after {
+      content: '';
+      position: absolute;
+      inset: 0;
+      margin: auto;
+      width: 16px; height: 16px;
+      border: 2px solid currentColor;
+      border-right-color: transparent;
+      border-radius: 50%;
+      color: #fff;
+      animation: spin 0.8s linear infinite;
+    }
+    .btn--primary.btn--loading::after { color: #fff; }
+    .btn--ghost.btn--loading::after { color: var(--c-ink); }
+    @keyframes spin { to { transform: rotate(360deg); } }
+
+    .btn-row { display: flex; gap: var(--s-3); flex-wrap: wrap; align-items: center; }
+
+    .state-grid {
+      display: grid;
+      grid-template-columns: 100px 1fr;
+      gap: var(--s-3) var(--s-4);
+      align-items: center;
+      padding: var(--s-3) 0;
+      border-bottom: 1px solid var(--c-rule);
+    }
+    .state-grid:last-child { border-bottom: 0; }
+    .state-grid__label { font-size: var(--t-meta); color: var(--c-ink-3); font-family: ui-monospace, 'SF Mono', monospace; }
+
+    /* ───────────────────────────────────────────────────────────────
+       § 5 — Form inputs (state matrix)
+       ─────────────────────────────────────────────────────────────── */
+    .field {
+      display: block;
+    }
+    .field__label {
+      display: block;
+      font-size: var(--t-meta);
+      color: var(--c-ink-2);
+      margin-bottom: var(--s-2);
+      letter-spacing: 0.005em;
+    }
+    .field__input,
+    .field__textarea {
+      width: 100%;
+      padding: var(--s-3) var(--s-4);
+      background: var(--c-card);
+      border: 1px solid var(--c-rule-bold);
+      border-radius: var(--r-input);
+      font-size: var(--t-body);
+      line-height: var(--lh-norm);
+      color: var(--c-ink);
+      transition: border-color var(--t-fast) var(--ease),
+                  background var(--t-fast) var(--ease),
+                  box-shadow var(--t-fast) var(--ease);
+    }
+    .field__textarea {
+      min-height: 88px;
+      resize: vertical;
+    }
+    .field__input:focus,
+    .field__textarea:focus {
+      outline: none;
+      border-color: var(--c-primary);
+      box-shadow: var(--shadow-focus);
+    }
+    .field__input::placeholder,
+    .field__textarea::placeholder {
+      color: var(--c-ink-4);
+    }
+    .field__input[disabled],
+    .field__textarea[disabled] {
+      background: var(--c-bg-soft);
+      color: var(--c-ink-3);
+      cursor: not-allowed;
+    }
+    .field--error .field__input,
+    .field--error .field__textarea {
+      border-color: var(--c-danger);
+      background: rgba(182,31,31,0.02);
+    }
+    .field__hint {
+      font-size: var(--t-cap);
+      color: var(--c-ink-3);
+      margin-top: var(--s-2);
+    }
+    .field__error {
+      font-size: var(--t-cap);
+      color: var(--c-danger);
+      margin-top: var(--s-2);
+    }
+
+    /* rt-field (rich-text container — toolbar + textarea) */
+    .rt-field {
+      border: 1px solid var(--c-rule-bold);
+      border-radius: var(--r-input);
+      background: var(--c-card);
+      transition: border-color var(--t-fast) var(--ease),
+                  box-shadow var(--t-fast) var(--ease);
+      overflow: hidden;
+    }
+    .rt-field:focus-within {
+      border-color: var(--c-primary);
+      box-shadow: var(--shadow-focus);
+    }
+    .rt-toolbar {
+      display: flex;
+      gap: var(--s-1);
+      padding: var(--s-2) var(--s-3);
+      border-bottom: 1px solid var(--c-rule);
+      background: var(--c-surface);
+    }
+    .rt-tbtn {
+      width: 28px;
+      height: 28px;
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+      border-radius: 4px;
+      color: var(--c-ink-2);
+      font-size: 14px;
+      transition: background var(--t-fast) var(--ease);
+    }
+    .rt-tbtn:hover { background: var(--c-bg-soft); color: var(--c-ink); }
+    .rt-tbtn[aria-pressed="true"] { background: var(--c-primary-lt); color: var(--c-primary); }
+    .rt-textarea {
+      width: 100%;
+      padding: var(--s-3) var(--s-4);
+      background: transparent;
+      border: 0;
+      outline: none;
+      font-size: var(--t-body);
+      line-height: var(--lh-norm);
+      color: var(--c-ink);
+      min-height: 96px;
+      resize: vertical;
+    }
+
+    /* ───────────────────────────────────────────────────────────────
+       § 6 — Chips / pills / badges
+       ─────────────────────────────────────────────────────────────── */
+    .chip-row { display: flex; gap: var(--s-2); flex-wrap: wrap; padding: var(--s-3) 0; align-items: center; }
+
+    .pill {
+      display: inline-flex;
+      align-items: center;
+      gap: var(--s-1);
+      padding: 4px var(--s-3);
+      border-radius: var(--r-pill);
+      font-size: var(--t-cap);
+      font-weight: 500;
+      letter-spacing: 0.01em;
+      border: 1px solid var(--c-rule-bold);
+      color: var(--c-ink-2);
+      background: var(--c-card);
+      transition: all var(--t-fast) var(--ease);
+    }
+    .pill:hover {
+      border-color: var(--c-ink-2);
+      color: var(--c-ink);
+    }
+    .pill[aria-pressed="true"],
+    .pill.is-active {
+      background: var(--c-navy);
+      color: #fff;
+      border-color: var(--c-navy);
+    }
+
+    .pill--step {
+      background: var(--c-primary-lt);
+      color: var(--c-primary);
+      border-color: transparent;
+      font-family: ui-monospace, 'SF Mono', monospace;
+      letter-spacing: 0.04em;
+    }
+    .pill--step .step-letter {
+      font-family: var(--font-serif);
+      font-style: italic;
+      font-size: 14px;
+      margin-right: 2px;
+    }
+
+    .badge {
+      display: inline-block;
+      padding: 2px var(--s-2);
+      border-radius: 3px;
+      font-size: var(--t-cap);
+      font-weight: 500;
+      letter-spacing: 0.04em;
+      text-transform: uppercase;
+    }
+    .badge--circles { background: var(--c-success-lt); color: var(--c-success); }
+    .badge--nsm { background: rgba(107,79,188,0.12); color: var(--c-accent-nsm); }
+    .badge--drill { background: var(--c-bg-deep); color: var(--c-ink-2); }
+
+    /* ───────────────────────────────────────────────────────────────
+       § 7 — Cards
+       ─────────────────────────────────────────────────────────────── */
+    .qcard {
+      background: var(--c-card);
+      border: 1px solid var(--c-rule);
+      border-radius: var(--r-card);
+      padding: var(--s-5);
+      transition: border-color var(--t-fast) var(--ease),
+                  box-shadow var(--t-fast) var(--ease),
+                  transform var(--t-fast) var(--ease);
+      cursor: pointer;
+    }
+    .qcard:hover {
+      border-color: var(--c-rule-bold);
+      box-shadow: var(--shadow-2);
+    }
+    .qcard:active { transform: translateY(1px); }
+    .qcard.is-selected {
+      border-color: var(--c-primary);
+      box-shadow: 0 0 0 1px var(--c-primary), var(--shadow-2);
+    }
+    .qcard__head {
+      display: flex;
+      gap: var(--s-3);
+      align-items: baseline;
+      margin-bottom: var(--s-3);
+    }
+    .qcard__num {
+      font-family: var(--font-serif);
+      font-style: italic;
+      font-size: 18px;
+      color: var(--c-ink-3);
+      flex: 0 0 auto;
+    }
+    .qcard__title {
+      font-size: var(--t-h3);
+      line-height: var(--lh-tight);
+      letter-spacing: -0.005em;
+      flex: 1;
+    }
+    .qcard__meta {
+      display: flex;
+      gap: var(--s-2);
+      align-items: center;
+      flex-wrap: wrap;
+      font-size: var(--t-meta);
+      color: var(--c-ink-3);
+      margin-bottom: var(--s-3);
+    }
+    .qcard__sep { color: var(--c-ink-4); }
+    .qcard__body {
+      font-size: var(--t-body-sm);
+      color: var(--c-ink-2);
+      line-height: var(--lh-norm);
+    }
+
+    /* ───────────────────────────────────────────────────────────────
+       § 8 — Status banners (locked / stale / error / loading)
+       ─────────────────────────────────────────────────────────────── */
+    .banner {
+      display: flex;
+      gap: var(--s-3);
+      align-items: flex-start;
+      padding: var(--s-4) var(--s-5);
+      border-radius: var(--r-input);
+      font-size: var(--t-body-sm);
+      line-height: var(--lh-norm);
+    }
+    .banner__icon {
+      flex: 0 0 auto;
+      font-size: 18px;
+      margin-top: 1px;
+    }
+    .banner__title { font-weight: 500; }
+    .banner__text { color: inherit; opacity: 0.85; margin-top: 2px; }
+
+    .banner--locked {
+      background: var(--c-bg-soft);
+      color: var(--c-ink-2);
+      border-left: 2px solid var(--c-ink-3);
+    }
+    .banner--stale {
+      background: var(--c-warn-lt);
+      color: var(--c-warn);
+      border-left: 2px solid var(--c-warn);
+    }
+    .banner--error {
+      background: var(--c-danger-lt);
+      color: var(--c-danger);
+      border-left: 2px solid var(--c-danger);
+    }
+    .banner--info {
+      background: var(--c-primary-lt);
+      color: var(--c-primary);
+      border-left: 2px solid var(--c-primary);
+    }
+
+    /* ───────────────────────────────────────────────────────────────
+       § 9 — Layout wrappers
+       ─────────────────────────────────────────────────────────────── */
+    .wrap-demo {
+      background: var(--c-card);
+      border: 1px solid var(--c-rule);
+      border-radius: var(--r-input);
+      padding: var(--s-4);
+      font-size: var(--t-cap);
+      color: var(--c-ink-3);
+      font-family: ui-monospace, 'SF Mono', monospace;
+      text-align: center;
+      position: relative;
+    }
+    .wrap-demo--chrome { width: 100%; }
+    .wrap-demo--body   { max-width: 920px; margin-inline: auto; }
+    .wrap-demo + .wrap-demo { margin-top: var(--s-3); }
+    .wrap-demo strong { color: var(--c-ink); display: block; margin-bottom: var(--s-1); font-family: var(--font-sans); }
+
+    /* ───────────────────────────────────────────────────────────────
+       § 10 — Breakpoints
+       ─────────────────────────────────────────────────────────────── */
+    .bp-table {
+      width: 100%;
+      border-collapse: collapse;
+      font-size: var(--t-meta);
+    }
+    .bp-table th, .bp-table td {
+      padding: var(--s-3) var(--s-4);
+      text-align: left;
+      border-bottom: 1px solid var(--c-rule);
+    }
+    .bp-table th {
+      font-weight: 500;
+      color: var(--c-ink-3);
+      letter-spacing: 0.04em;
+      text-transform: uppercase;
+      font-size: var(--t-cap);
+    }
+    .bp-table td:first-child { font-family: ui-monospace, 'SF Mono', monospace; color: var(--c-primary); }
+
+    /* ───────────────────────────────────────────────────────────────
+       § 11 — Motion / transitions
+       ─────────────────────────────────────────────────────────────── */
+    .motion-cell {
+      padding: var(--s-3) 0;
+      border-bottom: 1px solid var(--c-rule);
+      display: grid;
+      grid-template-columns: 100px 100px 1fr;
+      gap: var(--s-3);
+      align-items: center;
+      font-size: var(--t-meta);
+    }
+    .motion-cell:last-child { border-bottom: 0; }
+    .motion-cell__token { font-family: ui-monospace, 'SF Mono', monospace; color: var(--c-ink-3); }
+    .motion-cell__val { color: var(--c-ink-2); }
+
+    /* ───────────────────────────────────────────────────────────────
+       Notes / annotations
+       ─────────────────────────────────────────────────────────────── */
+    .note {
+      background: var(--c-bg-soft);
+      border-left: 2px solid var(--c-ink-3);
+      padding: var(--s-3) var(--s-4);
+      font-size: var(--t-meta);
+      color: var(--c-ink-2);
+      line-height: var(--lh-loose);
+    }
+    .note strong { color: var(--c-ink); }
+
+    .mini-row { display: flex; gap: var(--s-3); flex-wrap: wrap; margin-top: var(--s-3); }
+    .mini-card {
+      flex: 1;
+      min-width: 0;
+      padding: var(--s-3) var(--s-4);
+      background: var(--c-bg-soft);
+      border-radius: var(--r-input);
+      font-size: var(--t-cap);
+      color: var(--c-ink-2);
+    }
+
+    /* mock navbar (for layout demo) */
+    .demo-nav {
+      display: flex;
+      align-items: center;
+      gap: var(--s-3);
+      padding: var(--s-3) var(--s-4);
+      background: var(--c-card);
+      border-bottom: 1px solid var(--c-rule);
+    }
+    .demo-nav__brand {
+      display: flex;
+      align-items: center;
+      gap: var(--s-2);
+      font-weight: 500;
+      letter-spacing: -0.005em;
+    }
+    .demo-nav__brand-icon {
+      width: 28px; height: 28px;
+      border-radius: 6px;
+      background: var(--c-navy);
+      color: #fff;
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+      font-size: 16px;
+    }
+    .demo-nav__tabs { display: flex; gap: var(--s-2); margin-left: var(--s-4); }
+    .demo-nav__tab {
+      padding: 6px var(--s-3);
+      border-radius: var(--r-pill);
+      font-size: var(--t-meta);
+      color: var(--c-ink-3);
+    }
+    .demo-nav__tab.is-active { background: var(--c-navy); color: #fff; }
+    .demo-nav__actions { margin-left: auto; }
+
+    /* mock progress (for layout demo) */
+    .demo-progress {
+      padding: var(--s-3) var(--s-5);
+      background: var(--c-bg-soft);
+      border-bottom: 1px solid var(--c-rule);
+      display: flex;
+      gap: var(--s-2);
+      align-items: center;
+      overflow-x: auto;
+    }
+    .demo-progress__step {
+      flex: 0 0 auto;
+      padding: 4px 10px;
+      border-radius: var(--r-pill);
+      font-size: var(--t-cap);
+      color: var(--c-ink-3);
+      letter-spacing: 0.02em;
+    }
+    .demo-progress__step.is-done { color: var(--c-ink); }
+    .demo-progress__step.is-active {
+      background: var(--c-navy);
+      color: #fff;
+    }
+    .demo-progress__step .step-letter {
+      font-family: var(--font-serif);
+      font-style: italic;
+      margin-right: 4px;
+    }
+
+    /* ───────────────────────────────────────────────────────────────
+       § 12 — Tooltip
+       ─────────────────────────────────────────────────────────────── */
+    .tooltip-demo {
+      position: relative;
+      display: inline-block;
+      padding: var(--s-3) var(--s-5);
+      background: var(--c-bg-soft);
+      border-radius: var(--r-input);
+      font-size: var(--t-meta);
+      color: var(--c-ink-2);
+      cursor: help;
+    }
+    .tooltip {
+      position: absolute;
+      bottom: calc(100% + var(--s-2));
+      left: 50%;
+      transform: translateX(-50%);
+      padding: var(--s-2) var(--s-3);
+      background: var(--c-navy);
+      color: #fff;
+      border-radius: var(--r-input);
+      font-size: var(--t-cap);
+      line-height: 1.4;
+      white-space: nowrap;
+      max-width: 280px;
+      box-shadow: var(--shadow-3);
+      pointer-events: none;
+      z-index: 50;
+    }
+    .tooltip::after {
+      content: '';
+      position: absolute;
+      top: 100%;
+      left: 50%;
+      transform: translateX(-50%);
+      border: 6px solid transparent;
+      border-top-color: var(--c-navy);
+    }
+    .tooltip--wide {
+      white-space: normal;
+      width: 240px;
+    }
+
+    .field-with-hint {
+      display: flex;
+      gap: var(--s-2);
+      align-items: flex-start;
+    }
+    .field-with-hint > .field { flex: 1; }
+    .hint-icon-btn {
+      width: 32px;
+      height: 32px;
+      flex: 0 0 auto;
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+      border-radius: var(--r-pill);
+      color: var(--c-ink-3);
+      border: 1px solid var(--c-rule);
+      background: var(--c-card);
+      transition: color var(--t-fast) var(--ease),
+                  border-color var(--t-fast) var(--ease),
+                  background var(--t-fast) var(--ease);
+      margin-top: 24px; /* align with input */
+    }
+    .hint-icon-btn:hover {
+      color: var(--c-navy);
+      border-color: var(--c-navy);
+      background: var(--c-navy-lt);
+    }
+
+    /* ───────────────────────────────────────────────────────────────
+       § 13 — Modal (hint / example overlay)
+       ─────────────────────────────────────────────────────────────── */
+    .modal-frame {
+      background: rgba(31,29,27,0.4);
+      padding: var(--s-5);
+      border-radius: var(--r-input);
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      min-height: 320px;
+    }
+    .modal-card {
+      width: 100%;
+      max-width: 520px;
+      background: var(--c-card);
+      border-radius: var(--r-card);
+      box-shadow: var(--shadow-3);
+      overflow: hidden;
+      position: relative;
+    }
+    .modal__head {
+      padding: var(--s-5) var(--s-5) var(--s-3);
+      border-bottom: 1px solid var(--c-rule);
+      display: flex;
+      align-items: flex-start;
+      gap: var(--s-3);
+    }
+    .modal__head-icon {
+      width: 36px;
+      height: 36px;
+      border-radius: var(--r-input);
+      background: var(--c-navy-lt);
+      color: var(--c-navy);
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+      font-size: 18px;
+      flex: 0 0 auto;
+    }
+    .modal__title {
+      font-size: var(--t-h3);
+      letter-spacing: -0.005em;
+      flex: 1;
+    }
+    .modal__sub {
+      font-size: var(--t-cap);
+      color: var(--c-ink-3);
+      margin-top: 2px;
+      letter-spacing: 0.04em;
+      text-transform: uppercase;
+    }
+    .modal__close {
+      width: 32px;
+      height: 32px;
+      flex: 0 0 auto;
+      border-radius: var(--r-pill);
+      color: var(--c-ink-3);
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+    }
+    .modal__close:hover { background: var(--c-bg-soft); color: var(--c-ink); }
+
+    .modal__body {
+      padding: var(--s-4) var(--s-5);
+      font-size: var(--t-body);
+      line-height: var(--lh-norm);
+      color: var(--c-ink);
+      max-height: 360px;
+      overflow-y: auto;
+    }
+    .modal__body p { margin-bottom: var(--s-3); }
+    .modal__body p:last-child { margin-bottom: 0; }
+    .modal__body blockquote {
+      border-left: 2px solid var(--c-navy);
+      padding: var(--s-2) var(--s-4);
+      margin: var(--s-3) 0;
+      color: var(--c-ink-2);
+      background: var(--c-navy-lt);
+      border-radius: 0 var(--r-input) var(--r-input) 0;
+      font-size: var(--t-body-sm);
+    }
+
+    .modal__loading {
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      gap: var(--s-3);
+      padding: var(--s-7) 0;
+      color: var(--c-ink-3);
+      font-size: var(--t-body-sm);
+    }
+    .modal__loading-spinner {
+      width: 32px;
+      height: 32px;
+      border: 2px solid var(--c-rule-bold);
+      border-top-color: var(--c-navy);
+      border-radius: 50%;
+      animation: spin 0.8s linear infinite;
+    }
+
+    .modal__error {
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      gap: var(--s-3);
+      padding: var(--s-7) var(--s-5);
+      text-align: center;
+    }
+    .modal__error i { font-size: 36px; color: var(--c-danger); }
+
+    .modal__foot {
+      padding: var(--s-3) var(--s-5);
+      border-top: 1px solid var(--c-rule);
+      display: flex;
+      justify-content: flex-end;
+      gap: var(--s-2);
+      background: var(--c-bg-soft);
+    }
+
+    /* Mobile: full-bleed sheet (slide up from bottom) */
+    @media (max-width: 600px) {
+      .modal-frame { padding: 0; align-items: flex-end; }
+      .modal-card {
+        max-width: 100%;
+        border-radius: var(--r-card) var(--r-card) 0 0;
+        max-height: 80vh;
+      }
+    }
+
+    /* ───────────────────────────────────────────────────────────────
+       § 14 — Example bullet list（巢狀縮排 + bold）
+       ─────────────────────────────────────────────────────────────── */
+    .example-list {
+      list-style: disc;
+      padding-left: 18px;
+      margin: 0;
+      font-size: var(--t-body-sm);
+      line-height: 1.7;
+      color: var(--c-ink);
+    }
+    .example-list > li { margin: 4px 0; }
+    .example-list .example-sub {
+      list-style: circle;
+      padding-left: 18px;
+      margin: 4px 0;
+    }
+    .example-list strong {
+      color: var(--c-primary);
+      font-weight: 700;
+    }
+    .example-block {
+      background: var(--c-card);
+      border: 1px solid var(--c-rule);
+      border-radius: var(--r-input);
+      padding: var(--s-4) var(--s-5);
+    }
+    .example-block__sub {
+      font-size: var(--t-cap);
+      color: var(--c-ink-3);
+      letter-spacing: 0.04em;
+      text-transform: uppercase;
+      margin-bottom: var(--s-2);
+    }
+
+    /* ───────────────────────────────────────────────────────────────
+       § 15 — Save indicator（4-state matrix）
+       ─────────────────────────────────────────────────────────────── */
+    .save-indicator {
+      display: inline-flex;
+      align-items: center;
+      gap: var(--s-2);
+      padding: 4px var(--s-3);
+      border-radius: var(--r-pill);
+      font-size: var(--t-cap);
+      letter-spacing: 0.005em;
+      transition: background var(--t-fast) var(--ease),
+                  color var(--t-fast) var(--ease);
+    }
+    .save-indicator--idle { color: var(--c-ink-3); background: transparent; }
+    .save-indicator--saving { color: var(--c-ink-2); background: var(--c-bg-soft); }
+    .save-indicator--saving::before {
+      content: '';
+      width: 12px; height: 12px;
+      border: 2px solid var(--c-ink-3);
+      border-top-color: transparent;
+      border-radius: 50%;
+      animation: spin 0.8s linear infinite;
+    }
+    .save-indicator--saved { color: var(--c-success); background: var(--c-success-lt); }
+    .save-indicator--error { color: var(--c-danger); background: var(--c-danger-lt); cursor: pointer; }
+
+    /* ───────────────────────────────────────────────────────────────
+       § 16 — Toast / Snackbar
+       ─────────────────────────────────────────────────────────────── */
+    .toast-stack {
+      position: relative;
+      padding: var(--s-3);
+      background: var(--c-bg-soft);
+      border-radius: var(--r-input);
+      min-height: 200px;
+      display: flex;
+      flex-direction: column;
+      gap: var(--s-2);
+      align-items: center;
+      justify-content: center;
+    }
+    .toast {
+      display: flex;
+      align-items: center;
+      gap: var(--s-3);
+      padding: var(--s-3) var(--s-4);
+      background: var(--c-card);
+      border-left: 3px solid var(--c-ink-2);
+      border-radius: var(--r-input);
+      box-shadow: var(--shadow-3);
+      font-size: var(--t-body-sm);
+      max-width: 360px;
+      width: 100%;
+    }
+    .toast i { font-size: 18px; flex: 0 0 auto; }
+    .toast--info i { color: var(--c-primary); }
+    .toast--info { border-left-color: var(--c-primary); }
+    .toast--success i { color: var(--c-success); }
+    .toast--success { border-left-color: var(--c-success); }
+    .toast--warn i { color: var(--c-warn); }
+    .toast--warn { border-left-color: var(--c-warn); }
+    .toast--error i { color: var(--c-danger); }
+    .toast--error { border-left-color: var(--c-danger); }
+    .toast__close {
+      margin-left: auto;
+      width: 24px;
+      height: 24px;
+      flex: 0 0 auto;
+      border-radius: var(--r-pill);
+      color: var(--c-ink-3);
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+    }
+
+    /* ───────────────────────────────────────────────────────────────
+       § 17 — Overflow / Long-content matrix
+       ─────────────────────────────────────────────────────────────── */
+    .ovf-demo {
+      background: var(--c-card);
+      border: 1px solid var(--c-rule);
+      border-radius: var(--r-input);
+      padding: var(--s-3);
+      margin-bottom: var(--s-3);
+    }
+    .ovf-demo__label {
+      font-size: var(--t-cap);
+      color: var(--c-ink-3);
+      letter-spacing: 0.04em;
+      text-transform: uppercase;
+      margin-bottom: var(--s-2);
+    }
+    .ovf-truncate {
+      max-width: 240px;
+      overflow: hidden;
+      text-overflow: ellipsis;
+      white-space: nowrap;
+      color: var(--c-ink);
+      font-size: var(--t-body-sm);
+    }
+    .ovf-wrap {
+      max-width: 280px;
+      word-break: break-word;
+      overflow-wrap: anywhere;
+      color: var(--c-ink);
+      font-size: var(--t-body-sm);
+      line-height: var(--lh-norm);
+    }
+    .ovf-bubble {
+      max-width: 75%;
+      padding: var(--s-3) var(--s-4);
+      background: var(--c-primary-lt);
+      border-radius: var(--r-card);
+      color: var(--c-ink);
+      font-size: var(--t-body-sm);
+      line-height: var(--lh-norm);
+      word-break: break-word;
+      overflow-wrap: anywhere;
+    }
+
+    /* ───────────────────────────────────────────────────────────────
+       § 18 — Char counter
+       ─────────────────────────────────────────────────────────────── */
+    .char-meta {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      margin-top: var(--s-2);
+      font-size: var(--t-cap);
+      color: var(--c-ink-3);
+    }
+    .char-counter {
+      font-family: ui-monospace, 'SF Mono', monospace;
+      letter-spacing: 0.02em;
+    }
+    .char-counter--ok { color: var(--c-ink-3); }
+    .char-counter--near { color: var(--c-warn); }
+    .char-counter--over { color: var(--c-danger); font-weight: 600; }
+
+    /* ───────────────────────────────────────────────────────────────
+       § 19 — Phase head / Breadcrumb
+       ─────────────────────────────────────────────────────────────── */
+    .phase-head {
+      padding: var(--s-3) var(--s-5);
+      background: var(--c-bg-soft);
+      border-bottom: 1px solid var(--c-rule);
+      display: flex;
+      align-items: center;
+      gap: var(--s-3);
+    }
+    .phase-head__num {
+      font-family: var(--font-serif);
+      font-style: italic;
+      font-size: 22px;
+      color: var(--c-navy);
+      line-height: 1;
+      flex: 0 0 auto;
+    }
+    .phase-head__main {
+      flex: 1;
+      min-width: 0;
+    }
+    .phase-head__eyebrow {
+      font-size: var(--t-cap);
+      letter-spacing: 0.08em;
+      text-transform: uppercase;
+      color: var(--c-ink-3);
+    }
+    .phase-head__title {
+      font-size: var(--t-h3);
+      letter-spacing: -0.005em;
+      color: var(--c-ink);
+      margin-top: 2px;
+    }
+    .phase-head__meta {
+      flex: 0 0 auto;
+      font-size: var(--t-meta);
+      color: var(--c-ink-3);
+    }
+
+    /* ───────────────────────────────────────────────────────────────
+       § 20 — Mode tag（drill vs simulation 區分）
+       ─────────────────────────────────────────────────────────────── */
+    .mode-tag {
+      display: inline-flex;
+      align-items: center;
+      gap: 4px;
+      padding: 2px var(--s-2);
+      border-radius: 3px;
+      font-size: var(--t-cap);
+      font-weight: 500;
+      letter-spacing: 0.04em;
+      text-transform: uppercase;
+    }
+    .mode-tag--drill {
+      background: var(--c-bg-deep);
+      color: var(--c-ink-2);
+    }
+    .mode-tag--sim {
+      background: var(--c-success-lt);
+      color: var(--c-success);
+    }
+    .mode-tag--nsm {
+      background: rgba(107,79,188,0.12);
+      color: var(--c-accent-nsm);
+    }
+    .mode-tag i { font-size: 11px; }
+
+    /* ───────────────────────────────────────────────────────────────
+       § 21 — Onboarding coachmark / spotlight
+       ─────────────────────────────────────────────────────────────── */
+    .coachmark-frame {
+      position: relative;
+      background: rgba(31,29,27,0.5);
+      border-radius: var(--r-input);
+      padding: var(--s-7);
+      min-height: 260px;
+      overflow: hidden;
+    }
+    .coachmark-target {
+      display: inline-block;
+      padding: var(--s-3) var(--s-5);
+      background: var(--c-card);
+      border-radius: var(--r-pill);
+      box-shadow: 0 0 0 9999px rgba(31,29,27,0.5),
+                  0 0 0 4px rgba(255,255,255,0.4);
+      position: relative;
+      z-index: 2;
+      color: var(--c-ink);
+      font-size: var(--t-body-sm);
+    }
+    .coachmark-tip {
+      position: absolute;
+      max-width: 280px;
+      padding: var(--s-4) var(--s-5);
+      background: var(--c-card);
+      border-radius: var(--r-card);
+      box-shadow: var(--shadow-3);
+      z-index: 3;
+    }
+    .coachmark-tip::before {
+      content: '';
+      position: absolute;
+      width: 12px; height: 12px;
+      background: var(--c-card);
+      transform: rotate(45deg);
+    }
+    .coachmark-tip--top {
+      top: var(--s-4); left: 50%; transform: translateX(-50%);
+    }
+    .coachmark-tip--top::before { bottom: -6px; left: 50%; margin-left: -6px; }
+    .coachmark-tip--bottom {
+      bottom: var(--s-4); left: 50%; transform: translateX(-50%);
+    }
+    .coachmark-tip--bottom::before { top: -6px; left: 50%; margin-left: -6px; }
+    .coachmark-tip__step {
+      font-size: var(--t-cap);
+      color: var(--c-ink-3);
+      letter-spacing: 0.04em;
+      text-transform: uppercase;
+      margin-bottom: var(--s-2);
+    }
+    .coachmark-tip__title {
+      font-size: var(--t-h3);
+      margin-bottom: var(--s-2);
+      color: var(--c-ink);
+    }
+    .coachmark-tip__body {
+      font-size: var(--t-body-sm);
+      color: var(--c-ink-2);
+      line-height: var(--lh-norm);
+    }
+    .coachmark-tip__foot {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      margin-top: var(--s-3);
+      padding-top: var(--s-3);
+      border-top: 1px solid var(--c-rule);
+    }
+    .coachmark-tip__progress {
+      font-size: var(--t-cap);
+      color: var(--c-ink-3);
+      font-family: ui-monospace, 'SF Mono', monospace;
+    }
+
+    /* footer signature */
+    .ds-foot {
+      max-width: 1880px;
+      margin: 0 auto;
+      padding: var(--s-7) 0 var(--s-8);
+      border-top: 1px solid var(--c-rule);
+      display: flex;
+      gap: var(--s-5);
+      flex-wrap: wrap;
+      color: var(--c-ink-3);
+      font-size: var(--t-meta);
+    }
+
+    /* small-screen courtesy: this design system page is meant to be viewed on a wide desktop. */
+    @media (max-width: 1100px) {
+      .vp-grid { grid-template-columns: 360px; }
+      .vp-frame:nth-child(2), .vp-frame:nth-child(3) { display: none; }
+      .ds-section__note::before { content: '（縮窄視窗：僅顯示 mobile 框；請在 ≥1280 視窗看完整三裝置）— '; }
+    }
+  </style>
+</head>
+<body>
+
+<div class="ds-page">
+
+  <!-- ═══════════════════ HEADER ═══════════════════ -->
+  <header class="ds-header">
+    <div class="ds-header__eyebrow">PM Drill · Path 2 · Frontend Rewrite · Design System (21 sections)</div>
+    <h1>Design System — Architect's Notebook</h1>
+    <p class="ds-header__sub">
+      暖米紙感背景、海軍藍 active surface、1px 髮絲線、克制色票、印章式襯線編號。每個對齊都刻意；每個間距都來自 4-grid。所有後續 mockup 都繼承這套 tokens；任何偏離 = 重畫。
+    </p>
+    <p class="ds-header__sub" style="margin-top:var(--s-3); font-size:var(--t-cap); color:var(--c-ink-3); letter-spacing:0.04em; text-transform:uppercase;">
+      § 1 色票 · § 2 字型 · § 3 間距 · § 4 按鈕 · § 5 表單 · § 6 chips · § 7 cards · § 8 banners · § 9 wrappers · § 10 breakpoints · § 11 motion · § 12 tooltip · § 13 modal · § 14 example-bullet · § 15 save-indicator · § 16 toast · § 17 overflow · § 18 char-counter · § 19 phase-head · § 20 mode-tag · § 21 onboarding
+    </p>
+  </header>
+
+  <!-- ═══════════════════ § 1 — COLOR ═══════════════════ -->
+  <section class="ds-section" id="s1-color">
+    <div class="ds-section__head">
+      <span class="ds-section__num">01</span>
+      <h2 class="ds-section__title">色票</h2>
+      <span class="ds-section__note">三裝置共用 — 色票不隨 viewport 變</span>
+    </div>
+
+    <div class="vp-grid">
+      <!-- mobile -->
+      <div class="vp-frame">
+        <div class="vp-frame__label"><span>Mobile</span><span>360 px</span></div>
+        <div class="vp-frame__body">
+          <h3 style="font-size:var(--t-h3); margin-bottom:var(--s-3);">紙感中性</h3>
+          <div class="swatch-grid" style="grid-template-columns:1fr 1fr;">
+            <div class="swatch"><div class="swatch__color" style="background:var(--c-bg);"></div><div class="swatch__meta"><span class="swatch__name">--c-bg</span><span class="swatch__hex">#F2F0EB</span></div></div>
+            <div class="swatch"><div class="swatch__color" style="background:var(--c-bg-soft);"></div><div class="swatch__meta"><span class="swatch__name">bg-soft</span><span class="swatch__hex">#ECE9E1</span></div></div>
+            <div class="swatch"><div class="swatch__color" style="background:var(--c-card); border-bottom:1px solid var(--c-rule);"></div><div class="swatch__meta"><span class="swatch__name">card</span><span class="swatch__hex">#FFFFFF</span></div></div>
+            <div class="swatch"><div class="swatch__color" style="background:var(--c-ink);"></div><div class="swatch__meta"><span class="swatch__name">ink</span><span class="swatch__hex">#1F1D1B</span></div></div>
+          </div>
+
+          <h3 style="font-size:var(--t-h3); margin-top:var(--s-5); margin-bottom:var(--s-3);">Action / Status</h3>
+          <div class="swatch-grid" style="grid-template-columns:1fr 1fr;">
+            <div class="swatch"><div class="swatch__color" style="background:var(--c-primary);"></div><div class="swatch__meta"><span class="swatch__name">primary</span><span class="swatch__hex">#1A56DB</span></div></div>
+            <div class="swatch"><div class="swatch__color" style="background:var(--c-accent-nsm);"></div><div class="swatch__meta"><span class="swatch__name">nsm</span><span class="swatch__hex">#6B4FBC</span></div></div>
+            <div class="swatch"><div class="swatch__color" style="background:var(--c-success);"></div><div class="swatch__meta"><span class="swatch__name">success</span><span class="swatch__hex">#137A3D</span></div></div>
+            <div class="swatch"><div class="swatch__color" style="background:var(--c-warn);"></div><div class="swatch__meta"><span class="swatch__name">warn</span><span class="swatch__hex">#B85C00</span></div></div>
+            <div class="swatch"><div class="swatch__color" style="background:var(--c-danger);"></div><div class="swatch__meta"><span class="swatch__name">danger</span><span class="swatch__hex">#B61F1F</span></div></div>
+            <div class="swatch"><div class="swatch__color" style="background:var(--c-rule-bold);"></div><div class="swatch__meta"><span class="swatch__name">rule</span><span class="swatch__hex">10–18%</span></div></div>
+          </div>
+        </div>
+      </div>
+
+      <!-- tablet -->
+      <div class="vp-frame">
+        <div class="vp-frame__label"><span>Tablet</span><span>768 px</span></div>
+        <div class="vp-frame__body">
+          <h3 style="font-size:var(--t-h3); margin-bottom:var(--s-3);">紙感中性</h3>
+          <div class="swatch-grid">
+            <div class="swatch"><div class="swatch__color" style="background:var(--c-bg);"></div><div class="swatch__meta"><span class="swatch__name">--c-bg</span><span class="swatch__hex">#F2F0EB</span></div></div>
+            <div class="swatch"><div class="swatch__color" style="background:var(--c-bg-soft);"></div><div class="swatch__meta"><span class="swatch__name">bg-soft</span><span class="swatch__hex">#ECE9E1</span></div></div>
+            <div class="swatch"><div class="swatch__color" style="background:var(--c-bg-deep);"></div><div class="swatch__meta"><span class="swatch__name">bg-deep</span><span class="swatch__hex">#E5E1D7</span></div></div>
+            <div class="swatch"><div class="swatch__color" style="background:var(--c-card);border-bottom:1px solid var(--c-rule);"></div><div class="swatch__meta"><span class="swatch__name">card</span><span class="swatch__hex">#FFFFFF</span></div></div>
+            <div class="swatch"><div class="swatch__color" style="background:var(--c-ink);"></div><div class="swatch__meta"><span class="swatch__name">ink</span><span class="swatch__hex">#1F1D1B</span></div></div>
+            <div class="swatch"><div class="swatch__color" style="background:var(--c-ink-2);"></div><div class="swatch__meta"><span class="swatch__name">ink-2</span><span class="swatch__hex">#5A5046</span></div></div>
+            <div class="swatch"><div class="swatch__color" style="background:var(--c-ink-3);"></div><div class="swatch__meta"><span class="swatch__name">ink-3</span><span class="swatch__hex">#8A7E70</span></div></div>
+            <div class="swatch"><div class="swatch__color" style="background:var(--c-ink-4);"></div><div class="swatch__meta"><span class="swatch__name">ink-4</span><span class="swatch__hex">#B8AC9D</span></div></div>
+          </div>
+
+          <h3 style="font-size:var(--t-h3); margin-top:var(--s-5); margin-bottom:var(--s-3);">Action / Status</h3>
+          <div class="swatch-grid">
+            <div class="swatch"><div class="swatch__color" style="background:var(--c-primary);"></div><div class="swatch__meta"><span class="swatch__name">primary</span><span class="swatch__hex">#1A56DB</span></div></div>
+            <div class="swatch"><div class="swatch__color" style="background:var(--c-accent-nsm);"></div><div class="swatch__meta"><span class="swatch__name">nsm</span><span class="swatch__hex">#6B4FBC</span></div></div>
+            <div class="swatch"><div class="swatch__color" style="background:var(--c-success);"></div><div class="swatch__meta"><span class="swatch__name">success</span><span class="swatch__hex">#137A3D</span></div></div>
+            <div class="swatch"><div class="swatch__color" style="background:var(--c-warn);"></div><div class="swatch__meta"><span class="swatch__name">warn</span><span class="swatch__hex">#B85C00</span></div></div>
+            <div class="swatch"><div class="swatch__color" style="background:var(--c-danger);"></div><div class="swatch__meta"><span class="swatch__name">danger</span><span class="swatch__hex">#B61F1F</span></div></div>
+            <div class="swatch"><div class="swatch__color" style="background:var(--c-rule-bold);"></div><div class="swatch__meta"><span class="swatch__name">rule</span><span class="swatch__hex">rgba</span></div></div>
+          </div>
+        </div>
+      </div>
+
+      <!-- desktop -->
+      <div class="vp-frame">
+        <div class="vp-frame__label"><span>Desktop</span><span>1280 px</span></div>
+        <div class="vp-frame__body">
+          <h3 style="font-size:var(--t-h3); margin-bottom:var(--s-3);">紙感中性</h3>
+          <div class="swatch-grid">
+            <div class="swatch"><div class="swatch__color" style="background:var(--c-bg);"></div><div class="swatch__meta"><span class="swatch__name">--c-bg</span><span class="swatch__hex">#F2F0EB</span></div></div>
+            <div class="swatch"><div class="swatch__color" style="background:var(--c-bg-soft);"></div><div class="swatch__meta"><span class="swatch__name">bg-soft</span><span class="swatch__hex">#ECE9E1</span></div></div>
+            <div class="swatch"><div class="swatch__color" style="background:var(--c-bg-deep);"></div><div class="swatch__meta"><span class="swatch__name">bg-deep</span><span class="swatch__hex">#E5E1D7</span></div></div>
+            <div class="swatch"><div class="swatch__color" style="background:var(--c-card);border-bottom:1px solid var(--c-rule);"></div><div class="swatch__meta"><span class="swatch__name">card</span><span class="swatch__hex">#FFFFFF</span></div></div>
+            <div class="swatch"><div class="swatch__color" style="background:var(--c-ink);"></div><div class="swatch__meta"><span class="swatch__name">ink</span><span class="swatch__hex">#1F1D1B</span></div></div>
+            <div class="swatch"><div class="swatch__color" style="background:var(--c-ink-2);"></div><div class="swatch__meta"><span class="swatch__name">ink-2</span><span class="swatch__hex">#5A5046</span></div></div>
+            <div class="swatch"><div class="swatch__color" style="background:var(--c-ink-3);"></div><div class="swatch__meta"><span class="swatch__name">ink-3</span><span class="swatch__hex">#8A7E70</span></div></div>
+            <div class="swatch"><div class="swatch__color" style="background:var(--c-ink-4);"></div><div class="swatch__meta"><span class="swatch__name">ink-4</span><span class="swatch__hex">#B8AC9D</span></div></div>
+          </div>
+
+          <h3 style="font-size:var(--t-h3); margin-top:var(--s-5); margin-bottom:var(--s-3);">Action / Status</h3>
+          <div class="swatch-grid">
+            <div class="swatch"><div class="swatch__color" style="background:var(--c-primary);"></div><div class="swatch__meta"><span class="swatch__name">primary</span><span class="swatch__hex">#1A56DB</span></div></div>
+            <div class="swatch"><div class="swatch__color" style="background:var(--c-primary-lt);border-bottom:1px solid var(--c-rule);"></div><div class="swatch__meta"><span class="swatch__name">primary-lt</span><span class="swatch__hex">8% α</span></div></div>
+            <div class="swatch"><div class="swatch__color" style="background:var(--c-accent-nsm);"></div><div class="swatch__meta"><span class="swatch__name">nsm</span><span class="swatch__hex">#6B4FBC</span></div></div>
+            <div class="swatch"><div class="swatch__color" style="background:var(--c-success);"></div><div class="swatch__meta"><span class="swatch__name">success</span><span class="swatch__hex">#137A3D</span></div></div>
+            <div class="swatch"><div class="swatch__color" style="background:var(--c-warn);"></div><div class="swatch__meta"><span class="swatch__name">warn</span><span class="swatch__hex">#B85C00</span></div></div>
+            <div class="swatch"><div class="swatch__color" style="background:var(--c-danger);"></div><div class="swatch__meta"><span class="swatch__name">danger</span><span class="swatch__hex">#B61F1F</span></div></div>
+            <div class="swatch"><div class="swatch__color" style="background:var(--c-grade-a);"></div><div class="swatch__meta"><span class="swatch__name">grade-a</span><span class="swatch__hex">#137A3D</span></div></div>
+            <div class="swatch"><div class="swatch__color" style="background:var(--c-grade-d);"></div><div class="swatch__meta"><span class="swatch__name">grade-d</span><span class="swatch__hex">#B61F1F</span></div></div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <div style="background:var(--c-card); border:1px solid var(--c-rule); border-radius:var(--r-input); padding:var(--s-4); margin-top:var(--s-5);">
+      <h4 style="font-size:var(--t-h3); margin-bottom:var(--s-3);">Signature Navy（active surface 專用）</h4>
+      <div class="swatch-grid" style="grid-template-columns:repeat(3, 1fr);">
+        <div class="swatch"><div class="swatch__color" style="background:var(--c-navy);"></div><div class="swatch__meta"><span class="swatch__name">--c-navy</span><span class="swatch__hex">#1B2D5C</span></div></div>
+        <div class="swatch"><div class="swatch__color" style="background:var(--c-navy-2);"></div><div class="swatch__meta"><span class="swatch__name">navy-2 hover</span><span class="swatch__hex">#142347</span></div></div>
+        <div class="swatch"><div class="swatch__color" style="background:var(--c-navy-lt);border-bottom:1px solid var(--c-rule);"></div><div class="swatch__meta"><span class="swatch__name">navy-lt</span><span class="swatch__hex">8% α</span></div></div>
+      </div>
+      <p style="margin-top:var(--s-3); font-size:var(--t-meta); color:var(--c-ink-2);">
+        導入 navy 取代「黑色 / warm-brown ink」當作 <strong>active surface</strong>（active pill / brand mark icon / nav tab active / progress active）。Navy 比黑色暖、比 primary 沉穩，與紙感背景配出「正式工作本」氣質。
+      </p>
+    </div>
+
+    <p class="note" style="margin-top:var(--s-5);">
+      <strong>色票分工原則：</strong><br>
+      ·<strong> 中性紙感色（bg / ink / rule）</strong>佔畫面 95% — 主導視覺氣氛<br>
+      ·<strong> Navy <code>--c-navy</code> #1B2D5C — active surface only</strong>：active pill / brand mark icon / nav active / progress active<br>
+      ·<strong> Primary <code>--c-primary</code> #1A56DB — action only</strong>：primary button / focus ring (3px) / 選中卡片 1px 邊<br>
+      ·<strong> 狀態色 4 軌</strong>（success / warn / danger / nsm）只在該狀態出現，永不疊加<br>
+      <strong>不准：</strong>紫色漸層、彩虹背景、emoji 圖示、把 primary 當底色（保留藍只給「點擊」訊號）
+    </p>
+  </section>
+
+  <!-- ═══════════════════ § 2 — TYPE ═══════════════════ -->
+  <section class="ds-section" id="s2-type">
+    <div class="ds-section__head">
+      <span class="ds-section__num">02</span>
+      <h2 class="ds-section__title">字型與字級</h2>
+      <span class="ds-section__note">system-ui 為主；Instrument Serif 僅給 grade letter A/B/C/D</span>
+    </div>
+
+    <div class="vp-grid">
+      <!-- mobile -->
+      <div class="vp-frame">
+        <div class="vp-frame__label"><span>Mobile</span><span>360 px</span></div>
+        <div class="vp-frame__body">
+          <div class="type-row"><span class="type-row__token">--t-h1</span><span class="type-row__sample" style="font-size:24px;line-height:1.25;letter-spacing:-0.01em;">標題 H1</span><span class="type-row__size">24 / 1.25</span></div>
+          <div class="type-row"><span class="type-row__token">--t-h2</span><span class="type-row__sample" style="font-size:19px;">區塊 H2</span><span class="type-row__size">19 / 1.4</span></div>
+          <div class="type-row"><span class="type-row__token">--t-h3</span><span class="type-row__sample" style="font-size:16px;">小標 H3</span><span class="type-row__size">16 / 1.5</span></div>
+          <div class="type-row"><span class="type-row__token">--t-body</span><span class="type-row__sample" style="font-size:15px;">內文 — 用戶在練習中閱讀的長文</span><span class="type-row__size">15 / 1.55</span></div>
+          <div class="type-row"><span class="type-row__token">--t-body-sm</span><span class="type-row__sample" style="font-size:14px;color:var(--c-ink-2);">次要內文 / 卡片描述</span><span class="type-row__size">14 / 1.55</span></div>
+          <div class="type-row"><span class="type-row__token">--t-meta</span><span class="type-row__sample" style="font-size:13px;color:var(--c-ink-3);">標籤 / 時間 / Meta</span><span class="type-row__size">13 / 1.4</span></div>
+          <div class="type-row"><span class="type-row__token">--t-cap</span><span class="type-row__sample" style="font-size:12px;color:var(--c-ink-3);letter-spacing:0.04em;">CAPTION / EYEBROW</span><span class="type-row__size">12 / 1.4</span></div>
+          <div class="type-row" style="border-top:1px solid var(--c-rule);margin-top:var(--s-3);padding-top:var(--s-3);">
+            <span class="type-row__token">grade</span>
+            <span class="type-row__sample"><span class="grade-letter" style="color:var(--c-grade-a);">A</span> Instrument Serif</span>
+            <span class="type-row__size">56 italic</span>
+          </div>
+        </div>
+      </div>
+
+      <!-- tablet -->
+      <div class="vp-frame">
+        <div class="vp-frame__label"><span>Tablet</span><span>768 px</span></div>
+        <div class="vp-frame__body">
+          <div class="type-row"><span class="type-row__token">--t-h1</span><span class="type-row__sample" style="font-size:24px;line-height:1.25;letter-spacing:-0.01em;">標題 H1 · 區塊主標</span><span class="type-row__size">24 / 1.25</span></div>
+          <div class="type-row"><span class="type-row__token">--t-h2</span><span class="type-row__sample" style="font-size:19px;">區塊 H2</span><span class="type-row__size">19 / 1.4</span></div>
+          <div class="type-row"><span class="type-row__token">--t-h3</span><span class="type-row__sample" style="font-size:16px;">小標 H3 · Card 標題</span><span class="type-row__size">16 / 1.5</span></div>
+          <div class="type-row"><span class="type-row__token">--t-body</span><span class="type-row__sample" style="font-size:15px;">內文 — 練習題目陳述、教練回覆、長段落</span><span class="type-row__size">15 / 1.55</span></div>
+          <div class="type-row"><span class="type-row__token">--t-body-sm</span><span class="type-row__sample" style="font-size:14px;color:var(--c-ink-2);">次要內文 / 卡片描述</span><span class="type-row__size">14 / 1.55</span></div>
+          <div class="type-row"><span class="type-row__token">--t-meta</span><span class="type-row__sample" style="font-size:13px;color:var(--c-ink-3);">標籤 · 時間 · Meta</span><span class="type-row__size">13 / 1.4</span></div>
+          <div class="type-row"><span class="type-row__token">--t-cap</span><span class="type-row__sample" style="font-size:12px;color:var(--c-ink-3);letter-spacing:0.04em;text-transform:uppercase;">caption / eyebrow</span><span class="type-row__size">12 / 1.4</span></div>
+          <div class="type-row" style="border-top:1px solid var(--c-rule);margin-top:var(--s-3);padding-top:var(--s-3);">
+            <span class="type-row__token">grade</span>
+            <span class="type-row__sample">
+              <span class="grade-letter" style="color:var(--c-grade-a);">A</span>
+              <span class="grade-letter" style="color:var(--c-grade-b);">B</span>
+              <span class="grade-letter" style="color:var(--c-grade-c);">C</span>
+              <span class="grade-letter" style="color:var(--c-grade-d);">D</span>
+            </span>
+            <span class="type-row__size">56 italic</span>
+          </div>
+        </div>
+      </div>
+
+      <!-- desktop -->
+      <div class="vp-frame">
+        <div class="vp-frame__label"><span>Desktop</span><span>1280 px</span></div>
+        <div class="vp-frame__body">
+          <div class="type-row"><span class="type-row__token">--t-h1</span><span class="type-row__sample" style="font-size:24px;line-height:1.25;letter-spacing:-0.01em;">標題 H1 · CIRCLES 練習主標</span><span class="type-row__size">24 / 1.25</span></div>
+          <div class="type-row"><span class="type-row__token">--t-h2</span><span class="type-row__sample" style="font-size:19px;">區塊 H2 · 步驟區塊主標</span><span class="type-row__size">19 / 1.4</span></div>
+          <div class="type-row"><span class="type-row__token">--t-h3</span><span class="type-row__sample" style="font-size:16px;">小標 H3 · Q-Card / 維度標題</span><span class="type-row__size">16 / 1.5</span></div>
+          <div class="type-row"><span class="type-row__token">--t-body</span><span class="type-row__sample" style="font-size:15px;">內文 — 用戶在練習中閱讀的長文段落，需 1.55 行高保持節奏</span><span class="type-row__size">15 / 1.55</span></div>
+          <div class="type-row"><span class="type-row__token">--t-body-sm</span><span class="type-row__sample" style="font-size:14px;color:var(--c-ink-2);">次要內文 / 卡片描述 / 提示</span><span class="type-row__size">14 / 1.55</span></div>
+          <div class="type-row"><span class="type-row__token">--t-meta</span><span class="type-row__sample" style="font-size:13px;color:var(--c-ink-3);">標籤 · 時間 · Meta · Step pill</span><span class="type-row__size">13 / 1.4</span></div>
+          <div class="type-row"><span class="type-row__token">--t-cap</span><span class="type-row__sample" style="font-size:12px;color:var(--c-ink-3);letter-spacing:0.04em;text-transform:uppercase;">caption · eyebrow · field label</span><span class="type-row__size">12 / 1.4</span></div>
+          <div class="type-row" style="border-top:1px solid var(--c-rule);margin-top:var(--s-3);padding-top:var(--s-3);">
+            <span class="type-row__token">grade</span>
+            <span class="type-row__sample">
+              <span class="grade-letter" style="color:var(--c-grade-a);">A</span>
+              <span class="grade-letter" style="color:var(--c-grade-b);">B</span>
+              <span class="grade-letter" style="color:var(--c-grade-c);">C</span>
+              <span class="grade-letter" style="color:var(--c-grade-d);">D</span>
+              <span style="font-size:var(--t-meta);color:var(--c-ink-3);margin-left:var(--s-3);">— Phase 3 / Phase 4 only</span>
+            </span>
+            <span class="type-row__size">56 italic</span>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <p class="note" style="margin-top:var(--s-5);">
+      <strong>字型 stack：</strong><code style="font-family:ui-monospace,monospace;">system-ui, -apple-system, BlinkMacSystemFont, 'PingFang TC', 'Microsoft JhengHei', 'Heiti TC', 'Noto Sans TC', sans-serif</code>。<br>
+      <strong>iOS 防 zoom：</strong>所有 <code>&lt;input&gt;</code> / <code>&lt;textarea&gt;</code> 在 mobile (≤ 767px) 強制 16px。<br>
+      <strong>Instrument Serif 例外：</strong>只給 grade letter A/B/C/D（Phase 3 / Phase 4），其他地方都禁用 — 包含「裝飾性襯線標題」也禁。
+    </p>
+  </section>
+
+  <!-- ═══════════════════ § 3 — SPACING / RADIUS ═══════════════════ -->
+  <section class="ds-section" id="s3-spacing">
+    <div class="ds-section__head">
+      <span class="ds-section__num">03</span>
+      <h2 class="ds-section__title">間距 / 圓角</h2>
+      <span class="ds-section__note">4-grid 嚴格 — 任何非 4 倍數值 = bug</span>
+    </div>
+
+    <div class="vp-grid">
+      <div class="vp-frame">
+        <div class="vp-frame__label"><span>Mobile</span><span>360 px</span></div>
+        <div class="vp-frame__body">
+          <h3 style="font-size:var(--t-h3); margin-bottom:var(--s-3);">Spacing scale</h3>
+          <div class="scale-row"><span class="scale-row__token">--s-1</span><span class="scale-row__bar" style="width:4px;"></span><span class="scale-row__val">4 px</span></div>
+          <div class="scale-row"><span class="scale-row__token">--s-2</span><span class="scale-row__bar" style="width:8px;"></span><span class="scale-row__val">8 px</span></div>
+          <div class="scale-row"><span class="scale-row__token">--s-3</span><span class="scale-row__bar" style="width:12px;"></span><span class="scale-row__val">12 px</span></div>
+          <div class="scale-row"><span class="scale-row__token">--s-4</span><span class="scale-row__bar" style="width:16px;"></span><span class="scale-row__val">16 px</span></div>
+          <div class="scale-row"><span class="scale-row__token">--s-5</span><span class="scale-row__bar" style="width:20px;"></span><span class="scale-row__val">20 px</span></div>
+          <div class="scale-row"><span class="scale-row__token">--s-6</span><span class="scale-row__bar" style="width:24px;"></span><span class="scale-row__val">24 px</span></div>
+          <div class="scale-row"><span class="scale-row__token">--s-7</span><span class="scale-row__bar" style="width:32px;"></span><span class="scale-row__val">32 px</span></div>
+          <div class="scale-row"><span class="scale-row__token">--s-8</span><span class="scale-row__bar" style="width:40px;"></span><span class="scale-row__val">40 px</span></div>
+
+          <h3 style="font-size:var(--t-h3); margin-top:var(--s-5); margin-bottom:var(--s-3);">Block padding</h3>
+          <div class="scale-row"><span class="scale-row__token">mobile</span><span class="scale-row__bar" style="width:16px;"></span><span class="scale-row__val">16 px</span></div>
+        </div>
+      </div>
+
+      <div class="vp-frame">
+        <div class="vp-frame__label"><span>Tablet</span><span>768 px</span></div>
+        <div class="vp-frame__body">
+          <h3 style="font-size:var(--t-h3); margin-bottom:var(--s-3);">Spacing scale</h3>
+          <div class="scale-row"><span class="scale-row__token">--s-1</span><span class="scale-row__bar" style="width:4px;"></span><span class="scale-row__val">4 px</span></div>
+          <div class="scale-row"><span class="scale-row__token">--s-2</span><span class="scale-row__bar" style="width:8px;"></span><span class="scale-row__val">8 px</span></div>
+          <div class="scale-row"><span class="scale-row__token">--s-3</span><span class="scale-row__bar" style="width:12px;"></span><span class="scale-row__val">12 px</span></div>
+          <div class="scale-row"><span class="scale-row__token">--s-4</span><span class="scale-row__bar" style="width:16px;"></span><span class="scale-row__val">16 px</span></div>
+          <div class="scale-row"><span class="scale-row__token">--s-5</span><span class="scale-row__bar" style="width:20px;"></span><span class="scale-row__val">20 px</span></div>
+          <div class="scale-row"><span class="scale-row__token">--s-6</span><span class="scale-row__bar" style="width:24px;"></span><span class="scale-row__val">24 px</span></div>
+          <div class="scale-row"><span class="scale-row__token">--s-7</span><span class="scale-row__bar" style="width:32px;"></span><span class="scale-row__val">32 px</span></div>
+          <div class="scale-row"><span class="scale-row__token">--s-8</span><span class="scale-row__bar" style="width:40px;"></span><span class="scale-row__val">40 px</span></div>
+
+          <h3 style="font-size:var(--t-h3); margin-top:var(--s-5); margin-bottom:var(--s-3);">Block padding · 圓角</h3>
+          <div class="scale-row"><span class="scale-row__token">tablet</span><span class="scale-row__bar" style="width:20px;"></span><span class="scale-row__val">20 px</span></div>
+          <div class="radius-row" style="margin-top:var(--s-3);">
+            <div class="radius-sample" style="border-radius:6px;">6</div>
+            <div class="radius-sample" style="border-radius:10px;">10</div>
+            <div class="radius-sample" style="border-radius:999px;">∞</div>
+          </div>
+        </div>
+      </div>
+
+      <div class="vp-frame">
+        <div class="vp-frame__label"><span>Desktop</span><span>1280 px</span></div>
+        <div class="vp-frame__body">
+          <h3 style="font-size:var(--t-h3); margin-bottom:var(--s-3);">Spacing scale</h3>
+          <div class="scale-row"><span class="scale-row__token">--s-1</span><span class="scale-row__bar" style="width:4px;"></span><span class="scale-row__val">4 px</span></div>
+          <div class="scale-row"><span class="scale-row__token">--s-2</span><span class="scale-row__bar" style="width:8px;"></span><span class="scale-row__val">8 px</span></div>
+          <div class="scale-row"><span class="scale-row__token">--s-3</span><span class="scale-row__bar" style="width:12px;"></span><span class="scale-row__val">12 px</span></div>
+          <div class="scale-row"><span class="scale-row__token">--s-4</span><span class="scale-row__bar" style="width:16px;"></span><span class="scale-row__val">16 px</span></div>
+          <div class="scale-row"><span class="scale-row__token">--s-5</span><span class="scale-row__bar" style="width:20px;"></span><span class="scale-row__val">20 px</span></div>
+          <div class="scale-row"><span class="scale-row__token">--s-6</span><span class="scale-row__bar" style="width:24px;"></span><span class="scale-row__val">24 px</span></div>
+          <div class="scale-row"><span class="scale-row__token">--s-7</span><span class="scale-row__bar" style="width:32px;"></span><span class="scale-row__val">32 px</span></div>
+          <div class="scale-row"><span class="scale-row__token">--s-8</span><span class="scale-row__bar" style="width:40px;"></span><span class="scale-row__val">40 px</span></div>
+          <div class="scale-row"><span class="scale-row__token">--s-9</span><span class="scale-row__bar" style="width:56px;"></span><span class="scale-row__val">56 px</span></div>
+          <div class="scale-row"><span class="scale-row__token">--s-10</span><span class="scale-row__bar" style="width:80px;"></span><span class="scale-row__val">80 px</span></div>
+
+          <h3 style="font-size:var(--t-h3); margin-top:var(--s-5); margin-bottom:var(--s-3);">Block padding · 圓角</h3>
+          <div class="scale-row"><span class="scale-row__token">desktop</span><span class="scale-row__bar" style="width:24px;"></span><span class="scale-row__val">24 px</span></div>
+          <div class="radius-row" style="margin-top:var(--s-3);">
+            <div class="radius-sample" style="border-radius:6px;">r-input · 6</div>
+            <div class="radius-sample" style="border-radius:10px;">r-card · 10</div>
+            <div class="radius-sample" style="border-radius:999px;">r-pill</div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- ═══════════════════ § 4 — BUTTONS ═══════════════════ -->
+  <section class="ds-section" id="s4-buttons">
+    <div class="ds-section__head">
+      <span class="ds-section__num">04</span>
+      <h2 class="ds-section__title">按鈕（state matrix）</h2>
+      <span class="ds-section__note">Layer 1 baseline — 每個 state 都要可截圖驗證</span>
+    </div>
+
+    <div class="vp-grid">
+
+      <!-- mobile -->
+      <div class="vp-frame">
+        <div class="vp-frame__label"><span>Mobile</span><span>360 px</span></div>
+        <div class="vp-frame__body">
+          <div class="state-grid"><span class="state-grid__label">primary</span>
+            <div class="btn-row">
+              <button class="btn btn--primary">確認提交</button>
+              <button class="btn btn--primary" style="background:#1448B8;">hover</button>
+              <button class="btn btn--primary" disabled>disabled</button>
+              <button class="btn btn--primary btn--loading">loading</button>
+            </div>
+          </div>
+          <div class="state-grid"><span class="state-grid__label">ghost</span>
+            <div class="btn-row">
+              <button class="btn btn--ghost">回前一步</button>
+              <button class="btn btn--ghost" disabled>disabled</button>
+            </div>
+          </div>
+          <div class="state-grid"><span class="state-grid__label">danger</span>
+            <div class="btn-row">
+              <button class="btn btn--danger">刪除</button>
+            </div>
+          </div>
+          <div class="state-grid"><span class="state-grid__label">icon</span>
+            <div class="btn-row">
+              <button class="btn btn--icon" aria-label="開啟練習記錄"><i class="ph ph-list"></i></button>
+              <button class="btn btn--icon" aria-label="關閉"><i class="ph ph-x"></i></button>
+              <button class="btn btn--icon" aria-label="重抽"><i class="ph ph-shuffle"></i></button>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- tablet -->
+      <div class="vp-frame">
+        <div class="vp-frame__label"><span>Tablet</span><span>768 px</span></div>
+        <div class="vp-frame__body">
+          <div class="state-grid"><span class="state-grid__label">primary</span>
+            <div class="btn-row">
+              <button class="btn btn--primary"><i class="ph ph-check"></i>確認提交</button>
+              <button class="btn btn--primary" style="background:#1448B8;">hover state</button>
+              <button class="btn btn--primary" disabled>disabled</button>
+              <button class="btn btn--primary btn--loading">loading…</button>
+            </div>
+          </div>
+          <div class="state-grid"><span class="state-grid__label">ghost</span>
+            <div class="btn-row">
+              <button class="btn btn--ghost">回前一步</button>
+              <button class="btn btn--ghost" style="background:var(--c-bg-soft);">hover state</button>
+              <button class="btn btn--ghost" disabled>disabled</button>
+            </div>
+          </div>
+          <div class="state-grid"><span class="state-grid__label">danger</span>
+            <div class="btn-row">
+              <button class="btn btn--danger"><i class="ph ph-trash"></i>刪除這筆練習</button>
+            </div>
+          </div>
+          <div class="state-grid"><span class="state-grid__label">icon · 40</span>
+            <div class="btn-row">
+              <button class="btn btn--icon" aria-label="開啟練習記錄"><i class="ph ph-list"></i></button>
+              <button class="btn btn--icon" aria-label="關閉"><i class="ph ph-x"></i></button>
+              <button class="btn btn--icon" aria-label="重抽"><i class="ph ph-shuffle"></i></button>
+              <button class="btn btn--icon" aria-label="提示"><i class="ph ph-lightbulb"></i></button>
+              <button class="btn btn--icon" aria-label="編輯"><i class="ph ph-note-pencil"></i></button>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- desktop -->
+      <div class="vp-frame">
+        <div class="vp-frame__label"><span>Desktop</span><span>1280 px</span></div>
+        <div class="vp-frame__body">
+          <div class="state-grid"><span class="state-grid__label">primary</span>
+            <div class="btn-row">
+              <button class="btn btn--primary"><i class="ph ph-check"></i>確認提交</button>
+              <button class="btn btn--primary" style="background:#1448B8;">hover</button>
+              <button class="btn btn--primary" style="box-shadow:var(--shadow-focus);">focus</button>
+              <button class="btn btn--primary" disabled>disabled</button>
+              <button class="btn btn--primary btn--loading">loading</button>
+            </div>
+          </div>
+          <div class="state-grid"><span class="state-grid__label">ghost</span>
+            <div class="btn-row">
+              <button class="btn btn--ghost">回前一步</button>
+              <button class="btn btn--ghost" style="background:var(--c-bg-soft);">hover</button>
+              <button class="btn btn--ghost" style="box-shadow:var(--shadow-focus);">focus</button>
+              <button class="btn btn--ghost" disabled>disabled</button>
+            </div>
+          </div>
+          <div class="state-grid"><span class="state-grid__label">danger</span>
+            <div class="btn-row">
+              <button class="btn btn--danger"><i class="ph ph-trash"></i>刪除這筆練習</button>
+              <button class="btn btn--danger" style="background:var(--c-danger-lt);">hover</button>
+            </div>
+          </div>
+          <div class="state-grid"><span class="state-grid__label">icon · 40</span>
+            <div class="btn-row">
+              <button class="btn btn--icon" aria-label="練習記錄"><i class="ph ph-list"></i></button>
+              <button class="btn btn--icon" aria-label="關閉"><i class="ph ph-x"></i></button>
+              <button class="btn btn--icon" aria-label="重抽"><i class="ph ph-shuffle"></i></button>
+              <button class="btn btn--icon" aria-label="提示"><i class="ph ph-lightbulb"></i></button>
+              <button class="btn btn--icon" aria-label="編輯"><i class="ph ph-note-pencil"></i></button>
+              <button class="btn btn--icon" aria-label="鎖定"><i class="ph ph-lock-key"></i></button>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <p class="note" style="margin-top:var(--s-5);">
+      <strong>規則：</strong>(1) 每個按鈕 touch target ≥ 44px（icon button 40 + invisible padding 4 = 44）；(2) :focus-visible 有 3px 藍 ring；(3) :active 縮 1px 模擬按下；(4) loading 變 spinner 而非變灰；(5) 動畫 120ms <code>cubic-bezier(0.4, 0, 0.2, 1)</code>。
+    </p>
+  </section>
+
+  <!-- ═══════════════════ § 5 — FORM ═══════════════════ -->
+  <section class="ds-section" id="s5-form">
+    <div class="ds-section__head">
+      <span class="ds-section__num">05</span>
+      <h2 class="ds-section__title">表單欄位（state matrix）</h2>
+      <span class="ds-section__note">rt-field 為主要 textarea container</span>
+    </div>
+
+    <div class="vp-grid">
+
+      <!-- mobile -->
+      <div class="vp-frame">
+        <div class="vp-frame__label"><span>Mobile</span><span>360 px</span></div>
+        <div class="vp-frame__body">
+
+          <div style="margin-bottom:var(--s-4);">
+            <label class="field__label">問題範圍 · default</label>
+            <input class="field__input" placeholder="聚焦免費版的廣告體驗，排除付費方案">
+            <div class="field__hint">建議 50-120 字</div>
+          </div>
+
+          <div style="margin-bottom:var(--s-4);">
+            <label class="field__label">時間範圍 · filled</label>
+            <input class="field__input" value="60 天，因為廣告活動以月為週期">
+          </div>
+
+          <div style="margin-bottom:var(--s-4);">
+            <label class="field__label">業務影響 · focus</label>
+            <input class="field__input" value="不能下降超過 3%" style="border-color:var(--c-primary); box-shadow:var(--shadow-focus);">
+          </div>
+
+          <div class="field--error" style="margin-bottom:var(--s-4);">
+            <label class="field__label" style="color:var(--c-danger);">假設確認 · error</label>
+            <input class="field__input" value="">
+            <div class="field__error">不能空白；至少寫一個你目前在驗證的假設</div>
+          </div>
+
+          <div style="margin-bottom:var(--s-4);">
+            <label class="field__label">用戶動機（disabled · 已鎖定）</label>
+            <input class="field__input" value="此步驟已評分" disabled>
+          </div>
+
+          <h3 style="font-size:var(--t-h3); margin-top:var(--s-5); margin-bottom:var(--s-3);">rt-field</h3>
+          <div class="rt-field" style="border-color:var(--c-primary); box-shadow:var(--shadow-focus);">
+            <div class="rt-toolbar">
+              <button class="rt-tbtn" aria-label="粗體"><i class="ph ph-text-b"></i></button>
+              <button class="rt-tbtn" aria-label="清單"><i class="ph ph-list-bullets"></i></button>
+              <button class="rt-tbtn" aria-label="縮排"><i class="ph ph-text-indent"></i></button>
+            </div>
+            <textarea class="rt-textarea" placeholder="先寫一個粗略的版本，之後再修">廣告負感主要來自時段，不是廣告本身。</textarea>
+          </div>
+        </div>
+      </div>
+
+      <!-- tablet -->
+      <div class="vp-frame">
+        <div class="vp-frame__label"><span>Tablet</span><span>768 px</span></div>
+        <div class="vp-frame__body">
+          <div style="display:grid; gap:var(--s-4);">
+            <div>
+              <label class="field__label">default</label>
+              <input class="field__input" placeholder="placeholder text">
+              <div class="field__hint">hint text · 提示</div>
+            </div>
+            <div>
+              <label class="field__label">filled</label>
+              <input class="field__input" value="使用者已輸入內容">
+            </div>
+            <div>
+              <label class="field__label">focus</label>
+              <input class="field__input" value="cursor 在這裡" style="border-color:var(--c-primary); box-shadow:var(--shadow-focus);">
+            </div>
+            <div class="field--error">
+              <label class="field__label" style="color:var(--c-danger);">error</label>
+              <input class="field__input" value="">
+              <div class="field__error">錯誤訊息 · 簡短具體可行動</div>
+            </div>
+            <div>
+              <label class="field__label">disabled</label>
+              <input class="field__input" value="已鎖定 · 不能編輯" disabled>
+            </div>
+          </div>
+
+          <h3 style="font-size:var(--t-h3); margin-top:var(--s-5); margin-bottom:var(--s-3);">rt-field（toolbar + textarea 一體）</h3>
+          <div class="rt-field" style="border-color:var(--c-primary); box-shadow:var(--shadow-focus);">
+            <div class="rt-toolbar">
+              <button class="rt-tbtn" aria-label="粗體"><i class="ph ph-text-b"></i></button>
+              <button class="rt-tbtn" aria-pressed="true" aria-label="清單"><i class="ph ph-list-bullets"></i></button>
+              <button class="rt-tbtn" aria-label="縮排"><i class="ph ph-text-indent"></i></button>
+              <button class="rt-tbtn" aria-label="減少縮排"><i class="ph ph-text-outdent"></i></button>
+            </div>
+            <textarea class="rt-textarea" rows="4" placeholder="placeholder">• 廣告負感主要來自時段
+• 而不是廣告本身
+• 假設待驗證</textarea>
+          </div>
+        </div>
+      </div>
+
+      <!-- desktop -->
+      <div class="vp-frame">
+        <div class="vp-frame__label"><span>Desktop</span><span>1280 px</span></div>
+        <div class="vp-frame__body">
+          <div style="display:grid; grid-template-columns:1fr 1fr; gap:var(--s-4);">
+            <div><label class="field__label">default</label><input class="field__input" placeholder="placeholder"><div class="field__hint">hint</div></div>
+            <div><label class="field__label">filled</label><input class="field__input" value="已填入"></div>
+            <div><label class="field__label">focus</label><input class="field__input" value="focused" style="border-color:var(--c-primary); box-shadow:var(--shadow-focus);"></div>
+            <div><label class="field__label">disabled</label><input class="field__input" value="已鎖定" disabled></div>
+            <div class="field--error" style="grid-column:1 / -1;"><label class="field__label" style="color:var(--c-danger);">error</label><input class="field__input" value=""><div class="field__error">錯誤訊息範例 · 30 字內</div></div>
+          </div>
+
+          <h3 style="font-size:var(--t-h3); margin-top:var(--s-5); margin-bottom:var(--s-3);">rt-field · 三狀態</h3>
+          <div style="display:grid; gap:var(--s-4);">
+            <div class="rt-field">
+              <div class="rt-toolbar">
+                <button class="rt-tbtn" aria-label="粗體"><i class="ph ph-text-b"></i></button>
+                <button class="rt-tbtn" aria-label="清單"><i class="ph ph-list-bullets"></i></button>
+                <button class="rt-tbtn" aria-label="縮排"><i class="ph ph-text-indent"></i></button>
+                <button class="rt-tbtn" aria-label="減少縮排"><i class="ph ph-text-outdent"></i></button>
+              </div>
+              <textarea class="rt-textarea" placeholder="default — 內容空白時 placeholder 顏色為 ink-4"></textarea>
+            </div>
+            <div class="rt-field" style="border-color:var(--c-primary); box-shadow:var(--shadow-focus);">
+              <div class="rt-toolbar">
+                <button class="rt-tbtn" aria-label="粗體"><i class="ph ph-text-b"></i></button>
+                <button class="rt-tbtn" aria-pressed="true" aria-label="清單"><i class="ph ph-list-bullets"></i></button>
+                <button class="rt-tbtn" aria-label="縮排"><i class="ph ph-text-indent"></i></button>
+              </div>
+              <textarea class="rt-textarea" rows="3">focused — 整個 container 1px 變藍 + 3px focus ring；toolbar / textarea 共用同邊框</textarea>
+            </div>
+            <div class="rt-field" style="background:var(--c-bg-soft); opacity:0.85;">
+              <div class="rt-toolbar" style="opacity:0.5;">
+                <button class="rt-tbtn" disabled aria-label="粗體"><i class="ph ph-text-b"></i></button>
+                <button class="rt-tbtn" disabled aria-label="清單"><i class="ph ph-list-bullets"></i></button>
+              </div>
+              <textarea class="rt-textarea" disabled>disabled — 已評分鎖定，背景轉為 bg-soft，文字色 ink-3</textarea>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <p class="note" style="margin-top:var(--s-5);">
+      <strong>關鍵：</strong>rt-field 的 toolbar 與 textarea **共用同一邊框** — 視覺上是一體（user 的 SP2 IMG_19 抱怨點之一是「toolbar 和輸入框視覺上分離」，這次根除）。<br>
+      <strong>iOS：</strong>所有 textarea 在 mobile 強制 16px font-size 防 focus 自動放大。
+    </p>
+  </section>
+
+  <!-- ═══════════════════ § 6 — CHIPS / PILLS / BADGES ═══════════════════ -->
+  <section class="ds-section" id="s6-chips">
+    <div class="ds-section__head">
+      <span class="ds-section__num">06</span>
+      <h2 class="ds-section__title">Chips · Pills · Badges</h2>
+      <span class="ds-section__note">drill 模式僅 C1/I/R 三步；simulation 才走 7 步</span>
+    </div>
+
+    <div class="vp-grid">
+
+      <!-- mobile -->
+      <div class="vp-frame">
+        <div class="vp-frame__label"><span>Mobile</span><span>360 px</span></div>
+        <div class="vp-frame__body">
+          <h3 style="font-size:var(--t-h3); margin-bottom:var(--s-3);">type tab（題型 — 單選）</h3>
+          <div class="chip-row">
+            <button class="pill is-active">設計</button>
+            <button class="pill">改善</button>
+            <button class="pill">策略</button>
+          </div>
+
+          <h3 style="font-size:var(--t-h3); margin-top:var(--s-5); margin-bottom:var(--s-3);">個別步驟（drill）— 僅 C1 / I / R</h3>
+          <div class="chip-row">
+            <button class="pill pill--step is-active"><span class="step-letter">C</span>澄清情境</button>
+            <button class="pill pill--step"><span class="step-letter">I</span>定義用戶</button>
+            <button class="pill pill--step"><span class="step-letter">R</span>發掘需求</button>
+          </div>
+          <p style="margin-top:var(--s-3); padding:var(--s-2) var(--s-3); background:var(--c-bg-soft); border-radius:var(--r-input); font-size:var(--t-cap); color:var(--c-ink-3); display:flex; gap:var(--s-2); align-items:center;">
+            <i class="ph ph-lock-simple" style="font-size:14px;"></i>
+            <span>C2 / L / E / S 需在完整模擬中練習</span>
+          </p>
+
+          <h3 style="font-size:var(--t-h3); margin-top:var(--s-5); margin-bottom:var(--s-3);">badge</h3>
+          <div class="chip-row">
+            <span class="badge badge--circles">circles</span>
+            <span class="badge badge--nsm">nsm</span>
+            <span class="badge badge--drill">drill</span>
+          </div>
+        </div>
+      </div>
+
+      <!-- tablet -->
+      <div class="vp-frame">
+        <div class="vp-frame__label"><span>Tablet</span><span>768 px</span></div>
+        <div class="vp-frame__body">
+          <h3 style="font-size:var(--t-h3); margin-bottom:var(--s-3);">type tab</h3>
+          <div class="chip-row">
+            <button class="pill is-active">設計題</button>
+            <button class="pill">改善題</button>
+            <button class="pill">策略題</button>
+          </div>
+
+          <h3 style="font-size:var(--t-h3); margin-top:var(--s-5); margin-bottom:var(--s-3);">個別步驟（drill）— 僅 3 步</h3>
+          <div class="chip-row">
+            <button class="pill pill--step is-active"><span class="step-letter">C</span>澄清情境</button>
+            <button class="pill pill--step"><span class="step-letter">I</span>定義用戶</button>
+            <button class="pill pill--step"><span class="step-letter">R</span>發掘需求</button>
+          </div>
+          <p style="margin-top:var(--s-3); padding:var(--s-2) var(--s-3); background:var(--c-bg-soft); border-radius:var(--r-input); font-size:var(--t-cap); color:var(--c-ink-3); display:flex; gap:var(--s-2); align-items:center;">
+            <i class="ph ph-lock-simple" style="font-size:14px;"></i>
+            <span>C2、L、E、S 需在完整模擬中練習（依賴前步輸出）</span>
+          </p>
+
+          <h3 style="font-size:var(--t-h3); margin-top:var(--s-5); margin-bottom:var(--s-3);">完整練習（simulation）— 7 步進度</h3>
+          <div class="demo-progress" style="margin: 0; padding: var(--s-3); border: 1px solid var(--c-rule); border-radius: var(--r-input);">
+            <span class="demo-progress__step is-done"><span class="step-letter">C</span>澄清</span>
+            <span class="demo-progress__step is-done"><span class="step-letter">I</span>用戶</span>
+            <span class="demo-progress__step is-active"><span class="step-letter">R</span>需求</span>
+            <span class="demo-progress__step"><span class="step-letter">C</span>排序</span>
+            <span class="demo-progress__step"><span class="step-letter">L</span>方案</span>
+            <span class="demo-progress__step"><span class="step-letter">E</span>取捨</span>
+            <span class="demo-progress__step"><span class="step-letter">S</span>總結</span>
+          </div>
+
+          <h3 style="font-size:var(--t-h3); margin-top:var(--s-5); margin-bottom:var(--s-3);">history badge</h3>
+          <div class="chip-row">
+            <span class="badge badge--circles">circles</span>
+            <span class="badge badge--nsm">北極星</span>
+            <span class="badge badge--drill">drill</span>
+            <span class="badge" style="background:var(--c-success-lt); color:var(--c-success);">完成</span>
+            <span class="badge" style="background:var(--c-warn-lt); color:var(--c-warn);">進行中</span>
+          </div>
+        </div>
+      </div>
+
+      <!-- desktop -->
+      <div class="vp-frame">
+        <div class="vp-frame__label"><span>Desktop</span><span>1280 px</span></div>
+        <div class="vp-frame__body">
+          <h3 style="font-size:var(--t-h3); margin-bottom:var(--s-3);">type tab（題型 — 單選 + 數量）</h3>
+          <div class="chip-row">
+            <button class="pill is-active">設計題 · 24</button>
+            <button class="pill">改善題 · 36</button>
+            <button class="pill">策略題 · 40</button>
+          </div>
+
+          <h3 style="font-size:var(--t-h3); margin-top:var(--s-5); margin-bottom:var(--s-3);">個別步驟（drill）— 僅 C1 / I / R 三步可選</h3>
+          <div class="chip-row">
+            <button class="pill pill--step is-active"><span class="step-letter">C</span>澄清情境</button>
+            <button class="pill pill--step"><span class="step-letter">I</span>定義用戶</button>
+            <button class="pill pill--step"><span class="step-letter">R</span>發掘需求</button>
+          </div>
+          <p style="margin-top:var(--s-3); padding:var(--s-3) var(--s-4); background:var(--c-bg-soft); border-left:2px solid var(--c-ink-3); border-radius:var(--r-input); font-size:var(--t-meta); color:var(--c-ink-2); display:flex; gap:var(--s-2); align-items:flex-start;">
+            <i class="ph ph-lock-simple" style="font-size:16px; margin-top:1px;"></i>
+            <span><strong style="color:var(--c-ink);">C2、L、E、S 需在完整模擬中練習</strong> — 因為這四步依賴前面步驟的輸出（取捨需有方案、評估需有取捨等）。</span>
+          </p>
+
+          <h3 style="font-size:var(--t-h3); margin-top:var(--s-5); margin-bottom:var(--s-3);">完整練習（simulation）— 7 步循序進度條</h3>
+          <div class="demo-progress" style="margin: 0; padding: var(--s-3) var(--s-4); border: 1px solid var(--c-rule); border-radius: var(--r-input);">
+            <span class="demo-progress__step is-done"><span class="step-letter">C</span>澄清情境</span>
+            <span class="demo-progress__step is-done"><span class="step-letter">I</span>定義用戶</span>
+            <span class="demo-progress__step is-active"><span class="step-letter">R</span>發掘需求</span>
+            <span class="demo-progress__step"><span class="step-letter">C</span>優先排序</span>
+            <span class="demo-progress__step"><span class="step-letter">L</span>提出方案</span>
+            <span class="demo-progress__step"><span class="step-letter">E</span>評估取捨</span>
+            <span class="demo-progress__step"><span class="step-letter">S</span>總結推薦</span>
+          </div>
+
+          <h3 style="font-size:var(--t-h3); margin-top:var(--s-5); margin-bottom:var(--s-3);">badge — history rows / mode tag</h3>
+          <div class="chip-row">
+            <span class="badge badge--circles">circles</span>
+            <span class="badge badge--nsm">北極星指標</span>
+            <span class="badge badge--drill">drill mode</span>
+            <span class="badge" style="background:var(--c-success-lt); color:var(--c-success);">完成</span>
+            <span class="badge" style="background:var(--c-warn-lt); color:var(--c-warn);">進行中</span>
+            <span class="badge" style="background:var(--c-danger-lt); color:var(--c-danger);">已過期</span>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <p class="note" style="margin-top:var(--s-5);">
+      <strong>規則差異（CONTRACT-LOCKED — public/app.js:2275 鎖死）：</strong><br>
+      ·<strong> 個別步驟模式 drill：</strong>只開放 C1 / I / R 三選一（pill chip 視覺）— 因為 C2/L/E/S 邏輯上依賴前步輸出，無法獨立練習<br>
+      ·<strong> 完整練習模式 simulation：</strong>7 步循序進度條（progress bar 視覺，不是 pill）— 一場練習走完整 C → I → R → C → L → E → S<br>
+      ·<strong> 視覺對比：</strong>drill = 3 個大 pill 並排，可點擊單選；simulation = 7 個 compact step indicator 條狀，只顯示當前進度（不可點）
+    </p>
+  </section>
+
+  <!-- ═══════════════════ § 7 — CARDS ═══════════════════ -->
+  <section class="ds-section" id="s7-cards">
+    <div class="ds-section__head">
+      <span class="ds-section__num">07</span>
+      <h2 class="ds-section__title">Question Card（state matrix）</h2>
+      <span class="ds-section__note">編號 italic serif 是 signature element</span>
+    </div>
+
+    <div class="vp-grid">
+      <div class="vp-frame">
+        <div class="vp-frame__label"><span>Mobile</span><span>360 px</span></div>
+        <div class="vp-frame__body">
+          <div class="qcard">
+            <div class="qcard__head">
+              <span class="qcard__num">01</span>
+              <h3 class="qcard__title">如何提升 Spotify Podcast 的用戶留存？</h3>
+            </div>
+            <div class="qcard__meta">
+              <span class="badge badge--circles">circles</span>
+              <span class="qcard__sep">·</span>
+              <span>Spotify</span>
+              <span class="qcard__sep">·</span>
+              <span>Spotify Podcast</span>
+            </div>
+            <p class="qcard__body">既有用戶聽 Podcast 的留存比聽音樂低；產品經理需要找出主要原因並提出策略…</p>
+          </div>
+
+          <div class="qcard is-selected" style="margin-top:var(--s-4);">
+            <div class="qcard__head">
+              <span class="qcard__num">02</span>
+              <h3 class="qcard__title">Selected — Notion 如何提升新用戶啟用率？</h3>
+            </div>
+            <div class="qcard__meta">
+              <span class="badge badge--circles">circles</span>
+              <span class="qcard__sep">·</span>
+              <span>Notion</span>
+            </div>
+            <p class="qcard__body">點選後 1px 藍邊 + 1px ring；其他元素無變動，動畫 200ms。</p>
+          </div>
+        </div>
+      </div>
+
+      <div class="vp-frame">
+        <div class="vp-frame__label"><span>Tablet</span><span>768 px</span></div>
+        <div class="vp-frame__body">
+          <div style="display:grid; gap:var(--s-4);">
+            <div class="qcard">
+              <div class="qcard__head"><span class="qcard__num">01</span><h3 class="qcard__title">default — 預設外觀</h3></div>
+              <div class="qcard__meta"><span class="badge badge--circles">circles</span><span class="qcard__sep">·</span><span>Spotify</span></div>
+              <p class="qcard__body">內容描述。一般狀態。1px 髮絲線、無 shadow。</p>
+            </div>
+            <div class="qcard" style="border-color:var(--c-rule-bold); box-shadow:var(--shadow-2);">
+              <div class="qcard__head"><span class="qcard__num">02</span><h3 class="qcard__title">hover — 邊框加深</h3></div>
+              <div class="qcard__meta"><span class="badge badge--circles">circles</span><span class="qcard__sep">·</span><span>Notion</span></div>
+              <p class="qcard__body">hover 時邊框深 + 微 shadow（0 1px 2px α6%）。</p>
+            </div>
+            <div class="qcard is-selected">
+              <div class="qcard__head"><span class="qcard__num">03</span><h3 class="qcard__title">selected — 1px 藍邊 + 1px ring</h3></div>
+              <div class="qcard__meta"><span class="badge badge--circles">circles</span><span class="qcard__sep">·</span><span>Airbnb</span></div>
+              <p class="qcard__body">選中態。整張卡 1px 藍 + 1px ring 模擬 2px 藍邊（焦點清楚但不 chunky）。</p>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <div class="vp-frame">
+        <div class="vp-frame__label"><span>Desktop</span><span>1280 px</span></div>
+        <div class="vp-frame__body">
+          <div style="display:grid; grid-template-columns:1fr 1fr; gap:var(--s-4);">
+            <div class="qcard">
+              <div class="qcard__head"><span class="qcard__num">01</span><h3 class="qcard__title">default</h3></div>
+              <div class="qcard__meta"><span class="badge badge--circles">circles</span><span class="qcard__sep">·</span><span>Spotify</span><span class="qcard__sep">·</span><span class="pill pill--step" style="padding:1px 8px; font-size:11px;"><span class="step-letter">C</span>練</span></div>
+              <p class="qcard__body">內容描述：題目背景一句、商業情境一句。最多兩行不爆版。</p>
+            </div>
+            <div class="qcard" style="border-color:var(--c-rule-bold); box-shadow:var(--shadow-2);">
+              <div class="qcard__head"><span class="qcard__num">02</span><h3 class="qcard__title">hover</h3></div>
+              <div class="qcard__meta"><span class="badge badge--circles">circles</span><span class="qcard__sep">·</span><span>Notion</span></div>
+              <p class="qcard__body">hover：邊框 deep + shadow-2。</p>
+            </div>
+            <div class="qcard is-selected">
+              <div class="qcard__head"><span class="qcard__num">03</span><h3 class="qcard__title">selected</h3></div>
+              <div class="qcard__meta"><span class="badge badge--circles">circles</span><span class="qcard__sep">·</span><span>Airbnb</span></div>
+              <p class="qcard__body">選中：1px 藍邊 + 1px ring。</p>
+            </div>
+            <div class="qcard" style="opacity:0.55; cursor:not-allowed;">
+              <div class="qcard__head"><span class="qcard__num">04</span><h3 class="qcard__title">stale / locked</h3></div>
+              <div class="qcard__meta"><span class="badge" style="background:var(--c-warn-lt); color:var(--c-warn);">已更新</span><span class="qcard__sep">·</span><span>Slack</span></div>
+              <p class="qcard__body">該題已重新編輯；舊 session 唯讀（透明度 55% 視覺暗示）。</p>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- ═══════════════════ § 8 — STATUS BANNERS ═══════════════════ -->
+  <section class="ds-section" id="s8-banners">
+    <div class="ds-section__head">
+      <span class="ds-section__num">08</span>
+      <h2 class="ds-section__title">狀態 Banner（locked / stale / error / loading）</h2>
+      <span class="ds-section__note">2px 左 stripe + 配色 = 統一視覺語言</span>
+    </div>
+
+    <div class="vp-grid">
+      <div class="vp-frame">
+        <div class="vp-frame__label"><span>Mobile</span><span>360 px</span></div>
+        <div class="vp-frame__body">
+          <div style="display:grid; gap:var(--s-3);">
+            <div class="banner banner--locked">
+              <i class="ph ph-lock-key banner__icon"></i>
+              <div><div class="banner__title">已評分鎖定</div><div class="banner__text">本步驟分數 76 — 改答案不會重新評分。</div></div>
+            </div>
+            <div class="banner banner--stale">
+              <i class="ph ph-warning-octagon banner__icon"></i>
+              <div><div class="banner__title">題庫已更新</div><div class="banner__text">這份練習為唯讀；可回首頁重練。</div></div>
+            </div>
+            <div class="banner banner--error">
+              <i class="ph ph-cloud-warning banner__icon"></i>
+              <div><div class="banner__title">評分生成失敗</div><div class="banner__text">EVAL_TIMEOUT — 請重新嘗試。</div></div>
+            </div>
+            <div class="banner banner--info">
+              <i class="ph ph-info banner__icon"></i>
+              <div><div class="banner__title">已暫存</div><div class="banner__text">你的草稿已自動保存；登入後可同步到雲端。</div></div>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <div class="vp-frame">
+        <div class="vp-frame__label"><span>Tablet</span><span>768 px</span></div>
+        <div class="vp-frame__body">
+          <div style="display:grid; gap:var(--s-3);">
+            <div class="banner banner--locked"><i class="ph ph-lock-key banner__icon"></i><div><div class="banner__title">已評分鎖定 · C1 澄清情境</div><div class="banner__text">本步驟分數 76 / 100。改答案不會重新評分；如需重練請新開一場。</div></div></div>
+            <div class="banner banner--stale"><i class="ph ph-warning-octagon banner__icon"></i><div><div class="banner__title">題庫已更新 — 顯示為唯讀</div><div class="banner__text">當時練習的題目陳述與現在不同；這份紀錄保留歷史，可回首頁重練。</div></div></div>
+            <div class="banner banner--error"><i class="ph ph-cloud-warning banner__icon"></i><div><div class="banner__title">評分生成失敗</div><div class="banner__text">EVAL_TIMEOUT — 請重新嘗試。如多次失敗，可返回修改答案後再評分。</div></div></div>
+            <div class="banner banner--info"><i class="ph ph-info banner__icon"></i><div><div class="banner__title">已暫存於本機</div><div class="banner__text">未登入；草稿存在瀏覽器 localStorage。登入後會自動同步到雲端。</div></div></div>
+          </div>
+        </div>
+      </div>
+
+      <div class="vp-frame">
+        <div class="vp-frame__label"><span>Desktop</span><span>1280 px</span></div>
+        <div class="vp-frame__body">
+          <div style="display:grid; gap:var(--s-3);">
+            <div class="banner banner--locked"><i class="ph ph-lock-key banner__icon"></i><div><div class="banner__title">已評分鎖定 · C1 澄清情境 · 本步驟分數 76 / 100</div><div class="banner__text">本步驟答案已被評分系統審核並鎖定。如要重練本題請從首頁開新場練習。</div></div></div>
+            <div class="banner banner--stale"><i class="ph ph-warning-octagon banner__icon"></i><div><div class="banner__title">題庫已更新 — 顯示為唯讀</div><div class="banner__text">這份紀錄的題目陳述（problem_statement）與資料庫目前版本不同。為避免分析錯亂，整份練習轉為唯讀；可回首頁用最新題目重練。</div></div></div>
+            <div class="banner banner--error"><i class="ph ph-cloud-warning banner__icon"></i><div><div class="banner__title">評分生成失敗 · EVAL_TIMEOUT</div><div class="banner__text">本次評分超過 30 秒未回應。請點擊「重新評分」再試一次；如多次失敗，回上一步修改答案後再提交。</div></div></div>
+            <div class="banner banner--info"><i class="ph ph-info banner__icon"></i><div><div class="banner__title">已暫存於本機</div><div class="banner__text">未登入狀態。所有草稿存在瀏覽器 localStorage（保留 7 天）。登入後會合併到你的帳號雲端記錄。</div></div></div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- ═══════════════════ § 9 — LAYOUT WRAPPERS ═══════════════════ -->
+  <section class="ds-section" id="s9-wrappers">
+    <div class="ds-section__head">
+      <span class="ds-section__num">09</span>
+      <h2 class="ds-section__title">Layout 包裝（chrome edge-to-edge / body 920 centered）</h2>
+      <span class="ds-section__note">SP1.5-bugfix D-1 規則延續；user 已多次驗證凍結</span>
+    </div>
+
+    <div class="vp-grid">
+      <div class="vp-frame">
+        <div class="vp-frame__label"><span>Mobile</span><span>360 px</span></div>
+        <div class="vp-frame__body">
+          <div class="demo-nav"><div class="demo-nav__brand"><span class="demo-nav__brand-icon"><i class="ph ph-circles-three"></i></span><span>PM Drill</span></div></div>
+          <div class="demo-progress"><span class="demo-progress__step is-done"><span class="step-letter">C</span>澄清</span><span class="demo-progress__step is-active"><span class="step-letter">I</span>用戶</span><span class="demo-progress__step"><span class="step-letter">R</span>需求</span></div>
+
+          <div style="padding: var(--s-4); background: var(--c-bg);">
+            <div class="wrap-demo wrap-demo--chrome"><strong>chrome 區（navbar / progress）</strong>edge-to-edge · 100% 寬</div>
+            <div class="wrap-demo wrap-demo--body"><strong>body 區</strong>mobile 也是滿寬（max-width 920 不限制 mobile）</div>
+          </div>
+        </div>
+      </div>
+
+      <div class="vp-frame">
+        <div class="vp-frame__label"><span>Tablet</span><span>768 px</span></div>
+        <div class="vp-frame__body">
+          <div class="demo-nav"><div class="demo-nav__brand"><span class="demo-nav__brand-icon"><i class="ph ph-circles-three"></i></span><span>PM Drill</span></div><div class="demo-nav__tabs"><span class="demo-nav__tab is-active">CIRCLES</span><span class="demo-nav__tab">北極星指標</span></div></div>
+          <div class="demo-progress"><span class="demo-progress__step is-done"><span class="step-letter">C</span>澄清</span><span class="demo-progress__step is-done"><span class="step-letter">I</span>用戶</span><span class="demo-progress__step is-active"><span class="step-letter">R</span>需求</span><span class="demo-progress__step"><span class="step-letter">C</span>排序</span><span class="demo-progress__step"><span class="step-letter">L</span>方案</span></div>
+
+          <div style="padding: var(--s-5); background: var(--c-bg);">
+            <div class="wrap-demo wrap-demo--chrome"><strong>chrome：滿寬</strong>navbar / progress / sticky bar 都 edge-to-edge</div>
+            <div class="wrap-demo wrap-demo--body"><strong>body：768 上限</strong>tablet 不啟用 920 居中（box 等於 viewport - padding）</div>
+          </div>
+        </div>
+      </div>
+
+      <div class="vp-frame">
+        <div class="vp-frame__label"><span>Desktop</span><span>1280 px</span></div>
+        <div class="vp-frame__body">
+          <div class="demo-nav"><div class="demo-nav__brand"><span class="demo-nav__brand-icon"><i class="ph ph-circles-three"></i></span><span>PM Drill</span></div><div class="demo-nav__tabs"><span class="demo-nav__tab is-active">CIRCLES</span><span class="demo-nav__tab">北極星指標</span></div><div class="demo-nav__actions"><button class="btn btn--icon"><i class="ph ph-list"></i></button></div></div>
+          <div class="demo-progress"><span class="demo-progress__step is-done"><span class="step-letter">C</span>澄清</span><span class="demo-progress__step is-done"><span class="step-letter">I</span>用戶</span><span class="demo-progress__step is-active"><span class="step-letter">R</span>發掘需求</span><span class="demo-progress__step"><span class="step-letter">C</span>優先排序</span><span class="demo-progress__step"><span class="step-letter">L</span>提出方案</span><span class="demo-progress__step"><span class="step-letter">E</span>評估取捨</span><span class="demo-progress__step"><span class="step-letter">S</span>總結推薦</span></div>
+
+          <div style="padding: var(--s-7) var(--s-5); background: var(--c-bg);">
+            <div class="wrap-demo wrap-demo--chrome"><strong>chrome：滿寬 (max 1880px)</strong>edge-to-edge — navbar / progress / sticky bar</div>
+            <div class="wrap-demo wrap-demo--body"><strong>body：920 居中</strong>長文閱讀最佳寬度；左右留白讓眼睛休息</div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <p class="note" style="margin-top:var(--s-5);">
+      <strong>規則：</strong>(1) chrome（navbar / progress / sticky bar）永遠 edge-to-edge；(2) body 在 desktop ≥ 1024px 時 max-width 920 居中（長文閱讀友善）；(3) tablet 與 mobile body 等於 viewport - 兩側 padding。<br>
+      <strong>SP1.5-bugfix D-1 規則延續</strong> — user 多次驗證凍結，本次不動。
+    </p>
+  </section>
+
+  <!-- ═══════════════════ § 10 — BREAKPOINTS ═══════════════════ -->
+  <section class="ds-section" id="s10-breakpoints">
+    <div class="ds-section__head">
+      <span class="ds-section__num">10</span>
+      <h2 class="ds-section__title">Breakpoints</h2>
+      <span class="ds-section__note">8 個 Playwright viewport 都要過</span>
+    </div>
+
+    <table class="bp-table" style="background:var(--c-card); border:1px solid var(--c-rule); border-radius:var(--r-input); overflow:hidden;">
+      <thead><tr>
+        <th>Min-width</th>
+        <th>Label</th>
+        <th>Layout 改動</th>
+        <th>Playwright viewport</th>
+      </tr></thead>
+      <tbody>
+        <tr><td>0</td><td>mobile-360</td><td>單欄、navbar email 隱藏、step pill 滾動</td><td>Mobile-360 · iPhone-SE</td></tr>
+        <tr><td>≥ 481</td><td>mobile-large</td><td>同 mobile-360；觸控 target 微調</td><td>iPhone-14 · iPhone-15-Pro</td></tr>
+        <tr><td>≥ 768</td><td>tablet</td><td>單欄但 sticky bar 寬度自然延伸；q-card 仍單欄（不 grid 2-col）</td><td>iPad</td></tr>
+        <tr><td>≥ 1024</td><td>desktop</td><td>啟用 left-rail + right-rail；body 920 居中；chrome edge-to-edge</td><td>Desktop-1280</td></tr>
+        <tr><td>≥ 1440</td><td>desktop-wide</td><td>chrome max 1880；rail 加寬</td><td>Desktop-1440</td></tr>
+        <tr><td>≥ 1920</td><td>desktop-4k</td><td>chrome max 1880（不再延伸）；body 仍 920</td><td>Desktop-2560</td></tr>
+      </tbody>
+    </table>
+
+    <p class="note" style="margin-top:var(--s-4);">
+      <strong>禁止：</strong><code>@media (min-width: 720px) and (max-width: 1023px) { .circles-q-list { grid 2-col } }</code> — user 已親手抓過、tablet 一定單欄。
+    </p>
+  </section>
+
+  <!-- ═══════════════════ § 11 — MOTION ═══════════════════ -->
+  <section class="ds-section" id="s11-motion">
+    <div class="ds-section__head">
+      <span class="ds-section__num">11</span>
+      <h2 class="ds-section__title">Motion · Transitions</h2>
+      <span class="ds-section__note">GPU-accelerated 一律 transform / opacity</span>
+    </div>
+
+    <div class="vp-grid">
+      <div class="vp-frame">
+        <div class="vp-frame__label"><span>Mobile</span><span>360 px</span></div>
+        <div class="vp-frame__body">
+          <div class="motion-cell"><span class="motion-cell__token">--t-fast</span><span class="motion-cell__val">120ms</span><span>button hover / focus / pill 切換</span></div>
+          <div class="motion-cell"><span class="motion-cell__token">--t-norm</span><span class="motion-cell__val">200ms</span><span>card hover / qchip expand / dimension collapse</span></div>
+          <div class="motion-cell"><span class="motion-cell__token">--t-slow</span><span class="motion-cell__val">300ms</span><span>offcanvas slide / modal fade / phase 切換</span></div>
+        </div>
+      </div>
+      <div class="vp-frame">
+        <div class="vp-frame__label"><span>Tablet</span><span>768 px</span></div>
+        <div class="vp-frame__body">
+          <div class="motion-cell"><span class="motion-cell__token">--t-fast</span><span class="motion-cell__val">120ms</span><span>micro interactions（hover / focus / pill）</span></div>
+          <div class="motion-cell"><span class="motion-cell__token">--t-norm</span><span class="motion-cell__val">200ms</span><span>card / chip / collapse</span></div>
+          <div class="motion-cell"><span class="motion-cell__token">--t-slow</span><span class="motion-cell__val">300ms</span><span>slide / fade / phase</span></div>
+          <div class="motion-cell"><span class="motion-cell__token">--ease</span><span class="motion-cell__val">cubic</span><span>cubic-bezier(0.4, 0, 0.2, 1)</span></div>
+          <div class="motion-cell"><span class="motion-cell__token">--ease-out</span><span class="motion-cell__val">cubic</span><span>cubic-bezier(0, 0, 0.2, 1) — 進場用</span></div>
+        </div>
+      </div>
+      <div class="vp-frame">
+        <div class="vp-frame__label"><span>Desktop</span><span>1280 px</span></div>
+        <div class="vp-frame__body">
+          <div class="motion-cell"><span class="motion-cell__token">--t-fast</span><span class="motion-cell__val">120ms</span><span>button hover / focus / pill / chip 點擊</span></div>
+          <div class="motion-cell"><span class="motion-cell__token">--t-norm</span><span class="motion-cell__val">200ms</span><span>card hover / qchip expand / dimension collapse</span></div>
+          <div class="motion-cell"><span class="motion-cell__token">--t-slow</span><span class="motion-cell__val">300ms</span><span>offcanvas slide / modal fade / phase 切換</span></div>
+          <div class="motion-cell"><span class="motion-cell__token">--ease</span><span class="motion-cell__val">cubic</span><span>cubic-bezier(0.4, 0, 0.2, 1) — 通用</span></div>
+          <div class="motion-cell"><span class="motion-cell__token">--ease-out</span><span class="motion-cell__val">cubic</span><span>cubic-bezier(0, 0, 0.2, 1) — 進場（offcanvas 開、modal 出）</span></div>
+          <div class="motion-cell"><span class="motion-cell__token">prefers-reduced-motion</span><span class="motion-cell__val">disable</span><span>用戶偏好 → 全部 transition 0s（a11y）</span></div>
+        </div>
+      </div>
+    </div>
+
+    <p class="note" style="margin-top:var(--s-5);">
+      <strong>iOS Safari 滑順度規則：</strong>(1) 永遠用 <code>transform / opacity</code> 做動畫，禁用 <code>top / left / width / height</code>；(2) sticky / modal 用 <code>translate3d(0,0,0)</code> 強制 GPU 層；(3) 滾動容器 <code>overflow-y: auto</code>（iOS 預設 momentum）；(4) 任何動畫 will-change 在 hover/focus 入時開、結束關（避免常駐 GPU 層）。
+    </p>
+  </section>
+
+  <!-- ═══════════════════ § 12 — TOOLTIP ═══════════════════ -->
+  <section class="ds-section" id="s12-tooltip">
+    <div class="ds-section__head">
+      <span class="ds-section__num">12</span>
+      <h2 class="ds-section__title">Tooltip · 欄位提示按鈕</h2>
+      <span class="ds-section__note">step pill hover / 欄位 info icon hover / mobile click toggle</span>
+    </div>
+
+    <div class="vp-grid">
+      <!-- mobile -->
+      <div class="vp-frame">
+        <div class="vp-frame__label"><span>Mobile</span><span>360 px</span></div>
+        <div class="vp-frame__body">
+          <h3 style="font-size:var(--t-h3); margin-bottom:var(--s-3);">step pill tooltip（mobile click toggle）</h3>
+          <div style="position:relative; padding-top:var(--s-7); padding-bottom:var(--s-3);">
+            <div class="tooltip" style="position:relative; transform:none; left:0; bottom:auto; margin-bottom:var(--s-2); white-space:normal; max-width:100%;">確認題目邊界與假設，練習用精準問題縮小解題範圍。</div>
+            <div><button class="pill pill--step is-active"><span class="step-letter">C</span>澄清情境</button></div>
+          </div>
+
+          <h3 style="font-size:var(--t-h3); margin-top:var(--s-5); margin-bottom:var(--s-3);">欄位 hint 按鈕</h3>
+          <div class="field-with-hint">
+            <div class="field" style="flex:1;">
+              <label class="field__label">問題範圍</label>
+              <input class="field__input" placeholder="聚焦免費版的廣告體驗">
+            </div>
+            <button class="hint-icon-btn" aria-label="顯示提示"><i class="ph ph-lightbulb"></i></button>
+          </div>
+          <p style="margin-top:var(--s-2); font-size:var(--t-cap); color:var(--c-ink-3);">點 lightbulb → 開 modal（見 § 13）</p>
+        </div>
+      </div>
+
+      <!-- tablet -->
+      <div class="vp-frame">
+        <div class="vp-frame__label"><span>Tablet</span><span>768 px</span></div>
+        <div class="vp-frame__body">
+          <h3 style="font-size:var(--t-h3); margin-bottom:var(--s-3);">step pill tooltip（hover 80ms）</h3>
+          <div style="position:relative; padding-top:50px; padding-bottom:var(--s-3); display:flex; justify-content:center;">
+            <span class="tooltip" style="bottom: calc(100% - 40px);">確認題目邊界與假設，練習用精準問題縮小解題範圍。</span>
+            <button class="pill pill--step is-active"><span class="step-letter">C</span>澄清情境</button>
+          </div>
+
+          <h3 style="font-size:var(--t-h3); margin-top:var(--s-6); margin-bottom:var(--s-3);">欄位 hint 按鈕（icon 在右）</h3>
+          <div class="field-with-hint">
+            <div class="field" style="flex:1;">
+              <label class="field__label">問題範圍</label>
+              <input class="field__input" placeholder="聚焦免費版的廣告體驗，排除付費方案">
+              <div class="field__hint">建議 50-120 字 · 寫具體的功能或場景邊界</div>
+            </div>
+            <button class="hint-icon-btn" aria-label="顯示提示"><i class="ph ph-lightbulb"></i></button>
+          </div>
+
+          <h3 style="font-size:var(--t-h3); margin-top:var(--s-6); margin-bottom:var(--s-3);">tooltip 寬版（多行）</h3>
+          <div style="position:relative; padding-top:80px; padding-bottom:var(--s-3); display:flex; justify-content:center;">
+            <span class="tooltip tooltip--wide" style="bottom: calc(100% - 80px);">設定一個合理的觀察期，並說明為什麼這個時長對應這題的業務節奏。太短看不出趨勢、太長缺乏執行感。</span>
+            <span class="badge badge--circles" style="cursor:help;">i 有提示</span>
+          </div>
+        </div>
+      </div>
+
+      <!-- desktop -->
+      <div class="vp-frame">
+        <div class="vp-frame__label"><span>Desktop</span><span>1280 px</span></div>
+        <div class="vp-frame__body">
+          <h3 style="font-size:var(--t-h3); margin-bottom:var(--s-3);">step pill tooltip · hover 80-200ms delay</h3>
+          <div style="position:relative; padding-top:50px; padding-bottom:var(--s-3); display:flex; gap:var(--s-3); justify-content:center;">
+            <span class="tooltip" style="bottom: calc(100% - 36px); left: 64px;">確認題目邊界與假設</span>
+            <button class="pill pill--step is-active"><span class="step-letter">C</span>澄清情境</button>
+            <button class="pill pill--step"><span class="step-letter">I</span>定義用戶</button>
+            <button class="pill pill--step"><span class="step-letter">R</span>發掘需求</button>
+          </div>
+
+          <h3 style="font-size:var(--t-h3); margin-top:var(--s-6); margin-bottom:var(--s-3);">欄位 hint 按鈕（每欄獨立）</h3>
+          <div class="field-with-hint">
+            <div class="field" style="flex:1;">
+              <label class="field__label">問題範圍</label>
+              <input class="field__input" placeholder="聚焦免費版的廣告體驗，排除付費方案">
+              <div class="field__hint">建議 50-120 字 · 寫具體邊界</div>
+            </div>
+            <button class="hint-icon-btn" aria-label="顯示提示"><i class="ph ph-lightbulb"></i></button>
+          </div>
+          <div class="field-with-hint" style="margin-top:var(--s-4);">
+            <div class="field" style="flex:1;">
+              <label class="field__label">時間範圍</label>
+              <input class="field__input" placeholder="60 天，因為廣告活動以月為週期">
+            </div>
+            <button class="hint-icon-btn" aria-label="顯示提示"><i class="ph ph-lightbulb"></i></button>
+          </div>
+
+          <p class="note" style="margin-top:var(--s-5); font-size:var(--t-meta);">
+            Hint icon 三狀態：default（ink-3）/ hover（navy + navy-lt 底）/ disabled（無此欄位提示）。<br>
+            點擊行為：直接打開 modal（不是 tooltip pop）。
+          </p>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- ═══════════════════ § 13 — MODAL (hint / example) ═══════════════════ -->
+  <section class="ds-section" id="s13-modal">
+    <div class="ds-section__head">
+      <span class="ds-section__num">13</span>
+      <h2 class="ds-section__title">Modal — 提示 / 教練示範</h2>
+      <span class="ds-section__note">desktop 居中 / mobile 底部 sheet 上滑 / state matrix（loading / content / error）</span>
+    </div>
+
+    <div class="vp-grid">
+      <!-- mobile -->
+      <div class="vp-frame">
+        <div class="vp-frame__label"><span>Mobile</span><span>360 px</span></div>
+        <div class="vp-frame__body">
+          <h3 style="font-size:var(--t-h3); margin-bottom:var(--s-3);">底部 sheet — content state</h3>
+          <div class="modal-frame" style="background: rgba(31,29,27,0.45); padding:0; align-items:flex-end; min-height:380px;">
+            <div class="modal-card" style="border-radius:var(--r-card) var(--r-card) 0 0; max-height:none;">
+              <div class="modal__head">
+                <span class="modal__head-icon"><i class="ph ph-lightbulb"></i></span>
+                <div style="flex:1;">
+                  <div class="modal__sub">提示 · C1</div>
+                  <h3 class="modal__title">問題範圍</h3>
+                </div>
+                <button class="modal__close" aria-label="關閉"><i class="ph ph-x"></i></button>
+              </div>
+              <div class="modal__body">
+                <p>先把題目的問題本身定義清楚——它的具體類型是什麼（行為層／情感層／系統層）？涵蓋哪些功能或場景？哪些明確排除？</p>
+                <p>沒釐清這層，後面的分析會在錯的邊界上展開。</p>
+              </div>
+              <div class="modal__foot">
+                <button class="btn btn--ghost" style="font-size:var(--t-meta); min-height:36px;">看教練示範</button>
+                <button class="btn btn--primary" style="font-size:var(--t-meta); min-height:36px;">了解了</button>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- tablet -->
+      <div class="vp-frame">
+        <div class="vp-frame__label"><span>Tablet</span><span>768 px</span></div>
+        <div class="vp-frame__body">
+          <h3 style="font-size:var(--t-h3); margin-bottom:var(--s-3);">居中 modal — loading state</h3>
+          <div class="modal-frame">
+            <div class="modal-card">
+              <div class="modal__head">
+                <span class="modal__head-icon"><i class="ph ph-chalkboard-teacher"></i></span>
+                <div style="flex:1;">
+                  <div class="modal__sub">教練示範 · I 定義用戶</div>
+                  <h3 class="modal__title">選定焦點對象</h3>
+                </div>
+                <button class="modal__close"><i class="ph ph-x"></i></button>
+              </div>
+              <div class="modal__loading">
+                <div class="modal__loading-spinner"></div>
+                <div>教練思考中…</div>
+              </div>
+              <div class="modal__foot">
+                <button class="btn btn--ghost" style="font-size:var(--t-meta); min-height:36px;" disabled>關閉</button>
+              </div>
+            </div>
+          </div>
+
+          <h3 style="font-size:var(--t-h3); margin-top:var(--s-5); margin-bottom:var(--s-3);">error state</h3>
+          <div class="modal-frame" style="min-height:240px;">
+            <div class="modal-card">
+              <div class="modal__head">
+                <span class="modal__head-icon" style="background:var(--c-danger-lt); color:var(--c-danger);"><i class="ph ph-cloud-warning"></i></span>
+                <div style="flex:1;"><h3 class="modal__title">提示載入失敗</h3></div>
+                <button class="modal__close"><i class="ph ph-x"></i></button>
+              </div>
+              <div class="modal__error">
+                <p style="font-size:var(--t-body-sm); color:var(--c-ink-2); margin-bottom:var(--s-2);">教練暫時無法回應，請稍後再試。</p>
+                <button class="btn btn--primary" style="font-size:var(--t-meta); min-height:36px;"><i class="ph ph-arrow-clockwise"></i>重試</button>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- desktop -->
+      <div class="vp-frame">
+        <div class="vp-frame__label"><span>Desktop</span><span>1280 px</span></div>
+        <div class="vp-frame__body">
+          <h3 style="font-size:var(--t-h3); margin-bottom:var(--s-3);">居中 modal — content（AI hint）</h3>
+          <div class="modal-frame">
+            <div class="modal-card">
+              <div class="modal__head">
+                <span class="modal__head-icon"><i class="ph ph-lightbulb"></i></span>
+                <div style="flex:1;">
+                  <div class="modal__sub">AI 提示 · C1 澄清情境</div>
+                  <h3 class="modal__title">問題範圍</h3>
+                </div>
+                <button class="modal__close"><i class="ph ph-x"></i></button>
+              </div>
+              <div class="modal__body">
+                <p>這題在問 Spotify 免費版用戶的廣告體驗 — 你需要先界定哪些是要解的（廣告呈現方式 / 時段 / 形式），哪些不在這次討論（付費方案、家庭方案）。</p>
+                <p>具體可以從三個角度切：</p>
+                <p style="padding-left:var(--s-4); border-left:2px solid var(--c-rule); color:var(--c-ink-2);">1. <strong>功能邊界</strong>：聚焦廣告產品本身、不含內容推薦<br>2. <strong>用戶邊界</strong>：免費活躍用戶（每月 ≥ 1 次播放）<br>3. <strong>業務邊界</strong>：廣告收入 + 免費 → 付費轉換率，這兩條紅線</p>
+              </div>
+              <div class="modal__foot">
+                <button class="btn btn--ghost"><i class="ph ph-chalkboard-teacher"></i>看教練示範</button>
+                <button class="btn btn--primary">了解了</button>
+              </div>
+            </div>
+          </div>
+
+          <h3 style="font-size:var(--t-h3); margin-top:var(--s-6); margin-bottom:var(--s-3);">教練示範 modal — content</h3>
+          <div class="modal-frame">
+            <div class="modal-card">
+              <div class="modal__head">
+                <span class="modal__head-icon"><i class="ph ph-chalkboard-teacher"></i></span>
+                <div style="flex:1;">
+                  <div class="modal__sub">教練示範 · C1 澄清情境</div>
+                  <h3 class="modal__title">問題範圍</h3>
+                </div>
+                <button class="modal__close"><i class="ph ph-x"></i></button>
+              </div>
+              <div class="modal__body">
+                <p>聚焦 Spotify 免費版（含 ad-supported tier）的廣告體驗，排除付費方案、家庭方案、內容版權問題。</p>
+                <blockquote>
+                  為什麼這樣寫：先把產品線（免費 vs 付費）切開，避免討論時混到付費方案的優化。再把「廣告體驗」鎖在「呈現方式 + 時段 + 形式」，不擴散到內容推薦演算法（那是另一題）。
+                </blockquote>
+              </div>
+              <div class="modal__foot">
+                <button class="btn btn--ghost">關閉</button>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <p class="note" style="margin-top:var(--s-5);">
+      <strong>三層 hint 系統（CONTRACT-LOCKED — Master Spec §2.1.2）：</strong><br>
+      1. <strong>靜態 <code>hintOverlay</code> 文案</strong> — CIRCLES_STEP_CONFIG 80-100 字 hardcoded zh-TW（app.js:317-624）<br>
+      2. <strong>AI hint button</strong> — 點 <code>ph-lightbulb</code> → modal → POST `/api/circles-(public|sessions)/:id/hint` LLM 生成「破題提示」<br>
+      3. <strong>AI example button</strong> — modal foot 「看教練示範」 → POST `/api/circles-(public|sessions)/:id/example` 讀題目 `field_examples` 或 LLM<br>
+      <strong>Modal 行為：</strong>backdrop 點擊關 / Esc 關 / focus trap / mobile 底部 sheet 上滑（slide-up 300ms ease-out）/ desktop 居中 fade-in 200ms / 載入中 spinner + 「教練思考中…」/ error 顯示 retry 按鈕
+    </p>
+  </section>
+
+  <!-- ═══════════════════ § 14 — EXAMPLE BULLET (巢狀縮排) ═══════════════════ -->
+  <section class="ds-section" id="s14-example-bullet">
+    <div class="ds-section__head">
+      <span class="ds-section__num">14</span>
+      <h2 class="ds-section__title">範例答案 · 巢狀 bullet 縮排</h2>
+      <span class="ds-section__note">spec: 2026-04-28-circles-examples-bullet-format / parser app.js:1737-1758</span>
+    </div>
+
+    <div class="vp-grid">
+      <!-- mobile -->
+      <div class="vp-frame">
+        <div class="vp-frame__label"><span>Mobile</span><span>360 px</span></div>
+        <div class="vp-frame__body">
+          <div class="example-block">
+            <div class="example-block__sub">教練示範 · C1 · 問題範圍</div>
+            <ul class="example-list">
+              <li>聚焦：個人對個人的<strong>二手交易</strong>（不是商家對買家）</li>
+              <li>3 個關鍵環節：
+                <ul class="example-sub">
+                  <li>交易前：看不出對方靠不靠譜</li>
+                  <li>面交時：現場人身與付款風險</li>
+                  <li>交易後：出問題沒地方申訴</li>
+                </ul>
+              </li>
+              <li>排除：粉專認證商家，聚焦<strong>同城個人賣家</strong></li>
+            </ul>
+          </div>
+        </div>
+      </div>
+
+      <!-- tablet -->
+      <div class="vp-frame">
+        <div class="vp-frame__label"><span>Tablet</span><span>768 px</span></div>
+        <div class="vp-frame__body">
+          <div class="example-block">
+            <div class="example-block__sub">教練示範 · I · 用戶動機假設</div>
+            <ul class="example-list">
+              <li>表面動機：找到便宜的二手商品</li>
+              <li>深層動機：
+                <ul class="example-sub">
+                  <li>掌控感 — 知道對方是不是真實賣家</li>
+                  <li>安全感 — 不被詐騙、不被找麻煩</li>
+                  <li>連結感 — 與在地賣家建立關係</li>
+                </ul>
+              </li>
+              <li>有洞察的觀察：用戶<strong>怕付完錢拿不到貨</strong>遠超過怕拿到劣質品</li>
+            </ul>
+          </div>
+
+          <p style="margin-top:var(--s-4); font-size:var(--t-cap); color:var(--c-ink-3);">
+            Parser 規則：行首 <code>- </code> 為頂層；<code>&nbsp;&nbsp;- </code>（2 空白縮排）為子項；<code>**bold**</code> → <code>&lt;strong&gt;</code> 套 navy primary 色。
+          </p>
+        </div>
+      </div>
+
+      <!-- desktop -->
+      <div class="vp-frame">
+        <div class="vp-frame__label"><span>Desktop</span><span>1280 px</span></div>
+        <div class="vp-frame__body">
+          <div class="example-block">
+            <div class="example-block__sub">教練示範 · L · 方案一</div>
+            <ul class="example-list">
+              <li>名稱：<strong>賣家信任分</strong></li>
+              <li>核心機制：
+                <ul class="example-sub">
+                  <li>以交易完成數 + 評價星等 + 平台年資綜合計算</li>
+                  <li>分數低於門檻 → 強制走第三方擔保金流</li>
+                  <li>分數高 → 解鎖直接面交、現金交易</li>
+                </ul>
+              </li>
+              <li>打到的痛點：交易前「看不出對方靠不靠譜」— 給用戶一個<strong>客觀指標</strong>替代主觀印象</li>
+            </ul>
+          </div>
+
+          <p class="note" style="margin-top:var(--s-4);">
+            <strong>規則（2026-04-28 spec 凍結）：</strong>頂層 2-4 項 / 每行 ≤ 60 字 / 整段 ≤ 320 字 / bold 1-3 個 load-bearing 詞 / 不加 emoji / 不用編號（「①」「1.」都禁）。Parser fallback：沒 <code>- </code> 開頭的舊資料當單一頂層 li 顯示。
+          </p>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- ═══════════════════ § 15 — SAVE INDICATOR (4-state) ═══════════════════ -->
+  <section class="ds-section" id="s15-save-indicator">
+    <div class="ds-section__head">
+      <span class="ds-section__num">15</span>
+      <h2 class="ds-section__title">Save Indicator（4 狀態 matrix）</h2>
+      <span class="ds-section__note">Phase 1 自動儲存 / 失敗點擊重試</span>
+    </div>
+
+    <div class="vp-grid">
+      <div class="vp-frame">
+        <div class="vp-frame__label"><span>Mobile</span><span>360 px</span></div>
+        <div class="vp-frame__body">
+          <div style="display:flex; flex-direction:column; gap:var(--s-3);">
+            <div><span class="save-indicator save-indicator--idle">已暫存</span></div>
+            <div><span class="save-indicator save-indicator--saving">儲存中</span></div>
+            <div><span class="save-indicator save-indicator--saved"><i class="ph ph-check" style="font-size:12px;"></i>已儲存到雲端</span></div>
+            <div><span class="save-indicator save-indicator--error"><i class="ph ph-warning-circle" style="font-size:12px;"></i>儲存失敗 · 點擊重試</span></div>
+          </div>
+        </div>
+      </div>
+
+      <div class="vp-frame">
+        <div class="vp-frame__label"><span>Tablet</span><span>768 px</span></div>
+        <div class="vp-frame__body">
+          <div class="state-grid"><span class="state-grid__label">idle</span>
+            <span class="save-indicator save-indicator--idle">已暫存</span>
+          </div>
+          <div class="state-grid"><span class="state-grid__label">saving</span>
+            <span class="save-indicator save-indicator--saving">儲存中</span>
+          </div>
+          <div class="state-grid"><span class="state-grid__label">saved</span>
+            <span class="save-indicator save-indicator--saved"><i class="ph ph-check" style="font-size:12px;"></i>已儲存到雲端</span>
+          </div>
+          <div class="state-grid"><span class="state-grid__label">error</span>
+            <span class="save-indicator save-indicator--error"><i class="ph ph-warning-circle" style="font-size:12px;"></i>離線中 · 已存於本機，點擊重試</span>
+          </div>
+        </div>
+      </div>
+
+      <div class="vp-frame">
+        <div class="vp-frame__label"><span>Desktop</span><span>1280 px</span></div>
+        <div class="vp-frame__body">
+          <div class="state-grid"><span class="state-grid__label">idle</span>
+            <span class="save-indicator save-indicator--idle">已暫存</span>
+            <span style="font-size:var(--t-cap); color:var(--c-ink-3);">— 表單未變更或剛重新載入</span>
+          </div>
+          <div class="state-grid"><span class="state-grid__label">saving</span>
+            <span class="save-indicator save-indicator--saving">儲存中</span>
+            <span style="font-size:var(--t-cap); color:var(--c-ink-3);">— debounce 20s 觸發 PATCH /progress</span>
+          </div>
+          <div class="state-grid"><span class="state-grid__label">saved</span>
+            <span class="save-indicator save-indicator--saved"><i class="ph ph-check" style="font-size:12px;"></i>已儲存到雲端</span>
+            <span style="font-size:var(--t-cap); color:var(--c-ink-3);">— 自動 fade idle 2s 後</span>
+          </div>
+          <div class="state-grid"><span class="state-grid__label">error</span>
+            <span class="save-indicator save-indicator--error"><i class="ph ph-warning-circle" style="font-size:12px;"></i>離線中 · 已存於本機，點擊重試</span>
+            <span style="font-size:var(--t-cap); color:var(--c-ink-3);">— click → re-attempt</span>
+          </div>
+
+          <p class="note" style="margin-top:var(--s-4); font-size:var(--t-meta);">
+            行為：mode 為 idle / saving / saved / error，CSS class binding `.save-indicator.save-{mode}`。saved 狀態 2s 後自動 fade 回 idle。error 狀態整個 element 變 cursor:pointer，點擊 retry。
+          </p>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- ═══════════════════ § 16 — TOAST / SNACKBAR ═══════════════════ -->
+  <section class="ds-section" id="s16-toast">
+    <div class="ds-section__head">
+      <span class="ds-section__num">16</span>
+      <h2 class="ds-section__title">Toast · Snackbar（floating transient feedback）</h2>
+      <span class="ds-section__note">Mobile 底部 slide-up / Desktop 右上 / 4s 自動 dismiss</span>
+    </div>
+
+    <div class="vp-grid">
+      <div class="vp-frame">
+        <div class="vp-frame__label"><span>Mobile</span><span>360 px</span></div>
+        <div class="vp-frame__body">
+          <div class="toast-stack">
+            <div class="toast toast--info"><i class="ph ph-info"></i><span>已暫存於本機</span><button class="toast__close"><i class="ph ph-x" style="font-size:14px;"></i></button></div>
+            <div class="toast toast--success"><i class="ph ph-check-circle"></i><span>session 已合併到帳號</span><button class="toast__close"><i class="ph ph-x" style="font-size:14px;"></i></button></div>
+            <div class="toast toast--warn"><i class="ph ph-warning"></i><span>網路較慢 · 仍在儲存</span><button class="toast__close"><i class="ph ph-x" style="font-size:14px;"></i></button></div>
+            <div class="toast toast--error"><i class="ph ph-warning-octagon"></i><span>儲存失敗 · 請重試</span><button class="toast__close"><i class="ph ph-x" style="font-size:14px;"></i></button></div>
+          </div>
+        </div>
+      </div>
+
+      <div class="vp-frame">
+        <div class="vp-frame__label"><span>Tablet</span><span>768 px</span></div>
+        <div class="vp-frame__body">
+          <div class="toast-stack" style="align-items:flex-end;">
+            <div class="toast toast--info"><i class="ph ph-info"></i><span>已暫存於本機</span><button class="toast__close"><i class="ph ph-x" style="font-size:14px;"></i></button></div>
+            <div class="toast toast--success"><i class="ph ph-check-circle"></i><span>3 場 session 已合併到你的帳號</span><button class="toast__close"><i class="ph ph-x" style="font-size:14px;"></i></button></div>
+            <div class="toast toast--warn"><i class="ph ph-warning"></i><span>網路較慢 · 仍在儲存</span><button class="toast__close"><i class="ph ph-x" style="font-size:14px;"></i></button></div>
+            <div class="toast toast--error"><i class="ph ph-warning-octagon"></i><span>儲存失敗 · 請重試</span><button class="toast__close"><i class="ph ph-x" style="font-size:14px;"></i></button></div>
+          </div>
+        </div>
+      </div>
+
+      <div class="vp-frame">
+        <div class="vp-frame__label"><span>Desktop</span><span>1280 px</span></div>
+        <div class="vp-frame__body">
+          <div class="toast-stack" style="align-items:flex-end;">
+            <div class="toast toast--info"><i class="ph ph-info"></i><span>已暫存於本機</span><button class="toast__close"><i class="ph ph-x" style="font-size:14px;"></i></button></div>
+            <div class="toast toast--success"><i class="ph ph-check-circle"></i><span>3 場 session 已合併到你的帳號 — 可從練習記錄查看</span><button class="toast__close"><i class="ph ph-x" style="font-size:14px;"></i></button></div>
+            <div class="toast toast--warn"><i class="ph ph-warning"></i><span>網路較慢 · 仍在儲存（已 8 秒）</span><button class="toast__close"><i class="ph ph-x" style="font-size:14px;"></i></button></div>
+            <div class="toast toast--error"><i class="ph ph-warning-octagon"></i><span>儲存失敗 · 點擊重試</span><button class="toast__close"><i class="ph ph-x" style="font-size:14px;"></i></button></div>
+          </div>
+
+          <p class="note" style="margin-top:var(--s-4); font-size:var(--t-meta);">
+            <strong>規則：</strong>mobile 底部 slide-up 300ms / desktop 右上 fade-in 200ms / 4s 自動 dismiss / 同時最多 3 個 stack（新的擠掉舊的）/ click close button 立刻關。<br>
+            <strong>iOS：</strong>safe-area-inset-bottom 防被 home indicator 蓋住。
+          </p>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- ═══════════════════ § 17 — OVERFLOW / LONG-CONTENT ═══════════════════ -->
+  <section class="ds-section" id="s17-overflow">
+    <div class="ds-section__head">
+      <span class="ds-section__num">17</span>
+      <h2 class="ds-section__title">Overflow · Long-content matrix</h2>
+      <span class="ds-section__note">中英混排 / truncate / wrap 三種策略</span>
+    </div>
+
+    <div class="vp-grid">
+      <div class="vp-frame">
+        <div class="vp-frame__label"><span>Mobile</span><span>360 px</span></div>
+        <div class="vp-frame__body">
+          <div class="ovf-demo">
+            <div class="ovf-demo__label">truncate（單行省略）</div>
+            <div class="ovf-truncate">Spotify Podcast 3rd-party Integration Mobile Background Player</div>
+          </div>
+          <div class="ovf-demo">
+            <div class="ovf-demo__label">wrap（多行斷字）</div>
+            <div class="ovf-wrap">Spotify Podcast Integration: How to make 3rd-party podcasts more discoverable for free-tier users 而不影響廣告收入？</div>
+          </div>
+          <div class="ovf-demo">
+            <div class="ovf-demo__label">chat bubble（max 75% + wrap）</div>
+            <div style="display:flex; justify-content:flex-start;">
+              <div class="ovf-bubble">這個問題的核心是 free-tier vs subscription 的 conversion funnel — 我想先確認你說的「discoverable」是指 search 還是 recommendation？</div>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <div class="vp-frame">
+        <div class="vp-frame__label"><span>Tablet</span><span>768 px</span></div>
+        <div class="vp-frame__body">
+          <div class="ovf-demo">
+            <div class="ovf-demo__label">truncate · 公司名 / 標題</div>
+            <div class="ovf-truncate" style="max-width:320px;">Microsoft Teams Enterprise Cross-Tenant External Collaboration</div>
+            <p style="margin-top:var(--s-2); font-size:var(--t-cap); color:var(--c-ink-3);">CSS：<code>text-overflow: ellipsis; white-space: nowrap; overflow: hidden;</code></p>
+          </div>
+
+          <div class="ovf-demo">
+            <div class="ovf-demo__label">wrap · 題目陳述 / 內文</div>
+            <div class="ovf-wrap" style="max-width:380px;">Notion 想推一個 AI 整合功能，讓使用者能在筆記中直接 query GPT 並插入結果。但目標客群（個人 vs. 團隊）對這個功能的價值感受可能差很多 — 你會怎麼設計？</div>
+            <p style="margin-top:var(--s-2); font-size:var(--t-cap); color:var(--c-ink-3);">CSS：<code>word-break: break-word; overflow-wrap: anywhere;</code></p>
+          </div>
+
+          <div class="ovf-demo">
+            <div class="ovf-demo__label">chat bubble · max 75% + wrap</div>
+            <div style="display:flex; justify-content:flex-start;">
+              <div class="ovf-bubble">如果我這麼問你，那這背後的假設是什麼？你會怎麼確認 free-tier user 真的有 discovery problem，而不是只是不願意付費 listen？</div>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <div class="vp-frame">
+        <div class="vp-frame__label"><span>Desktop</span><span>1280 px</span></div>
+        <div class="vp-frame__body">
+          <div class="ovf-demo">
+            <div class="ovf-demo__label">truncate · navbar email / 公司名 / history row</div>
+            <div class="ovf-truncate" style="max-width:280px;">very-long-email-address-test@example-company-name.com</div>
+            <div class="ovf-truncate" style="max-width:280px; margin-top:var(--s-2);">Microsoft Teams Enterprise Cross-Tenant External Collaboration</div>
+          </div>
+
+          <div class="ovf-demo">
+            <div class="ovf-demo__label">wrap · 題目 / 內文 / 中英混排</div>
+            <div class="ovf-wrap" style="max-width:520px;">Spotify 想<strong style="color:var(--c-primary);">提升免費版 Podcast 用戶</strong>的留存率，但又不能影響廣告收入或訂閱轉換 — 這是一個 multi-objective optimization problem，你會怎麼拆解？</div>
+          </div>
+
+          <div class="ovf-demo">
+            <div class="ovf-demo__label">chat bubble · 用戶訊息（右）+ 教練（左）</div>
+            <div style="display:flex; flex-direction:column; gap:var(--s-2); max-width:520px;">
+              <div style="display:flex; justify-content:flex-end;">
+                <div class="ovf-bubble" style="background:var(--c-navy-lt); color:var(--c-navy);">我想先確認 Spotify 免費版的廣告體驗痛點 — 是時段安排還是廣告本身的相關性？</div>
+              </div>
+              <div style="display:flex; justify-content:flex-start;">
+                <div class="ovf-bubble">好問題。從 user research 來看，主要抱怨是「在情感高潮段落插入廣告」— 也就是時段問題比廣告內容更明顯。</div>
+              </div>
+            </div>
+          </div>
+
+          <p class="note" style="margin-top:var(--s-4);">
+            <strong>策略：</strong> truncate 只用在「title / nav / 1-line meta」；wrap 用在所有 body content + chat bubble；chat bubble max-width 75% 防止單行太寬難讀。中英混排用 <code>overflow-wrap: anywhere</code> 比 <code>word-break: break-all</code> 視覺好（不會中文字斷掉）。
+          </p>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- ═══════════════════ § 18 — CHAR COUNTER ═══════════════════ -->
+  <section class="ds-section" id="s18-char-counter">
+    <div class="ds-section__head">
+      <span class="ds-section__num">18</span>
+      <h2 class="ds-section__title">Char counter（字數反饋）</h2>
+      <span class="ds-section__note">Phase 1 表單 / chat textarea / 建議閾值警告</span>
+    </div>
+
+    <div class="vp-grid">
+      <div class="vp-frame">
+        <div class="vp-frame__label"><span>Mobile</span><span>360 px</span></div>
+        <div class="vp-frame__body">
+          <div style="margin-bottom:var(--s-4);">
+            <label class="field__label">問題範圍 · ok</label>
+            <textarea class="field__textarea" rows="3">聚焦免費版的廣告體驗</textarea>
+            <div class="char-meta"><span>建議 50-120 字</span><span class="char-counter char-counter--ok">12 / 120</span></div>
+          </div>
+          <div style="margin-bottom:var(--s-4);">
+            <label class="field__label">業務影響 · 接近上限</label>
+            <textarea class="field__textarea" rows="3">廣告收入和免費→付費轉換率不能下降超過 3%；同時 DAU 留存率須維持高基準。</textarea>
+            <div class="char-meta"><span>建議 50-120 字</span><span class="char-counter char-counter--near">108 / 120</span></div>
+          </div>
+          <div>
+            <label class="field__label">假設確認 · 超字</label>
+            <textarea class="field__textarea" rows="3" style="border-color:var(--c-danger);">假設一：用戶廣告負感主要來自時段。假設二：用戶不抗拒廣告本身。假設三：年輕用戶比中年用戶更敏感。假設四：付費轉換主要來自 super-fan，不是輕度用戶。</textarea>
+            <div class="char-meta"><span style="color:var(--c-danger);">已超出建議字數 32 字</span><span class="char-counter char-counter--over">152 / 120</span></div>
+          </div>
+        </div>
+      </div>
+
+      <div class="vp-frame">
+        <div class="vp-frame__label"><span>Tablet</span><span>768 px</span></div>
+        <div class="vp-frame__body">
+          <div class="state-grid"><span class="state-grid__label">ok &lt;80%</span>
+            <span class="char-counter char-counter--ok">28 / 120</span>
+          </div>
+          <div class="state-grid"><span class="state-grid__label">near 80-100%</span>
+            <span class="char-counter char-counter--near">108 / 120</span>
+          </div>
+          <div class="state-grid"><span class="state-grid__label">over &gt;100%</span>
+            <span class="char-counter char-counter--over">152 / 120</span>
+          </div>
+
+          <p style="margin-top:var(--s-4); font-size:var(--t-cap); color:var(--c-ink-3);">
+            門檻：&lt;80% ok（ink-3）/ 80-100% near（warn）/ &gt;100% over（danger 粗體）。<br>
+            字數計算：以 <code>String.from(...content).length</code>（含中英符號）。
+          </p>
+        </div>
+      </div>
+
+      <div class="vp-frame">
+        <div class="vp-frame__label"><span>Desktop</span><span>1280 px</span></div>
+        <div class="vp-frame__body">
+          <div style="margin-bottom:var(--s-4);">
+            <label class="field__label">推薦方案（S 步驟，建議 60-200 字）</label>
+            <textarea class="field__textarea" rows="4">推薦方案二「賣家信任分」— 因為它直接解決「交易前看不出對方靠不靠譜」的核心痛點，而方案一「強制擔保金流」雖然保險但會增加交易摩擦。</textarea>
+            <div class="char-meta"><span>建議 60-200 字 · 至少寫清楚「選哪個 + 為什麼」</span><span class="char-counter char-counter--ok">82 / 200</span></div>
+          </div>
+
+          <p class="note" style="margin-top:var(--s-3); font-size:var(--t-meta);">
+            <strong>位置：</strong>每個 textarea 下方右對齊；標籤靠左、計數器靠右。<br>
+            <strong>不阻擋送出：</strong>超字只警告、不擋（除非有實際 backend 限制）。<br>
+            <strong>iOS：</strong>計數器用等寬字（ui-monospace）避免數字跳動造成視覺抖動。
+          </p>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- ═══════════════════ § 19 — PHASE HEAD / BREADCRUMB ═══════════════════ -->
+  <section class="ds-section" id="s19-phase-head">
+    <div class="ds-section__head">
+      <span class="ds-section__num">19</span>
+      <h2 class="ds-section__title">Phase head · Breadcrumb</h2>
+      <span class="ds-section__note">Phase 1/1.5/2/3/4 共用 header 模式</span>
+    </div>
+
+    <div class="vp-grid">
+      <div class="vp-frame">
+        <div class="vp-frame__label"><span>Mobile</span><span>360 px</span></div>
+        <div class="vp-frame__body" style="padding:0;">
+          <div class="phase-head">
+            <span class="phase-head__num">01</span>
+            <div class="phase-head__main">
+              <div class="phase-head__eyebrow">Phase 1 · 寫框架</div>
+              <div class="phase-head__title">C · 澄清情境</div>
+            </div>
+          </div>
+          <div class="phase-head" style="background:var(--c-navy-lt);">
+            <span class="phase-head__num">02</span>
+            <div class="phase-head__main">
+              <div class="phase-head__eyebrow">Phase 2 · 對話練習</div>
+              <div class="phase-head__title">I · 定義用戶</div>
+            </div>
+          </div>
+          <div class="phase-head" style="background:var(--c-success-lt);">
+            <span class="phase-head__num">03</span>
+            <div class="phase-head__main">
+              <div class="phase-head__eyebrow">Phase 3 · 評分</div>
+              <div class="phase-head__title">R · 發掘需求 · 76 / 100</div>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <div class="vp-frame">
+        <div class="vp-frame__label"><span>Tablet</span><span>768 px</span></div>
+        <div class="vp-frame__body" style="padding:0;">
+          <div class="phase-head">
+            <span class="phase-head__num">01</span>
+            <div class="phase-head__main">
+              <div class="phase-head__eyebrow">Phase 1 · 寫框架</div>
+              <div class="phase-head__title">C · 澄清情境</div>
+            </div>
+            <span class="phase-head__meta">完整練習 · 1/7 步</span>
+          </div>
+          <div class="phase-head" style="background:var(--c-warn-lt);">
+            <span class="phase-head__num">1.5</span>
+            <div class="phase-head__main">
+              <div class="phase-head__eyebrow">Phase 1.5 · 框架審核</div>
+              <div class="phase-head__title">教練檢查中…</div>
+            </div>
+            <span class="phase-head__meta">about 8s</span>
+          </div>
+          <div class="phase-head" style="background:var(--c-navy-lt);">
+            <span class="phase-head__num">02</span>
+            <div class="phase-head__main">
+              <div class="phase-head__eyebrow">Phase 2 · 對話練習</div>
+              <div class="phase-head__title">I · 定義用戶</div>
+            </div>
+            <span class="phase-head__meta">3 輪對話</span>
+          </div>
+        </div>
+      </div>
+
+      <div class="vp-frame">
+        <div class="vp-frame__label"><span>Desktop</span><span>1280 px</span></div>
+        <div class="vp-frame__body" style="padding:0;">
+          <div class="phase-head">
+            <span class="phase-head__num">01</span>
+            <div class="phase-head__main">
+              <div class="phase-head__eyebrow">Phase 1 · 寫框架</div>
+              <div class="phase-head__title">C · 澄清情境（題目邊界 / 業務影響 / 假設）</div>
+            </div>
+            <span class="phase-head__meta">完整練習 · 1/7 步 · drill 模式則隱藏「1/7」</span>
+          </div>
+          <div class="phase-head" style="background:var(--c-warn-lt);">
+            <span class="phase-head__num">1.5</span>
+            <div class="phase-head__main">
+              <div class="phase-head__eyebrow">Phase 1.5 · 框架審核</div>
+              <div class="phase-head__title">教練檢查中… 預估 8-12 秒</div>
+            </div>
+            <span class="phase-head__meta">3 retry available</span>
+          </div>
+          <div class="phase-head" style="background:var(--c-navy-lt);">
+            <span class="phase-head__num">02</span>
+            <div class="phase-head__main">
+              <div class="phase-head__eyebrow">Phase 2 · 對話練習</div>
+              <div class="phase-head__title">I · 定義用戶 · 與被訪談者對話探索</div>
+            </div>
+            <span class="phase-head__meta">3 輪對話 · 滾動載入歷史</span>
+          </div>
+          <div class="phase-head" style="background:var(--c-success-lt);">
+            <span class="phase-head__num">03</span>
+            <div class="phase-head__main">
+              <div class="phase-head__eyebrow">Phase 3 · 步驟評分</div>
+              <div class="phase-head__title">R · 發掘需求 · 76 / 100 · grade B</div>
+            </div>
+            <span class="phase-head__meta">完成於 13:42</span>
+          </div>
+
+          <p class="note" style="margin: var(--s-5); font-size:var(--t-meta);">
+            <strong>結構：</strong>編號（serif italic navy）/ eyebrow（uppercase ink-3）/ title（h3 size ink）/ meta（ink-3 右對齊）。<br>
+            <strong>背景色：</strong>Phase 1/2 中性 bg-soft / Phase 1.5 warn-lt（審核中橘）/ Phase 3 success-lt（綠）/ error 狀態用 danger-lt。
+          </p>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- ═══════════════════ § 20 — MODE TAG ═══════════════════ -->
+  <section class="ds-section" id="s20-mode-tag">
+    <div class="ds-section__head">
+      <span class="ds-section__num">20</span>
+      <h2 class="ds-section__title">Mode-tag pill（drill / simulation / nsm 視覺區分）</h2>
+      <span class="ds-section__note">出現在 home / qchip / history / recent rail</span>
+    </div>
+
+    <div class="vp-grid">
+      <div class="vp-frame">
+        <div class="vp-frame__label"><span>Mobile</span><span>360 px</span></div>
+        <div class="vp-frame__body">
+          <div class="chip-row">
+            <span class="mode-tag mode-tag--drill"><i class="ph ph-target"></i>個別步驟</span>
+            <span class="mode-tag mode-tag--sim"><i class="ph ph-list-checks"></i>完整模擬</span>
+            <span class="mode-tag mode-tag--nsm"><i class="ph ph-compass"></i>北極星</span>
+          </div>
+
+          <h3 style="font-size:var(--t-h3); margin-top:var(--s-5); margin-bottom:var(--s-3);">history row 用法</h3>
+          <div style="background:var(--c-card); border:1px solid var(--c-rule); border-radius:var(--r-input); padding:var(--s-3) var(--s-4);">
+            <div style="display:flex; gap:var(--s-2); align-items:center; flex-wrap:wrap;">
+              <span class="mode-tag mode-tag--drill"><i class="ph ph-target"></i>個別 R</span>
+              <span style="font-size:var(--t-cap); color:var(--c-ink-3);">2 小時前</span>
+            </div>
+            <div style="margin-top:var(--s-2); font-size:var(--t-body-sm);">CIRCLES · Spotify · Spotify Podcast</div>
+          </div>
+        </div>
+      </div>
+
+      <div class="vp-frame">
+        <div class="vp-frame__label"><span>Tablet</span><span>768 px</span></div>
+        <div class="vp-frame__body">
+          <div class="chip-row">
+            <span class="mode-tag mode-tag--drill"><i class="ph ph-target"></i>個別步驟 · R</span>
+            <span class="mode-tag mode-tag--sim"><i class="ph ph-list-checks"></i>完整模擬 · 7 步</span>
+            <span class="mode-tag mode-tag--nsm"><i class="ph ph-compass"></i>北極星指標</span>
+          </div>
+
+          <h3 style="font-size:var(--t-h3); margin-top:var(--s-5); margin-bottom:var(--s-3);">qchip 用法</h3>
+          <div style="background:var(--c-card); border:1px solid var(--c-rule); border-radius:var(--r-card); padding:var(--s-4) var(--s-5);">
+            <div style="display:flex; gap:var(--s-2); align-items:center; margin-bottom:var(--s-2);">
+              <span class="mode-tag mode-tag--sim"><i class="ph ph-list-checks"></i>完整模擬</span>
+              <span style="font-size:var(--t-cap); color:var(--c-ink-3);">Spotify · Spotify Podcast</span>
+            </div>
+            <div style="font-size:var(--t-body-sm); color:var(--c-ink);">如何提升 Spotify Podcast 的用戶留存…</div>
+          </div>
+        </div>
+      </div>
+
+      <div class="vp-frame">
+        <div class="vp-frame__label"><span>Desktop</span><span>1280 px</span></div>
+        <div class="vp-frame__body">
+          <h3 style="font-size:var(--t-h3); margin-bottom:var(--s-3);">三模式對比</h3>
+          <div class="chip-row">
+            <span class="mode-tag mode-tag--drill"><i class="ph ph-target"></i>個別步驟 · R</span>
+            <span class="mode-tag mode-tag--sim"><i class="ph ph-list-checks"></i>完整模擬 · 7 步</span>
+            <span class="mode-tag mode-tag--nsm"><i class="ph ph-compass"></i>北極星指標</span>
+          </div>
+
+          <h3 style="font-size:var(--t-h3); margin-top:var(--s-5); margin-bottom:var(--s-3);">出現位置</h3>
+          <ul style="font-size:var(--t-body-sm); color:var(--c-ink-2); padding-left:var(--s-5); line-height:var(--lh-loose);">
+            <li><strong>CIRCLES Home / Drill Home：</strong>每張 q-card 顯示適用 mode</li>
+            <li><strong>qchip：</strong>顯示當前 session 的 mode（讓使用者隨時知道在哪種模式）</li>
+            <li><strong>History offcanvas / row：</strong>每筆 session 標 mode</li>
+            <li><strong>Recent rail（home desktop）：</strong>recent session 卡片標 mode</li>
+            <li><strong>Phase head meta：</strong>右側顯示「完整練習 1/7」或「個別步驟 R」</li>
+          </ul>
+
+          <p class="note" style="margin-top:var(--s-4); font-size:var(--t-meta);">
+            <strong>顏色：</strong>drill = 中性深灰（不是主流路線）/ simulation = success-lt（推薦完整）/ nsm = accent purple（不同模組）。<br>
+            <strong>icon：</strong>drill = ph-target（聚焦單點）/ sim = ph-list-checks（多步驟）/ nsm = ph-compass（指標方向）
+          </p>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- ═══════════════════ § 21 — ONBOARDING COACHMARK ═══════════════════ -->
+  <section class="ds-section" id="s21-coachmark">
+    <div class="ds-section__head">
+      <span class="ds-section__num">21</span>
+      <h2 class="ds-section__title">Onboarding · Coachmark / Spotlight</h2>
+      <span class="ds-section__note">首次訪客 multi-step 引導</span>
+    </div>
+
+    <div class="vp-grid">
+      <div class="vp-frame">
+        <div class="vp-frame__label"><span>Mobile</span><span>360 px</span></div>
+        <div class="vp-frame__body" style="padding: 0;">
+          <div class="coachmark-frame" style="border-radius:0;">
+            <div style="position:absolute; top:var(--s-7); left:50%; transform:translateX(-50%);">
+              <span class="coachmark-target">設計題</span>
+            </div>
+            <div class="coachmark-tip coachmark-tip--bottom" style="left:var(--s-4); right:var(--s-4); transform:none; max-width:none;">
+              <div class="coachmark-tip__step">step 1 / 4</div>
+              <div class="coachmark-tip__title">先選題型</div>
+              <div class="coachmark-tip__body">三種題型：設計新功能 / 改善既有 / 戰略決策。剛開始建議從「設計」入手。</div>
+              <div class="coachmark-tip__foot">
+                <span class="coachmark-tip__progress">○ ● ○ ○</span>
+                <button class="btn btn--primary" style="font-size:var(--t-meta); min-height:36px;">下一步 →</button>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <div class="vp-frame">
+        <div class="vp-frame__label"><span>Tablet</span><span>768 px</span></div>
+        <div class="vp-frame__body" style="padding: 0;">
+          <div class="coachmark-frame" style="border-radius:0;">
+            <div style="position:absolute; top:var(--s-8); left:50%; transform:translateX(-50%);">
+              <span class="coachmark-target">隨機抽 5 題</span>
+            </div>
+            <div class="coachmark-tip coachmark-tip--top" style="top: calc(var(--s-8) + 80px);">
+              <div class="coachmark-tip__step">step 2 / 4</div>
+              <div class="coachmark-tip__title">每次抽 5 題</div>
+              <div class="coachmark-tip__body">不滿意可以再抽 — 隨機抽不會打斷你的滾動位置。</div>
+              <div class="coachmark-tip__foot">
+                <span class="coachmark-tip__progress">○ ○ ● ○</span>
+                <div style="display:flex; gap:var(--s-2);">
+                  <button class="btn btn--ghost" style="font-size:var(--t-meta); min-height:36px;">略過</button>
+                  <button class="btn btn--primary" style="font-size:var(--t-meta); min-height:36px;">下一步</button>
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <div class="vp-frame">
+        <div class="vp-frame__label"><span>Desktop</span><span>1280 px</span></div>
+        <div class="vp-frame__body" style="padding: 0;">
+          <div class="coachmark-frame" style="border-radius:0; min-height:340px;">
+            <div style="position:absolute; top:50%; left:50%; transform:translate(-50%, -50%);">
+              <span class="coachmark-target"><i class="ph ph-target" style="margin-right:var(--s-1);"></i>個別步驟</span>
+            </div>
+            <div class="coachmark-tip coachmark-tip--bottom" style="left: calc(50% + 100px); transform: none; bottom: calc(50% - 40px);">
+              <div class="coachmark-tip__step">step 4 / 4</div>
+              <div class="coachmark-tip__title">兩種模式可選</div>
+              <div class="coachmark-tip__body">「個別步驟」可單練 C1/I/R 三步；「完整模擬」走完整 7 步。剛開始建議先試個別步驟，掌握後再挑戰完整。</div>
+              <div class="coachmark-tip__foot">
+                <span class="coachmark-tip__progress">○ ○ ○ ●</span>
+                <button class="btn btn--primary" style="font-size:var(--t-meta); min-height:36px;">開始練習</button>
+              </div>
+            </div>
+          </div>
+
+          <p class="note" style="margin: var(--s-5); font-size:var(--t-meta);">
+            <strong>結構：</strong>backdrop 50% 黑遮罩 + 4px 白光暈 spotlight cutout + tooltip 浮在 spotlight 旁（top / right / bottom / left 4 方向自動排）。<br>
+            <strong>多步：</strong>進度顯示 ○ ● 圈點；可「略過」或「下一步」；最後一步「開始練習」結束 onboarding。<br>
+            <strong>Mobile：</strong>tooltip 永遠 bottom-pin，因為 spotlight 上方留白少。<br>
+            <strong>動畫：</strong>進場 spotlight 圓圈 scale 200ms / tooltip fade-in 200ms 延後 100ms。
+          </p>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- ═══════════════════ FOOTER ═══════════════════ -->
+  <footer class="ds-foot">
+    <div><strong style="color:var(--c-ink); display:block;">Path 2 mockup</strong>00 — Design System（21 sections）</div>
+    <div><strong style="color:var(--c-ink); display:block;">Coverage baseline</strong>122 UI items / 47% baseline → 補完後 ~85%</div>
+    <div><strong style="color:var(--c-ink); display:block;">Status</strong>等 user 放行</div>
+    <div><strong style="color:var(--c-ink); display:block;">Next</strong>批次 A 01 — CIRCLES Home</div>
+    <div><strong style="color:var(--c-ink); display:block;">Spec ref</strong>master-spec §0/2/3 + path-2-ui-coverage-audit.md</div>
+  </footer>
+
+</div>
+
+</body>
+</html>

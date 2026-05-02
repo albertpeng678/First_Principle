@@ -1,0 +1,1459 @@
+<!doctype html>
+<html lang="zh-TW">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover, interactive-widget=resizes-visual">
+  <title>PM Drill — 01 CIRCLES Home（批次 A）</title>
+
+  <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/@phosphor-icons/web@2.1.1/src/regular/style.css">
+  <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Instrument+Serif:ital@0;1&display=swap">
+
+  <style>
+    /* ───── tokens (繼承自 00-design-system.html § 1-3) ───── */
+    :root {
+      --c-bg: #F2F0EB; --c-bg-soft: #ECE9E1; --c-bg-deep: #E5E1D7;
+      --c-card: #FFFFFF; --c-surface: #FAFAF7;
+      --c-ink: #1F1D1B; --c-ink-2: #5A5046; --c-ink-3: #8A7E70; --c-ink-4: #B8AC9D;
+      --c-rule: rgba(60,45,30,0.10); --c-rule-bold: rgba(60,45,30,0.18);
+      --c-primary: #1A56DB; --c-primary-lt: rgba(26,86,219,0.08); --c-primary-mid: rgba(26,86,219,0.18);
+      --c-navy: #1B2D5C; --c-navy-2: #142347; --c-navy-lt: rgba(27,45,92,0.08);
+      --c-accent-nsm: #6B4FBC;
+      --c-success: #137A3D; --c-success-lt: #DCEFE0;
+      --c-warn: #B85C00; --c-warn-lt: #FBE9D0;
+      --c-danger: #B61F1F; --c-danger-lt: #FADCDC;
+      --font-sans: system-ui, -apple-system, BlinkMacSystemFont, 'PingFang TC', 'Microsoft JhengHei', 'Heiti TC', 'Noto Sans TC', sans-serif;
+      --font-serif: 'Instrument Serif', 'Times New Roman', serif;
+      --t-h1: 24px; --t-h2: 19px; --t-h3: 16px; --t-body: 15px; --t-body-sm: 14px; --t-meta: 13px; --t-cap: 12px;
+      --lh-tight: 1.25; --lh-norm: 1.55; --lh-loose: 1.7;
+      --s-1: 4px; --s-2: 8px; --s-3: 12px; --s-4: 16px; --s-5: 20px; --s-6: 24px; --s-7: 32px; --s-8: 40px; --s-9: 56px; --s-10: 80px;
+      --pad-block-mobile: 16px; --pad-block-tablet: 20px; --pad-block-desktop: 24px;
+      --r-input: 6px; --r-card: 10px; --r-pill: 999px;
+      --touch-min: 44px;
+      --t-fast: 120ms; --t-norm: 200ms; --t-slow: 300ms;
+      --ease: cubic-bezier(0.4, 0, 0.2, 1); --ease-out: cubic-bezier(0, 0, 0.2, 1);
+      --shadow-1: 0 1px 0 rgba(60,45,30,0.04);
+      --shadow-2: 0 1px 2px rgba(60,45,30,0.06);
+      --shadow-3: 0 4px 12px rgba(60,45,30,0.08);
+      --shadow-focus: 0 0 0 3px rgba(26,86,219,0.18);
+    }
+
+    *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+    html, body {
+      background: var(--c-bg);
+      color: var(--c-ink);
+      font-family: var(--font-sans);
+      font-size: var(--t-body);
+      line-height: var(--lh-norm);
+      -webkit-font-smoothing: antialiased;
+      -webkit-tap-highlight-color: transparent;
+    }
+    button { font: inherit; color: inherit; cursor: pointer; background: none; border: none; }
+    input { font: inherit; color: inherit; }
+    @media (max-width: 767px) {
+      input { font-size: 16px !important; }
+    }
+
+    /* ───── viewport demo wrapper (mockup-only) ───── */
+    .vp-grid {
+      display: grid;
+      grid-template-columns: 360px 768px 1280px;
+      gap: var(--s-6);
+      padding: var(--s-6);
+      align-items: start;
+      overflow-x: auto;
+    }
+    .vp-frame {
+      border: 1px solid var(--c-rule-bold);
+      border-radius: var(--r-card);
+      background: var(--c-bg);
+      overflow: hidden;
+    }
+    .vp-frame__label {
+      padding: var(--s-3) var(--s-4);
+      border-bottom: 1px solid var(--c-rule);
+      background: var(--c-card);
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      font-size: var(--t-cap);
+      letter-spacing: 0.08em;
+      text-transform: uppercase;
+      color: var(--c-ink-2);
+    }
+    .vp-frame__label span:last-child { font-family: ui-monospace, 'SF Mono', monospace; color: var(--c-ink-3); }
+    .vp-frame__body { /* renders the actual home page */ }
+
+    .ds-page { padding: var(--s-6); max-width: 100%; }
+    .ds-header { max-width: 1880px; margin: 0 auto var(--s-7); padding-bottom: var(--s-6); border-bottom: 1px solid var(--c-rule); }
+    .ds-header h1 { font-size: var(--t-h1); margin-top: var(--s-2); }
+    .ds-header__eyebrow { font-size: var(--t-cap); letter-spacing: 0.12em; text-transform: uppercase; color: var(--c-ink-3); }
+    .ds-header__sub { color: var(--c-ink-2); font-size: var(--t-body-sm); margin-top: var(--s-3); max-width: 720px; }
+
+    /* ───── PRODUCTION COMPONENTS ───── */
+
+    /* navbar */
+    .navbar {
+      display: flex;
+      align-items: center;
+      gap: var(--s-3);
+      padding: var(--s-3) var(--s-4);
+      background: rgba(255,255,255,0.85);
+      -webkit-backdrop-filter: saturate(140%) blur(10px);
+      backdrop-filter: saturate(140%) blur(10px);
+      border-bottom: 1px solid var(--c-rule);
+    }
+    .navbar__hamburger {
+      width: 40px; height: 40px; border-radius: var(--r-pill);
+      display: inline-flex; align-items: center; justify-content: center;
+      color: var(--c-ink-2);
+    }
+    .navbar__hamburger:hover { background: var(--c-bg-soft); color: var(--c-ink); }
+    .navbar__brand { display: flex; align-items: center; gap: var(--s-2); }
+    .navbar__brand-icon {
+      width: 28px; height: 28px; border-radius: 6px;
+      background: var(--c-navy); color: #fff;
+      display: inline-flex; align-items: center; justify-content: center;
+      font-size: 16px;
+    }
+    .navbar__brand-name { font-size: var(--t-body-sm); font-weight: 500; letter-spacing: -0.005em; }
+    .navbar__tabs { display: flex; gap: var(--s-2); margin-left: var(--s-4); }
+    .navbar__tab {
+      padding: 6px var(--s-3); border-radius: var(--r-pill);
+      font-size: var(--t-meta); color: var(--c-ink-3);
+    }
+    .navbar__tab.is-active { background: var(--c-navy); color: #fff; }
+    .navbar__actions { margin-left: auto; display: flex; align-items: center; gap: var(--s-2); }
+    .navbar__email { font-size: var(--t-cap); color: var(--c-ink-3); max-width: 180px; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+
+    /* stats strip */
+    .stats-strip {
+      max-width: 1880px;
+      margin: 0 auto;
+      padding: var(--s-3) var(--s-4);
+      display: flex;
+      align-items: center;
+      gap: var(--s-5);
+      background: var(--c-bg-soft);
+      border-bottom: 1px solid var(--c-rule);
+      font-size: var(--t-meta);
+      color: var(--c-ink-2);
+      overflow-x: auto;
+      white-space: nowrap;
+    }
+    .stats-strip__icon { color: var(--c-navy); font-size: 16px; flex: 0 0 auto; }
+    .stats-strip__item { display: inline-flex; align-items: center; gap: var(--s-1); }
+    .stats-strip__num { font-weight: 600; color: var(--c-ink); font-feature-settings: 'tnum'; }
+    .stats-strip__sep { color: var(--c-ink-4); }
+    .stats-strip__hint { margin-left: auto; color: var(--c-ink-3); font-size: var(--t-cap); }
+
+    /* page wrapper */
+    .home {
+      max-width: 1880px;
+      margin: 0 auto;
+      padding: var(--s-5) var(--s-4);
+    }
+
+    /* mode selector */
+    .mode-selector {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: var(--s-3);
+      margin-bottom: var(--s-5);
+    }
+    .mode-card {
+      background: var(--c-card);
+      border: 1px solid var(--c-rule);
+      border-radius: var(--r-card);
+      padding: var(--s-4) var(--s-5);
+      cursor: pointer;
+      text-align: left;
+      transition: border-color var(--t-fast) var(--ease),
+                  box-shadow var(--t-fast) var(--ease);
+    }
+    .mode-card:hover { border-color: var(--c-rule-bold); box-shadow: var(--shadow-2); }
+    .mode-card.is-active {
+      border-color: var(--c-navy);
+      box-shadow: 0 0 0 1px var(--c-navy), var(--shadow-2);
+    }
+    .mode-card__head {
+      display: flex;
+      align-items: center;
+      gap: var(--s-2);
+      margin-bottom: var(--s-2);
+    }
+    .mode-card__head i { font-size: 20px; color: var(--c-navy); }
+    .mode-card__title { font-size: var(--t-h3); letter-spacing: -0.005em; }
+    .mode-card.is-active .mode-card__title { color: var(--c-navy); }
+    .mode-card__body { font-size: var(--t-meta); color: var(--c-ink-3); line-height: var(--lh-norm); }
+
+    /* search */
+    .search-wrap {
+      position: relative;
+      margin-bottom: var(--s-4);
+    }
+    .search-wrap input {
+      width: 100%;
+      padding: var(--s-3) var(--s-4) var(--s-3) 40px;
+      background: var(--c-card);
+      border: 1px solid var(--c-rule-bold);
+      border-radius: var(--r-input);
+      font-size: var(--t-body);
+      color: var(--c-ink);
+      outline: none;
+      transition: border-color var(--t-fast) var(--ease), box-shadow var(--t-fast) var(--ease);
+    }
+    .search-wrap input::placeholder { color: var(--c-ink-4); }
+    .search-wrap input:focus { border-color: var(--c-primary); box-shadow: var(--shadow-focus); }
+    .search-wrap__icon {
+      position: absolute;
+      left: var(--s-3);
+      top: 50%;
+      transform: translateY(-50%);
+      color: var(--c-ink-3);
+      font-size: 18px;
+      pointer-events: none;
+    }
+    .search-wrap__clear {
+      position: absolute;
+      right: var(--s-3);
+      top: 50%;
+      transform: translateY(-50%);
+      width: 24px; height: 24px;
+      border-radius: var(--r-pill);
+      color: var(--c-ink-3);
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+    }
+    .search-wrap__clear:hover { background: var(--c-bg-soft); color: var(--c-ink); }
+
+    /* type tabs */
+    .type-tabs {
+      display: flex;
+      gap: var(--s-2);
+      margin-bottom: var(--s-4);
+      flex-wrap: wrap;
+    }
+    .type-tab {
+      padding: 6px var(--s-3);
+      border-radius: var(--r-pill);
+      font-size: var(--t-meta);
+      color: var(--c-ink-2);
+      border: 1px solid var(--c-rule-bold);
+      background: var(--c-card);
+      transition: all var(--t-fast) var(--ease);
+    }
+    .type-tab:hover { border-color: var(--c-ink-2); color: var(--c-ink); }
+    .type-tab.is-active { background: var(--c-navy); color: #fff; border-color: var(--c-navy); }
+
+    /* drill rail（desktop only — drill mode）*/
+    .drill-rail {
+      background: var(--c-card);
+      border: 1px solid var(--c-rule);
+      border-radius: var(--r-card);
+      padding: var(--s-4);
+    }
+    .drill-rail__title {
+      font-size: var(--t-cap);
+      letter-spacing: 0.08em;
+      text-transform: uppercase;
+      color: var(--c-ink-3);
+      margin-bottom: var(--s-3);
+    }
+    .drill-rail__list {
+      display: flex;
+      flex-direction: column;
+      gap: var(--s-2);
+    }
+    .drill-pill {
+      display: inline-flex;
+      align-items: center;
+      gap: var(--s-2);
+      padding: var(--s-3) var(--s-4);
+      border-radius: var(--r-input);
+      font-size: var(--t-body-sm);
+      color: var(--c-ink);
+      border: 1px solid var(--c-rule-bold);
+      background: var(--c-card);
+      cursor: pointer;
+      transition: all var(--t-fast) var(--ease);
+      width: 100%;
+      text-align: left;
+    }
+    .drill-pill:hover { border-color: var(--c-navy); }
+    .drill-pill.is-active { background: var(--c-navy); color: #fff; border-color: var(--c-navy); }
+    .drill-pill .step-letter {
+      font-family: var(--font-serif);
+      font-style: italic;
+      font-size: 18px;
+      line-height: 1;
+      flex: 0 0 auto;
+    }
+    .drill-rail__lock {
+      margin-top: var(--s-3);
+      padding: var(--s-2) var(--s-3);
+      background: var(--c-bg-soft);
+      border-radius: var(--r-input);
+      font-size: var(--t-cap);
+      color: var(--c-ink-3);
+      display: flex;
+      gap: var(--s-2);
+      align-items: flex-start;
+    }
+    .drill-rail__lock i { font-size: 14px; margin-top: 1px; flex: 0 0 auto; }
+
+    /* q-card list */
+    .q-list {
+      display: flex;
+      flex-direction: column;
+      gap: var(--s-3);
+    }
+    .qcard {
+      background: var(--c-card);
+      border: 1px solid var(--c-rule);
+      border-radius: var(--r-card);
+      padding: var(--s-4) var(--s-5);
+      cursor: pointer;
+      transition: border-color var(--t-fast) var(--ease), box-shadow var(--t-fast) var(--ease);
+    }
+    .qcard:hover { border-color: var(--c-rule-bold); box-shadow: var(--shadow-2); }
+    .qcard__head {
+      display: flex;
+      gap: var(--s-3);
+      align-items: baseline;
+      margin-bottom: var(--s-2);
+    }
+    .qcard__num {
+      font-family: var(--font-serif);
+      font-style: italic;
+      font-size: 18px;
+      color: var(--c-ink-3);
+      flex: 0 0 auto;
+    }
+    .qcard__title {
+      font-size: var(--t-h3);
+      letter-spacing: -0.005em;
+      line-height: var(--lh-tight);
+      flex: 1;
+    }
+    .qcard__meta {
+      display: flex;
+      gap: var(--s-2);
+      align-items: center;
+      flex-wrap: wrap;
+      font-size: var(--t-meta);
+      color: var(--c-ink-3);
+      margin-bottom: var(--s-2);
+    }
+    .qcard__meta-sep { color: var(--c-ink-4); }
+    .qcard__body {
+      font-size: var(--t-body-sm);
+      color: var(--c-ink-2);
+      line-height: var(--lh-norm);
+    }
+    .mode-tag {
+      display: inline-flex;
+      align-items: center;
+      gap: 4px;
+      padding: 2px var(--s-2);
+      border-radius: 3px;
+      font-size: var(--t-cap);
+      font-weight: 500;
+      letter-spacing: 0.04em;
+      text-transform: uppercase;
+    }
+    .mode-tag i { font-size: 11px; }
+    .mode-tag--drill { background: var(--c-bg-deep); color: var(--c-ink-2); }
+    .mode-tag--sim { background: var(--c-success-lt); color: var(--c-success); }
+
+    /* reshuffle button */
+    .reshuffle {
+      width: 100%;
+      margin-top: var(--s-4);
+      padding: var(--s-3);
+      background: transparent;
+      border: 1px dashed var(--c-rule-bold);
+      border-radius: var(--r-input);
+      font-size: var(--t-body-sm);
+      color: var(--c-ink-2);
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+      gap: var(--s-2);
+      transition: background var(--t-fast) var(--ease), border-color var(--t-fast) var(--ease);
+    }
+    .reshuffle:hover { background: var(--c-bg-soft); border-color: var(--c-ink-3); color: var(--c-ink); }
+    .reshuffle i { font-size: 16px; }
+
+    /* recent rail（desktop right）*/
+    .recent-rail {
+      background: var(--c-card);
+      border: 1px solid var(--c-rule);
+      border-radius: var(--r-card);
+      padding: var(--s-4);
+    }
+    .recent-rail__title {
+      font-size: var(--t-cap);
+      letter-spacing: 0.08em;
+      text-transform: uppercase;
+      color: var(--c-ink-3);
+      margin-bottom: var(--s-3);
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+    }
+    .recent-rail__see-all {
+      font-size: var(--t-cap);
+      color: var(--c-primary);
+      text-transform: none;
+      letter-spacing: 0;
+    }
+    .recent-rail__list {
+      display: flex;
+      flex-direction: column;
+      gap: var(--s-2);
+    }
+    .recent-item {
+      padding: var(--s-3);
+      border-radius: var(--r-input);
+      cursor: pointer;
+      transition: background var(--t-fast) var(--ease);
+    }
+    .recent-item:hover { background: var(--c-bg-soft); }
+    .recent-item__head {
+      display: flex;
+      align-items: center;
+      gap: var(--s-2);
+      flex-wrap: wrap;
+      margin-bottom: var(--s-1);
+    }
+    .recent-item__time { font-size: var(--t-cap); color: var(--c-ink-3); }
+    .recent-item__title {
+      font-size: var(--t-body-sm);
+      color: var(--c-ink);
+      line-height: var(--lh-tight);
+      overflow: hidden;
+      display: -webkit-box;
+      -webkit-line-clamp: 2;
+      -webkit-box-orient: vertical;
+    }
+    .recent-item__phase {
+      margin-top: var(--s-1);
+      font-size: var(--t-cap);
+      color: var(--c-ink-3);
+    }
+
+    /* empty state */
+    .empty-wrap {
+      padding: var(--s-9) var(--s-5);
+      text-align: center;
+      color: var(--c-ink-3);
+    }
+    .empty-wrap i { font-size: 32px; color: var(--c-ink-4); margin-bottom: var(--s-3); }
+    .empty-wrap__title { font-size: var(--t-h3); color: var(--c-ink); margin-bottom: var(--s-2); }
+    .empty-wrap__body { font-size: var(--t-body-sm); }
+
+    /* ───── desktop layout grid ───── */
+    @media (min-width: 1024px) {
+      .home--desktop {
+        display: grid;
+        grid-template-columns: 200px 1fr 220px;
+        gap: var(--s-6);
+        max-width: 1880px;
+      }
+      .home--desktop-no-drill {
+        grid-template-columns: 1fr 220px;
+      }
+    }
+
+    /* annotations / labels */
+    .anno {
+      background: var(--c-bg-soft);
+      border-left: 2px solid var(--c-ink-3);
+      padding: var(--s-3) var(--s-4);
+      font-size: var(--t-meta);
+      color: var(--c-ink-2);
+      margin: var(--s-4) auto;
+      max-width: 1180px;
+      line-height: var(--lh-loose);
+    }
+    .anno strong { color: var(--c-ink); }
+
+    .vp-section-title {
+      max-width: 1880px;
+      margin: var(--s-7) auto var(--s-3);
+      padding-bottom: var(--s-2);
+      border-bottom: 1px solid var(--c-rule);
+      font-size: var(--t-h2);
+      letter-spacing: -0.005em;
+    }
+    .vp-section-title__sub {
+      font-size: var(--t-cap);
+      color: var(--c-ink-3);
+      margin-left: var(--s-3);
+      letter-spacing: 0.04em;
+      text-transform: uppercase;
+    }
+
+    @media (max-width: 1100px) {
+      .vp-grid { grid-template-columns: 360px; }
+      .vp-frame:nth-child(2), .vp-frame:nth-child(3) { display: none; }
+    }
+  </style>
+</head>
+<body>
+
+<div class="ds-page">
+  <header class="ds-header">
+    <div class="ds-header__eyebrow">PM Drill · Path 2 · Mockup 01 / 16 · Batch A</div>
+    <h1>CIRCLES Home — 主畫面（含 stats / search / mode selector / type tabs / q-card / drill rail / recent rail）</h1>
+    <p class="ds-header__sub">
+      入口畫面：用戶從這裡選模式（完整模擬 / 個別步驟）→ 選題型 → 看 5 隨機題卡 → 選題進入 phase 1。<br>
+      desktop 啟用左 drill rail（drill 模式）+ 右 recent sessions rail。mobile / tablet 單欄、recent 走 offcanvas。
+    </p>
+  </header>
+
+  <!-- ═══════════════════ Default — Simulation mode（推薦進入點）═══════════════════ -->
+  <h2 class="vp-section-title">A. 預設狀態 · 完整模擬模式 <span class="vp-section-title__sub">no drill rail / 5 random q-cards / recent rail desktop</span></h2>
+
+  <div class="vp-grid">
+
+    <!-- mobile -->
+    <div class="vp-frame">
+      <div class="vp-frame__label"><span>Mobile</span><span>360 px</span></div>
+      <div class="vp-frame__body">
+
+        <div class="navbar">
+          <button class="navbar__hamburger" aria-label="練習記錄"><i class="ph ph-list"></i></button>
+          <div class="navbar__brand"><span class="navbar__brand-icon"><i class="ph ph-circles-three"></i></span><span class="navbar__brand-name">PM Drill</span></div>
+        </div>
+
+        <div class="stats-strip">
+          <i class="ph ph-chart-bar stats-strip__icon"></i>
+          <span class="stats-strip__item"><span class="stats-strip__num">12</span>已完成</span>
+          <span class="stats-strip__sep">·</span>
+          <span class="stats-strip__item"><span class="stats-strip__num">3</span>進行中</span>
+          <span class="stats-strip__sep">·</span>
+          <span class="stats-strip__item"><span class="stats-strip__num">5</span>本週</span>
+        </div>
+
+        <div class="home">
+          <div class="mode-selector">
+            <button class="mode-card is-active">
+              <div class="mode-card__head"><i class="ph ph-list-checks"></i><span class="mode-card__title">完整模擬</span></div>
+              <div class="mode-card__body">7 步循序練習</div>
+            </button>
+            <button class="mode-card">
+              <div class="mode-card__head"><i class="ph ph-target"></i><span class="mode-card__title">個別步驟</span></div>
+              <div class="mode-card__body">單練 C / I / R</div>
+            </button>
+          </div>
+
+          <div class="search-wrap">
+            <i class="ph ph-magnifying-glass search-wrap__icon"></i>
+            <input type="search" placeholder="搜尋題目（公司 / 產品 / 主題）">
+          </div>
+
+          <div class="type-tabs">
+            <button class="type-tab is-active">設計</button>
+            <button class="type-tab">改善</button>
+            <button class="type-tab">策略</button>
+          </div>
+
+          <div class="q-list">
+            <div class="qcard">
+              <div class="qcard__head"><span class="qcard__num">01</span><h3 class="qcard__title">如何提升 Spotify Podcast 的用戶留存？</h3></div>
+              <div class="qcard__meta"><span class="mode-tag mode-tag--sim"><i class="ph ph-list-checks"></i>完整</span><span class="qcard__meta-sep">·</span>Spotify</div>
+              <p class="qcard__body">既有用戶聽 Podcast 的留存比聽音樂低；找出主因並提出策略。</p>
+            </div>
+            <div class="qcard">
+              <div class="qcard__head"><span class="qcard__num">02</span><h3 class="qcard__title">Notion 如何提升新用戶啟用率？</h3></div>
+              <div class="qcard__meta"><span class="mode-tag mode-tag--sim"><i class="ph ph-list-checks"></i>完整</span><span class="qcard__meta-sep">·</span>Notion</div>
+              <p class="qcard__body">空白工作區的「冷啟動」問題：用戶下載後三天內回流率僅 28%。</p>
+            </div>
+            <div class="qcard">
+              <div class="qcard__head"><span class="qcard__num">03</span><h3 class="qcard__title">Airbnb 二手交易市場該不該做？</h3></div>
+              <div class="qcard__meta"><span class="mode-tag mode-tag--sim"><i class="ph ph-list-checks"></i>完整</span><span class="qcard__meta-sep">·</span>Airbnb</div>
+              <p class="qcard__body">在地家具租賃需求上升 — 是否該擴展業務範圍？</p>
+            </div>
+          </div>
+
+          <button class="reshuffle"><i class="ph ph-shuffle"></i>隨機抽 5 題（不含目前的題）</button>
+        </div>
+      </div>
+    </div>
+
+    <!-- tablet -->
+    <div class="vp-frame">
+      <div class="vp-frame__label"><span>Tablet</span><span>768 px</span></div>
+      <div class="vp-frame__body">
+
+        <div class="navbar">
+          <button class="navbar__hamburger" aria-label="練習記錄"><i class="ph ph-list"></i></button>
+          <div class="navbar__brand"><span class="navbar__brand-icon"><i class="ph ph-circles-three"></i></span><span class="navbar__brand-name">PM Drill</span></div>
+          <nav class="navbar__tabs">
+            <span class="navbar__tab is-active">CIRCLES</span>
+            <span class="navbar__tab">北極星指標</span>
+          </nav>
+          <div class="navbar__actions">
+            <button class="navbar__hamburger" aria-label="登入"><i class="ph ph-sign-in"></i></button>
+          </div>
+        </div>
+
+        <div class="stats-strip">
+          <i class="ph ph-chart-bar stats-strip__icon"></i>
+          <span class="stats-strip__item"><span class="stats-strip__num">12</span> 已完成</span>
+          <span class="stats-strip__sep">·</span>
+          <span class="stats-strip__item"><span class="stats-strip__num">3</span> 進行中</span>
+          <span class="stats-strip__sep">·</span>
+          <span class="stats-strip__item"><span class="stats-strip__num">5</span> 本週</span>
+          <span class="stats-strip__hint">已完成 12 / 100 題</span>
+        </div>
+
+        <div class="home">
+          <div class="mode-selector">
+            <button class="mode-card is-active">
+              <div class="mode-card__head"><i class="ph ph-list-checks"></i><span class="mode-card__title">完整模擬</span></div>
+              <div class="mode-card__body">7 步循序練習，最完整。可上一步 / 下一步</div>
+            </button>
+            <button class="mode-card">
+              <div class="mode-card__head"><i class="ph ph-target"></i><span class="mode-card__title">個別步驟</span></div>
+              <div class="mode-card__body">單練 C / I / R 三步。該步結束即整 session 完成</div>
+            </button>
+          </div>
+
+          <div class="search-wrap">
+            <i class="ph ph-magnifying-glass search-wrap__icon"></i>
+            <input type="search" placeholder="搜尋題目（公司 / 產品 / 主題關鍵字）">
+          </div>
+
+          <div class="type-tabs">
+            <button class="type-tab is-active">設計題 · 24</button>
+            <button class="type-tab">改善題 · 36</button>
+            <button class="type-tab">策略題 · 40</button>
+          </div>
+
+          <div class="q-list">
+            <div class="qcard">
+              <div class="qcard__head"><span class="qcard__num">01</span><h3 class="qcard__title">如何提升 Spotify Podcast 的用戶留存率？</h3></div>
+              <div class="qcard__meta"><span class="mode-tag mode-tag--sim"><i class="ph ph-list-checks"></i>完整模擬</span><span class="qcard__meta-sep">·</span>Spotify<span class="qcard__meta-sep">·</span>Podcast</div>
+              <p class="qcard__body">既有用戶聽 Podcast 的留存比聽音樂低；產品經理需要找出主因並提出策略，但不能影響廣告收入或訂閱轉換率。</p>
+            </div>
+            <div class="qcard">
+              <div class="qcard__head"><span class="qcard__num">02</span><h3 class="qcard__title">Notion 如何提升新用戶啟用率？</h3></div>
+              <div class="qcard__meta"><span class="mode-tag mode-tag--sim"><i class="ph ph-list-checks"></i>完整模擬</span><span class="qcard__meta-sep">·</span>Notion</div>
+              <p class="qcard__body">空白工作區的「冷啟動」問題：用戶下載後三天內回流率僅 28%。如何在不增加教學步驟的前提下幫用戶找到第一個有意義的使用場景？</p>
+            </div>
+            <div class="qcard">
+              <div class="qcard__head"><span class="qcard__num">03</span><h3 class="qcard__title">Airbnb 二手交易市場該不該做？</h3></div>
+              <div class="qcard__meta"><span class="mode-tag mode-tag--sim"><i class="ph ph-list-checks"></i>完整模擬</span><span class="qcard__meta-sep">·</span>Airbnb</div>
+              <p class="qcard__body">在地家具租賃需求上升、Airbnb 已有信任體系；應該擴展業務範圍嗎？評估市場機會與業務風險。</p>
+            </div>
+          </div>
+
+          <button class="reshuffle"><i class="ph ph-shuffle"></i>隨機抽 5 題（不含目前的題）</button>
+        </div>
+      </div>
+    </div>
+
+    <!-- desktop -->
+    <div class="vp-frame">
+      <div class="vp-frame__label"><span>Desktop</span><span>1280 px</span></div>
+      <div class="vp-frame__body">
+
+        <div class="navbar">
+          <button class="navbar__hamburger" aria-label="練習記錄"><i class="ph ph-list"></i></button>
+          <div class="navbar__brand"><span class="navbar__brand-icon"><i class="ph ph-circles-three"></i></span><span class="navbar__brand-name">PM Drill</span></div>
+          <nav class="navbar__tabs">
+            <span class="navbar__tab is-active">CIRCLES</span>
+            <span class="navbar__tab">北極星指標</span>
+          </nav>
+          <div class="navbar__actions">
+            <span class="navbar__email">albert.peng@example.com</span>
+            <button class="navbar__hamburger" aria-label="登出"><i class="ph ph-sign-out"></i></button>
+          </div>
+        </div>
+
+        <div class="stats-strip">
+          <i class="ph ph-chart-bar stats-strip__icon"></i>
+          <span class="stats-strip__item"><span class="stats-strip__num">12</span> 已完成</span>
+          <span class="stats-strip__sep">·</span>
+          <span class="stats-strip__item"><span class="stats-strip__num">3</span> 進行中</span>
+          <span class="stats-strip__sep">·</span>
+          <span class="stats-strip__item"><span class="stats-strip__num">5</span> 本週</span>
+          <span class="stats-strip__hint">已完成 12 / 100 題 · 持續 4 週連續練習</span>
+        </div>
+
+        <div class="home home--desktop home--desktop-no-drill">
+          <!-- center -->
+          <div>
+            <div class="mode-selector">
+              <button class="mode-card is-active">
+                <div class="mode-card__head"><i class="ph ph-list-checks"></i><span class="mode-card__title">完整模擬</span></div>
+                <div class="mode-card__body">7 步循序（C → I → R → C → L → E → S）。可隨時上一步 / 下一步調整。最完整的訓練。</div>
+              </button>
+              <button class="mode-card">
+                <div class="mode-card__head"><i class="ph ph-target"></i><span class="mode-card__title">個別步驟</span></div>
+                <div class="mode-card__body">單練 C / I / R 三步任一。專注練好其中一步。該步結束即整 session 完成。</div>
+              </button>
+            </div>
+
+            <div class="search-wrap">
+              <i class="ph ph-magnifying-glass search-wrap__icon"></i>
+              <input type="search" placeholder="搜尋題目（公司 / 產品 / 主題關鍵字）— 不分大小寫">
+            </div>
+
+            <div class="type-tabs">
+              <button class="type-tab is-active">設計題 · 24</button>
+              <button class="type-tab">改善題 · 36</button>
+              <button class="type-tab">策略題 · 40</button>
+            </div>
+
+            <div class="q-list">
+              <div class="qcard">
+                <div class="qcard__head"><span class="qcard__num">01</span><h3 class="qcard__title">如何提升 Spotify Podcast 的用戶留存率？</h3></div>
+                <div class="qcard__meta"><span class="mode-tag mode-tag--sim"><i class="ph ph-list-checks"></i>完整模擬</span><span class="qcard__meta-sep">·</span>Spotify<span class="qcard__meta-sep">·</span>Spotify Podcast<span class="qcard__meta-sep">·</span><span style="color:var(--c-ink-4);">難度 中</span></div>
+                <p class="qcard__body">既有用戶聽 Podcast 的留存比聽音樂低；產品經理需要找出主因並提出策略，但不能影響廣告收入或訂閱轉換率。</p>
+              </div>
+              <div class="qcard">
+                <div class="qcard__head"><span class="qcard__num">02</span><h3 class="qcard__title">Notion 如何提升新用戶啟用率？</h3></div>
+                <div class="qcard__meta"><span class="mode-tag mode-tag--sim"><i class="ph ph-list-checks"></i>完整模擬</span><span class="qcard__meta-sep">·</span>Notion<span class="qcard__meta-sep">·</span><span style="color:var(--c-ink-4);">難度 中</span></div>
+                <p class="qcard__body">空白工作區的「冷啟動」問題：用戶下載後三天內回流率僅 28%。如何在不增加教學步驟的前提下幫用戶找到第一個有意義的使用場景？</p>
+              </div>
+              <div class="qcard">
+                <div class="qcard__head"><span class="qcard__num">03</span><h3 class="qcard__title">Airbnb 二手交易市場該不該做？</h3></div>
+                <div class="qcard__meta"><span class="mode-tag mode-tag--sim"><i class="ph ph-list-checks"></i>完整模擬</span><span class="qcard__meta-sep">·</span>Airbnb<span class="qcard__meta-sep">·</span><span style="color:var(--c-ink-4);">難度 高</span></div>
+                <p class="qcard__body">在地家具租賃需求上升、Airbnb 已有信任體系；應該擴展業務範圍嗎？評估市場機會與業務風險，提出進場策略或拒絕理由。</p>
+              </div>
+            </div>
+
+            <button class="reshuffle"><i class="ph ph-shuffle"></i>隨機抽 5 題（不含目前的題）— 重抽不會打斷你的滾動位置</button>
+          </div>
+
+          <!-- right rail -->
+          <aside class="recent-rail">
+            <div class="recent-rail__title">
+              <span>最近練習</span>
+              <a href="#" class="recent-rail__see-all">看全部 →</a>
+            </div>
+            <div class="recent-rail__list">
+              <div class="recent-item">
+                <div class="recent-item__head">
+                  <span class="mode-tag mode-tag--sim"><i class="ph ph-list-checks"></i>完整</span>
+                  <span class="recent-item__time">2 小時前</span>
+                </div>
+                <div class="recent-item__title">如何重設 Slack 的通知策略？</div>
+                <div class="recent-item__phase">Phase 2 · 第 3 步 · 進行中</div>
+              </div>
+              <div class="recent-item">
+                <div class="recent-item__head">
+                  <span class="mode-tag mode-tag--drill"><i class="ph ph-target"></i>個別 R</span>
+                  <span class="recent-item__time">昨天</span>
+                </div>
+                <div class="recent-item__title">Spotify Podcast 留存</div>
+                <div class="recent-item__phase">Phase 3 · 76 / 100 · 已完成</div>
+              </div>
+              <div class="recent-item">
+                <div class="recent-item__head">
+                  <span class="mode-tag mode-tag--sim"><i class="ph ph-list-checks"></i>完整</span>
+                  <span class="recent-item__time">3 天前</span>
+                </div>
+                <div class="recent-item__title">Discord 如何降低青少年濫用率</div>
+                <div class="recent-item__phase">Phase 4 · 報告 82 / 100</div>
+              </div>
+            </div>
+          </aside>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <p class="anno"><strong>A · 預設狀態：</strong>完整模擬模式（推薦新用戶進入點）。mobile/tablet 單欄、recent 走 offcanvas（漢堡）；desktop 兩欄（中 + recent rail 220px）。stats-strip 提供「已完成 / 進行中 / 本週」三個數字幫助用戶建立練習節奏感。</p>
+
+  <!-- ═══════════════════ Drill mode 切換 ═══════════════════ -->
+  <h2 class="vp-section-title">B. 個別步驟模式 · drill mode <span class="vp-section-title__sub">desktop 啟用 left drill rail / mobile/tablet 改顯 horizontal pills</span></h2>
+
+  <div class="vp-grid">
+
+    <!-- mobile drill -->
+    <div class="vp-frame">
+      <div class="vp-frame__label"><span>Mobile</span><span>360 px</span></div>
+      <div class="vp-frame__body">
+
+        <div class="navbar">
+          <button class="navbar__hamburger" aria-label="練習記錄"><i class="ph ph-list"></i></button>
+          <div class="navbar__brand"><span class="navbar__brand-icon"><i class="ph ph-circles-three"></i></span><span class="navbar__brand-name">PM Drill</span></div>
+        </div>
+
+        <div class="stats-strip">
+          <i class="ph ph-chart-bar stats-strip__icon"></i>
+          <span class="stats-strip__item"><span class="stats-strip__num">12</span>已完成</span>
+          <span class="stats-strip__sep">·</span>
+          <span class="stats-strip__item"><span class="stats-strip__num">3</span>進行中</span>
+        </div>
+
+        <div class="home">
+          <div class="mode-selector">
+            <button class="mode-card">
+              <div class="mode-card__head"><i class="ph ph-list-checks"></i><span class="mode-card__title">完整模擬</span></div>
+              <div class="mode-card__body">7 步循序</div>
+            </button>
+            <button class="mode-card is-active">
+              <div class="mode-card__head"><i class="ph ph-target"></i><span class="mode-card__title">個別步驟</span></div>
+              <div class="mode-card__body">單練 C / I / R</div>
+            </button>
+          </div>
+
+          <!-- drill horizontal pills (mobile/tablet) -->
+          <div style="margin-bottom:var(--s-4);">
+            <div style="font-size:var(--t-cap); letter-spacing:0.08em; text-transform:uppercase; color:var(--c-ink-3); margin-bottom:var(--s-2);">練習步驟</div>
+            <div class="type-tabs">
+              <button class="drill-pill is-active" style="width:auto; padding:var(--s-2) var(--s-3);"><span class="step-letter">C</span>澄清</button>
+              <button class="drill-pill" style="width:auto; padding:var(--s-2) var(--s-3);"><span class="step-letter">I</span>用戶</button>
+              <button class="drill-pill" style="width:auto; padding:var(--s-2) var(--s-3);"><span class="step-letter">R</span>需求</button>
+            </div>
+            <div class="drill-rail__lock" style="margin-top:var(--s-2);">
+              <i class="ph ph-lock-simple"></i>
+              <span>C2 / L / E / S 需在完整模擬中練習</span>
+            </div>
+          </div>
+
+          <div class="type-tabs">
+            <button class="type-tab is-active">設計</button>
+            <button class="type-tab">改善</button>
+            <button class="type-tab">策略</button>
+          </div>
+
+          <div class="q-list">
+            <div class="qcard">
+              <div class="qcard__head"><span class="qcard__num">01</span><h3 class="qcard__title">Spotify Podcast 留存 — 練 C 步驟</h3></div>
+              <div class="qcard__meta"><span class="mode-tag mode-tag--drill"><i class="ph ph-target"></i>個別 C</span><span class="qcard__meta-sep">·</span>Spotify</div>
+              <p class="qcard__body">專注練習「澄清情境」一步：練習用精準問題縮小解題範圍。</p>
+            </div>
+            <div class="qcard">
+              <div class="qcard__head"><span class="qcard__num">02</span><h3 class="qcard__title">Notion 啟用率 — 練 C 步驟</h3></div>
+              <div class="qcard__meta"><span class="mode-tag mode-tag--drill"><i class="ph ph-target"></i>個別 C</span><span class="qcard__meta-sep">·</span>Notion</div>
+              <p class="qcard__body">將「啟用率太低」這個模糊問題拆成可分析的具體子問題。</p>
+            </div>
+          </div>
+
+          <button class="reshuffle"><i class="ph ph-shuffle"></i>隨機抽 5 題</button>
+        </div>
+      </div>
+    </div>
+
+    <!-- tablet drill -->
+    <div class="vp-frame">
+      <div class="vp-frame__label"><span>Tablet</span><span>768 px</span></div>
+      <div class="vp-frame__body">
+
+        <div class="navbar">
+          <button class="navbar__hamburger" aria-label="練習記錄"><i class="ph ph-list"></i></button>
+          <div class="navbar__brand"><span class="navbar__brand-icon"><i class="ph ph-circles-three"></i></span><span class="navbar__brand-name">PM Drill</span></div>
+          <nav class="navbar__tabs">
+            <span class="navbar__tab is-active">CIRCLES</span>
+            <span class="navbar__tab">北極星指標</span>
+          </nav>
+        </div>
+
+        <div class="stats-strip">
+          <i class="ph ph-chart-bar stats-strip__icon"></i>
+          <span class="stats-strip__item"><span class="stats-strip__num">12</span> 已完成</span>
+          <span class="stats-strip__sep">·</span>
+          <span class="stats-strip__item"><span class="stats-strip__num">3</span> 進行中</span>
+          <span class="stats-strip__sep">·</span>
+          <span class="stats-strip__item"><span class="stats-strip__num">5</span> 本週</span>
+        </div>
+
+        <div class="home">
+          <div class="mode-selector">
+            <button class="mode-card">
+              <div class="mode-card__head"><i class="ph ph-list-checks"></i><span class="mode-card__title">完整模擬</span></div>
+              <div class="mode-card__body">7 步循序練習，可上下步</div>
+            </button>
+            <button class="mode-card is-active">
+              <div class="mode-card__head"><i class="ph ph-target"></i><span class="mode-card__title">個別步驟</span></div>
+              <div class="mode-card__body">單練 C / I / R 三步，結束即完成</div>
+            </button>
+          </div>
+
+          <div style="margin-bottom:var(--s-4);">
+            <div style="font-size:var(--t-cap); letter-spacing:0.08em; text-transform:uppercase; color:var(--c-ink-3); margin-bottom:var(--s-2);">練習步驟</div>
+            <div class="type-tabs">
+              <button class="drill-pill is-active" style="width:auto;"><span class="step-letter">C</span>澄清情境</button>
+              <button class="drill-pill" style="width:auto;"><span class="step-letter">I</span>定義用戶</button>
+              <button class="drill-pill" style="width:auto;"><span class="step-letter">R</span>發掘需求</button>
+            </div>
+            <div class="drill-rail__lock" style="margin-top:var(--s-2);">
+              <i class="ph ph-lock-simple"></i>
+              <span>C2、L、E、S 需在完整模擬中練習（依賴前步輸出）</span>
+            </div>
+          </div>
+
+          <div class="search-wrap">
+            <i class="ph ph-magnifying-glass search-wrap__icon"></i>
+            <input type="search" placeholder="搜尋題目">
+          </div>
+
+          <div class="type-tabs">
+            <button class="type-tab is-active">設計</button>
+            <button class="type-tab">改善</button>
+            <button class="type-tab">策略</button>
+          </div>
+
+          <div class="q-list">
+            <div class="qcard">
+              <div class="qcard__head"><span class="qcard__num">01</span><h3 class="qcard__title">Spotify Podcast 留存 — 練 C · 澄清情境</h3></div>
+              <div class="qcard__meta"><span class="mode-tag mode-tag--drill"><i class="ph ph-target"></i>個別 C</span><span class="qcard__meta-sep">·</span>Spotify<span class="qcard__meta-sep">·</span>Spotify Podcast</div>
+              <p class="qcard__body">這題在問什麼？要釐清的問題邊界、時間範圍、業務影響、需驗證的假設 — 練習用精準問題縮小解題範圍。</p>
+            </div>
+            <div class="qcard">
+              <div class="qcard__head"><span class="qcard__num">02</span><h3 class="qcard__title">Notion 啟用率 — 練 C · 澄清情境</h3></div>
+              <div class="qcard__meta"><span class="mode-tag mode-tag--drill"><i class="ph ph-target"></i>個別 C</span><span class="qcard__meta-sep">·</span>Notion</div>
+              <p class="qcard__body">將「啟用率太低」這個模糊問題拆成可分析的具體子問題：是哪一群人？啟用的定義？業務影響？</p>
+            </div>
+          </div>
+
+          <button class="reshuffle"><i class="ph ph-shuffle"></i>隨機抽 5 題（不含目前的題）</button>
+        </div>
+      </div>
+    </div>
+
+    <!-- desktop drill (with left rail) -->
+    <div class="vp-frame">
+      <div class="vp-frame__label"><span>Desktop</span><span>1280 px</span></div>
+      <div class="vp-frame__body">
+
+        <div class="navbar">
+          <button class="navbar__hamburger" aria-label="練習記錄"><i class="ph ph-list"></i></button>
+          <div class="navbar__brand"><span class="navbar__brand-icon"><i class="ph ph-circles-three"></i></span><span class="navbar__brand-name">PM Drill</span></div>
+          <nav class="navbar__tabs">
+            <span class="navbar__tab is-active">CIRCLES</span>
+            <span class="navbar__tab">北極星指標</span>
+          </nav>
+          <div class="navbar__actions">
+            <span class="navbar__email">albert.peng@example.com</span>
+            <button class="navbar__hamburger" aria-label="登出"><i class="ph ph-sign-out"></i></button>
+          </div>
+        </div>
+
+        <div class="stats-strip">
+          <i class="ph ph-chart-bar stats-strip__icon"></i>
+          <span class="stats-strip__item"><span class="stats-strip__num">12</span> 已完成</span>
+          <span class="stats-strip__sep">·</span>
+          <span class="stats-strip__item"><span class="stats-strip__num">3</span> 進行中</span>
+          <span class="stats-strip__sep">·</span>
+          <span class="stats-strip__item"><span class="stats-strip__num">5</span> 本週</span>
+          <span class="stats-strip__hint">個別步驟 C — 已練 4 題</span>
+        </div>
+
+        <div class="home home--desktop">
+          <!-- left drill rail -->
+          <aside class="drill-rail">
+            <div class="drill-rail__title">練習步驟</div>
+            <div class="drill-rail__list">
+              <button class="drill-pill is-active"><span class="step-letter">C</span>澄清情境</button>
+              <button class="drill-pill"><span class="step-letter">I</span>定義用戶</button>
+              <button class="drill-pill"><span class="step-letter">R</span>發掘需求</button>
+            </div>
+            <div class="drill-rail__lock">
+              <i class="ph ph-lock-simple"></i>
+              <span>C2、L、E、S 需在<strong style="color:var(--c-ink-2);">完整模擬</strong>中練習 — 因為它們依賴前步輸出</span>
+            </div>
+          </aside>
+
+          <!-- center -->
+          <div>
+            <div class="mode-selector">
+              <button class="mode-card">
+                <div class="mode-card__head"><i class="ph ph-list-checks"></i><span class="mode-card__title">完整模擬</span></div>
+                <div class="mode-card__body">7 步循序（C → I → R → C → L → E → S）。可隨時上下步。</div>
+              </button>
+              <button class="mode-card is-active">
+                <div class="mode-card__head"><i class="ph ph-target"></i><span class="mode-card__title">個別步驟</span></div>
+                <div class="mode-card__body">單練 C / I / R 三步任一。專注練好其中一步。該步結束即整 session 完成。</div>
+              </button>
+            </div>
+
+            <div class="search-wrap">
+              <i class="ph ph-magnifying-glass search-wrap__icon"></i>
+              <input type="search" placeholder="搜尋題目（公司 / 產品 / 主題關鍵字）">
+            </div>
+
+            <div class="type-tabs">
+              <button class="type-tab is-active">設計題 · 24</button>
+              <button class="type-tab">改善題 · 36</button>
+              <button class="type-tab">策略題 · 40</button>
+            </div>
+
+            <div class="q-list">
+              <div class="qcard">
+                <div class="qcard__head"><span class="qcard__num">01</span><h3 class="qcard__title">Spotify Podcast 留存率 — 練 C · 澄清情境</h3></div>
+                <div class="qcard__meta"><span class="mode-tag mode-tag--drill"><i class="ph ph-target"></i>個別 C</span><span class="qcard__meta-sep">·</span>Spotify<span class="qcard__meta-sep">·</span>Spotify Podcast<span class="qcard__meta-sep">·</span><span style="color:var(--c-ink-4);">難度 中</span></div>
+                <p class="qcard__body">這題在問什麼？問題邊界、時間範圍、業務影響、需驗證的假設 — 練習用精準問題縮小解題範圍，避免後面分析在錯的邊界上展開。</p>
+              </div>
+              <div class="qcard">
+                <div class="qcard__head"><span class="qcard__num">02</span><h3 class="qcard__title">Notion 啟用率 — 練 C · 澄清情境</h3></div>
+                <div class="qcard__meta"><span class="mode-tag mode-tag--drill"><i class="ph ph-target"></i>個別 C</span><span class="qcard__meta-sep">·</span>Notion<span class="qcard__meta-sep">·</span><span style="color:var(--c-ink-4);">難度 中</span></div>
+                <p class="qcard__body">將「啟用率太低」拆成具體子問題：哪一群人 / 啟用的定義 / 業務影響 / 需驗證的假設。</p>
+              </div>
+              <div class="qcard">
+                <div class="qcard__head"><span class="qcard__num">03</span><h3 class="qcard__title">Slack 通知策略 — 練 C · 澄清情境</h3></div>
+                <div class="qcard__meta"><span class="mode-tag mode-tag--drill"><i class="ph ph-target"></i>個別 C</span><span class="qcard__meta-sep">·</span>Slack<span class="qcard__meta-sep">·</span><span style="color:var(--c-ink-4);">難度 高</span></div>
+                <p class="qcard__body">在重設通知策略前，先界定討論範圍 — 是針對 DM、頻道、@mention，還是全部？影響哪幾個指標？</p>
+              </div>
+            </div>
+
+            <button class="reshuffle"><i class="ph ph-shuffle"></i>隨機抽 5 題（不含目前的題）— 重抽不會打斷你的滾動位置</button>
+          </div>
+
+          <!-- right rail -->
+          <aside class="recent-rail">
+            <div class="recent-rail__title">
+              <span>最近練習</span>
+              <a href="#" class="recent-rail__see-all">看全部 →</a>
+            </div>
+            <div class="recent-rail__list">
+              <div class="recent-item">
+                <div class="recent-item__head">
+                  <span class="mode-tag mode-tag--drill"><i class="ph ph-target"></i>個別 R</span>
+                  <span class="recent-item__time">昨天</span>
+                </div>
+                <div class="recent-item__title">Spotify Podcast 留存</div>
+                <div class="recent-item__phase">76 / 100 · 已完成</div>
+              </div>
+              <div class="recent-item">
+                <div class="recent-item__head">
+                  <span class="mode-tag mode-tag--drill"><i class="ph ph-target"></i>個別 C</span>
+                  <span class="recent-item__time">3 天前</span>
+                </div>
+                <div class="recent-item__title">Discord 青少年濫用</div>
+                <div class="recent-item__phase">82 / 100 · 已完成</div>
+              </div>
+              <div class="recent-item">
+                <div class="recent-item__head">
+                  <span class="mode-tag mode-tag--sim"><i class="ph ph-list-checks"></i>完整</span>
+                  <span class="recent-item__time">5 天前</span>
+                </div>
+                <div class="recent-item__title">Airbnb 二手交易市場</div>
+                <div class="recent-item__phase">Phase 4 報告 · 70 / 100</div>
+              </div>
+            </div>
+          </aside>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <p class="anno"><strong>B · drill mode：</strong>desktop 啟用左 200px drill rail（C / I / R 直立 + lock note 解釋為何 C2/L/E/S 不在這裡）；mobile / tablet 改成 horizontal pill row 顯示在 mode selector 下方，lock note 同步顯示。Q-card 的 mode-tag 變 <code>個別 C</code> 樣式。其他 layout 不變。</p>
+
+  <!-- ═══════════════════ 搜尋有結果 ═══════════════════ -->
+  <h2 class="vp-section-title">C. 搜尋啟動 · 過濾後結果 <span class="vp-section-title__sub">type tabs 仍可用 / 結果計數顯示 / 200ms debounce</span></h2>
+
+  <div class="vp-grid">
+    <div class="vp-frame">
+      <div class="vp-frame__label"><span>Mobile</span><span>360 px</span></div>
+      <div class="vp-frame__body">
+
+        <div class="navbar">
+          <button class="navbar__hamburger"><i class="ph ph-list"></i></button>
+          <div class="navbar__brand"><span class="navbar__brand-icon"><i class="ph ph-circles-three"></i></span><span class="navbar__brand-name">PM Drill</span></div>
+        </div>
+
+        <div class="home">
+          <div class="search-wrap">
+            <i class="ph ph-magnifying-glass search-wrap__icon"></i>
+            <input type="search" value="Spotify" style="border-color:var(--c-primary); box-shadow:var(--shadow-focus);">
+            <button class="search-wrap__clear" aria-label="清空"><i class="ph ph-x" style="font-size:14px;"></i></button>
+          </div>
+
+          <p style="font-size:var(--t-cap); color:var(--c-ink-3); margin-bottom:var(--s-3);">找到 3 題符合「<strong style="color:var(--c-ink);">Spotify</strong>」</p>
+
+          <div class="q-list">
+            <div class="qcard">
+              <div class="qcard__head"><span class="qcard__num">01</span><h3 class="qcard__title"><mark style="background:var(--c-primary-lt); color:var(--c-primary); padding:0 2px;">Spotify</mark> Podcast 留存率</h3></div>
+              <div class="qcard__meta"><span class="mode-tag mode-tag--sim">完整</span><span class="qcard__meta-sep">·</span><mark style="background:var(--c-primary-lt); color:var(--c-primary); padding:0 2px;">Spotify</mark></div>
+              <p class="qcard__body">既有用戶聽 Podcast 的留存比聽音樂低…</p>
+            </div>
+            <div class="qcard">
+              <div class="qcard__head"><span class="qcard__num">02</span><h3 class="qcard__title"><mark style="background:var(--c-primary-lt); color:var(--c-primary); padding:0 2px;">Spotify</mark> 廣告體驗優化</h3></div>
+              <div class="qcard__meta"><span class="mode-tag mode-tag--sim">完整</span><span class="qcard__meta-sep">·</span><mark style="background:var(--c-primary-lt); color:var(--c-primary); padding:0 2px;">Spotify</mark></div>
+              <p class="qcard__body">免費版用戶對廣告負感升高…</p>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <div class="vp-frame">
+      <div class="vp-frame__label"><span>Tablet</span><span>768 px</span></div>
+      <div class="vp-frame__body">
+        <div class="navbar">
+          <button class="navbar__hamburger"><i class="ph ph-list"></i></button>
+          <div class="navbar__brand"><span class="navbar__brand-icon"><i class="ph ph-circles-three"></i></span><span class="navbar__brand-name">PM Drill</span></div>
+        </div>
+        <div class="home">
+          <div class="search-wrap">
+            <i class="ph ph-magnifying-glass search-wrap__icon"></i>
+            <input type="search" value="留存" style="border-color:var(--c-primary); box-shadow:var(--shadow-focus);">
+            <button class="search-wrap__clear"><i class="ph ph-x" style="font-size:14px;"></i></button>
+          </div>
+          <p style="font-size:var(--t-cap); color:var(--c-ink-3); margin-bottom:var(--s-3);">找到 5 題符合「<strong style="color:var(--c-ink);">留存</strong>」 — 跨 3 個題型</p>
+          <div class="type-tabs">
+            <button class="type-tab is-active">全部 · 5</button>
+            <button class="type-tab">設計 · 2</button>
+            <button class="type-tab">改善 · 3</button>
+            <button class="type-tab">策略 · 0</button>
+          </div>
+          <div class="q-list">
+            <div class="qcard">
+              <div class="qcard__head"><span class="qcard__num">01</span><h3 class="qcard__title">Spotify Podcast 用戶<mark style="background:var(--c-primary-lt); color:var(--c-primary); padding:0 2px;">留存</mark></h3></div>
+              <div class="qcard__meta"><span class="mode-tag mode-tag--sim">完整</span><span class="qcard__meta-sep">·</span>Spotify</div>
+              <p class="qcard__body">既有用戶聽 Podcast 的<mark style="background:var(--c-primary-lt); color:var(--c-primary); padding:0 2px;">留存</mark>比聽音樂低…</p>
+            </div>
+            <div class="qcard">
+              <div class="qcard__head"><span class="qcard__num">02</span><h3 class="qcard__title">Notion 新用戶啟用率與<mark style="background:var(--c-primary-lt); color:var(--c-primary); padding:0 2px;">留存</mark></h3></div>
+              <div class="qcard__meta"><span class="mode-tag mode-tag--sim">完整</span><span class="qcard__meta-sep">·</span>Notion</div>
+              <p class="qcard__body">空白工作區的「冷啟動」問題…</p>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <div class="vp-frame">
+      <div class="vp-frame__label"><span>Desktop</span><span>1280 px</span></div>
+      <div class="vp-frame__body">
+        <div class="navbar">
+          <button class="navbar__hamburger"><i class="ph ph-list"></i></button>
+          <div class="navbar__brand"><span class="navbar__brand-icon"><i class="ph ph-circles-three"></i></span><span class="navbar__brand-name">PM Drill</span></div>
+          <nav class="navbar__tabs">
+            <span class="navbar__tab is-active">CIRCLES</span>
+            <span class="navbar__tab">北極星指標</span>
+          </nav>
+        </div>
+        <div class="home home--desktop home--desktop-no-drill">
+          <div>
+            <div class="search-wrap">
+              <i class="ph ph-magnifying-glass search-wrap__icon"></i>
+              <input type="search" value="留存 retention" style="border-color:var(--c-primary); box-shadow:var(--shadow-focus);">
+              <button class="search-wrap__clear"><i class="ph ph-x" style="font-size:14px;"></i></button>
+            </div>
+            <p style="font-size:var(--t-cap); color:var(--c-ink-3); margin-bottom:var(--s-3);">找到 5 題符合「<strong style="color:var(--c-ink);">留存 retention</strong>」（中英都搜）— 跨 3 個題型</p>
+            <div class="type-tabs">
+              <button class="type-tab is-active">全部 · 5</button>
+              <button class="type-tab">設計 · 2</button>
+              <button class="type-tab">改善 · 3</button>
+              <button class="type-tab">策略 · 0</button>
+            </div>
+            <div class="q-list">
+              <div class="qcard">
+                <div class="qcard__head"><span class="qcard__num">01</span><h3 class="qcard__title">Spotify Podcast 用戶<mark style="background:var(--c-primary-lt); color:var(--c-primary); padding:0 2px;">留存</mark>率</h3></div>
+                <div class="qcard__meta"><span class="mode-tag mode-tag--sim">完整模擬</span><span class="qcard__meta-sep">·</span>Spotify<span class="qcard__meta-sep">·</span><span style="color:var(--c-ink-4);">難度 中</span></div>
+                <p class="qcard__body">既有用戶聽 Podcast 的<mark style="background:var(--c-primary-lt); color:var(--c-primary); padding:0 2px;">留存</mark>比聽音樂低；產品經理需要找出主因並提出策略。</p>
+              </div>
+              <div class="qcard">
+                <div class="qcard__head"><span class="qcard__num">02</span><h3 class="qcard__title">Notion 新用戶啟用率與<mark style="background:var(--c-primary-lt); color:var(--c-primary); padding:0 2px;">留存</mark></h3></div>
+                <div class="qcard__meta"><span class="mode-tag mode-tag--sim">完整模擬</span><span class="qcard__meta-sep">·</span>Notion<span class="qcard__meta-sep">·</span><span style="color:var(--c-ink-4);">難度 中</span></div>
+                <p class="qcard__body">空白工作區的「冷啟動」問題：用戶下載後三天內回流率僅 28%。</p>
+              </div>
+              <div class="qcard">
+                <div class="qcard__head"><span class="qcard__num">03</span><h3 class="qcard__title">Discord <mark style="background:var(--c-primary-lt); color:var(--c-primary); padding:0 2px;">retention</mark> deep dive</h3></div>
+                <div class="qcard__meta"><span class="mode-tag mode-tag--sim">完整模擬</span><span class="qcard__meta-sep">·</span>Discord<span class="qcard__meta-sep">·</span><span style="color:var(--c-ink-4);">難度 高</span></div>
+                <p class="qcard__body">青少年群體 30 天<mark style="background:var(--c-primary-lt); color:var(--c-primary); padding:0 2px;">retention</mark> 下滑 12% — 找出根本原因。</p>
+              </div>
+            </div>
+          </div>
+          <aside class="recent-rail">
+            <div class="recent-rail__title"><span>最近練習</span></div>
+            <div class="recent-rail__list">
+              <div class="recent-item">
+                <div class="recent-item__head"><span class="mode-tag mode-tag--sim">完整</span><span class="recent-item__time">2 小時前</span></div>
+                <div class="recent-item__title">Slack 通知策略</div>
+                <div class="recent-item__phase">Phase 2 進行中</div>
+              </div>
+            </div>
+          </aside>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <p class="anno"><strong>C · 搜尋有結果：</strong>200ms debounce → 過濾後 type tabs 變成「全部 · N」+「設計 · N」+「改善 · N」+「策略 · N」（顯示各題型符合幾題）。命中關鍵字用 <code>&lt;mark&gt;</code> 高亮（primary-lt 底 + primary 字）。中英關鍵字都搜（不分大小寫）。</p>
+
+  <!-- ═══════════════════ 搜尋無結果 ═══════════════════ -->
+  <h2 class="vp-section-title">D. 搜尋無結果 · empty state <span class="vp-section-title__sub">提示重抽 / 清空查詢 / 換關鍵字</span></h2>
+
+  <div class="vp-grid">
+    <div class="vp-frame">
+      <div class="vp-frame__label"><span>Mobile</span><span>360 px</span></div>
+      <div class="vp-frame__body">
+        <div class="navbar"><button class="navbar__hamburger"><i class="ph ph-list"></i></button><div class="navbar__brand"><span class="navbar__brand-icon"><i class="ph ph-circles-three"></i></span><span class="navbar__brand-name">PM Drill</span></div></div>
+        <div class="home">
+          <div class="search-wrap">
+            <i class="ph ph-magnifying-glass search-wrap__icon"></i>
+            <input type="search" value="zzzzzz" style="border-color:var(--c-primary); box-shadow:var(--shadow-focus);">
+            <button class="search-wrap__clear"><i class="ph ph-x" style="font-size:14px;"></i></button>
+          </div>
+          <div class="empty-wrap">
+            <i class="ph ph-magnifying-glass-minus"></i>
+            <div class="empty-wrap__title">找不到符合的題目</div>
+            <div class="empty-wrap__body">換個關鍵字或清空搜尋看完整題庫。</div>
+            <button class="reshuffle" style="margin-top:var(--s-4); max-width:240px;"><i class="ph ph-x"></i>清空搜尋</button>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <div class="vp-frame">
+      <div class="vp-frame__label"><span>Tablet</span><span>768 px</span></div>
+      <div class="vp-frame__body">
+        <div class="navbar"><button class="navbar__hamburger"><i class="ph ph-list"></i></button><div class="navbar__brand"><span class="navbar__brand-icon"><i class="ph ph-circles-three"></i></span><span class="navbar__brand-name">PM Drill</span></div></div>
+        <div class="home">
+          <div class="search-wrap">
+            <i class="ph ph-magnifying-glass search-wrap__icon"></i>
+            <input type="search" value="quantum computing" style="border-color:var(--c-primary); box-shadow:var(--shadow-focus);">
+            <button class="search-wrap__clear"><i class="ph ph-x" style="font-size:14px;"></i></button>
+          </div>
+          <div class="empty-wrap">
+            <i class="ph ph-magnifying-glass-minus"></i>
+            <div class="empty-wrap__title">找不到符合「quantum computing」的題目</div>
+            <div class="empty-wrap__body">這個 100 題題庫聚焦在常見 PM 面試情境。<br>試試：Spotify / Notion / Slack / Discord / 留存 / 啟用 / 變現</div>
+            <div style="display:flex; gap:var(--s-2); justify-content:center; margin-top:var(--s-4); flex-wrap:wrap;">
+              <button class="type-tab" style="cursor:pointer;">Spotify</button>
+              <button class="type-tab" style="cursor:pointer;">留存</button>
+              <button class="type-tab" style="cursor:pointer;">啟用</button>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <div class="vp-frame">
+      <div class="vp-frame__label"><span>Desktop</span><span>1280 px</span></div>
+      <div class="vp-frame__body">
+        <div class="navbar"><button class="navbar__hamburger"><i class="ph ph-list"></i></button><div class="navbar__brand"><span class="navbar__brand-icon"><i class="ph ph-circles-three"></i></span><span class="navbar__brand-name">PM Drill</span></div><nav class="navbar__tabs"><span class="navbar__tab is-active">CIRCLES</span><span class="navbar__tab">北極星指標</span></nav></div>
+        <div class="home home--desktop home--desktop-no-drill">
+          <div>
+            <div class="search-wrap">
+              <i class="ph ph-magnifying-glass search-wrap__icon"></i>
+              <input type="search" value="quantum cryptography" style="border-color:var(--c-primary); box-shadow:var(--shadow-focus);">
+              <button class="search-wrap__clear"><i class="ph ph-x" style="font-size:14px;"></i></button>
+            </div>
+            <div class="empty-wrap">
+              <i class="ph ph-magnifying-glass-minus"></i>
+              <div class="empty-wrap__title">找不到符合「quantum cryptography」的題目</div>
+              <div class="empty-wrap__body">100 題題庫聚焦在主流產品面試情境（B2C / B2B SaaS / Marketplace 等）。<br>試試以下熱門關鍵字：</div>
+              <div style="display:flex; gap:var(--s-2); justify-content:center; margin-top:var(--s-4); flex-wrap:wrap;">
+                <button class="type-tab">Spotify</button>
+                <button class="type-tab">Notion</button>
+                <button class="type-tab">Slack</button>
+                <button class="type-tab">Discord</button>
+                <button class="type-tab">留存</button>
+                <button class="type-tab">啟用</button>
+                <button class="type-tab">變現</button>
+              </div>
+            </div>
+          </div>
+          <aside class="recent-rail">
+            <div class="recent-rail__title"><span>最近練習</span></div>
+            <div class="recent-rail__list">
+              <div class="recent-item">
+                <div class="recent-item__head"><span class="mode-tag mode-tag--sim">完整</span><span class="recent-item__time">2 小時前</span></div>
+                <div class="recent-item__title">Slack 通知策略</div>
+              </div>
+            </div>
+          </aside>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <p class="anno"><strong>D · 搜尋無結果：</strong>居中 ph-magnifying-glass-minus icon + 標題 + 建議關鍵字 chips（點擊直接帶入搜尋）。Mobile 顯示重點建議；Desktop 提供更多熱門 chip。Recent rail 仍在右側保留入口（讓用戶可以 fallback 到歷史）。</p>
+
+  <!-- ═══════════════════ Loading state ═══════════════════ -->
+  <h2 class="vp-section-title">E. 載入狀態 · loading <span class="vp-section-title__sub">首次進入或 reshuffle 中</span></h2>
+
+  <div class="vp-grid">
+    <div class="vp-frame">
+      <div class="vp-frame__label"><span>Mobile</span><span>360 px</span></div>
+      <div class="vp-frame__body">
+        <div class="navbar"><button class="navbar__hamburger"><i class="ph ph-list"></i></button><div class="navbar__brand"><span class="navbar__brand-icon"><i class="ph ph-circles-three"></i></span><span class="navbar__brand-name">PM Drill</span></div></div>
+        <div class="home">
+          <div class="q-list">
+            <div class="qcard" style="opacity:0.7;">
+              <div style="height:18px; background:var(--c-bg-soft); border-radius:4px; width:75%; margin-bottom:var(--s-2);"></div>
+              <div style="height:14px; background:var(--c-bg-soft); border-radius:4px; width:45%; margin-bottom:var(--s-3);"></div>
+              <div style="height:13px; background:var(--c-bg-soft); border-radius:4px; width:100%; margin-bottom:var(--s-1);"></div>
+              <div style="height:13px; background:var(--c-bg-soft); border-radius:4px; width:80%;"></div>
+            </div>
+            <div class="qcard" style="opacity:0.7;">
+              <div style="height:18px; background:var(--c-bg-soft); border-radius:4px; width:65%; margin-bottom:var(--s-2);"></div>
+              <div style="height:14px; background:var(--c-bg-soft); border-radius:4px; width:50%; margin-bottom:var(--s-3);"></div>
+              <div style="height:13px; background:var(--c-bg-soft); border-radius:4px; width:100%; margin-bottom:var(--s-1);"></div>
+              <div style="height:13px; background:var(--c-bg-soft); border-radius:4px; width:60%;"></div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <div class="vp-frame">
+      <div class="vp-frame__label"><span>Tablet</span><span>768 px</span></div>
+      <div class="vp-frame__body">
+        <div class="navbar"><button class="navbar__hamburger"><i class="ph ph-list"></i></button><div class="navbar__brand"><span class="navbar__brand-icon"><i class="ph ph-circles-three"></i></span><span class="navbar__brand-name">PM Drill</span></div></div>
+        <div class="home">
+          <div class="empty-wrap" style="padding:var(--s-7) var(--s-5);">
+            <div style="width:32px; height:32px; border:2px solid var(--c-rule-bold); border-top-color:var(--c-navy); border-radius:50%; margin:0 auto var(--s-3); animation:spin 0.8s linear infinite;"></div>
+            <div class="empty-wrap__body">載入題目中…</div>
+          </div>
+          <style>@keyframes spin { to { transform: rotate(360deg); } }</style>
+        </div>
+      </div>
+    </div>
+
+    <div class="vp-frame">
+      <div class="vp-frame__label"><span>Desktop</span><span>1280 px</span></div>
+      <div class="vp-frame__body">
+        <div class="navbar"><button class="navbar__hamburger"><i class="ph ph-list"></i></button><div class="navbar__brand"><span class="navbar__brand-icon"><i class="ph ph-circles-three"></i></span><span class="navbar__brand-name">PM Drill</span></div><nav class="navbar__tabs"><span class="navbar__tab is-active">CIRCLES</span><span class="navbar__tab">北極星指標</span></nav></div>
+        <div class="home home--desktop home--desktop-no-drill">
+          <div>
+            <div class="q-list">
+              <div class="qcard" style="opacity:0.6;">
+                <div style="height:20px; background:var(--c-bg-soft); border-radius:4px; width:70%; margin-bottom:var(--s-2);"></div>
+                <div style="height:14px; background:var(--c-bg-soft); border-radius:4px; width:40%; margin-bottom:var(--s-3);"></div>
+                <div style="height:14px; background:var(--c-bg-soft); border-radius:4px; width:100%; margin-bottom:var(--s-1);"></div>
+                <div style="height:14px; background:var(--c-bg-soft); border-radius:4px; width:75%;"></div>
+              </div>
+              <div class="qcard" style="opacity:0.6;">
+                <div style="height:20px; background:var(--c-bg-soft); border-radius:4px; width:60%; margin-bottom:var(--s-2);"></div>
+                <div style="height:14px; background:var(--c-bg-soft); border-radius:4px; width:55%; margin-bottom:var(--s-3);"></div>
+                <div style="height:14px; background:var(--c-bg-soft); border-radius:4px; width:100%; margin-bottom:var(--s-1);"></div>
+                <div style="height:14px; background:var(--c-bg-soft); border-radius:4px; width:65%;"></div>
+              </div>
+              <div class="qcard" style="opacity:0.6;">
+                <div style="height:20px; background:var(--c-bg-soft); border-radius:4px; width:80%; margin-bottom:var(--s-2);"></div>
+                <div style="height:14px; background:var(--c-bg-soft); border-radius:4px; width:45%; margin-bottom:var(--s-3);"></div>
+                <div style="height:14px; background:var(--c-bg-soft); border-radius:4px; width:100%; margin-bottom:var(--s-1);"></div>
+                <div style="height:14px; background:var(--c-bg-soft); border-radius:4px; width:55%;"></div>
+              </div>
+            </div>
+          </div>
+          <aside class="recent-rail">
+            <div class="recent-rail__title"><span>最近練習</span></div>
+            <div style="font-size:var(--t-cap); color:var(--c-ink-3); padding:var(--s-3); text-align:center;">載入中…</div>
+          </aside>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <p class="anno"><strong>E · loading：</strong>mobile 用 skeleton card（保留卡片骨架但內容變灰塊）；tablet 用 spinner + 「載入題目中…」文字；desktop 同 mobile skeleton（3 張）+ recent rail 顯示「載入中…」文字。Reshuffle 動畫：點擊 reshuffle 後卡片淡出 200ms → 新卡 fade-in 200ms（不是 skeleton，因為已有舊資料）。</p>
+
+  <!-- ═══════════════════ Empty / Loading 全集（其他 edge cases） ═══════════════════ -->
+  <h2 class="vp-section-title">F. 其他 edge cases <span class="vp-section-title__sub">guest 模式 / 載入失敗 / 完全空題庫</span></h2>
+
+  <div class="vp-grid">
+    <div class="vp-frame">
+      <div class="vp-frame__label"><span>Mobile</span><span>360 px</span></div>
+      <div class="vp-frame__body">
+        <!-- guest mode (登入 button) -->
+        <div class="navbar">
+          <button class="navbar__hamburger"><i class="ph ph-list"></i></button>
+          <div class="navbar__brand"><span class="navbar__brand-icon"><i class="ph ph-circles-three"></i></span><span class="navbar__brand-name">PM Drill</span></div>
+          <div class="navbar__actions">
+            <button style="padding:6px 12px; border-radius:var(--r-pill); font-size:var(--t-meta); color:var(--c-navy); border:1px solid var(--c-navy);">登入</button>
+          </div>
+        </div>
+        <div class="home">
+          <div style="background:var(--c-primary-lt); border-left:2px solid var(--c-primary); padding:var(--s-3) var(--s-4); border-radius:var(--r-input); margin-bottom:var(--s-4); font-size:var(--t-meta); color:var(--c-ink-2);">
+            <strong style="color:var(--c-primary); display:block; margin-bottom:2px;">遊客模式</strong>
+            練習記錄存於本機 7 天。登入後自動同步到雲端。
+          </div>
+          <p style="font-size:var(--t-meta); color:var(--c-ink-3); margin-bottom:var(--s-3);">尚未練習過任何題目</p>
+        </div>
+      </div>
+    </div>
+
+    <div class="vp-frame">
+      <div class="vp-frame__label"><span>Tablet</span><span>768 px</span></div>
+      <div class="vp-frame__body">
+        <!-- 載入失敗 -->
+        <div class="navbar"><button class="navbar__hamburger"><i class="ph ph-list"></i></button><div class="navbar__brand"><span class="navbar__brand-icon"><i class="ph ph-circles-three"></i></span><span class="navbar__brand-name">PM Drill</span></div></div>
+        <div class="home">
+          <div class="empty-wrap">
+            <i class="ph ph-cloud-warning" style="color:var(--c-danger);"></i>
+            <div class="empty-wrap__title" style="color:var(--c-danger);">題庫載入失敗</div>
+            <div class="empty-wrap__body">無法連到題庫資料。請檢查網路或稍後重試。</div>
+            <button class="reshuffle" style="margin-top:var(--s-4); max-width:200px; border-color:var(--c-danger); color:var(--c-danger);"><i class="ph ph-arrow-clockwise"></i>重新載入</button>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <div class="vp-frame">
+      <div class="vp-frame__label"><span>Desktop</span><span>1280 px</span></div>
+      <div class="vp-frame__body">
+        <!-- 第一次使用 onboarding spotlight 起點 -->
+        <div class="navbar"><button class="navbar__hamburger"><i class="ph ph-list"></i></button><div class="navbar__brand"><span class="navbar__brand-icon"><i class="ph ph-circles-three"></i></span><span class="navbar__brand-name">PM Drill</span></div><nav class="navbar__tabs"><span class="navbar__tab is-active">CIRCLES</span><span class="navbar__tab">北極星指標</span></nav><div class="navbar__actions"><button style="padding:6px 12px; border-radius:var(--r-pill); font-size:var(--t-meta); color:var(--c-navy); border:1px solid var(--c-navy);">登入</button></div></div>
+        <div class="home home--desktop home--desktop-no-drill">
+          <div>
+            <div style="background:var(--c-primary-lt); border-left:2px solid var(--c-primary); padding:var(--s-3) var(--s-5); border-radius:var(--r-input); margin-bottom:var(--s-5); font-size:var(--t-body-sm); color:var(--c-ink-2);">
+              <strong style="color:var(--c-primary);">歡迎使用 PM Drill — 100 題情境模擬訓練</strong><br>
+              先選一個模式：完整模擬適合系統訓練、個別步驟適合 5-15 分鐘的零碎時間。<br>
+              <a href="#" style="color:var(--c-primary); text-decoration:underline;">看 60 秒 onboarding 引導 →</a>
+            </div>
+            <div class="mode-selector">
+              <button class="mode-card is-active">
+                <div class="mode-card__head"><i class="ph ph-list-checks"></i><span class="mode-card__title">完整模擬</span></div>
+                <div class="mode-card__body">7 步循序練習。最完整的訓練。每場約 25-40 分鐘。</div>
+              </button>
+              <button class="mode-card">
+                <div class="mode-card__head"><i class="ph ph-target"></i><span class="mode-card__title">個別步驟</span></div>
+                <div class="mode-card__body">單練 C / I / R 三步。每場約 10-15 分鐘。零碎時間練習。</div>
+              </button>
+            </div>
+            <div class="search-wrap">
+              <i class="ph ph-magnifying-glass search-wrap__icon"></i>
+              <input type="search" placeholder="或搜尋你想練的題目">
+            </div>
+            <div class="type-tabs">
+              <button class="type-tab is-active">設計 · 24</button>
+              <button class="type-tab">改善 · 36</button>
+              <button class="type-tab">策略 · 40</button>
+            </div>
+            <div class="q-list">
+              <div class="qcard">
+                <div class="qcard__head"><span class="qcard__num">01</span><h3 class="qcard__title">如何提升 Spotify Podcast 的用戶留存率？</h3></div>
+                <div class="qcard__meta"><span class="mode-tag mode-tag--sim"><i class="ph ph-list-checks"></i>完整模擬</span><span class="qcard__meta-sep">·</span>Spotify<span class="qcard__meta-sep">·</span><span style="color:var(--c-ink-4);">難度 中</span></div>
+                <p class="qcard__body">建議的入門題目 — 中等難度，3 個業務目標需要平衡。</p>
+              </div>
+            </div>
+          </div>
+          <aside class="recent-rail">
+            <div class="recent-rail__title"><span>最近練習</span></div>
+            <div style="text-align:center; padding:var(--s-5) 0; color:var(--c-ink-3); font-size:var(--t-body-sm);">
+              <i class="ph ph-flag" style="font-size:24px; color:var(--c-ink-4); display:block; margin-bottom:var(--s-2);"></i>
+              還沒練習過<br>
+              <span style="font-size:var(--t-cap); color:var(--c-ink-4);">第一場練習會出現在這裡</span>
+            </div>
+          </aside>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <p class="anno"><strong>F · edge cases：</strong>(mobile) guest mode 顯示登入入口 + 遊客提示 banner / (tablet) 載入失敗 → 紅 cloud-warning + 重新載入 / (desktop) 首次訪客 → primary-lt 歡迎 banner + 推薦難度中題目 + recent rail empty「還沒練習過」。</p>
+
+  <footer style="max-width:1880px; margin:var(--s-9) auto var(--s-7); padding-top:var(--s-6); border-top:1px solid var(--c-rule); display:flex; gap:var(--s-5); flex-wrap:wrap; color:var(--c-ink-3); font-size:var(--t-meta);">
+    <div><strong style="color:var(--c-ink); display:block;">Mockup</strong>01 · CIRCLES Home（批次 A）</div>
+    <div><strong style="color:var(--c-ink); display:block;">Sections</strong>A 預設 / B drill / C 搜尋有結果 / D 搜尋無 / E loading / F edge cases</div>
+    <div><strong style="color:var(--c-ink); display:block;">Status</strong>等 user 放行</div>
+    <div><strong style="color:var(--c-ink); display:block;">Next</strong>02 — Drill Home（如果 01 改動 OK 直接跳 03 — Phase 1 表單）</div>
+    <div><strong style="color:var(--c-ink); display:block;">繼承自</strong>00-design-system §1-§21</div>
+  </footer>
+
+</div>
+
+</body>
+</html>
