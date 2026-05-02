@@ -98,6 +98,20 @@ function computeStaleFlag(snapshot, current) {
   return normalize(snapshot.problem_statement) !== normalize(current.problem_statement);
 }
 
+// SP1.5-bugfix — render compact merged banner (locked + stale combined)
+function renderStaleLockedBar(stepKey, stepScores) {
+  if (!AppState.circlesStale) return '';
+  var locked = isStepLocked(stepKey, stepScores);
+  var pillHtml = locked
+    ? '<div class="pill"><i class="ph ph-lock-key"></i> ' + Math.round(stepScores[stepKey].totalScore || 0) + ' 分</div>'
+    : '';
+  return '<div class="stale-locked-bar">' +
+    '<i class="ph ph-warning-octagon icon-warn"></i>' +
+    '<div class="core">此題目已更新 — 顯示為唯讀</div>' +
+    pillHtml +
+  '</div>';
+}
+
 // SP1.5 B1 — render lock banner when step has score
 function renderLockedBanner(stepKey, stepScores) {
   if (!isStepLocked(stepKey, stepScores)) return '';
