@@ -329,15 +329,17 @@
       + '</div>'
       + '</div>';
 
-    // ── mode-selector (mockup line 830-839) ──
+    // ── mode-selector (mockup line 830-839 / 1019-1024 desktop long) ──
     var modeSelectorHtml = '<div class="mode-selector">'
-      + '<button class="mode-card' + (mode === 'simulation' ? ' is-active' : '') + '" data-circles-mode="simulation">'
+      + '<button class="mode-card' + (mode === 'simulation' ? ' is-active' : '') + '" data-circles="mode" data-mode="simulation" data-circles-mode="simulation">'
       + '<div class="mode-card__head"><i class="ph ph-list-checks"></i><span class="mode-card__title">完整模擬</span></div>'
-      + '<div class="mode-card__body">7 步循序練習</div>'
+      + '<div class="mode-card__body mode-card__body--mobile">7 步循序練習</div>'
+      + '<div class="mode-card__body mode-card__body--desktop">7 步循序（C → I → R → C → L → E → S）。可隨時上一步 / 下一步調整。最完整的訓練。</div>'
       + '</button>'
-      + '<button class="mode-card' + (mode === 'drill' ? ' is-active' : '') + '" data-circles-mode="drill">'
+      + '<button class="mode-card' + (mode === 'drill' ? ' is-active' : '') + '" data-circles="mode" data-mode="drill" data-circles-mode="drill">'
       + '<div class="mode-card__head"><i class="ph ph-target"></i><span class="mode-card__title">步驟加練</span></div>'
-      + '<div class="mode-card__body">單練 C / I / R</div>'
+      + '<div class="mode-card__body mode-card__body--mobile">單練 C / I / R</div>'
+      + '<div class="mode-card__body mode-card__body--desktop">單練 C / I / R 三步任一。專注練好其中一步。該步結束即整 session 完成。</div>'
       + '</button>'
       + '</div>';
 

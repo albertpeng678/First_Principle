@@ -243,16 +243,21 @@ test.describe('B1 CIRCLES Home', () => {
     await page.setViewportSize({ width: 1280, height: 900 });
     await page.goto('/');
     await page.waitForSelector('.mode-card');
-    const visibleBody = await page.locator('.mode-card').nth(0).locator('.mode-card__body:not([hidden]):not([style*="display: none"])').textContent();
+    // At desktop ≥1024px, --desktop variant is visible (CSS @media), --mobile is hidden
+    const desktopBody = await page.locator('.mode-card').nth(0).locator('.mode-card__body--desktop').textContent();
     // long form per mockup line 1020 contains "C → I → R → C → L → E → S"
-    expect(visibleBody).toMatch(/C\s*[→]\s*I\s*[→]\s*R/);
+    expect(desktopBody).toMatch(/C\s*[→]\s*I\s*[→]\s*R/);
+    // Verify --desktop element is actually visible at this viewport
+    await expect(page.locator('.mode-card').nth(0).locator('.mode-card__body--desktop')).toBeVisible();
   });
 
   test('mode-card body mobile shows short-form text', async ({ page }) => {
     await page.setViewportSize({ width: 360, height: 780 });
     await page.goto('/');
     await page.waitForSelector('.mode-card');
-    const visibleBody = await page.locator('.mode-card').nth(0).locator('.mode-card__body').first().textContent();
-    expect(visibleBody.trim()).toBe('7 步循序練習');
+    const mobileBody = await page.locator('.mode-card').nth(0).locator('.mode-card__body--mobile').textContent();
+    expect(mobileBody.trim()).toBe('7 步循序練習');
+    // Verify --mobile element is actually visible at this viewport
+    await expect(page.locator('.mode-card').nth(0).locator('.mode-card__body--mobile')).toBeVisible();
   });
 });
