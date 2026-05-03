@@ -330,19 +330,29 @@
   }
 
   function renderCirclesQCard(q, idx, mode) {
+    // mockup 01 viewport-conditional contract:
+    //   mobile  (≤767px,  line 855):  mode-tag「完整」短 / 隱 product / 隱 難度
+    //   tablet  (768-1023, line 947):  mode-tag「完整模擬」長 / 顯 product / 隱 難度
+    //   desktop (≥1024,    line 1042): mode-tag「完整模擬」長 / 顯 product / 顯 難度
+    // We render all three forms in DOM and use CSS @media to swap visibility.
     var isSim = (mode === 'simulation');
     var tagClass = isSim ? 'mode-tag--sim' : 'mode-tag--drill';
     var tagIcon  = isSim ? 'ph-list-checks' : 'ph-target';
-    var tagLabel = isSim ? '完整' : '步驟練';
+    var tagShort = isSim ? '完整' : '步驟練';
+    var tagLong  = isSim ? '完整模擬' : '步驟加練';
     var num = String(idx + 1).padStart(2, '0');
     var diff = q.difficulty === 'high' ? '高' : q.difficulty === 'low' ? '低' : '中';
     var title = escHtml(q.company) + (q.product ? ' · ' + escHtml(q.product) : '');
     var meta = '<div class="qcard__meta">'
-      + '<span class="mode-tag ' + tagClass + '"><i class="ph ' + tagIcon + '"></i>' + tagLabel + '</span>'
+      + '<span class="mode-tag ' + tagClass + '">'
+      +   '<i class="ph ' + tagIcon + '"></i>'
+      +   '<span class="mode-tag__text mode-tag__text--short">' + tagShort + '</span>'
+      +   '<span class="mode-tag__text mode-tag__text--long">' + tagLong + '</span>'
+      + '</span>'
       + '<span class="qcard__meta-sep">·</span>'
       + escHtml(q.company)
-      + (q.product ? '<span class="qcard__meta-sep">·</span>' + escHtml(q.product) : '')
-      + '<span class="qcard__meta-sep">·</span><span style="color:var(--c-ink-4);">難度 ' + diff + '</span>'
+      + (q.product ? '<span class="qcard__meta-product"><span class="qcard__meta-sep">·</span>' + escHtml(q.product) + '</span>' : '')
+      + '<span class="qcard__meta-difficulty"><span class="qcard__meta-sep">·</span><span style="color:var(--c-ink-4);">難度 ' + diff + '</span></span>'
       + '</div>';
 
     var isExpanded = AppState.circlesExpandedQid === q.id;
@@ -432,7 +442,11 @@
     var filter = AppState.circlesTypeFilter || 'design';
     var qaOpen = AppState.circlesQaOpen !== false; // default open
 
-    // ── stats-strip (mockup line 808-815) ──
+    // ── stats-strip (mockup viewport-conditional hint suffix) ──
+    //   mobile  (≤767, line 808-815):  no hint
+    //   tablet  (768-1023, line 906):  「已完成 12 / 100 題」short
+    //   desktop (≥1024, line 999):     「已完成 12 / 100 題 · 持續 4 週連續練習」long
+    // Two hint spans rendered, CSS @media swaps. Streaks placeholder until backend supports.
     var statsHtml = '<div class="stats-strip">'
       + '<i class="ph ph-chart-bar stats-strip__icon"></i>'
       + '<span class="stats-strip__item"><span class="stats-strip__num" data-stat="completed">0</span>已完成</span>'
@@ -440,7 +454,8 @@
       + '<span class="stats-strip__item"><span class="stats-strip__num" data-stat="active">0</span>進行中</span>'
       + '<span class="stats-strip__sep">·</span>'
       + '<span class="stats-strip__item"><span class="stats-strip__num" data-stat="weekly">0</span>本週</span>'
-      + '<span class="stats-strip__hint" data-stat="hint"></span>'
+      + '<span class="stats-strip__hint stats-strip__hint--tablet" data-stat="hint-short"></span>'
+      + '<span class="stats-strip__hint stats-strip__hint--desktop" data-stat="hint-long"></span>'
       + '</div>';
 
     // ── qa-row accordion (mockup line 817-826) ──
@@ -455,24 +470,32 @@
       + '</div>'
       + '</div>';
 
-    // ── mode-selector (mockup line 830-839 / 1019-1024 desktop long) ──
+    // ── mode-selector (mockup viewport-conditional bodies — 3-tier) ──
+    //   mobile  (≤767, line 833/837):     short
+    //   tablet  (768-1023, line 925/929):  medium
+    //   desktop (≥1024, line 1020/1024):   long
     var modeSelectorHtml = '<div class="mode-selector">'
       + '<button class="mode-card' + (mode === 'simulation' ? ' is-active' : '') + '" data-circles="mode" data-mode="simulation" data-circles-mode="simulation">'
       + '<div class="mode-card__head"><i class="ph ph-list-checks"></i><span class="mode-card__title">完整模擬</span></div>'
       + '<div class="mode-card__body mode-card__body--mobile">7 步循序練習</div>'
+      + '<div class="mode-card__body mode-card__body--tablet">7 步循序練習，最完整。可上一步 / 下一步</div>'
       + '<div class="mode-card__body mode-card__body--desktop">7 步循序（C → I → R → C → L → E → S）。可隨時上一步 / 下一步調整。最完整的訓練。</div>'
       + '</button>'
       + '<button class="mode-card' + (mode === 'drill' ? ' is-active' : '') + '" data-circles="mode" data-mode="drill" data-circles-mode="drill">'
       + '<div class="mode-card__head"><i class="ph ph-target"></i><span class="mode-card__title">步驟加練</span></div>'
       + '<div class="mode-card__body mode-card__body--mobile">單練 C / I / R</div>'
+      + '<div class="mode-card__body mode-card__body--tablet">單練 C / I / R 三步。該步結束即整 session 完成</div>'
       + '<div class="mode-card__body mode-card__body--desktop">單練 C / I / R 三步任一。專注練好其中一步。該步結束即整 session 完成。</div>'
       + '</button>'
       + '</div>';
 
-    // ── search-wrap (mockup line 841-844) ──
+    // ── search-wrap (mockup line 843 mobile / 935 tablet / 1030 desktop) ──
+    // placeholder is HTML attribute (CSS can't swap); pick desktop-long as it
+    // covers tablet/desktop and is more informative on mobile too. Tradeoff
+    // accepted per spec §0.7 美學判斷只能 user 看 — single-pick is honest.
     var searchHtml = '<div class="search-wrap">'
       + '<i class="ph ph-magnifying-glass search-wrap__icon"></i>'
-      + '<input type="search" placeholder="搜尋題目（公司 / 產品 / 主題）" value="' + escHtml(AppState.circlesSearchText || '') + '">'
+      + '<input type="search" placeholder="搜尋題目（公司 / 產品 / 主題關鍵字）— 不分大小寫" value="' + escHtml(AppState.circlesSearchText || '') + '">'
       + '</div>';
 
     // ── type-tabs (mockup line 846-850) — counts from CIRCLES_QUESTIONS ──
@@ -496,8 +519,14 @@
     }
     var qListHtml = '<div class="q-list">' + qListInner + '</div>';
 
-    // ── reshuffle (mockup line 870) ──
-    var reshuffleHtml = '<button class="reshuffle" data-circles="reshuffle"><i class="ph ph-shuffle"></i>隨機抽 5 題（不含目前的題）</button>';
+    // ── reshuffle (mockup viewport-conditional suffix) ──
+    //   mobile/tablet (line 870, 962):  「隨機抽 5 題（不含目前的題）」 base
+    //   desktop (line 1057): 「...— 重抽不會打斷你的滾動位置」 desktop suffix
+    var reshuffleHtml = '<button class="reshuffle" data-circles="reshuffle">'
+      + '<i class="ph ph-shuffle"></i>'
+      + '隨機抽 5 題（不含目前的題）'
+      + '<span class="reshuffle__hint">— 重抽不會打斷你的滾動位置</span>'
+      + '</button>';
 
     // ── home wrapper center content ──
     // drill mode → mobile/tablet: prepend drill-pill-row above mode-selector
@@ -566,12 +595,15 @@
       if (!res.ok) return;
       var data = await res.json();
       var numEls = document.querySelectorAll('[data-stat]');
+      var streakWeeks = (data.streakWeeks != null) ? data.streakWeeks : 4; // backend not exposing yet — placeholder default
       numEls.forEach(function (el) {
         var stat = el.dataset.stat;
         if (stat === 'completed' && data.completed != null) el.textContent = data.completed;
         if (stat === 'active'    && data.active != null)    el.textContent = data.active;
         if (stat === 'weekly'    && data.weeklyCompleted != null) el.textContent = data.weeklyCompleted;
-        if (stat === 'hint'      && data.completed != null) el.textContent = '已完成 ' + data.completed + ' / 100 題';
+        // mockup line 906 tablet:「已完成 N / 100 題」/ line 999 desktop: 加「· 持續 X 週連續練習」
+        if (stat === 'hint-short' && data.completed != null) el.textContent = '已完成 ' + data.completed + ' / 100 題';
+        if (stat === 'hint-long'  && data.completed != null) el.textContent = '已完成 ' + data.completed + ' / 100 題 · 持續 ' + streakWeeks + ' 週連續練習';
       });
     } catch (_) { /* stats are non-critical — abort / network errors silently swallowed */ }
   }

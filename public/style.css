@@ -613,4 +613,55 @@ a { color: inherit; text-decoration: none; }
 .empty-wrap { padding: var(--s-9) var(--s-4); text-align: center; }
 .empty-wrap__title { font-size: var(--t-h3); color: var(--c-ink-2); margin-bottom: var(--s-2); font-weight: 500; }
 .empty-wrap__body { font-size: var(--t-meta); color: var(--c-ink-3); line-height: 1.6; }
+/* ───── B SB2 · viewport-conditional swaps (mockup 01 cold-review fix) ───── */
+
+/* mode-card body 3-tier (mockup line 833 / 925 / 1020) */
+.mode-card__body--mobile  { display: block; }
+.mode-card__body--tablet  { display: none; }
+.mode-card__body--desktop { display: none; }
+@media (min-width: 768px) and (max-width: 1023px) {
+  .mode-card__body--mobile  { display: none; }
+  .mode-card__body--tablet  { display: block; }
+}
+@media (min-width: 1024px) {
+  .mode-card__body--mobile  { display: none; }
+  .mode-card__body--tablet  { display: none; }
+  .mode-card__body--desktop { display: block; }
+}
+
+/* qcard mode-tag short/long swap (mockup line 855 short / 947+1042 long) */
+.mode-tag__text--short { display: inline; }
+.mode-tag__text--long  { display: none; }
+@media (min-width: 768px) {
+  .mode-tag__text--short { display: none; }
+  .mode-tag__text--long  { display: inline; }
+}
+
+/* qcard product field — hide on mobile (mockup line 855 only company) */
+@media (max-width: 767px) {
+  .qcard__meta-product { display: none; }
+}
+
+/* qcard 難度 suffix — desktop only (mockup line 1042) */
+.qcard__meta-difficulty { display: none; }
+@media (min-width: 1024px) {
+  .qcard__meta-difficulty { display: inline; }
+}
+
+/* stats-strip__hint variants (mockup line 906 tablet / 999 desktop) */
+.stats-strip__hint--tablet  { display: none; }
+.stats-strip__hint--desktop { display: none; }
+@media (min-width: 768px) and (max-width: 1023px) {
+  .stats-strip__hint--tablet { display: inline; }
+}
+@media (min-width: 1024px) {
+  .stats-strip__hint--desktop { display: inline; }
+}
+
+/* reshuffle desktop suffix (mockup line 1057) */
+.reshuffle__hint { display: none; }
+@media (min-width: 1024px) {
+  .reshuffle__hint { display: inline; margin-left: 4px; color: var(--c-ink-4); }
+}
+
 /* ───── B1 · CIRCLES Home (mockup 01) END ───── */
