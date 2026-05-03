@@ -174,18 +174,39 @@
     return '<div data-view="auth" style="padding:24px;color:var(--c-ink-3);text-align:center">Auth view — 待 Plan B 收尾實作</div>';
   }
 
-  // ── renderNavbar (per spec §2.10 + mockup 03+) ────────────────────────────
+  // ── renderNavbar (per spec §2.10 + mockup 01 / 03 / 06 contract) ──────────
+  // Actions rule:
+  //   CIRCLES home guest:  mobile = nothing / tablet+ = sign-in        (mockup 01 line 803/894-896)
+  //   CIRCLES home authed: email + sign-out                            (mockup 01 line 986-989, no home — already at home)
+  //   Deep view  guest:    sign-in + home (both visible all viewports) — user functional requirement
+  //   Deep view  authed:   email + sign-out + home                     (mockup 03 line 1077)
   function renderNavbar() {
-    const tabs = (AppState.view === 'circles' || AppState.view === 'nsm') ?
+    const view = AppState.view;
+    const isCirclesHome = (
+      view === 'circles' && AppState.circlesPhase === 1
+      && !AppState.circlesSelectedQuestion && !AppState.circlesSession
+    );
+
+    const tabs = (view === 'circles' || view === 'nsm') ?
       `<div class="navbar__tabs">
-         <button class="navbar__tab ${AppState.view==='circles'?'is-active':''}" data-nav="circles">CIRCLES</button>
-         <button class="navbar__tab ${AppState.view==='nsm'?'is-active':''}" data-nav="nsm">北極星指標</button>
+         <button class="navbar__tab ${view==='circles'?'is-active':''}" data-nav="circles">CIRCLES</button>
+         <button class="navbar__tab ${view==='nsm'?'is-active':''}" data-nav="nsm">北極星指標</button>
        </div>` : '';
 
-    const right = AppState.accessToken ?
-      `<span class="navbar__email">${escHtml(AppState.userEmail || '')}</span>
-       <button class="navbar__icon-btn" data-nav="home" aria-label="回首頁"><i class="ph ph-house"></i></button>` :
-      `<button class="navbar__icon-btn" data-nav="auth" aria-label="登入"><i class="ph ph-sign-in"></i></button>`;
+    const homeBtn = '<button class="navbar__icon-btn" data-nav="home" aria-label="回首頁"><i class="ph ph-house"></i></button>';
+    const signInBtn = '<button class="navbar__icon-btn" data-nav="auth" aria-label="登入"><i class="ph ph-sign-in"></i></button>';
+    const signInBtnHomeOnly = '<button class="navbar__icon-btn navbar__icon-btn--auth-only" data-nav="auth" aria-label="登入"><i class="ph ph-sign-in"></i></button>';
+    const signOutBtn = '<button class="navbar__icon-btn" data-nav="logout" aria-label="登出"><i class="ph ph-sign-out"></i></button>';
+    const emailSpan = `<span class="navbar__email">${escHtml(AppState.userEmail || '')}</span>`;
+
+    let actions;
+    if (AppState.accessToken) {
+      actions = emailSpan + signOutBtn + (isCirclesHome ? '' : homeBtn);
+    } else if (isCirclesHome) {
+      actions = signInBtnHomeOnly; // CSS hides on mobile per mockup 01 line 803
+    } else {
+      actions = signInBtn + homeBtn; // deep view guest: both visible all viewports
+    }
 
     return `<header class="navbar">
       <button class="navbar__icon-btn" data-nav="offcanvas" aria-label="練習記錄"><i class="ph ph-list"></i></button>
@@ -194,7 +215,7 @@
         <span class="navbar__brand-name">PM Drill</span>
       </div>
       ${tabs}
-      <div class="navbar__actions">${right}</div>
+      <div class="navbar__actions">${actions}</div>
     </header>`;
   }
 
