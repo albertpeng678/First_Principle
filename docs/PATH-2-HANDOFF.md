@@ -1,7 +1,7 @@
 # Path 2 — Frontend Rewrite · 接手 Handoff
 
 > 下個 session / 帳號接手用。**先讀本檔再讀 CLAUDE.md**。
-> **Last updated:** 2026-05-03（Plan B SB2 ✅ DONE / Plan B SB1 ✅ / Plan C SB1 ✅ / Plan D SB1 ✅ — 4+SB2 全 merged main）
+> **Last updated:** 2026-05-03（Plan B SB2 ✅ DONE — 含第二輪 8 條 viewport-conditional drift fix `f517d63` / Plan B SB1 ✅ / Plan C SB1 ✅ / Plan D SB1 ✅ — 全 merged main）
 
 ---
 

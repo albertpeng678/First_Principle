@@ -2,7 +2,7 @@
 
 > **Goal:** 後端 / API / DB / OpenAI prompt / 商業邏輯 / jest 100% 不動；前端 CSS + render 從 0 重寫；目標 iOS Safari 滑順度 ≥ aistockmap.com。
 > **Authority:** 重寫對齊基準。實作完成後逐條打勾，未對齊 = 未完成。
-> **Last updated:** 2026-05-03（Plan B SB2 完成 — CIRCLES Home 收尾 drill-rail + recent-rail + qcard expanded + mode-card desktop body / sonnet implement + opus cold-review / PW 54/54）
+> **Last updated:** 2026-05-03（Plan B SB2 完成 — CIRCLES Home 收尾 + 第二輪 cold-review 補洞 8 條 viewport-conditional drift line-by-line 比對 mockup 01 全修）
 
 ---
 
