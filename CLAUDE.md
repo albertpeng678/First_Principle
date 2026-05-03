@@ -1,7 +1,7 @@
 # PM Drill — 專案狀態看板
 
 > 即時狀態 single source of truth。重大事件即時 Edit。不放歷史（git log 有）。
-> **Last updated:** 2026-05-03（Plan D SB1 ✅ + cold-review fix `1575eaf` · Plan C SB1 ✅ `9fc366a` · Plan B SB1 CSS ✅ / JS 未動）
+> **Last updated:** 2026-05-03（Plan B SB2 ✅ DONE · Plan B SB1 ✅ · Plan C SB1 ✅ · Plan D SB1 ✅ — 4 SB1 + Plan B SB2 全 merged main）
 >
 > **🔴 接手 Handoff：** `docs/PATH-2-HANDOFF.md` — 下個 session / 帳號接手必先讀
 
@@ -26,10 +26,11 @@
 | writing-plans → CSS rewrite plan | ✅ 5 plans 寫好（A 完整 / B-E stub）|
 | subagent-driven-development → Plan A | ✅ **18 commits / SB1-5 全完成 / 5x 加速版策略** |
 | 14-box gate → merge main | 🟡 13/14 ✓（待 user director eyeball walk）|
-| Plan D SB1（Offcanvas mockup 09）| ✅ DONE — `7e44422` + fix `1575eaf`（director cold-review 抓 3 bug + 4 mockup drift / TDD 紅綠 / jest 157 / PW 40/40 across 8 viewport）|
-| Plan C SB1（NSM Step 1 mockup 06）| ✅ DONE — `9fc366a` jest 157 / PW 12/12 / 截圖自驗 3VP ✓ |
-| Plan B SB1（CIRCLES Home mockup 01）| ⏳ CSS 5 commits（navbar/stats/mode/qcard）/ JS render 未動 — **下一個** |
-| Plan E final ship | ⏳ B/C/D merge 後最終整合 |
+| Plan D SB1（Offcanvas mockup 09）| ✅ DONE — `7e44422` + fix `1575eaf`（cold-review 3 bug + 4 mockup drift / TDD 紅綠 / jest 157 / PW 40/40）|
+| Plan C SB1（NSM Step 1 mockup 06）| ✅ DONE — `9fc366a` jest 157 / PW 12/12 |
+| Plan B SB1（CIRCLES Home mockup 01 minimum）| ✅ DONE — merge `aba5dd0` (sonnet implement + opus cold review fix `c1f4c07`) / jest 157 / PW 30/30 |
+| Plan B SB2（CIRCLES Home 收尾 — drill-rail + recent-rail + qcard expanded + mode-card body desktop）| ✅ DONE — sonnet 7 commits + opus cold-review fix `83e6667` / jest 157 / PW 54/54 / 9 PNG Read |
+| Plan B SB3+ Phase 1-4 forms / Plan E final ship | ⏳ 待開工 |
 
 ---
 
