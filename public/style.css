@@ -67,3 +67,29 @@ a { color: inherit; text-decoration: none; }
 .btn__spinner { width: 14px; height: 14px; border: 2px solid rgba(255,255,255,0.4); border-top-color: #fff; border-radius: 50%; animation: spin 0.8s linear infinite; }
 .btn--ghost .btn__spinner { border-color: rgba(60,45,30,0.18); border-top-color: var(--c-ink-2); }
 @keyframes spin { to { transform: rotate(360deg); } }
+
+/* ───── LOCKED · circles-nav / nsm-nav (verbatim mockup 11/14) ───── */
+.circles-nav, .nsm-nav { display: flex; align-items: center; gap: var(--s-3); padding: var(--s-3) var(--s-4); background: var(--c-bg-soft); border-bottom: 1px solid var(--c-rule); }
+.circles-nav__back, .nsm-nav__back { width: 40px; height: 40px; border-radius: var(--r-pill); display: inline-flex; align-items: center; justify-content: center; color: var(--c-ink-2); flex: 0 0 auto; }
+.circles-nav__back:hover, .nsm-nav__back:hover { background: var(--c-card); color: var(--c-ink); }
+.circles-nav__main, .nsm-nav__main { flex: 1; min-width: 0; }
+.circles-nav__title, .nsm-nav__title { font-size: var(--t-body-sm); font-weight: 600; color: var(--c-ink); letter-spacing: -0.005em; }
+.circles-nav__sub, .nsm-nav__sub { font-size: var(--t-cap); color: var(--c-ink-3); margin-top: 2px; }
+
+/* ───── LOCKED · qchip (verbatim mockup 13) ───── */
+.qchip { padding: var(--s-2) var(--s-4); background: var(--c-bg); border-bottom: 1px solid var(--c-rule); display: flex; align-items: center; gap: var(--s-2); cursor: pointer; }
+.qchip__pill { padding: 2px var(--s-2); border-radius: var(--r-pill); font-size: var(--t-cap); background: var(--c-navy-lt); color: var(--c-navy); font-weight: 600; flex: 0 0 auto; }
+.qchip__title { flex: 1; font-size: var(--t-meta); color: var(--c-ink-2); white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+.qchip__caret { color: var(--c-ink-3); font-size: 14px; flex: 0 0 auto; }
+
+/* ───── LOCKED · submit-bar (verbatim mockup 03+) ───── */
+.submit-bar { position: sticky; bottom: 0; background: rgba(255,255,255,0.92); -webkit-backdrop-filter: saturate(140%) blur(10px); backdrop-filter: saturate(140%) blur(10px); border-top: 1px solid var(--c-rule); padding: var(--s-3) var(--s-4) max(var(--s-3), env(safe-area-inset-bottom)); display: flex; gap: var(--s-3); justify-content: space-between; align-items: center; }
+.submit-bar__left, .submit-bar__right { display: flex; gap: var(--s-2); align-items: center; flex-wrap: wrap; }
+
+/* ───── LOCKED · phase-head (verbatim mockup 03+) ───── */
+.phase-head { padding: var(--s-3) var(--s-5); background: var(--c-bg-soft); border-bottom: 1px solid var(--c-rule); display: flex; align-items: center; gap: var(--s-3); }
+.phase-head__num { font-family: var(--font-serif); font-style: italic; font-size: 22px; color: var(--c-navy); line-height: 1; flex: 0 0 auto; }
+.phase-head__main { flex: 1; min-width: 0; }
+.phase-head__eyebrow { font-size: var(--t-cap); letter-spacing: 0.08em; text-transform: uppercase; color: var(--c-ink-3); }
+.phase-head__title { font-size: var(--t-h3); color: var(--c-ink); margin-top: 2px; letter-spacing: -0.005em; }
+.phase-head__meta { flex: 0 0 auto; font-size: var(--t-meta); color: var(--c-ink-3); }
