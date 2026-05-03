@@ -412,7 +412,10 @@
         + '<span class="step-letter">' + p.letter + '</span>' + escHtml(p.label)
         + '</button>';
     }).join('');
-    return '<div style="margin-bottom:var(--s-4);">'
+    // outer wrapper carries .drill-pill-row class so existing
+    // @media (min-width: 1024px) { .drill-pill-row { display:none } } hides
+    // the pill row on desktop where .drill-rail aside takes over.
+    return '<div class="drill-pill-row" style="margin-bottom:var(--s-4);">'
       + '<div style="font-size:var(--t-cap); letter-spacing:0.08em; text-transform:uppercase; color:var(--c-ink-3); margin-bottom:var(--s-2);">練習步驟</div>'
       + '<div class="type-tabs">' + pillsHtml + '</div>'
       + '<div class="drill-rail__lock" style="margin-top:var(--s-2);"><i class="ph ph-lock-simple"></i>'

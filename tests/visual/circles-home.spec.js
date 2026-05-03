@@ -143,26 +143,28 @@ test.describe('B1 CIRCLES Home', () => {
 
   // ── SB2 carry-forward tests ──────────────────────────────────
 
-  test('drill mode renders .drill-rail with title 練習步驟 + 3 drill-pill C/I/R', async ({ page }) => {
+  test('drill mode renders 3 visible drill-pill C/I/R + lock note', async ({ page }) => {
+    // Per mockup 01: desktop (≥1024px) shows .drill-rail aside (line 1293-1304);
+    // mobile/tablet (≤1023px) shows inline .drill-pill-row (line 1148-1158).
+    // Both render in DOM but CSS @media swaps visibility. Test scopes to :visible
+    // so it works on every viewport.
     await page.goto('/');
     await page.locator('.mode-card').nth(1).click(); // switch to drill
-    await page.waitForSelector('.drill-rail');
-    await expect(page.locator('.drill-rail__title')).toHaveText('練習步驟');
-    // Count only pills within .drill-rail (desktop aside), not the hidden mobile pill-row
-    const pills = page.locator('.drill-rail .drill-pill');
-    expect(await pills.count()).toBe(3);
-    await expect(pills.nth(0).locator('.step-letter')).toHaveText('C');
-    await expect(pills.nth(1).locator('.step-letter')).toHaveText('I');
-    await expect(pills.nth(2).locator('.step-letter')).toHaveText('R');
-    await expect(page.locator('.drill-rail .drill-rail__lock')).toBeVisible();
+    await page.waitForFunction(() => document.querySelectorAll('.drill-pill').length > 0);
+    const visiblePills = page.locator('.drill-pill:visible');
+    await expect(visiblePills).toHaveCount(3);
+    await expect(visiblePills.nth(0).locator('.step-letter')).toHaveText('C');
+    await expect(visiblePills.nth(1).locator('.step-letter')).toHaveText('I');
+    await expect(visiblePills.nth(2).locator('.step-letter')).toHaveText('R');
+    await expect(page.locator('.drill-rail__lock:visible').first()).toBeVisible();
   });
 
   test('drill-pill click sets active and AppState.circlesDrillStep', async ({ page }) => {
     await page.goto('/');
     await page.locator('.mode-card').nth(1).click();
-    await page.waitForSelector('.drill-rail .drill-pill');
-    await page.locator('.drill-rail .drill-pill').nth(1).click(); // I (in desktop rail)
-    await expect(page.locator('.drill-rail .drill-pill').nth(1)).toHaveClass(/is-active/);
+    await page.waitForFunction(() => document.querySelectorAll('.drill-pill').length > 0);
+    await page.locator('.drill-pill:visible').nth(1).click(); // I — visible-scoped works on all viewports
+    await expect(page.locator('.drill-pill:visible').nth(1)).toHaveClass(/is-active/);
     const state = await page.evaluate(() => window.AppState.circlesDrillStep);
     expect(state).toBe('I');
   });
