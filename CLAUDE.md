@@ -1,7 +1,9 @@
 # PM Drill — 專案狀態看板
 
 > 即時狀態 single source of truth。重大事件即時 Edit。不放歷史（git log 有）。
-> **Last updated:** 2026-05-03（**Bundle 0 補洞完成** — 16 mockup 全收尾 + readiness review 27 punch / spec §1.5.1 §2.14 §0.5 Layer 1.1 §4 補丁 / mockup 15 §A4-6 字典擴張 / 新增 16 flow-transitions-edge / 下一步：writing-plans）
+> **Last updated:** 2026-05-03（**5 plans 寫好** — Plan A 完整 18 tasks / B-E stubs / 待 user 選 subagent-driven vs inline 開工）
+>
+> **🔴 接手 Handoff：** `docs/PATH-2-HANDOFF.md` — 下個 session / 帳號接手必先讀
 
 ---
 
