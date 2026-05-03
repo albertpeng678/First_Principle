@@ -40,6 +40,7 @@
     circlesSearchText: '',
     circlesQaOpen: true,                // qa-row default open per mockup
     circlesExpandedQid: null,           // single qcard expanded (SB2 — mockup 01 line 1801)
+    circlesRecentSessions: null,        // null = not loaded; [] = empty; [...] = items (SB2)
 
     // NSM (Plan C fills)
     nsmStep: 1,
@@ -277,6 +278,57 @@
     return CIRCLES_QUESTIONS.filter(function (q) { return q.question_type === type; }).length;
   }
 
+  async function loadHistoryForRail() {
+    // Fetch recent CIRCLES + NSM sessions, merge + sort, keep top 5
+    try {
+      var circlesPath = AppState.accessToken ? '/api/circles-sessions' : '/api/guest-circles-sessions';
+      var nsmPath     = AppState.accessToken ? '/api/nsm-sessions'     : '/api/guest/nsm-sessions';
+      var results = await Promise.all([
+        window.apiFetch(circlesPath),
+        window.apiFetch(nsmPath),
+      ]);
+      if (!results[0].ok || !results[1].ok) throw new Error('history_load_error');
+      var circles = await results[0].json();
+      var nsm     = await results[1].json();
+      var merged = [].concat(circles || [], (nsm || []).map(function (n) { n._isNsm = true; return n; }));
+      merged.sort(function (a, b) {
+        return new Date(b.updated_at || b.created_at) - new Date(a.updated_at || a.created_at);
+      });
+      AppState.circlesRecentSessions = merged.slice(0, 5);
+      render();
+    } catch (e) {
+      if (e.code === 'SESSION_EXPIRED') return;
+      AppState.circlesRecentSessions = [];
+      render();
+    }
+  }
+
+  function renderRecentItem(item) {
+    // mockup 01 line 1067-1090
+    var isNsm = !!(item._isNsm || (!item.mode && !item.drill_step && item.scores_json));
+    var modeTag = isNsm
+      ? '<span class="mode-tag mode-tag--sim"><i class="ph ph-list-checks"></i>NSM</span>'
+      : (item.mode === 'drill' || item.drill_step
+          ? '<span class="mode-tag mode-tag--drill"><i class="ph ph-target"></i>個別 ' + escHtml(item.drill_step || '') + '</span>'
+          : '<span class="mode-tag mode-tag--sim"><i class="ph ph-list-checks"></i>完整</span>');
+    var ts = new Date(item.updated_at || item.created_at).getTime();
+    var diff = Date.now() - ts;
+    var time = diff < 3600000 ? Math.floor(diff / 60000) + ' 分鐘前'
+             : diff < 86400000 ? Math.floor(diff / 3600000) + ' 小時前'
+             : diff < 7 * 86400000 ? Math.floor(diff / 86400000) + ' 天前'
+             : new Date(ts).toLocaleDateString('zh-TW', { month: 'numeric', day: 'numeric' });
+    var q = item.currentQuestion || item.question_json || {};
+    var titleStr = (q.company || '') + (q.product ? ' · ' + q.product : '') || '練習題目';
+    var phaseStr = isNsm
+      ? ('NSM · ' + (item.status === 'completed' ? '已完成' : '進行中'))
+      : ('Phase ' + (item.current_phase || 1) + ' · ' + (item.status === 'completed' ? '已完成' : '進行中'));
+    return '<div class="recent-item" data-circles="recent-item" data-id="' + escHtml(item.id) + '" data-isnsm="' + (isNsm ? '1' : '0') + '">'
+      + '<div class="recent-item__head">' + modeTag + '<span class="recent-item__time">' + escHtml(time) + '</span></div>'
+      + '<div class="recent-item__title">' + escHtml(titleStr) + '</div>'
+      + '<div class="recent-item__phase">' + escHtml(phaseStr) + '</div>'
+      + '</div>';
+  }
+
   function renderCirclesQCard(q, idx, mode) {
     var isSim = (mode === 'simulation');
     var tagClass = isSim ? 'mode-tag--sim' : 'mode-tag--drill';
@@ -450,9 +502,23 @@
     var centerHtml = (isDrill ? renderDrillPillRow() : '')
       + modeSelectorHtml + searchHtml + typeTabsHtml + qListHtml + reshuffleHtml;
 
-    // ── recent-rail desktop stub (SB1 minimum — renders placeholder) ──
-    var recentRailHtml = '<aside class="recent-rail"><div class="recent-rail__title"><span>最近練習</span></div>'
-      + '<div class="recent-rail__list"></div></aside>';
+    // ── recent-rail from AppState.circlesRecentSessions (mockup 01 line 1061-1092) ──
+    // Kick async fetch if not yet loaded
+    if (AppState.circlesRecentSessions === null) {
+      setTimeout(loadHistoryForRail, 0);
+    }
+    var recentItemsHtml;
+    if (AppState.circlesRecentSessions === null) {
+      recentItemsHtml = '<div class="recent-rail__placeholder" style="font-size:var(--t-cap);color:var(--c-ink-3);">載入中…</div>';
+    } else if (AppState.circlesRecentSessions.length === 0) {
+      recentItemsHtml = '<div class="recent-rail__placeholder" style="font-size:var(--t-cap);color:var(--c-ink-3);">尚無近期練習</div>';
+    } else {
+      recentItemsHtml = AppState.circlesRecentSessions.map(renderRecentItem).join('');
+    }
+    var recentRailHtml = '<aside class="recent-rail">'
+      + '<div class="recent-rail__title"><span>最近練習</span>'
+      + '<a href="#" class="recent-rail__see-all" data-circles="see-all">看全部 →</a></div>'
+      + '<div class="recent-rail__list">' + recentItemsHtml + '</div></aside>';
 
     // ── home wrapper with desktop modifier ──
     // drill mode  → 3-col grid (drill-rail 200px / center 1fr / recent-rail 220px)
@@ -586,6 +652,40 @@
         AppState.circlesPhase = 1;
         AppState.circlesExpandedQid = null;
         render();
+      });
+    });
+
+    // recent-item click → resume session (mockup 01 line 1061-1092)
+    document.querySelectorAll('[data-circles="recent-item"]').forEach(function (el) {
+      el.addEventListener('click', function () {
+        var id = el.dataset.id;
+        var isNsm = el.dataset.isnsm === '1';
+        var list = AppState.circlesRecentSessions || [];
+        var item = list.find(function (i) { return i.id === id; });
+        if (!item) return;
+        if (isNsm) {
+          AppState.view = 'nsm';
+          AppState.nsmStep = 4;
+          AppState.nsmSession = item;
+        } else {
+          AppState.view = 'circles';
+          AppState.circlesPhase = item.current_phase || 1;
+          AppState.circlesSession = item;
+          AppState.circlesSelectedQuestion = item.currentQuestion || item.question_json || null;
+          AppState.circlesMode = item.mode || (item.drill_step ? 'drill' : 'simulation');
+          AppState.circlesDrillStep = item.drill_step || null;
+        }
+        render();
+      });
+    });
+    // see-all → open offcanvas history
+    document.querySelectorAll('[data-circles="see-all"]').forEach(function (el) {
+      el.addEventListener('click', function (e) {
+        e.preventDefault();
+        AppState.offcanvasOpen = true;
+        AppState.historyList = null;
+        render();
+        if (typeof loadHistory === 'function') loadHistory();
       });
     });
 
