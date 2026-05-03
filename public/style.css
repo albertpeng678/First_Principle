@@ -451,6 +451,8 @@ a { color: inherit; text-decoration: none; }
 @media (min-width: 1024px) {
   .home--desktop { display: grid; grid-template-columns: 200px 1fr 220px; gap: var(--s-6); max-width: 1880px; }
   .home--desktop-no-drill { grid-template-columns: 1fr 220px; }
+  /* drill-pill-row is mobile/tablet only — hidden at desktop where .drill-rail aside takes over */
+  .drill-pill-row { display: none; }
 }
 
 /* mode selector */

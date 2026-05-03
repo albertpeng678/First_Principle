@@ -148,20 +148,21 @@ test.describe('B1 CIRCLES Home', () => {
     await page.locator('.mode-card').nth(1).click(); // switch to drill
     await page.waitForSelector('.drill-rail');
     await expect(page.locator('.drill-rail__title')).toHaveText('練習步驟');
-    const pills = page.locator('.drill-pill');
+    // Count only pills within .drill-rail (desktop aside), not the hidden mobile pill-row
+    const pills = page.locator('.drill-rail .drill-pill');
     expect(await pills.count()).toBe(3);
     await expect(pills.nth(0).locator('.step-letter')).toHaveText('C');
     await expect(pills.nth(1).locator('.step-letter')).toHaveText('I');
     await expect(pills.nth(2).locator('.step-letter')).toHaveText('R');
-    await expect(page.locator('.drill-rail__lock')).toBeVisible();
+    await expect(page.locator('.drill-rail .drill-rail__lock')).toBeVisible();
   });
 
   test('drill-pill click sets active and AppState.circlesDrillStep', async ({ page }) => {
     await page.goto('/');
     await page.locator('.mode-card').nth(1).click();
-    await page.waitForSelector('.drill-pill');
-    await page.locator('.drill-pill').nth(1).click(); // I
-    await expect(page.locator('.drill-pill').nth(1)).toHaveClass(/is-active/);
+    await page.waitForSelector('.drill-rail .drill-pill');
+    await page.locator('.drill-rail .drill-pill').nth(1).click(); // I (in desktop rail)
+    await expect(page.locator('.drill-rail .drill-pill').nth(1)).toHaveClass(/is-active/);
     const state = await page.evaluate(() => window.AppState.circlesDrillStep);
     expect(state).toBe('I');
   });

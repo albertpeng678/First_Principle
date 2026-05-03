@@ -297,6 +297,48 @@
       + '</div>';
   }
 
+  function renderDrillRail() {
+    // mockup 01 line 1293-1306 — desktop 200px aside
+    var step = AppState.circlesDrillStep || 'C1';
+    var pills = [
+      { key: 'C1', letter: 'C', label: '澄清情境' },
+      { key: 'I',  letter: 'I', label: '定義用戶' },
+      { key: 'R',  letter: 'R', label: '發掘需求' },
+    ];
+    var pillsHtml = pills.map(function (p) {
+      return '<button class="drill-pill' + (p.key === step ? ' is-active' : '') + '" data-circles="drill-pill" data-step="' + p.key + '">'
+        + '<span class="step-letter">' + p.letter + '</span>' + escHtml(p.label)
+        + '</button>';
+    }).join('');
+    return '<aside class="drill-rail">'
+      + '<div class="drill-rail__title">練習步驟</div>'
+      + '<div class="drill-rail__list">' + pillsHtml + '</div>'
+      + '<div class="drill-rail__lock"><i class="ph ph-lock-simple"></i>'
+      + '<span>C2、L、E、S 需在<strong style="color:var(--c-ink-2);">完整模擬</strong>中練習 — 因為它們依賴前步輸出</span>'
+      + '</div></aside>';
+  }
+
+  function renderDrillPillRow() {
+    // mockup 01 line 1147-1158 / 1224-1230 — mobile/tablet horizontal pills
+    var step = AppState.circlesDrillStep || 'C1';
+    var pills = [
+      { key: 'C1', letter: 'C', label: '澄清' },
+      { key: 'I',  letter: 'I', label: '用戶' },
+      { key: 'R',  letter: 'R', label: '需求' },
+    ];
+    var pillsHtml = pills.map(function (p) {
+      return '<button class="drill-pill' + (p.key === step ? ' is-active' : '') + '" style="width:auto; padding:var(--s-2) var(--s-3);" data-circles="drill-pill" data-step="' + p.key + '">'
+        + '<span class="step-letter">' + p.letter + '</span>' + escHtml(p.label)
+        + '</button>';
+    }).join('');
+    return '<div style="margin-bottom:var(--s-4);">'
+      + '<div style="font-size:var(--t-cap); letter-spacing:0.08em; text-transform:uppercase; color:var(--c-ink-3); margin-bottom:var(--s-2);">練習步驟</div>'
+      + '<div class="type-tabs">' + pillsHtml + '</div>'
+      + '<div class="drill-rail__lock" style="margin-top:var(--s-2);"><i class="ph ph-lock-simple"></i>'
+      + '<span>C2 / L / E / S 需在完整模擬中練習</span>'
+      + '</div></div>';
+  }
+
   function renderCirclesHome() {
     // Default circlesMode to 'simulation' if not set (per scope note)
     if (!AppState.circlesMode) AppState.circlesMode = 'simulation';
@@ -374,19 +416,21 @@
     var reshuffleHtml = '<button class="reshuffle" data-circles="reshuffle"><i class="ph ph-shuffle"></i>隨機抽 5 題（不含目前的題）</button>';
 
     // ── home wrapper center content ──
-    var centerHtml = modeSelectorHtml + searchHtml + typeTabsHtml + qListHtml + reshuffleHtml;
+    // drill mode → mobile/tablet: prepend drill-pill-row above mode-selector
+    var isDrill = mode === 'drill';
+    var centerHtml = (isDrill ? renderDrillPillRow() : '')
+      + modeSelectorHtml + searchHtml + typeTabsHtml + qListHtml + reshuffleHtml;
 
     // ── recent-rail desktop stub (SB1 minimum — renders placeholder) ──
     var recentRailHtml = '<aside class="recent-rail"><div class="recent-rail__title"><span>最近練習</span></div>'
       + '<div class="recent-rail__list"></div></aside>';
 
-    // ── home wrapper with desktop modifier (per scope note) ──
-    // Desktop: .home--desktop with --no-drill (2-col: center + recent-rail).
-    // Drill-rail (200px left aside) deferred to next sub-bundle, so we always
-    // use --no-drill here regardless of mode to avoid grid collapse when the
-    // 200px slot is empty.
-    var homeClass = 'home home--desktop home--desktop-no-drill';
+    // ── home wrapper with desktop modifier ──
+    // drill mode  → 3-col grid (drill-rail 200px / center 1fr / recent-rail 220px)
+    // sim mode    → 2-col grid (center 1fr / recent-rail 220px)
+    var homeClass = 'home home--desktop' + (isDrill ? '' : ' home--desktop-no-drill');
     var homeHtml = '<div class="' + homeClass + '">'
+      + (isDrill ? renderDrillRail() : '')
       + '<div>' + centerHtml + '</div>'
       + recentRailHtml
       + '</div>';
