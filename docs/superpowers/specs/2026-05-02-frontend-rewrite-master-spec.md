@@ -2,7 +2,7 @@
 
 > **Goal:** 後端 / API / DB / OpenAI prompt / 商業邏輯 / jest 100% 不動；前端 CSS + render 從 0 重寫；目標 iOS Safari 滑順度 ≥ aistockmap.com。
 > **Authority:** 重寫對齊基準。實作完成後逐條打勾，未對齊 = 未完成。
-> **Last updated:** 2026-05-03（mockup 03 放行）
+> **Last updated:** 2026-05-03（Plan C SB1 完成 — NSM Step 1 JS+CSS+PW 12/12 ✅ `9fc366a`）
 
 ---
 
@@ -684,9 +684,14 @@ System prompt 固定段落（prompts/circles-coach.js:14-66）：
 ## 6. 重寫流程 gate
 
 ### 6.1 流程
-1. **Mockup 階段**（in progress）— 16 張 mockup 逐張 user 放行 → §5.1 索引追蹤
-2. **Plan 階段** — `writing-plans` → bite-sized CSS rewrite + render 結構 plan
+1. **Mockup 階段** ✅ — 17/17 全放行（00-16）
+2. **Plan 階段** ✅ — 5 plans 寫好（A 完整 / B-E stub）
 3. **實作階段** — `using-git-worktrees` 開隔離分支 → `subagent-driven-development` bundle-by-bundle → 每 bundle webkit+chromium × 8 viewport 截圖 + Read PNG → `verification-before-completion`
+   - **Plan A** ✅ DONE — merged main `55f7051`（18 commits / SB1-5 全完成 / jest 157/157 / PW 91/91）
+   - **Plan C SB1** ✅ DONE — `9fc366a`（NSM Step 1 JS+CSS+PW 12/12 / jest 157/157）
+   - **Plan B** ⏳ — feat/path-2-circles-core（CSS 5 commits / JS 待接手）
+   - **Plan C SB2+** ⏳ — NSM Step 2/3/4（mockups 07/08/14）
+   - **Plan D** ⏳ — feat/path-2-cross-cutting（offcanvas/onboarding）
 4. **收尾** — `finishing-a-development-branch` 14-box gate（§0.2 iOS checklist 全綠）→ merge main
 
 ### 6.2 Bundle 完工強制產出（缺一不過 — 對應 §0.5 Stack）

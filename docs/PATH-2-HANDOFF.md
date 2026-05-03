@@ -1,7 +1,7 @@
 # Path 2 — Frontend Rewrite · 接手 Handoff
 
 > 下個 session / 帳號接手用。**先讀本檔再讀 CLAUDE.md**。
-> **Last updated:** 2026-05-03（Plan A Sub-bundle 1 完成 / 4 commits）
+> **Last updated:** 2026-05-03（Plan D SB1 ✅ + cold-review fix `1575eaf` / Plan C SB1 ✅ `9fc366a` / Plan B SB1 CSS ✅ JS 未動）
 
 ---
 
@@ -9,10 +9,51 @@
 
 User 是 PM Drill 專案 owner（zh-TW 母語、product/design sense 重、不寫程式但讀得懂）。當前在 **Path 2 — Frontend Rewrite**：把 production 前端 CSS + render 結構從 0 重寫，視覺對標 aistockmap.com（手機 web 滑順度）。**後端 / API / DB / OpenAI prompts / jest 100% 不動。**
 
-進度：✅ Mockup phase 全完工（17 mockups + spec + 5 plan 寫好）／ ⏳ **Plan A 執行中**：Sub-bundle 1 完成（Tasks 1-4），Sub-bundle 2 待跑（Tasks 5-10：CSS tokens + 9 LOCKED chunks）。
+進度：✅ Plan A merged to main（`55f7051`）。B/C/D 三 worktree 平行跑。
 
-**Worktree：** `/Users/albertpeng/Desktop/claude_project/first-principle-path2-foundation`
-**Branch：** `feat/path-2-foundation`（4 commits ahead of main）
+| Plan | Worktree | Branch | PORT | CSS | JS | SB1 狀態 |
+|---|---|---|---|---|---|---|
+| B (CIRCLES Home) | first-principle-path2-b-circles | feat/path-2-circles-core | 4001 | ✅ 5 commits | ❌ 未動 | ❌ 待實作 |
+| C (NSM Step 1) | first-principle-path2-c-nsm | feat/path-2-nsm | 4002 | ✅ done | ✅ done | ✅ **`9fc366a`** jest 157 / PW 12/12 |
+| D (Offcanvas) | first-principle-path2-d-cross | feat/path-2-cross-cutting | 4003 | ✅ done | ✅ done | ✅ **`7e44422`** PW 5/5 |
+
+---
+
+## 🔴 現在最優先：Plan B SB1 JS render（CIRCLES Home mockup 01）
+
+Plan B 的 CSS 已有 5 commits（mobile navbar tabs hide / stats-strip / mode cards / q-list / qcard），JS render 函式完全未動。
+
+### 接手步驟（Plan B SB1）
+
+```bash
+cd /Users/albertpeng/Desktop/claude_project/first-principle-path2-b-circles
+PORT=4001 node server.js &
+git log main..HEAD --oneline
+```
+
+1. 讀 mockup 01：`docs/superpowers/specs/mockups/2026-05-02-frontend-rewrite/01-circles-home.html`
+2. 讀 plan B stub：`docs/superpowers/plans/2026-05-03-path-2-plan-b-circles-core.md`
+3. 在 `public/app.js` 的 `renderCirclesStub()` 前插入完整 CIRCLES Home render 函式（`renderCirclesHome()` + `bindCirclesHome()`）
+4. 接著繼續 Plan B 各 sub-bundle（Phase 1-4 等，參考 mockups 03/04/05/11/12/13）
+
+**已知 mobile-360 navbar 問題（待 Plan B 修）：**
+- `@media (max-width: 480px) { .navbar__tabs { display: none; } }` — 加在 style.css
+- Plan B merge 前必讓 user 用 mobile-360 親跑確認
+
+### Plan D SB1 已完成（不需再動）
+
+`first-principle-path2-d-cross` / `7e44422` + fix `1575eaf`：offcanvas history drawer 全完成。
+
+**Cold-review 補洞（2026-05-03）：** director Read PNG 抓出 3 真 bug（step_scores.S 取整個物件 / scores_json.final_score 應為 totalScore / NSM title 用了 schema 無的 industry 欄位）+ 4 mockup 09 drift（empty/error icon、empty CTA btn--primary 應 ghost、empty/error 副文）。走 TDD 紅綠補完，jest 157/157、Playwright 40/40 (5 tests × 8 viewport)、9 張 PNG Read 過全對齊 mockup 09。詳：`audit/eyeball-plan-d-sb1-fix.md`。
+
+### Plan C SB1 已完成（2026-05-03）
+
+`first-principle-path2-c-nsm` / `9fc366a`：NSM Step 1 全完成。
+- `renderNSMStep1` + `bindNSMStep1` + `loadNSMContext` + 9 helpers
+- CSS responsive toggle（nsm-body/nsm-desktop-shell）+ phase-head__meta visibility
+- jest 140 pass + 17 skip = 157/157
+- Playwright `tests/visual/nsm-home.spec.js` 4 tests × 3 viewports = 12/12 pass
+- 截圖自驗：mobile/tablet/desktop 三 viewport 匹配 mockup 06
 
 ---
 
