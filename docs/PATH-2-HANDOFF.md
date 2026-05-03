@@ -71,6 +71,37 @@ ls docs/superpowers/plans/2026-05-03-path-2-plan-*.md   # 5 個 plan
 
 **SB1 dispatch prompts 範本** 在這條對話 history（如要 dispatch SB2 可用相似 pattern）。
 
+### Agent 跑不完的 fallback playbook
+
+不論哪個 SB agent 是 stall / BLOCKED / 部分完成 / 結果錯，**git commits 是 source of truth**。Worktree 內已 commit 的 task 是 ship-safe 的，沒 commit 的就當沒做過。
+
+| 失敗模式 | 偵測 | 復原步驟 |
+|---|---|---|
+| **Stall（watchdog 600s 無回應）**| 通知有 `failed: stalled` | 1. `cd <worktree>`<br>2. `git log main..HEAD --oneline` 看跑到哪<br>3. 對該 plan 的 plan stub + mockup，從下一個 task 重新 dispatch implementer（prompt scope 縮小）|
+| **BLOCKED**| Agent self-report `STATUS: BLOCKED` + 具體問題 | 1. 讀問題<br>2. 答問題加進新 prompt context<br>3. 重 dispatch from last commit |
+| **部分完成（中途 crash）**| `git log` 顯示 N commits 但 self-report 缺 | 1. 看 worktree 是否有 uncommitted changes<br>2. `git status` 乾淨 → 從下一 task 接<br>3. 不乾淨 → 評估是否要保留：保留就 commit，不保留就 `git checkout .` 從 last commit 接 |
+| **DONE 但測試失敗**| Self-report DONE / 但 visual diff > 0.5% 或 smoke fail | 1. dispatch fix subagent 給 specific failure（截圖 + console err + diff %）<br>2. 不要重做整個 SB |
+| **DONE 但視覺亂**| 跑 `npm start` + Read PNG 看到問題 | 1. 截圖 +list 具體問題<br>2. dispatch fix subagent 解|
+| **Worktree 整個壞**| 反正啥都不對 | 1. `git worktree remove --force <path>`<br>2. `git branch -D <branch>`<br>3. 從 main 重建 worktree<br>4. 重新 dispatch SB1（已知 mockup + spec，second try 快很多）|
+
+### 各 worktree 健康檢查指令（30 秒）
+
+```bash
+for wt in first-principle-path2-b-circles first-principle-path2-c-nsm first-principle-path2-d-cross; do
+  echo "=== $wt ==="
+  cd /Users/albertpeng/Desktop/claude_project/$wt
+  git log --oneline main..HEAD | head -5
+  echo "lines: $(wc -l public/style.css public/app.js | tail -1)"
+  git status -s | head -3
+done
+```
+
+**判讀：**
+- commit 數 > 5 = SB 進行中
+- style.css / app.js 行數有增加 = 有實作
+- `git status` 乾淨 = 安全狀態，可以接手
+- `git status` 有 unstaged = 中途 crash，先處理
+
 **已知 issue carry-forward：**
 - mobile-360 navbar tabs 擠壓 — Plan B SB1 已含修法（`@media (max-width:480px) { .navbar__tabs { display: none; } }`）
 
