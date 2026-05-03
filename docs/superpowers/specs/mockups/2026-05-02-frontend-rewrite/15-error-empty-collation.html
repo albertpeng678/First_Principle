@@ -481,6 +481,62 @@
         </table>
       </div>
 
+      <!-- A4 · Class naming 規約 -->
+      <div class="reg-card">
+        <div class="reg-card__title"><i class="ph ph-code"></i>Class Naming 規約</div>
+        <div class="reg-card__sub">哪些 class 是 LOCKED、哪些可重命名（Bundle 0c 補洞）</div>
+        <table class="reg-table">
+          <thead><tr><th>類別</th><th>規則</th></tr></thead>
+          <tbody>
+            <tr><td>已存在於 mockup HTML 的 class</td><td><span class="reg-canonical">LOCKED</span> — 不准重命名（pixel-diff baseline 依賴 selector）</td></tr>
+            <tr><td>BEM modifier（<code>--variant</code>）</td><td>LOCKED — 例如 <code>.btn--primary</code> / <code>.banner--offline</code> / <code>.tracking-mini--reach</code></td></tr>
+            <tr><td>State class（<code>.is-*</code>）</td><td>LOCKED — <code>.is-active / .is-done / .is-open / .is-loading / .is-low</code> 全保留語義</td></tr>
+            <tr><td>內部 helper class（mockup 沒出現的）</td><td>可自由命名，但加 jsdoc 注釋對應 app.js render 函式行號</td></tr>
+            <tr><td>每張 mockup 開頭 LOCKED CSS chunk</td><td>整段 verbatim copy 進 production style.css，不准重定義（per spec §5.2 / mockup 03 起）</td></tr>
+            <tr><td>第三方庫（Phosphor <code>.ph</code>）</td><td>LOCKED；class 來自 CDN 不可改</td></tr>
+            <tr><td>Path 2 不再使用</td><td><span class="reg-deprecated">.btn--home</span>（03 自定 → 改 <code>.btn .btn--ghost .btn--icon</code>）<br><span class="reg-deprecated">.auth-submit</span>（02 自定 → 改 <code>.btn .btn--primary .btn--block</code>，未來重構）</td></tr>
+          </tbody>
+        </table>
+      </div>
+
+      <!-- A5 · Button → AppState 跳轉表 -->
+      <div class="reg-card">
+        <div class="reg-card__title"><i class="ph ph-arrow-square-out"></i>Button → AppState</div>
+        <div class="reg-card__sub">每個按鈕點擊後 AppState 變化（implementer 寫 binder 必查）</div>
+        <table class="reg-table">
+          <thead><tr><th>按鈕</th><th>onClick 動作</th></tr></thead>
+          <tbody>
+            <tr><td>再練一題（11/13/14 submit-bar）</td><td>reset CIRCLES/NSM session + 隨機抽 1 題 + auto-select + navigate home</td></tr>
+            <tr><td>重試（error-wrap）</td><td>clear error code + 重發同 API（保持 question / form draft）</td></tr>
+            <tr><td>上一步（03/04/07/08 ghost）</td><td><code>circlesPhase--</code> 或 sub-tab back（per render context）</td></tr>
+            <tr><td>返回修改（04/11/12/13 gate/error）</td><td><code>circlesPhase = 1</code> 直接回 form（保留 draft 不清）</td></tr>
+            <tr><td>回首頁（navbar / submit-bar / banner）</td><td>reset session state + <code>navigate('circles')</code></td></tr>
+            <tr><td>隨機抽 5 題（01/06 reshuffle）</td><td><code>pickRandom5(QUESTIONS)</code>，<strong>不</strong>切 view，<strong>不</strong>清除選中卡，保留滾動位置</td></tr>
+            <tr><td>匯出 PNG（13）</td><td>html2canvas 截 <code>.circles-final-report</code> → 下載；完成顯 success toast</td></tr>
+            <tr><td>點擊看思路（14B 教練 card）</td><td>set <code>nsmActiveCompareNode</code>；render 顯 detail panel；mobile 開 bottom-sheet</td></tr>
+            <tr><td>重新登入（15 §C session banner）</td><td>store <code>localStorage.pmDrillReturnPath</code> + redirect /auth；登入後 restore</td></tr>
+            <tr><td>刪除（modal 9 確認）</td><td>DELETE API + 即時從 list 移除 + 失效 cache</td></tr>
+          </tbody>
+        </table>
+      </div>
+
+      <!-- A6 · Copy 常數 extract 規則 -->
+      <div class="reg-card">
+        <div class="reg-card__title"><i class="ph ph-text-aa"></i>Copy 常數規則</div>
+        <div class="reg-card__sub">什麼字串該 extract 為常數、什麼可 inline</div>
+        <table class="reg-table">
+          <thead><tr><th>條件</th><th>處理</th></tr></thead>
+          <tbody>
+            <tr><td>同字串出現 ≥3 個 render 函式</td><td>extract 為 <code>UI_COPY</code> 物件常數，例如 <code>UI_COPY.againPractice = '再練一題'</code></td></tr>
+            <tr><td>動詞 + 對象 模板（loading 標題）</td><td>用 fn helper：<code>loadingTitle(verb, target)</code> 回 <code>${verb}${target}中…</code></td></tr>
+            <tr><td>單張畫面專屬字串</td><td>inline 即可，不必 extract</td></tr>
+            <tr><td>Error code 對應文案</td><td>extract 為 <code>ERROR_COPY</code> map（key=code, value={title, sub}）</td></tr>
+            <tr><td>Phosphor icon class</td><td><strong>不</strong> extract 常數（直接 inline 在 JSX 字串），icon 字典在 mockup 15 §A3 查</td></tr>
+            <tr><td>i18n（多語）</td><td>不做。全 zh-TW hardcoded</td></tr>
+          </tbody>
+        </table>
+      </div>
+
     </div>
 
     <!-- ============================================================ -->

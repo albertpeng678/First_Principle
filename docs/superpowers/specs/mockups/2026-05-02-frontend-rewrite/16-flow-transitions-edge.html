@@ -1,0 +1,782 @@
+<!doctype html>
+<html lang="zh-TW">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover, interactive-widget=resizes-visual">
+  <title>PM Drill — 16 Flow transitions + edge cases（Bundle 0b 補洞）</title>
+
+  <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/@phosphor-icons/web@2.1.1/src/regular/style.css">
+  <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/@phosphor-icons/web@2.1.1/src/fill/style.css">
+  <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Instrument+Serif:ital@0;1&display=swap">
+
+  <style>
+    /* ───── LOCKED CSS — verbatim from 03-15 ───── */
+    :root {
+      --c-bg: #F2F0EB; --c-bg-soft: #ECE9E1; --c-bg-deep: #E5E1D7;
+      --c-card: #FFFFFF; --c-surface: #FAFAF7;
+      --c-ink: #1F1D1B; --c-ink-2: #5A5046; --c-ink-3: #8A7E70; --c-ink-4: #B8AC9D;
+      --c-rule: rgba(60,45,30,0.10); --c-rule-bold: rgba(60,45,30,0.18);
+      --c-primary: #1A56DB;
+      --c-navy: #1B2D5C; --c-navy-2: #142347; --c-navy-lt: rgba(27,45,92,0.08);
+      --c-success: #137A3D; --c-success-lt: #DCEFE0;
+      --c-warn: #B85C00; --c-warn-lt: #FBE9D0;
+      --c-danger: #B61F1F; --c-danger-lt: #FADCDC;
+      --font-sans: system-ui, -apple-system, BlinkMacSystemFont, 'PingFang TC', 'Microsoft JhengHei', 'Heiti TC', 'Noto Sans TC', sans-serif;
+      --font-serif: 'Instrument Serif', 'Times New Roman', serif;
+      --t-h1: 24px; --t-h2: 19px; --t-h3: 16px; --t-body: 15px; --t-body-sm: 14px; --t-meta: 13px; --t-cap: 12px;
+      --s-1: 4px; --s-2: 8px; --s-3: 12px; --s-4: 16px; --s-5: 20px; --s-6: 24px; --s-7: 32px; --s-8: 40px; --s-9: 56px; --s-10: 80px;
+      --r-input: 6px; --r-card: 10px; --r-pill: 999px;
+      --touch-min: 44px;
+      --t-fast: 120ms; --t-norm: 200ms; --t-slow: 300ms;
+      --ease: cubic-bezier(0.4, 0, 0.2, 1);
+      --shadow-1: 0 1px 0 rgba(60,45,30,0.04);
+      --shadow-2: 0 1px 2px rgba(60,45,30,0.06);
+      --shadow-3: 0 4px 12px rgba(60,45,30,0.08);
+    }
+
+    *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+    html, body { background: var(--c-bg); color: var(--c-ink); font-family: var(--font-sans); font-size: var(--t-body); line-height: 1.55; -webkit-font-smoothing: antialiased; }
+    button { font: inherit; color: inherit; cursor: pointer; background: none; border: none; }
+
+    .vp-grid { display: grid; grid-template-columns: 360px 768px 1280px; gap: var(--s-6); padding: var(--s-6); align-items: start; overflow-x: auto; }
+    .vp-frame { border: 1px solid var(--c-rule-bold); border-radius: var(--r-card); background: var(--c-bg); overflow: hidden; }
+    .vp-frame__label { padding: var(--s-3) var(--s-4); border-bottom: 1px solid var(--c-rule); background: var(--c-card); display: flex; justify-content: space-between; font-size: var(--t-cap); letter-spacing: 0.08em; text-transform: uppercase; color: var(--c-ink-2); }
+    .vp-frame__label span:last-child { font-family: ui-monospace, 'SF Mono', monospace; color: var(--c-ink-3); }
+    .vp-frame__inner { background: var(--c-bg); min-height: 700px; display: flex; flex-direction: column; }
+
+    .ds-page { padding: var(--s-6); max-width: 1880px; margin: 0 auto; }
+    .ds-header { margin-bottom: var(--s-7); padding-bottom: var(--s-6); border-bottom: 1px solid var(--c-rule); }
+    .ds-header h1 { font-size: var(--t-h1); margin-top: var(--s-2); }
+    .ds-header__eyebrow { font-size: var(--t-cap); letter-spacing: 0.12em; text-transform: uppercase; color: var(--c-ink-3); }
+    .ds-header__sub { color: var(--c-ink-2); font-size: var(--t-body-sm); margin-top: var(--s-3); max-width: 720px; line-height: 1.7; }
+    .vp-section-title { margin: var(--s-7) auto var(--s-3); padding-bottom: var(--s-2); border-bottom: 1px solid var(--c-rule); font-size: var(--t-h2); display: flex; align-items: baseline; gap: var(--s-3); }
+    .vp-section-title__sub { font-size: var(--t-cap); color: var(--c-ink-3); letter-spacing: 0.04em; text-transform: uppercase; }
+    .anno { background: var(--c-bg-soft); border-left: 2px solid var(--c-ink-3); padding: var(--s-3) var(--s-4); font-size: var(--t-meta); color: var(--c-ink-2); margin: var(--s-4) auto; line-height: 1.7; }
+    .anno strong { color: var(--c-ink); }
+    .anno code { font-family: ui-monospace, 'SF Mono', monospace; font-size: 12px; background: var(--c-card); padding: 1px 6px; border-radius: 4px; border: 1px solid var(--c-rule); }
+
+    /* navbar */
+    .navbar { display: flex; align-items: center; gap: var(--s-3); padding: var(--s-3) var(--s-4); background: rgba(255,255,255,0.85); -webkit-backdrop-filter: saturate(140%) blur(10px); backdrop-filter: saturate(140%) blur(10px); border-bottom: 1px solid var(--c-rule); }
+    .navbar__icon-btn { width: 40px; height: 40px; border-radius: var(--r-pill); display: inline-flex; align-items: center; justify-content: center; color: var(--c-ink-2); }
+    .navbar__icon-btn:hover { background: var(--c-bg-soft); color: var(--c-ink); }
+    .navbar__brand { display: flex; align-items: center; gap: var(--s-2); padding: 4px var(--s-2); border-radius: var(--r-input); }
+    .navbar__brand-icon { width: 28px; height: 28px; border-radius: 6px; background: var(--c-navy); color: #fff; display: inline-flex; align-items: center; justify-content: center; font-size: 16px; }
+    .navbar__brand-name { font-size: var(--t-body-sm); font-weight: 500; }
+    .navbar__tabs { display: flex; gap: var(--s-2); margin-left: var(--s-4); }
+    .navbar__tab { padding: 6px var(--s-3); border-radius: var(--r-pill); font-size: var(--t-meta); color: var(--c-ink-3); }
+    .navbar__tab.is-active { background: var(--c-navy); color: #fff; }
+    .navbar__actions { margin-left: auto; display: flex; align-items: center; gap: var(--s-2); }
+
+    /* circles-nav / nsm-nav */
+    .circles-nav { display: flex; align-items: center; gap: var(--s-3); padding: var(--s-3) var(--s-4); background: var(--c-bg-soft); border-bottom: 1px solid var(--c-rule); }
+    .circles-nav__back { width: 40px; height: 40px; border-radius: var(--r-pill); display: inline-flex; align-items: center; justify-content: center; color: var(--c-ink-2); flex: 0 0 auto; }
+    .circles-nav__main { flex: 1; min-width: 0; }
+    .circles-nav__title { font-size: var(--t-body-sm); font-weight: 600; color: var(--c-ink); }
+    .circles-nav__sub { font-size: var(--t-cap); color: var(--c-ink-3); margin-top: 2px; }
+
+    /* qchip */
+    .qchip { padding: var(--s-2) var(--s-4); background: var(--c-bg); border-bottom: 1px solid var(--c-rule); display: flex; align-items: center; gap: var(--s-2); cursor: pointer; }
+    .qchip__pill { padding: 2px var(--s-2); border-radius: var(--r-pill); font-size: var(--t-cap); background: var(--c-navy-lt); color: var(--c-navy); font-weight: 600; flex: 0 0 auto; }
+    .qchip__title { flex: 1; font-size: var(--t-meta); color: var(--c-ink-2); white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+    .qchip__caret { color: var(--c-ink-3); font-size: 14px; flex: 0 0 auto; }
+
+    /* progress bar (simulation 7-step) */
+    .circles-progress { padding: var(--s-3) var(--s-4); background: var(--c-bg-soft); border-bottom: 1px solid var(--c-rule); display: flex; align-items: center; gap: var(--s-2); }
+    .circles-progress__step { display: flex; flex-direction: column; align-items: center; gap: 4px; flex: 0 0 auto; }
+    .circles-progress__dot { width: 28px; height: 28px; border-radius: 50%; background: var(--c-card); border: 1.5px solid var(--c-rule-bold); display: inline-flex; align-items: center; justify-content: center; font-family: var(--font-serif); font-style: italic; font-size: 14px; color: var(--c-ink-3); }
+    .circles-progress__step.is-done .circles-progress__dot { background: var(--c-navy); border-color: var(--c-navy); color: #fff; }
+    .circles-progress__step.is-active .circles-progress__dot { background: var(--c-navy); border-color: var(--c-navy); color: #fff; box-shadow: 0 0 0 3px var(--c-navy-lt); }
+    .circles-progress__line { flex: 1; height: 2px; background: var(--c-rule); margin-bottom: 14px; min-width: 6px; }
+    .circles-progress__line.is-done { background: var(--c-navy); }
+    .circles-progress__label { font-size: 10px; color: var(--c-ink-3); }
+    .circles-progress__step.is-active .circles-progress__label { color: var(--c-navy); font-weight: 600; }
+
+    /* btn family */
+    .btn { display: inline-flex; align-items: center; gap: var(--s-2); min-height: var(--touch-min); padding: 0 var(--s-5); border-radius: var(--r-input); font-size: var(--t-body-sm); font-weight: 500; transition: all var(--t-fast) var(--ease); }
+    .btn--primary { background: var(--c-navy); color: #fff; }
+    .btn--primary:hover { background: var(--c-navy-2); }
+    .btn--ghost { background: transparent; color: var(--c-ink-2); border: 1px solid var(--c-rule-bold); }
+    .btn--icon { width: 44px; padding: 0; justify-content: center; }
+    .btn[disabled] { opacity: 0.5; cursor: not-allowed; }
+    .btn__spinner { width: 14px; height: 14px; border: 2px solid rgba(255,255,255,0.4); border-top-color: #fff; border-radius: 50%; animation: spin 0.8s linear infinite; }
+    @keyframes spin { to { transform: rotate(360deg); } }
+
+    /* loading-wrap (mini) */
+    .loading-wrap-mini { display: flex; flex-direction: column; align-items: center; padding: var(--s-7) var(--s-4); gap: var(--s-2); background: var(--c-card); border: 1px solid var(--c-rule); border-radius: var(--r-card); text-align: center; margin: var(--s-4); }
+    .loading-spinner { width: 48px; height: 48px; border: 4px solid var(--c-rule); border-top-color: var(--c-navy); border-radius: 50%; animation: spin 0.8s linear infinite; }
+    .loading-title { font-size: var(--t-body-sm); font-weight: 600; }
+    .loading-sub { font-size: var(--t-meta); color: var(--c-ink-3); }
+
+    /* chat bubbles */
+    .chat-body { padding: var(--s-3) var(--s-4); display: flex; flex-direction: column; gap: var(--s-3); flex: 1; overflow-y: auto; }
+    .bubble { padding: var(--s-3); border-radius: var(--r-card); max-width: 80%; font-size: var(--t-meta); line-height: 1.6; }
+    .bubble--user { align-self: flex-end; background: var(--c-navy); color: #fff; }
+    .bubble--coach { align-self: flex-start; background: var(--c-card); border: 1px solid var(--c-rule); }
+    .bubble--system { align-self: center; background: var(--c-bg-soft); color: var(--c-ink-3); font-size: var(--t-cap); padding: var(--s-2) var(--s-3); border-radius: var(--r-pill); max-width: 90%; text-align: center; }
+    .bubble--reconnect { background: var(--c-warn-lt); border: 1px solid rgba(184,92,0,0.25); color: var(--c-ink-2); align-self: center; max-width: 90%; }
+    .bubble--reconnect__head { display: flex; align-items: center; gap: 6px; font-weight: 600; color: var(--c-warn); margin-bottom: 4px; }
+    .bubble--reconnect__action { margin-top: var(--s-2); display: flex; gap: var(--s-2); justify-content: flex-end; }
+    .bubble__role { font-size: var(--t-cap); font-weight: 600; margin-bottom: 4px; opacity: 0.7; }
+
+    /* migration */
+    .migration-wrap {
+      max-width: 480px;
+      margin: var(--s-7) auto;
+      padding: var(--s-5);
+      background: var(--c-card);
+      border: 1px solid var(--c-rule);
+      border-radius: var(--r-card);
+      display: flex;
+      flex-direction: column;
+      gap: var(--s-4);
+      box-shadow: var(--shadow-1);
+    }
+    .migration-wrap__head {
+      display: flex;
+      align-items: center;
+      gap: var(--s-3);
+    }
+    .migration-wrap__icon {
+      width: 48px; height: 48px;
+      border-radius: 50%;
+      background: var(--c-navy-lt);
+      color: var(--c-navy);
+      display: inline-flex; align-items: center; justify-content: center;
+      font-size: 22px;
+      flex: 0 0 auto;
+    }
+    .migration-wrap.is-done .migration-wrap__icon {
+      background: var(--c-success-lt);
+      color: var(--c-success);
+    }
+    .migration-wrap__title {
+      font-size: var(--t-h3); font-weight: 600;
+    }
+    .migration-wrap__sub {
+      font-size: var(--t-meta); color: var(--c-ink-3); margin-top: 2px;
+    }
+    .migration-progress { display: flex; flex-direction: column; gap: var(--s-2); }
+    .migration-step { display: flex; align-items: center; gap: var(--s-3); font-size: var(--t-body-sm); color: var(--c-ink-3); }
+    .migration-step.is-done { color: var(--c-ink-2); }
+    .migration-step.is-active { color: var(--c-ink); font-weight: 500; }
+    .migration-step__icon { width: 20px; flex: 0 0 auto; display: inline-flex; justify-content: center; font-size: 16px; }
+    .migration-step.is-done .migration-step__icon { color: var(--c-success); }
+    .migration-step.is-active .migration-step__icon { color: var(--c-navy); }
+    .migration-bar { height: 6px; background: var(--c-bg-deep); border-radius: var(--r-pill); overflow: hidden; }
+    .migration-bar__fill { height: 100%; background: var(--c-navy); border-radius: var(--r-pill); transition: width var(--t-norm) var(--ease); }
+    .migration-wrap__actions { display: flex; gap: var(--s-2); justify-content: flex-end; }
+
+    /* generic state stub for "回到 phase 3 仍 loading" demo */
+    .resume-toast {
+      padding: var(--s-3) var(--s-4);
+      background: var(--c-navy-lt);
+      border-bottom: 1px solid rgba(27,45,92,0.18);
+      display: flex; align-items: center; gap: var(--s-3);
+      font-size: var(--t-meta); color: var(--c-ink-2);
+    }
+    .resume-toast__icon {
+      width: 24px; height: 24px;
+      border-radius: 50%;
+      background: rgba(27,45,92,0.15);
+      color: var(--c-navy);
+      display: inline-flex; align-items: center; justify-content: center;
+      font-size: 14px;
+      flex: 0 0 auto;
+    }
+
+    /* empty-wrap (re-used for "回到後完成" success) */
+    .success-wrap {
+      display: flex; flex-direction: column;
+      align-items: center;
+      padding: var(--s-7) var(--s-5);
+      gap: var(--s-3);
+      background: var(--c-card);
+      border: 1px solid var(--c-rule);
+      border-radius: var(--r-card);
+      text-align: center;
+      margin: var(--s-4);
+    }
+    .success-wrap__icon {
+      width: 56px; height: 56px;
+      border-radius: 50%;
+      background: var(--c-success-lt);
+      color: var(--c-success);
+      display: inline-flex; align-items: center; justify-content: center;
+      font-size: 28px;
+    }
+
+    /* flow-arrow between frames (visual hint) */
+    .flow-arrow {
+      align-self: center;
+      color: var(--c-ink-4);
+      font-size: 14px;
+      padding: var(--s-2);
+      letter-spacing: 0.12em;
+      text-transform: uppercase;
+    }
+    .flow-step-label {
+      font-size: var(--t-cap);
+      color: var(--c-ink-3);
+      letter-spacing: 0.08em;
+      text-transform: uppercase;
+      padding: var(--s-2) var(--s-4);
+      background: var(--c-bg-soft);
+      border-bottom: 1px solid var(--c-rule);
+      font-weight: 600;
+    }
+  </style>
+</head>
+<body>
+  <div class="ds-page">
+    <header class="ds-header">
+      <div class="ds-header__eyebrow">Path 2 · Mockup 16 · CONTRACT-LOCKED 草稿（Bundle 0b 補洞）</div>
+      <h1>Flow transitions + edge cases — drill 跳轉 / sim 步驟間 / SSE 中斷 / Phase 3 切離 / migration（5 sections × 3 viewports = 15 frames）</h1>
+      <p class="ds-header__sub">
+        readiness review 揭示 16 mockup 漏掉的 5 條 cross-screen transition / edge state，本檔補齊：<br>
+        <strong>§A Drill「再練一題」跳轉</strong>（Phase 3 score → home with new question auto-selected）<br>
+        <strong>§B Simulation 步驟間 transition</strong>（Phase 3 score 完成第 N 步 → Phase 1 第 N+1 步入場態，progress bar 變化、qchip 持續、上一步可回看 done step）<br>
+        <strong>§C Phase 2 SSE 中斷 + reconnect</strong>（streaming 中網路斷，inline tip + 「繼續」ghost 重發 user message 觸發 resume SSE）<br>
+        <strong>§D Phase 3 loading 中切到別頁回來</strong>（in-flight request 不 abort，AppState `circlesEvaluating` 持續，回 phase 3 view 仍見 loading；完成後若仍在原頁 render 評分頁；若已切走，下次切回直接顯）<br>
+        <strong>§E Migration flow</strong>（guest 註冊 → 自動搬 X 筆練習記錄 progress / 完成 toast / 失敗 retry，per spec §1.1 `/api/migrate-guest`）
+      </p>
+    </header>
+
+    <!-- ============================================================ -->
+    <!-- §A Drill「再練一題」跳轉                                       -->
+    <!-- ============================================================ -->
+    <h2 class="vp-section-title">A · Drill「再練一題」跳轉<span class="vp-section-title__sub">Phase 3 score → CIRCLES home with new question auto-selected</span></h2>
+    <div class="anno"><strong>視覺契約：</strong>drill mode I 步驟完成 → 在 mockup 11 score 頁按「再練一題 ph-shuffle」→ <strong>(1) reset CIRCLES session</strong>（清 phase / drill_step / draft / score result）→ <strong>(2) <code>pickRandom5</code> 重新抽 5 題</strong> → <strong>(3) 從 5 題隨機 auto-select 1 題</strong>（不顯選擇 step，直接落到該題的 phase 1 form 入場態）→ <strong>(4) navigate 'circles' home</strong> 但展開新選題的 q-card。**不**清除 onboarding flag、**不**清除歷史記錄。Frame 1 = score 頁 frame（精簡）/ flow-arrow / Frame 2 = home 落點（新題 q-card 展開）。</div>
+    <div class="vp-grid">
+
+      <!-- A · Mobile 360 -->
+      <div class="vp-frame">
+        <div class="vp-frame__label"><span>Mobile</span><span>360 × 700</span></div>
+        <div class="vp-frame__inner" style="width:360px">
+          <div class="flow-step-label">① Phase 3 score 頁 · 按「再練一題」</div>
+          <div class="navbar">
+            <button class="navbar__icon-btn"><i class="ph ph-list"></i></button>
+            <div class="navbar__brand"><span class="navbar__brand-icon"><i class="ph ph-circles-three"></i></span><span class="navbar__brand-name">PM Drill</span></div>
+            <div class="navbar__actions"><button class="navbar__icon-btn"><i class="ph ph-house"></i></button></div>
+          </div>
+          <div class="circles-nav"><button class="circles-nav__back"><i class="ph ph-arrow-left"></i></button><div class="circles-nav__main"><div class="circles-nav__title">用戶分析 評分結果 · 78</div><div class="circles-nav__sub">Spotify · Spotify Podcast</div></div></div>
+          <div style="padding:var(--s-4);text-align:center;color:var(--c-ink-3);font-size:var(--t-meta)">[mockup 11 score body 精簡示意]</div>
+          <div style="position:sticky;bottom:0;background:rgba(255,255,255,0.92);border-top:1px solid var(--c-rule);padding:var(--s-3) var(--s-4);display:flex;justify-content:space-between">
+            <button class="btn btn--ghost btn--icon"><i class="ph ph-house"></i></button>
+            <button class="btn btn--primary" style="position:relative">
+              <i class="ph ph-shuffle"></i>再練一題
+              <span style="position:absolute;top:-8px;right:-8px;width:18px;height:18px;border-radius:50%;background:var(--c-warn);color:#fff;font-size:10px;display:inline-flex;align-items:center;justify-content:center">↓</span>
+            </button>
+          </div>
+          <div class="flow-arrow">↓ navigate 'circles' + auto-select new question</div>
+          <div class="flow-step-label">② CIRCLES home · 新題 q-card 展開</div>
+          <div class="navbar">
+            <button class="navbar__icon-btn"><i class="ph ph-list"></i></button>
+            <div class="navbar__brand"><span class="navbar__brand-icon"><i class="ph ph-circles-three"></i></span><span class="navbar__brand-name">PM Drill</span></div>
+            <div class="navbar__actions"><button class="navbar__icon-btn"><i class="ph ph-house"></i></button></div>
+          </div>
+          <div style="padding:var(--s-4) var(--s-4) 0;font-size:var(--t-cap);color:var(--c-ink-3);letter-spacing:0.08em;text-transform:uppercase;font-weight:600">CIRCLES 練習</div>
+          <div style="margin:var(--s-2) var(--s-4) 0;padding:var(--s-4);background:var(--c-card);border:2px solid var(--c-navy);border-radius:var(--r-card);box-shadow:var(--shadow-2)">
+            <div style="display:flex;align-items:center;gap:6px;font-size:var(--t-cap);color:var(--c-navy);font-weight:600;margin-bottom:6px"><i class="ph ph-shuffle"></i>新題目（自動選）</div>
+            <div style="font-size:var(--t-body);font-weight:600">Notion · 工作協作</div>
+            <div style="font-size:var(--t-meta);color:var(--c-ink-3);margin-top:4px">如何提升 Notion 在小團隊的活躍度？— 練 R 步驟</div>
+            <button class="btn btn--primary" style="margin-top:var(--s-3);width:100%;justify-content:center">開始練習</button>
+          </div>
+        </div>
+      </div>
+
+      <!-- A · Tablet 768 -->
+      <div class="vp-frame">
+        <div class="vp-frame__label"><span>Tablet</span><span>768 × 700</span></div>
+        <div class="vp-frame__inner" style="width:768px">
+          <div class="flow-step-label">① 按下「再練一題」(Phase 3 score)</div>
+          <div class="navbar">
+            <button class="navbar__icon-btn"><i class="ph ph-list"></i></button>
+            <div class="navbar__brand"><span class="navbar__brand-icon"><i class="ph ph-circles-three"></i></span><span class="navbar__brand-name">PM Drill</span></div>
+            <div class="navbar__tabs"><button class="navbar__tab is-active">CIRCLES</button><button class="navbar__tab">北極星</button></div>
+            <div class="navbar__actions"><button class="navbar__icon-btn"><i class="ph ph-house"></i></button></div>
+          </div>
+          <div class="circles-nav"><button class="circles-nav__back"><i class="ph ph-arrow-left"></i></button><div class="circles-nav__main"><div class="circles-nav__title">I 用戶分析 · 已完成 · 78 分</div><div class="circles-nav__sub">Spotify · Spotify Podcast</div></div></div>
+          <div style="padding:var(--s-4);color:var(--c-ink-3);font-size:var(--t-meta);text-align:center">[mockup 11 score 內容精簡]</div>
+          <div style="padding:var(--s-3) var(--s-4);background:rgba(255,255,255,0.92);border-top:1px solid var(--c-rule);display:flex;justify-content:space-between">
+            <button class="btn btn--ghost btn--icon"><i class="ph ph-house"></i></button>
+            <button class="btn btn--primary"><i class="ph ph-shuffle"></i>再練一題</button>
+          </div>
+          <div class="flow-arrow">↓ AppState reset · pickRandom5 · auto-select 1 / 5</div>
+          <div class="flow-step-label">② Home 落點 · q-card 自動展開</div>
+          <div class="navbar">
+            <button class="navbar__icon-btn"><i class="ph ph-list"></i></button>
+            <div class="navbar__brand"><span class="navbar__brand-icon"><i class="ph ph-circles-three"></i></span><span class="navbar__brand-name">PM Drill</span></div>
+            <div class="navbar__tabs"><button class="navbar__tab is-active">CIRCLES</button><button class="navbar__tab">北極星</button></div>
+          </div>
+          <div style="padding:var(--s-4)">
+            <div style="font-size:var(--t-cap);color:var(--c-ink-3);letter-spacing:0.08em;text-transform:uppercase;font-weight:600;margin-bottom:var(--s-2)">隨機 5 題</div>
+            <div style="display:grid;grid-template-columns:1fr 1fr;gap:var(--s-2)">
+              <div style="padding:var(--s-3);background:var(--c-card);border:1px solid var(--c-rule);border-radius:var(--r-card);font-size:var(--t-meta)">Spotify · Premium 訂閱</div>
+              <div style="padding:var(--s-3);background:var(--c-card);border:2px solid var(--c-navy);border-radius:var(--r-card);box-shadow:var(--shadow-2)">
+                <div style="display:flex;align-items:center;gap:6px;font-size:var(--t-cap);color:var(--c-navy);font-weight:600"><i class="ph ph-shuffle"></i>新題目</div>
+                <div style="font-size:var(--t-meta);font-weight:600;margin-top:2px">Notion · 工作協作</div>
+                <button class="btn btn--primary" style="margin-top:var(--s-2);width:100%;justify-content:center;min-height:36px;font-size:var(--t-meta)">開始</button>
+              </div>
+              <div style="padding:var(--s-3);background:var(--c-card);border:1px solid var(--c-rule);border-radius:var(--r-card);font-size:var(--t-meta)">Airbnb · Marketplace</div>
+              <div style="padding:var(--s-3);background:var(--c-card);border:1px solid var(--c-rule);border-radius:var(--r-card);font-size:var(--t-meta)">Stripe · Checkout</div>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- A · Desktop 1280 -->
+      <div class="vp-frame">
+        <div class="vp-frame__label"><span>Desktop</span><span>1280 × 700</span></div>
+        <div class="vp-frame__inner" style="width:1280px">
+          <div class="flow-step-label">① 按下「再練一題」→ ② 自動選題到 home（同頁 transition fade）</div>
+          <div class="navbar">
+            <div class="navbar__brand"><span class="navbar__brand-icon"><i class="ph ph-circles-three"></i></span><span class="navbar__brand-name">PM Drill</span></div>
+            <div class="navbar__tabs"><button class="navbar__tab is-active">CIRCLES</button><button class="navbar__tab">北極星指標</button></div>
+            <div class="navbar__actions"><button class="navbar__icon-btn"><i class="ph ph-house"></i></button></div>
+          </div>
+          <div style="padding:var(--s-5);display:grid;grid-template-columns:1fr auto 1fr;gap:var(--s-5);align-items:start">
+            <div style="padding:var(--s-4);background:var(--c-card);border:1px solid var(--c-rule);border-radius:var(--r-card)">
+              <div style="font-size:var(--t-cap);color:var(--c-ink-3);font-weight:600;letter-spacing:0.08em;text-transform:uppercase;margin-bottom:var(--s-2)">前一題（drill I 完成 78 分）</div>
+              <div style="font-size:var(--t-body);font-weight:600">Spotify · Spotify Podcast</div>
+              <div style="font-size:var(--t-meta);color:var(--c-ink-3)">— 練 I 步驟 · 用戶分析</div>
+              <button class="btn btn--primary" style="margin-top:var(--s-3)"><i class="ph ph-shuffle"></i>再練一題</button>
+            </div>
+            <div style="display:flex;flex-direction:column;align-items:center;color:var(--c-navy);font-size:24px;padding-top:var(--s-5)">
+              <i class="ph ph-arrow-right"></i>
+              <div style="font-size:var(--t-cap);color:var(--c-ink-3);margin-top:var(--s-2);max-width:120px;text-align:center">reset session<br>pickRandom5<br>auto-select 1</div>
+            </div>
+            <div style="padding:var(--s-4);background:var(--c-card);border:2px solid var(--c-navy);border-radius:var(--r-card);box-shadow:var(--shadow-2)">
+              <div style="display:flex;align-items:center;gap:6px;font-size:var(--t-cap);color:var(--c-navy);font-weight:600;margin-bottom:var(--s-2)"><i class="ph ph-shuffle"></i>新題目 · 自動選擇</div>
+              <div style="font-size:var(--t-body);font-weight:600">Notion · 工作協作</div>
+              <div style="font-size:var(--t-meta);color:var(--c-ink-3);margin-top:4px">如何提升 Notion 在小團隊的活躍度？— 練 R 步驟</div>
+              <button class="btn btn--primary" style="margin-top:var(--s-3)">開始練習 <i class="ph ph-arrow-right"></i></button>
+            </div>
+          </div>
+        </div>
+      </div>
+
+    </div>
+
+    <!-- ============================================================ -->
+    <!-- §B Simulation 步驟間 transition                                -->
+    <!-- ============================================================ -->
+    <h2 class="vp-section-title">B · Simulation 7 步間 transition<span class="vp-section-title__sub">Phase 3 score → Phase 1 第 N+1 步入場（progress bar 推進 / qchip 持續 / 已完成步可回看）</span></h2>
+    <div class="anno"><strong>視覺契約：</strong>simulation 走完第 N 步 phase 3 score 頁，按下「下一步 → 第 N+1 步」（位於 submit-bar primary）→ <code>circlesPhase = 1</code> + <code>circlesSimStep++</code> → progress bar dot N 變 done、N+1 變 active → qchip 持續顯同題 → phase 1 form 帶新步驟 placeholder。**已完成步**（C done · I done · R active）progress bar 上可點回看（read-only mode 帶 banner-locked，per spec §2.4）。</div>
+    <div class="vp-grid">
+
+      <!-- B · Mobile 360 -->
+      <div class="vp-frame">
+        <div class="vp-frame__label"><span>Mobile</span><span>360 × 700</span></div>
+        <div class="vp-frame__inner" style="width:360px">
+          <div class="flow-step-label">① Phase 3 score · I 步驟完成</div>
+          <div class="navbar">
+            <button class="navbar__icon-btn"><i class="ph ph-list"></i></button>
+            <div class="navbar__brand"><span class="navbar__brand-icon"><i class="ph ph-circles-three"></i></span><span class="navbar__brand-name">PM Drill</span></div>
+          </div>
+          <div class="circles-progress">
+            <div class="circles-progress__step is-done"><div class="circles-progress__dot">C</div><div class="circles-progress__label">釐清</div></div>
+            <div class="circles-progress__line is-done"></div>
+            <div class="circles-progress__step is-done"><div class="circles-progress__dot">I</div><div class="circles-progress__label">用戶</div></div>
+            <div class="circles-progress__line"></div>
+            <div class="circles-progress__step"><div class="circles-progress__dot">R</div><div class="circles-progress__label">需求</div></div>
+            <div class="circles-progress__line"></div>
+            <div class="circles-progress__step"><div class="circles-progress__dot">C</div><div class="circles-progress__label">排序</div></div>
+          </div>
+          <div style="padding:var(--s-4);text-align:center;color:var(--c-ink-3);font-size:var(--t-meta)">[I score = 82 · 評分結果精簡]</div>
+          <div style="padding:var(--s-3) var(--s-4);border-top:1px solid var(--c-rule);display:flex;justify-content:flex-end">
+            <button class="btn btn--primary">下一步 R 需求 <i class="ph ph-arrow-right"></i></button>
+          </div>
+          <div class="flow-arrow">↓ circlesPhase=1 · simStep++</div>
+          <div class="flow-step-label">② Phase 1 form · R 步驟入場</div>
+          <div class="navbar">
+            <button class="navbar__icon-btn"><i class="ph ph-list"></i></button>
+            <div class="navbar__brand"><span class="navbar__brand-icon"><i class="ph ph-circles-three"></i></span><span class="navbar__brand-name">PM Drill</span></div>
+          </div>
+          <div class="circles-progress">
+            <div class="circles-progress__step is-done"><div class="circles-progress__dot">C</div><div class="circles-progress__label">釐清</div></div>
+            <div class="circles-progress__line is-done"></div>
+            <div class="circles-progress__step is-done"><div class="circles-progress__dot">I</div><div class="circles-progress__label">用戶</div></div>
+            <div class="circles-progress__line is-done"></div>
+            <div class="circles-progress__step is-active"><div class="circles-progress__dot">R</div><div class="circles-progress__label">需求</div></div>
+            <div class="circles-progress__line"></div>
+            <div class="circles-progress__step"><div class="circles-progress__dot">C</div><div class="circles-progress__label">排序</div></div>
+          </div>
+          <div class="qchip"><span class="qchip__pill">R 需求</span><span class="qchip__title">Spotify · Spotify Podcast（持續）</span><i class="ph ph-caret-down qchip__caret"></i></div>
+          <div style="padding:var(--s-4);font-size:var(--t-meta);color:var(--c-ink-3)">[Phase 1 form · 4 fields R 步驟 placeholder]</div>
+        </div>
+      </div>
+
+      <!-- B · Tablet 768 -->
+      <div class="vp-frame">
+        <div class="vp-frame__label"><span>Tablet</span><span>768 × 700</span></div>
+        <div class="vp-frame__inner" style="width:768px">
+          <div class="flow-step-label">① I 完成 → ② R 入場（progress bar 推進）</div>
+          <div class="navbar">
+            <div class="navbar__brand"><span class="navbar__brand-icon"><i class="ph ph-circles-three"></i></span><span class="navbar__brand-name">PM Drill</span></div>
+            <div class="navbar__tabs"><button class="navbar__tab is-active">CIRCLES</button></div>
+          </div>
+          <div class="circles-progress">
+            <div class="circles-progress__step is-done"><div class="circles-progress__dot">C</div><div class="circles-progress__label">釐清</div></div>
+            <div class="circles-progress__line is-done"></div>
+            <div class="circles-progress__step is-done"><div class="circles-progress__dot">I</div><div class="circles-progress__label">用戶</div></div>
+            <div class="circles-progress__line is-done"></div>
+            <div class="circles-progress__step is-active"><div class="circles-progress__dot">R</div><div class="circles-progress__label">需求</div></div>
+            <div class="circles-progress__line"></div>
+            <div class="circles-progress__step"><div class="circles-progress__dot">C</div><div class="circles-progress__label">排序</div></div>
+            <div class="circles-progress__line"></div>
+            <div class="circles-progress__step"><div class="circles-progress__dot">L</div><div class="circles-progress__label">方案</div></div>
+            <div class="circles-progress__line"></div>
+            <div class="circles-progress__step"><div class="circles-progress__dot">E</div><div class="circles-progress__label">取捨</div></div>
+            <div class="circles-progress__line"></div>
+            <div class="circles-progress__step"><div class="circles-progress__dot">S</div><div class="circles-progress__label">總結</div></div>
+          </div>
+          <div class="qchip"><span class="qchip__pill">R 需求</span><span class="qchip__title">Spotify · Spotify Podcast — 第 3 / 7 步</span><i class="ph ph-caret-down qchip__caret"></i></div>
+          <div style="padding:var(--s-5);background:var(--c-bg-soft);font-size:var(--t-meta);color:var(--c-ink-2);text-align:center">
+            <p><strong>已完成步驟可點回看</strong>（read-only banner-locked）— 點 progress bar 上的 C 或 I dot → 進入該步 phase 1 form 唯讀模式（同 mockup 03G read-only）</p>
+            <p style="margin-top:var(--s-2);color:var(--c-ink-3)">Phase 1 R 步 form 4 fields placeholder：功能性 / 情感性 / 社交性 / 核心痛點</p>
+          </div>
+        </div>
+      </div>
+
+      <!-- B · Desktop 1280 -->
+      <div class="vp-frame">
+        <div class="vp-frame__label"><span>Desktop</span><span>1280 × 700</span></div>
+        <div class="vp-frame__inner" style="width:1280px">
+          <div class="flow-step-label">7 步全 progress bar · R 入場後可回看 done step（hover dot 顯 tooltip）</div>
+          <div class="navbar">
+            <div class="navbar__brand"><span class="navbar__brand-icon"><i class="ph ph-circles-three"></i></span><span class="navbar__brand-name">PM Drill</span></div>
+            <div class="navbar__tabs"><button class="navbar__tab is-active">CIRCLES</button></div>
+            <div class="navbar__actions"><span style="font-size:var(--t-cap);color:var(--c-ink-3)">albert@example.com</span></div>
+          </div>
+          <div class="circles-progress" style="padding:var(--s-4) var(--s-7)">
+            <div class="circles-progress__step is-done"><div class="circles-progress__dot">C</div><div class="circles-progress__label">釐清 · 76</div></div>
+            <div class="circles-progress__line is-done"></div>
+            <div class="circles-progress__step is-done"><div class="circles-progress__dot">I</div><div class="circles-progress__label">用戶 · 82</div></div>
+            <div class="circles-progress__line is-done"></div>
+            <div class="circles-progress__step is-active"><div class="circles-progress__dot">R</div><div class="circles-progress__label">需求</div></div>
+            <div class="circles-progress__line"></div>
+            <div class="circles-progress__step"><div class="circles-progress__dot">C</div><div class="circles-progress__label">排序</div></div>
+            <div class="circles-progress__line"></div>
+            <div class="circles-progress__step"><div class="circles-progress__dot">L</div><div class="circles-progress__label">方案</div></div>
+            <div class="circles-progress__line"></div>
+            <div class="circles-progress__step"><div class="circles-progress__dot">E</div><div class="circles-progress__label">取捨</div></div>
+            <div class="circles-progress__line"></div>
+            <div class="circles-progress__step"><div class="circles-progress__dot">S</div><div class="circles-progress__label">總結</div></div>
+          </div>
+          <div class="qchip"><span class="qchip__pill">R 需求</span><span class="qchip__title">Spotify · Spotify Podcast — 7 步模擬第 3 / 7 步</span><i class="ph ph-caret-down qchip__caret"></i></div>
+          <div style="padding:var(--s-5) var(--s-7);max-width:920px;margin:0 auto">
+            <div style="font-size:var(--t-cap);color:var(--c-ink-3);font-weight:600;letter-spacing:0.08em;text-transform:uppercase;margin-bottom:var(--s-2)">Transition 規則</div>
+            <ul style="font-size:var(--t-meta);color:var(--c-ink-2);line-height:1.8;padding-left:var(--s-5)">
+              <li>已完成 step（is-done dot）<strong>可點</strong> → 跳該步 phase 1 form read-only + locked banner（mockup 15 §C B3）</li>
+              <li>當前 active step 的「上一步」按鈕回前一個 done step（與點 dot 等效）</li>
+              <li>未完成步（plain dot）<strong>不可點</strong>、cursor: not-allowed</li>
+              <li>qchip 始終顯題目，drillStep / simStep 改變不影響</li>
+              <li>切走後 AppState 持續，下次切回保持當前 step</li>
+            </ul>
+          </div>
+        </div>
+      </div>
+
+    </div>
+
+    <!-- ============================================================ -->
+    <!-- §C Phase 2 SSE 中斷 + reconnect                                -->
+    <!-- ============================================================ -->
+    <h2 class="vp-section-title">C · Phase 2 SSE 中斷 + reconnect<span class="vp-section-title__sub">streaming 中網路斷 → reconnect bubble + 「繼續」ghost 重發 user message</span></h2>
+    <div class="anno"><strong>視覺契約：</strong>正常 SSE 結束送 <code>{type:"end"}</code>；無 end 而連線斷視為異常。UI 在 chat body 末尾 inline 顯 <code>.bubble--reconnect</code>（warn-lt 米色，置中）：「連線中斷，已收 X 字。」+ 「繼續」ghost button → 重發同 user message，後端從 last delta 接續（per spec §1.5.1）。累計 3 次失敗進 error-wrap EVAL_API_ERROR。</div>
+    <div class="vp-grid">
+
+      <!-- C · Mobile 360 -->
+      <div class="vp-frame">
+        <div class="vp-frame__label"><span>Mobile</span><span>360 × 700</span></div>
+        <div class="vp-frame__inner" style="width:360px">
+          <div class="navbar">
+            <button class="navbar__icon-btn"><i class="ph ph-list"></i></button>
+            <div class="navbar__brand"><span class="navbar__brand-icon"><i class="ph ph-circles-three"></i></span><span class="navbar__brand-name">PM Drill</span></div>
+          </div>
+          <div class="circles-nav"><button class="circles-nav__back"><i class="ph ph-arrow-left"></i></button><div class="circles-nav__main"><div class="circles-nav__title">Phase 2 教練對話 · C 釐清</div><div class="circles-nav__sub">Spotify · Spotify Podcast</div></div></div>
+          <div class="chat-body" style="min-height:420px">
+            <div class="bubble bubble--system">— 教練對話開始 —</div>
+            <div class="bubble bubble--user"><div class="bubble__role">你</div>用戶可能在通勤時想聽 podcast，所以推薦演算法應該考慮時段。</div>
+            <div class="bubble bubble--coach"><div class="bubble__role">教練</div>很好的 hypothesis。但你能更具體說明「時段」如何影響推薦排序嗎？例如，</div>
+            <div class="bubble bubble--reconnect">
+              <div class="bubble--reconnect__head"><i class="ph ph-wifi-slash"></i>連線中斷</div>
+              <div>已收到 26 字。網路恢復後可點下方繼續，後端會從中斷處接續。</div>
+              <div class="bubble--reconnect__action">
+                <button class="btn btn--ghost" style="font-size:var(--t-cap);min-height:36px;padding:0 var(--s-3)"><i class="ph ph-arrow-clockwise"></i>繼續</button>
+              </div>
+            </div>
+          </div>
+          <div style="padding:var(--s-3) var(--s-4);background:var(--c-card);border-top:1px solid var(--c-rule);display:flex;align-items:center;gap:var(--s-2)">
+            <input style="flex:1;padding:var(--s-2) var(--s-3);border:1px solid var(--c-rule-bold);border-radius:var(--r-input);font-size:var(--t-meta)" placeholder="網路中斷，輸入暫時鎖定…" disabled>
+            <button class="btn btn--primary btn--icon" disabled><i class="ph ph-paper-plane-right"></i></button>
+          </div>
+        </div>
+      </div>
+
+      <!-- C · Tablet 768 -->
+      <div class="vp-frame">
+        <div class="vp-frame__label"><span>Tablet</span><span>768 × 700</span></div>
+        <div class="vp-frame__inner" style="width:768px">
+          <div class="navbar">
+            <div class="navbar__brand"><span class="navbar__brand-icon"><i class="ph ph-circles-three"></i></span><span class="navbar__brand-name">PM Drill</span></div>
+            <div class="navbar__tabs"><button class="navbar__tab is-active">CIRCLES</button></div>
+          </div>
+          <div class="circles-nav"><button class="circles-nav__back"><i class="ph ph-arrow-left"></i></button><div class="circles-nav__main"><div class="circles-nav__title">Phase 2 教練對話</div><div class="circles-nav__sub">Spotify · Spotify Podcast · C 釐清</div></div></div>
+          <div class="chat-body" style="min-height:380px">
+            <div class="bubble bubble--user">用戶可能在通勤時想聽 podcast，所以推薦演算法應該考慮時段。</div>
+            <div class="bubble bubble--coach">很好的 hypothesis。但你能更具體說明「時段」如何影響推薦排序嗎？例如，</div>
+            <div class="bubble bubble--reconnect">
+              <div class="bubble--reconnect__head"><i class="ph ph-wifi-slash"></i>連線中斷 · 已收 26 字</div>
+              <div>網路恢復後可點繼續，後端會從中斷處接續傳送剩餘內容。如連續失敗 3 次將進入 error 頁。</div>
+              <div class="bubble--reconnect__action">
+                <button class="btn btn--ghost"><i class="ph ph-arrow-clockwise"></i>繼續</button>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- C · Desktop 1280 -->
+      <div class="vp-frame">
+        <div class="vp-frame__label"><span>Desktop</span><span>1280 × 700</span></div>
+        <div class="vp-frame__inner" style="width:1280px">
+          <div class="navbar">
+            <div class="navbar__brand"><span class="navbar__brand-icon"><i class="ph ph-circles-three"></i></span><span class="navbar__brand-name">PM Drill</span></div>
+            <div class="navbar__tabs"><button class="navbar__tab is-active">CIRCLES</button></div>
+            <div class="navbar__actions"><span style="font-size:var(--t-cap);color:var(--c-ink-3)">albert@example.com</span></div>
+          </div>
+          <div class="circles-nav"><button class="circles-nav__back"><i class="ph ph-arrow-left"></i></button><div class="circles-nav__main"><div class="circles-nav__title">Phase 2 教練對話</div><div class="circles-nav__sub">Spotify · Spotify Podcast · C 釐清情境</div></div></div>
+          <div class="chat-body" style="max-width:720px;margin:0 auto;width:100%;min-height:380px">
+            <div class="bubble bubble--user">用戶可能在通勤時想聽 podcast，所以推薦演算法應該考慮時段。</div>
+            <div class="bubble bubble--coach">很好的 hypothesis。但你能更具體說明「時段」如何影響推薦排序嗎？例如，</div>
+            <div class="bubble bubble--reconnect">
+              <div class="bubble--reconnect__head"><i class="ph ph-wifi-slash"></i>連線中斷 · 已收 26 字（上次重試 1 / 3 次）</div>
+              <div>網路恢復後可點繼續，後端會從中斷處接續傳送剩餘內容。連續失敗 3 次將進入 error 頁（EVAL_API_ERROR）。</div>
+              <div class="bubble--reconnect__action">
+                <button class="btn btn--ghost"><i class="ph ph-arrow-clockwise"></i>繼續</button>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+
+    </div>
+
+    <!-- ============================================================ -->
+    <!-- §D Phase 3 loading 中切離回來                                  -->
+    <!-- ============================================================ -->
+    <h2 class="vp-section-title">D · Phase 3 loading 中切到別頁回來<span class="vp-section-title__sub">in-flight 不 abort · circlesEvaluating 持續 · 切回 view 顯 loading 或結果</span></h2>
+    <div class="anno"><strong>視覺契約：</strong>user 在 phase 3 評分 loading 中切到 NSM tab → 30s 後切回。AppState <code>circlesEvaluating: true</code> 在背景持續，render() 任何時候都顯 <code>.loading-wrap</code>。完成後若仍在 phase 3 → 直接 render 評分頁；若已切走 → AppState 保留結果，下次切回直接顯。Frame 1 = 中途切離（NSM home）顯 resume-toast「CIRCLES 評分仍在背景進行中」 / Frame 2 = 切回 phase 3 顯 loading 持續 / Frame 3 = 完成後切回見評分頁。</div>
+    <div class="vp-grid">
+
+      <!-- D · Mobile 360 -->
+      <div class="vp-frame">
+        <div class="vp-frame__label"><span>Mobile</span><span>360 × 700</span></div>
+        <div class="vp-frame__inner" style="width:360px">
+          <div class="flow-step-label">① 切到 NSM tab · resume-toast 提示</div>
+          <div class="navbar">
+            <button class="navbar__icon-btn"><i class="ph ph-list"></i></button>
+            <div class="navbar__brand"><span class="navbar__brand-icon"><i class="ph ph-circles-three"></i></span><span class="navbar__brand-name">PM Drill</span></div>
+            <div class="navbar__tabs" style="margin-left:auto"><button class="navbar__tab">CIRCLES</button><button class="navbar__tab is-active">北極星</button></div>
+          </div>
+          <div class="resume-toast">
+            <span class="resume-toast__icon"><i class="ph ph-circle-notch" style="animation:spin 1s linear infinite"></i></span>
+            <div>CIRCLES 評分仍在背景進行中…<br><span style="color:var(--c-ink-3);font-size:var(--t-cap)">完成會在切回時顯示</span></div>
+          </div>
+          <div style="padding:var(--s-4);font-size:var(--t-meta);color:var(--c-ink-3);text-align:center">[NSM home 內容]</div>
+          <div class="flow-arrow">↓ 30s 後切回 CIRCLES tab</div>
+          <div class="flow-step-label">② 切回 phase 3 · 仍 loading（in-flight 不 abort）</div>
+          <div class="loading-wrap-mini">
+            <div class="loading-spinner"></div>
+            <div class="loading-title">評分中…</div>
+            <div class="loading-sub">通常需要 8-15 秒</div>
+          </div>
+        </div>
+      </div>
+
+      <!-- D · Tablet 768 -->
+      <div class="vp-frame">
+        <div class="vp-frame__label"><span>Tablet</span><span>768 × 700</span></div>
+        <div class="vp-frame__inner" style="width:768px">
+          <div class="flow-step-label">切離 NSM 期間，CIRCLES 評分背景繼續</div>
+          <div class="navbar">
+            <div class="navbar__brand"><span class="navbar__brand-icon"><i class="ph ph-circles-three"></i></span><span class="navbar__brand-name">PM Drill</span></div>
+            <div class="navbar__tabs"><button class="navbar__tab">CIRCLES</button><button class="navbar__tab is-active">北極星</button></div>
+          </div>
+          <div class="resume-toast">
+            <span class="resume-toast__icon"><i class="ph ph-circle-notch" style="animation:spin 1s linear infinite"></i></span>
+            <div><strong>CIRCLES 評分仍在背景進行中</strong> · 完成會在切回 CIRCLES tab 時自動顯示</div>
+          </div>
+          <div style="padding:var(--s-5);font-size:var(--t-meta);color:var(--c-ink-3);text-align:center">[NSM home — user 可同時操作別事]</div>
+          <div style="padding:var(--s-4);background:var(--c-bg-soft);font-size:var(--t-meta);color:var(--c-ink-2);margin:0 var(--s-4) var(--s-4);border-radius:var(--r-card);line-height:1.7">
+            <strong>規則：</strong>切回 CIRCLES tab：(a) 評分還沒回 → 顯 loading-wrap；(b) 已完成 → 直接顯評分頁；(c) error → 顯 error-wrap。AppState <code>circlesEvaluating</code> + <code>circlesScoreResult</code> + <code>circlesEvaluateError</code> 三 keys 是 source of truth。
+          </div>
+        </div>
+      </div>
+
+      <!-- D · Desktop 1280 -->
+      <div class="vp-frame">
+        <div class="vp-frame__label"><span>Desktop</span><span>1280 × 700</span></div>
+        <div class="vp-frame__inner" style="width:1280px">
+          <div class="flow-step-label">3 種切回時機 · 對應 3 種 render 結果</div>
+          <div class="navbar">
+            <div class="navbar__brand"><span class="navbar__brand-icon"><i class="ph ph-circles-three"></i></span><span class="navbar__brand-name">PM Drill</span></div>
+            <div class="navbar__tabs"><button class="navbar__tab is-active">CIRCLES</button><button class="navbar__tab">北極星指標</button></div>
+          </div>
+          <div style="padding:var(--s-5);display:grid;grid-template-columns:1fr 1fr 1fr;gap:var(--s-5)">
+            <div>
+              <div class="flow-step-label" style="margin-bottom:var(--s-2)">A · 評分還沒回</div>
+              <div class="loading-wrap-mini">
+                <div class="loading-spinner"></div>
+                <div class="loading-title">評分中…</div>
+                <div class="loading-sub" style="font-size:var(--t-cap)">繼續等</div>
+              </div>
+            </div>
+            <div>
+              <div class="flow-step-label" style="margin-bottom:var(--s-2)">B · 已完成（自動 render 評分頁）</div>
+              <div class="success-wrap">
+                <span class="success-wrap__icon"><i class="ph-fill ph-check-circle"></i></span>
+                <div style="font-size:var(--t-h3);font-weight:600">82 分</div>
+                <div style="font-size:var(--t-meta);color:var(--c-ink-3)">I 用戶分析</div>
+              </div>
+            </div>
+            <div>
+              <div class="flow-step-label" style="margin-bottom:var(--s-2)">C · 失敗（render error-wrap）</div>
+              <div style="display:flex;flex-direction:column;align-items:center;padding:var(--s-7) var(--s-4);gap:var(--s-2);background:var(--c-card);border:1px solid var(--c-rule);border-radius:var(--r-card);margin:var(--s-4)">
+                <div style="width:48px;height:48px;border-radius:50%;background:var(--c-danger-lt);color:var(--c-danger);display:inline-flex;align-items:center;justify-content:center;font-size:24px"><i class="ph ph-cloud-warning"></i></div>
+                <div style="font-size:var(--t-body-sm);font-weight:600">評分失敗</div>
+                <code style="font-family:ui-monospace,monospace;font-size:var(--t-cap);color:var(--c-ink-4);background:var(--c-bg-soft);padding:2px 6px;border-radius:4px">EVAL_TIMEOUT</code>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+
+    </div>
+
+    <!-- ============================================================ -->
+    <!-- §E Migration flow（guest → auth 搬資料）                       -->
+    <!-- ============================================================ -->
+    <h2 class="vp-section-title">E · Migration flow（guest 註冊後搬練習記錄）<span class="vp-section-title__sub">3 階段：發現 X 筆 guest 記錄 / 搬移中 progress / 完成 toast 或 retry</span></h2>
+    <div class="anno"><strong>視覺契約：</strong>guest 用戶完成註冊後，前端讀 localStorage <code>guestId</code> 對 <code>/api/migrate-guest</code> POST → 後端把 guest sessions 改 owner 為新 user_id。UI 顯 migration-wrap：（A）發現 X 筆 / 確認搬移按鈕（B）migrating 進度 bar + checklist（C）完成 success 或 fail retry。**完成 toast** 復用 mockup 15 §D toast--success。Mobile/tablet 直式，Desktop 加 ghost「跳過」二級按鈕（高級用戶若想留 guest 可不搬）。</div>
+    <div class="vp-grid">
+
+      <!-- E · Mobile 360 -->
+      <div class="vp-frame">
+        <div class="vp-frame__label"><span>Mobile</span><span>360 × 700</span></div>
+        <div class="vp-frame__inner" style="width:360px">
+          <div class="flow-step-label">① 發現 8 筆 guest 記錄</div>
+          <div class="navbar">
+            <button class="navbar__icon-btn"><i class="ph ph-list"></i></button>
+            <div class="navbar__brand"><span class="navbar__brand-icon"><i class="ph ph-circles-three"></i></span><span class="navbar__brand-name">PM Drill</span></div>
+          </div>
+          <div class="migration-wrap">
+            <div class="migration-wrap__head">
+              <span class="migration-wrap__icon"><i class="ph ph-files"></i></span>
+              <div>
+                <div class="migration-wrap__title">把 8 筆練習記錄搬到你的帳號？</div>
+                <div class="migration-wrap__sub">登入前以訪客練習的進度</div>
+              </div>
+            </div>
+            <div class="migration-wrap__actions">
+              <button class="btn btn--primary" style="width:100%;justify-content:center"><i class="ph ph-upload-simple"></i>確認搬移</button>
+            </div>
+          </div>
+          <div class="flow-arrow">↓ POST /api/migrate-guest</div>
+          <div class="flow-step-label">② 搬移中 · progress bar</div>
+          <div class="migration-wrap">
+            <div class="migration-wrap__head">
+              <span class="migration-wrap__icon"><i class="ph ph-circle-notch" style="animation:spin 1s linear infinite"></i></span>
+              <div>
+                <div class="migration-wrap__title">搬移中…</div>
+                <div class="migration-wrap__sub">5 / 8 完成</div>
+              </div>
+            </div>
+            <div class="migration-bar"><div class="migration-bar__fill" style="width:62%"></div></div>
+          </div>
+        </div>
+      </div>
+
+      <!-- E · Tablet 768 -->
+      <div class="vp-frame">
+        <div class="vp-frame__label"><span>Tablet</span><span>768 × 700</span></div>
+        <div class="vp-frame__inner" style="width:768px">
+          <div class="flow-step-label">③ 完成 · success state + toast</div>
+          <div class="navbar">
+            <div class="navbar__brand"><span class="navbar__brand-icon"><i class="ph ph-circles-three"></i></span><span class="navbar__brand-name">PM Drill</span></div>
+            <div class="navbar__tabs"><button class="navbar__tab is-active">CIRCLES</button></div>
+            <div class="navbar__actions"><span style="font-size:var(--t-cap);color:var(--c-ink-3)">albert@example.com</span></div>
+          </div>
+          <div class="migration-wrap is-done">
+            <div class="migration-wrap__head">
+              <span class="migration-wrap__icon"><i class="ph-fill ph-check-circle"></i></span>
+              <div>
+                <div class="migration-wrap__title">已搬移 8 筆練習記錄到你的帳號</div>
+                <div class="migration-wrap__sub">所有歷程現在跟你的 email 綁定，跨裝置可看到</div>
+              </div>
+            </div>
+            <div class="migration-progress">
+              <div class="migration-step is-done"><i class="ph-fill ph-check-circle migration-step__icon"></i>讀取 guest 記錄（8 筆）</div>
+              <div class="migration-step is-done"><i class="ph-fill ph-check-circle migration-step__icon"></i>對應到新 user_id</div>
+              <div class="migration-step is-done"><i class="ph-fill ph-check-circle migration-step__icon"></i>更新 DB owner</div>
+              <div class="migration-step is-done"><i class="ph-fill ph-check-circle migration-step__icon"></i>刪除 localStorage guestId</div>
+            </div>
+            <div class="migration-wrap__actions">
+              <button class="btn btn--primary"><i class="ph ph-arrow-right"></i>進入首頁</button>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- E · Desktop 1280 -->
+      <div class="vp-frame">
+        <div class="vp-frame__label"><span>Desktop</span><span>1280 × 700</span></div>
+        <div class="vp-frame__inner" style="width:1280px">
+          <div class="flow-step-label">3 階段並列 · A 確認 / B 進行 / C 失敗 retry</div>
+          <div class="navbar">
+            <div class="navbar__brand"><span class="navbar__brand-icon"><i class="ph ph-circles-three"></i></span><span class="navbar__brand-name">PM Drill</span></div>
+          </div>
+          <div style="padding:var(--s-5);display:grid;grid-template-columns:1fr 1fr 1fr;gap:var(--s-4)">
+            <div class="migration-wrap" style="margin:0">
+              <div class="migration-wrap__head">
+                <span class="migration-wrap__icon"><i class="ph ph-files"></i></span>
+                <div><div class="migration-wrap__title">8 筆 guest 記錄</div><div class="migration-wrap__sub">把練習進度搬到帳號？</div></div>
+              </div>
+              <div class="migration-wrap__actions">
+                <button class="btn btn--ghost">跳過</button>
+                <button class="btn btn--primary"><i class="ph ph-upload-simple"></i>搬移</button>
+              </div>
+            </div>
+            <div class="migration-wrap" style="margin:0">
+              <div class="migration-wrap__head">
+                <span class="migration-wrap__icon"><i class="ph ph-circle-notch" style="animation:spin 1s linear infinite"></i></span>
+                <div><div class="migration-wrap__title">搬移中…</div><div class="migration-wrap__sub">5 / 8 完成</div></div>
+              </div>
+              <div class="migration-bar"><div class="migration-bar__fill" style="width:62%"></div></div>
+              <div class="migration-progress">
+                <div class="migration-step is-done"><i class="ph-fill ph-check-circle migration-step__icon"></i>讀取 guest 記錄</div>
+                <div class="migration-step is-active"><i class="ph ph-circle-notch migration-step__icon" style="animation:spin 1s linear infinite"></i>對應 user_id</div>
+                <div class="migration-step"><i class="ph ph-circle migration-step__icon"></i>更新 DB</div>
+              </div>
+            </div>
+            <div class="migration-wrap" style="margin:0;border-color:rgba(182,31,31,0.25);background:rgba(182,31,31,0.03)">
+              <div class="migration-wrap__head">
+                <span class="migration-wrap__icon" style="background:var(--c-danger-lt);color:var(--c-danger)"><i class="ph ph-cloud-warning"></i></span>
+                <div><div class="migration-wrap__title">搬移失敗</div><div class="migration-wrap__sub">5 / 8 已完成，3 筆需重試</div></div>
+              </div>
+              <code style="font-family:ui-monospace,monospace;font-size:var(--t-cap);color:var(--c-danger);background:var(--c-bg-soft);padding:2px 8px;border-radius:4px;align-self:center">MIGRATE_API_ERROR</code>
+              <div class="migration-wrap__actions">
+                <button class="btn btn--ghost">稍後再試</button>
+                <button class="btn btn--primary"><i class="ph ph-arrow-clockwise"></i>重試剩餘 3 筆</button>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+
+    </div>
+
+  </div>
+</body>
+</html>
