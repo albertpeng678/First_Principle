@@ -556,6 +556,39 @@
       });
     });
 
+    // qcard click → toggle expanded (mockup 01 line 1801-1836)
+    document.querySelectorAll('[data-circles="qcard"]').forEach(function (el) {
+      el.addEventListener('click', function (e) {
+        // ignore if click landed on a button inside the expand block
+        if (e.target.closest('[data-circles="qcard-cancel"]')) return;
+        if (e.target.closest('[data-circles="qcard-confirm"]')) return;
+        var qid = el.dataset.qid;
+        AppState.circlesExpandedQid = (AppState.circlesExpandedQid === qid) ? null : qid;
+        render();
+      });
+    });
+    // cancel — collapse
+    document.querySelectorAll('[data-circles="qcard-cancel"]').forEach(function (el) {
+      el.addEventListener('click', function (e) {
+        e.stopPropagation();
+        AppState.circlesExpandedQid = null;
+        render();
+      });
+    });
+    // confirm — enter Phase 1 with selected question
+    document.querySelectorAll('[data-circles="qcard-confirm"]').forEach(function (el) {
+      el.addEventListener('click', function (e) {
+        e.stopPropagation();
+        var qid = el.dataset.qid;
+        var q = (window.CIRCLES_QUESTIONS || []).find(function (x) { return x.id === qid; });
+        if (!q) return;
+        AppState.circlesSelectedQuestion = q;
+        AppState.circlesPhase = 1;
+        AppState.circlesExpandedQid = null;
+        render();
+      });
+    });
+
     // nsm-promo CTA — navigate to NSM view
     var nsmCta = document.querySelector('[data-circles="nsm-promo"]');
     if (nsmCta) {
