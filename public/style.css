@@ -929,4 +929,9 @@ body:has(.submit-bar) { padding-bottom: calc(var(--touch-min) + var(--s-7)); }
 @media (min-width: 1024px) {
   [data-circles-s-step] .phase-head__title-s-suffix { display: inline; }
 }
+
+/* S step rt-toolbar: mobile shows ph-text-b only (mockup line 1493); tablet+ shows both */
+@media (max-width: 767px) {
+  .rt-field__toolbar--s .rt-tbtn:nth-child(2) { display: none; }
+}
 /* ─── B SB3 · Phase 1 Form END ─── */

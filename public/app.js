@@ -849,8 +849,9 @@
       var key = fieldCfg.key;
       var rows = fieldCfg.rows || 2;
       var placeholder = fieldCfg.placeholder || '';
-      // S step: all fields use 2-button toolbar (text-b + list-bullets per mockup tablet/desktop)
-      var toolbarHtml = '<div class="rt-field__toolbar">'
+      // S step: 2-button toolbar but mobile hides list-bullets via CSS @media
+      // (mockup line 1493 mobile shows ph-text-b only; line 1581/1670 tablet+ shows both)
+      var toolbarHtml = '<div class="rt-field__toolbar rt-field__toolbar--s">'
         + '<button class="rt-tbtn"><i class="ph ph-text-b"></i></button>'
         + '<button class="rt-tbtn"><i class="ph ph-list-bullets"></i></button>'
         + '</div>';
