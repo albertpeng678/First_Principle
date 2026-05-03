@@ -46,6 +46,8 @@
     nsmGateResult: null,
     nsmActiveCompareNode: null,
     nsmDisplayedQuestions: [],
+    nsmSearchText: '',
+    nsmTypeFilter: 'all',
 
     // chat
     streamingActive: false,
@@ -124,13 +126,17 @@
     const view = renderView();
     app.innerHTML = navbar + banners + view;
     bindNavbar();
+    if (AppState.view === 'nsm' && AppState.nsmStep === 1) bindNSMStep1();
   }
   window.render = render;
 
   function renderView() {
     const v = AppState.view;
     if (v === 'circles') return renderCirclesStub();
-    if (v === 'nsm')     return renderNSMStub();
+    if (v === 'nsm') {
+      if (AppState.nsmStep === 1) return renderNSMStep1();
+      return renderNSMStub();
+    }
     if (v === 'auth')    return renderAuthStub();
     return renderCirclesStub();
   }
@@ -139,7 +145,7 @@
     return '<div data-view="circles" style="padding:24px;color:var(--c-ink-3);text-align:center">CIRCLES view — 待 Plan B 實作</div>';
   }
   function renderNSMStub() {
-    return '<div data-view="nsm" style="padding:24px;color:var(--c-ink-3);text-align:center">NSM view — 待 Plan C 實作</div>';
+    return '<div data-view="nsm" style="padding:24px;color:var(--c-ink-3);text-align:center">NSM view — Plan C SB2+ 實作中</div>';
   }
   function renderAuthStub() {
     return '<div data-view="auth" style="padding:24px;color:var(--c-ink-3);text-align:center">Auth view — 待 Plan B 收尾實作</div>';
@@ -200,6 +206,249 @@
         else if (target === 'offcanvas') { /* Plan D 實作 */ }
       });
     });
+  }
+
+  // ── NSM Step 1 (Plan C SB1 — mockup 06) ─────────────────────────────────
+  var NSM_QUESTIONS = window.NSM_QUESTIONS || [];
+  var _nsmContextQid = null;
+
+  function nsmGuessProductType(q) {
+    var text = [q.company, q.industry, q.scenario].filter(Boolean).join(' ').toLowerCase();
+    if (/電商|marketplace|外賣|美食|叫車|打車|共享|租車|預訂|配送|撮合|airbnb|uber|grab|foodpanda|wolt|booking/.test(text)) return 'transaction';
+    if (/saas|企業|b2b|crm|協作|辦公|工具|管理|自動化|zendesk|slack|notion|figma|datadog|zoom|intercom|twilio|stripe|shopify/.test(text)) return 'saas';
+    if (/教育|學習|課程|語言|創作|ugc|知識|部落|newsletter|podcast|直播|duolingo|coursera|creator/.test(text)) return 'creator';
+    return 'attention';
+  }
+
+  function getNsmContextSource(q, cachedContext, cachedQid) {
+    var ctx = q && q.context;
+    if (ctx && ctx.model && ctx.users && ctx.traps && ctx.insight) return 'pregenerated';
+    if (cachedContext && cachedContext.model && cachedContext.users && cachedContext.traps && cachedContext.insight
+        && q && cachedQid === q.id) return 'cached';
+    return 'fetch';
+  }
+  window.getNsmContextSource = getNsmContextSource;
+
+  var NSM_TYPE_ICON  = { attention: 'ph-play-circle', transaction: 'ph-shopping-cart', creator: 'ph-pencil-simple', saas: 'ph-buildings' };
+  var NSM_TYPE_LABEL = { attention: '注意力型', transaction: '交易量型', creator: '創造力型', saas: 'SaaS 型' };
+
+  function nsmPickDisplayed(clearSelection) {
+    var pool = NSM_QUESTIONS.slice();
+    if (AppState.nsmTypeFilter && AppState.nsmTypeFilter !== 'all') {
+      pool = pool.filter(function (q) { return nsmGuessProductType(q) === AppState.nsmTypeFilter; });
+    }
+    if (AppState.nsmSearchText) {
+      var s = AppState.nsmSearchText.toLowerCase();
+      pool = pool.filter(function (q) {
+        return ((q.company || '').toLowerCase().indexOf(s) >= 0)
+            || ((q.industry || '').toLowerCase().indexOf(s) >= 0);
+      });
+    }
+    if (clearSelection) AppState.nsmSelectedQuestion = null;
+    for (var i = pool.length - 1; i > 0; i--) {
+      var j = Math.floor(Math.random() * (i + 1));
+      var t = pool[i]; pool[i] = pool[j]; pool[j] = t;
+    }
+    AppState.nsmDisplayedQuestions = pool.slice(0, 5);
+  }
+
+  function renderNSMProgress(activeStep) {
+    var steps = [{ n: 1, label: '情境' }, { n: 2, label: '指標' }, { n: 3, label: '拆解' }, { n: 4, label: '總結' }];
+    var html = '<div class="nsm-progress">';
+    steps.forEach(function (s, idx) {
+      var cls = s.n === activeStep ? 'is-active' : (s.n < activeStep ? 'is-done' : '');
+      html += '<div class="nsm-progress__step' + (cls ? ' ' + cls : '') + '">'
+        + '<div class="nsm-progress__dot">' + s.n + '</div>'
+        + '<div class="nsm-progress__label">' + escHtml(s.label) + '</div>'
+        + '</div>';
+      if (idx < steps.length - 1)
+        html += '<div class="nsm-progress__line' + (s.n < activeStep ? ' is-done' : '') + '"></div>';
+    });
+    return html + '</div>';
+  }
+
+  function renderNSMContextBlock(q) {
+    var src = getNsmContextSource(q, AppState.nsmContext, _nsmContextQid);
+    if (src === 'fetch') {
+      return '<div class="nsm-context is-loading"><i class="ph ph-circle-notch"></i><span>分析情境中…</span></div>';
+    }
+    var ctx = src === 'pregenerated' ? q.context : AppState.nsmContext;
+    return '<div class="nsm-context">'
+      + '<div class="nsm-ctx-row"><span class="nsm-ctx-row__label"><i class="ph ph-buildings"></i>商業模式</span>'
+      + '<span class="nsm-ctx-row__val">' + escHtml(ctx.model) + '</span></div>'
+      + '<div class="nsm-ctx-row"><span class="nsm-ctx-row__label"><i class="ph ph-users"></i>使用者</span>'
+      + '<span class="nsm-ctx-row__val">' + escHtml(ctx.users) + '</span></div>'
+      + '<div class="nsm-ctx-row nsm-ctx-row--trap"><span class="nsm-ctx-row__label"><i class="ph ph-warning"></i>常見陷阱</span>'
+      + '<span class="nsm-ctx-row__val">' + escHtml(ctx.traps) + '</span></div>'
+      + '<div class="nsm-ctx-row nsm-ctx-row--insight"><span class="nsm-ctx-row__label"><i class="ph ph-lightbulb"></i>破題切入</span>'
+      + '<span class="nsm-ctx-row__val">' + escHtml(ctx.insight) + '</span></div>'
+      + '</div>';
+  }
+
+  function renderNSMQCard(q, isSelected) {
+    var type = nsmGuessProductType(q);
+    var typeHtml = isSelected
+      ? '<span class="nsm-q-card__type nsm-q-card__type--' + type + '">'
+        + '<i class="ph ' + NSM_TYPE_ICON[type] + '"></i>'
+        + escHtml(NSM_TYPE_LABEL[type]) + '</span>'
+      : '';
+    return '<div class="nsm-q-card' + (isSelected ? ' is-selected' : '') + '" data-qid="' + escHtml(q.id) + '">'
+      + '<div class="nsm-q-card__head">'
+      + '<span class="nsm-q-card__company">' + escHtml(q.company) + '</span>'
+      + '<span class="nsm-q-card__industry">' + escHtml(q.industry) + '</span>'
+      + typeHtml + '</div>'
+      + '<p class="nsm-q-card__scenario">' + escHtml(q.scenario) + '</p>'
+      + (isSelected ? renderNSMContextBlock(q) : '')
+      + '</div>';
+  }
+
+  function renderNSMFilterRail() {
+    var counts = { attention: 0, transaction: 0, creator: 0, saas: 0 };
+    NSM_QUESTIONS.forEach(function (q) { counts[nsmGuessProductType(q)]++; });
+    var f = AppState.nsmTypeFilter || 'all';
+    var typeRows = [
+      { key: 'attention',   label: '注意力型', icon: 'ph-play-circle',   ic: 'nsm-filter-row__icon--attention' },
+      { key: 'transaction', label: '交易量型', icon: 'ph-shopping-cart', ic: 'nsm-filter-row__icon--transaction' },
+      { key: 'creator',     label: '創造力型', icon: 'ph-pencil-simple', ic: 'nsm-filter-row__icon--creator' },
+      { key: 'saas',        label: 'SaaS 型',  icon: 'ph-buildings',     ic: 'nsm-filter-row__icon--saas' },
+    ];
+    var html = '<aside class="nsm-filter-rail"><div class="nsm-filter-rail__label">產業類型</div>'
+      + '<div class="nsm-filter-row' + (f === 'all' ? ' is-active' : '') + '" data-nsm-filter="all">'
+      + '<span>全部</span><span class="nsm-filter-row__count">' + NSM_QUESTIONS.length + '</span></div>';
+    typeRows.forEach(function (row) {
+      html += '<div class="nsm-filter-row' + (f === row.key ? ' is-active' : '') + '" data-nsm-filter="' + row.key + '">'
+        + '<span><i class="ph ' + row.icon + ' nsm-filter-row__icon ' + row.ic + '"></i>' + escHtml(row.label) + '</span>'
+        + '<span class="nsm-filter-row__count">' + counts[row.key] + '</span></div>';
+    });
+    return html + '</aside>';
+  }
+
+  function renderNSMRecentRail() {
+    return '<aside class="nsm-recent"><div class="nsm-recent__label">近期練習</div></aside>';
+  }
+
+  function renderNSMStep1() {
+    if (!AppState.nsmDisplayedQuestions || !AppState.nsmDisplayedQuestions.length) nsmPickDisplayed(false);
+    var sel = AppState.nsmSelectedQuestion;
+    var listLabel = sel ? '選擇題目（已選 1）' : '選擇題目';
+    var cards = (AppState.nsmDisplayedQuestions || []).map(function (q) {
+      return renderNSMQCard(q, !!(sel && sel.id === q.id));
+    }).join('');
+    var selType = sel ? nsmGuessProductType(sel) : null;
+    var metaContent = sel
+      ? '<span>已選：' + escHtml(sel.company) + ' · ' + escHtml(NSM_TYPE_LABEL[selType]) + '</span>'
+        + '<span class="phase-head__meta-sep">·</span>'
+        + '<span>共 ' + NSM_QUESTIONS.length + ' 題</span>'
+      : '<span>共 ' + NSM_QUESTIONS.length + ' 題 · 隨機抽 5</span>';
+    var instrMobile  = sel ? '' : '<p class="nsm-instruction">選一個企業情境，開始定義它的北極星指標。 5 題從 100+ 題庫中隨機抽選。</p>';
+    var instrDesktop = sel ? '' : '<p class="nsm-instruction">選一個企業情境，開始定義它的北極星指標。 5 題從 100+ 題庫中隨機抽選 — 可用左側產業 filter 或上方搜尋縮窄。</p>';
+    var mobileBody = '<div class="nsm-body">'
+      + instrMobile
+      + '<div class="nsm-list-head"><span class="nsm-list-head__label">' + listLabel + '</span>'
+      + '<button class="nsm-shuffle" data-nsm="shuffle"><i class="ph ph-shuffle"></i>隨機選題</button></div>'
+      + '<div class="nsm-q-list">' + cards + '</div>'
+      + '</div>';
+    var desktopShell = '<div class="nsm-desktop-shell">'
+      + renderNSMFilterRail()
+      + '<div class="nsm-center">'
+      + instrDesktop
+      + '<div class="nsm-search"><i class="ph ph-magnifying-glass"></i>'
+      + '<input type="text" placeholder="搜尋公司或產業關鍵字..." value="'
+      + escHtml(AppState.nsmSearchText || '') + '" data-nsm="search"></div>'
+      + '<div class="nsm-list-head"><span class="nsm-list-head__label">' + listLabel + '</span>'
+      + '<button class="nsm-shuffle" data-nsm="shuffle"><i class="ph ph-shuffle"></i>隨機選題</button></div>'
+      + '<div class="nsm-q-list">' + cards + '</div>'
+      + '</div>'
+      + renderNSMRecentRail()
+      + '</div>';
+    var submitEnabled = !!sel;
+    var submitBar = '<div class="submit-bar">'
+      + '<div class="submit-bar__left">'
+      + (submitEnabled ? '' : '<span style="font-size:var(--t-meta);color:var(--c-ink-3)">請先選擇一個情境</span>')
+      + '</div><div class="submit-bar__right">'
+      + '<button class="btn btn--primary' + (submitEnabled ? '' : ' is-disabled') + '"'
+      + (submitEnabled ? '' : ' disabled')
+      + ' data-nsm="start">開始 NSM 訓練 <i class="ph ph-arrow-right"></i></button>'
+      + '</div></div>';
+    var selAttr = sel ? ' data-nsm-selected' : '';
+    return '<div data-view="nsm" data-nsm-step="1"' + selAttr + '>'
+      + '<div class="phase-head"><span class="phase-head__num">1</span>'
+      + '<div class="phase-head__main">'
+      + '<div class="phase-head__eyebrow">NSM · 北極星訓練</div>'
+      + '<div class="phase-head__title">選擇企業情境</div>'
+      + '</div>'
+      + '<div class="phase-head__meta">' + metaContent + '</div>'
+      + '</div>'
+      + renderNSMProgress(1)
+      + '<div class="nsm-content">' + mobileBody + desktopShell + '</div>'
+      + submitBar
+      + '</div>';
+  }
+
+  function bindNSMStep1() {
+    document.querySelectorAll('[data-nsm-step="1"] .nsm-q-card[data-qid]').forEach(function (card) {
+      card.addEventListener('click', function () {
+        var qid = card.dataset.qid;
+        var q = NSM_QUESTIONS.find(function (x) { return x.id === qid; });
+        if (!q) return;
+        AppState.nsmSelectedQuestion = q;
+        var src = getNsmContextSource(q, AppState.nsmContext, _nsmContextQid);
+        if (src === 'fetch') {
+          AppState.nsmContextLoading = true;
+          render();
+          loadNSMContext(q);
+        } else { render(); }
+      });
+    });
+    document.querySelectorAll('[data-nsm="shuffle"]').forEach(function (btn) {
+      btn.addEventListener('click', function (e) {
+        e.stopPropagation();
+        nsmPickDisplayed(true);
+        render();
+      });
+    });
+    document.querySelectorAll('[data-nsm-filter]').forEach(function (row) {
+      row.addEventListener('click', function () {
+        AppState.nsmTypeFilter = row.dataset.nsmFilter;
+        nsmPickDisplayed(false);
+        render();
+      });
+    });
+    var searchInput = document.querySelector('[data-nsm="search"]');
+    if (searchInput) {
+      searchInput.addEventListener('input', function () {
+        AppState.nsmSearchText = searchInput.value;
+        nsmPickDisplayed(false);
+        render();
+      });
+    }
+    var startBtn = document.querySelector('[data-nsm="start"]');
+    if (startBtn && !startBtn.disabled) {
+      startBtn.addEventListener('click', function () {
+        if (!AppState.nsmSelectedQuestion) return;
+        AppState.nsmStep = 2;
+        render();
+      });
+    }
+  }
+
+  async function loadNSMContext(q) {
+    try {
+      var res = await window.apiFetch('/api/nsm-context', {
+        method: 'POST',
+        body: JSON.stringify({ questionJson: q }),
+      });
+      if (!res.ok) throw new Error('context_load_error');
+      var ctx = await res.json();
+      AppState.nsmContext = ctx;
+      _nsmContextQid = q.id;
+      AppState.nsmContextLoading = false;
+      render();
+    } catch (e) {
+      if (e.code === 'SESSION_EXPIRED') return;
+      AppState.nsmContextLoading = false;
+      render();
+    }
   }
 
   // ── utils ─────────────────────────────────────────────────────────────────
