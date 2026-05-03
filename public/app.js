@@ -519,15 +519,10 @@
       });
     }
 
-    // qcard clicks — navigate to phase-1 (phase-1 form stub for now per SB1 scope)
-    document.querySelectorAll('.qcard[data-qid]').forEach(function (card) {
-      card.addEventListener('click', function () {
-        var qid = card.dataset.qid;
-        var q = CIRCLES_QUESTIONS.find(function (x) { return x.id === qid; });
-        if (!q) return;
-        AppState.circlesSelectedQuestion = q;
-        AppState.circlesPhase = 1;
-        // circlesSession stays null — phase-1 form will create it
+    // drill-pill click → set circlesDrillStep + re-render
+    document.querySelectorAll('[data-circles="drill-pill"]').forEach(function (el) {
+      el.addEventListener('click', function () {
+        AppState.circlesDrillStep = el.dataset.step;
         render();
       });
     });
