@@ -233,6 +233,88 @@
     });
   }
 
+  // ── CIRCLES_STEP_CONFIG (Plan B SB3 — mockup 03 + spec §3.1) ─────────────
+  // C1 / I / R / C2 4 step × 4 field complete schema.
+  // L / E / S deferred to SB4.
+  var CIRCLES_STEP_CONFIG = {
+    C1: {
+      eyebrow: { sim: 'Phase 1 · 寫框架', drill: 'Phase 1 · 個別步驟練習' },
+      title: 'C · 澄清情境',
+      titleDrillSuffix: '（題目邊界 / 業務影響 / 假設）',
+      progressLabel: '澄清',
+      stepLetter: 'C',
+      stepNum: '01',
+      railTitle: '本步重點',
+      railIntro: '確認題目邊界',
+      railBody: '先把題目本身定義清楚 — 它的具體類型是什麼？涵蓋哪些場景？哪些明確排除？沒釐清這層，後面分析會在錯的邊界上展開。',
+      railTitle2: '時間範圍提示',
+      railBody2: '設定一個合理的觀察期，並說明為什麼這個時長對應業務節奏。「X 天，因為這個業務以 Y 為週期」比丟個數字更有說服力。',
+      fields: [
+        { key: '問題範圍', placeholder: '聚焦免費版的廣告體驗，排除付費方案', minMax: '50-120', max: 120, rows: 3, hint: '寫具體的功能或場景邊界' },
+        { key: '時間範圍', placeholder: '60 天，因為廣告活動以月為週期', minMax: '30-100', max: 100, rows: 2, hint: '說明為什麼這個時長對應業務節奏' },
+        { key: '業務影響', placeholder: '廣告收入和免費→付費轉換率不能下降超過 3%', minMax: '40-120', max: 120, rows: 2, hint: '列出量化紅線 — 哪些指標不能下降' },
+        { key: '假設確認', placeholder: '用戶廣告負感主要來自時段而非廣告本身', minMax: '30-100', max: 100, rows: 2, hint: '寫 2-3 條後續分析會依賴的假設' },
+      ],
+    },
+    I: {
+      eyebrow: { sim: 'Phase 1 · 寫框架', drill: 'Phase 1 · 個別步驟練習' },
+      title: 'I · 定義用戶',
+      titleDrillSuffix: '（分群 / 焦點 / 動機 / 排除）',
+      progressLabel: '用戶',
+      stepLetter: 'I',
+      stepNum: '02',
+      railTitle: '本步重點',
+      railIntro: '鎖定目標用戶',
+      railBody: '用戶分群不是列舉所有人，而是找出「最值得為誰解決」的那群。分群依據要可操作，焦點選定要有理由。',
+      railTitle2: '動機假設提示',
+      railBody2: 'JTBD（Jobs to Be Done）不是描述用戶是誰，而是他們雇用這個產品「完成什麼工作」。用「當 X 發生時，我想要 Y，以便 Z」的格式思考。',
+      fields: [
+        { key: '目標用戶分群', placeholder: '免費版通勤 / 運動 / 開車三類重度聽眾', minMax: '40-120', max: 120, rows: 3, hint: '依行為或使用情境分群，不只人口統計' },
+        { key: '選定焦點對象', placeholder: '通勤族：每天 30-60 分鐘，廣告打斷影響最大', minMax: '30-100', max: 100, rows: 2, hint: '說明為什麼選這群，而不是其他群' },
+        { key: '用戶動機假設(JTBD)', placeholder: '我想在通勤時不被干擾地完整聽完一集 podcast', minMax: '30-100', max: 100, rows: 2, hint: '用「當 X 時，我想要 Y，以便 Z」格式' },
+        { key: '排除對象', placeholder: '付費訂閱者：已沒廣告；創作者：需求不同', minMax: '20-80', max: 80, rows: 2, hint: '說明為什麼排除，讓邊界更清楚' },
+      ],
+    },
+    R: {
+      eyebrow: { sim: 'Phase 1 · 寫框架', drill: 'Phase 1 · 個別步驟練習' },
+      title: 'R · 發掘需求',
+      titleDrillSuffix: '（功能性 / 情感性 / 社交性 / 核心痛點）',
+      progressLabel: '需求',
+      stepLetter: 'R',
+      stepNum: '03',
+      railTitle: '本步重點',
+      railIntro: '三層需求框架',
+      railBody: '功能性（要完成什麼）→ 情感性（感覺如何）→ 社交性（在他人眼中如何）。三層缺一不完整，核心痛點是三層需求未被滿足的交集。',
+      railTitle2: '痛點層次提示',
+      railBody2: '核心痛點不只是「不方便」，而是用戶已嘗試繞路但仍無解的問題。描述時帶入場景會比抽象說明更有力。',
+      fields: [
+        { key: '功能性', placeholder: '可跳過廣告 / 廣告頻率可控 / 廣告時機可選', minMax: '40-120', max: 120, rows: 3, hint: '列出用戶想完成的具體任務或操作' },
+        { key: '情感性', placeholder: '聽 podcast 的沉浸感不被打斷 / 不感到被强迫', minMax: '30-100', max: 100, rows: 2, hint: '用戶在使用過程中希望有什麼感受' },
+        { key: '社交性', placeholder: '能向朋友分享不被廣告打斷的好體驗', minMax: '20-80', max: 80, rows: 2, hint: '用戶如何在社交場合中展示或使用這個產品' },
+        { key: '核心痛點', placeholder: '通勤聽到一半被廣告打斷，回不到剛才的心流狀態', minMax: '30-100', max: 100, rows: 2, hint: '最根本的、用戶已嘗試但未能解決的問題' },
+      ],
+    },
+    C2: {
+      eyebrow: { sim: 'Phase 1 · 寫框架', drill: 'Phase 1 · 個別步驟練習' },
+      title: 'C · 優先排序',
+      titleDrillSuffix: '（取捨標準 / 優先 / 暫緩 / 理由）',
+      progressLabel: '排序',
+      stepLetter: 'C',
+      stepNum: '04',
+      railTitle: '本步重點',
+      railIntro: '顯性化取捨邏輯',
+      railBody: '排序不是列清單，而是說明「用什麼標準決定先後」。取捨標準要與業務目標和用戶痛點連結，理由要可被質疑。',
+      railTitle2: '排序理由提示',
+      railBody2: '避免只說「影響最大」— 要說明影響了什麼、為什麼這個影響比其他的更重要、為什麼現在是做它的時機。',
+      fields: [
+        { key: '取捨標準', placeholder: '用戶衝擊 × 廣告收入影響 × 實作複雜度的 3×3 矩陣', minMax: '40-120', max: 120, rows: 3, hint: '列出 2-3 個判斷優先級的明確標準' },
+        { key: '最優先', placeholder: '廣告時機控制：高衝擊、低廣告損失、實作中等', minMax: '30-100', max: 100, rows: 2, hint: '說明為什麼這個最優先，連結取捨標準' },
+        { key: '暫緩', placeholder: '廣告跳過：收入影響難量化，需先測試', minMax: '20-80', max: 80, rows: 2, hint: '說明暫緩的邏輯，不是說它不重要' },
+        { key: '排序理由', placeholder: '聚焦廣告時機可立即改善通勤族體驗，又不破壞收入模式', minMax: '30-100', max: 100, rows: 2, hint: '用一句話說明整體排序的核心考量' },
+      ],
+    },
+  };
+
   // ── CIRCLES Home (Plan B SB1 — mockup 01) ────────────────────────────────
   var CIRCLES_QUESTIONS = window.CIRCLES_QUESTIONS || [];
 
