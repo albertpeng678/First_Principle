@@ -48,3 +48,64 @@ Branch：`feat/path-2-foundation`
 2. merge feat/path-2-foundation → main（fast-forward / squash）
 3. delete worktree
 4. 跨 Plan B 開新 worktree feat/path-2-circles-core
+
+## 自驗結果
+
+執行日期：2026-05-03
+執行 worktree：`/Users/albertpeng/Desktop/claude_project/first-principle-path2-foundation`
+
+### jest
+
+```
+Test Suites: 5 skipped, 12 passed, 12 of 17 total
+Tests:       24 skipped, 133 passed, 157 total
+Snapshots:   0 total
+Time:        8.716 s
+```
+
+合計 157 / passed 133 / skipped 24 / failed 0 ✓
+
+### Playwright smoke (Mobile-360)
+
+```
+Running 3 tests using 1 worker
+3 passed (2.7s)
+```
+
+3/3 passed ✓
+
+### Baselines count（每 viewport 應 17 張 PNG）
+
+- `tests/visual/baselines/desktop-1280/` → 17 ✓
+- `tests/visual/baselines/mobile-360/` → 17 ✓
+- `tests/visual/baselines/tablet-768/` → 17 ✓
+
+合計 51 PNG ✓
+
+### Commit history（main..HEAD，共 18 commits）
+
+```
+fb0cba1 docs(plan-a): 14-box gate signoff prep doc
+bf290a1 test(plan-a): jest 157 baseline regression — skip 5 frontend helper tests + 1 inline assertion pending Path 2 reimpl
+3d528f9 docs(plan-a): iOS Safari static checklist 11/15 (4 deferred to Plans B/D)
+502df3a test(plan-a): mark Plan B/C/D-dependent specs as .skip pending implementation
+c655d6c feat(plan-a): renderNavbar + global banners + bindNavbar; smoke green
+627fccf feat(plan-a): app.js render dispatch + apiFetch 401 wrapper + view stubs
+e84ba24 feat(plan-a): app.js skeleton — AppState + persistence + boot scaffold
+a733a76 feat(plan-a): LOCKED · loading-wrap / error-wrap / form-field / panel-card
+9b51d33 feat(plan-a): LOCKED · banner family (offline/session/locked/stale)
+903ed3f feat(plan-a): LOCKED · shared chrome chunks (circles-nav, qchip, submit-bar, phase-head)
+ae67a54 feat(plan-a): LOCKED · btn family CSS
+c41623f feat(plan-a): LOCKED · navbar CSS (verbatim mockup 03+)
+07bbae0 feat(plan-a): replace style.css with design tokens block + base reset (mockup 00 §1)
+ca806bb test(plan-a): smoke spec for boot/navbar/router (TDD red)
+c776159 feat(visual-test): freeze 17 mockup × 3 viewport baselines (51 PNGs)
+9d05a7b feat(visual-test): pixelmatch + screenshot helpers (spec §0.5 Layer 1.1+2)
+602ef07 chore(plan-a): record baseline (jest 157, 17 mockups, feat/path-2-foundation)
+```
+
+（注：Task 18 self-verify 結果 append 入此 doc 為同一 commit，無新 commit。）
+
+## 通知 user
+
+Plan A 完成。worktree `first-principle-path2-foundation`，branch `feat/path-2-foundation`。所有 14-box check 完成。請 review signoff doc 後決定 merge 時機。
