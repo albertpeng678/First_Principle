@@ -1,7 +1,7 @@
 # Path 2 — Frontend Rewrite · 接手 Handoff
 
 > 下個 session / 帳號接手用。**先讀本檔再讀 CLAUDE.md**。
-> **Last updated:** 2026-05-03
+> **Last updated:** 2026-05-03（Plan A Sub-bundle 1 完成 / 4 commits）
 
 ---
 
@@ -9,7 +9,25 @@
 
 User 是 PM Drill 專案 owner（zh-TW 母語、product/design sense 重、不寫程式但讀得懂）。當前在 **Path 2 — Frontend Rewrite**：把 production 前端 CSS + render 結構從 0 重寫，視覺對標 aistockmap.com（手機 web 滑順度）。**後端 / API / DB / OpenAI prompts / jest 100% 不動。**
 
-進度：✅ Mockup phase 全完工（17 mockups + spec + 5 plan 寫好）／ ⏳ 下一步是執行 Plan A（CSS/JS skeleton）。
+進度：✅ Mockup phase 全完工（17 mockups + spec + 5 plan 寫好）／ ⏳ **Plan A 執行中**：Sub-bundle 1 完成（Tasks 1-4），Sub-bundle 2 待跑（Tasks 5-10：CSS tokens + 9 LOCKED chunks）。
+
+**Worktree：** `/Users/albertpeng/Desktop/claude_project/first-principle-path2-foundation`
+**Branch：** `feat/path-2-foundation`（4 commits ahead of main）
+
+---
+
+## ⚡ 加速策略（current — 5x faster than原估）
+
+| 槓桿 | 作法 |
+|---|---|
+| Plan 平行 | A 序列；B/C/D 三 worktree **同時跑**（render 函式互不重疊）|
+| Task 顆粒 | 4-8 task 一綑 sub-bundle 一次 dispatch（非 per-task）|
+| Review | 機械 CSS 單階段；複雜 render 才雙階段 |
+| Visual gate | 自動 pixel-diff CI；只 failure 才人工 |
+| jest cadence | plan 起始 + 結束 + push（非 per-task）|
+| iOS 真機 | 只 Plan E 結束驗一次 |
+
+**新估時：** Plan A 1 天 / B+C+D 平行 4-5 天 / E 2-3 天 = **8-10 天總計**（vs 原 4-5 週）。
 
 ---
 
@@ -32,11 +50,52 @@ ls docs/superpowers/plans/2026-05-03-path-2-plan-*.md   # 5 個 plan
 
 ## 2. 現在 user 期待你做什麼
 
-**最後一個明確指令：** user 要選 Plan A 執行方式（subagent-driven vs inline），但 token 可能不夠所以叫我寫 handoff。所以你接手第一步是：
+**進度：Plan A 全 5 sub-bundle 完成（18 commits）。** 等 user 做 director eyeball walk + signoff 後 merge → 開 B/C/D 三 worktree 平行跑。
 
-> 「我接手了。Plan A 18 tasks 已寫好（`docs/superpowers/plans/2026-05-03-path-2-plan-a-foundation.md`）。要 subagent-driven 跑還是 inline？我建議 subagent-driven — 它每 task 開 fresh agent + 雙階段 review，比較不會 context 爆掉，也合 user 之前養成的「不需 user 抽問就能完成」標準。」
+接手第一步：
+1. `cd /Users/albertpeng/Desktop/claude_project/first-principle-path2-foundation`
+2. `git log --oneline main..HEAD` 確認 18 commits
+3. 讀 `audit/path-2-plan-a-signoff.md`（14-box gate doc）
+4. 跑 director eyeball walk（signoff doc §Director eyeball walk SOP）
+5. user signoff → merge feat/path-2-foundation → main → 開 Plan B/C/D 三 worktree
 
-如果 user 說 go → invoke `superpowers:subagent-driven-development` skill 開始跑 Plan A Task 1。
+### 14-box gate 狀態
+- 13/14 ✓
+- Box #11（director eyeball walk）= 待 user 跑
+
+### Plan A 最終 SHA
+```
+3347c16 docs(plan-a): self-verify + user notify
+fb0cba1 docs(plan-a): 14-box gate signoff prep
+bf290a1 test(plan-a): jest 157 baseline regression
+3d528f9 docs(plan-a): iOS Safari static checklist
+502df3a test(plan-a): mark Playwright .skip
+c655d6c feat(plan-a): renderNavbar + banners; smoke green
+627fccf feat(plan-a): render dispatch + apiFetch 401
+e84ba24 feat(plan-a): app.js skeleton AppState
+a733a76 feat(plan-a): LOCKED · loading/error/form/panel
+9b51d33 feat(plan-a): LOCKED · banner family
+903ed3f feat(plan-a): LOCKED · circles-nav/qchip/submit-bar/phase-head
+ae67a54 feat(plan-a): LOCKED · btn family
+c41623f feat(plan-a): LOCKED · navbar
+07bbae0 feat(plan-a): style.css tokens + base reset
+ca806bb test(plan-a): smoke spec TDD red
+c776159 feat(visual-test): 51 baseline PNGs
+9d05a7b feat(visual-test): pixelmatch + screenshot helpers
+602ef07 chore(plan-a): record baseline
+```
+
+### Sub-bundle 切分計畫（5 綑加速版）
+
+| # | 範圍 | Tasks | 估時 | 狀態 |
+|---|---|---|---|---|
+| **SB1** | Setup + visual test infra + 51 baseline + smoke red | 1-4 | 30-60 min | ✅ DONE (4 commits) |
+| **SB2** | style.css 全替換（tokens + 9 LOCKED chunks）| 5-10 | 45-60 min | ✅ DONE (6 commits, 4892→166 lines) |
+| **SB3** | app.js skeleton（AppState + persistence + boot + listeners + render dispatch + renderNavbar + view stubs）| 11-13 | 60-90 min | ✅ DONE (3 commits, 7089→213 lines, smoke 3/3 綠) |
+| **SB4** | jest + Playwright regression + iOS checklist | 14-16 | 30-45 min | ✅ DONE (3 commits, jest 133+24 skip = 157, iOS 11/15) |
+| **SB5** | 14-box gate signoff doc + 自我檢查 | 17-18 | 15-30 min | ✅ DONE (2 commits) — **Plan A 整體完成** |
+
+每 SB 結束後：spec compliance 自驗 → 進下一 SB。SB5 結束 → 等 user signoff merge。
 
 ---
 
@@ -156,7 +215,36 @@ ls docs/superpowers/plans/2026-05-03-path-2-plan-*.md   # 5 個 plan
 
 ---
 
-## 9. 最近重要決策（Bundle 0 補洞）
+## 8.5 Plan A 已知問題（carry forward — user 同意 2026-05-03）
+
+| # | 問題 | 必修 Plan | 詳細 memory |
+|---|---|---|---|
+| 1 | Mobile-360 navbar tabs 擠壓（CIRCLES 變直立橢圓 / 北極星指標直排）| Plan B | `project_path2_known_issues.md` |
+
+Plan B 開工前 implementer 必讀此節 + 對應 memory；Plan B merge 前必再開 port 給 user 親跑 mobile-360 確認修好。
+
+---
+
+## 9. Plan A SB1-4 完成（commit hashes）
+
+`feat/path-2-foundation` 16 commits ahead of main：
+
+| SB | Tasks | Commits |
+|---|---|---|
+| 1 | 1-4 setup + visual infra + 51 baselines + smoke red | 602ef07 / 9d05a7b / c776159 / ca806bb |
+| 2 | 5-10 style.css tokens + 9 LOCKED chunks (4892→166) | 07bbae0 / c41623f / ae67a54 / 903ed3f / 9b51d33 / a733a76 |
+| 3 | 11-13 app.js skeleton (7089→213) + smoke 3/3 綠 | e84ba24 / 627fccf / c655d6c |
+| 4 | 14-16 jest 157 (133+24 skip) + Playwright .skip + iOS 11/15 | bf290a1 / 502df3a / 3d528f9 |
+
+**Plan B/C 必須處理的 24 jest skip：**
+- Plan B 接 4 檔（sp1.5-helpers / locked-banner / bugfix-helpers / bugfix-action-bar）
+- Plan C 接 2 檔（sp4-nsm-context / sp4-nsm-db-extraction 1 test.skip）
+
+詳：worktree 內 `.plan-a-baseline.md`
+
+---
+
+## 10. 最近重要決策（Bundle 0 補洞）
 
 `commit f794a4c` Bundle 0 readiness：
 - §1.5.1 multi-tab + 401 + SSE 重發（**無 resume**）+ Phase 3 loading 切離
@@ -172,7 +260,7 @@ ls docs/superpowers/plans/2026-05-03-path-2-plan-*.md   # 5 個 plan
 
 ---
 
-## 10. 接手 checklist（你做這幾件就上手）
+## 11. 接手 checklist（你做這幾件就上手）
 
 - [ ] 讀本檔（30 秒）
 - [ ] 讀 `CLAUDE.md`（state board）
@@ -187,7 +275,7 @@ ls docs/superpowers/plans/2026-05-03-path-2-plan-*.md   # 5 個 plan
 
 ---
 
-## 11. 隨時更新規則
+## 12. 隨時更新規則
 
 當以下事件發生，立刻在本檔更新對應段落：
 - 任何 plan merged → 更新 §4

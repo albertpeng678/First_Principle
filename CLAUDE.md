@@ -1,7 +1,7 @@
 # PM Drill — 專案狀態看板
 
 > 即時狀態 single source of truth。重大事件即時 Edit。不放歷史（git log 有）。
-> **Last updated:** 2026-05-03（**5 plans 寫好** — Plan A 完整 18 tasks / B-E stubs / 待 user 選 subagent-driven vs inline 開工）
+> **Last updated:** 2026-05-03（**Plan A merged to main 55f7051** — Plans B/C/D 三 worktree 平行啟動中）
 >
 > **🔴 接手 Handoff：** `docs/PATH-2-HANDOFF.md` — 下個 session / 帳號接手必先讀
 
@@ -23,9 +23,11 @@
 | SP4 backend 並行 | ✅ Merged 到 main（jest 142 → 157 / 103 題 NSM context 預生成 idempotent 雙跑驗證）|
 | Mockup（共 17 張）| ✅ **17/17 全放行**（00-15 + 16 flow-transitions / cross-audit 22 + readiness 27 條收尾） |
 | Bundle 0 spec patches | ✅ §1.5.1 multi-tab+401 / §2.14 state↔class map / §0.5 Layer 1.1 baseline 規範 / §4 renderHistory legacy |
-| writing-plans → CSS rewrite plan | ⏳ 解鎖待啟動 |
-| subagent-driven-development | ⏳ 待 plan |
-| 14-box gate → merge main | ⏳ 待全綠 |
+| writing-plans → CSS rewrite plan | ✅ 5 plans 寫好（A 完整 / B-E stub）|
+| subagent-driven-development → Plan A | ✅ **18 commits / SB1-5 全完成 / 5x 加速版策略** |
+| 14-box gate → merge main | 🟡 13/14 ✓（待 user director eyeball walk）|
+| Plan B/C/D 平行（CIRCLES / NSM / Cross-cutting）| ⏳ 待 Plan A merge 後三 worktree 同跑 |
+| Plan E final ship | ⏳ B/C/D merge 後最終整合 |
 
 ---
 
@@ -62,7 +64,10 @@
 
 | 路徑 | branch | 狀態 |
 |---|---|---|
-| `/Users/albertpeng/Desktop/claude_project/First_Principle` | main | 主 repo（SP3 + SP4 backend 已 merge / jest 157）|
+| `/Users/albertpeng/Desktop/claude_project/First_Principle` | main | 主 repo（**Plan A merged 55f7051** / jest 157=133+24skip）|
+| `/Users/albertpeng/Desktop/claude_project/first-principle-path2-b-circles` | feat/path-2-circles-core | **Plan B 平行 worktree** — mockups 01/03/04/05/11/12/13 |
+| `/Users/albertpeng/Desktop/claude_project/first-principle-path2-c-nsm` | feat/path-2-nsm | **Plan C 平行 worktree** — mockups 06/07/08/14 |
+| `/Users/albertpeng/Desktop/claude_project/first-principle-path2-d-cross` | feat/path-2-cross-cutting | **Plan D 平行 worktree** — mockups 09/10/15 |
 | `/Users/albertpeng/Desktop/claude_project/first-principle-sp2` | feat/sp2-drill | 暫不 merge — JS 改動可 cherry-pick，CSS 廢棄 |
 | `/Users/albertpeng/Desktop/claude_project/first-principle-sp3-backend` | feat/sp3-backend | 已 merge 進 main，可 cleanup |
 | 主 repo | revise/sp3-alignment | 4 commits — Path 2 結束再評估 |
