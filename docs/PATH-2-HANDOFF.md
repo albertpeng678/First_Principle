@@ -48,6 +48,38 @@ ls docs/superpowers/plans/2026-05-03-path-2-plan-*.md   # 5 個 plan
 
 ---
 
+## 🚨 緊急接手（2026-05-03 token 危機節點）
+
+**狀態：** Plan A merged + push to origin/main `aa6e748`。Cleanup 已 push（刪除 mobile-audit / rwd-audit / corrupted JSON / test-singleton.js / sp2/sp3-backend/pm-drill-ux-overhaul worktrees）。
+
+**3 個背景 implementer subagent 跑中（你接手要 check 它們）：**
+
+| Plan | Worktree | Branch | PORT | Agent ID | Output File |
+|---|---|---|---|---|---|
+| B SB1 (CIRCLES Home mockup 01) | first-principle-path2-b-circles | feat/path-2-circles-core | 4001 | adb4ae6fddaefce90 | `/private/tmp/claude-501/.../tasks/adb4ae6fddaefce90.output` |
+| C SB1 (NSM Step 1 mockup 06) | first-principle-path2-c-nsm | feat/path-2-nsm | 4002 | abe78c26a752730d4 | `/private/tmp/claude-501/.../tasks/abe78c26a752730d4.output` |
+| D SB1 (Offcanvas mockup 09) | first-principle-path2-d-cross | feat/path-2-cross-cutting | 4003 | a3a465a158b1323e3 | `/private/tmp/claude-501/.../tasks/a3a465a158b1323e3.output` |
+
+(完整 path: `/private/tmp/claude-501/-Users-albertpeng-Desktop-claude-project-First-Principle/a50c5a9d-0e8f-4dad-9746-4f8e3347b74b/tasks/`)
+
+**接手第一步：**
+1. 對每個 worktree 跑 `git log main..HEAD --oneline` 看 commit 進度
+2. 對每個 agent output file 用 `tail -100` 看最後狀態（新 session 沒 overflow 顧慮）
+3. 三個 SB1 都 DONE 後逐一 review → 合併回 main → push → dispatch SB2
+
+**Plan B/C 的 expansion subagent 已死（stall）**，不必重 dispatch。改用 inline scope-per-SB 模式 dispatch implementer（B SB1 / C SB1 / D SB1 prompt 都已內含 detailed scope）。
+
+**SB1 dispatch prompts 範本** 在這條對話 history（如要 dispatch SB2 可用相似 pattern）。
+
+**已知 issue carry-forward：**
+- mobile-360 navbar tabs 擠壓 — Plan B SB1 已含修法（`@media (max-width:480px) { .navbar__tabs { display: none; } }`）
+
+**Memory 必讀：**
+- `feedback_verify_with_live_port.md`（驗收必開 port）
+- `project_path2_known_issues.md`（mobile navbar issue）
+
+---
+
 ## 2. 現在 user 期待你做什麼
 
 **進度：Plan A 全 5 sub-bundle 完成（18 commits）。** 等 user 做 director eyeball walk + signoff 後 merge → 開 B/C/D 三 worktree 平行跑。
