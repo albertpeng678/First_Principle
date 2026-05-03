@@ -78,3 +78,37 @@ Plan B SB2 cold review 通過。2 bug 修完後 9 PNG 全對齊 mockup 01 contra
 ## Carry-forward（無）
 
 SB2 收尾完整，B SB1 留下的 4 條 carry-forward 全部 close。Plan B 後續 SB3+ 進 Phase 1 Form（mockup 03）等。
+
+---
+
+## Cold review 第二輪（user 抽問後深度比對 mockup）
+
+User 抽問「是否 100% 比照 mockup」後，director 重新逐 line 對照 mockup 01 Section A（line 793-1102）3 viewport 全文。原 SB2 cold review **錯**（只跑 PW + 部分 PNG，沒 line-by-line 比對 mockup HTML），在此補洞抓出 8 條 viewport-conditional drift：
+
+| # | 元素 | mobile (mockup line) | tablet (line) | desktop (line) | production 原本 |
+|---|---|---|---|---|---|
+| 1 | mode-card body 完整模擬 | 「7 步循序練習」(833) | 「7 步循序練習，最完整。可上一步 / 下一步」(925) | 「7 步循序（C → I → R → C → L → E → S）...最完整的訓練。」(1020) | 缺 tablet 中版（只 mobile / desktop 兩級）|
+| 2 | mode-card body 步驟加練 | 「單練 C / I / R」(837) | 「單練 C / I / R 三步。該步結束即整 session 完成」(929) | 「單練 C / I / R 三步任一。專注練好其中一步...完成。」(1024) | 同上 |
+| 3 | qcard mode-tag 文案 | 「完整」/「步驟練」短 (855) | 「完整模擬」/「步驟加練」長 (947) | 同 tablet 長 (1042) | 統一短 |
+| 4 | qcard product field | 隱（只 company, line 855）| 顯（line 947）| 顯（line 1042）| 統一全顯 |
+| 5 | qcard 難度 suffix | 隱 | 隱 | 「難度 中/高」trailing (line 1042) | 統一全顯 |
+| 6 | search-wrap placeholder | 「主題）」(843) | 「主題關鍵字）」(935) | 「主題關鍵字）— 不分大小寫」(1030) | 統一 mobile 短版 |
+| 7 | reshuffle button 後綴 | 無 (870) | 無 (962) | 「— 重抽不會打斷你的滾動位置」(1057) | 無 |
+| 8 | stats-strip__hint | 隱 (815) | 「已完成 12 / 100 題」(906) | 「...· 持續 4 週連續練習」(999) | 統一一版 |
+
+**全部修法**（commit 接續本 audit 後跟）：
+- mode-card body：3 元素 + `--mobile/--tablet/--desktop` modifier + CSS @media swap
+- mode-tag：`__short` + `__long` 兩 span + `@media (min-width: 768px)` swap
+- product：包 `.qcard__meta-product` + `@media (max-width: 767px) display:none`
+- 難度：包 `.qcard__meta-difficulty` + `@media (min-width: 1024px) display:inline`
+- search placeholder：HTML 屬性無法 CSS 切，pick desktop 長版（per spec §0.7 美學判斷限制）
+- reshuffle 後綴：包 `.reshuffle__hint` + `@media (min-width: 1024px)` 顯
+- stats-strip hint：兩 span `--tablet/--desktop` + @media swap
+
+驗證：jest 157/157 / Playwright circles-home × 3 viewport = 54/54 / Read 3 PNG (mobile/tablet/desktop default) 8 條全對齊 mockup 01 Section A。
+
+## Lesson learned（director self-correction）
+
+1. **原 cold review 沒 line-by-line 比對 mockup HTML**（只跑 PW + 看截圖大致），漏掉 viewport-conditional 文案差異 — 這是違反 spec §5.2「禁止自然語言判斷」+ memory `feedback_uiux_visual_only`
+2. **Layer 1-5 沒做完整**（缺 baseline pixel-diff + invariant + state matrix + webkit）— 未來 SB 必補
+3. **三份文件 (CLAUDE.md / HANDOFF / master-spec) 沒每個 SB 都即時更新** — 違反 memory `feedback_claude_md_live_state`
