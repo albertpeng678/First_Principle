@@ -76,10 +76,13 @@ a { color: inherit; text-decoration: none; }
 .circles-nav__title, .nsm-nav__title { font-size: var(--t-body-sm); font-weight: 600; color: var(--c-ink); letter-spacing: -0.005em; }
 .circles-nav__sub, .nsm-nav__sub { font-size: var(--t-cap); color: var(--c-ink-3); margin-top: 2px; }
 
-/* ───── LOCKED · qchip (verbatim mockup 13) ───── */
+/* ───── LOCKED · qchip (verbatim mockup 03+) ───── */
 .qchip { padding: var(--s-2) var(--s-4); background: var(--c-bg); border-bottom: 1px solid var(--c-rule); display: flex; align-items: center; gap: var(--s-2); cursor: pointer; }
+.qchip__icon { flex: 0 0 auto; color: var(--c-ink-3); font-size: 15px; }
+.qchip__main { flex: 1; min-width: 0; }
+.qchip__company { font-size: var(--t-cap); color: var(--c-ink-3); margin-bottom: 2px; }
+.qchip__title { font-size: var(--t-meta); color: var(--c-ink-2); white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
 .qchip__pill { padding: 2px var(--s-2); border-radius: var(--r-pill); font-size: var(--t-cap); background: var(--c-navy-lt); color: var(--c-navy); font-weight: 600; flex: 0 0 auto; }
-.qchip__title { flex: 1; font-size: var(--t-meta); color: var(--c-ink-2); white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
 .qchip__caret { color: var(--c-ink-3); font-size: 14px; flex: 0 0 auto; }
 
 /* ───── LOCKED · submit-bar (verbatim mockup 03+) ───── */
@@ -88,11 +91,19 @@ a { color: inherit; text-decoration: none; }
 
 /* ───── LOCKED · phase-head (verbatim mockup 03+) ───── */
 .phase-head { padding: var(--s-3) var(--s-5); background: var(--c-bg-soft); border-bottom: 1px solid var(--c-rule); display: flex; align-items: center; gap: var(--s-3); }
+.phase-head--drill { background: var(--c-navy-lt); }
 .phase-head__num { font-family: var(--font-serif); font-style: italic; font-size: 22px; color: var(--c-navy); line-height: 1; flex: 0 0 auto; }
 .phase-head__main { flex: 1; min-width: 0; }
 .phase-head__eyebrow { font-size: var(--t-cap); letter-spacing: 0.08em; text-transform: uppercase; color: var(--c-ink-3); }
 .phase-head__title { font-size: var(--t-h3); color: var(--c-ink); margin-top: 2px; letter-spacing: -0.005em; }
-.phase-head__meta { flex: 0 0 auto; font-size: var(--t-meta); color: var(--c-ink-3); }
+.phase-head__meta { flex: 0 0 auto; font-size: var(--t-meta); color: var(--c-ink-3); display: flex; align-items: center; gap: var(--s-2); }
+.phase-head__meta-sep { color: var(--c-ink-4); }
+/* sim: hide extra meta (sep + 完整模擬 text) on mobile (line 818 mobile = save only) */
+@media (max-width: 767px) { .phase-head__meta-extra { display: none; } }
+/* save-indicator */
+.save-indicator { display: inline-flex; align-items: center; gap: 4px; font-size: var(--t-cap); }
+.save-indicator--saved { color: var(--c-success, #1a7f3c); }
+.save-indicator--saved i { font-size: 12px; }
 
 /* ───── LOCKED · banner family (verbatim mockup 15 §C — Bundle 0a/0c) ───── */
 .banner { display: flex; align-items: center; gap: var(--s-3); padding: var(--s-3) var(--s-4); border-bottom: 1px solid; font-size: var(--t-meta); }
@@ -665,3 +676,84 @@ a { color: inherit; text-decoration: none; }
 }
 
 /* ───── B1 · CIRCLES Home (mockup 01) END ───── */
+
+/* ═══════════════════════════════════════════════════════════════════
+   B SB3 · CIRCLES Phase 1 Form (mockup 03 Section A)
+   LOCKED — implementer must copy verbatim, no redefinitions.
+   ═══════════════════════════════════════════════════════════════════ */
+
+/* ── progress (CIRCLES 7-step sim bar, line 801-809) ── */
+.progress { display: flex; align-items: center; gap: var(--s-2); padding: var(--s-2) var(--s-4); background: var(--c-bg-soft); border-bottom: 1px solid var(--c-rule); overflow-x: auto; -webkit-overflow-scrolling: touch; }
+.progress__step { display: inline-flex; align-items: center; gap: 4px; font-size: var(--t-cap); color: var(--c-ink-3); white-space: nowrap; flex: 0 0 auto; padding: 2px var(--s-2); border-radius: var(--r-pill); }
+.progress__step.is-active { background: var(--c-navy-lt); color: var(--c-navy); font-weight: 600; }
+.progress__step.is-done { color: var(--c-ink-2); }
+.progress__step .step-letter { font-family: var(--font-serif); font-style: italic; font-size: 13px; color: inherit; }
+
+/* ── phase-body (line 830 / 986 / 1098) ── */
+.phase-body { padding: var(--s-5) var(--s-4) calc(var(--s-9) + var(--s-9)); }
+/* desktop drill: 2-col grid (fields 1fr / rail 220px) */
+@media (min-width: 1024px) {
+  .phase-body--with-rail { display: grid; grid-template-columns: 1fr 220px; gap: var(--s-6); padding-right: var(--s-5); }
+}
+
+/* ── field (line 832-938) ── */
+.field { margin-bottom: var(--s-5); }
+.field__label-row { display: flex; align-items: flex-start; justify-content: space-between; gap: var(--s-3); margin-bottom: var(--s-2); }
+.field__label { font-size: var(--t-body-sm); font-weight: 600; color: var(--c-ink); }
+.field__hint-row { display: flex; align-items: center; gap: var(--s-2); flex-shrink: 0; }
+.field__hint-link { display: inline-flex; align-items: center; gap: 4px; font-size: var(--t-cap); color: var(--c-ink-3); cursor: pointer; }
+.field__hint-link:hover { color: var(--c-navy); }
+.field__hint-link i { font-size: 13px; }
+.field__meta { display: flex; justify-content: space-between; align-items: center; font-size: var(--t-cap); color: var(--c-ink-3); margin-top: var(--s-1); }
+
+/* ── field-example-toggle (line 840 / 883) ── */
+.field-example-toggle { display: inline-flex; align-items: center; gap: 4px; font-size: var(--t-cap); color: var(--c-navy); cursor: pointer; }
+.field-example-toggle i { font-size: 13px; }
+.field-example-toggle .toggle-caret { transition: transform 0.15s ease; }
+.field-example-toggle.is-active { color: var(--c-navy); }
+
+/* ── rt-field (rich-text textarea, line 845-856) ── */
+.rt-field { border: 1px solid var(--c-rule-bold); border-radius: var(--r-input); overflow: hidden; background: var(--c-card); transition: border-color 0.12s, box-shadow 0.12s; }
+.rt-field:focus-within { border-color: var(--c-primary); box-shadow: var(--shadow-focus, 0 0 0 3px rgba(59,109,214,0.12)); }
+.rt-field__toolbar { display: flex; gap: 2px; padding: var(--s-1) var(--s-2); border-bottom: 1px solid var(--c-rule); background: var(--c-bg-soft); }
+.rt-tbtn { width: 28px; height: 28px; border-radius: var(--r-sm, 4px); display: inline-flex; align-items: center; justify-content: center; color: var(--c-ink-3); font-size: 14px; cursor: pointer; }
+.rt-tbtn:hover { background: var(--c-bg-deep); color: var(--c-ink); }
+/* text-outdent btn — only show on field 1 at desktop+ (mockup 03 line 1118 drill desktop) */
+.rt-tbtn--outdent { display: none; }
+@media (min-width: 1024px) {
+  [data-field-idx="0"] .rt-tbtn--outdent { display: inline-flex; }
+}
+.rt-textarea { width: 100%; padding: var(--s-2) var(--s-3); font-size: var(--t-body-sm); color: var(--c-ink); font-family: var(--font-sans); border: 0; outline: 0; resize: vertical; background: transparent; line-height: 1.6; }
+.rt-textarea::placeholder { color: var(--c-ink-4); }
+
+/* ── char-counter ── */
+.char-counter { font-size: var(--t-cap); color: var(--c-ink-4); font-variant-numeric: tabular-nums; }
+
+/* ── example-expand (line 858-873 mobile / 1127-1142 desktop) ── */
+.example-expand { display: none; background: var(--c-bg-soft); border: 1px solid var(--c-rule); border-radius: var(--r-card); padding: var(--s-3) var(--s-4); margin-top: var(--s-2); }
+.example-expand[aria-hidden="false"] { display: block; }
+.example-expand__head { display: flex; align-items: center; justify-content: space-between; margin-bottom: var(--s-3); }
+.example-expand__title { display: flex; align-items: center; gap: var(--s-2); font-size: var(--t-meta); font-weight: 600; color: var(--c-ink); }
+.example-expand__title i { color: var(--c-navy); font-size: 15px; }
+.example-expand__close { width: 28px; height: 28px; border-radius: var(--r-pill); display: inline-flex; align-items: center; justify-content: center; color: var(--c-ink-3); font-size: 14px; cursor: pointer; }
+.example-expand__close:hover { background: var(--c-bg-deep); color: var(--c-ink); }
+.example-list { padding-left: var(--s-4); font-size: var(--t-body-sm); color: var(--c-ink-2); line-height: 1.7; margin: 0; }
+.example-list li + li { margin-top: var(--s-2); }
+.example-sub { padding-left: var(--s-4); }
+
+/* ── rail aside (desktop drill right column, line 1197-1205) ── */
+.rail { display: none; padding: var(--s-4); background: var(--c-bg-soft); border: 1px solid var(--c-rule); border-radius: var(--r-card); font-size: var(--t-meta); align-self: start; }
+.rail__title { font-size: var(--t-cap); letter-spacing: 0.08em; text-transform: uppercase; color: var(--c-ink-3); font-weight: 600; margin-bottom: var(--s-2); }
+@media (min-width: 1024px) {
+  .phase-body--with-rail .rail { display: block; }
+}
+
+/* ── submit-bar: ghost btn (上一步) hidden on mobile sim, hidden entirely in drill ──
+   sim: ghost rendered always, hidden on mobile via CSS
+   drill: ghost not rendered (no DOM node) */
+.submit-bar__back { }
+@media (max-width: 767px) {
+  .submit-bar__back { display: none; }
+}
+
+/* ─── B SB3 · Phase 1 Form END ─── */

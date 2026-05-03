@@ -148,6 +148,9 @@
   function renderView() {
     const v = AppState.view;
     if (v === 'circles') {
+      if (AppState.circlesPhase === 1 && AppState.circlesSelectedQuestion) {
+        return renderCirclesPhase1();
+      }
       if (AppState.circlesPhase === 1 && !AppState.circlesSession && !AppState.circlesSelectedQuestion) {
         return renderCirclesHome();
       }
@@ -231,6 +234,305 @@
         }
       });
     });
+  }
+
+  // ── CIRCLES_STEP_CONFIG (Plan B SB3 — mockup 03 + spec §3.1) ─────────────
+  // C1 / I / R / C2 4 step × 4 field complete schema.
+  // L / E / S deferred to SB4.
+  var CIRCLES_STEP_CONFIG = {
+    C1: {
+      eyebrow: { sim: 'Phase 1 · 寫框架', drill: 'Phase 1 · 個別步驟練習' },
+      title: 'C · 澄清情境',
+      titleDrillSuffix: '（題目邊界 / 業務影響 / 假設）',
+      progressLabel: '澄清',
+      stepLetter: 'C',
+      stepNum: '01',
+      railTitle: '本步重點',
+      railIntro: '確認題目邊界',
+      railBody: '先把題目本身定義清楚 — 它的具體類型是什麼？涵蓋哪些場景？哪些明確排除？沒釐清這層，後面分析會在錯的邊界上展開。',
+      railTitle2: '時間範圍提示',
+      railBody2: '設定一個合理的觀察期，並說明為什麼這個時長對應業務節奏。「X 天，因為這個業務以 Y 為週期」比丟個數字更有說服力。',
+      fields: [
+        { key: '問題範圍', placeholder: '聚焦免費版的廣告體驗，排除付費方案', minMax: '50-120', max: 120, rows: 3, hint: '寫具體的功能或場景邊界' },
+        { key: '時間範圍', placeholder: '60 天，因為廣告活動以月為週期', minMax: '30-100', max: 100, rows: 2, hint: '說明為什麼這個時長對應業務節奏' },
+        { key: '業務影響', placeholder: '廣告收入和免費→付費轉換率不能下降超過 3%', minMax: '40-120', max: 120, rows: 2, hint: '列出量化紅線 — 哪些指標不能下降' },
+        { key: '假設確認', placeholder: '用戶廣告負感主要來自時段而非廣告本身', minMax: '30-100', max: 100, rows: 2, hint: '寫 2-3 條後續分析會依賴的假設' },
+      ],
+    },
+    I: {
+      eyebrow: { sim: 'Phase 1 · 寫框架', drill: 'Phase 1 · 個別步驟練習' },
+      title: 'I · 定義用戶',
+      titleDrillSuffix: '（分群 / 焦點 / 動機 / 排除）',
+      progressLabel: '用戶',
+      stepLetter: 'I',
+      stepNum: '02',
+      railTitle: '本步重點',
+      railIntro: '鎖定目標用戶',
+      railBody: '用戶分群不是列舉所有人，而是找出「最值得為誰解決」的那群。分群依據要可操作，焦點選定要有理由。',
+      railTitle2: '動機假設提示',
+      railBody2: 'JTBD（Jobs to Be Done）不是描述用戶是誰，而是他們雇用這個產品「完成什麼工作」。用「當 X 發生時，我想要 Y，以便 Z」的格式思考。',
+      fields: [
+        { key: '目標用戶分群', placeholder: '免費版通勤 / 運動 / 開車三類重度聽眾', minMax: '40-120', max: 120, rows: 3, hint: '依行為或使用情境分群，不只人口統計' },
+        { key: '選定焦點對象', placeholder: '通勤族：每天 30-60 分鐘，廣告打斷影響最大', minMax: '30-100', max: 100, rows: 2, hint: '說明為什麼選這群，而不是其他群' },
+        { key: '用戶動機假設(JTBD)', placeholder: '我想在通勤時不被干擾地完整聽完一集 podcast', minMax: '30-100', max: 100, rows: 2, hint: '用「當 X 時，我想要 Y，以便 Z」格式' },
+        { key: '排除對象', placeholder: '付費訂閱者：已沒廣告；創作者：需求不同', minMax: '20-80', max: 80, rows: 2, hint: '說明為什麼排除，讓邊界更清楚' },
+      ],
+    },
+    R: {
+      eyebrow: { sim: 'Phase 1 · 寫框架', drill: 'Phase 1 · 個別步驟練習' },
+      title: 'R · 發掘需求',
+      titleDrillSuffix: '（功能性 / 情感性 / 社交性 / 核心痛點）',
+      progressLabel: '需求',
+      stepLetter: 'R',
+      stepNum: '03',
+      railTitle: '本步重點',
+      railIntro: '三層需求框架',
+      railBody: '功能性（要完成什麼）→ 情感性（感覺如何）→ 社交性（在他人眼中如何）。三層缺一不完整，核心痛點是三層需求未被滿足的交集。',
+      railTitle2: '痛點層次提示',
+      railBody2: '核心痛點不只是「不方便」，而是用戶已嘗試繞路但仍無解的問題。描述時帶入場景會比抽象說明更有力。',
+      fields: [
+        { key: '功能性', placeholder: '可跳過廣告 / 廣告頻率可控 / 廣告時機可選', minMax: '40-120', max: 120, rows: 3, hint: '列出用戶想完成的具體任務或操作' },
+        { key: '情感性', placeholder: '聽 podcast 的沉浸感不被打斷 / 不感到被强迫', minMax: '30-100', max: 100, rows: 2, hint: '用戶在使用過程中希望有什麼感受' },
+        { key: '社交性', placeholder: '能向朋友分享不被廣告打斷的好體驗', minMax: '20-80', max: 80, rows: 2, hint: '用戶如何在社交場合中展示或使用這個產品' },
+        { key: '核心痛點', placeholder: '通勤聽到一半被廣告打斷，回不到剛才的心流狀態', minMax: '30-100', max: 100, rows: 2, hint: '最根本的、用戶已嘗試但未能解決的問題' },
+      ],
+    },
+    C2: {
+      eyebrow: { sim: 'Phase 1 · 寫框架', drill: 'Phase 1 · 個別步驟練習' },
+      title: 'C · 優先排序',
+      titleDrillSuffix: '（取捨標準 / 優先 / 暫緩 / 理由）',
+      progressLabel: '排序',
+      stepLetter: 'C',
+      stepNum: '04',
+      railTitle: '本步重點',
+      railIntro: '顯性化取捨邏輯',
+      railBody: '排序不是列清單，而是說明「用什麼標準決定先後」。取捨標準要與業務目標和用戶痛點連結，理由要可被質疑。',
+      railTitle2: '排序理由提示',
+      railBody2: '避免只說「影響最大」— 要說明影響了什麼、為什麼這個影響比其他的更重要、為什麼現在是做它的時機。',
+      fields: [
+        { key: '取捨標準', placeholder: '用戶衝擊 × 廣告收入影響 × 實作複雜度的 3×3 矩陣', minMax: '40-120', max: 120, rows: 3, hint: '列出 2-3 個判斷優先級的明確標準' },
+        { key: '最優先', placeholder: '廣告時機控制：高衝擊、低廣告損失、實作中等', minMax: '30-100', max: 100, rows: 2, hint: '說明為什麼這個最優先，連結取捨標準' },
+        { key: '暫緩', placeholder: '廣告跳過：收入影響難量化，需先測試', minMax: '20-80', max: 80, rows: 2, hint: '說明暫緩的邏輯，不是說它不重要' },
+        { key: '排序理由', placeholder: '聚焦廣告時機可立即改善通勤族體驗，又不破壞收入模式', minMax: '30-100', max: 100, rows: 2, hint: '用一句話說明整體排序的核心考量' },
+      ],
+    },
+  };
+
+  // ── CIRCLES Phase 1 Form (Plan B SB3 — mockup 03 Section A) ─────────────
+  // renderCirclesPhase1 + helpers: renderProgressBar / renderPhase1Field / renderRail
+
+  function renderProgressBar(activeStep) {
+    // mockup 03 line 801-809 (sim only — drill mode does NOT render this)
+    var steps = [
+      { letter: 'C', label: '澄清', key: 'C1' },
+      { letter: 'I', label: '用戶', key: 'I'  },
+      { letter: 'R', label: '需求', key: 'R'  },
+      { letter: 'C', label: '排序', key: 'C2' },
+      { letter: 'L', label: '方案', key: 'L'  },
+      { letter: 'E', label: '取捨', key: 'E'  },
+      { letter: 'S', label: '總結', key: 'S'  },
+    ];
+    var stepOrder = ['C1', 'I', 'R', 'C2', 'L', 'E', 'S'];
+    var activeIdx = stepOrder.indexOf(activeStep);
+    var html = '<div class="progress">';
+    steps.forEach(function (s, idx) {
+      var cls = 'progress__step' + (idx === activeIdx ? ' is-active' : (idx < activeIdx ? ' is-done' : ''));
+      html += '<span class="' + cls + '"><span class="step-letter">' + escHtml(s.letter) + '</span>' + escHtml(s.label) + '</span>';
+    });
+    return html + '</div>';
+  }
+
+  function renderPhase1Field(fieldCfg, idx, isDrill) {
+    // mockup 03 Section A field structure (line 832-873 for field 1 open; 876-898 fields 2-4)
+    // field 1 (idx===0) only: char-counter, field__meta hint suffix for drill desktop
+    var key = fieldCfg.key;
+    var minMax = fieldCfg.minMax || '';
+    var max = fieldCfg.max || 200;
+    var rows = fieldCfg.rows || 3;
+    var placeholder = fieldCfg.placeholder || '';
+    var hint = fieldCfg.hint || '';
+
+    // toolbar buttons per mockup 03 Section A:
+    //   field 1 mobile/tablet (line 847-850, 1002): text-b / list-bullets / text-indent (3 btn)
+    //   field 1 desktop drill  (line 1114-1118):    text-b / list-bullets / text-indent / text-outdent (4 btn)
+    //   field 2/3/4 all viewports (line 887-893, 911-915, 931-935, 1023, 1040, 1057, 1157, 1174, 1191):
+    //                                              text-b / list-bullets (2 btn — NO indent/outdent)
+    var toolbarHtml;
+    if (idx === 0) {
+      toolbarHtml = '<div class="rt-field__toolbar">'
+        + '<button class="rt-tbtn"><i class="ph ph-text-b"></i></button>'
+        + '<button class="rt-tbtn"><i class="ph ph-list-bullets"></i></button>'
+        + '<button class="rt-tbtn"><i class="ph ph-text-indent"></i></button>'
+        + '<button class="rt-tbtn rt-tbtn--outdent"><i class="ph ph-text-outdent"></i></button>'
+        + '</div>';
+    } else {
+      toolbarHtml = '<div class="rt-field__toolbar">'
+        + '<button class="rt-tbtn"><i class="ph ph-text-b"></i></button>'
+        + '<button class="rt-tbtn"><i class="ph ph-list-bullets"></i></button>'
+        + '</div>';
+    }
+
+    var metaSpan = minMax ? '<span>建議 ' + minMax + ' 字' + (idx === 0 && hint ? ' · ' + hint : '') + '</span>' : '';
+    var counterSpan = idx === 0 ? '<span class="char-counter">0 / ' + max + '</span>' : '';
+    var metaHtml = (metaSpan || counterSpan)
+      ? '<div class="field__meta">' + metaSpan + counterSpan + '</div>'
+      : '';
+
+    return '<div class="field" data-field-key="' + escHtml(key) + '" data-field-idx="' + idx + '">'
+      + '<div class="field__label-row">'
+      + '<label class="field__label">' + escHtml(key) + '</label>'
+      + '<div class="field__hint-row">'
+      + '<button class="field__hint-link" data-phase1="hint" data-field-idx="' + idx + '"><i class="ph ph-lightbulb"></i>提示</button>'
+      + '<button class="field-example-toggle" aria-expanded="false" data-phase1="example-toggle" data-field-idx="' + idx + '">'
+      + '<i class="ph ph-quotes"></i>範例答案<i class="ph ph-caret-down toggle-caret"></i>'
+      + '</button>'
+      + '</div>'
+      + '</div>'
+      + '<div class="rt-field" data-field-idx="' + idx + '">'
+      + toolbarHtml
+      + '<textarea class="rt-textarea" rows="' + rows + '" placeholder="' + escHtml(placeholder) + '" data-phase1="textarea" data-field-idx="' + idx + '" data-max="' + max + '"></textarea>'
+      + '</div>'
+      + metaHtml
+      + '<div class="example-expand" aria-hidden="true" data-field-idx="' + idx + '">'
+      + '<div class="example-expand__head">'
+      + '<div class="example-expand__title"><i class="ph ph-quotes"></i>範例答案</div>'
+      + '<button class="example-expand__close" aria-label="收合" data-phase1="example-close" data-field-idx="' + idx + '"><i class="ph ph-x"></i></button>'
+      + '</div>'
+      + '<ul class="example-list"><li>（範例由題目資料提供）</li></ul>'
+      + '</div>'
+      + '</div>';
+  }
+
+  function renderRail(stepCfg) {
+    // mockup 03 line 1197-1205 — desktop only aside.rail
+    return '<aside class="rail">'
+      + '<div class="rail__title">' + escHtml(stepCfg.railTitle) + '</div>'
+      + '<p style="margin-bottom: var(--s-3); color: var(--c-ink); font-weight: 500;">' + escHtml(stepCfg.railIntro) + '</p>'
+      + '<p style="line-height: 1.7;">' + escHtml(stepCfg.railBody) + '</p>'
+      + '<hr style="border: 0; border-top: 1px solid var(--c-rule); margin: var(--s-4) 0;">'
+      + '<div class="rail__title">' + escHtml(stepCfg.railTitle2 || '') + '</div>'
+      + '<p style="line-height: 1.7;">' + escHtml(stepCfg.railBody2 || '') + '</p>'
+      + '</aside>';
+  }
+
+  function renderCirclesPhase1() {
+    // mockup 03 Section A line 794-1216 — sim mobile / sim tablet / drill desktop
+    var q = AppState.circlesSelectedQuestion;
+    var mode = AppState.circlesMode || 'simulation';
+    var isDrill = mode === 'drill';
+    var stepKey = isDrill ? (AppState.circlesDrillStep || 'C1') : 'C1'; // SB3 scope: C1 only; I/R/C2 same schema
+    var stepCfg = CIRCLES_STEP_CONFIG[stepKey] || CIRCLES_STEP_CONFIG.C1;
+    var simStepIdx = AppState.circlesSimStep || 0; // 0-based sim step index
+    var stepOrder = ['C1', 'I', 'R', 'C2', 'L', 'E', 'S'];
+    var currentStepNum = simStepIdx + 1; // 1-based for display
+
+    // Resolve stepKey for sim mode based on simStepIdx
+    if (!isDrill) {
+      stepKey = stepOrder[simStepIdx] || 'C1';
+      stepCfg = CIRCLES_STEP_CONFIG[stepKey] || CIRCLES_STEP_CONFIG.C1;
+    }
+
+    // ── progress bar (sim only) ──
+    var progressHtml = isDrill ? '' : renderProgressBar(stepKey);
+
+    // ── phase-head (drill variant: .phase-head--drill) ──
+    var eyebrow = isDrill ? stepCfg.eyebrow.drill : stepCfg.eyebrow.sim;
+    var title = isDrill
+      ? (stepCfg.title + stepCfg.titleDrillSuffix)
+      : stepCfg.title;
+    var stepNum = stepCfg.stepNum;
+    // save-indicator
+    var saveHtml = '<span class="save-indicator save-indicator--saved"><i class="ph ph-check"></i>已儲存</span>';
+    // phase-head__meta: sim mobile = save only; sim tablet+ = save + 完整模擬 N/7步; drill = save + drill note
+    // We render two spans and use CSS @media to swap:
+    //   .phase-head__meta--mobile: only save-indicator
+    //   .phase-head__meta--tablet: save + sep + 完整模擬 · N / 7 步
+    //   .phase-head__meta--drill: save + sep + drill 模式 · 此步驟結束即完成
+    // Since tablet shows extra info vs mobile, we render the full meta always
+    // and use CSS to hide the sep+text on mobile via @media.
+    var metaHtml;
+    if (isDrill) {
+      metaHtml = '<span class="phase-head__meta">'
+        + '<span class="save-indicator save-indicator--saved"><i class="ph ph-check"></i>已儲存</span>'
+        + '<span class="phase-head__meta-sep">·</span>'
+        + 'drill 模式 · 此步驟結束即完成'
+        + '</span>';
+    } else {
+      // sim: mobile shows save only; tablet+ shows save + sep + 完整模擬
+      metaHtml = '<span class="phase-head__meta">'
+        + '<span class="save-indicator save-indicator--saved"><i class="ph ph-check"></i>已儲存</span>'
+        + '<span class="phase-head__meta-sep phase-head__meta-extra">·</span>'
+        + '<span class="phase-head__meta-extra">完整模擬 · ' + currentStepNum + ' / 7 步</span>'
+        + '</span>';
+    }
+
+    var phaseHeadClass = 'phase-head' + (isDrill ? ' phase-head--drill' : '');
+    var phaseHeadHtml = '<div class="' + phaseHeadClass + '">'
+      + '<span class="phase-head__num">' + escHtml(stepNum) + '</span>'
+      + '<div class="phase-head__main">'
+      + '<div class="phase-head__eyebrow">' + escHtml(eyebrow) + '</div>'
+      + '<div class="phase-head__title">' + escHtml(title) + '</div>'
+      + '</div>'
+      + metaHtml
+      + '</div>';
+
+    // ── qchip ──
+    var company = (q && q.company) ? q.company : '';
+    var product = (q && q.product) ? q.product : '';
+    var companyDisplay = company + (product ? ' · ' + product : '');
+    if (isDrill) {
+      var diff = (q && q.difficulty) === 'high' ? '高' : (q && q.difficulty) === 'low' ? '低' : '中';
+      var qType = (q && q.question_type) === 'improve' ? '改善題' : (q && q.question_type) === 'strategy' ? '策略題' : '設計題';
+      companyDisplay += ' · ' + qType + ' · 難度 ' + diff;
+    }
+    var qTitle = (q && q.problem_statement) ? q.problem_statement : '';
+    var qchipHtml = '<div class="qchip">'
+      + '<span class="qchip__icon"><i class="ph ph-info"></i></span>'
+      + '<div class="qchip__main">'
+      + '<div class="qchip__company">' + escHtml(companyDisplay) + '</div>'
+      + '<div class="qchip__title">' + escHtml(qTitle) + '</div>'
+      + '</div>'
+      + '<i class="ph ph-caret-down qchip__caret"></i>'
+      + '</div>';
+
+    // ── phase-body with 4 fields ──
+    // desktop drill: phase-body--with-rail (grid) + aside.rail
+    var phaseBodyClass = 'phase-body' + (isDrill ? ' phase-body--with-rail' : '');
+    var fieldsHtml = stepCfg.fields.map(function (f, i) {
+      return renderPhase1Field(f, i, isDrill);
+    }).join('');
+    var phaseBodyHtml = '<div class="' + phaseBodyClass + '">'
+      + '<div>' + fieldsHtml + '</div>'
+      + (isDrill ? renderRail(stepCfg) : '')
+      + '</div>';
+
+    // ── submit-bar ──
+    // sim tablet+: show 上一步 ghost (mobile: no ghost)
+    // drill: no 上一步 at all
+    // We render the ghost btn conditionally:
+    //   - drill: empty left
+    //   - sim: ghost btn in left (CSS hides on mobile via .submit-bar__left--sim-only)
+    var ghostHtml = '';
+    if (!isDrill) {
+      // sim: tablet+ shows 上一步; mobile: hide via CSS
+      ghostHtml = '<button class="btn btn--ghost submit-bar__back" data-phase1="back">'
+        + '<i class="ph ph-arrow-left"></i>上一步'
+        + '</button>';
+    }
+    var submitBarHtml = '<div class="submit-bar">'
+      + '<div class="submit-bar__left">' + ghostHtml + '</div>'
+      + '<div class="submit-bar__right">'
+      + '<button class="btn btn--primary" data-phase1="submit">下一步<i class="ph ph-arrow-right"></i></button>'
+      + '</div>'
+      + '</div>';
+
+    return '<div data-view="circles" data-circles-phase="1">'
+      + progressHtml
+      + phaseHeadHtml
+      + qchipHtml
+      + phaseBodyHtml
+      + submitBarHtml
+      + '</div>';
   }
 
   // ── CIRCLES Home (Plan B SB1 — mockup 01) ────────────────────────────────
@@ -1007,6 +1309,151 @@
         && !AppState.circlesSession
         && !AppState.circlesSelectedQuestion) {
       bindCirclesHome();
+    }
+    if (AppState.view === 'circles'
+        && AppState.circlesPhase === 1
+        && AppState.circlesSelectedQuestion) {
+      bindCirclesPhase1();
+    }
+  }
+
+  // ── bindCirclesPhase1 (Plan B SB3 — mockup 03 Section A interactions) ────
+  var _phase1CharDebounce = null;
+
+  function bindCirclesPhase1() {
+    // ── example-toggle: toggle aria-expanded + show/hide example-expand ──
+    document.querySelectorAll('[data-phase1="example-toggle"]').forEach(function (btn) {
+      btn.addEventListener('click', function (e) {
+        e.stopPropagation();
+        var idx = btn.dataset.fieldIdx;
+        var isActive = btn.getAttribute('aria-expanded') === 'true';
+        var newState = !isActive;
+        btn.setAttribute('aria-expanded', String(newState));
+        btn.classList.toggle('is-active', newState);
+        // rotate caret
+        var caret = btn.querySelector('.toggle-caret');
+        if (caret) caret.style.transform = newState ? 'rotate(180deg)' : '';
+        // show/hide example-expand
+        var expand = document.querySelector('.example-expand[data-field-idx="' + idx + '"]');
+        if (expand) {
+          expand.setAttribute('aria-hidden', String(!newState));
+          expand.style.display = newState ? '' : 'none';
+        }
+      });
+    });
+
+    // ── example-close: collapse example-expand ──
+    document.querySelectorAll('[data-phase1="example-close"]').forEach(function (btn) {
+      btn.addEventListener('click', function (e) {
+        e.stopPropagation();
+        var idx = btn.dataset.fieldIdx;
+        var expand = document.querySelector('.example-expand[data-field-idx="' + idx + '"]');
+        if (expand) {
+          expand.setAttribute('aria-hidden', 'true');
+          expand.style.display = 'none';
+        }
+        var toggle = document.querySelector('[data-phase1="example-toggle"][data-field-idx="' + idx + '"]');
+        if (toggle) {
+          toggle.setAttribute('aria-expanded', 'false');
+          toggle.classList.remove('is-active');
+          var caret = toggle.querySelector('.toggle-caret');
+          if (caret) caret.style.transform = '';
+        }
+      });
+    });
+
+    // ── hint button: SB5 will implement full overlay; here just noop / console ──
+    document.querySelectorAll('[data-phase1="hint"]').forEach(function (btn) {
+      btn.addEventListener('click', function (e) {
+        e.stopPropagation();
+        // SB5 will implement hint overlay; placeholder
+      });
+    });
+
+    // ── textarea input: debounce 200ms → update char-counter + draft ──
+    document.querySelectorAll('[data-phase1="textarea"]').forEach(function (ta) {
+      ta.addEventListener('input', function () {
+        if (_phase1CharDebounce) clearTimeout(_phase1CharDebounce);
+        _phase1CharDebounce = setTimeout(function () {
+          var idx = parseInt(ta.dataset.fieldIdx, 10);
+          var max = parseInt(ta.dataset.max, 10) || 200;
+          var val = ta.value;
+          // update char-counter for field 0 only (mockup shows counter only on field 1)
+          if (idx === 0) {
+            var counter = ta.closest('.field') && ta.closest('.field').querySelector('.char-counter');
+            if (counter) counter.textContent = val.length + ' / ' + max;
+          }
+          // update draft in AppState
+          var stepKey = AppState.circlesMode === 'drill'
+            ? (AppState.circlesDrillStep || 'C1')
+            : (['C1', 'I', 'R', 'C2', 'L', 'E', 'S'][AppState.circlesSimStep || 0] || 'C1');
+          var cfg = CIRCLES_STEP_CONFIG[stepKey] || CIRCLES_STEP_CONFIG.C1;
+          if (cfg && cfg.fields[idx]) {
+            var fieldKey = cfg.fields[idx].key;
+            if (!AppState.circlesFrameworkDraft) AppState.circlesFrameworkDraft = {};
+            if (!AppState.circlesFrameworkDraft[stepKey]) AppState.circlesFrameworkDraft[stepKey] = {};
+            AppState.circlesFrameworkDraft[stepKey][fieldKey] = val;
+          }
+        }, 200);
+      });
+    });
+
+    // ── rt-tbtn: rich text toolbar actions ──
+    document.querySelectorAll('.rt-tbtn').forEach(function (btn) {
+      btn.addEventListener('click', function (e) {
+        e.preventDefault();
+        var icon = btn.querySelector('i');
+        if (!icon) return;
+        var cls = icon.className;
+        if (cls.indexOf('ph-text-b') >= 0) document.execCommand('bold', false, null);
+        else if (cls.indexOf('ph-list-bullets') >= 0) document.execCommand('insertUnorderedList', false, null);
+        else if (cls.indexOf('ph-text-indent') >= 0) document.execCommand('indent', false, null);
+        else if (cls.indexOf('ph-text-outdent') >= 0) document.execCommand('outdent', false, null);
+      });
+    });
+
+    // ── submit 下一步 ──
+    var submitBtn = document.querySelector('[data-phase1="submit"]');
+    if (submitBtn) {
+      submitBtn.addEventListener('click', function () {
+        var mode = AppState.circlesMode || 'simulation';
+        if (mode === 'drill') {
+          // drill: single step done → go to Phase 1.5 Gate (stub for now)
+          // SB4 will implement Gate; for now stub phase transition
+          AppState.circlesPhase = 1.5;
+          render();
+        } else {
+          // sim: advance to next step (if at last sim step, go Phase 1.5)
+          var stepOrder = ['C1', 'I', 'R', 'C2', 'L', 'E', 'S'];
+          var nextIdx = (AppState.circlesSimStep || 0) + 1;
+          if (nextIdx >= stepOrder.length) {
+            // all 7 steps done in Phase 1 — go to Phase 1.5
+            AppState.circlesPhase = 1.5;
+          } else {
+            AppState.circlesSimStep = nextIdx;
+          }
+          render();
+        }
+      });
+    }
+
+    // ── 上一步 back button (sim only, tablet+) ──
+    var backBtn = document.querySelector('[data-phase1="back"]');
+    if (backBtn) {
+      backBtn.addEventListener('click', function () {
+        var mode = AppState.circlesMode || 'simulation';
+        if (mode === 'simulation') {
+          var prevIdx = (AppState.circlesSimStep || 0) - 1;
+          if (prevIdx < 0) {
+            // back to home (deselect question)
+            AppState.circlesSelectedQuestion = null;
+            AppState.circlesSimStep = 0;
+          } else {
+            AppState.circlesSimStep = prevIdx;
+          }
+          render();
+        }
+      });
     }
   }
 
