@@ -28,3 +28,38 @@
 **Working state at end：** NSM 4 步從挑題到完成 done-panel 全跑；jest 不變；Playwright 全 8 viewport NSM spec 綠；mockup 06/07/08/14 baseline diff 全 < 0.5%。
 
 **Plan C handoff criteria：** spec §0.5 全綠 + 14-box signoff → merge → 開 Plan D worktree。
+
+---
+
+## C1 · Sub-bundle 1 — NSM Step 1 (mockup 06) — scope note 2026-05-03
+
+**Worktree：** `/Users/albertpeng/Desktop/claude_project/first-principle-path2-c-nsm` · branch `feat/path-2-nsm` from main 55f7051
+**Dev port：** 4002（PORT=4002 npm start；Playwright 用 PMDRILL_BASE_URL=http://localhost:4002）
+**Mockup baseline：** `tests/visual/baselines/{mobile-360,tablet-768,desktop-1280}/06-nsm-step-1.png`
+
+### BEM map（自 mockup 06 抽出 — implementer 視覺契約）
+
+| 元件 | class | 備註 |
+|---|---|---|
+| 4-step progress | `.nsm-progress` `.nsm-progress__step` `.nsm-progress__dot` `.nsm-progress__label` `.nsm-progress__line` | step 加 `is-active` / `is-done`；line 加 `is-done` |
+| body container | `.nsm-body` `.nsm-instruction` `.nsm-content` | desktop 走 `.nsm-desktop-shell` 取代 `.nsm-body` |
+| 列表頭 | `.nsm-list-head` `.nsm-list-head__label` `.nsm-shuffle` | shuffle button 隨機選題 |
+| 題卡 | `.nsm-q-list` `.nsm-q-card` `.nsm-q-card__head` `.nsm-q-card__company` `.nsm-q-card__industry` `.nsm-q-card__type` `.nsm-q-card__scenario` | selected 加 `is-selected`，type 加 modifier `--attention` `--transaction` `--creator` `--saas` |
+| 4-欄 context | `.nsm-context` `.nsm-ctx-row` `.nsm-ctx-row__label` `.nsm-ctx-row__val` | trap row 加 `--trap`，insight row 加 `--insight`；loading 加 `is-loading` |
+| desktop shell | `.nsm-desktop-shell` `.nsm-filter-rail` `.nsm-filter-rail__label` `.nsm-filter-row` `.nsm-filter-row__count` `.nsm-search` `.nsm-recent` `.nsm-recent__item` `.nsm-recent__item-co` `.nsm-recent__item-meta` `.nsm-center` | 200px / 1fr / 220px |
+
+### Type pill 配色（無紫色）
+
+| product type | pill modifier | bg / text | filter rail icon color |
+|---|---|---|---|
+| 注意力型 | `--attention` | navy-lt / navy | `--c-navy` |
+| 交易量型 | `--transaction` | success-lt / success | `--c-success` |
+| 創造力型 | `--creator` | warn-lt / warn | `--c-warn` |
+| SaaS 型 | `--saas` | primary-lt / primary | `--c-primary` |
+
+### Helpers
+
+- `detectProductType(q)` — 由 `q.industry` keyword 判斷（SaaS / 訂閱 → saas；外賣 / 電商 / 出行 / 平台 / 交易 → transaction；創作 / 內容 → creator；其餘 → attention）
+- `NSM_TYPE_META` — { attention: { label, icon, color, modifier }, ... } 4 entries 全 LOCKED 配色
+- `pickNSMRandom5(qs)` — Fisher-Yates 抽 5
+- `filterNSMByType(qs, type)` — type='all' or product type
