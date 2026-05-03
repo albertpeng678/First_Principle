@@ -38,7 +38,7 @@
     // Plan B additions
     circlesTypeFilter: 'design',        // 'design' | 'improve' | 'strategy'
     circlesSearchText: '',
-    circlesQaOpen: true,                // qa-row default open per mockup
+    circlesQaOpen: false,               // qa-row default closed (user 2026-05-04)
     circlesExpandedQid: null,           // single qcard expanded (SB2 — mockup 01 line 1801)
     circlesRecentSessions: null,        // null = not loaded; [] = empty; [...] = items (SB2)
 
@@ -763,7 +763,7 @@
 
     var mode = AppState.circlesMode;
     var filter = AppState.circlesTypeFilter || 'design';
-    var qaOpen = AppState.circlesQaOpen !== false; // default open
+    var qaOpen = AppState.circlesQaOpen === true; // default closed (user 2026-05-04)
 
     // ── stats-strip (mockup viewport-conditional hint suffix) ──
     //   mobile  (≤767, line 808-815):  no hint

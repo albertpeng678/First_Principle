@@ -124,12 +124,12 @@ test.describe('B1 CIRCLES Home', () => {
   test('qa-row toggle opens/closes accordion body', async ({ page }) => {
     await page.goto('/');
     await page.waitForSelector('.qa-row');
-    // Default state per mockup: is-open
-    await expect(page.locator('.qa-row')).toHaveClass(/is-open/);
-    await page.locator('.qa-row__head').click();
+    // Default state: closed (user 2026-05-04 — was open per mockup, now collapsed by default)
     await expect(page.locator('.qa-row')).not.toHaveClass(/is-open/);
     await page.locator('.qa-row__head').click();
     await expect(page.locator('.qa-row')).toHaveClass(/is-open/);
+    await page.locator('.qa-row__head').click();
+    await expect(page.locator('.qa-row')).not.toHaveClass(/is-open/);
   });
 
   test('nsm-promo CTA links / triggers nav to NSM', async ({ page }) => {
