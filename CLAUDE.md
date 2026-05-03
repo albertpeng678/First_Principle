@@ -1,7 +1,7 @@
 # PM Drill — 專案狀態看板
 
 > 即時狀態 single source of truth。重大事件即時 Edit。不放歷史（git log 有）。
-> **Last updated:** 2026-05-04（Plan B SB4 ✅ DONE — L solution-multi sim-only / Plan B SB1-3 + C SB1 + D SB1 全 merged main）
+> **Last updated:** 2026-05-04（Plan B SB5 ✅ DONE — S 步 3+4 tracking 動態 type label / Plan B SB1-4 + C SB1 + D SB1 全 merged main）
 >
 > **🔴 接手 Handoff：** `docs/PATH-2-HANDOFF.md` — 下個 session / 帳號接手必先讀
 
@@ -32,7 +32,8 @@
 | Plan B SB2（CIRCLES Home 收尾 — drill-rail + recent-rail + qcard expanded + mode-card body 3-tier + mode-tag short/long + qcard product/難度 viewport-conditional）| ✅ DONE — sonnet 7 commits + opus cold-review fix `83e6667` + 第二輪 drift fix `f517d63`（8 條 viewport-conditional 文案 line-by-line 對照 mockup 01）/ jest 157 / PW 54/54 |
 | Plan B SB3（Phase 1 Form 4-field 標準 mockup 03 Section A — C1/I/R/C2 sim+drill 雙變體）| ✅ DONE — sonnet 5 commits + opus cold-review fix `ccd849d`（rt-field toolbar 按鈕數量 viewport+field-idx-conditional / line-by-line vs mockup line 794-1216）/ jest 157 / PW 27/27 |
 | Plan B SB4（L 步 solution-multi mockup 03 Section B — sim-only 2-3 sol-cards / sol-add / sol-card__remove / desktop rail）| ✅ DONE — sonnet `b022ae7` + opus cold-review fix `aa0683a`（8 條 sol-card CSS drift 對齊 mockup line 543-607 / hint-row 顯示修正 / `phase-head__title-extra` desktop sim 後綴 / qchip 設計題·難度 desktop suffix）/ jest 157 / PW 99/99 |
-| Plan B SB5+（E 步 per-sol 4-field nested / S 步 3+4 tracking / hint overlay 3-tier / locked-stale）/ Plan E final ship | ⏳ 待開工 |
+| Plan B SB5（S 步 3+4 tracking mockup 03 Section C — 3 main rt-fields + tracking-section + 4 tracking-card 動態 dim labels per product type / CTA「完成 Phase 1」/ desktop suffix「（含 NSM 與 4 追蹤維度）」/ desktop rail 動態 type substitution）| ✅ DONE — sonnet `bdbdf4a` + opus cold-review fix `b81f8a1`（mobile rt-toolbar 改 1 button 對齊 mockup line 1493）/ jest 157 / PW 123/123 |
+| Plan B SB6+（E 步 per-sol 4-field nested / hint overlay 3-tier / locked-stale）/ Plan E final ship | ⏳ 待開工 |
 
 ---
 
