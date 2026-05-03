@@ -39,6 +39,7 @@
     circlesTypeFilter: 'design',        // 'design' | 'improve' | 'strategy'
     circlesSearchText: '',
     circlesQaOpen: true,                // qa-row default open per mockup
+    circlesExpandedQid: null,           // single qcard expanded (SB2 — mockup 01 line 1801)
 
     // NSM (Plan C fills)
     nsmStep: 1,
@@ -282,18 +283,46 @@
     var tagIcon  = isSim ? 'ph-list-checks' : 'ph-target';
     var tagLabel = isSim ? '完整' : '步驟練';
     var num = String(idx + 1).padStart(2, '0');
+    var diff = q.difficulty === 'high' ? '高' : q.difficulty === 'low' ? '低' : '中';
     var title = escHtml(q.company) + (q.product ? ' · ' + escHtml(q.product) : '');
-    return '<div class="qcard" data-qid="' + escHtml(q.id) + '">'
-      + '<div class="qcard__head">'
-      + '<span class="qcard__num">' + num + '</span>'
-      + '<h3 class="qcard__title">' + title + '</h3>'
-      + '</div>'
-      + '<div class="qcard__meta">'
+    var meta = '<div class="qcard__meta">'
       + '<span class="mode-tag ' + tagClass + '"><i class="ph ' + tagIcon + '"></i>' + tagLabel + '</span>'
       + '<span class="qcard__meta-sep">·</span>'
       + escHtml(q.company)
-      + '</div>'
+      + (q.product ? '<span class="qcard__meta-sep">·</span>' + escHtml(q.product) : '')
+      + '<span class="qcard__meta-sep">·</span><span style="color:var(--c-ink-4);">難度 ' + diff + '</span>'
+      + '</div>';
+
+    var isExpanded = AppState.circlesExpandedQid === q.id;
+    var expandHtml = '';
+    if (isExpanded) {
+      // mockup 01 line 1801-1836
+      var an = q.analysis || {};
+      expandHtml = '<div class="qcard__expand">'
+        + '<h4 class="qcard__section-label">完整題目</h4>'
+        + '<p class="qcard__full-statement">' + escHtml(q.problem_statement || '') + '</p>'
+        + '<h4 class="qcard__section-label">深入分析</h4>'
+        + '<div class="qcard-analysis">'
+        + '<div class="ana-block"><div class="ana-block__head"><i class="ph ph-buildings"></i>商業背景</div>'
+        + '<div class="ana-block__body">' + escHtml(an.business || '') + '</div></div>'
+        + '<div class="ana-block"><div class="ana-block__head"><i class="ph ph-users"></i>用戶輪廓</div>'
+        + '<div class="ana-block__body">' + escHtml(an.users || '') + '</div></div>'
+        + '<div class="ana-block ana-block--trap"><div class="ana-block__head"><i class="ph ph-warning"></i>常見誤區</div>'
+        + '<div class="ana-block__body">' + escHtml(an.traps || '') + '</div></div>'
+        + '<div class="ana-block"><div class="ana-block__head"><i class="ph ph-lightbulb"></i>破題切入</div>'
+        + '<div class="ana-block__body">' + escHtml(an.insight || '') + '</div></div>'
+        + '</div>'
+        + '<div class="qcard__action-row">'
+        + '<button class="qcard__btn qcard__btn--ghost" data-circles="qcard-cancel">取消</button>'
+        + '<button class="qcard__btn qcard__btn--primary" data-circles="qcard-confirm" data-qid="' + escHtml(q.id) + '">確認，開始練習</button>'
+        + '</div></div>';
+    }
+
+    return '<div class="qcard' + (isExpanded ? ' is-expanded' : '') + '" data-circles="qcard" data-qid="' + escHtml(q.id) + '">'
+      + '<div class="qcard__head"><span class="qcard__num">' + num + '</span><h3 class="qcard__title">' + title + '</h3></div>'
+      + meta
       + '<p class="qcard__body">' + escHtml(q.problem_statement) + '</p>'
+      + expandHtml
       + '</div>';
   }
 
