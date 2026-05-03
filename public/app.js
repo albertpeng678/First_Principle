@@ -148,6 +148,9 @@
   function renderView() {
     const v = AppState.view;
     if (v === 'circles') {
+      if (AppState.circlesPhase === 1 && AppState.circlesSelectedQuestion) {
+        return renderCirclesPhase1();
+      }
       if (AppState.circlesPhase === 1 && !AppState.circlesSession && !AppState.circlesSelectedQuestion) {
         return renderCirclesHome();
       }
@@ -314,6 +317,213 @@
       ],
     },
   };
+
+  // ── CIRCLES Phase 1 Form (Plan B SB3 — mockup 03 Section A) ─────────────
+  // renderCirclesPhase1 + helpers: renderProgressBar / renderPhase1Field / renderRail
+
+  function renderProgressBar(activeStep) {
+    // mockup 03 line 801-809 (sim only — drill mode does NOT render this)
+    var steps = [
+      { letter: 'C', label: '澄清', key: 'C1' },
+      { letter: 'I', label: '用戶', key: 'I'  },
+      { letter: 'R', label: '需求', key: 'R'  },
+      { letter: 'C', label: '排序', key: 'C2' },
+      { letter: 'L', label: '方案', key: 'L'  },
+      { letter: 'E', label: '取捨', key: 'E'  },
+      { letter: 'S', label: '總結', key: 'S'  },
+    ];
+    var stepOrder = ['C1', 'I', 'R', 'C2', 'L', 'E', 'S'];
+    var activeIdx = stepOrder.indexOf(activeStep);
+    var html = '<div class="progress">';
+    steps.forEach(function (s, idx) {
+      var cls = 'progress__step' + (idx === activeIdx ? ' is-active' : (idx < activeIdx ? ' is-done' : ''));
+      html += '<span class="' + cls + '"><span class="step-letter">' + escHtml(s.letter) + '</span>' + escHtml(s.label) + '</span>';
+    });
+    return html + '</div>';
+  }
+
+  function renderPhase1Field(fieldCfg, idx, isDrill) {
+    // mockup 03 Section A field structure (line 832-873 for field 1 open; 876-898 fields 2-4)
+    // field 1 (idx===0) only: char-counter, field__meta hint suffix for drill desktop
+    var key = fieldCfg.key;
+    var minMax = fieldCfg.minMax || '';
+    var max = fieldCfg.max || 200;
+    var rows = fieldCfg.rows || 3;
+    var placeholder = fieldCfg.placeholder || '';
+    var hint = fieldCfg.hint || '';
+
+    // toolbar buttons: field 1 desktop drill gets 4 buttons, others get 3
+    // We render 3 standard buttons + 1 extra with CSS to show/hide per viewport+mode combo
+    // (mockup 03 line 847-850 mobile: 3 btns; line 1114-1118 desktop drill field 1: 4 btns)
+    var toolbarHtml = '<div class="rt-field__toolbar">'
+      + '<button class="rt-tbtn"><i class="ph ph-text-b"></i></button>'
+      + '<button class="rt-tbtn"><i class="ph ph-list-bullets"></i></button>'
+      + '<button class="rt-tbtn"><i class="ph ph-text-indent"></i></button>'
+      + (idx === 0 ? '<button class="rt-tbtn rt-tbtn--outdent"><i class="ph ph-text-outdent"></i></button>' : '')
+      + '</div>';
+
+    var metaSpan = minMax ? '<span>建議 ' + minMax + ' 字' + (idx === 0 && hint ? ' · ' + hint : '') + '</span>' : '';
+    var counterSpan = idx === 0 ? '<span class="char-counter">0 / ' + max + '</span>' : '';
+    var metaHtml = (metaSpan || counterSpan)
+      ? '<div class="field__meta">' + metaSpan + counterSpan + '</div>'
+      : '';
+
+    return '<div class="field" data-field-key="' + escHtml(key) + '" data-field-idx="' + idx + '">'
+      + '<div class="field__label-row">'
+      + '<label class="field__label">' + escHtml(key) + '</label>'
+      + '<div class="field__hint-row">'
+      + '<button class="field__hint-link" data-phase1="hint" data-field-idx="' + idx + '"><i class="ph ph-lightbulb"></i>提示</button>'
+      + '<button class="field-example-toggle" aria-expanded="false" data-phase1="example-toggle" data-field-idx="' + idx + '">'
+      + '<i class="ph ph-quotes"></i>範例答案<i class="ph ph-caret-down toggle-caret"></i>'
+      + '</button>'
+      + '</div>'
+      + '</div>'
+      + '<div class="rt-field" data-field-idx="' + idx + '">'
+      + toolbarHtml
+      + '<textarea class="rt-textarea" rows="' + rows + '" placeholder="' + escHtml(placeholder) + '" data-phase1="textarea" data-field-idx="' + idx + '" data-max="' + max + '"></textarea>'
+      + '</div>'
+      + metaHtml
+      + '<div class="example-expand" aria-hidden="true" data-field-idx="' + idx + '">'
+      + '<div class="example-expand__head">'
+      + '<div class="example-expand__title"><i class="ph ph-quotes"></i>範例答案</div>'
+      + '<button class="example-expand__close" aria-label="收合" data-phase1="example-close" data-field-idx="' + idx + '"><i class="ph ph-x"></i></button>'
+      + '</div>'
+      + '<ul class="example-list"><li>（範例由題目資料提供）</li></ul>'
+      + '</div>'
+      + '</div>';
+  }
+
+  function renderRail(stepCfg) {
+    // mockup 03 line 1197-1205 — desktop only aside.rail
+    return '<aside class="rail">'
+      + '<div class="rail__title">' + escHtml(stepCfg.railTitle) + '</div>'
+      + '<p style="margin-bottom: var(--s-3); color: var(--c-ink); font-weight: 500;">' + escHtml(stepCfg.railIntro) + '</p>'
+      + '<p style="line-height: 1.7;">' + escHtml(stepCfg.railBody) + '</p>'
+      + '<hr style="border: 0; border-top: 1px solid var(--c-rule); margin: var(--s-4) 0;">'
+      + '<div class="rail__title">' + escHtml(stepCfg.railTitle2 || '') + '</div>'
+      + '<p style="line-height: 1.7;">' + escHtml(stepCfg.railBody2 || '') + '</p>'
+      + '</aside>';
+  }
+
+  function renderCirclesPhase1() {
+    // mockup 03 Section A line 794-1216 — sim mobile / sim tablet / drill desktop
+    var q = AppState.circlesSelectedQuestion;
+    var mode = AppState.circlesMode || 'simulation';
+    var isDrill = mode === 'drill';
+    var stepKey = isDrill ? (AppState.circlesDrillStep || 'C1') : 'C1'; // SB3 scope: C1 only; I/R/C2 same schema
+    var stepCfg = CIRCLES_STEP_CONFIG[stepKey] || CIRCLES_STEP_CONFIG.C1;
+    var simStepIdx = AppState.circlesSimStep || 0; // 0-based sim step index
+    var stepOrder = ['C1', 'I', 'R', 'C2', 'L', 'E', 'S'];
+    var currentStepNum = simStepIdx + 1; // 1-based for display
+
+    // Resolve stepKey for sim mode based on simStepIdx
+    if (!isDrill) {
+      stepKey = stepOrder[simStepIdx] || 'C1';
+      stepCfg = CIRCLES_STEP_CONFIG[stepKey] || CIRCLES_STEP_CONFIG.C1;
+    }
+
+    // ── progress bar (sim only) ──
+    var progressHtml = isDrill ? '' : renderProgressBar(stepKey);
+
+    // ── phase-head (drill variant: .phase-head--drill) ──
+    var eyebrow = isDrill ? stepCfg.eyebrow.drill : stepCfg.eyebrow.sim;
+    var title = isDrill
+      ? (stepCfg.title + stepCfg.titleDrillSuffix)
+      : stepCfg.title;
+    var stepNum = stepCfg.stepNum;
+    // save-indicator
+    var saveHtml = '<span class="save-indicator save-indicator--saved"><i class="ph ph-check"></i>已儲存</span>';
+    // phase-head__meta: sim mobile = save only; sim tablet+ = save + 完整模擬 N/7步; drill = save + drill note
+    // We render two spans and use CSS @media to swap:
+    //   .phase-head__meta--mobile: only save-indicator
+    //   .phase-head__meta--tablet: save + sep + 完整模擬 · N / 7 步
+    //   .phase-head__meta--drill: save + sep + drill 模式 · 此步驟結束即完成
+    // Since tablet shows extra info vs mobile, we render the full meta always
+    // and use CSS to hide the sep+text on mobile via @media.
+    var metaHtml;
+    if (isDrill) {
+      metaHtml = '<span class="phase-head__meta">'
+        + '<span class="save-indicator save-indicator--saved"><i class="ph ph-check"></i>已儲存</span>'
+        + '<span class="phase-head__meta-sep">·</span>'
+        + 'drill 模式 · 此步驟結束即完成'
+        + '</span>';
+    } else {
+      // sim: mobile shows save only; tablet+ shows save + sep + 完整模擬
+      metaHtml = '<span class="phase-head__meta">'
+        + '<span class="save-indicator save-indicator--saved"><i class="ph ph-check"></i>已儲存</span>'
+        + '<span class="phase-head__meta-sep phase-head__meta-extra">·</span>'
+        + '<span class="phase-head__meta-extra">完整模擬 · ' + currentStepNum + ' / 7 步</span>'
+        + '</span>';
+    }
+
+    var phaseHeadClass = 'phase-head' + (isDrill ? ' phase-head--drill' : '');
+    var phaseHeadHtml = '<div class="' + phaseHeadClass + '">'
+      + '<span class="phase-head__num">' + escHtml(stepNum) + '</span>'
+      + '<div class="phase-head__main">'
+      + '<div class="phase-head__eyebrow">' + escHtml(eyebrow) + '</div>'
+      + '<div class="phase-head__title">' + escHtml(title) + '</div>'
+      + '</div>'
+      + metaHtml
+      + '</div>';
+
+    // ── qchip ──
+    var company = (q && q.company) ? q.company : '';
+    var product = (q && q.product) ? q.product : '';
+    var companyDisplay = company + (product ? ' · ' + product : '');
+    if (isDrill) {
+      var diff = (q && q.difficulty) === 'high' ? '高' : (q && q.difficulty) === 'low' ? '低' : '中';
+      var qType = (q && q.question_type) === 'improve' ? '改善題' : (q && q.question_type) === 'strategy' ? '策略題' : '設計題';
+      companyDisplay += ' · ' + qType + ' · 難度 ' + diff;
+    }
+    var qTitle = (q && q.problem_statement) ? q.problem_statement : '';
+    var qchipHtml = '<div class="qchip">'
+      + '<span class="qchip__icon"><i class="ph ph-info"></i></span>'
+      + '<div class="qchip__main">'
+      + '<div class="qchip__company">' + escHtml(companyDisplay) + '</div>'
+      + '<div class="qchip__title">' + escHtml(qTitle) + '</div>'
+      + '</div>'
+      + '<i class="ph ph-caret-down qchip__caret"></i>'
+      + '</div>';
+
+    // ── phase-body with 4 fields ──
+    // desktop drill: phase-body--with-rail (grid) + aside.rail
+    var phaseBodyClass = 'phase-body' + (isDrill ? ' phase-body--with-rail' : '');
+    var fieldsHtml = stepCfg.fields.map(function (f, i) {
+      return renderPhase1Field(f, i, isDrill);
+    }).join('');
+    var phaseBodyHtml = '<div class="' + phaseBodyClass + '">'
+      + '<div>' + fieldsHtml + '</div>'
+      + (isDrill ? renderRail(stepCfg) : '')
+      + '</div>';
+
+    // ── submit-bar ──
+    // sim tablet+: show 上一步 ghost (mobile: no ghost)
+    // drill: no 上一步 at all
+    // We render the ghost btn conditionally:
+    //   - drill: empty left
+    //   - sim: ghost btn in left (CSS hides on mobile via .submit-bar__left--sim-only)
+    var ghostHtml = '';
+    if (!isDrill) {
+      // sim: tablet+ shows 上一步; mobile: hide via CSS
+      ghostHtml = '<button class="btn btn--ghost submit-bar__back" data-phase1="back">'
+        + '<i class="ph ph-arrow-left"></i>上一步'
+        + '</button>';
+    }
+    var submitBarHtml = '<div class="submit-bar">'
+      + '<div class="submit-bar__left">' + ghostHtml + '</div>'
+      + '<div class="submit-bar__right">'
+      + '<button class="btn btn--primary" data-phase1="submit">下一步<i class="ph ph-arrow-right"></i></button>'
+      + '</div>'
+      + '</div>';
+
+    return '<div data-view="circles" data-circles-phase="1">'
+      + progressHtml
+      + phaseHeadHtml
+      + qchipHtml
+      + phaseBodyHtml
+      + submitBarHtml
+      + '</div>';
+  }
 
   // ── CIRCLES Home (Plan B SB1 — mockup 01) ────────────────────────────────
   var CIRCLES_QUESTIONS = window.CIRCLES_QUESTIONS || [];
@@ -1089,6 +1299,11 @@
         && !AppState.circlesSession
         && !AppState.circlesSelectedQuestion) {
       bindCirclesHome();
+    }
+    if (AppState.view === 'circles'
+        && AppState.circlesPhase === 1
+        && AppState.circlesSelectedQuestion) {
+      bindCirclesPhase1();
     }
   }
 

@@ -86,12 +86,14 @@ test.describe('B SB3 Phase 1 Form — mockup 03 Section A', () => {
     await page.setViewportSize({ width: 360, height: 780 });
     await gotoSimC1(page);
     await expect(page.locator('.submit-bar__right .btn--primary')).toContainText('下一步');
-    expect(await page.locator('.submit-bar__left .btn--ghost').count()).toBe(0);
+    // mobile sim: ghost btn exists but hidden via CSS (.submit-bar__back hidden on mobile)
+    await expect(page.locator('.submit-bar__left .btn--ghost')).not.toBeVisible();
     // tablet
     await page.setViewportSize({ width: 768, height: 1024 });
     await page.waitForTimeout(200);
+    await expect(page.locator('.submit-bar__left .btn--ghost')).toBeVisible();
     await expect(page.locator('.submit-bar__left .btn--ghost')).toContainText('上一步');
-    // drill (mode separate path)
+    // drill (mode separate path): no ghost btn rendered at all
     await page.setViewportSize({ width: 360, height: 780 });
     await gotoDrillC1(page);
     expect(await page.locator('.submit-bar__left .btn--ghost').count()).toBe(0);
