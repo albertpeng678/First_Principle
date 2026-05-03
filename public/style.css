@@ -262,3 +262,163 @@ a { color: inherit; text-decoration: none; }
 @media (max-width: 767px) { [data-nsm-step="1"] .phase-head__meta { display: none; } }
 @media (max-width: 1023px) { [data-nsm-step="1"]:not([data-nsm-selected]) .phase-head__meta { display: none; } }
 /* ───── C1 · NSM Step 1 (mockup 06) END ───── */
+
+/* ───── D1 · Offcanvas History (mockup 09) BEGIN ───── */
+/* drawer 280px slide-in from left + backdrop dim. 4 states: list / empty / loading / error.
+ * Score badge: single navy (mockup 09 凍 — no gradient grading).
+ * Trash icon hidden until item hover. */
+.offcanvas-backdrop {
+  position: fixed; inset: 0;
+  background: rgba(20,15,10,0.45);
+  -webkit-backdrop-filter: saturate(60%);
+  backdrop-filter: saturate(60%);
+  z-index: 90;
+  animation: offcanvas-fade-in var(--t-norm) var(--ease);
+}
+.offcanvas-drawer {
+  position: fixed;
+  left: 0; top: 0; bottom: 0;
+  width: 280px;
+  background: var(--c-card);
+  box-shadow: 4px 0 24px rgba(20,15,10,0.18);
+  display: flex;
+  flex-direction: column;
+  z-index: 91;
+  animation: offcanvas-slide-in var(--t-norm) var(--ease);
+}
+@keyframes offcanvas-fade-in { from { opacity: 0; } to { opacity: 1; } }
+@keyframes offcanvas-slide-in { from { transform: translateX(-100%); } to { transform: translateX(0); } }
+.offcanvas-head {
+  display: flex; align-items: center; gap: var(--s-3);
+  padding: var(--s-4) var(--s-4) var(--s-3);
+  flex: 0 0 auto;
+}
+.offcanvas-head__title { flex: 1; font-size: var(--t-h3); font-weight: 600; color: var(--c-ink); letter-spacing: -0.005em; }
+.offcanvas-head__close { width: 36px; height: 36px; border-radius: var(--r-pill); display: inline-flex; align-items: center; justify-content: center; color: var(--c-ink-2); font-size: 20px; transition: background var(--t-fast) var(--ease); }
+.offcanvas-head__close:hover { background: var(--c-bg-soft); color: var(--c-ink); }
+.offcanvas-body {
+  flex: 1; min-height: 0;
+  overflow-y: auto;
+  padding: 0 var(--s-3) var(--s-4);
+  display: flex; flex-direction: column;
+}
+
+/* item — minimal palette: navy score badge only, all else greyscale */
+.offcanvas-item {
+  position: relative;
+  padding: var(--s-3);
+  border-radius: var(--r-input);
+  cursor: pointer;
+  transition: background var(--t-fast) var(--ease);
+  margin-bottom: 2px;
+}
+.offcanvas-item:hover { background: var(--c-bg-soft); }
+.offcanvas-item__title-row {
+  display: flex; gap: var(--s-2);
+  align-items: flex-start;
+  padding-right: 28px;
+}
+.offcanvas-item__title {
+  flex: 1; min-width: 0;
+  font-size: var(--t-body-sm); color: var(--c-ink); font-weight: 500;
+  line-height: 1.4;
+  display: -webkit-box;
+  -webkit-line-clamp: 2;
+  -webkit-box-orient: vertical;
+  overflow: hidden;
+}
+.offcanvas-item__score {
+  flex: 0 0 auto;
+  padding: 1px var(--s-2);
+  background: var(--c-navy); color: #fff;
+  border-radius: var(--r-pill);
+  font-size: var(--t-cap); font-weight: 600;
+  letter-spacing: 0.02em; line-height: 1.5;
+}
+.offcanvas-item__meta {
+  margin-top: var(--s-1);
+  font-size: var(--t-cap); color: var(--c-ink-3); line-height: 1.5;
+}
+.offcanvas-item__date {
+  margin-top: 2px;
+  font-size: var(--t-cap); color: var(--c-ink-4);
+}
+.offcanvas-item__delete {
+  position: absolute; top: 6px; right: 4px;
+  width: 28px; height: 28px;
+  border-radius: var(--r-pill);
+  display: inline-flex; align-items: center; justify-content: center;
+  color: var(--c-ink-3); font-size: 14px;
+  opacity: 0;
+  transition: all var(--t-fast) var(--ease);
+}
+.offcanvas-item:hover .offcanvas-item__delete { opacity: 1; }
+.offcanvas-item__delete:hover { background: var(--c-danger-lt); color: var(--c-danger); }
+
+/* section divider (今天 / 過去 7 天 / 更早) */
+.offcanvas-section {
+  font-size: var(--t-cap);
+  letter-spacing: 0.06em;
+  text-transform: uppercase;
+  color: var(--c-ink-3);
+  font-weight: 500;
+  padding: var(--s-3) var(--s-3) var(--s-2);
+}
+
+/* empty state */
+.offcanvas-empty {
+  flex: 1;
+  display: flex; flex-direction: column;
+  align-items: center; justify-content: center;
+  padding: var(--s-7) var(--s-4);
+  text-align: center;
+  gap: var(--s-3);
+  color: var(--c-ink-3);
+}
+.offcanvas-empty__icon {
+  width: 56px; height: 56px;
+  border-radius: 50%;
+  background: var(--c-bg-soft);
+  display: inline-flex; align-items: center; justify-content: center;
+  font-size: 24px; color: var(--c-ink-3);
+}
+.offcanvas-empty__title { font-size: var(--t-body); color: var(--c-ink-2); font-weight: 500; }
+.offcanvas-empty__sub { font-size: var(--t-meta); color: var(--c-ink-3); max-width: 220px; line-height: 1.7; }
+.offcanvas-empty__cta { margin-top: var(--s-2); }
+
+/* loading state — drawer-scoped (NOT loading-wrap; that's full-page) */
+.offcanvas-loading {
+  flex: 1;
+  display: flex; flex-direction: column;
+  align-items: center; justify-content: center;
+  padding: var(--s-7) var(--s-4);
+  gap: var(--s-3);
+}
+.offcanvas-spinner {
+  width: 36px; height: 36px;
+  border: 3px solid var(--c-rule);
+  border-top-color: var(--c-navy);
+  border-radius: 50%;
+  animation: spin 0.8s linear infinite;
+}
+.offcanvas-loading__text { font-size: var(--t-meta); color: var(--c-ink-3); }
+
+/* error state — drawer-scoped (NOT error-wrap; that's full-page) */
+.offcanvas-error {
+  flex: 1;
+  display: flex; flex-direction: column;
+  align-items: center; justify-content: center;
+  padding: var(--s-7) var(--s-4);
+  text-align: center;
+  gap: var(--s-3);
+}
+.offcanvas-error__icon {
+  width: 56px; height: 56px;
+  border-radius: 50%;
+  background: var(--c-danger-lt); color: var(--c-danger);
+  display: inline-flex; align-items: center; justify-content: center;
+  font-size: 24px;
+}
+.offcanvas-error__title { font-size: var(--t-body); color: var(--c-ink); font-weight: 500; }
+.offcanvas-error__sub { font-size: var(--t-meta); color: var(--c-ink-3); max-width: 220px; line-height: 1.7; }
+/* ───── D1 · Offcanvas History (mockup 09) END ───── */

@@ -51,6 +51,12 @@
 
     // chat
     streamingActive: false,
+
+    // Offcanvas / History (Plan D)
+    offcanvasOpen: false,
+    historyList: null,       // null = not loaded yet; [] = empty; [...] = items
+    historyLoading: false,
+    historyError: null,
   };
   window.AppState = AppState;
 
@@ -124,8 +130,10 @@
     const navbar = renderNavbar();
     const banners = renderGlobalBanners();
     const view = renderView();
-    app.innerHTML = navbar + banners + view;
-    bindNavbar();
+    app.innerHTML = navbar + banners + renderOffcanvas() + view;
+    if (AppState.offcanvasOpen) document.body.style.overflow = 'hidden';
+    else document.body.style.overflow = '';
+    bindAll();
     if (AppState.view === 'nsm' && AppState.nsmStep === 1) bindNSMStep1();
   }
   window.render = render;
@@ -203,7 +211,12 @@
         else if (target === 'circles') { AppState.view = 'circles'; render(); }
         else if (target === 'nsm')     { AppState.view = 'nsm';     render(); }
         else if (target === 'auth')    { AppState.view = 'auth';    render(); }
-        else if (target === 'offcanvas') { /* Plan D 實作 */ }
+        else if (target === 'offcanvas') {
+          AppState.offcanvasOpen = true;
+          AppState.historyList = null;
+          render();
+          loadHistory();
+        }
       });
     });
   }
@@ -447,8 +460,202 @@
     } catch (e) {
       if (e.code === 'SESSION_EXPIRED') return;
       AppState.nsmContextLoading = false;
+      AppState.nsmContext = null;
+      _nsmContextQid = null;
+      render();
+      throw e;
+    }
+  }
+
+  function bindAll() {
+    bindNavbar();
+    bindOffcanvas();
+  }
+
+  // ── Offcanvas History (Plan D SB1 — mockup 09) ───────────────────────────
+
+  function renderOffcanvas() {
+    if (!AppState.offcanvasOpen) return '';
+    return `<div class="offcanvas-backdrop" data-offcanvas="close"></div>
+    <aside class="offcanvas-drawer" role="dialog" aria-modal="true" aria-label="練習記錄">
+      <div class="offcanvas-head">
+        <span class="offcanvas-head__title">練習記錄</span>
+        <button class="offcanvas-head__close" data-offcanvas="close" aria-label="關閉"><i class="ph ph-x"></i></button>
+      </div>
+      <div class="offcanvas-body">${renderOffcanvasContent()}</div>
+    </aside>`;
+  }
+
+  function renderOffcanvasContent() {
+    if (AppState.historyError) {
+      return `<div class="offcanvas-error">
+        <div class="offcanvas-error__icon"><i class="ph ph-warning-circle"></i></div>
+        <div class="offcanvas-error__title">載入失敗</div>
+        <div class="offcanvas-error__sub">請檢查網路連線後再試。</div>
+        <button class="btn btn--ghost" data-offcanvas="retry"><i class="ph ph-arrow-clockwise"></i>重試</button>
+      </div>`;
+    }
+    if (AppState.historyLoading || AppState.historyList === null) {
+      return `<div class="offcanvas-loading">
+        <div class="offcanvas-spinner"></div>
+        <div class="offcanvas-loading__text">載入中…</div>
+      </div>`;
+    }
+    if (AppState.historyList.length === 0) {
+      return `<div class="offcanvas-empty">
+        <div class="offcanvas-empty__icon"><i class="ph ph-folder-open"></i></div>
+        <div class="offcanvas-empty__title">尚無練習記錄</div>
+        <div class="offcanvas-empty__sub">練習完成的 CIRCLES 題目與 NSM 訓練會出現在這裡。</div>
+        <button class="btn btn--ghost offcanvas-empty__cta" data-offcanvas="close"><i class="ph ph-arrow-right"></i>開始第一題</button>
+      </div>`;
+    }
+    return renderOffcanvasList(AppState.historyList);
+  }
+
+  function renderOffcanvasList(items) {
+    const now = Date.now();
+    const DAY = 86400000;
+    const todayItems = items.filter(function (i) { return now - new Date(i.updated_at || i.created_at).getTime() < DAY; });
+    const week7Items = items.filter(function (i) { const age = now - new Date(i.updated_at || i.created_at).getTime(); return age >= DAY && age < 7 * DAY; });
+    const olderItems = items.filter(function (i) { return now - new Date(i.updated_at || i.created_at).getTime() >= 7 * DAY; });
+
+    var html = '';
+    if (todayItems.length) {
+      html += '<div class="offcanvas-section">今天</div>';
+      todayItems.forEach(function (item) { html += renderOffcanvasItem(item); });
+    }
+    if (week7Items.length) {
+      html += '<div class="offcanvas-section">過去 7 天</div>';
+      week7Items.forEach(function (item) { html += renderOffcanvasItem(item); });
+    }
+    if (olderItems.length) {
+      html += '<div class="offcanvas-section">更早</div>';
+      olderItems.forEach(function (item) { html += renderOffcanvasItem(item); });
+    }
+    return html;
+  }
+
+  function renderOffcanvasItem(item) {
+    // Determine title and meta label
+    var title = '';
+    var metaLabel = '';
+    var scoreHtml = '';
+    var isNsm = !item.mode && !item.drill_step;
+
+    // Title helper — backend enriches each session row with currentQuestion (object,
+    // routes/circles-sessions.js:111) AND keeps question_json column. Both are objects
+    // shaped { company, product, ... } per spec §1.8.
+    function questionTitle(item) {
+      const q = (item.question_json && item.question_json.company) ? item.question_json
+              : (item.currentQuestion && item.currentQuestion.company) ? item.currentQuestion
+              : null;
+      if (!q) return '';
+      return q.product ? (q.company + ' · ' + q.product) : q.company;
+    }
+
+    if (item.mode === 'drill' || item.drill_step) {
+      const stepMap = { C1: 'C 澄清', I: 'I 用戶洞察', R: 'R 重新定義' };
+      const stepLabel = stepMap[item.drill_step] || item.drill_step || '步驟加練';
+      metaLabel = 'CIRCLES · ' + stepLabel;
+      title = questionTitle(item) || '練習題目';
+    } else if (item.mode === 'simulation') {
+      metaLabel = 'CIRCLES · 完整 7 步';
+      title = questionTitle(item) || '練習題目';
+    } else {
+      // NSM session (no mode field)
+      metaLabel = 'NSM · 4 步';
+      title = questionTitle(item) || '北極星指標練習';
+    }
+
+    // Score badge — navy, only for completed sessions with a score.
+    // step_scores values are EvaluatorResponse objects { totalScore, dimensions, ... } per spec §1.4.
+    // NSM scores_json shape is { totalScore, scores } per prompts/nsm-evaluator.js:48.
+    if (item.status === 'completed' || item.status === 'scored') {
+      var score = null;
+      if (isNsm && item.scores_json && item.scores_json.totalScore != null) {
+        score = item.scores_json.totalScore;
+      } else if (item.step_scores && item.step_scores.S && item.step_scores.S.totalScore != null) {
+        score = item.step_scores.S.totalScore;
+      } else {
+        score = item.total_score || item.score || null;
+      }
+      if (score != null) {
+        scoreHtml = '<span class="offcanvas-item__score">' + score + '</span>';
+      }
+    }
+
+    const dateStr = item.updated_at || item.created_at || '';
+    const dateFormatted = dateStr ? new Date(dateStr).toLocaleDateString('zh-TW', { month: 'numeric', day: 'numeric' }) : '';
+
+    return `<div class="offcanvas-item" data-offcanvas="item" data-id="${escHtml(item.id)}">
+      <div class="offcanvas-item__title-row">
+        <span class="offcanvas-item__title">${escHtml(title)}</span>
+        ${scoreHtml}
+      </div>
+      <div class="offcanvas-item__meta">${escHtml(metaLabel)}</div>
+      <div class="offcanvas-item__date">${escHtml(dateFormatted)}</div>
+      <button class="offcanvas-item__delete" data-offcanvas="delete" data-id="${escHtml(item.id)}" aria-label="刪除"><i class="ph ph-trash"></i></button>
+    </div>`;
+  }
+
+  async function loadHistory() {
+    AppState.historyLoading = true;
+    AppState.historyError = null;
+    render();
+    try {
+      const circlesPath = AppState.accessToken ? '/api/circles-sessions' : '/api/guest-circles-sessions';
+      const nsmPath = AppState.accessToken ? '/api/nsm-sessions' : '/api/guest/nsm-sessions';
+      const [circlesRes, nsmRes] = await Promise.all([
+        window.apiFetch(circlesPath),
+        window.apiFetch(nsmPath),
+      ]);
+      if (!circlesRes.ok) throw new Error('CIRCLES_LOAD_ERROR');
+      if (!nsmRes.ok) throw new Error('NSM_LOAD_ERROR');
+      const circles = await circlesRes.json();
+      const nsm = await nsmRes.json();
+      AppState.historyList = [].concat(circles, nsm).sort(function (a, b) {
+        return new Date(b.updated_at || b.created_at) - new Date(a.updated_at || a.created_at);
+      });
+      AppState.historyLoading = false;
+      render();
+    } catch (e) {
+      if (e.code === 'SESSION_EXPIRED') return;
+      AppState.historyLoading = false;
+      AppState.historyError = e.message || 'LOAD_ERROR';
       render();
     }
+  }
+
+  function bindOffcanvas() {
+    if (!AppState.offcanvasOpen) return;
+    document.querySelectorAll('[data-offcanvas]').forEach(function (el) {
+      el.addEventListener('click', function (e) {
+        e.stopPropagation();
+        const action = el.dataset.offcanvas;
+        if (action === 'close') {
+          AppState.offcanvasOpen = false;
+          render();
+        } else if (action === 'retry') {
+          AppState.historyList = null;
+          loadHistory();
+        } else if (action === 'delete') {
+          const id = el.dataset.id;
+          AppState.historyList = AppState.historyList.filter(function (i) { return i.id !== id; });
+          render();
+          const path = AppState.accessToken ? '/api/circles-sessions/' + id : '/api/guest-circles-sessions/' + id;
+          window.apiFetch(path, { method: 'DELETE' }).catch(function () {});
+        }
+      });
+    });
+    // ESC closes
+    function escHandler(e) {
+      if (e.key === 'Escape' && AppState.offcanvasOpen) {
+        AppState.offcanvasOpen = false;
+        render();
+        document.removeEventListener('keydown', escHandler);
+      }
+    }
+    document.addEventListener('keydown', escHandler);
   }
 
   // ── utils ─────────────────────────────────────────────────────────────────
