@@ -1,0 +1,1065 @@
+<!doctype html>
+<html lang="zh-TW">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover, interactive-widget=resizes-visual">
+  <title>PM Drill — 13 Phase 4 總報告（總分 + 7-axis radar + step-rows 含步驟建議 + tracking 4 dim + 教練總評）</title>
+
+  <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/@phosphor-icons/web@2.1.1/src/regular/style.css">
+  <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/@phosphor-icons/web@2.1.1/src/fill/style.css">
+  <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Instrument+Serif:ital@0;1&display=swap">
+
+  <style>
+    /* ───── LOCKED CSS — verbatim from 03/04/06/07/08/09/10/11/12 ───── */
+    :root {
+      --c-bg: #F2F0EB; --c-bg-soft: #ECE9E1; --c-bg-deep: #E5E1D7;
+      --c-card: #FFFFFF; --c-surface: #FAFAF7;
+      --c-ink: #1F1D1B; --c-ink-2: #5A5046; --c-ink-3: #8A7E70; --c-ink-4: #B8AC9D;
+      --c-rule: rgba(60,45,30,0.10); --c-rule-bold: rgba(60,45,30,0.18);
+      --c-primary: #1A56DB;
+      --c-navy: #1B2D5C; --c-navy-2: #142347; --c-navy-lt: rgba(27,45,92,0.08);
+      --c-success: #137A3D; --c-success-lt: #DCEFE0;
+      --c-warn: #B85C00; --c-warn-lt: #FBE9D0;
+      --c-danger: #B61F1F; --c-danger-lt: #FADCDC;
+      --font-sans: system-ui, -apple-system, BlinkMacSystemFont, 'PingFang TC', 'Microsoft JhengHei', 'Heiti TC', 'Noto Sans TC', sans-serif;
+      --font-serif: 'Instrument Serif', 'Times New Roman', serif;
+      --t-h1: 24px; --t-h2: 19px; --t-h3: 16px; --t-body: 15px; --t-body-sm: 14px; --t-meta: 13px; --t-cap: 12px;
+      --s-1: 4px; --s-2: 8px; --s-3: 12px; --s-4: 16px; --s-5: 20px; --s-6: 24px; --s-7: 32px; --s-8: 40px; --s-9: 56px; --s-10: 80px;
+      --r-input: 6px; --r-card: 10px; --r-pill: 999px;
+      --touch-min: 44px;
+      --t-fast: 120ms; --t-norm: 200ms; --t-slow: 300ms;
+      --ease: cubic-bezier(0.4, 0, 0.2, 1);
+      --shadow-1: 0 1px 0 rgba(60,45,30,0.04);
+      --shadow-2: 0 1px 2px rgba(60,45,30,0.06);
+      --shadow-3: 0 4px 12px rgba(60,45,30,0.08);
+    }
+
+    *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+    html, body { background: var(--c-bg); color: var(--c-ink); font-family: var(--font-sans); font-size: var(--t-body); line-height: 1.55; -webkit-font-smoothing: antialiased; -webkit-tap-highlight-color: transparent; }
+    button { font: inherit; color: inherit; cursor: pointer; background: none; border: none; }
+    @media (max-width: 767px) { input, textarea, select { font-size: 16px !important; } }
+
+    .vp-grid { display: grid; grid-template-columns: 360px 768px 1280px; gap: var(--s-6); padding: var(--s-6); align-items: start; overflow-x: auto; }
+    .vp-frame { border: 1px solid var(--c-rule-bold); border-radius: var(--r-card); background: var(--c-bg); overflow: hidden; }
+    .vp-frame__label { padding: var(--s-3) var(--s-4); border-bottom: 1px solid var(--c-rule); background: var(--c-card); display: flex; justify-content: space-between; font-size: var(--t-cap); letter-spacing: 0.08em; text-transform: uppercase; color: var(--c-ink-2); }
+    .vp-frame__label span:last-child { font-family: ui-monospace, 'SF Mono', monospace; color: var(--c-ink-3); }
+    .vp-frame__inner { background: var(--c-bg); min-height: 1100px; display: flex; flex-direction: column; }
+
+    .ds-page { padding: var(--s-6); }
+    .ds-header { max-width: 1880px; margin: 0 auto var(--s-7); padding-bottom: var(--s-6); border-bottom: 1px solid var(--c-rule); }
+    .ds-header h1 { font-size: var(--t-h1); margin-top: var(--s-2); }
+    .ds-header__eyebrow { font-size: var(--t-cap); letter-spacing: 0.12em; text-transform: uppercase; color: var(--c-ink-3); }
+    .ds-header__sub { color: var(--c-ink-2); font-size: var(--t-body-sm); margin-top: var(--s-3); max-width: 720px; }
+
+    .vp-section-title { max-width: 1880px; margin: var(--s-7) auto var(--s-3); padding-bottom: var(--s-2); border-bottom: 1px solid var(--c-rule); font-size: var(--t-h2); display: flex; align-items: baseline; gap: var(--s-3); }
+    .vp-section-title__sub { font-size: var(--t-cap); color: var(--c-ink-3); letter-spacing: 0.04em; text-transform: uppercase; }
+    .anno { background: var(--c-bg-soft); border-left: 2px solid var(--c-ink-3); padding: var(--s-3) var(--s-4); font-size: var(--t-meta); color: var(--c-ink-2); margin: var(--s-4) auto; max-width: 1180px; line-height: 1.7; }
+    .anno strong { color: var(--c-ink); }
+    .anno code { font-family: ui-monospace, 'SF Mono', monospace; font-size: 12px; background: var(--c-card); padding: 1px 6px; border-radius: 4px; border: 1px solid var(--c-rule); }
+
+    /* ───── PRODUCTION COMPONENTS LOCKED ───── */
+    .navbar { display: flex; align-items: center; gap: var(--s-3); padding: var(--s-3) var(--s-4); background: rgba(255,255,255,0.85); -webkit-backdrop-filter: saturate(140%) blur(10px); backdrop-filter: saturate(140%) blur(10px); border-bottom: 1px solid var(--c-rule); }
+    .navbar__icon-btn { width: 40px; height: 40px; border-radius: var(--r-pill); display: inline-flex; align-items: center; justify-content: center; color: var(--c-ink-2); }
+    .navbar__icon-btn:hover { background: var(--c-bg-soft); color: var(--c-ink); }
+    .navbar__brand { display: flex; align-items: center; gap: var(--s-2); padding: 4px var(--s-2); border-radius: var(--r-input); cursor: pointer; }
+    .navbar__brand-icon { width: 28px; height: 28px; border-radius: 6px; background: var(--c-navy); color: #fff; display: inline-flex; align-items: center; justify-content: center; font-size: 16px; }
+    .navbar__brand-name { font-size: var(--t-body-sm); font-weight: 500; }
+    .navbar__tabs { display: flex; gap: var(--s-2); margin-left: var(--s-4); }
+    .navbar__tab { padding: 6px var(--s-3); border-radius: var(--r-pill); font-size: var(--t-meta); color: var(--c-ink-3); }
+    .navbar__tab.is-active { background: var(--c-navy); color: #fff; }
+    .navbar__actions { margin-left: auto; display: flex; align-items: center; gap: var(--s-2); }
+    .navbar__email { font-size: var(--t-cap); color: var(--c-ink-3); max-width: 180px; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+
+    .submit-bar { position: sticky; bottom: 0; background: rgba(255,255,255,0.92); -webkit-backdrop-filter: saturate(140%) blur(10px); backdrop-filter: saturate(140%) blur(10px); border-top: 1px solid var(--c-rule); padding: var(--s-3) var(--s-4) max(var(--s-3), env(safe-area-inset-bottom)); display: flex; gap: var(--s-3); justify-content: space-between; align-items: center; }
+    .submit-bar__left, .submit-bar__right { display: flex; gap: var(--s-2); align-items: center; flex-wrap: wrap; }
+    .btn { display: inline-flex; align-items: center; gap: var(--s-2); min-height: var(--touch-min); padding: 0 var(--s-5); border-radius: var(--r-input); font-size: var(--t-body-sm); font-weight: 500; transition: all var(--t-fast) var(--ease); }
+    .btn--primary { background: var(--c-navy); color: #fff; }
+    .btn--primary:hover { background: var(--c-navy-2); }
+    .btn--ghost { background: transparent; color: var(--c-ink-2); border: 1px solid var(--c-rule-bold); }
+    .btn--ghost:hover { background: var(--c-bg-soft); color: var(--c-ink); }
+    .btn--icon { width: 44px; padding: 0; justify-content: center; }
+
+    /* circles-nav (back + title + sub) — LOCKED from 11 */
+    .circles-nav { display: flex; align-items: center; gap: var(--s-3); padding: var(--s-3) var(--s-4); background: var(--c-bg-soft); border-bottom: 1px solid var(--c-rule); }
+    .circles-nav__back { width: 40px; height: 40px; border-radius: var(--r-pill); display: inline-flex; align-items: center; justify-content: center; color: var(--c-ink-2); flex: 0 0 auto; }
+    .circles-nav__back:hover { background: var(--c-card); color: var(--c-ink); }
+    .circles-nav__main { flex: 1; min-width: 0; }
+    .circles-nav__title { font-size: var(--t-body-sm); font-weight: 600; color: var(--c-ink); letter-spacing: -0.005em; }
+    .circles-nav__sub { font-size: var(--t-cap); color: var(--c-ink-3); margin-top: 2px; }
+
+    /* qchip (persistent question chip) — LOCKED simplified */
+    .qchip { padding: var(--s-2) var(--s-4); background: var(--c-bg); border-bottom: 1px solid var(--c-rule); display: flex; align-items: center; gap: var(--s-2); cursor: pointer; }
+    .qchip__pill { padding: 2px var(--s-2); border-radius: var(--r-pill); font-size: var(--t-cap); background: var(--c-navy-lt); color: var(--c-navy); font-weight: 600; flex: 0 0 auto; }
+    .qchip__title { flex: 1; font-size: var(--t-meta); color: var(--c-ink-2); white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+    .qchip__caret { color: var(--c-ink-3); font-size: 14px; flex: 0 0 auto; }
+
+    /* ───── 13-specific NEW components ───── */
+
+    /* Body container */
+    .report-body { padding: var(--s-5) var(--s-4); max-width: 920px; margin: 0 auto; width: 100%; flex: 1; display: flex; flex-direction: column; gap: var(--s-4); }
+    @media (min-width: 768px) { .report-body { padding: var(--s-6) var(--s-5); } }
+    @media (min-width: 1024px) { .report-body { max-width: 1180px; padding: var(--s-7) var(--s-6); } }
+
+    /* grade-card — 大分數 + headline（無 grade letter） */
+    .grade-card {
+      background: var(--c-card);
+      border: 1px solid var(--c-rule);
+      border-radius: var(--r-card);
+      padding: var(--s-7) var(--s-5);
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      gap: var(--s-3);
+      box-shadow: var(--shadow-1);
+    }
+    .grade-card__score-row {
+      display: flex;
+      align-items: baseline;
+      gap: var(--s-2);
+    }
+    .grade-card__score-num {
+      font-family: var(--font-serif);
+      font-style: italic;
+      font-size: 88px;
+      color: var(--c-navy);
+      line-height: 1;
+      letter-spacing: -0.02em;
+    }
+    .grade-card__score-unit {
+      font-size: var(--t-h2);
+      color: var(--c-ink-2);
+      font-weight: 500;
+    }
+    .grade-card__headline {
+      font-size: var(--t-body);
+      color: var(--c-ink-2);
+      text-align: center;
+      max-width: 480px;
+      line-height: 1.6;
+    }
+
+    /* top-grid: radar + step-rows */
+    .top-grid {
+      display: flex;
+      flex-direction: column;
+      gap: var(--s-4);
+    }
+    @media (min-width: 1024px) {
+      .top-grid--desktop {
+        flex-direction: row;
+        align-items: stretch;
+      }
+      .top-grid--desktop > * { flex: 1; min-width: 0; }
+    }
+
+    .panel-card {
+      background: var(--c-card);
+      border: 1px solid var(--c-rule);
+      border-radius: var(--r-card);
+      padding: var(--s-4);
+      box-shadow: var(--shadow-1);
+    }
+    .panel-card__title {
+      font-size: var(--t-cap);
+      letter-spacing: 0.08em;
+      text-transform: uppercase;
+      color: var(--c-ink-3);
+      font-weight: 600;
+      margin-bottom: var(--s-3);
+      display: flex;
+      align-items: center;
+      gap: var(--s-2);
+    }
+    .panel-card__title i { color: var(--c-navy); font-size: 14px; }
+
+    /* radar SVG */
+    .radar-svg {
+      width: 100%;
+      height: 220px;
+      display: block;
+    }
+    @media (min-width: 1024px) { .radar-svg { height: 260px; } }
+    .radar-svg .axis { stroke: var(--c-rule-bold); stroke-width: 1; }
+    .radar-svg .ring { stroke: var(--c-rule); stroke-width: 1; fill: none; }
+    .radar-svg .poly { fill: rgba(27,45,92,0.16); stroke: var(--c-navy); stroke-width: 2; }
+    .radar-svg .dot { fill: var(--c-navy); }
+    .radar-svg .label { font-size: 11px; fill: var(--c-ink-2); font-weight: 500; font-family: var(--font-sans); }
+
+    /* step-rows — 含步驟建議 */
+    .step-rows__list { display: flex; flex-direction: column; }
+    .step-rows__row {
+      padding: var(--s-3) 0;
+      border-bottom: 1px solid var(--c-rule);
+    }
+    .step-rows__row:last-child { border-bottom: none; }
+    .step-rows__head {
+      display: flex;
+      justify-content: space-between;
+      align-items: baseline;
+      gap: var(--s-3);
+      font-size: var(--t-body-sm);
+    }
+    .step-rows__name { color: var(--c-ink); font-weight: 500; }
+    .step-rows__name-key { font-family: var(--font-serif); font-style: italic; color: var(--c-ink-3); margin-right: var(--s-2); }
+    .step-rows__score {
+      font-family: var(--font-serif);
+      font-style: italic;
+      font-size: 22px;
+      color: var(--c-navy);
+      font-weight: 400;
+      letter-spacing: -0.01em;
+      flex: 0 0 auto;
+    }
+    .step-rows__score--high { color: var(--c-success); }
+    .step-rows__score--mid  { color: var(--c-navy); }
+    .step-rows__score--low  { color: var(--c-warn); }
+    .step-rows__note {
+      font-size: var(--t-meta);
+      color: var(--c-ink-3);
+      line-height: 1.6;
+      margin-top: var(--s-1);
+      padding-right: 40px;
+    }
+
+    /* step-rows S 總結 — nested 4 dim NSM tracking detail */
+    .step-rows__row--with-detail { padding-bottom: var(--s-4); }
+    .step-rows__detail-label {
+      font-size: var(--t-cap);
+      color: var(--c-navy);
+      font-weight: 600;
+      letter-spacing: 0.04em;
+      margin-top: var(--s-3);
+      display: flex;
+      align-items: center;
+      gap: 6px;
+    }
+    .step-rows__detail-label i { font-size: 13px; }
+    .step-rows__detail {
+      display: flex;
+      flex-direction: column;
+      gap: var(--s-2);
+      margin-top: var(--s-2);
+      padding-left: var(--s-3);
+      border-left: 2px dashed var(--c-rule-bold);
+    }
+    .tracking-mini {
+      background: var(--c-bg-soft);
+      border: 1px solid var(--c-rule);
+      border-radius: var(--r-input);
+      padding: var(--s-3);
+    }
+    .tracking-mini__head {
+      display: flex;
+      align-items: baseline;
+      gap: var(--s-2);
+      font-size: var(--t-meta);
+      font-weight: 600;
+      color: var(--c-ink);
+      margin-bottom: 2px;
+    }
+    .tracking-mini__num {
+      font-family: var(--font-serif);
+      font-style: italic;
+      font-size: 14px;
+      color: var(--c-ink-3);
+      flex: 0 0 auto;
+      min-width: 14px;
+    }
+    .tracking-mini__sub {
+      font-size: var(--t-cap);
+      color: var(--c-ink-3);
+      margin-bottom: var(--s-2);
+    }
+    .tracking-mini__content {
+      font-size: var(--t-meta);
+      color: var(--c-ink-2);
+      line-height: 1.65;
+    }
+
+    /* feedback cards (strengths / improvements / verdict / nextsteps) */
+    .feedback-card {
+      border-radius: var(--r-card);
+      padding: var(--s-4);
+      border: 1px solid;
+    }
+    .feedback-card__title {
+      font-size: var(--t-cap);
+      letter-spacing: 0.06em;
+      text-transform: uppercase;
+      font-weight: 600;
+      margin-bottom: var(--s-2);
+      display: inline-flex;
+      align-items: center;
+      gap: 6px;
+    }
+    .feedback-card__title i { font-size: 14px; }
+    .feedback-card__list {
+      margin: 0;
+      padding-left: var(--s-5);
+      font-size: var(--t-body-sm);
+      color: var(--c-ink-2);
+      line-height: 1.7;
+    }
+    .feedback-card__list li { margin-bottom: var(--s-1); }
+    .feedback-card__list li:last-child { margin-bottom: 0; }
+    .feedback-card__text {
+      font-size: var(--t-body-sm);
+      color: var(--c-ink-2);
+      line-height: 1.7;
+    }
+
+    .feedback-card--strengths { background: rgba(19,122,61,0.05); border-color: rgba(19,122,61,0.25); }
+    .feedback-card--strengths .feedback-card__title { color: var(--c-success); }
+
+    .feedback-card--improvements { background: rgba(184,92,0,0.05); border-color: rgba(184,92,0,0.25); }
+    .feedback-card--improvements .feedback-card__title { color: var(--c-warn); }
+
+    .feedback-card--verdict { background: var(--c-navy-lt); border-color: rgba(27,45,92,0.20); }
+    .feedback-card--verdict .feedback-card__title { color: var(--c-navy); }
+
+    .nextsteps-card {
+      background: var(--c-card);
+      border: 1px solid var(--c-rule);
+      border-radius: var(--r-card);
+      padding: var(--s-3) var(--s-4);
+      font-size: var(--t-body-sm);
+      color: var(--c-ink-2);
+      line-height: 1.7;
+    }
+    .nextsteps-card__label { font-weight: 600; color: var(--c-navy); margin-right: 4px; }
+
+    /* loading state */
+    .loading-wrap {
+      flex: 1;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: center;
+      padding: var(--s-9) var(--s-5);
+      gap: var(--s-4);
+      max-width: 480px;
+      margin: 0 auto;
+      text-align: center;
+    }
+    .loading-spinner {
+      width: 56px; height: 56px;
+      border: 4px solid var(--c-rule);
+      border-top-color: var(--c-navy);
+      border-radius: 50%;
+      animation: spin 0.8s linear infinite;
+    }
+    @keyframes spin { to { transform: rotate(360deg); } }
+    .loading-title { font-size: var(--t-h3); font-weight: 600; color: var(--c-ink); }
+    .loading-sub { font-size: var(--t-meta); color: var(--c-ink-3); max-width: 320px; }
+    .loading-checklist { display: flex; flex-direction: column; gap: var(--s-2); margin-top: var(--s-4); width: fit-content; max-width: 100%; align-items: flex-start; text-align: left; }
+    .loading-step { display: flex; align-items: center; gap: var(--s-3); font-size: var(--t-body-sm); color: var(--c-ink-3); }
+    .loading-step.is-done { color: var(--c-ink-2); }
+    .loading-step.is-active { color: var(--c-ink); font-weight: 500; }
+    .loading-step__icon { width: 20px; height: 20px; flex: 0 0 auto; display: inline-flex; align-items: center; justify-content: center; font-size: 16px; }
+    .loading-step.is-done .loading-step__icon { color: var(--c-success); }
+    .loading-step.is-active .loading-step__icon { color: var(--c-navy); }
+    .loading-step.is-pending .loading-step__icon { color: var(--c-ink-4); }
+
+    /* error state */
+    .error-wrap {
+      flex: 1;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: center;
+      padding: var(--s-9) var(--s-5);
+      gap: var(--s-3);
+      max-width: 480px;
+      margin: 0 auto;
+      text-align: center;
+    }
+    .error-wrap__icon {
+      width: 64px; height: 64px;
+      border-radius: 50%;
+      background: var(--c-danger-lt);
+      color: var(--c-danger);
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+      font-size: 32px;
+      margin-bottom: var(--s-2);
+    }
+    .error-wrap__title { font-size: var(--t-h3); font-weight: 600; color: var(--c-ink); }
+    .error-wrap__sub { font-size: var(--t-meta); color: var(--c-ink-3); max-width: 320px; line-height: 1.7; }
+    .error-wrap__code { font-family: ui-monospace, 'SF Mono', monospace; font-size: var(--t-cap); color: var(--c-ink-4); background: var(--c-bg-soft); padding: 2px 8px; border-radius: var(--r-input); margin-top: var(--s-1); }
+    .error-wrap__actions { display: flex; gap: var(--s-2); margin-top: var(--s-4); flex-wrap: wrap; justify-content: center; }
+  </style>
+</head>
+<body>
+  <div class="ds-page">
+    <header class="ds-header">
+      <div class="ds-header__eyebrow">Path 2 · Mockup 13 · CONTRACT-LOCKED 草稿</div>
+      <h1>Phase 4 總報告 — 總分 + 7-axis radar + step-rows 含步驟建議 + NSM tracking 4 dim + 教練總評（3 sections × 3 viewports = 9 frames）</h1>
+      <p class="ds-header__sub">
+        模擬模式（simulation）走完 7 步驟後，對話結束 → call <code>/final-report</code> 回傳整體 overall score / strengths / improvements / coachVerdict / nextSteps + per-step note。
+        Phase 4 把七步驟分數彙整為 7-axis radar + 細項分數含步驟建議（一句 commentary），並把 S 步驟 4 個 tracking dimensions（reach / depth / frequency / impact）獨立為 4 張 card。<br>
+        <strong>已拿掉 grade letter A/B/C/D</strong>（既有分數即可，不需要再用字母評等）；<strong>NSM 區段與 4 dim cards 視覺分開</strong>（用 section-eyebrow 小標題替代 wrapper card，4 dim 各為獨立 card）；<strong>主按鈕「再練一題」</strong>而非「重練這題」（換題不是重做同題）。
+        Path 2 配色：radar navy polygon（去紫）；tracking 4 dim primary / navy / success / warn（去紫）；submit-bar sticky-bottom。
+        Mobile/Tablet 直式 stack；Desktop top-grid 2-col + tracking-grid 2-col。
+      </p>
+    </header>
+
+    <!-- ============================================================ -->
+    <!-- Section A — 預設成功報告（77 分）                                  -->
+    <!-- ============================================================ -->
+    <h2 class="vp-section-title">A · 預設成功報告（77 分）<span class="vp-section-title__sub">7 步全綠 + 步驟建議 / 4 dim 獨立 cards / strengths × 3 / improvements × 3 / verdict / nextsteps</span></h2>
+    <div class="anno"><strong>視覺契約：</strong>navbar + circles-nav「模擬面試總結報告 · Spotify · Spotify Podcast」+ qchip（C 澄清情境）+ grade-card（Italic 大字 <code>77</code> navy 88px + <code>分</code> + headline 兩行帶具體判讀；<strong>無 grade letter A/B/C/D</strong>，分數已足夠）+ top-grid（mobile/tablet 直式：radar 上 step-rows 下；desktop 2-col：左 radar 右 step-rows）+ <strong>step-rows 每步補一行 commentary</strong>（C 78 時間框架 / I 82 最強亮點 / R 75 補競品對比 / C2 70 缺 RICE/ICE / L 85 紮實 / E 68 本次最弱量化不足 / S 80 tracking 完整）+ <strong>S 總結 row 內嵌 NSM 4 dim 細項 mini cards</strong>（dashed border 視覺從屬 S 步驟；4 dim 全部統一中性樣式，僅用 Italic 1/2/3/4 編號區分，<strong>不用顏色區分</strong>避免視覺雜亂；mobile/tablet/desktop 一律 1-col 直式）+ strengths（success 綠 + ph-check-circle）+ improvements（warn 橘 + ph-warning-circle）+ verdict（navy + ph-graduation-cap）+ nextsteps row + submit-bar sticky（<strong>再練一題</strong> primary / 匯出 PNG ghost / home icon-only — 換題不重做同題）。</div>
+    <div class="vp-grid">
+
+      <!-- A · Mobile 360 -->
+      <div class="vp-frame">
+        <div class="vp-frame__label"><span>Mobile</span><span>360 × 1100</span></div>
+        <div class="vp-frame__inner" style="width:360px">
+          <div class="navbar">
+            <button class="navbar__icon-btn"><i class="ph ph-list"></i></button>
+            <div class="navbar__brand"><span class="navbar__brand-icon"><i class="ph ph-circles-three"></i></span><span class="navbar__brand-name">PM Drill</span></div>
+            <div class="navbar__actions"><button class="navbar__icon-btn"><i class="ph ph-house"></i></button></div>
+          </div>
+          <div class="circles-nav">
+            <button class="circles-nav__back"><i class="ph ph-arrow-left"></i></button>
+            <div class="circles-nav__main">
+              <div class="circles-nav__title">模擬面試總結報告</div>
+              <div class="circles-nav__sub">Spotify · Spotify Podcast</div>
+            </div>
+          </div>
+          <div class="qchip">
+            <span class="qchip__pill">C 澄清</span>
+            <span class="qchip__title">如何提升 Spotify Podcast 的用戶留存？</span>
+            <i class="ph ph-caret-down qchip__caret"></i>
+          </div>
+          <div class="report-body">
+            <div class="grade-card">
+              <div class="grade-card__score-row">
+                <span class="grade-card__score-num">77</span>
+                <span class="grade-card__score-unit">分</span>
+              </div>
+              <div class="grade-card__headline">七步框架掌握扎實，整體論述清晰；最強在 I 用戶與 L 方案，下一步建議補強 E 取捨的量化能力</div>
+            </div>
+            <div class="top-grid">
+              <div class="panel-card">
+                <div class="panel-card__title"><i class="ph ph-radio-button"></i>各步驟雷達圖</div>
+                <svg class="radar-svg" viewBox="0 0 240 220" preserveAspectRatio="xMidYMid meet" role="img" aria-label="七步驟雷達圖">
+                  <!-- Rings 0.25/0.5/0.75 -->
+                  <polygon class="ring" points="120,35 187.5,77.5 169.5,160 70.5,160 52.5,77.5 120,35 192,124 120,184 48,124"/>
+                  <polygon class="ring" points="120,64 165,89 153,144 87,144 75,89"/>
+                  <polygon class="ring" points="120,87.5 142.5,99.75 137.625,128.625 102.375,128.625 97.5,99.75"/>
+                  <!-- 7 axes (vertices: at angle -90 + 360*i/7) -->
+                  <line class="axis" x1="120" y1="110" x2="120" y2="18"/>
+                  <line class="axis" x1="120" y1="110" x2="191.7" y2="64.5"/>
+                  <line class="axis" x1="120" y1="110" x2="201.4" y2="150.4"/>
+                  <line class="axis" x1="120" y1="110" x2="158.5" y2="190.7"/>
+                  <line class="axis" x1="120" y1="110" x2="81.5" y2="190.7"/>
+                  <line class="axis" x1="120" y1="110" x2="38.6" y2="150.4"/>
+                  <line class="axis" x1="120" y1="110" x2="48.3" y2="64.5"/>
+                  <!-- Data polygon (C1=78 / I=82 / R=75 / C2=70 / L=85 / E=68 / S=80) -->
+                  <polygon class="poly" points="120,38.2 178.9,76.7 184.0,142.5 147.9,167.8 92.1,167.8 70.2,135.0 64.0,73.7"/>
+                  <circle class="dot" cx="120" cy="38.2" r="3"/>
+                  <circle class="dot" cx="178.9" cy="76.7" r="3"/>
+                  <circle class="dot" cx="184.0" cy="142.5" r="3"/>
+                  <circle class="dot" cx="147.9" cy="167.8" r="3"/>
+                  <circle class="dot" cx="92.1" cy="167.8" r="3"/>
+                  <circle class="dot" cx="70.2" cy="135.0" r="3"/>
+                  <circle class="dot" cx="64.0" cy="73.7" r="3"/>
+                  <!-- Labels -->
+                  <text class="label" x="120" y="10" text-anchor="middle">C 澄清</text>
+                  <text class="label" x="207.4" y="62.5" text-anchor="start">I 用戶</text>
+                  <text class="label" x="217.0" y="154.4" text-anchor="start">R 需求</text>
+                  <text class="label" x="161.5" y="208.7" text-anchor="middle">C2 排序</text>
+                  <text class="label" x="78.5" y="208.7" text-anchor="middle">L 方案</text>
+                  <text class="label" x="22.9" y="154.4" text-anchor="end">E 取捨</text>
+                  <text class="label" x="32.7" y="62.5" text-anchor="end">S 總結</text>
+                </svg>
+              </div>
+              <div class="panel-card">
+                <div class="panel-card__title"><i class="ph ph-list-numbers"></i>各步驟分數（明細）</div>
+                <div class="step-rows__list">
+                  <div class="step-rows__row">
+                    <div class="step-rows__head"><span class="step-rows__name"><span class="step-rows__name-key">C</span>澄清</span><span class="step-rows__score step-rows__score--mid">78</span></div>
+                    <div class="step-rows__note">邊界與成功指標清晰，可再強化「時間框架」具體性（例：30 / 60 / 90 天 milestone）</div>
+                  </div>
+                  <div class="step-rows__row">
+                    <div class="step-rows__head"><span class="step-rows__name"><span class="step-rows__name-key">I</span>用戶</span><span class="step-rows__score step-rows__score--high">82</span></div>
+                    <div class="step-rows__note">分群清楚並佐以行為數據，是本次最強亮點；持續強化此能力</div>
+                  </div>
+                  <div class="step-rows__row">
+                    <div class="step-rows__head"><span class="step-rows__name"><span class="step-rows__name-key">R</span>需求</span><span class="step-rows__score step-rows__score--mid">75</span></div>
+                    <div class="step-rows__note">痛點到位，建議補上競品對比（Apple Podcast / YouTube Music）佐證需求合理性</div>
+                  </div>
+                  <div class="step-rows__row">
+                    <div class="step-rows__head"><span class="step-rows__name"><span class="step-rows__name-key">C2</span>排序</span><span class="step-rows__score step-rows__score--mid">70</span></div>
+                    <div class="step-rows__note">缺明確優先級框架（建議套 RICE / ICE 等量化模型佐證排序邏輯）</div>
+                  </div>
+                  <div class="step-rows__row">
+                    <div class="step-rows__head"><span class="step-rows__name"><span class="step-rows__name-key">L</span>方案</span><span class="step-rows__score step-rows__score--high">85</span></div>
+                    <div class="step-rows__note">3 方案各對應不同分群，結構紮實；可進一步加入線框圖或互動 flow 強化</div>
+                  </div>
+                  <div class="step-rows__row">
+                    <div class="step-rows__head"><span class="step-rows__name"><span class="step-rows__name-key">E</span>取捨</span><span class="step-rows__score step-rows__score--low">68</span></div>
+                    <div class="step-rows__note">本次最弱。每方案的開發成本（人月）與預期收益（ARPU / 留存）需具體量化</div>
+                  </div>
+                  <div class="step-rows__row step-rows__row--with-detail">
+                    <div class="step-rows__head"><span class="step-rows__name"><span class="step-rows__name-key">S</span>總結</span><span class="step-rows__score step-rows__score--high">80</span></div>
+                    <div class="step-rows__note">北極星指標明確，4 dim 追蹤指標具體可操作</div>
+                    <div class="step-rows__detail-label"><i class="ph ph-target"></i>NSM 追蹤指標 4 dim 拆解</div>
+                    <div class="step-rows__detail">
+                      <div class="tracking-mini">
+                        <div class="tracking-mini__head"><span class="tracking-mini__num">1</span>觸及廣度</div>
+                        <div class="tracking-mini__sub">有多少用戶接觸到核心功能</div>
+                        <div class="tracking-mini__content">情境式升級提示曝光人數 / 月活用戶 = 觸及目標 30M+ 月活</div>
+                      </div>
+                      <div class="tracking-mini">
+                        <div class="tracking-mini__head"><span class="tracking-mini__num">2</span>互動深度</div>
+                        <div class="tracking-mini__sub">用戶與核心功能的互動品質</div>
+                        <div class="tracking-mini__content">看到提示後點擊進入試用頁的轉化率 ≥ 8%（vs 現行 3%）</div>
+                      </div>
+                      <div class="tracking-mini">
+                        <div class="tracking-mini__head"><span class="tracking-mini__num">3</span>習慣頻率</div>
+                        <div class="tracking-mini__sub">用戶回訪與重複觸發頻率</div>
+                        <div class="tracking-mini__content">試用期內每週啟動 Premium 功能的平均天數 ≥ 4 天</div>
+                      </div>
+                      <div class="tracking-mini">
+                        <div class="tracking-mini__head"><span class="tracking-mini__num">4</span>留存驅力</div>
+                        <div class="tracking-mini__sub">推動用戶留下的核心機制</div>
+                        <div class="tracking-mini__content">試用到期後 30 日內完成訂閱的轉換率 ≥ 12%</div>
+                      </div>
+                    </div>
+                  </div>
+                </div>
+              </div>
+            </div>
+            <div class="feedback-card feedback-card--strengths">
+              <div class="feedback-card__title"><i class="ph-fill ph-check-circle"></i>表現優秀</div>
+              <ul class="feedback-card__list">
+                <li>在 C 釐清與 L 方案兩步提出明確的成功指標與量化目標</li>
+                <li>I 用戶分析具體區分付費 / 免費分群並佐以行為數據</li>
+                <li>L 方案規劃條理清楚，3 個方案各自對應不同分群痛點</li>
+              </ul>
+            </div>
+            <div class="feedback-card feedback-card--improvements">
+              <div class="feedback-card__title"><i class="ph-fill ph-warning-circle"></i>需要改進</div>
+              <ul class="feedback-card__list">
+                <li>E 取捨需要更具體量化每個方案的開發成本與預期收益</li>
+                <li>C2 排序的優先順序缺乏明確的優先級框架說明</li>
+                <li>R 需求步驟可加入競品對比強化論述</li>
+              </ul>
+            </div>
+            <div class="feedback-card feedback-card--verdict">
+              <div class="feedback-card__title"><i class="ph-fill ph-graduation-cap"></i>教練總評</div>
+              <p class="feedback-card__text">整體論述邏輯通順、結構完整。最強的部分是用戶分析與方案規劃；下一步建議鎖定 E 取捨的量化能力，建議透過更多商業案例練習。</p>
+            </div>
+            <div class="nextsteps-card"><span class="nextsteps-card__label">建議下一步：</span>建議再加練 1 次取捨型題目（產品策略 ×25 中任選），重點放在量化開發成本與預期收益。</div>
+          </div>
+          <div class="submit-bar">
+            <div class="submit-bar__left"><button class="btn btn--ghost btn--icon"><i class="ph ph-house"></i></button></div>
+            <div class="submit-bar__right">
+              <button class="btn btn--ghost"><i class="ph ph-download-simple"></i>匯出 PNG</button>
+              <button class="btn btn--primary"><i class="ph ph-shuffle"></i>再練一題</button>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- A · Tablet 768 -->
+      <div class="vp-frame">
+        <div class="vp-frame__label"><span>Tablet</span><span>768 × 1100</span></div>
+        <div class="vp-frame__inner" style="width:768px">
+          <div class="navbar">
+            <button class="navbar__icon-btn"><i class="ph ph-list"></i></button>
+            <div class="navbar__brand"><span class="navbar__brand-icon"><i class="ph ph-circles-three"></i></span><span class="navbar__brand-name">PM Drill</span></div>
+            <div class="navbar__tabs"><button class="navbar__tab is-active">CIRCLES</button><button class="navbar__tab">北極星</button></div>
+            <div class="navbar__actions"><button class="navbar__icon-btn"><i class="ph ph-magnifying-glass"></i></button><button class="navbar__icon-btn"><i class="ph ph-house"></i></button></div>
+          </div>
+          <div class="circles-nav">
+            <button class="circles-nav__back"><i class="ph ph-arrow-left"></i></button>
+            <div class="circles-nav__main">
+              <div class="circles-nav__title">模擬面試總結報告</div>
+              <div class="circles-nav__sub">Spotify · Spotify Podcast</div>
+            </div>
+          </div>
+          <div class="qchip">
+            <span class="qchip__pill">C 澄清</span>
+            <span class="qchip__title">如何提升 Spotify Podcast 的用戶留存？</span>
+            <i class="ph ph-caret-down qchip__caret"></i>
+          </div>
+          <div class="report-body">
+            <div class="grade-card">
+              <div class="grade-card__score-row">
+                <span class="grade-card__score-num">77</span>
+                <span class="grade-card__score-unit">分</span>
+              </div>
+              <div class="grade-card__headline">七步框架掌握扎實，整體論述清晰；最強在 I 用戶與 L 方案，下一步建議補強 E 取捨的量化能力</div>
+            </div>
+            <div class="top-grid">
+              <div class="panel-card">
+                <div class="panel-card__title"><i class="ph ph-radio-button"></i>各步驟雷達圖</div>
+                <svg class="radar-svg" viewBox="0 0 240 220" preserveAspectRatio="xMidYMid meet">
+                  <polygon class="ring" points="120,64 165,89 153,144 87,144 75,89"/>
+                  <polygon class="ring" points="120,87.5 142.5,99.75 137.625,128.625 102.375,128.625 97.5,99.75"/>
+                  <line class="axis" x1="120" y1="110" x2="120" y2="18"/>
+                  <line class="axis" x1="120" y1="110" x2="191.7" y2="64.5"/>
+                  <line class="axis" x1="120" y1="110" x2="201.4" y2="150.4"/>
+                  <line class="axis" x1="120" y1="110" x2="158.5" y2="190.7"/>
+                  <line class="axis" x1="120" y1="110" x2="81.5" y2="190.7"/>
+                  <line class="axis" x1="120" y1="110" x2="38.6" y2="150.4"/>
+                  <line class="axis" x1="120" y1="110" x2="48.3" y2="64.5"/>
+                  <polygon class="poly" points="120,38.2 178.9,76.7 184.0,142.5 147.9,167.8 92.1,167.8 70.2,135.0 64.0,73.7"/>
+                  <circle class="dot" cx="120" cy="38.2" r="3"/>
+                  <circle class="dot" cx="178.9" cy="76.7" r="3"/>
+                  <circle class="dot" cx="184.0" cy="142.5" r="3"/>
+                  <circle class="dot" cx="147.9" cy="167.8" r="3"/>
+                  <circle class="dot" cx="92.1" cy="167.8" r="3"/>
+                  <circle class="dot" cx="70.2" cy="135.0" r="3"/>
+                  <circle class="dot" cx="64.0" cy="73.7" r="3"/>
+                  <text class="label" x="120" y="10" text-anchor="middle">C 澄清</text>
+                  <text class="label" x="207.4" y="62.5" text-anchor="start">I 用戶</text>
+                  <text class="label" x="217.0" y="154.4" text-anchor="start">R 需求</text>
+                  <text class="label" x="161.5" y="208.7" text-anchor="middle">C2 排序</text>
+                  <text class="label" x="78.5" y="208.7" text-anchor="middle">L 方案</text>
+                  <text class="label" x="22.9" y="154.4" text-anchor="end">E 取捨</text>
+                  <text class="label" x="32.7" y="62.5" text-anchor="end">S 總結</text>
+                </svg>
+              </div>
+              <div class="panel-card">
+                <div class="panel-card__title"><i class="ph ph-list-numbers"></i>各步驟分數（明細）</div>
+                <div class="step-rows__list">
+                  <div class="step-rows__row">
+                    <div class="step-rows__head"><span class="step-rows__name"><span class="step-rows__name-key">C</span>澄清</span><span class="step-rows__score step-rows__score--mid">78</span></div>
+                    <div class="step-rows__note">邊界與成功指標清晰，可再強化「時間框架」具體性（例：30 / 60 / 90 天 milestone）</div>
+                  </div>
+                  <div class="step-rows__row">
+                    <div class="step-rows__head"><span class="step-rows__name"><span class="step-rows__name-key">I</span>用戶</span><span class="step-rows__score step-rows__score--high">82</span></div>
+                    <div class="step-rows__note">分群清楚並佐以行為數據，是本次最強亮點；持續強化此能力</div>
+                  </div>
+                  <div class="step-rows__row">
+                    <div class="step-rows__head"><span class="step-rows__name"><span class="step-rows__name-key">R</span>需求</span><span class="step-rows__score step-rows__score--mid">75</span></div>
+                    <div class="step-rows__note">痛點到位，建議補上競品對比（Apple Podcast / YouTube Music）佐證需求合理性</div>
+                  </div>
+                  <div class="step-rows__row">
+                    <div class="step-rows__head"><span class="step-rows__name"><span class="step-rows__name-key">C2</span>排序</span><span class="step-rows__score step-rows__score--mid">70</span></div>
+                    <div class="step-rows__note">缺明確優先級框架（建議套 RICE / ICE 等量化模型佐證排序邏輯）</div>
+                  </div>
+                  <div class="step-rows__row">
+                    <div class="step-rows__head"><span class="step-rows__name"><span class="step-rows__name-key">L</span>方案</span><span class="step-rows__score step-rows__score--high">85</span></div>
+                    <div class="step-rows__note">3 方案各對應不同分群，結構紮實；可進一步加入線框圖或互動 flow 強化</div>
+                  </div>
+                  <div class="step-rows__row">
+                    <div class="step-rows__head"><span class="step-rows__name"><span class="step-rows__name-key">E</span>取捨</span><span class="step-rows__score step-rows__score--low">68</span></div>
+                    <div class="step-rows__note">本次最弱。每方案的開發成本（人月）與預期收益（ARPU / 留存）需具體量化</div>
+                  </div>
+                  <div class="step-rows__row step-rows__row--with-detail">
+                    <div class="step-rows__head"><span class="step-rows__name"><span class="step-rows__name-key">S</span>總結</span><span class="step-rows__score step-rows__score--high">80</span></div>
+                    <div class="step-rows__note">北極星指標明確，4 dim 追蹤指標具體可操作</div>
+                    <div class="step-rows__detail-label"><i class="ph ph-target"></i>NSM 追蹤指標 4 dim 拆解</div>
+                    <div class="step-rows__detail">
+                      <div class="tracking-mini">
+                        <div class="tracking-mini__head"><span class="tracking-mini__num">1</span>觸及廣度</div>
+                        <div class="tracking-mini__sub">有多少用戶接觸到核心功能</div>
+                        <div class="tracking-mini__content">情境式升級提示曝光人數 / 月活用戶 = 觸及目標 30M+ 月活</div>
+                      </div>
+                      <div class="tracking-mini">
+                        <div class="tracking-mini__head"><span class="tracking-mini__num">2</span>互動深度</div>
+                        <div class="tracking-mini__sub">用戶與核心功能的互動品質</div>
+                        <div class="tracking-mini__content">看到提示後點擊進入試用頁的轉化率 ≥ 8%（vs 現行 3%）</div>
+                      </div>
+                      <div class="tracking-mini">
+                        <div class="tracking-mini__head"><span class="tracking-mini__num">3</span>習慣頻率</div>
+                        <div class="tracking-mini__sub">用戶回訪與重複觸發頻率</div>
+                        <div class="tracking-mini__content">試用期內每週啟動 Premium 功能的平均天數 ≥ 4 天</div>
+                      </div>
+                      <div class="tracking-mini">
+                        <div class="tracking-mini__head"><span class="tracking-mini__num">4</span>留存驅力</div>
+                        <div class="tracking-mini__sub">推動用戶留下的核心機制</div>
+                        <div class="tracking-mini__content">試用到期後 30 日內完成訂閱的轉換率 ≥ 12%</div>
+                      </div>
+                    </div>
+                  </div>
+                </div>
+              </div>
+            </div>
+            <div class="feedback-card feedback-card--strengths">
+              <div class="feedback-card__title"><i class="ph-fill ph-check-circle"></i>表現優秀</div>
+              <ul class="feedback-card__list">
+                <li>在 C 釐清與 L 方案兩步提出明確的成功指標與量化目標</li>
+                <li>I 用戶分析具體區分付費 / 免費分群並佐以行為數據</li>
+                <li>L 方案規劃條理清楚，3 個方案各自對應不同分群痛點</li>
+              </ul>
+            </div>
+            <div class="feedback-card feedback-card--improvements">
+              <div class="feedback-card__title"><i class="ph-fill ph-warning-circle"></i>需要改進</div>
+              <ul class="feedback-card__list">
+                <li>E 取捨需要更具體量化每個方案的開發成本與預期收益</li>
+                <li>C2 排序的優先順序缺乏明確的優先級框架說明</li>
+                <li>R 需求步驟可加入競品對比強化論述</li>
+              </ul>
+            </div>
+            <div class="feedback-card feedback-card--verdict">
+              <div class="feedback-card__title"><i class="ph-fill ph-graduation-cap"></i>教練總評</div>
+              <p class="feedback-card__text">整體論述邏輯通順、結構完整。最強的部分是用戶分析與方案規劃；下一步建議鎖定 E 取捨的量化能力，建議透過更多商業案例練習。</p>
+            </div>
+            <div class="nextsteps-card"><span class="nextsteps-card__label">建議下一步：</span>建議再加練 1 次取捨型題目（產品策略 ×25 中任選），重點放在量化開發成本與預期收益。</div>
+          </div>
+          <div class="submit-bar">
+            <div class="submit-bar__left"><button class="btn btn--ghost btn--icon"><i class="ph ph-house"></i></button></div>
+            <div class="submit-bar__right">
+              <button class="btn btn--ghost"><i class="ph ph-download-simple"></i>匯出 PNG</button>
+              <button class="btn btn--primary"><i class="ph ph-shuffle"></i>再練一題</button>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- A · Desktop 1280 -->
+      <div class="vp-frame">
+        <div class="vp-frame__label"><span>Desktop</span><span>1280 × 1100</span></div>
+        <div class="vp-frame__inner" style="width:1280px">
+          <div class="navbar">
+            <div class="navbar__brand"><span class="navbar__brand-icon"><i class="ph ph-circles-three"></i></span><span class="navbar__brand-name">PM Drill</span></div>
+            <div class="navbar__tabs"><button class="navbar__tab is-active">CIRCLES</button><button class="navbar__tab">北極星指標</button></div>
+            <div class="navbar__actions"><span class="navbar__email">albert@example.com</span><button class="navbar__icon-btn"><i class="ph ph-house"></i></button></div>
+          </div>
+          <div class="circles-nav">
+            <button class="circles-nav__back"><i class="ph ph-arrow-left"></i></button>
+            <div class="circles-nav__main">
+              <div class="circles-nav__title">模擬面試總結報告</div>
+              <div class="circles-nav__sub">Spotify · Spotify Podcast</div>
+            </div>
+          </div>
+          <div class="qchip">
+            <span class="qchip__pill">C 澄清</span>
+            <span class="qchip__title">如何提升 Spotify Podcast 的用戶留存？</span>
+            <i class="ph ph-caret-down qchip__caret"></i>
+          </div>
+          <div class="report-body">
+            <div class="grade-card">
+              <div class="grade-card__score-row">
+                <span class="grade-card__score-num">77</span>
+                <span class="grade-card__score-unit">分</span>
+              </div>
+              <div class="grade-card__headline">七步框架掌握扎實，整體論述清晰；最強在 I 用戶與 L 方案，下一步建議補強 E 取捨的量化能力</div>
+            </div>
+            <div class="top-grid top-grid--desktop">
+              <div class="panel-card">
+                <div class="panel-card__title"><i class="ph ph-radio-button"></i>各步驟雷達圖</div>
+                <svg class="radar-svg" viewBox="0 0 240 220" preserveAspectRatio="xMidYMid meet">
+                  <polygon class="ring" points="120,64 165,89 153,144 87,144 75,89"/>
+                  <polygon class="ring" points="120,87.5 142.5,99.75 137.625,128.625 102.375,128.625 97.5,99.75"/>
+                  <line class="axis" x1="120" y1="110" x2="120" y2="18"/>
+                  <line class="axis" x1="120" y1="110" x2="191.7" y2="64.5"/>
+                  <line class="axis" x1="120" y1="110" x2="201.4" y2="150.4"/>
+                  <line class="axis" x1="120" y1="110" x2="158.5" y2="190.7"/>
+                  <line class="axis" x1="120" y1="110" x2="81.5" y2="190.7"/>
+                  <line class="axis" x1="120" y1="110" x2="38.6" y2="150.4"/>
+                  <line class="axis" x1="120" y1="110" x2="48.3" y2="64.5"/>
+                  <polygon class="poly" points="120,38.2 178.9,76.7 184.0,142.5 147.9,167.8 92.1,167.8 70.2,135.0 64.0,73.7"/>
+                  <circle class="dot" cx="120" cy="38.2" r="3"/>
+                  <circle class="dot" cx="178.9" cy="76.7" r="3"/>
+                  <circle class="dot" cx="184.0" cy="142.5" r="3"/>
+                  <circle class="dot" cx="147.9" cy="167.8" r="3"/>
+                  <circle class="dot" cx="92.1" cy="167.8" r="3"/>
+                  <circle class="dot" cx="70.2" cy="135.0" r="3"/>
+                  <circle class="dot" cx="64.0" cy="73.7" r="3"/>
+                  <text class="label" x="120" y="10" text-anchor="middle">C 澄清</text>
+                  <text class="label" x="207.4" y="62.5" text-anchor="start">I 用戶</text>
+                  <text class="label" x="217.0" y="154.4" text-anchor="start">R 需求</text>
+                  <text class="label" x="161.5" y="208.7" text-anchor="middle">C2 排序</text>
+                  <text class="label" x="78.5" y="208.7" text-anchor="middle">L 方案</text>
+                  <text class="label" x="22.9" y="154.4" text-anchor="end">E 取捨</text>
+                  <text class="label" x="32.7" y="62.5" text-anchor="end">S 總結</text>
+                </svg>
+              </div>
+              <div class="panel-card">
+                <div class="panel-card__title"><i class="ph ph-list-numbers"></i>各步驟分數（明細）</div>
+                <div class="step-rows__list">
+                  <div class="step-rows__row">
+                    <div class="step-rows__head"><span class="step-rows__name"><span class="step-rows__name-key">C</span>澄清</span><span class="step-rows__score step-rows__score--mid">78</span></div>
+                    <div class="step-rows__note">邊界與成功指標清晰，可再強化「時間框架」具體性（例：30 / 60 / 90 天 milestone）</div>
+                  </div>
+                  <div class="step-rows__row">
+                    <div class="step-rows__head"><span class="step-rows__name"><span class="step-rows__name-key">I</span>用戶</span><span class="step-rows__score step-rows__score--high">82</span></div>
+                    <div class="step-rows__note">分群清楚並佐以行為數據，是本次最強亮點；持續強化此能力</div>
+                  </div>
+                  <div class="step-rows__row">
+                    <div class="step-rows__head"><span class="step-rows__name"><span class="step-rows__name-key">R</span>需求</span><span class="step-rows__score step-rows__score--mid">75</span></div>
+                    <div class="step-rows__note">痛點到位，建議補上競品對比（Apple Podcast / YouTube Music）佐證需求合理性</div>
+                  </div>
+                  <div class="step-rows__row">
+                    <div class="step-rows__head"><span class="step-rows__name"><span class="step-rows__name-key">C2</span>排序</span><span class="step-rows__score step-rows__score--mid">70</span></div>
+                    <div class="step-rows__note">缺明確優先級框架（建議套 RICE / ICE 等量化模型佐證排序邏輯）</div>
+                  </div>
+                  <div class="step-rows__row">
+                    <div class="step-rows__head"><span class="step-rows__name"><span class="step-rows__name-key">L</span>方案</span><span class="step-rows__score step-rows__score--high">85</span></div>
+                    <div class="step-rows__note">3 方案各對應不同分群，結構紮實；可進一步加入線框圖或互動 flow 強化</div>
+                  </div>
+                  <div class="step-rows__row">
+                    <div class="step-rows__head"><span class="step-rows__name"><span class="step-rows__name-key">E</span>取捨</span><span class="step-rows__score step-rows__score--low">68</span></div>
+                    <div class="step-rows__note">本次最弱。每方案的開發成本（人月）與預期收益（ARPU / 留存）需具體量化</div>
+                  </div>
+                  <div class="step-rows__row step-rows__row--with-detail">
+                    <div class="step-rows__head"><span class="step-rows__name"><span class="step-rows__name-key">S</span>總結</span><span class="step-rows__score step-rows__score--high">80</span></div>
+                    <div class="step-rows__note">北極星指標明確，4 dim 追蹤指標具體可操作</div>
+                    <div class="step-rows__detail-label"><i class="ph ph-target"></i>NSM 追蹤指標 4 dim 拆解</div>
+                    <div class="step-rows__detail">
+                      <div class="tracking-mini">
+                        <div class="tracking-mini__head"><span class="tracking-mini__num">1</span>觸及廣度</div>
+                        <div class="tracking-mini__sub">有多少用戶接觸到核心功能</div>
+                        <div class="tracking-mini__content">情境式升級提示曝光人數 / 月活用戶 = 觸及目標 30M+ 月活</div>
+                      </div>
+                      <div class="tracking-mini">
+                        <div class="tracking-mini__head"><span class="tracking-mini__num">2</span>互動深度</div>
+                        <div class="tracking-mini__sub">用戶與核心功能的互動品質</div>
+                        <div class="tracking-mini__content">看到提示後點擊進入試用頁的轉化率 ≥ 8%（vs 現行 3%）</div>
+                      </div>
+                      <div class="tracking-mini">
+                        <div class="tracking-mini__head"><span class="tracking-mini__num">3</span>習慣頻率</div>
+                        <div class="tracking-mini__sub">用戶回訪與重複觸發頻率</div>
+                        <div class="tracking-mini__content">試用期內每週啟動 Premium 功能的平均天數 ≥ 4 天</div>
+                      </div>
+                      <div class="tracking-mini">
+                        <div class="tracking-mini__head"><span class="tracking-mini__num">4</span>留存驅力</div>
+                        <div class="tracking-mini__sub">推動用戶留下的核心機制</div>
+                        <div class="tracking-mini__content">試用到期後 30 日內完成訂閱的轉換率 ≥ 12%</div>
+                      </div>
+                    </div>
+                  </div>
+                </div>
+              </div>
+            </div>
+            <div class="feedback-card feedback-card--strengths">
+              <div class="feedback-card__title"><i class="ph-fill ph-check-circle"></i>表現優秀</div>
+              <ul class="feedback-card__list">
+                <li>在 C 釐清與 L 方案兩步提出明確的成功指標與量化目標</li>
+                <li>I 用戶分析具體區分付費 / 免費分群並佐以行為數據</li>
+                <li>L 方案規劃條理清楚，3 個方案各自對應不同分群痛點</li>
+              </ul>
+            </div>
+            <div class="feedback-card feedback-card--improvements">
+              <div class="feedback-card__title"><i class="ph-fill ph-warning-circle"></i>需要改進</div>
+              <ul class="feedback-card__list">
+                <li>E 取捨需要更具體量化每個方案的開發成本與預期收益</li>
+                <li>C2 排序的優先順序缺乏明確的優先級框架說明</li>
+                <li>R 需求步驟可加入競品對比強化論述</li>
+              </ul>
+            </div>
+            <div class="feedback-card feedback-card--verdict">
+              <div class="feedback-card__title"><i class="ph-fill ph-graduation-cap"></i>教練總評</div>
+              <p class="feedback-card__text">整體論述邏輯通順、結構完整。最強的部分是用戶分析與方案規劃；下一步建議鎖定 E 取捨的量化能力，建議透過更多商業案例練習。</p>
+            </div>
+            <div class="nextsteps-card"><span class="nextsteps-card__label">建議下一步：</span>建議再加練 1 次取捨型題目（產品策略 ×25 中任選），重點放在量化開發成本與預期收益。</div>
+          </div>
+          <div class="submit-bar">
+            <div class="submit-bar__left"><button class="btn btn--ghost btn--icon"><i class="ph ph-house"></i></button></div>
+            <div class="submit-bar__right">
+              <button class="btn btn--ghost"><i class="ph ph-download-simple"></i>匯出 PNG</button>
+              <button class="btn btn--primary"><i class="ph ph-shuffle"></i>再練一題</button>
+            </div>
+          </div>
+        </div>
+      </div>
+
+    </div>
+
+    <!-- ============================================================ -->
+    <!-- Section B — Loading（產生報告中）                                -->
+    <!-- ============================================================ -->
+    <h2 class="vp-section-title">B · Loading（生成總結報告中）<span class="vp-section-title__sub">spinner 56 + 4-step checklist：彙整七步 → 計算總分 → 生成雷達 → 整理建議</span></h2>
+    <div class="anno"><strong>視覺契約：</strong>navbar + circles-nav 同 A，內容區改 loading-wrap（56px navy spinner + title「生成總結報告中」+ sub「七步框架評分中，預計 30-60 秒」+ 4-step checklist）。無 submit-bar（避免讓使用者誤以為已完成）。<strong>慢回應 60s+ 套用 12 mockup 的 loading-sub--slow inline warn 變體</strong>（不在這顯示，沿用 12 規則）。</div>
+    <div class="vp-grid">
+
+      <!-- B · Mobile 360 -->
+      <div class="vp-frame">
+        <div class="vp-frame__label"><span>Mobile</span><span>360 × 1100</span></div>
+        <div class="vp-frame__inner" style="width:360px">
+          <div class="navbar">
+            <button class="navbar__icon-btn"><i class="ph ph-list"></i></button>
+            <div class="navbar__brand"><span class="navbar__brand-icon"><i class="ph ph-circles-three"></i></span><span class="navbar__brand-name">PM Drill</span></div>
+            <div class="navbar__actions"><button class="navbar__icon-btn"><i class="ph ph-house"></i></button></div>
+          </div>
+          <div class="circles-nav">
+            <button class="circles-nav__back"><i class="ph ph-arrow-left"></i></button>
+            <div class="circles-nav__main">
+              <div class="circles-nav__title">模擬面試總結報告</div>
+              <div class="circles-nav__sub">Spotify · Spotify Podcast</div>
+            </div>
+          </div>
+          <div class="loading-wrap">
+            <div class="loading-spinner"></div>
+            <div class="loading-title">生成總結報告中</div>
+            <div class="loading-sub">七步框架評分整合中，預計 30-60 秒</div>
+            <div class="loading-checklist">
+              <div class="loading-step is-done"><i class="ph-fill ph-check-circle loading-step__icon"></i>彙整七步驟資料</div>
+              <div class="loading-step is-active"><i class="ph ph-circle-notch loading-step__icon" style="animation:spin 1s linear infinite"></i>計算總分與評等</div>
+              <div class="loading-step is-pending"><i class="ph ph-circle loading-step__icon"></i>生成 7-axis 雷達圖</div>
+              <div class="loading-step is-pending"><i class="ph ph-circle loading-step__icon"></i>整理改進建議</div>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- B · Tablet 768 -->
+      <div class="vp-frame">
+        <div class="vp-frame__label"><span>Tablet</span><span>768 × 1100</span></div>
+        <div class="vp-frame__inner" style="width:768px">
+          <div class="navbar">
+            <button class="navbar__icon-btn"><i class="ph ph-list"></i></button>
+            <div class="navbar__brand"><span class="navbar__brand-icon"><i class="ph ph-circles-three"></i></span><span class="navbar__brand-name">PM Drill</span></div>
+            <div class="navbar__tabs"><button class="navbar__tab is-active">CIRCLES</button><button class="navbar__tab">北極星</button></div>
+            <div class="navbar__actions"><button class="navbar__icon-btn"><i class="ph ph-magnifying-glass"></i></button><button class="navbar__icon-btn"><i class="ph ph-house"></i></button></div>
+          </div>
+          <div class="circles-nav">
+            <button class="circles-nav__back"><i class="ph ph-arrow-left"></i></button>
+            <div class="circles-nav__main">
+              <div class="circles-nav__title">模擬面試總結報告</div>
+              <div class="circles-nav__sub">Spotify · Spotify Podcast</div>
+            </div>
+          </div>
+          <div class="loading-wrap">
+            <div class="loading-spinner"></div>
+            <div class="loading-title">生成總結報告中</div>
+            <div class="loading-sub">七步框架評分整合中，預計 30-60 秒</div>
+            <div class="loading-checklist">
+              <div class="loading-step is-done"><i class="ph-fill ph-check-circle loading-step__icon"></i>彙整七步驟資料</div>
+              <div class="loading-step is-active"><i class="ph ph-circle-notch loading-step__icon" style="animation:spin 1s linear infinite"></i>計算總分與評等</div>
+              <div class="loading-step is-pending"><i class="ph ph-circle loading-step__icon"></i>生成 7-axis 雷達圖</div>
+              <div class="loading-step is-pending"><i class="ph ph-circle loading-step__icon"></i>整理改進建議</div>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- B · Desktop 1280 -->
+      <div class="vp-frame">
+        <div class="vp-frame__label"><span>Desktop</span><span>1280 × 1100</span></div>
+        <div class="vp-frame__inner" style="width:1280px">
+          <div class="navbar">
+            <div class="navbar__brand"><span class="navbar__brand-icon"><i class="ph ph-circles-three"></i></span><span class="navbar__brand-name">PM Drill</span></div>
+            <div class="navbar__tabs"><button class="navbar__tab is-active">CIRCLES</button><button class="navbar__tab">北極星指標</button></div>
+            <div class="navbar__actions"><span class="navbar__email">albert@example.com</span><button class="navbar__icon-btn"><i class="ph ph-house"></i></button></div>
+          </div>
+          <div class="circles-nav">
+            <button class="circles-nav__back"><i class="ph ph-arrow-left"></i></button>
+            <div class="circles-nav__main">
+              <div class="circles-nav__title">模擬面試總結報告</div>
+              <div class="circles-nav__sub">Spotify · Spotify Podcast</div>
+            </div>
+          </div>
+          <div class="loading-wrap">
+            <div class="loading-spinner"></div>
+            <div class="loading-title">生成總結報告中</div>
+            <div class="loading-sub">七步框架評分整合中，預計 30-60 秒</div>
+            <div class="loading-checklist">
+              <div class="loading-step is-done"><i class="ph-fill ph-check-circle loading-step__icon"></i>彙整七步驟資料</div>
+              <div class="loading-step is-active"><i class="ph ph-circle-notch loading-step__icon" style="animation:spin 1s linear infinite"></i>計算總分與評等</div>
+              <div class="loading-step is-pending"><i class="ph ph-circle loading-step__icon"></i>生成 7-axis 雷達圖</div>
+              <div class="loading-step is-pending"><i class="ph ph-circle loading-step__icon"></i>整理改進建議</div>
+            </div>
+          </div>
+        </div>
+      </div>
+
+    </div>
+
+    <!-- ============================================================ -->
+    <!-- Section C — Error（生成失敗）                                    -->
+    <!-- ============================================================ -->
+    <h2 class="vp-section-title">C · Error（報告生成失敗 — REPORT_API_ERROR）<span class="vp-section-title__sub">cloud-warning + error code + 重試 / 回首頁</span></h2>
+    <div class="anno"><strong>視覺契約：</strong>navbar + circles-nav 同 A，內容區改 error-wrap（64px 紅圓 ph-cloud-warning + 「報告生成失敗」+ 副文「總結報告 API 暫時不可用，你的七步驟評分已自動保存」+ error-code「REPORT_API_ERROR」+ actions：重試 primary / 回首頁 ghost）。<strong>API timeout 重試後若再失敗 → fallback 到 step-rows 顯示已保存的七步驟分數</strong>（細節待 SP3 收尾，此 mockup 只表達 error-wrap UI）。</div>
+    <div class="vp-grid">
+
+      <!-- C · Mobile 360 -->
+      <div class="vp-frame">
+        <div class="vp-frame__label"><span>Mobile</span><span>360 × 1100</span></div>
+        <div class="vp-frame__inner" style="width:360px">
+          <div class="navbar">
+            <button class="navbar__icon-btn"><i class="ph ph-list"></i></button>
+            <div class="navbar__brand"><span class="navbar__brand-icon"><i class="ph ph-circles-three"></i></span><span class="navbar__brand-name">PM Drill</span></div>
+            <div class="navbar__actions"><button class="navbar__icon-btn"><i class="ph ph-house"></i></button></div>
+          </div>
+          <div class="circles-nav">
+            <button class="circles-nav__back"><i class="ph ph-arrow-left"></i></button>
+            <div class="circles-nav__main">
+              <div class="circles-nav__title">模擬面試總結報告</div>
+              <div class="circles-nav__sub">Spotify · Spotify Podcast</div>
+            </div>
+          </div>
+          <div class="error-wrap">
+            <div class="error-wrap__icon"><i class="ph ph-cloud-warning"></i></div>
+            <div class="error-wrap__title">報告生成失敗</div>
+            <div class="error-wrap__sub">總結報告 API 暫時不可用，你的七步驟評分已自動保存。請稍後重試或回首頁挑下一題。</div>
+            <div class="error-wrap__code">REPORT_API_ERROR</div>
+            <div class="error-wrap__actions">
+              <button class="btn btn--ghost"><i class="ph ph-house"></i>回首頁</button>
+              <button class="btn btn--primary"><i class="ph ph-arrow-clockwise"></i>重試</button>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- C · Tablet 768 -->
+      <div class="vp-frame">
+        <div class="vp-frame__label"><span>Tablet</span><span>768 × 1100</span></div>
+        <div class="vp-frame__inner" style="width:768px">
+          <div class="navbar">
+            <button class="navbar__icon-btn"><i class="ph ph-list"></i></button>
+            <div class="navbar__brand"><span class="navbar__brand-icon"><i class="ph ph-circles-three"></i></span><span class="navbar__brand-name">PM Drill</span></div>
+            <div class="navbar__tabs"><button class="navbar__tab is-active">CIRCLES</button><button class="navbar__tab">北極星</button></div>
+            <div class="navbar__actions"><button class="navbar__icon-btn"><i class="ph ph-magnifying-glass"></i></button><button class="navbar__icon-btn"><i class="ph ph-house"></i></button></div>
+          </div>
+          <div class="circles-nav">
+            <button class="circles-nav__back"><i class="ph ph-arrow-left"></i></button>
+            <div class="circles-nav__main">
+              <div class="circles-nav__title">模擬面試總結報告</div>
+              <div class="circles-nav__sub">Spotify · Spotify Podcast</div>
+            </div>
+          </div>
+          <div class="error-wrap">
+            <div class="error-wrap__icon"><i class="ph ph-cloud-warning"></i></div>
+            <div class="error-wrap__title">報告生成失敗</div>
+            <div class="error-wrap__sub">總結報告 API 暫時不可用，你的七步驟評分已自動保存。請稍後重試或回首頁挑下一題。</div>
+            <div class="error-wrap__code">REPORT_API_ERROR</div>
+            <div class="error-wrap__actions">
+              <button class="btn btn--ghost"><i class="ph ph-house"></i>回首頁</button>
+              <button class="btn btn--primary"><i class="ph ph-arrow-clockwise"></i>重試</button>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- C · Desktop 1280 -->
+      <div class="vp-frame">
+        <div class="vp-frame__label"><span>Desktop</span><span>1280 × 1100</span></div>
+        <div class="vp-frame__inner" style="width:1280px">
+          <div class="navbar">
+            <div class="navbar__brand"><span class="navbar__brand-icon"><i class="ph ph-circles-three"></i></span><span class="navbar__brand-name">PM Drill</span></div>
+            <div class="navbar__tabs"><button class="navbar__tab is-active">CIRCLES</button><button class="navbar__tab">北極星指標</button></div>
+            <div class="navbar__actions"><span class="navbar__email">albert@example.com</span><button class="navbar__icon-btn"><i class="ph ph-house"></i></button></div>
+          </div>
+          <div class="circles-nav">
+            <button class="circles-nav__back"><i class="ph ph-arrow-left"></i></button>
+            <div class="circles-nav__main">
+              <div class="circles-nav__title">模擬面試總結報告</div>
+              <div class="circles-nav__sub">Spotify · Spotify Podcast</div>
+            </div>
+          </div>
+          <div class="error-wrap">
+            <div class="error-wrap__icon"><i class="ph ph-cloud-warning"></i></div>
+            <div class="error-wrap__title">報告生成失敗</div>
+            <div class="error-wrap__sub">總結報告 API 暫時不可用，你的七步驟評分已自動保存。請稍後重試或回首頁挑下一題。</div>
+            <div class="error-wrap__code">REPORT_API_ERROR</div>
+            <div class="error-wrap__actions">
+              <button class="btn btn--ghost"><i class="ph ph-house"></i>回首頁</button>
+              <button class="btn btn--primary"><i class="ph ph-arrow-clockwise"></i>重試</button>
+            </div>
+          </div>
+        </div>
+      </div>
+
+    </div>
+
+  </div>
+</body>
+</html>

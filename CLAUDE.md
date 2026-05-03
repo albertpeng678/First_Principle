@@ -1,7 +1,7 @@
 # PM Drill — 專案狀態看板
 
 > 即時狀態 single source of truth。重大事件即時 Edit。不放歷史（git log 有）。
-> **Last updated:** 2026-05-03（12 Phase 3 error 變體 + loading 慢回應放行 / 下一張 13 Phase 4 報告 7-axis radar）
+> **Last updated:** 2026-05-03（13 Phase 4 總報告放行：7-axis radar + step-rows 含步驟建議 + S 總結 nested NSM 4 dim / 下一張 14 NSM Step 4）
 
 ---
 
@@ -19,7 +19,7 @@
 | Master Spec 凍結 | ✅ 完成 |
 | SP3 backend 並行 | ✅ Merged 到 main（13 commits / jest 142 綠 / 兩階段 review × 2 round 全綠）|
 | SP4 backend 並行 | ✅ Merged 到 main（jest 142 → 157 / 103 題 NSM context 預生成 idempotent 雙跑驗證）|
-| Mockup（共 16 張）| 🟡 13/16 放行 / 下一張 13 Phase 4 報告（7-axis radar + tracking）|
+| Mockup（共 16 張）| 🟡 14/16 放行 / 下一張 14 NSM Step 4（4 tabs × 3 viewport）|
 | writing-plans → CSS rewrite plan | ⏳ 待 mockup 全完 |
 | subagent-driven-development | ⏳ 待 plan |
 | 14-box gate → merge main | ⏳ 待全綠 |
@@ -43,7 +43,7 @@
 | 10 | ✅ 放行 | `docs/superpowers/specs/mockups/2026-05-02-frontend-rewrite/10-onboarding.html` | Onboarding — Welcome card（hand-waving + 開始引導 / 直接自己選題）+ **4-step coachmark tour**（練習模式 / 選擇題型 / 挑一道題目 / 開始練習）· 5 sections × 3 viewports = 15 frames · spotlight = `.onb-targeted` 直接掛在目標元素（auto-sized 永遠對齊，無雙重 dim）· dual ring（2px 白 inner halo + 6px navy outer + 9999px 全頁 dim outer）對任何 target 顏色都對比清楚 · **mobile 採 desktop 同 pattern**（全頁 dim + 浮動 tooltip near target，非 sticky-bottom）· Step 4 spotlight 圍**整張 expanded q-card**（含描述+button），讓 user 讀完題目說明再決定 |
 | 11 | ✅ 放行 | `docs/superpowers/specs/mockups/2026-05-02-frontend-rewrite/11-phase-3-score.html` | Phase 3 步驟分數 — 4 sections × 3 viewports = 12 frames：A 預設 78 分（mobile/tablet 4 dim 折疊 / desktop 2-col 全展開）/ B 低分 52 + 邏輯性 1/5 warn 自動展開 + 教練示範 3 sections 全展開（情境前置 / 逐欄位示範 4 fields / reasoning）/ C Loading 56px navy spinner + 4-step checklist / D Error 紅圓 cloud-warning + EVAL_TIMEOUT + 重新評分/返回修改。Desktop 用 flex + display:contents + order 規則：左欄（380px）score+highlights+coach 自然 stack、右欄 dim-list — 避免 grid-row span 撐高 col-1 issue。**移除 circles-nav 重複的灰色 home button**（navbar 右上 home 唯一） |
 | 12 | ✅ 放行 | `docs/superpowers/specs/mockups/2026-05-02-frontend-rewrite/12-phase-3-error-loading.html` | Phase 3 Error 變體 + Loading 慢回應 — 補 11 未涵蓋的：A Loading 慢回應（60s+ inline warn 文字「比預期慢一些…AI 深度分析中，偶而會需要比較久時間，請再等等。」內部 timeout 300s 不告知 user）/ B Error EVAL_API_ERROR 評分服務暫時不可用 / C Error EVAL_PARSE_ERROR 教練回應格式異常。3 sections × 3 viewports = 9 frames。component CSS LOCKED copy 自 11；新增 loading-sub--slow 變體 inline 文字（不用 toast 框）|
-| 13 | 待畫 | `docs/superpowers/specs/mockups/2026-05-02-frontend-rewrite/13-phase-4-final.html` | Phase 4 報告（7-axis radar）|
+| 13 | ✅ 放行 | `docs/superpowers/specs/mockups/2026-05-02-frontend-rewrite/13-phase-4-final.html` | Phase 4 模擬面試總結報告 — 3 sections × 3 viewports = 9 frames：A 預設 77 分（**無 grade letter A/B/C/D**，分數已足夠）+ 7-axis radar navy polygon（去紫）+ step-rows 7 行**每步補一行 commentary**（C 78 時間框架 / I 82 最強亮點 / R 75 補競品對比 / C2 70 缺 RICE/ICE / L 85 紮實 / E 68 本次最弱量化不足 / S 80 tracking 完整）+ **S 總結 row 內嵌 NSM 4 dim mini cards**（dashed border 視覺從屬，明確表達 4 dim 是 S 步驟拆解內容、非獨立 top-level；4 dim 全部統一中性樣式 + Italic 1/2/3/4 編號區分，**不用顏色**避免雜亂；mobile/tablet/desktop 一律 1-col 直式）+ strengths（success 綠）+ improvements（warn 橘）+ verdict（navy）+ nextsteps + submit-bar sticky（**再練一題**換題、不重做同題；匯出 PNG / home icon）/ B Loading spinner + 4-step checklist（彙整七步 → 計算總分 → 生成雷達 → 整理建議）/ C Error REPORT_API_ERROR + 重試 / 回首頁。Desktop top-grid 2-col（左 radar 右 step-rows，S 總結 nested 4 dim 也 narrow column 直式）|
 | 14 | 待畫 | `docs/superpowers/specs/mockups/2026-05-02-frontend-rewrite/14-nsm-step-4.html` | NSM Step 4（4 tabs）|
 | 15 | 待畫 | `docs/superpowers/specs/mockups/2026-05-02-frontend-rewrite/15-error-empty-collation.html` | Error / Empty / Loading 全集 |
 
