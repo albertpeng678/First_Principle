@@ -489,10 +489,10 @@
   function renderOffcanvasContent() {
     if (AppState.historyError) {
       return `<div class="offcanvas-error">
-        <div class="offcanvas-error__icon"><i class="ph ph-wifi-slash"></i></div>
+        <div class="offcanvas-error__icon"><i class="ph ph-warning-circle"></i></div>
         <div class="offcanvas-error__title">載入失敗</div>
-        <div class="offcanvas-error__sub">請稍後再試</div>
-        <div style="margin-top:var(--s-3)"><button class="btn btn--ghost" data-offcanvas="retry">重試</button></div>
+        <div class="offcanvas-error__sub">請檢查網路連線後再試。</div>
+        <button class="btn btn--ghost" data-offcanvas="retry"><i class="ph ph-arrow-clockwise"></i>重試</button>
       </div>`;
     }
     if (AppState.historyLoading || AppState.historyList === null) {
@@ -503,10 +503,10 @@
     }
     if (AppState.historyList.length === 0) {
       return `<div class="offcanvas-empty">
-        <div class="offcanvas-empty__icon"><i class="ph ph-notepad"></i></div>
+        <div class="offcanvas-empty__icon"><i class="ph ph-folder-open"></i></div>
         <div class="offcanvas-empty__title">尚無練習記錄</div>
-        <div class="offcanvas-empty__sub">完成第一題後，記錄會出現在這裡</div>
-        <div class="offcanvas-empty__cta"><button class="btn btn--primary" data-offcanvas="close">開始練習</button></div>
+        <div class="offcanvas-empty__sub">練習完成的 CIRCLES 題目與 NSM 訓練會出現在這裡。</div>
+        <button class="btn btn--ghost offcanvas-empty__cta" data-offcanvas="close"><i class="ph ph-arrow-right"></i>開始第一題</button>
       </div>`;
     }
     return renderOffcanvasList(AppState.historyList);
@@ -542,33 +542,40 @@
     var scoreHtml = '';
     var isNsm = !item.mode && !item.drill_step;
 
+    // Title helper — backend enriches each session row with currentQuestion (object,
+    // routes/circles-sessions.js:111) AND keeps question_json column. Both are objects
+    // shaped { company, product, ... } per spec §1.8.
+    function questionTitle(item) {
+      const q = (item.question_json && item.question_json.company) ? item.question_json
+              : (item.currentQuestion && item.currentQuestion.company) ? item.currentQuestion
+              : null;
+      if (!q) return '';
+      return q.product ? (q.company + ' · ' + q.product) : q.company;
+    }
+
     if (item.mode === 'drill' || item.drill_step) {
       const stepMap = { C1: 'C 澄清', I: 'I 用戶洞察', R: 'R 重新定義' };
       const stepLabel = stepMap[item.drill_step] || item.drill_step || '步驟加練';
       metaLabel = 'CIRCLES · ' + stepLabel;
-      title = (item.question_json && item.question_json.company)
-        ? (item.question_json.company + ' · ' + (item.question_json.product || ''))
-        : (item.currentQuestion || '練習題目');
+      title = questionTitle(item) || '練習題目';
     } else if (item.mode === 'simulation') {
       metaLabel = 'CIRCLES · 完整 7 步';
-      title = (item.question_json && item.question_json.company)
-        ? (item.question_json.company + ' · ' + (item.question_json.product || ''))
-        : (item.currentQuestion || '練習題目');
+      title = questionTitle(item) || '練習題目';
     } else {
       // NSM session (no mode field)
       metaLabel = 'NSM · 4 步';
-      title = (item.question_json && item.question_json.company)
-        ? (item.question_json.company + ' · ' + (item.question_json.industry || ''))
-        : '北極星指標練習';
+      title = questionTitle(item) || '北極星指標練習';
     }
 
-    // Score badge — navy, only for completed sessions with a score
+    // Score badge — navy, only for completed sessions with a score.
+    // step_scores values are EvaluatorResponse objects { totalScore, dimensions, ... } per spec §1.4.
+    // NSM scores_json shape is { totalScore, scores } per prompts/nsm-evaluator.js:48.
     if (item.status === 'completed' || item.status === 'scored') {
       var score = null;
-      if (isNsm && item.scores_json && item.scores_json.final_score != null) {
-        score = item.scores_json.final_score;
-      } else if (item.step_scores && item.step_scores.S != null) {
-        score = item.step_scores.S;
+      if (isNsm && item.scores_json && item.scores_json.totalScore != null) {
+        score = item.scores_json.totalScore;
+      } else if (item.step_scores && item.step_scores.S && item.step_scores.S.totalScore != null) {
+        score = item.step_scores.S.totalScore;
       } else {
         score = item.total_score || item.score || null;
       }
