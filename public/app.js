@@ -35,6 +35,11 @@
     circlesChipExpanded: false,
     circlesDisplayedQuestions: [],
 
+    // Plan B additions
+    circlesTypeFilter: 'design',        // 'design' | 'improve' | 'strategy'
+    circlesSearchText: '',
+    circlesQaOpen: true,                // qa-row default open per mockup
+
     // NSM (Plan C fills)
     nsmStep: 1,
     nsmSubTab: 'nsm-step2',
@@ -140,13 +145,18 @@
 
   function renderView() {
     const v = AppState.view;
-    if (v === 'circles') return renderCirclesStub();
+    if (v === 'circles') {
+      if (AppState.circlesPhase === 1 && !AppState.circlesSession && !AppState.circlesSelectedQuestion) {
+        return renderCirclesHome();
+      }
+      return renderCirclesStub();
+    }
     if (v === 'nsm') {
       if (AppState.nsmStep === 1) return renderNSMStep1();
       return renderNSMStub();
     }
     if (v === 'auth')    return renderAuthStub();
-    return renderCirclesStub();
+    return renderCirclesHome();
   }
 
   function renderCirclesStub() {
@@ -219,6 +229,290 @@
         }
       });
     });
+  }
+
+  // ── CIRCLES Home (Plan B SB1 — mockup 01) ────────────────────────────────
+  var CIRCLES_QUESTIONS = window.CIRCLES_QUESTIONS || [];
+
+  // Per spec §3.7 + memory feedback_5_random_questions:
+  // AppState.circlesDisplayedQuestions persists; reshuffle = re-pick in-place, no nav.
+  function circlesFilterQuestions() {
+    var pool = CIRCLES_QUESTIONS.slice();
+    var filter = AppState.circlesTypeFilter || 'design';
+    pool = pool.filter(function (q) { return q.question_type === filter; });
+    if (AppState.circlesSearchText) {
+      var s = AppState.circlesSearchText.toLowerCase();
+      pool = pool.filter(function (q) {
+        return ((q.company || '').toLowerCase().indexOf(s) >= 0)
+            || ((q.product || '').toLowerCase().indexOf(s) >= 0)
+            || ((q.problem_statement || '').toLowerCase().indexOf(s) >= 0);
+      });
+    }
+    return pool;
+  }
+
+  function circlesPickDisplayed(excludeCurrent) {
+    var pool = circlesFilterQuestions();
+    if (excludeCurrent && AppState.circlesDisplayedQuestions && AppState.circlesDisplayedQuestions.length) {
+      var curIds = AppState.circlesDisplayedQuestions.map(function (q) { return q.id; });
+      var excluded = pool.filter(function (q) { return curIds.indexOf(q.id) < 0; });
+      if (excluded.length >= 5) pool = excluded;
+    }
+    // Fisher-Yates shuffle
+    for (var i = pool.length - 1; i > 0; i--) {
+      var j = Math.floor(Math.random() * (i + 1));
+      var t = pool[i]; pool[i] = pool[j]; pool[j] = t;
+    }
+    AppState.circlesDisplayedQuestions = pool.slice(0, 5);
+  }
+
+  function circlesEnsureDisplayed() {
+    if (!AppState.circlesDisplayedQuestions || !AppState.circlesDisplayedQuestions.length) {
+      circlesPickDisplayed(false);
+    }
+  }
+
+  function circlesCountByType(type) {
+    return CIRCLES_QUESTIONS.filter(function (q) { return q.question_type === type; }).length;
+  }
+
+  function renderCirclesQCard(q, idx, mode) {
+    var isSim = (mode === 'simulation');
+    var tagClass = isSim ? 'mode-tag--sim' : 'mode-tag--drill';
+    var tagIcon  = isSim ? 'ph-list-checks' : 'ph-target';
+    var tagLabel = isSim ? '完整' : '步驟練';
+    var num = String(idx + 1).padStart(2, '0');
+    var title = escHtml(q.company) + (q.product ? ' · ' + escHtml(q.product) : '');
+    return '<div class="qcard" data-qid="' + escHtml(q.id) + '">'
+      + '<div class="qcard__head">'
+      + '<span class="qcard__num">' + num + '</span>'
+      + '<h3 class="qcard__title">' + title + '</h3>'
+      + '</div>'
+      + '<div class="qcard__meta">'
+      + '<span class="mode-tag ' + tagClass + '"><i class="ph ' + tagIcon + '"></i>' + tagLabel + '</span>'
+      + '<span class="qcard__meta-sep">·</span>'
+      + escHtml(q.company)
+      + '</div>'
+      + '<p class="qcard__body">' + escHtml(q.problem_statement) + '</p>'
+      + '</div>';
+  }
+
+  function renderCirclesHome() {
+    // Default circlesMode to 'simulation' if not set (per scope note)
+    if (!AppState.circlesMode) AppState.circlesMode = 'simulation';
+    circlesEnsureDisplayed();
+
+    var mode = AppState.circlesMode;
+    var filter = AppState.circlesTypeFilter || 'design';
+    var qaOpen = AppState.circlesQaOpen !== false; // default open
+
+    // ── stats-strip (mockup line 808-815) ──
+    var statsHtml = '<div class="stats-strip">'
+      + '<i class="ph ph-chart-bar stats-strip__icon"></i>'
+      + '<span class="stats-strip__item"><span class="stats-strip__num" data-stat="completed">0</span>已完成</span>'
+      + '<span class="stats-strip__sep">·</span>'
+      + '<span class="stats-strip__item"><span class="stats-strip__num" data-stat="active">0</span>進行中</span>'
+      + '<span class="stats-strip__sep">·</span>'
+      + '<span class="stats-strip__item"><span class="stats-strip__num" data-stat="weekly">0</span>本週</span>'
+      + '<span class="stats-strip__hint" data-stat="hint"></span>'
+      + '</div>';
+
+    // ── qa-row accordion (mockup line 817-826) ──
+    var qaRowHtml = '<div class="qa-row' + (qaOpen ? ' is-open' : '') + '">'
+      + '<div class="qa-row__head">'
+      + '<span class="qa-row__title">什麼是 CIRCLES 實戰訓練？</span>'
+      + '<i class="ph ph-caret-right qa-row__caret"></i>'
+      + '</div>'
+      + '<div class="qa-row__body">'
+      + '<p><strong>CIRCLES</strong>（七步框架）：釐清題目 → 鎖定用戶 → 列舉需求 → 排序聚焦 → 提出方案 → 取捨評估 → 總結結論。每一步都有 AI 即時點評。</p>'
+      + '<p><strong>完整模擬</strong> 25-35 分鐘走全 7 步；<strong>步驟加練</strong> 5-10 分鐘專注單練弱點。</p>'
+      + '</div>'
+      + '</div>';
+
+    // ── mode-selector (mockup line 830-839) ──
+    var modeSelectorHtml = '<div class="mode-selector">'
+      + '<button class="mode-card' + (mode === 'simulation' ? ' is-active' : '') + '" data-circles-mode="simulation">'
+      + '<div class="mode-card__head"><i class="ph ph-list-checks"></i><span class="mode-card__title">完整模擬</span></div>'
+      + '<div class="mode-card__body">7 步循序練習</div>'
+      + '</button>'
+      + '<button class="mode-card' + (mode === 'drill' ? ' is-active' : '') + '" data-circles-mode="drill">'
+      + '<div class="mode-card__head"><i class="ph ph-target"></i><span class="mode-card__title">步驟加練</span></div>'
+      + '<div class="mode-card__body">單練 C / I / R</div>'
+      + '</button>'
+      + '</div>';
+
+    // ── search-wrap (mockup line 841-844) ──
+    var searchHtml = '<div class="search-wrap">'
+      + '<i class="ph ph-magnifying-glass search-wrap__icon"></i>'
+      + '<input type="search" placeholder="搜尋題目（公司 / 產品 / 主題）" value="' + escHtml(AppState.circlesSearchText || '') + '">'
+      + '</div>';
+
+    // ── type-tabs (mockup line 846-850) — counts from CIRCLES_QUESTIONS ──
+    var dCount = circlesCountByType('design');
+    var iCount = circlesCountByType('improve');
+    var sCount = circlesCountByType('strategy');
+    var typeTabsHtml = '<div class="type-tabs">'
+      + '<button class="type-tab' + (filter === 'design' ? ' is-active' : '') + '" data-circles-type="design">產品設計 ×' + dCount + '</button>'
+      + '<button class="type-tab' + (filter === 'improve' ? ' is-active' : '') + '" data-circles-type="improve">產品改進 ×' + iCount + '</button>'
+      + '<button class="type-tab' + (filter === 'strategy' ? ' is-active' : '') + '" data-circles-type="strategy">產品策略 ×' + sCount + '</button>'
+      + '</div>';
+
+    // ── q-list (mockup line 852-868) ──
+    var qs = AppState.circlesDisplayedQuestions;
+    var qListInner;
+    if (!qs || qs.length === 0) {
+      qListInner = '<div class="empty-wrap"><div class="empty-wrap__title">找不到符合條件的題目</div>'
+        + '<div class="empty-wrap__body">請調整搜尋或切換題型。</div></div>';
+    } else {
+      qListInner = qs.map(function (q, i) { return renderCirclesQCard(q, i, mode); }).join('');
+    }
+    var qListHtml = '<div class="q-list">' + qListInner + '</div>';
+
+    // ── reshuffle (mockup line 870) ──
+    var reshuffleHtml = '<button class="reshuffle" data-circles="reshuffle"><i class="ph ph-shuffle"></i>隨機抽 5 題（不含目前的題）</button>';
+
+    // ── home wrapper center content ──
+    var centerHtml = modeSelectorHtml + searchHtml + typeTabsHtml + qListHtml + reshuffleHtml;
+
+    // ── recent-rail desktop stub (SB1 minimum — renders placeholder) ──
+    var recentRailHtml = '<aside class="recent-rail"><div class="recent-rail__title"><span>最近練習</span></div>'
+      + '<div class="recent-rail__list"></div></aside>';
+
+    // ── home wrapper with desktop modifier (per scope note) ──
+    // Desktop: .home--desktop with --no-drill (2-col: center + recent-rail).
+    // Drill-rail (200px left aside) deferred to next sub-bundle, so we always
+    // use --no-drill here regardless of mode to avoid grid collapse when the
+    // 200px slot is empty.
+    var homeClass = 'home home--desktop home--desktop-no-drill';
+    var homeHtml = '<div class="' + homeClass + '">'
+      + '<div>' + centerHtml + '</div>'
+      + recentRailHtml
+      + '</div>';
+
+    // ── nsm-promo (mockup line 872-878) ──
+    var nsmPromoHtml = '<div class="nsm-promo">'
+      + '<div class="nsm-promo__main">'
+      + '<div class="nsm-promo__title">S 步驟含北極星指標練習</div>'
+      + '<div class="nsm-promo__sub">想做最完整的 NSM 定義訓練？單獨進入北極星指標訓練器拆解 4 個維度的輸入指標。</div>'
+      + '</div>'
+      + '<a href="#" class="nsm-promo__cta" data-circles="nsm-promo">前往 NSM<i class="ph ph-arrow-right"></i></a>'
+      + '</div>';
+
+    return '<div data-view="circles">'
+      + statsHtml
+      + qaRowHtml
+      + homeHtml
+      + nsmPromoHtml
+      + '</div>';
+  }
+
+  // Async stats fetch — called after render to populate stats-strip.
+  // Uses AbortController with 5s timeout so it never hangs the page / tests.
+  async function loadCirclesStats() {
+    try {
+      var controller = new AbortController();
+      var timer = setTimeout(function () { controller.abort(); }, 5000);
+      var path = '/api/circles-stats';
+      var headers = {};
+      if (AppState.accessToken) headers['Authorization'] = 'Bearer ' + AppState.accessToken;
+      else if (AppState.guestId) headers['X-Guest-ID'] = AppState.guestId;
+      headers['Content-Type'] = 'application/json';
+      var res = await fetch(path, { headers: headers, signal: controller.signal });
+      clearTimeout(timer);
+      if (!res.ok) return;
+      var data = await res.json();
+      var numEls = document.querySelectorAll('[data-stat]');
+      numEls.forEach(function (el) {
+        var stat = el.dataset.stat;
+        if (stat === 'completed' && data.completed != null) el.textContent = data.completed;
+        if (stat === 'active'    && data.active != null)    el.textContent = data.active;
+        if (stat === 'weekly'    && data.weeklyCompleted != null) el.textContent = data.weeklyCompleted;
+        if (stat === 'hint'      && data.completed != null) el.textContent = '已完成 ' + data.completed + ' / 100 題';
+      });
+    } catch (_) { /* stats are non-critical — abort / network errors silently swallowed */ }
+  }
+
+  var _circlesSearchDebounce = null;
+
+  function bindCirclesHome() {
+    // mode-card clicks
+    document.querySelectorAll('[data-circles-mode]').forEach(function (el) {
+      el.addEventListener('click', function () {
+        AppState.circlesMode = el.dataset.circlesMode;
+        render();
+      });
+    });
+
+    // qa-row toggle
+    var qaHead = document.querySelector('.qa-row__head');
+    if (qaHead) {
+      qaHead.addEventListener('click', function () {
+        AppState.circlesQaOpen = !AppState.circlesQaOpen;
+        var row = document.querySelector('.qa-row');
+        if (row) row.classList.toggle('is-open', AppState.circlesQaOpen);
+      });
+    }
+
+    // type-tab clicks — switch type + re-pick 5
+    document.querySelectorAll('[data-circles-type]').forEach(function (el) {
+      el.addEventListener('click', function () {
+        AppState.circlesTypeFilter = el.dataset.circlesType;
+        AppState.circlesSearchText = '';
+        circlesPickDisplayed(false);
+        render();
+      });
+    });
+
+    // reshuffle button
+    var reshuffleBtn = document.querySelector('[data-circles="reshuffle"]');
+    if (reshuffleBtn) {
+      reshuffleBtn.addEventListener('click', function (e) {
+        e.stopPropagation();
+        circlesPickDisplayed(true);
+        render();
+      });
+    }
+
+    // qcard clicks — navigate to phase-1 (phase-1 form stub for now per SB1 scope)
+    document.querySelectorAll('.qcard[data-qid]').forEach(function (card) {
+      card.addEventListener('click', function () {
+        var qid = card.dataset.qid;
+        var q = CIRCLES_QUESTIONS.find(function (x) { return x.id === qid; });
+        if (!q) return;
+        AppState.circlesSelectedQuestion = q;
+        AppState.circlesPhase = 1;
+        // circlesSession stays null — phase-1 form will create it
+        render();
+      });
+    });
+
+    // nsm-promo CTA — navigate to NSM view
+    var nsmCta = document.querySelector('[data-circles="nsm-promo"]');
+    if (nsmCta) {
+      nsmCta.addEventListener('click', function (e) {
+        e.preventDefault();
+        AppState.view = 'nsm';
+        AppState.nsmStep = 1;
+        render();
+      });
+    }
+
+    // search input — debounced 100ms, re-pick 5 with filter
+    var searchInput = document.querySelector('[data-view="circles"] .search-wrap input[type="search"]');
+    if (searchInput) {
+      searchInput.addEventListener('input', function () {
+        if (_circlesSearchDebounce) clearTimeout(_circlesSearchDebounce);
+        var val = searchInput.value;
+        _circlesSearchDebounce = setTimeout(function () {
+          AppState.circlesSearchText = val;
+          circlesPickDisplayed(false);
+          render();
+        }, 100);
+      });
+    }
+
+    // Load stats async (non-blocking)
+    loadCirclesStats();
   }
 
   // ── NSM Step 1 (Plan C SB1 — mockup 06) ─────────────────────────────────
@@ -470,6 +764,12 @@
   function bindAll() {
     bindNavbar();
     bindOffcanvas();
+    if (AppState.view === 'circles'
+        && AppState.circlesPhase === 1
+        && !AppState.circlesSession
+        && !AppState.circlesSelectedQuestion) {
+      bindCirclesHome();
+    }
   }
 
   // ── Offcanvas History (Plan D SB1 — mockup 09) ───────────────────────────
