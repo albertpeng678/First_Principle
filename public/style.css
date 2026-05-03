@@ -451,6 +451,8 @@ a { color: inherit; text-decoration: none; }
 @media (min-width: 1024px) {
   .home--desktop { display: grid; grid-template-columns: 200px 1fr 220px; gap: var(--s-6); max-width: 1880px; }
   .home--desktop-no-drill { grid-template-columns: 1fr 220px; }
+  /* drill-pill-row is mobile/tablet only — hidden at desktop where .drill-rail aside takes over */
+  .drill-pill-row { display: none; }
 }
 
 /* mode selector */
@@ -464,8 +466,17 @@ a { color: inherit; text-decoration: none; }
 .mode-card.is-active .mode-card__title { color: var(--c-navy); }
 .mode-card__body { font-size: var(--t-meta); color: var(--c-ink-3); line-height: 1.55; }
 
+/* mode-card body responsive (mockup 01 line 833 short / line 1020 long) */
+.mode-card__body--desktop { display: none; }
+@media (min-width: 1024px) {
+  .mode-card__body--mobile { display: none; }
+  .mode-card__body--desktop { display: block; }
+}
+
 /* drill rail (desktop) + drill pill (shared mobile horizontal pills + desktop) */
 .drill-rail { background: var(--c-card); border: 1px solid var(--c-rule); border-radius: var(--r-card); padding: var(--s-4); }
+/* drill-rail aside is desktop-only — mobile/tablet uses .drill-pill-row instead */
+@media (max-width: 1023px) { .drill-rail { display: none; } }
 .drill-rail__title { font-size: var(--t-cap); letter-spacing: 0.08em; text-transform: uppercase; color: var(--c-ink-3); margin-bottom: var(--s-3); }
 .drill-rail__list { display: flex; flex-direction: column; gap: var(--s-2); }
 .drill-pill { display: inline-flex; align-items: center; gap: var(--s-2); padding: var(--s-3) var(--s-4); border-radius: var(--r-input); font-size: var(--t-body-sm); color: var(--c-ink); border: 1px solid var(--c-rule-bold); background: var(--c-card); cursor: pointer; transition: all var(--t-fast) var(--ease); width: 100%; text-align: left; }
@@ -586,6 +597,8 @@ a { color: inherit; text-decoration: none; }
 
 /* recent-rail (desktop right aside) */
 .recent-rail { min-width: 0; }
+/* recent-rail is desktop-only per mockup 01 contract — mobile/tablet history accessed via offcanvas */
+@media (max-width: 1023px) { .recent-rail { display: none; } }
 .recent-rail__title { display: flex; align-items: center; justify-content: space-between; font-size: var(--t-cap); letter-spacing: 0.06em; text-transform: uppercase; color: var(--c-ink-3); margin-bottom: var(--s-3); }
 .recent-rail__see-all { font-size: var(--t-cap); color: var(--c-navy); text-decoration: none; letter-spacing: normal; text-transform: none; }
 .recent-rail__see-all:hover { text-decoration: underline; }

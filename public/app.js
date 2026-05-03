@@ -39,6 +39,8 @@
     circlesTypeFilter: 'design',        // 'design' | 'improve' | 'strategy'
     circlesSearchText: '',
     circlesQaOpen: true,                // qa-row default open per mockup
+    circlesExpandedQid: null,           // single qcard expanded (SB2 — mockup 01 line 1801)
+    circlesRecentSessions: null,        // null = not loaded; [] = empty; [...] = items (SB2)
 
     // NSM (Plan C fills)
     nsmStep: 1,
@@ -276,25 +278,149 @@
     return CIRCLES_QUESTIONS.filter(function (q) { return q.question_type === type; }).length;
   }
 
+  async function loadHistoryForRail() {
+    // Fetch recent CIRCLES + NSM sessions, merge + sort, keep top 5
+    try {
+      var circlesPath = AppState.accessToken ? '/api/circles-sessions' : '/api/guest-circles-sessions';
+      var nsmPath     = AppState.accessToken ? '/api/nsm-sessions'     : '/api/guest/nsm-sessions';
+      var results = await Promise.all([
+        window.apiFetch(circlesPath),
+        window.apiFetch(nsmPath),
+      ]);
+      if (!results[0].ok || !results[1].ok) throw new Error('history_load_error');
+      var circles = await results[0].json();
+      var nsm     = await results[1].json();
+      var merged = [].concat(circles || [], (nsm || []).map(function (n) { n._isNsm = true; return n; }));
+      merged.sort(function (a, b) {
+        return new Date(b.updated_at || b.created_at) - new Date(a.updated_at || a.created_at);
+      });
+      AppState.circlesRecentSessions = merged.slice(0, 5);
+      render();
+    } catch (e) {
+      if (e.code === 'SESSION_EXPIRED') return;
+      AppState.circlesRecentSessions = [];
+      render();
+    }
+  }
+
+  function renderRecentItem(item) {
+    // mockup 01 line 1067-1090
+    var isNsm = !!(item._isNsm || (!item.mode && !item.drill_step && item.scores_json));
+    var modeTag = isNsm
+      ? '<span class="mode-tag mode-tag--sim"><i class="ph ph-list-checks"></i>NSM</span>'
+      : (item.mode === 'drill' || item.drill_step
+          ? '<span class="mode-tag mode-tag--drill"><i class="ph ph-target"></i>個別 ' + escHtml(item.drill_step || '') + '</span>'
+          : '<span class="mode-tag mode-tag--sim"><i class="ph ph-list-checks"></i>完整</span>');
+    var ts = new Date(item.updated_at || item.created_at).getTime();
+    var diff = Date.now() - ts;
+    var time = diff < 3600000 ? Math.floor(diff / 60000) + ' 分鐘前'
+             : diff < 86400000 ? Math.floor(diff / 3600000) + ' 小時前'
+             : diff < 7 * 86400000 ? Math.floor(diff / 86400000) + ' 天前'
+             : new Date(ts).toLocaleDateString('zh-TW', { month: 'numeric', day: 'numeric' });
+    var q = item.currentQuestion || item.question_json || {};
+    var titleStr = (q.company || '') + (q.product ? ' · ' + q.product : '') || '練習題目';
+    var phaseStr = isNsm
+      ? ('NSM · ' + (item.status === 'completed' ? '已完成' : '進行中'))
+      : ('Phase ' + (item.current_phase || 1) + ' · ' + (item.status === 'completed' ? '已完成' : '進行中'));
+    return '<div class="recent-item" data-circles="recent-item" data-id="' + escHtml(item.id) + '" data-isnsm="' + (isNsm ? '1' : '0') + '">'
+      + '<div class="recent-item__head">' + modeTag + '<span class="recent-item__time">' + escHtml(time) + '</span></div>'
+      + '<div class="recent-item__title">' + escHtml(titleStr) + '</div>'
+      + '<div class="recent-item__phase">' + escHtml(phaseStr) + '</div>'
+      + '</div>';
+  }
+
   function renderCirclesQCard(q, idx, mode) {
     var isSim = (mode === 'simulation');
     var tagClass = isSim ? 'mode-tag--sim' : 'mode-tag--drill';
     var tagIcon  = isSim ? 'ph-list-checks' : 'ph-target';
     var tagLabel = isSim ? '完整' : '步驟練';
     var num = String(idx + 1).padStart(2, '0');
+    var diff = q.difficulty === 'high' ? '高' : q.difficulty === 'low' ? '低' : '中';
     var title = escHtml(q.company) + (q.product ? ' · ' + escHtml(q.product) : '');
-    return '<div class="qcard" data-qid="' + escHtml(q.id) + '">'
-      + '<div class="qcard__head">'
-      + '<span class="qcard__num">' + num + '</span>'
-      + '<h3 class="qcard__title">' + title + '</h3>'
-      + '</div>'
-      + '<div class="qcard__meta">'
+    var meta = '<div class="qcard__meta">'
       + '<span class="mode-tag ' + tagClass + '"><i class="ph ' + tagIcon + '"></i>' + tagLabel + '</span>'
       + '<span class="qcard__meta-sep">·</span>'
       + escHtml(q.company)
-      + '</div>'
-      + '<p class="qcard__body">' + escHtml(q.problem_statement) + '</p>'
+      + (q.product ? '<span class="qcard__meta-sep">·</span>' + escHtml(q.product) : '')
+      + '<span class="qcard__meta-sep">·</span><span style="color:var(--c-ink-4);">難度 ' + diff + '</span>'
       + '</div>';
+
+    var isExpanded = AppState.circlesExpandedQid === q.id;
+    var expandHtml = '';
+    if (isExpanded) {
+      // mockup 01 line 1801-1836
+      var an = q.analysis || {};
+      expandHtml = '<div class="qcard__expand">'
+        + '<h4 class="qcard__section-label">完整題目</h4>'
+        + '<p class="qcard__full-statement">' + escHtml(q.problem_statement || '') + '</p>'
+        + '<h4 class="qcard__section-label">深入分析</h4>'
+        + '<div class="qcard-analysis">'
+        + '<div class="ana-block"><div class="ana-block__head"><i class="ph ph-buildings"></i>商業背景</div>'
+        + '<div class="ana-block__body">' + escHtml(an.business || '') + '</div></div>'
+        + '<div class="ana-block"><div class="ana-block__head"><i class="ph ph-users"></i>用戶輪廓</div>'
+        + '<div class="ana-block__body">' + escHtml(an.users || '') + '</div></div>'
+        + '<div class="ana-block ana-block--trap"><div class="ana-block__head"><i class="ph ph-warning"></i>常見誤區</div>'
+        + '<div class="ana-block__body">' + escHtml(an.traps || '') + '</div></div>'
+        + '<div class="ana-block"><div class="ana-block__head"><i class="ph ph-lightbulb"></i>破題切入</div>'
+        + '<div class="ana-block__body">' + escHtml(an.insight || '') + '</div></div>'
+        + '</div>'
+        + '<div class="qcard__action-row">'
+        + '<button class="qcard__btn qcard__btn--ghost" data-circles="qcard-cancel">取消</button>'
+        + '<button class="qcard__btn qcard__btn--primary" data-circles="qcard-confirm" data-qid="' + escHtml(q.id) + '">確認，開始練習</button>'
+        + '</div></div>';
+    }
+
+    return '<div class="qcard' + (isExpanded ? ' is-expanded' : '') + '" data-circles="qcard" data-qid="' + escHtml(q.id) + '">'
+      + '<div class="qcard__head"><span class="qcard__num">' + num + '</span><h3 class="qcard__title">' + title + '</h3></div>'
+      + meta
+      + '<p class="qcard__body">' + escHtml(q.problem_statement) + '</p>'
+      + expandHtml
+      + '</div>';
+  }
+
+  function renderDrillRail() {
+    // mockup 01 line 1293-1306 — desktop 200px aside
+    var step = AppState.circlesDrillStep || 'C1';
+    var pills = [
+      { key: 'C1', letter: 'C', label: '澄清情境' },
+      { key: 'I',  letter: 'I', label: '定義用戶' },
+      { key: 'R',  letter: 'R', label: '發掘需求' },
+    ];
+    var pillsHtml = pills.map(function (p) {
+      return '<button class="drill-pill' + (p.key === step ? ' is-active' : '') + '" data-circles="drill-pill" data-step="' + p.key + '">'
+        + '<span class="step-letter">' + p.letter + '</span>' + escHtml(p.label)
+        + '</button>';
+    }).join('');
+    return '<aside class="drill-rail">'
+      + '<div class="drill-rail__title">練習步驟</div>'
+      + '<div class="drill-rail__list">' + pillsHtml + '</div>'
+      + '<div class="drill-rail__lock"><i class="ph ph-lock-simple"></i>'
+      + '<span>C2、L、E、S 需在<strong style="color:var(--c-ink-2);">完整模擬</strong>中練習 — 因為它們依賴前步輸出</span>'
+      + '</div></aside>';
+  }
+
+  function renderDrillPillRow() {
+    // mockup 01 line 1147-1158 / 1224-1230 — mobile/tablet horizontal pills
+    var step = AppState.circlesDrillStep || 'C1';
+    var pills = [
+      { key: 'C1', letter: 'C', label: '澄清' },
+      { key: 'I',  letter: 'I', label: '用戶' },
+      { key: 'R',  letter: 'R', label: '需求' },
+    ];
+    var pillsHtml = pills.map(function (p) {
+      return '<button class="drill-pill' + (p.key === step ? ' is-active' : '') + '" style="width:auto; padding:var(--s-2) var(--s-3);" data-circles="drill-pill" data-step="' + p.key + '">'
+        + '<span class="step-letter">' + p.letter + '</span>' + escHtml(p.label)
+        + '</button>';
+    }).join('');
+    // outer wrapper carries .drill-pill-row class so existing
+    // @media (min-width: 1024px) { .drill-pill-row { display:none } } hides
+    // the pill row on desktop where .drill-rail aside takes over.
+    return '<div class="drill-pill-row" style="margin-bottom:var(--s-4);">'
+      + '<div style="font-size:var(--t-cap); letter-spacing:0.08em; text-transform:uppercase; color:var(--c-ink-3); margin-bottom:var(--s-2);">練習步驟</div>'
+      + '<div class="type-tabs">' + pillsHtml + '</div>'
+      + '<div class="drill-rail__lock" style="margin-top:var(--s-2);"><i class="ph ph-lock-simple"></i>'
+      + '<span>C2 / L / E / S 需在完整模擬中練習</span>'
+      + '</div></div>';
   }
 
   function renderCirclesHome() {
@@ -329,15 +455,17 @@
       + '</div>'
       + '</div>';
 
-    // ── mode-selector (mockup line 830-839) ──
+    // ── mode-selector (mockup line 830-839 / 1019-1024 desktop long) ──
     var modeSelectorHtml = '<div class="mode-selector">'
-      + '<button class="mode-card' + (mode === 'simulation' ? ' is-active' : '') + '" data-circles-mode="simulation">'
+      + '<button class="mode-card' + (mode === 'simulation' ? ' is-active' : '') + '" data-circles="mode" data-mode="simulation" data-circles-mode="simulation">'
       + '<div class="mode-card__head"><i class="ph ph-list-checks"></i><span class="mode-card__title">完整模擬</span></div>'
-      + '<div class="mode-card__body">7 步循序練習</div>'
+      + '<div class="mode-card__body mode-card__body--mobile">7 步循序練習</div>'
+      + '<div class="mode-card__body mode-card__body--desktop">7 步循序（C → I → R → C → L → E → S）。可隨時上一步 / 下一步調整。最完整的訓練。</div>'
       + '</button>'
-      + '<button class="mode-card' + (mode === 'drill' ? ' is-active' : '') + '" data-circles-mode="drill">'
+      + '<button class="mode-card' + (mode === 'drill' ? ' is-active' : '') + '" data-circles="mode" data-mode="drill" data-circles-mode="drill">'
       + '<div class="mode-card__head"><i class="ph ph-target"></i><span class="mode-card__title">步驟加練</span></div>'
-      + '<div class="mode-card__body">單練 C / I / R</div>'
+      + '<div class="mode-card__body mode-card__body--mobile">單練 C / I / R</div>'
+      + '<div class="mode-card__body mode-card__body--desktop">單練 C / I / R 三步任一。專注練好其中一步。該步結束即整 session 完成。</div>'
       + '</button>'
       + '</div>';
 
@@ -372,19 +500,35 @@
     var reshuffleHtml = '<button class="reshuffle" data-circles="reshuffle"><i class="ph ph-shuffle"></i>隨機抽 5 題（不含目前的題）</button>';
 
     // ── home wrapper center content ──
-    var centerHtml = modeSelectorHtml + searchHtml + typeTabsHtml + qListHtml + reshuffleHtml;
+    // drill mode → mobile/tablet: prepend drill-pill-row above mode-selector
+    var isDrill = mode === 'drill';
+    var centerHtml = (isDrill ? renderDrillPillRow() : '')
+      + modeSelectorHtml + searchHtml + typeTabsHtml + qListHtml + reshuffleHtml;
 
-    // ── recent-rail desktop stub (SB1 minimum — renders placeholder) ──
-    var recentRailHtml = '<aside class="recent-rail"><div class="recent-rail__title"><span>最近練習</span></div>'
-      + '<div class="recent-rail__list"></div></aside>';
+    // ── recent-rail from AppState.circlesRecentSessions (mockup 01 line 1061-1092) ──
+    // Kick async fetch if not yet loaded
+    if (AppState.circlesRecentSessions === null) {
+      setTimeout(loadHistoryForRail, 0);
+    }
+    var recentItemsHtml;
+    if (AppState.circlesRecentSessions === null) {
+      recentItemsHtml = '<div class="recent-rail__placeholder" style="font-size:var(--t-cap);color:var(--c-ink-3);">載入中…</div>';
+    } else if (AppState.circlesRecentSessions.length === 0) {
+      recentItemsHtml = '<div class="recent-rail__placeholder" style="font-size:var(--t-cap);color:var(--c-ink-3);">尚無近期練習</div>';
+    } else {
+      recentItemsHtml = AppState.circlesRecentSessions.map(renderRecentItem).join('');
+    }
+    var recentRailHtml = '<aside class="recent-rail">'
+      + '<div class="recent-rail__title"><span>最近練習</span>'
+      + '<a href="#" class="recent-rail__see-all" data-circles="see-all">看全部 →</a></div>'
+      + '<div class="recent-rail__list">' + recentItemsHtml + '</div></aside>';
 
-    // ── home wrapper with desktop modifier (per scope note) ──
-    // Desktop: .home--desktop with --no-drill (2-col: center + recent-rail).
-    // Drill-rail (200px left aside) deferred to next sub-bundle, so we always
-    // use --no-drill here regardless of mode to avoid grid collapse when the
-    // 200px slot is empty.
-    var homeClass = 'home home--desktop home--desktop-no-drill';
+    // ── home wrapper with desktop modifier ──
+    // drill mode  → 3-col grid (drill-rail 200px / center 1fr / recent-rail 220px)
+    // sim mode    → 2-col grid (center 1fr / recent-rail 220px)
+    var homeClass = 'home home--desktop' + (isDrill ? '' : ' home--desktop-no-drill');
     var homeHtml = '<div class="' + homeClass + '">'
+      + (isDrill ? renderDrillRail() : '')
       + '<div>' + centerHtml + '</div>'
       + recentRailHtml
       + '</div>';
@@ -473,16 +617,78 @@
       });
     }
 
-    // qcard clicks — navigate to phase-1 (phase-1 form stub for now per SB1 scope)
-    document.querySelectorAll('.qcard[data-qid]').forEach(function (card) {
-      card.addEventListener('click', function () {
-        var qid = card.dataset.qid;
-        var q = CIRCLES_QUESTIONS.find(function (x) { return x.id === qid; });
+    // drill-pill click → set circlesDrillStep + re-render
+    document.querySelectorAll('[data-circles="drill-pill"]').forEach(function (el) {
+      el.addEventListener('click', function () {
+        AppState.circlesDrillStep = el.dataset.step;
+        render();
+      });
+    });
+
+    // qcard click → toggle expanded (mockup 01 line 1801-1836)
+    document.querySelectorAll('[data-circles="qcard"]').forEach(function (el) {
+      el.addEventListener('click', function (e) {
+        // ignore if click landed on a button inside the expand block
+        if (e.target.closest('[data-circles="qcard-cancel"]')) return;
+        if (e.target.closest('[data-circles="qcard-confirm"]')) return;
+        var qid = el.dataset.qid;
+        AppState.circlesExpandedQid = (AppState.circlesExpandedQid === qid) ? null : qid;
+        render();
+      });
+    });
+    // cancel — collapse
+    document.querySelectorAll('[data-circles="qcard-cancel"]').forEach(function (el) {
+      el.addEventListener('click', function (e) {
+        e.stopPropagation();
+        AppState.circlesExpandedQid = null;
+        render();
+      });
+    });
+    // confirm — enter Phase 1 with selected question
+    document.querySelectorAll('[data-circles="qcard-confirm"]').forEach(function (el) {
+      el.addEventListener('click', function (e) {
+        e.stopPropagation();
+        var qid = el.dataset.qid;
+        var q = (window.CIRCLES_QUESTIONS || []).find(function (x) { return x.id === qid; });
         if (!q) return;
         AppState.circlesSelectedQuestion = q;
         AppState.circlesPhase = 1;
-        // circlesSession stays null — phase-1 form will create it
+        AppState.circlesExpandedQid = null;
         render();
+      });
+    });
+
+    // recent-item click → resume session (mockup 01 line 1061-1092)
+    document.querySelectorAll('[data-circles="recent-item"]').forEach(function (el) {
+      el.addEventListener('click', function () {
+        var id = el.dataset.id;
+        var isNsm = el.dataset.isnsm === '1';
+        var list = AppState.circlesRecentSessions || [];
+        var item = list.find(function (i) { return i.id === id; });
+        if (!item) return;
+        if (isNsm) {
+          AppState.view = 'nsm';
+          AppState.nsmStep = 4;
+          AppState.nsmSession = item;
+        } else {
+          AppState.view = 'circles';
+          AppState.circlesPhase = item.current_phase || 1;
+          AppState.circlesSession = item;
+          AppState.circlesSelectedQuestion = item.currentQuestion || item.question_json || null;
+          AppState.circlesMode = item.mode || (item.drill_step ? 'drill' : 'simulation');
+          AppState.circlesDrillStep = item.drill_step || null;
+        }
+        render();
+      });
+    });
+    // see-all → open offcanvas history
+    document.querySelectorAll('[data-circles="see-all"]').forEach(function (el) {
+      el.addEventListener('click', function (e) {
+        e.preventDefault();
+        AppState.offcanvasOpen = true;
+        AppState.historyList = null;
+        render();
+        if (typeof loadHistory === 'function') loadHistory();
       });
     });
 
