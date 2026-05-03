@@ -1,0 +1,577 @@
+<!doctype html>
+<html lang="zh-TW">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover, interactive-widget=resizes-visual">
+  <title>PM Drill — 12 Phase 3 Error 變體 + Loading 慢回應</title>
+
+  <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/@phosphor-icons/web@2.1.1/src/regular/style.css">
+  <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/@phosphor-icons/web@2.1.1/src/fill/style.css">
+  <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Instrument+Serif:ital@0;1&display=swap">
+
+  <style>
+    /* ───── LOCKED CSS — verbatim from 11 ───── */
+    :root {
+      --c-bg: #F2F0EB; --c-bg-soft: #ECE9E1; --c-bg-deep: #E5E1D7;
+      --c-card: #FFFFFF; --c-surface: #FAFAF7;
+      --c-ink: #1F1D1B; --c-ink-2: #5A5046; --c-ink-3: #8A7E70; --c-ink-4: #B8AC9D;
+      --c-rule: rgba(60,45,30,0.10); --c-rule-bold: rgba(60,45,30,0.18);
+      --c-primary: #1A56DB;
+      --c-navy: #1B2D5C; --c-navy-2: #142347; --c-navy-lt: rgba(27,45,92,0.08);
+      --c-success: #137A3D; --c-success-lt: #DCEFE0;
+      --c-warn: #B85C00; --c-warn-lt: #FBE9D0;
+      --c-danger: #B61F1F; --c-danger-lt: #FADCDC;
+      --font-sans: system-ui, -apple-system, BlinkMacSystemFont, 'PingFang TC', 'Microsoft JhengHei', 'Heiti TC', 'Noto Sans TC', sans-serif;
+      --font-serif: 'Instrument Serif', 'Times New Roman', serif;
+      --t-h1: 24px; --t-h2: 19px; --t-h3: 16px; --t-body: 15px; --t-body-sm: 14px; --t-meta: 13px; --t-cap: 12px;
+      --s-1: 4px; --s-2: 8px; --s-3: 12px; --s-4: 16px; --s-5: 20px; --s-6: 24px; --s-7: 32px; --s-8: 40px; --s-9: 56px; --s-10: 80px;
+      --r-input: 6px; --r-card: 10px; --r-pill: 999px;
+      --touch-min: 44px;
+      --t-fast: 120ms; --t-norm: 200ms; --t-slow: 300ms;
+      --ease: cubic-bezier(0.4, 0, 0.2, 1);
+      --shadow-1: 0 1px 0 rgba(60,45,30,0.04);
+      --shadow-2: 0 1px 2px rgba(60,45,30,0.06);
+      --shadow-3: 0 4px 12px rgba(60,45,30,0.08);
+    }
+
+    *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+    html, body { background: var(--c-bg); color: var(--c-ink); font-family: var(--font-sans); font-size: var(--t-body); line-height: 1.55; -webkit-font-smoothing: antialiased; }
+    button { font: inherit; color: inherit; cursor: pointer; background: none; border: none; }
+
+    .vp-grid { display: grid; grid-template-columns: 360px 768px 1280px; gap: var(--s-6); padding: var(--s-6); align-items: start; overflow-x: auto; }
+    .vp-frame { border: 1px solid var(--c-rule-bold); border-radius: var(--r-card); background: var(--c-bg); overflow: hidden; }
+    .vp-frame__label { padding: var(--s-3) var(--s-4); border-bottom: 1px solid var(--c-rule); background: var(--c-card); display: flex; justify-content: space-between; font-size: var(--t-cap); letter-spacing: 0.08em; text-transform: uppercase; color: var(--c-ink-2); }
+    .vp-frame__label span:last-child { font-family: ui-monospace, 'SF Mono', monospace; color: var(--c-ink-3); }
+    .vp-frame__inner { background: var(--c-bg); min-height: 880px; display: flex; flex-direction: column; }
+
+    .ds-page { padding: var(--s-6); }
+    .ds-header { max-width: 1880px; margin: 0 auto var(--s-7); padding-bottom: var(--s-6); border-bottom: 1px solid var(--c-rule); }
+    .ds-header h1 { font-size: var(--t-h1); margin-top: var(--s-2); }
+    .ds-header__eyebrow { font-size: var(--t-cap); letter-spacing: 0.12em; text-transform: uppercase; color: var(--c-ink-3); }
+    .ds-header__sub { color: var(--c-ink-2); font-size: var(--t-body-sm); margin-top: var(--s-3); max-width: 720px; }
+
+    .vp-section-title { max-width: 1880px; margin: var(--s-7) auto var(--s-3); padding-bottom: var(--s-2); border-bottom: 1px solid var(--c-rule); font-size: var(--t-h2); display: flex; align-items: baseline; gap: var(--s-3); }
+    .vp-section-title__sub { font-size: var(--t-cap); color: var(--c-ink-3); letter-spacing: 0.04em; text-transform: uppercase; }
+    .anno { background: var(--c-bg-soft); border-left: 2px solid var(--c-ink-3); padding: var(--s-3) var(--s-4); font-size: var(--t-meta); color: var(--c-ink-2); margin: var(--s-4) auto; max-width: 1180px; line-height: 1.7; }
+    .anno strong { color: var(--c-ink); }
+    .anno code { font-family: ui-monospace, 'SF Mono', monospace; font-size: 12px; background: var(--c-card); padding: 1px 6px; border-radius: 4px; border: 1px solid var(--c-rule); }
+
+    .navbar { display: flex; align-items: center; gap: var(--s-3); padding: var(--s-3) var(--s-4); background: rgba(255,255,255,0.85); -webkit-backdrop-filter: saturate(140%) blur(10px); backdrop-filter: saturate(140%) blur(10px); border-bottom: 1px solid var(--c-rule); }
+    .navbar__icon-btn { width: 40px; height: 40px; border-radius: var(--r-pill); display: inline-flex; align-items: center; justify-content: center; color: var(--c-ink-2); }
+    .navbar__brand { display: flex; align-items: center; gap: var(--s-2); padding: 4px var(--s-2); border-radius: var(--r-input); cursor: pointer; }
+    .navbar__brand-icon { width: 28px; height: 28px; border-radius: 6px; background: var(--c-navy); color: #fff; display: inline-flex; align-items: center; justify-content: center; font-size: 16px; }
+    .navbar__brand-name { font-size: var(--t-body-sm); font-weight: 500; }
+    .navbar__tabs { display: flex; gap: var(--s-2); margin-left: var(--s-4); }
+    .navbar__tab { padding: 6px var(--s-3); border-radius: var(--r-pill); font-size: var(--t-meta); color: var(--c-ink-3); }
+    .navbar__tab.is-active { background: var(--c-navy); color: #fff; }
+    .navbar__actions { margin-left: auto; display: flex; align-items: center; gap: var(--s-2); }
+    .navbar__email { font-size: var(--t-cap); color: var(--c-ink-3); max-width: 180px; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+
+    .btn { display: inline-flex; align-items: center; gap: var(--s-2); min-height: var(--touch-min); padding: 0 var(--s-5); border-radius: var(--r-input); font-size: var(--t-body-sm); font-weight: 500; transition: all var(--t-fast) var(--ease); }
+    .btn--primary { background: var(--c-navy); color: #fff; }
+    .btn--primary:hover { background: var(--c-navy-2); }
+    .btn--ghost { background: transparent; color: var(--c-ink-2); border: 1px solid var(--c-rule-bold); }
+    .btn--ghost:hover { background: var(--c-bg-soft); color: var(--c-ink); }
+
+    .circles-nav { display: flex; align-items: center; gap: var(--s-3); padding: var(--s-3) var(--s-4); background: var(--c-bg-soft); border-bottom: 1px solid var(--c-rule); }
+    .circles-nav__back { width: 40px; height: 40px; border-radius: var(--r-pill); display: inline-flex; align-items: center; justify-content: center; color: var(--c-ink-2); flex: 0 0 auto; }
+    .circles-nav__back:hover { background: var(--c-card); color: var(--c-ink); }
+    .circles-nav__main { flex: 1; min-width: 0; }
+    .circles-nav__title { font-size: var(--t-body-sm); font-weight: 600; color: var(--c-ink); letter-spacing: -0.005em; }
+    .circles-nav__sub { font-size: var(--t-cap); color: var(--c-ink-3); margin-top: 2px; }
+
+    .circles-progress { padding: var(--s-3) var(--s-4); background: var(--c-bg-soft); border-bottom: 1px solid var(--c-rule); display: flex; align-items: center; gap: var(--s-2); }
+    .circles-progress__step { display: flex; flex-direction: column; align-items: center; gap: 4px; flex: 0 0 auto; }
+    .circles-progress__dot { width: 28px; height: 28px; border-radius: 50%; background: var(--c-card); border: 1.5px solid var(--c-rule-bold); display: inline-flex; align-items: center; justify-content: center; font-family: var(--font-serif); font-style: italic; font-size: 14px; color: var(--c-ink-3); }
+    .circles-progress__step.is-done .circles-progress__dot { background: var(--c-navy); border-color: var(--c-navy); color: #fff; }
+    .circles-progress__step.is-active .circles-progress__dot { background: var(--c-navy); border-color: var(--c-navy); color: #fff; box-shadow: 0 0 0 3px var(--c-navy-lt); }
+    .circles-progress__line { flex: 1; height: 2px; background: var(--c-rule); margin-bottom: 14px; min-width: 6px; }
+    .circles-progress__line.is-done { background: var(--c-navy); }
+    .circles-progress__label { font-size: 10px; color: var(--c-ink-3); }
+    .circles-progress__step.is-active .circles-progress__label { color: var(--c-navy); font-weight: 600; }
+
+    /* loading state — LOCKED from 11 */
+    .loading-wrap { flex: 1; display: flex; flex-direction: column; align-items: center; justify-content: center; padding: var(--s-9) var(--s-5); gap: var(--s-4); max-width: 480px; margin: 0 auto; text-align: center; position: relative; }
+    .loading-spinner { width: 56px; height: 56px; border: 4px solid var(--c-rule); border-top-color: var(--c-navy); border-radius: 50%; animation: spin 0.8s linear infinite; }
+    @keyframes spin { to { transform: rotate(360deg); } }
+    .loading-title { font-size: var(--t-h3); font-weight: 600; color: var(--c-ink); }
+    .loading-sub { font-size: var(--t-meta); color: var(--c-ink-3); max-width: 320px; }
+    .loading-checklist { display: flex; flex-direction: column; gap: var(--s-2); margin-top: var(--s-4); width: fit-content; max-width: 100%; align-items: flex-start; }
+    .loading-step { display: flex; align-items: center; gap: var(--s-3); font-size: var(--t-body-sm); color: var(--c-ink-3); }
+    .loading-step.is-done { color: var(--c-ink-2); }
+    .loading-step.is-active { color: var(--c-ink); }
+    .loading-step__icon { width: 20px; height: 20px; flex: 0 0 auto; display: inline-flex; align-items: center; justify-content: center; font-size: 16px; }
+    .loading-step.is-done .loading-step__icon { color: var(--c-success); }
+    .loading-step.is-active .loading-step__icon { color: var(--c-navy); }
+    .loading-step.is-pending .loading-step__icon { color: var(--c-ink-4); }
+
+    /* error state — LOCKED from 11 */
+    .error-wrap { flex: 1; display: flex; flex-direction: column; align-items: center; justify-content: center; padding: var(--s-9) var(--s-5); gap: var(--s-3); max-width: 480px; margin: 0 auto; text-align: center; }
+    .error-wrap__icon { width: 64px; height: 64px; border-radius: 50%; background: var(--c-danger-lt); color: var(--c-danger); display: inline-flex; align-items: center; justify-content: center; font-size: 32px; margin-bottom: var(--s-2); }
+    .error-wrap__title { font-size: var(--t-h3); font-weight: 600; color: var(--c-ink); }
+    .error-wrap__sub { font-size: var(--t-meta); color: var(--c-ink-3); max-width: 320px; line-height: 1.7; }
+    .error-wrap__code { font-family: ui-monospace, 'SF Mono', monospace; font-size: var(--t-cap); color: var(--c-ink-4); background: var(--c-bg-soft); padding: 2px 8px; border-radius: var(--r-input); margin-top: var(--s-1); }
+    .error-wrap__actions { display: flex; gap: var(--s-2); margin-top: var(--s-4); flex-wrap: wrap; justify-content: center; }
+
+    /* ───── 12-specific NEW components ───── */
+
+    /* slow inline indicator — 替代普通 loading-sub 的 inline warn-color 文字（不用框框）
+       觸發時機：1 分鐘（60s）後出現；最多再 30 秒進 error 頁 */
+    .loading-sub--slow {
+      display: inline-flex;
+      align-items: center;
+      gap: 6px;
+      color: var(--c-warn);
+      font-weight: 500;
+    }
+    .loading-sub--slow i { font-size: 14px; flex: 0 0 auto; }
+  </style>
+</head>
+<body>
+  <div class="ds-page">
+    <header class="ds-header">
+      <div class="ds-header__eyebrow">Path 2 · Mockup 12 · CONTRACT-LOCKED 草稿</div>
+      <h1>Phase 3 Error 變體 + Loading 慢回應 — 補 11 未涵蓋的 error codes 與 slow state</h1>
+      <p class="ds-header__sub">
+        SP3 backend 已 merge，但 production 目前 Phase 3 仍用 plain <code>alert()</code> popup（無專屬 error UI），SP3 spec 定案的 loading checklist + 4 error codes 待實作。
+        12 補 11 未涵蓋的變體：A Loading 慢回應（60s+ inline warn 文字「比預期慢一些…」）/ B Error <code>EVAL_API_ERROR</code> / C Error <code>EVAL_PARSE_ERROR</code>。
+        EVAL_TIMEOUT 已在 11 D；EVAL_AUTH_ERROR (401) 直接跳登入頁不顯錯誤頁（per SP3 § Error states）。
+        Component CSS 整段 LOCKED copy 自 11（loading-wrap / error-wrap / circles-nav / progress / btn / navbar）；新增 slow-toast 元件。
+      </p>
+    </header>
+
+    <!-- ============================================================ -->
+    <!-- Section A — Loading 慢回應 with toast                         -->
+    <!-- ============================================================ -->
+    <h2 class="vp-section-title">A · Loading 慢回應（60s+ inline warn）<span class="vp-section-title__sub">spinner + checklist step 3 active · 1 分鐘後 loading-sub 切 warn 變體</span></h2>
+    <div class="anno"><strong>視覺契約：</strong>navbar + circles-nav + progress-bar（I active）+ <code>loading-wrap</code> 同 11 但 <code>loading-sub</code> 改 <code>loading-sub--slow</code> 變體（warn 橘色 inline 文字 + ph-clock-countdown icon）「比預期慢一些…AI 深度分析中，偶而會需要比較久時間，請再等等。」checklist 推進至 step 3「生成示範答案」active（前兩步 done）。<strong>觸發時機：60s（1 分鐘）後 loading-sub 切 warn 變體；實際 timeout 為 300s（5 分鐘，內部設定不告知使用者）才進 error 頁</strong>（per § 2026-05-03 user 定案，避免 30s 顯示給 user 太嚴格的時間壓力）。</div>
+    <div class="vp-grid">
+
+      <!-- A · Mobile -->
+      <div class="vp-frame">
+        <div class="vp-frame__label"><span>Mobile</span><span>360 × 880</span></div>
+        <div class="vp-frame__inner" style="width:360px">
+          <div class="navbar">
+            <button class="navbar__icon-btn"><i class="ph ph-list"></i></button>
+            <div class="navbar__brand"><span class="navbar__brand-icon"><i class="ph ph-circles-three"></i></span><span class="navbar__brand-name">PM Drill</span></div>
+            <div class="navbar__actions"><button class="navbar__icon-btn"><i class="ph ph-house"></i></button></div>
+          </div>
+          <div class="circles-nav">
+            <button class="circles-nav__back"><i class="ph ph-arrow-left"></i></button>
+            <div class="circles-nav__main">
+              <div class="circles-nav__title">用戶分析 評分結果</div>
+              <div class="circles-nav__sub">Spotify · Spotify Podcast</div>
+            </div>
+          </div>
+          <div class="circles-progress">
+            <div class="circles-progress__step is-done"><div class="circles-progress__dot">C</div><div class="circles-progress__label">釐清</div></div>
+            <div class="circles-progress__line is-done"></div>
+            <div class="circles-progress__step is-active"><div class="circles-progress__dot">I</div><div class="circles-progress__label">用戶</div></div>
+            <div class="circles-progress__line"></div>
+            <div class="circles-progress__step"><div class="circles-progress__dot">R</div><div class="circles-progress__label">需求</div></div>
+            <div class="circles-progress__line"></div>
+            <div class="circles-progress__step"><div class="circles-progress__dot">C</div><div class="circles-progress__label">排序</div></div>
+            <div class="circles-progress__line"></div>
+            <div class="circles-progress__step"><div class="circles-progress__dot">L</div><div class="circles-progress__label">方案</div></div>
+            <div class="circles-progress__line"></div>
+            <div class="circles-progress__step"><div class="circles-progress__dot">E</div><div class="circles-progress__label">取捨</div></div>
+            <div class="circles-progress__line"></div>
+            <div class="circles-progress__step"><div class="circles-progress__dot">S</div><div class="circles-progress__label">總結</div></div>
+          </div>
+          <div class="loading-wrap">
+            <div class="loading-spinner"></div>
+            <div class="loading-title">正在生成評分</div>
+            <div class="loading-sub loading-sub--slow">比預期慢一些…AI 深度分析中，偶而會需要比較久時間，請再等等。</div>
+            <div class="loading-checklist">
+              <div class="loading-step is-done"><span class="loading-step__icon"><i class="ph ph-check"></i></span>解析框架</div>
+              <div class="loading-step is-done"><span class="loading-step__icon"><i class="ph ph-check"></i></span>計算分數</div>
+              <div class="loading-step is-active"><span class="loading-step__icon"><i class="ph ph-circle-notch"></i></span>生成示範答案</div>
+              <div class="loading-step is-pending"><span class="loading-step__icon"><i class="ph ph-circle"></i></span>整理建議</div>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- A · Tablet -->
+      <div class="vp-frame">
+        <div class="vp-frame__label"><span>Tablet</span><span>768 × 880</span></div>
+        <div class="vp-frame__inner" style="width:768px">
+          <div class="navbar">
+            <button class="navbar__icon-btn"><i class="ph ph-list"></i></button>
+            <div class="navbar__brand"><span class="navbar__brand-icon"><i class="ph ph-circles-three"></i></span><span class="navbar__brand-name">PM Drill</span></div>
+            <div class="navbar__tabs"><button class="navbar__tab is-active">CIRCLES</button><button class="navbar__tab">北極星</button></div>
+            <div class="navbar__actions"><button class="navbar__icon-btn"><i class="ph ph-magnifying-glass"></i></button><button class="navbar__icon-btn"><i class="ph ph-house"></i></button></div>
+          </div>
+          <div class="circles-nav">
+            <button class="circles-nav__back"><i class="ph ph-arrow-left"></i></button>
+            <div class="circles-nav__main">
+              <div class="circles-nav__title">用戶分析 評分結果</div>
+              <div class="circles-nav__sub">Spotify · Spotify Podcast</div>
+            </div>
+          </div>
+          <div class="circles-progress">
+            <div class="circles-progress__step is-done"><div class="circles-progress__dot">C</div><div class="circles-progress__label">釐清</div></div>
+            <div class="circles-progress__line is-done"></div>
+            <div class="circles-progress__step is-active"><div class="circles-progress__dot">I</div><div class="circles-progress__label">用戶</div></div>
+            <div class="circles-progress__line"></div>
+            <div class="circles-progress__step"><div class="circles-progress__dot">R</div><div class="circles-progress__label">需求</div></div>
+            <div class="circles-progress__line"></div>
+            <div class="circles-progress__step"><div class="circles-progress__dot">C</div><div class="circles-progress__label">排序</div></div>
+            <div class="circles-progress__line"></div>
+            <div class="circles-progress__step"><div class="circles-progress__dot">L</div><div class="circles-progress__label">方案</div></div>
+            <div class="circles-progress__line"></div>
+            <div class="circles-progress__step"><div class="circles-progress__dot">E</div><div class="circles-progress__label">取捨</div></div>
+            <div class="circles-progress__line"></div>
+            <div class="circles-progress__step"><div class="circles-progress__dot">S</div><div class="circles-progress__label">總結</div></div>
+          </div>
+          <div class="loading-wrap">
+            <div class="loading-spinner"></div>
+            <div class="loading-title">正在生成評分</div>
+            <div class="loading-sub loading-sub--slow">比預期慢一些…AI 深度分析中，偶而會需要比較久時間，請再等等。</div>
+            <div class="loading-checklist">
+              <div class="loading-step is-done"><span class="loading-step__icon"><i class="ph ph-check"></i></span>解析框架</div>
+              <div class="loading-step is-done"><span class="loading-step__icon"><i class="ph ph-check"></i></span>計算分數</div>
+              <div class="loading-step is-active"><span class="loading-step__icon"><i class="ph ph-circle-notch"></i></span>生成示範答案</div>
+              <div class="loading-step is-pending"><span class="loading-step__icon"><i class="ph ph-circle"></i></span>整理建議</div>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- A · Desktop -->
+      <div class="vp-frame">
+        <div class="vp-frame__label"><span>Desktop</span><span>1280 × 880</span></div>
+        <div class="vp-frame__inner" style="width:1280px">
+          <div class="navbar">
+            <button class="navbar__icon-btn"><i class="ph ph-list"></i></button>
+            <div class="navbar__brand"><span class="navbar__brand-icon"><i class="ph ph-circles-three"></i></span><span class="navbar__brand-name">PM Drill</span></div>
+            <div class="navbar__tabs"><button class="navbar__tab is-active">CIRCLES</button><button class="navbar__tab">北極星</button></div>
+            <div class="navbar__actions"><span class="navbar__email">albertpeng678@gmail.com</span><button class="navbar__icon-btn"><i class="ph ph-magnifying-glass"></i></button><button class="navbar__icon-btn"><i class="ph ph-house"></i></button></div>
+          </div>
+          <div class="circles-nav">
+            <button class="circles-nav__back"><i class="ph ph-arrow-left"></i></button>
+            <div class="circles-nav__main">
+              <div class="circles-nav__title">用戶分析 評分結果</div>
+              <div class="circles-nav__sub">Spotify · Spotify Podcast</div>
+            </div>
+          </div>
+          <div class="circles-progress">
+            <div class="circles-progress__step is-done"><div class="circles-progress__dot">C</div><div class="circles-progress__label">釐清</div></div>
+            <div class="circles-progress__line is-done"></div>
+            <div class="circles-progress__step is-active"><div class="circles-progress__dot">I</div><div class="circles-progress__label">用戶</div></div>
+            <div class="circles-progress__line"></div>
+            <div class="circles-progress__step"><div class="circles-progress__dot">R</div><div class="circles-progress__label">需求</div></div>
+            <div class="circles-progress__line"></div>
+            <div class="circles-progress__step"><div class="circles-progress__dot">C</div><div class="circles-progress__label">排序</div></div>
+            <div class="circles-progress__line"></div>
+            <div class="circles-progress__step"><div class="circles-progress__dot">L</div><div class="circles-progress__label">方案</div></div>
+            <div class="circles-progress__line"></div>
+            <div class="circles-progress__step"><div class="circles-progress__dot">E</div><div class="circles-progress__label">取捨</div></div>
+            <div class="circles-progress__line"></div>
+            <div class="circles-progress__step"><div class="circles-progress__dot">S</div><div class="circles-progress__label">總結</div></div>
+          </div>
+          <div class="loading-wrap">
+            <div class="loading-spinner"></div>
+            <div class="loading-title">正在生成評分</div>
+            <div class="loading-sub loading-sub--slow">比預期慢一些…AI 深度分析中，偶而會需要比較久時間，請再等等。</div>
+            <div class="loading-checklist">
+              <div class="loading-step is-done"><span class="loading-step__icon"><i class="ph ph-check"></i></span>解析框架</div>
+              <div class="loading-step is-done"><span class="loading-step__icon"><i class="ph ph-check"></i></span>計算分數</div>
+              <div class="loading-step is-active"><span class="loading-step__icon"><i class="ph ph-circle-notch"></i></span>生成示範答案</div>
+              <div class="loading-step is-pending"><span class="loading-step__icon"><i class="ph ph-circle"></i></span>整理建議</div>
+            </div>
+          </div>
+        </div>
+      </div>
+
+    </div>
+
+    <!-- ============================================================ -->
+    <!-- Section B — Error EVAL_API_ERROR                              -->
+    <!-- ============================================================ -->
+    <h2 class="vp-section-title">B · Error <code>EVAL_API_ERROR</code><span class="vp-section-title__sub">5xx server error · 重試 / 返回修改</span></h2>
+    <div class="anno"><strong>視覺契約：</strong><code>error-wrap</code> 同 11 但 title「評分服務暫時不可用」+ 副文「我們的伺服器忙線中，請稍候片刻。你的答案已自動保存。」+ error-code「EVAL_API_ERROR」+ 重新評分 primary / 返回修改答案 ghost。文案差異點：強調「服務不可用」（伺服器端），與 EVAL_TIMEOUT 強調「超時」差異化。</div>
+    <div class="vp-grid">
+
+      <!-- B · Mobile -->
+      <div class="vp-frame">
+        <div class="vp-frame__label"><span>Mobile</span><span>360 × 880</span></div>
+        <div class="vp-frame__inner" style="width:360px">
+          <div class="navbar">
+            <button class="navbar__icon-btn"><i class="ph ph-list"></i></button>
+            <div class="navbar__brand"><span class="navbar__brand-icon"><i class="ph ph-circles-three"></i></span><span class="navbar__brand-name">PM Drill</span></div>
+            <div class="navbar__actions"><button class="navbar__icon-btn"><i class="ph ph-house"></i></button></div>
+          </div>
+          <div class="circles-nav">
+            <button class="circles-nav__back"><i class="ph ph-arrow-left"></i></button>
+            <div class="circles-nav__main">
+              <div class="circles-nav__title">用戶分析 評分結果</div>
+              <div class="circles-nav__sub">Spotify · Spotify Podcast</div>
+            </div>
+          </div>
+          <div class="circles-progress">
+            <div class="circles-progress__step is-done"><div class="circles-progress__dot">C</div><div class="circles-progress__label">釐清</div></div>
+            <div class="circles-progress__line is-done"></div>
+            <div class="circles-progress__step is-active"><div class="circles-progress__dot">I</div><div class="circles-progress__label">用戶</div></div>
+            <div class="circles-progress__line"></div>
+            <div class="circles-progress__step"><div class="circles-progress__dot">R</div><div class="circles-progress__label">需求</div></div>
+            <div class="circles-progress__line"></div>
+            <div class="circles-progress__step"><div class="circles-progress__dot">C</div><div class="circles-progress__label">排序</div></div>
+            <div class="circles-progress__line"></div>
+            <div class="circles-progress__step"><div class="circles-progress__dot">L</div><div class="circles-progress__label">方案</div></div>
+            <div class="circles-progress__line"></div>
+            <div class="circles-progress__step"><div class="circles-progress__dot">E</div><div class="circles-progress__label">取捨</div></div>
+            <div class="circles-progress__line"></div>
+            <div class="circles-progress__step"><div class="circles-progress__dot">S</div><div class="circles-progress__label">總結</div></div>
+          </div>
+          <div class="error-wrap">
+            <div class="error-wrap__icon"><i class="ph-fill ph-cloud-warning"></i></div>
+            <div class="error-wrap__title">評分服務暫時不可用</div>
+            <div class="error-wrap__sub">我們的伺服器忙線中，請稍候片刻。你的答案已自動保存。</div>
+            <code class="error-wrap__code">EVAL_API_ERROR</code>
+            <div class="error-wrap__actions">
+              <button class="btn btn--ghost"><i class="ph ph-arrow-left"></i>返回修改答案</button>
+              <button class="btn btn--primary"><i class="ph ph-arrow-clockwise"></i>重新評分</button>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- B · Tablet -->
+      <div class="vp-frame">
+        <div class="vp-frame__label"><span>Tablet</span><span>768 × 880</span></div>
+        <div class="vp-frame__inner" style="width:768px">
+          <div class="navbar">
+            <button class="navbar__icon-btn"><i class="ph ph-list"></i></button>
+            <div class="navbar__brand"><span class="navbar__brand-icon"><i class="ph ph-circles-three"></i></span><span class="navbar__brand-name">PM Drill</span></div>
+            <div class="navbar__tabs"><button class="navbar__tab is-active">CIRCLES</button><button class="navbar__tab">北極星</button></div>
+            <div class="navbar__actions"><button class="navbar__icon-btn"><i class="ph ph-magnifying-glass"></i></button><button class="navbar__icon-btn"><i class="ph ph-house"></i></button></div>
+          </div>
+          <div class="circles-nav">
+            <button class="circles-nav__back"><i class="ph ph-arrow-left"></i></button>
+            <div class="circles-nav__main">
+              <div class="circles-nav__title">用戶分析 評分結果</div>
+              <div class="circles-nav__sub">Spotify · Spotify Podcast</div>
+            </div>
+          </div>
+          <div class="circles-progress">
+            <div class="circles-progress__step is-done"><div class="circles-progress__dot">C</div><div class="circles-progress__label">釐清</div></div>
+            <div class="circles-progress__line is-done"></div>
+            <div class="circles-progress__step is-active"><div class="circles-progress__dot">I</div><div class="circles-progress__label">用戶</div></div>
+            <div class="circles-progress__line"></div>
+            <div class="circles-progress__step"><div class="circles-progress__dot">R</div><div class="circles-progress__label">需求</div></div>
+            <div class="circles-progress__line"></div>
+            <div class="circles-progress__step"><div class="circles-progress__dot">C</div><div class="circles-progress__label">排序</div></div>
+            <div class="circles-progress__line"></div>
+            <div class="circles-progress__step"><div class="circles-progress__dot">L</div><div class="circles-progress__label">方案</div></div>
+            <div class="circles-progress__line"></div>
+            <div class="circles-progress__step"><div class="circles-progress__dot">E</div><div class="circles-progress__label">取捨</div></div>
+            <div class="circles-progress__line"></div>
+            <div class="circles-progress__step"><div class="circles-progress__dot">S</div><div class="circles-progress__label">總結</div></div>
+          </div>
+          <div class="error-wrap">
+            <div class="error-wrap__icon"><i class="ph-fill ph-cloud-warning"></i></div>
+            <div class="error-wrap__title">評分服務暫時不可用</div>
+            <div class="error-wrap__sub">我們的伺服器忙線中，請稍候片刻。你的答案已自動保存。</div>
+            <code class="error-wrap__code">EVAL_API_ERROR</code>
+            <div class="error-wrap__actions">
+              <button class="btn btn--ghost"><i class="ph ph-arrow-left"></i>返回修改答案</button>
+              <button class="btn btn--primary"><i class="ph ph-arrow-clockwise"></i>重新評分</button>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- B · Desktop -->
+      <div class="vp-frame">
+        <div class="vp-frame__label"><span>Desktop</span><span>1280 × 880</span></div>
+        <div class="vp-frame__inner" style="width:1280px">
+          <div class="navbar">
+            <button class="navbar__icon-btn"><i class="ph ph-list"></i></button>
+            <div class="navbar__brand"><span class="navbar__brand-icon"><i class="ph ph-circles-three"></i></span><span class="navbar__brand-name">PM Drill</span></div>
+            <div class="navbar__tabs"><button class="navbar__tab is-active">CIRCLES</button><button class="navbar__tab">北極星</button></div>
+            <div class="navbar__actions"><span class="navbar__email">albertpeng678@gmail.com</span><button class="navbar__icon-btn"><i class="ph ph-magnifying-glass"></i></button><button class="navbar__icon-btn"><i class="ph ph-house"></i></button></div>
+          </div>
+          <div class="circles-nav">
+            <button class="circles-nav__back"><i class="ph ph-arrow-left"></i></button>
+            <div class="circles-nav__main">
+              <div class="circles-nav__title">用戶分析 評分結果</div>
+              <div class="circles-nav__sub">Spotify · Spotify Podcast</div>
+            </div>
+          </div>
+          <div class="circles-progress">
+            <div class="circles-progress__step is-done"><div class="circles-progress__dot">C</div><div class="circles-progress__label">釐清</div></div>
+            <div class="circles-progress__line is-done"></div>
+            <div class="circles-progress__step is-active"><div class="circles-progress__dot">I</div><div class="circles-progress__label">用戶</div></div>
+            <div class="circles-progress__line"></div>
+            <div class="circles-progress__step"><div class="circles-progress__dot">R</div><div class="circles-progress__label">需求</div></div>
+            <div class="circles-progress__line"></div>
+            <div class="circles-progress__step"><div class="circles-progress__dot">C</div><div class="circles-progress__label">排序</div></div>
+            <div class="circles-progress__line"></div>
+            <div class="circles-progress__step"><div class="circles-progress__dot">L</div><div class="circles-progress__label">方案</div></div>
+            <div class="circles-progress__line"></div>
+            <div class="circles-progress__step"><div class="circles-progress__dot">E</div><div class="circles-progress__label">取捨</div></div>
+            <div class="circles-progress__line"></div>
+            <div class="circles-progress__step"><div class="circles-progress__dot">S</div><div class="circles-progress__label">總結</div></div>
+          </div>
+          <div class="error-wrap">
+            <div class="error-wrap__icon"><i class="ph-fill ph-cloud-warning"></i></div>
+            <div class="error-wrap__title">評分服務暫時不可用</div>
+            <div class="error-wrap__sub">我們的伺服器忙線中，請稍候片刻。你的答案已自動保存。</div>
+            <code class="error-wrap__code">EVAL_API_ERROR</code>
+            <div class="error-wrap__actions">
+              <button class="btn btn--ghost"><i class="ph ph-arrow-left"></i>返回修改答案</button>
+              <button class="btn btn--primary"><i class="ph ph-arrow-clockwise"></i>重新評分</button>
+            </div>
+          </div>
+        </div>
+      </div>
+
+    </div>
+
+    <!-- ============================================================ -->
+    <!-- Section C — Error EVAL_PARSE_ERROR                            -->
+    <!-- ============================================================ -->
+    <h2 class="vp-section-title">C · Error <code>EVAL_PARSE_ERROR</code><span class="vp-section-title__sub">JSON unparseable / coachVersion shape mismatch · 重試 / 返回修改</span></h2>
+    <div class="anno"><strong>視覺契約：</strong><code>error-wrap</code> title「教練回應格式異常」+ 副文「AI 回傳的內容無法正確解析（schema-drift 或 legacy string）。請重試或返回修改答案。」+ error-code「EVAL_PARSE_ERROR」+ 重新評分 primary / 返回修改答案 ghost。文案差異點：強調「格式」(schema 問題)，暗示重試成功率較高（model 隨機性）。</div>
+    <div class="vp-grid">
+
+      <!-- C · Mobile -->
+      <div class="vp-frame">
+        <div class="vp-frame__label"><span>Mobile</span><span>360 × 880</span></div>
+        <div class="vp-frame__inner" style="width:360px">
+          <div class="navbar">
+            <button class="navbar__icon-btn"><i class="ph ph-list"></i></button>
+            <div class="navbar__brand"><span class="navbar__brand-icon"><i class="ph ph-circles-three"></i></span><span class="navbar__brand-name">PM Drill</span></div>
+            <div class="navbar__actions"><button class="navbar__icon-btn"><i class="ph ph-house"></i></button></div>
+          </div>
+          <div class="circles-nav">
+            <button class="circles-nav__back"><i class="ph ph-arrow-left"></i></button>
+            <div class="circles-nav__main">
+              <div class="circles-nav__title">用戶分析 評分結果</div>
+              <div class="circles-nav__sub">Spotify · Spotify Podcast</div>
+            </div>
+          </div>
+          <div class="circles-progress">
+            <div class="circles-progress__step is-done"><div class="circles-progress__dot">C</div><div class="circles-progress__label">釐清</div></div>
+            <div class="circles-progress__line is-done"></div>
+            <div class="circles-progress__step is-active"><div class="circles-progress__dot">I</div><div class="circles-progress__label">用戶</div></div>
+            <div class="circles-progress__line"></div>
+            <div class="circles-progress__step"><div class="circles-progress__dot">R</div><div class="circles-progress__label">需求</div></div>
+            <div class="circles-progress__line"></div>
+            <div class="circles-progress__step"><div class="circles-progress__dot">C</div><div class="circles-progress__label">排序</div></div>
+            <div class="circles-progress__line"></div>
+            <div class="circles-progress__step"><div class="circles-progress__dot">L</div><div class="circles-progress__label">方案</div></div>
+            <div class="circles-progress__line"></div>
+            <div class="circles-progress__step"><div class="circles-progress__dot">E</div><div class="circles-progress__label">取捨</div></div>
+            <div class="circles-progress__line"></div>
+            <div class="circles-progress__step"><div class="circles-progress__dot">S</div><div class="circles-progress__label">總結</div></div>
+          </div>
+          <div class="error-wrap">
+            <div class="error-wrap__icon"><i class="ph-fill ph-cloud-warning"></i></div>
+            <div class="error-wrap__title">教練回應格式異常</div>
+            <div class="error-wrap__sub">AI 回傳的內容無法正確解析。重試通常能解決，或返回修改答案。</div>
+            <code class="error-wrap__code">EVAL_PARSE_ERROR</code>
+            <div class="error-wrap__actions">
+              <button class="btn btn--ghost"><i class="ph ph-arrow-left"></i>返回修改答案</button>
+              <button class="btn btn--primary"><i class="ph ph-arrow-clockwise"></i>重新評分</button>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- C · Tablet -->
+      <div class="vp-frame">
+        <div class="vp-frame__label"><span>Tablet</span><span>768 × 880</span></div>
+        <div class="vp-frame__inner" style="width:768px">
+          <div class="navbar">
+            <button class="navbar__icon-btn"><i class="ph ph-list"></i></button>
+            <div class="navbar__brand"><span class="navbar__brand-icon"><i class="ph ph-circles-three"></i></span><span class="navbar__brand-name">PM Drill</span></div>
+            <div class="navbar__tabs"><button class="navbar__tab is-active">CIRCLES</button><button class="navbar__tab">北極星</button></div>
+            <div class="navbar__actions"><button class="navbar__icon-btn"><i class="ph ph-magnifying-glass"></i></button><button class="navbar__icon-btn"><i class="ph ph-house"></i></button></div>
+          </div>
+          <div class="circles-nav">
+            <button class="circles-nav__back"><i class="ph ph-arrow-left"></i></button>
+            <div class="circles-nav__main">
+              <div class="circles-nav__title">用戶分析 評分結果</div>
+              <div class="circles-nav__sub">Spotify · Spotify Podcast</div>
+            </div>
+          </div>
+          <div class="circles-progress">
+            <div class="circles-progress__step is-done"><div class="circles-progress__dot">C</div><div class="circles-progress__label">釐清</div></div>
+            <div class="circles-progress__line is-done"></div>
+            <div class="circles-progress__step is-active"><div class="circles-progress__dot">I</div><div class="circles-progress__label">用戶</div></div>
+            <div class="circles-progress__line"></div>
+            <div class="circles-progress__step"><div class="circles-progress__dot">R</div><div class="circles-progress__label">需求</div></div>
+            <div class="circles-progress__line"></div>
+            <div class="circles-progress__step"><div class="circles-progress__dot">C</div><div class="circles-progress__label">排序</div></div>
+            <div class="circles-progress__line"></div>
+            <div class="circles-progress__step"><div class="circles-progress__dot">L</div><div class="circles-progress__label">方案</div></div>
+            <div class="circles-progress__line"></div>
+            <div class="circles-progress__step"><div class="circles-progress__dot">E</div><div class="circles-progress__label">取捨</div></div>
+            <div class="circles-progress__line"></div>
+            <div class="circles-progress__step"><div class="circles-progress__dot">S</div><div class="circles-progress__label">總結</div></div>
+          </div>
+          <div class="error-wrap">
+            <div class="error-wrap__icon"><i class="ph-fill ph-cloud-warning"></i></div>
+            <div class="error-wrap__title">教練回應格式異常</div>
+            <div class="error-wrap__sub">AI 回傳的內容無法正確解析。重試通常能解決，或返回修改答案。</div>
+            <code class="error-wrap__code">EVAL_PARSE_ERROR</code>
+            <div class="error-wrap__actions">
+              <button class="btn btn--ghost"><i class="ph ph-arrow-left"></i>返回修改答案</button>
+              <button class="btn btn--primary"><i class="ph ph-arrow-clockwise"></i>重新評分</button>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- C · Desktop -->
+      <div class="vp-frame">
+        <div class="vp-frame__label"><span>Desktop</span><span>1280 × 880</span></div>
+        <div class="vp-frame__inner" style="width:1280px">
+          <div class="navbar">
+            <button class="navbar__icon-btn"><i class="ph ph-list"></i></button>
+            <div class="navbar__brand"><span class="navbar__brand-icon"><i class="ph ph-circles-three"></i></span><span class="navbar__brand-name">PM Drill</span></div>
+            <div class="navbar__tabs"><button class="navbar__tab is-active">CIRCLES</button><button class="navbar__tab">北極星</button></div>
+            <div class="navbar__actions"><span class="navbar__email">albertpeng678@gmail.com</span><button class="navbar__icon-btn"><i class="ph ph-magnifying-glass"></i></button><button class="navbar__icon-btn"><i class="ph ph-house"></i></button></div>
+          </div>
+          <div class="circles-nav">
+            <button class="circles-nav__back"><i class="ph ph-arrow-left"></i></button>
+            <div class="circles-nav__main">
+              <div class="circles-nav__title">用戶分析 評分結果</div>
+              <div class="circles-nav__sub">Spotify · Spotify Podcast</div>
+            </div>
+          </div>
+          <div class="circles-progress">
+            <div class="circles-progress__step is-done"><div class="circles-progress__dot">C</div><div class="circles-progress__label">釐清</div></div>
+            <div class="circles-progress__line is-done"></div>
+            <div class="circles-progress__step is-active"><div class="circles-progress__dot">I</div><div class="circles-progress__label">用戶</div></div>
+            <div class="circles-progress__line"></div>
+            <div class="circles-progress__step"><div class="circles-progress__dot">R</div><div class="circles-progress__label">需求</div></div>
+            <div class="circles-progress__line"></div>
+            <div class="circles-progress__step"><div class="circles-progress__dot">C</div><div class="circles-progress__label">排序</div></div>
+            <div class="circles-progress__line"></div>
+            <div class="circles-progress__step"><div class="circles-progress__dot">L</div><div class="circles-progress__label">方案</div></div>
+            <div class="circles-progress__line"></div>
+            <div class="circles-progress__step"><div class="circles-progress__dot">E</div><div class="circles-progress__label">取捨</div></div>
+            <div class="circles-progress__line"></div>
+            <div class="circles-progress__step"><div class="circles-progress__dot">S</div><div class="circles-progress__label">總結</div></div>
+          </div>
+          <div class="error-wrap">
+            <div class="error-wrap__icon"><i class="ph-fill ph-cloud-warning"></i></div>
+            <div class="error-wrap__title">教練回應格式異常</div>
+            <div class="error-wrap__sub">AI 回傳的內容無法正確解析。重試通常能解決，或返回修改答案。</div>
+            <code class="error-wrap__code">EVAL_PARSE_ERROR</code>
+            <div class="error-wrap__actions">
+              <button class="btn btn--ghost"><i class="ph ph-arrow-left"></i>返回修改答案</button>
+              <button class="btn btn--primary"><i class="ph ph-arrow-clockwise"></i>重新評分</button>
+            </div>
+          </div>
+        </div>
+      </div>
+
+    </div>
+
+  </div>
+</body>
+</html>
