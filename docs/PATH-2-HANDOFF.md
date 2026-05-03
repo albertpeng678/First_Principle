@@ -1,7 +1,7 @@
 # Path 2 — Frontend Rewrite · 接手 Handoff
 
 > 下個 session / 帳號接手用。**先讀本檔再讀 CLAUDE.md**。
-> **Last updated:** 2026-05-04（Plan B SB3 ✅ DONE Phase 1 Form / Plan B SB2 ✅ / Plan B SB1 ✅ / Plan C SB1 ✅ / Plan D SB1 ✅ — 全 merged main）
+> **Last updated:** 2026-05-04（Plan B SB4 ✅ DONE L solution-multi sim-only / Plan B SB1-3 + C SB1 + D SB1 全 merged main）
 
 ---
 
@@ -324,6 +324,7 @@ c776159 feat(visual-test): 51 baseline PNGs
 | # | 問題 | 必修 Plan | 詳細 memory |
 |---|---|---|---|
 | 1 | Mobile-360 navbar tabs 擠壓（CIRCLES 變直立橢圓 / 北極星指標直排）| Plan B | `project_path2_known_issues.md` |
+| 2 | Mobile-360 progress 7 階段 overflow（第 7 步「S 總結」溢出）| Plan B 後續 | `audit/eyeball-plan-b-sb4.md` |
 
 Plan B 開工前 implementer 必讀此節 + 對應 memory；Plan B merge 前必再開 port 給 user 親跑 mobile-360 確認修好。
 

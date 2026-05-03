@@ -2,7 +2,7 @@
 
 > **Goal:** 後端 / API / DB / OpenAI prompt / 商業邏輯 / jest 100% 不動；前端 CSS + render 從 0 重寫；目標 iOS Safari 滑順度 ≥ aistockmap.com。
 > **Authority:** 重寫對齊基準。實作完成後逐條打勾，未對齊 = 未完成。
-> **Last updated:** 2026-05-04（Plan B SB3 完成 — Phase 1 Form 4-field 標準 C1/I/R/C2 sim+drill 雙變體 / sonnet implement + opus line-by-line cold-review vs mockup 03 Section A / PW 27/27）
+> **Last updated:** 2026-05-04（Plan B SB4 完成 — L 步 solution-multi sim-only / sol-card 多方案 / sol-add 加方案三 / desktop rail / sonnet implement + opus line-by-line cold-review vs mockup 03 Section B 抓 8 條 CSS drift 全修 / PW 99/99 含 chromium+webkit）
 
 ---
 
