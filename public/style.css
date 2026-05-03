@@ -93,3 +93,36 @@ a { color: inherit; text-decoration: none; }
 .phase-head__eyebrow { font-size: var(--t-cap); letter-spacing: 0.08em; text-transform: uppercase; color: var(--c-ink-3); }
 .phase-head__title { font-size: var(--t-h3); color: var(--c-ink); margin-top: 2px; letter-spacing: -0.005em; }
 .phase-head__meta { flex: 0 0 auto; font-size: var(--t-meta); color: var(--c-ink-3); }
+
+/* ───── LOCKED · banner family (verbatim mockup 15 §C — Bundle 0a/0c) ───── */
+.banner { display: flex; align-items: center; gap: var(--s-3); padding: var(--s-3) var(--s-4); border-bottom: 1px solid; font-size: var(--t-meta); }
+.banner__icon { width: 24px; height: 24px; border-radius: 50%; display: inline-flex; align-items: center; justify-content: center; font-size: 14px; flex: 0 0 auto; }
+.banner__main { flex: 1; min-width: 0; }
+.banner__title { font-weight: 600; color: var(--c-ink); }
+.banner__sub { color: var(--c-ink-2); margin-top: 2px; }
+.banner__action { flex: 0 0 auto; font-weight: 600; padding: var(--s-2) var(--s-3); border-radius: var(--r-input); }
+.banner__close { width: 32px; height: 32px; border-radius: var(--r-pill); color: var(--c-ink-3); display: inline-flex; align-items: center; justify-content: center; flex: 0 0 auto; }
+.banner__close:hover { background: var(--c-bg-soft); color: var(--c-ink); }
+
+.banner--offline { background: var(--c-bg-deep); border-bottom-color: var(--c-rule-bold); }
+.banner--offline .banner__icon { background: var(--c-bg-soft); color: var(--c-ink-2); }
+.banner--offline .banner__action { color: var(--c-navy); }
+.banner--offline .banner__action:hover { background: var(--c-navy-lt); }
+
+.banner--session { background: var(--c-warn-lt); border-bottom-color: rgba(184,92,0,0.25); }
+.banner--session .banner__icon { background: rgba(184,92,0,0.15); color: var(--c-warn); }
+.banner--session .banner__title { color: var(--c-warn); }
+.banner--session .banner__action { background: var(--c-navy); color: #fff; }
+.banner--session .banner__action:hover { background: var(--c-navy-2); }
+
+.banner--locked { background: var(--c-navy-lt); border-bottom-color: rgba(27,45,92,0.18); }
+.banner--locked .banner__icon { background: rgba(27,45,92,0.15); color: var(--c-navy); }
+.banner--locked .banner__title { color: var(--c-navy); }
+.banner--locked .banner__action { color: var(--c-navy); }
+.banner--locked .banner__action:hover { background: rgba(27,45,92,0.12); }
+
+.banner--stale { background: var(--c-danger-lt); border-bottom-color: rgba(182,31,31,0.25); }
+.banner--stale .banner__icon { background: rgba(182,31,31,0.15); color: var(--c-danger); }
+.banner--stale .banner__title { color: var(--c-danger); }
+.banner--stale .banner__action { background: var(--c-danger); color: #fff; }
+.banner--stale .banner__action:hover { background: #951818; }
