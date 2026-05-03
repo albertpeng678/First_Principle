@@ -352,15 +352,25 @@
     var placeholder = fieldCfg.placeholder || '';
     var hint = fieldCfg.hint || '';
 
-    // toolbar buttons: field 1 desktop drill gets 4 buttons, others get 3
-    // We render 3 standard buttons + 1 extra with CSS to show/hide per viewport+mode combo
-    // (mockup 03 line 847-850 mobile: 3 btns; line 1114-1118 desktop drill field 1: 4 btns)
-    var toolbarHtml = '<div class="rt-field__toolbar">'
-      + '<button class="rt-tbtn"><i class="ph ph-text-b"></i></button>'
-      + '<button class="rt-tbtn"><i class="ph ph-list-bullets"></i></button>'
-      + '<button class="rt-tbtn"><i class="ph ph-text-indent"></i></button>'
-      + (idx === 0 ? '<button class="rt-tbtn rt-tbtn--outdent"><i class="ph ph-text-outdent"></i></button>' : '')
-      + '</div>';
+    // toolbar buttons per mockup 03 Section A:
+    //   field 1 mobile/tablet (line 847-850, 1002): text-b / list-bullets / text-indent (3 btn)
+    //   field 1 desktop drill  (line 1114-1118):    text-b / list-bullets / text-indent / text-outdent (4 btn)
+    //   field 2/3/4 all viewports (line 887-893, 911-915, 931-935, 1023, 1040, 1057, 1157, 1174, 1191):
+    //                                              text-b / list-bullets (2 btn — NO indent/outdent)
+    var toolbarHtml;
+    if (idx === 0) {
+      toolbarHtml = '<div class="rt-field__toolbar">'
+        + '<button class="rt-tbtn"><i class="ph ph-text-b"></i></button>'
+        + '<button class="rt-tbtn"><i class="ph ph-list-bullets"></i></button>'
+        + '<button class="rt-tbtn"><i class="ph ph-text-indent"></i></button>'
+        + '<button class="rt-tbtn rt-tbtn--outdent"><i class="ph ph-text-outdent"></i></button>'
+        + '</div>';
+    } else {
+      toolbarHtml = '<div class="rt-field__toolbar">'
+        + '<button class="rt-tbtn"><i class="ph ph-text-b"></i></button>'
+        + '<button class="rt-tbtn"><i class="ph ph-list-bullets"></i></button>'
+        + '</div>';
+    }
 
     var metaSpan = minMax ? '<span>建議 ' + minMax + ' 字' + (idx === 0 && hint ? ' · ' + hint : '') + '</span>' : '';
     var counterSpan = idx === 0 ? '<span class="char-counter">0 / ' + max + '</span>' : '';
