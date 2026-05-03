@@ -24,7 +24,8 @@ function loadHelpers() {
   return ctx;
 }
 
-describe('isStepLocked', () => {
+// PENDING_PATH_2_REIMPL — Plan A skeleton removed legacy helpers (isStepLocked / computeStaleFlag); re-enable in Plan B with new BEM render layer
+describe.skip('isStepLocked', () => {
   test('returns false when no scores', () => {
     const { isStepLocked } = loadHelpers();
     expect(isStepLocked('C1', null)).toBe(false);
@@ -43,7 +44,7 @@ describe('isStepLocked', () => {
   });
 });
 
-describe('computeStaleFlag', () => {
+describe.skip('computeStaleFlag', () => {
   test('returns false when problem_statement matches', () => {
     const { computeStaleFlag } = loadHelpers();
     const snapshot = { problem_statement: 'Spotify Podcast 體驗' };
