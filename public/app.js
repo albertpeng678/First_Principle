@@ -1307,6 +1307,146 @@
     }
   }
 
+  // ── bindCirclesPhase1 (Plan B SB3 — mockup 03 Section A interactions) ────
+  var _phase1CharDebounce = null;
+
+  function bindCirclesPhase1() {
+    // ── example-toggle: toggle aria-expanded + show/hide example-expand ──
+    document.querySelectorAll('[data-phase1="example-toggle"]').forEach(function (btn) {
+      btn.addEventListener('click', function (e) {
+        e.stopPropagation();
+        var idx = btn.dataset.fieldIdx;
+        var isActive = btn.getAttribute('aria-expanded') === 'true';
+        var newState = !isActive;
+        btn.setAttribute('aria-expanded', String(newState));
+        btn.classList.toggle('is-active', newState);
+        // rotate caret
+        var caret = btn.querySelector('.toggle-caret');
+        if (caret) caret.style.transform = newState ? 'rotate(180deg)' : '';
+        // show/hide example-expand
+        var expand = document.querySelector('.example-expand[data-field-idx="' + idx + '"]');
+        if (expand) {
+          expand.setAttribute('aria-hidden', String(!newState));
+          expand.style.display = newState ? '' : 'none';
+        }
+      });
+    });
+
+    // ── example-close: collapse example-expand ──
+    document.querySelectorAll('[data-phase1="example-close"]').forEach(function (btn) {
+      btn.addEventListener('click', function (e) {
+        e.stopPropagation();
+        var idx = btn.dataset.fieldIdx;
+        var expand = document.querySelector('.example-expand[data-field-idx="' + idx + '"]');
+        if (expand) {
+          expand.setAttribute('aria-hidden', 'true');
+          expand.style.display = 'none';
+        }
+        var toggle = document.querySelector('[data-phase1="example-toggle"][data-field-idx="' + idx + '"]');
+        if (toggle) {
+          toggle.setAttribute('aria-expanded', 'false');
+          toggle.classList.remove('is-active');
+          var caret = toggle.querySelector('.toggle-caret');
+          if (caret) caret.style.transform = '';
+        }
+      });
+    });
+
+    // ── hint button: SB5 will implement full overlay; here just noop / console ──
+    document.querySelectorAll('[data-phase1="hint"]').forEach(function (btn) {
+      btn.addEventListener('click', function (e) {
+        e.stopPropagation();
+        // SB5 will implement hint overlay; placeholder
+      });
+    });
+
+    // ── textarea input: debounce 200ms → update char-counter + draft ──
+    document.querySelectorAll('[data-phase1="textarea"]').forEach(function (ta) {
+      ta.addEventListener('input', function () {
+        if (_phase1CharDebounce) clearTimeout(_phase1CharDebounce);
+        _phase1CharDebounce = setTimeout(function () {
+          var idx = parseInt(ta.dataset.fieldIdx, 10);
+          var max = parseInt(ta.dataset.max, 10) || 200;
+          var val = ta.value;
+          // update char-counter for field 0 only (mockup shows counter only on field 1)
+          if (idx === 0) {
+            var counter = ta.closest('.field') && ta.closest('.field').querySelector('.char-counter');
+            if (counter) counter.textContent = val.length + ' / ' + max;
+          }
+          // update draft in AppState
+          var stepKey = AppState.circlesMode === 'drill'
+            ? (AppState.circlesDrillStep || 'C1')
+            : (['C1', 'I', 'R', 'C2', 'L', 'E', 'S'][AppState.circlesSimStep || 0] || 'C1');
+          var cfg = CIRCLES_STEP_CONFIG[stepKey] || CIRCLES_STEP_CONFIG.C1;
+          if (cfg && cfg.fields[idx]) {
+            var fieldKey = cfg.fields[idx].key;
+            if (!AppState.circlesFrameworkDraft) AppState.circlesFrameworkDraft = {};
+            if (!AppState.circlesFrameworkDraft[stepKey]) AppState.circlesFrameworkDraft[stepKey] = {};
+            AppState.circlesFrameworkDraft[stepKey][fieldKey] = val;
+          }
+        }, 200);
+      });
+    });
+
+    // ── rt-tbtn: rich text toolbar actions ──
+    document.querySelectorAll('.rt-tbtn').forEach(function (btn) {
+      btn.addEventListener('click', function (e) {
+        e.preventDefault();
+        var icon = btn.querySelector('i');
+        if (!icon) return;
+        var cls = icon.className;
+        if (cls.indexOf('ph-text-b') >= 0) document.execCommand('bold', false, null);
+        else if (cls.indexOf('ph-list-bullets') >= 0) document.execCommand('insertUnorderedList', false, null);
+        else if (cls.indexOf('ph-text-indent') >= 0) document.execCommand('indent', false, null);
+        else if (cls.indexOf('ph-text-outdent') >= 0) document.execCommand('outdent', false, null);
+      });
+    });
+
+    // ── submit 下一步 ──
+    var submitBtn = document.querySelector('[data-phase1="submit"]');
+    if (submitBtn) {
+      submitBtn.addEventListener('click', function () {
+        var mode = AppState.circlesMode || 'simulation';
+        if (mode === 'drill') {
+          // drill: single step done → go to Phase 1.5 Gate (stub for now)
+          // SB4 will implement Gate; for now stub phase transition
+          AppState.circlesPhase = 1.5;
+          render();
+        } else {
+          // sim: advance to next step (if at last sim step, go Phase 1.5)
+          var stepOrder = ['C1', 'I', 'R', 'C2', 'L', 'E', 'S'];
+          var nextIdx = (AppState.circlesSimStep || 0) + 1;
+          if (nextIdx >= stepOrder.length) {
+            // all 7 steps done in Phase 1 — go to Phase 1.5
+            AppState.circlesPhase = 1.5;
+          } else {
+            AppState.circlesSimStep = nextIdx;
+          }
+          render();
+        }
+      });
+    }
+
+    // ── 上一步 back button (sim only, tablet+) ──
+    var backBtn = document.querySelector('[data-phase1="back"]');
+    if (backBtn) {
+      backBtn.addEventListener('click', function () {
+        var mode = AppState.circlesMode || 'simulation';
+        if (mode === 'simulation') {
+          var prevIdx = (AppState.circlesSimStep || 0) - 1;
+          if (prevIdx < 0) {
+            // back to home (deselect question)
+            AppState.circlesSelectedQuestion = null;
+            AppState.circlesSimStep = 0;
+          } else {
+            AppState.circlesSimStep = prevIdx;
+          }
+          render();
+        }
+      });
+    }
+  }
+
   // ── Offcanvas History (Plan D SB1 — mockup 09) ───────────────────────────
 
   function renderOffcanvas() {
