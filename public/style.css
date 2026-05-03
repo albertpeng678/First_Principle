@@ -764,4 +764,110 @@ body:has(.submit-bar) { padding-bottom: calc(var(--touch-min) + var(--s-7)); }
   .submit-bar__back { display: none; }
 }
 
+/* ── sol-card (Plan B SB4 — mockup 03 Section B) ────────────────────────────── */
+.sol-card {
+  background: var(--c-card);
+  border: 1px solid var(--c-rule);
+  border-radius: var(--r-card);
+  padding: var(--s-4);
+  margin-bottom: var(--s-4);
+}
+.sol-card__num {
+  display: inline-block;
+  background: var(--c-navy);
+  color: #fff;
+  font-size: var(--t-cap);
+  font-weight: 600;
+  padding: var(--s-1) var(--s-3);
+  border-radius: var(--r-input);
+  margin-bottom: var(--s-3);
+  position: relative;
+}
+.sol-card__num::after {
+  content: '';
+  position: absolute;
+  left: -1px;
+  bottom: -8px;
+  width: 24px;
+  height: 2px;
+  background: var(--c-navy);
+}
+.sol-card__optional {
+  display: inline;
+  font-size: var(--t-cap);
+  font-weight: 400;
+  color: rgba(255,255,255,0.75);
+  background: transparent;
+  padding: 0;
+  margin-left: var(--s-2);
+}
+.sol-card__name-row {
+  display: flex;
+  align-items: center;
+  gap: var(--s-2);
+  margin-bottom: var(--s-3);
+  margin-top: var(--s-3);
+}
+.sol-card__name-input {
+  flex: 1;
+  height: var(--touch-min);
+  padding: var(--s-2) var(--s-3);
+  font-size: var(--t-body);
+  font-family: var(--font-sans);
+  border: 1px solid var(--c-rule-bold);
+  border-radius: var(--r-input);
+  background: var(--c-card);
+  color: var(--c-ink);
+}
+.sol-card__name-input:focus {
+  outline: 2px solid var(--c-navy);
+  outline-offset: -1px;
+  border-color: var(--c-navy);
+}
+.sol-card__name-input::placeholder { color: var(--c-ink-4); }
+.sol-card__remove {
+  width: var(--touch-min);
+  height: var(--touch-min);
+  border: 1px solid var(--c-rule-bold);
+  border-radius: var(--r-input);
+  background: var(--c-card);
+  color: var(--c-ink-3);
+  cursor: pointer;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  flex: 0 0 auto;
+  font-size: 16px;
+}
+.sol-card__remove:hover { color: var(--c-danger); border-color: var(--c-danger); }
+
+.sol-add {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: var(--s-2);
+  width: 100%;
+  padding: var(--s-3);
+  border: 1px dashed var(--c-rule-bold);
+  border-radius: var(--r-card);
+  background: transparent;
+  color: var(--c-ink-2);
+  font-size: var(--t-body);
+  font-family: var(--font-sans);
+  cursor: pointer;
+  margin-top: var(--s-2);
+}
+.sol-add:hover { border-color: var(--c-navy); color: var(--c-navy); }
+
+/* tablet+: hide field__label-row inside sol-card (per mockup line 1325-1335) */
+@media (min-width: 768px) {
+  .sol-card .field__label-row { display: none; }
+}
+
+/* phase-head__title-extra: desktop sim suffix "（2-3 個方案）" — hidden on mobile/tablet */
+.phase-head__title-extra { display: none; }
+@media (min-width: 1024px) {
+  [data-circles-l-step] .phase-head__title-extra { display: inline; }
+}
+
 /* ─── B SB3 · Phase 1 Form END ─── */

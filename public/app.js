@@ -35,6 +35,12 @@
     circlesChipExpanded: false,
     circlesDisplayedQuestions: [],
 
+    // Plan B SB4 additions
+    circlesPhase1Solutions: [
+      { name: '', mechanism: '' },
+      { name: '', mechanism: '' },
+    ],
+
     // Plan B additions
     circlesTypeFilter: 'design',        // 'design' | 'improve' | 'strategy'
     circlesSearchText: '',
@@ -144,6 +150,7 @@
     if (AppState.view === 'nsm' && AppState.nsmStep === 1) bindNSMStep1();
   }
   window.render = render;
+  window.renderApp = render; // alias for test scripts
 
   function renderView() {
     const v = AppState.view;
@@ -337,6 +344,33 @@
         { key: '排序理由', placeholder: '聚焦廣告時機可立即改善通勤族體驗，又不破壞收入模式', minMax: '30-100', max: 100, rows: 2, hint: '用一句話說明整體排序的核心考量' },
       ],
     },
+    L: {
+      eyebrow: { sim: 'Phase 1 · 寫框架', drill: 'Phase 1 · 個別步驟練習' },
+      title: 'L · 提出方案',
+      titleDrillSuffix: '',
+      progressLabel: '方案',
+      stepLetter: 'L',
+      stepNum: '05',
+      railTitle: 'L 步重點',
+      railIntro: '提出 2-3 個有方向差異的方案',
+      railBody: '方案二要和方案一在「方向」上有本質差異 — 不是更多，而是不同。例如方案一是系統主動，方案二可以是用戶主動；或方案一是短期戰術，方案二是長期重設計。',
+      railTitle2: '方案三是加分項',
+      railBody2: '湊數寧可不填 — 說明「前兩個已涵蓋主要可能性」也是有效回答。',
+      isSolMulti: true,
+      solCardField: {
+        label: '核心機制',
+        placeholders: {
+          sol1: '描述方案一的核心機制（與目標連結）',
+          sol2: '與方案一在「方向」上有本質差異 — 不是更多，而是不同',
+          sol3Mobile: '加分項 — 第三個真正不同的思路（更激進、更長線）',
+          sol3Desktop: '第三個真正不同的思路 — 例如：把廣告變成內容（品牌 podcast）；或從供給端切（廣告主競價）',
+        },
+        nameInputPlaceholders: {
+          default: '方案名稱（10 字內）',
+          sol3Desktop: '方案名稱（10 字內）— 加分項，更激進或長線',
+        },
+      },
+    },
   };
 
   // ── CIRCLES Phase 1 Form (Plan B SB3 — mockup 03 Section A) ─────────────
@@ -436,6 +470,170 @@
       + '</aside>';
   }
 
+  // ── renderSolCard: render a single sol-card (Plan B SB4 — mockup 03 Section B) ──
+  function renderSolCard(idx, isDesktop) {
+    var solCfg = CIRCLES_STEP_CONFIG.L.solCardField;
+    var isOptional = idx === 2; // only 3rd card is optional
+    var numLabel = idx === 0 ? '方案一' : idx === 1 ? '方案二' : '方案三';
+    var numHtml = isOptional
+      ? numLabel + ' <span class="sol-card__optional">（選擇性）</span>'
+      : numLabel;
+
+    // name input placeholder: desktop sol3 differs
+    var namePlaceholder = (isDesktop && isOptional)
+      ? solCfg.nameInputPlaceholders.sol3Desktop
+      : solCfg.nameInputPlaceholders.default;
+
+    // textarea placeholder per idx and viewport
+    var taPlaceholder;
+    if (idx === 0) taPlaceholder = solCfg.placeholders.sol1;
+    else if (idx === 1) taPlaceholder = solCfg.placeholders.sol2;
+    else taPlaceholder = isDesktop ? solCfg.placeholders.sol3Desktop : solCfg.placeholders.sol3Mobile;
+
+    // name-row: sol3 has remove button
+    var nameRowHtml = '<div class="sol-card__name-row">'
+      + '<input class="sol-card__name-input" type="text" placeholder="' + escHtml(namePlaceholder) + '" data-sol-idx="' + idx + '">'
+      + (isOptional ? '<button class="sol-card__remove" aria-label="移除方案三"><i class="ph ph-x"></i></button>' : '')
+      + '</div>';
+
+    // field: mobile has label-row; tablet+ label hidden via CSS
+    var fieldHtml = '<div class="field" style="margin-bottom:0;">'
+      + '<div class="field__label-row">'
+      + '<label class="field__label">' + escHtml(solCfg.label) + '</label>'
+      + '<div class="field__hint-row">'
+      + '<button class="field__hint-link"><i class="ph ph-lightbulb"></i>提示</button>'
+      + '<button class="field-example-toggle" aria-expanded="false"><i class="ph ph-quotes"></i>範例答案<i class="ph ph-caret-down toggle-caret"></i></button>'
+      + '</div>'
+      + '</div>'
+      + '<div class="rt-field">'
+      + '<div class="rt-field__toolbar">'
+      + '<button class="rt-tbtn"><i class="ph ph-text-b"></i></button>'
+      + '<button class="rt-tbtn"><i class="ph ph-list-bullets"></i></button>'
+      + '</div>'
+      + '<textarea class="rt-textarea" rows="3" placeholder="' + escHtml(taPlaceholder) + '" data-sol-idx="' + idx + '"></textarea>'
+      + '</div>'
+      + '</div>';
+
+    return '<div class="sol-card">'
+      + '<div class="sol-card__num">' + numHtml + '</div>'
+      + nameRowHtml
+      + fieldHtml
+      + '</div>';
+  }
+
+  // ── renderCirclesPhase1Lstep: L step sol-multi renderer (Plan B SB4) ──────
+  function renderCirclesPhase1Lstep(q, stepKey, stepCfg, currentStepNum) {
+    var mode = AppState.circlesMode || 'simulation';
+    var isDrill = mode === 'drill';
+    var isDesktop = window.innerWidth >= 1024;
+    var isTabletPlus = window.innerWidth >= 768;
+
+    // progress bar (sim only)
+    var progressHtml = isDrill ? '' : renderProgressBar(stepKey);
+
+    // phase-head
+    var eyebrow = isDrill ? stepCfg.eyebrow.drill : stepCfg.eyebrow.sim;
+    // desktop sim: append suffix span (CSS hides on <1024)
+    var titleHtml = escHtml(stepCfg.title)
+      + '<span class="phase-head__title-extra">（2-3 個方案）</span>';
+    var metaHtml;
+    if (isDrill) {
+      metaHtml = '<span class="phase-head__meta">'
+        + '<span class="save-indicator save-indicator--saved"><i class="ph ph-check"></i>已儲存</span>'
+        + '</span>';
+    } else {
+      metaHtml = '<span class="phase-head__meta">'
+        + '<span class="save-indicator save-indicator--saved"><i class="ph ph-check"></i>已儲存</span>'
+        + '<span class="phase-head__meta-sep phase-head__meta-extra">·</span>'
+        + '<span class="phase-head__meta-extra">完整模擬 · ' + currentStepNum + ' / 7 步</span>'
+        + '</span>';
+    }
+    var phaseHeadClass = 'phase-head' + (isDrill ? ' phase-head--drill' : '');
+    var phaseHeadHtml = '<div class="' + phaseHeadClass + '">'
+      + '<span class="phase-head__num">' + escHtml(stepCfg.stepNum) + '</span>'
+      + '<div class="phase-head__main">'
+      + '<div class="phase-head__eyebrow">' + escHtml(eyebrow) + '</div>'
+      + '<div class="phase-head__title">' + titleHtml + '</div>'
+      + '</div>'
+      + metaHtml
+      + '</div>';
+
+    // qchip: desktop sim adds question type + difficulty suffix
+    var company = (q && q.company) ? q.company : '';
+    var product = (q && q.product) ? q.product : '';
+    var companyBaseHtml = escHtml(company) + (product ? ' · ' + escHtml(product) : '');
+    var diff = (q && q.difficulty) === 'high' ? '高' : (q && q.difficulty) === 'low' ? '低' : '中';
+    var qType = (q && q.question_type) === 'improve' ? '改善題' : (q && q.question_type) === 'strategy' ? '策略題' : '設計題';
+    var companyDisplayHtml;
+    if (isDesktop) {
+      // desktop: always show type+difficulty inline (matches mockup line 1388)
+      companyDisplayHtml = companyBaseHtml + ' · ' + escHtml(qType) + ' · 難度 ' + escHtml(diff);
+    } else if (isDrill) {
+      companyDisplayHtml = companyBaseHtml + ' · ' + escHtml(qType) + ' · 難度 ' + escHtml(diff);
+    } else {
+      companyDisplayHtml = companyBaseHtml;
+    }
+    var qTitle = (q && q.problem_statement) ? q.problem_statement : '';
+    var qchipHtml = '<div class="qchip">'
+      + '<span class="qchip__icon"><i class="ph ph-info"></i></span>'
+      + '<div class="qchip__main">'
+      + '<div class="qchip__company">' + companyDisplayHtml + '</div>'
+      + '<div class="qchip__title">' + escHtml(qTitle) + '</div>'
+      + '</div>'
+      + '<i class="ph ph-caret-down qchip__caret"></i>'
+      + '</div>';
+
+    // sol-cards
+    var solutions = AppState.circlesPhase1Solutions;
+    var solCardsHtml = '';
+    for (var i = 0; i < solutions.length; i++) {
+      solCardsHtml += renderSolCard(i, isDesktop);
+    }
+
+    // sol-add button: hidden when 3 cards added
+    var solAddHtml = solutions.length < 3
+      ? '<button class="sol-add"><i class="ph ph-plus"></i>加方案三（選擇性）</button>'
+      : '<button class="sol-add" style="display:none;"><i class="ph ph-plus"></i>加方案三（選擇性）</button>';
+
+    // phase-body: desktop sim uses phase-body--with-rail
+    var useRail = !isDrill && isDesktop;
+    var phaseBodyClass = 'phase-body' + (useRail ? ' phase-body--with-rail' : '');
+    var phaseBodyHtml;
+    if (useRail) {
+      phaseBodyHtml = '<div class="' + phaseBodyClass + '">'
+        + '<div>' + solCardsHtml + solAddHtml + '</div>'
+        + renderRail(stepCfg)
+        + '</div>';
+    } else {
+      phaseBodyHtml = '<div class="' + phaseBodyClass + '">'
+        + solCardsHtml
+        + solAddHtml
+        + '</div>';
+    }
+
+    // submit-bar: sim tablet+ shows 上一步 ghost; mobile empty left; drill no back
+    var ghostHtml = '';
+    if (!isDrill) {
+      ghostHtml = '<button class="btn btn--ghost submit-bar__back" data-phase1="back">'
+        + '<i class="ph ph-arrow-left"></i>上一步'
+        + '</button>';
+    }
+    var submitBarHtml = '<div class="submit-bar">'
+      + '<div class="submit-bar__left">' + ghostHtml + '</div>'
+      + '<div class="submit-bar__right">'
+      + '<button class="btn btn--primary" data-phase1="submit">下一步<i class="ph ph-arrow-right"></i></button>'
+      + '</div>'
+      + '</div>';
+
+    return '<div data-view="circles" data-circles-phase="1" data-circles-l-step="true">'
+      + progressHtml
+      + phaseHeadHtml
+      + qchipHtml
+      + phaseBodyHtml
+      + submitBarHtml
+      + '</div>';
+  }
+
   function renderCirclesPhase1() {
     // mockup 03 Section A line 794-1216 — sim mobile / sim tablet / drill desktop
     var q = AppState.circlesSelectedQuestion;
@@ -451,6 +649,11 @@
     if (!isDrill) {
       stepKey = stepOrder[simStepIdx] || 'C1';
       stepCfg = CIRCLES_STEP_CONFIG[stepKey] || CIRCLES_STEP_CONFIG.C1;
+    }
+
+    // ── L step branch (Plan B SB4) — sol-card multi structure ──
+    if (stepCfg && stepCfg.isSolMulti) {
+      return renderCirclesPhase1Lstep(q, stepKey, stepCfg, currentStepNum);
     }
 
     // ── progress bar (sim only) ──
@@ -1008,7 +1211,10 @@
         if (!q) return;
         AppState.circlesSelectedQuestion = q;
         AppState.circlesPhase = 1;
+        AppState.circlesSimStep = 0;
         AppState.circlesExpandedQid = null;
+        // reset L step solutions for new question
+        AppState.circlesPhase1Solutions = [{ name: '', mechanism: '' }, { name: '', mechanism: '' }];
         render();
       });
     });
@@ -1476,6 +1682,46 @@
         }
       });
     }
+
+    // ── L step: sol-add click — add 3rd solution card ──
+    document.querySelectorAll('.sol-add').forEach(function (btn) {
+      btn.addEventListener('click', function () {
+        if (AppState.circlesPhase1Solutions.length < 3) {
+          AppState.circlesPhase1Solutions.push({ name: '', mechanism: '' });
+          render();
+        }
+      });
+    });
+
+    // ── L step: sol-card__remove click — remove 3rd solution card ──
+    document.querySelectorAll('.sol-card__remove').forEach(function (btn) {
+      btn.addEventListener('click', function () {
+        if (AppState.circlesPhase1Solutions.length > 2) {
+          AppState.circlesPhase1Solutions.pop();
+          render();
+        }
+      });
+    });
+
+    // ── L step: sol-card name-input — persist to state ──
+    document.querySelectorAll('.sol-card__name-input').forEach(function (input) {
+      var idx = parseInt(input.dataset.solIdx || '0', 10);
+      input.addEventListener('input', function (e) {
+        if (AppState.circlesPhase1Solutions[idx] !== undefined) {
+          AppState.circlesPhase1Solutions[idx].name = e.target.value;
+        }
+      });
+    });
+
+    // ── L step: sol-card textarea — persist mechanism to state ──
+    document.querySelectorAll('.sol-card .rt-textarea').forEach(function (ta) {
+      var idx = parseInt(ta.dataset.solIdx || '0', 10);
+      ta.addEventListener('input', function (e) {
+        if (AppState.circlesPhase1Solutions[idx] !== undefined) {
+          AppState.circlesPhase1Solutions[idx].mechanism = e.target.value;
+        }
+      });
+    });
   }
 
   // ── Offcanvas History (Plan D SB1 — mockup 09) ───────────────────────────
