@@ -32,6 +32,142 @@
 
 ---
 
+## 視覺契約 — Mockup HTML 1:1（implementer 必比照、文案 verbatim）
+
+下面 5 段是 mockup 01 真實 HTML 抄錄（含 line 起始）。implementer 寫 render 函式 = **產出對應 DOM 與這幾段相同** — class 名、文字、icon、巢狀結構全 1:1。
+
+### A. mode-card body desktop 長版（mockup 01 line 1018-1024 / desktop frame）
+
+```html
+<button class="mode-card is-active">
+  <div class="mode-card__head"><i class="ph ph-list-checks"></i><span class="mode-card__title">完整模擬</span></div>
+  <div class="mode-card__body">7 步循序（C → I → R → C → L → E → S）。可隨時上一步 / 下一步調整。最完整的訓練。</div>
+</button>
+<button class="mode-card">
+  <div class="mode-card__head"><i class="ph ph-target"></i><span class="mode-card__title">步驟加練</span></div>
+  <div class="mode-card__body">單練 C / I / R 三步任一。專注練好其中一步。該步結束即整 session 完成。</div>
+</button>
+```
+（mobile / tablet 版的短版 body 在 line 833、837：「7 步循序練習」/「單練 C / I / R」— 兩個 body 並存、用 `@media (min-width: 1024px)` 切顯示）
+
+### B. drill-rail desktop（mockup 01 line 1293-1304）
+
+```html
+<aside class="drill-rail">
+  <div class="drill-rail__title">練習步驟</div>
+  <div class="drill-rail__list">
+    <button class="drill-pill is-active"><span class="step-letter">C</span>澄清情境</button>
+    <button class="drill-pill"><span class="step-letter">I</span>定義用戶</button>
+    <button class="drill-pill"><span class="step-letter">R</span>發掘需求</button>
+  </div>
+  <div class="drill-rail__lock">
+    <i class="ph ph-lock-simple"></i>
+    <span>C2、L、E、S 需在<strong style="color:var(--c-ink-2);">完整模擬</strong>中練習 — 因為它們依賴前步輸出</span>
+  </div>
+</aside>
+```
+
+### C. drill horizontal pills（mobile / tablet — mockup 01 line 1148-1160）
+
+```html
+<!-- drill horizontal pills (mobile/tablet) -->
+<div style="margin-bottom:var(--s-4);">
+  <div style="font-size:var(--t-cap); letter-spacing:0.08em; text-transform:uppercase; color:var(--c-ink-3); margin-bottom:var(--s-2);">練習步驟</div>
+  <div class="type-tabs">
+    <button class="drill-pill is-active" style="width:auto; padding:var(--s-2) var(--s-3);"><span class="step-letter">C</span>澄清</button>
+    <button class="drill-pill" style="width:auto; padding:var(--s-2) var(--s-3);"><span class="step-letter">I</span>用戶</button>
+    <button class="drill-pill" style="width:auto; padding:var(--s-2) var(--s-3);"><span class="step-letter">R</span>需求</button>
+  </div>
+  <div class="drill-rail__lock" style="margin-top:var(--s-2);">
+    <i class="ph ph-lock-simple"></i>
+    <span>C2 / L / E / S 需在完整模擬中練習</span>
+  </div>
+</div>
+```
+（注意：mobile pill label 短版「澄清/用戶/需求」、desktop 長版「澄清情境/定義用戶/發掘需求」）
+
+### D. recent-rail × 3 items（mockup 01 line 1061-1092）
+
+```html
+<aside class="recent-rail">
+  <div class="recent-rail__title">
+    <span>最近練習</span>
+    <a href="#" class="recent-rail__see-all">看全部 →</a>
+  </div>
+  <div class="recent-rail__list">
+    <div class="recent-item">
+      <div class="recent-item__head">
+        <span class="mode-tag mode-tag--sim"><i class="ph ph-list-checks"></i>完整</span>
+        <span class="recent-item__time">2 小時前</span>
+      </div>
+      <div class="recent-item__title">如何重設 Slack 的通知策略？</div>
+      <div class="recent-item__phase">Phase 2 · 第 3 步 · 進行中</div>
+    </div>
+    <div class="recent-item">
+      <div class="recent-item__head">
+        <span class="mode-tag mode-tag--drill"><i class="ph ph-target"></i>個別 R</span>
+        <span class="recent-item__time">昨天</span>
+      </div>
+      <div class="recent-item__title">Spotify Podcast 留存</div>
+      <div class="recent-item__phase">Phase 3 · 76 / 100 · 已完成</div>
+    </div>
+    <div class="recent-item">
+      <div class="recent-item__head">
+        <span class="mode-tag mode-tag--sim"><i class="ph ph-list-checks"></i>完整</span>
+        <span class="recent-item__time">3 天前</span>
+      </div>
+      <div class="recent-item__title">Discord 如何降低青少年濫用率</div>
+      <div class="recent-item__phase">Phase 4 · 報告 82 / 100</div>
+    </div>
+  </div>
+</aside>
+```
+
+### E. qcard.is-expanded — 完整題目 + 4 ana-block + action-row（mockup 01 line 1801-1836）
+
+```html
+<div class="qcard is-expanded">
+  <div class="qcard__head"><span class="qcard__num">01</span><h3 class="qcard__title">Spotify · Spotify Podcast</h3></div>
+  <div class="qcard__meta"><span class="mode-tag mode-tag--sim"><i class="ph ph-list-checks"></i>完整模擬</span><span class="qcard__meta-sep">·</span>Spotify<span class="qcard__meta-sep">·</span>難度 中</div>
+
+  <div class="qcard__expand">
+    <h4 class="qcard__section-label">完整題目</h4>
+    <p class="qcard__full-statement">
+      既有用戶聽 Podcast 的留存比聽音樂低（30 天留存 35% vs 音樂 62%）；產品經理需要找出主因並提出策略，但<strong>不能影響廣告收入或訂閱轉換率</strong>。
+    </p>
+
+    <h4 class="qcard__section-label">深入分析</h4>
+    <div class="qcard-analysis">
+      <div class="ana-block">
+        <div class="ana-block__head"><i class="ph ph-buildings"></i>商業背景</div>
+        <div class="ana-block__body">Spotify 廣告收入仰賴 ad-supported tier；Podcast 與音樂共享聽眾池但商業模型不同。Podcast 留存低 → 壓縮整體 ARPU。</div>
+      </div>
+      <div class="ana-block">
+        <div class="ana-block__head"><i class="ph ph-users"></i>用戶輪廓</div>
+        <div class="ana-block__body">免費 + 訂閱混合的通勤 / 運動 / 開車場景用戶。多數人訂閱後 7 天內未開啟單集。</div>
+      </div>
+      <div class="ana-block ana-block--trap">
+        <div class="ana-block__head"><i class="ph ph-warning"></i>常見誤區</div>
+        <div class="ana-block__body">直接套用音樂留存策略 — 但<strong>「subscribe → listen」漏斗本質不同</strong>：音樂是 mood-driven，Podcast 是 content-driven。</div>
+      </div>
+      <div class="ana-block">
+        <div class="ana-block__head"><i class="ph ph-lightbulb"></i>破題切入</div>
+        <div class="ana-block__body">先界定「留存」具體指什麼：訂閱留存、播放留存還是回流留存？</div>
+      </div>
+    </div>
+
+    <div class="qcard__action-row">
+      <button class="qcard__btn qcard__btn--ghost">取消</button>
+      <button class="qcard__btn qcard__btn--primary">確認，開始練習</button>
+    </div>
+  </div>
+</div>
+```
+
+> Implementer: 上面 5 段是視覺契約 source of truth。production data（題目 / 分析）從 `CIRCLES_QUESTIONS[].analysis` 動態填入；class 名 / icon / 文案 / 巢狀結構 100% 比照。任何「我覺得這樣比較好」= bundle 不過。
+
+---
+
 ## Working directory
 `/Users/albertpeng/Desktop/claude_project/first-principle-path2-b-circles` (branch `feat/path-2-circles-core`)
 
