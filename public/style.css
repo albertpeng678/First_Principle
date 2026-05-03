@@ -764,59 +764,55 @@ body:has(.submit-bar) { padding-bottom: calc(var(--touch-min) + var(--s-7)); }
   .submit-bar__back { display: none; }
 }
 
-/* ── sol-card (Plan B SB4 — mockup 03 Section B) ────────────────────────────── */
+/* ── sol-card (Plan B SB4 — mockup 03 Section B line 543-607) ──────────────── */
 .sol-card {
+  margin-bottom: var(--s-5);
+  padding: var(--s-4) var(--s-5);
   background: var(--c-card);
   border: 1px solid var(--c-rule);
   border-radius: var(--r-card);
-  padding: var(--s-4);
-  margin-bottom: var(--s-4);
 }
 .sol-card__num {
-  display: inline-block;
-  background: var(--c-navy);
-  color: #fff;
-  font-size: var(--t-cap);
-  font-weight: 600;
-  padding: var(--s-1) var(--s-3);
-  border-radius: var(--r-input);
+  display: inline-flex;
+  align-items: center;
+  gap: var(--s-2);
   margin-bottom: var(--s-3);
-  position: relative;
+  font-size: var(--t-meta);
+  color: var(--c-navy);
+  letter-spacing: 0.06em;
+  text-transform: uppercase;
+  font-weight: 600;
+  background: transparent;
+  padding: 0;
 }
-.sol-card__num::after {
+.sol-card__num::before {
   content: '';
-  position: absolute;
-  left: -1px;
-  bottom: -8px;
-  width: 24px;
+  width: 18px;
   height: 2px;
   background: var(--c-navy);
 }
 .sol-card__optional {
-  display: inline;
   font-size: var(--t-cap);
+  color: var(--c-ink-3);
+  flex: 0 0 auto;
   font-weight: 400;
-  color: rgba(255,255,255,0.75);
-  background: transparent;
-  padding: 0;
-  margin-left: var(--s-2);
+  letter-spacing: 0;
+  text-transform: none;
 }
 .sol-card__name-row {
   display: flex;
-  align-items: center;
   gap: var(--s-2);
+  align-items: baseline;
   margin-bottom: var(--s-3);
-  margin-top: var(--s-3);
 }
 .sol-card__name-input {
   flex: 1;
-  height: var(--touch-min);
   padding: var(--s-2) var(--s-3);
-  font-size: var(--t-body);
-  font-family: var(--font-sans);
+  background: var(--c-card);
   border: 1px solid var(--c-rule-bold);
   border-radius: var(--r-input);
-  background: var(--c-card);
+  font-size: var(--t-body-sm);
+  font-family: var(--font-sans);
   color: var(--c-ink);
 }
 .sol-card__name-input:focus {
@@ -826,42 +822,43 @@ body:has(.submit-bar) { padding-bottom: calc(var(--touch-min) + var(--s-7)); }
 }
 .sol-card__name-input::placeholder { color: var(--c-ink-4); }
 .sol-card__remove {
-  width: var(--touch-min);
-  height: var(--touch-min);
-  border: 1px solid var(--c-rule-bold);
-  border-radius: var(--r-input);
-  background: var(--c-card);
+  flex: 0 0 auto;
+  width: 32px;
+  height: 32px;
+  border: 0;
+  border-radius: var(--r-pill);
+  background: transparent;
   color: var(--c-ink-3);
-  cursor: pointer;
   display: inline-flex;
   align-items: center;
   justify-content: center;
-  flex: 0 0 auto;
+  cursor: pointer;
   font-size: 16px;
 }
-.sol-card__remove:hover { color: var(--c-danger); border-color: var(--c-danger); }
+.sol-card__remove:hover { background: var(--c-danger-lt); color: var(--c-danger); }
 
 .sol-add {
-  display: flex;
+  width: 100%;
+  padding: var(--s-3);
+  background: transparent;
+  border: 1px dashed var(--c-rule-bold);
+  border-radius: var(--r-input);
+  font-size: var(--t-body-sm);
+  font-family: var(--font-sans);
+  color: var(--c-ink-2);
+  display: inline-flex;
   align-items: center;
   justify-content: center;
   gap: var(--s-2);
-  width: 100%;
-  padding: var(--s-3);
-  border: 1px dashed var(--c-rule-bold);
-  border-radius: var(--r-card);
-  background: transparent;
-  color: var(--c-ink-2);
-  font-size: var(--t-body);
-  font-family: var(--font-sans);
   cursor: pointer;
-  margin-top: var(--s-2);
+  transition: all var(--t-fast) var(--ease);
 }
-.sol-add:hover { border-color: var(--c-navy); color: var(--c-navy); }
+.sol-add:hover { background: var(--c-bg-soft); border-color: var(--c-navy); color: var(--c-navy); }
 
-/* tablet+: hide field__label-row inside sol-card (per mockup line 1325-1335) */
+/* tablet+: hide field__label only inside sol-card (mockup tablet+ line 1325-1329)
+   — keep field__hint-row visible (right-aligned), only label is suppressed. */
 @media (min-width: 768px) {
-  .sol-card .field__label-row { display: none; }
+  .sol-card .field__label { display: none; }
 }
 
 /* phase-head__title-extra: desktop sim suffix "（2-3 個方案）" — hidden on mobile/tablet */
