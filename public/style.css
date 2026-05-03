@@ -537,6 +537,10 @@ body:has(.submit-bar) { padding-bottom: calc(var(--touch-min) + var(--s-7)); }
 
 /* analysis blocks */
 .qcard-analysis { display: flex; flex-direction: column; gap: var(--s-4); }
+/* desktop 2x2 grid — 4 ana-block 改 2-col 壓縮右側空白（user 2026-05-04 抓出 1-col 在寬 viewport 換行視覺奇怪） */
+@media (min-width: 1024px) {
+  .qcard-analysis { display: grid; grid-template-columns: 1fr 1fr; gap: var(--s-4); }
+}
 .ana-block { background: var(--c-card); border: 1px solid var(--c-rule); border-radius: var(--r-input); padding: var(--s-4) var(--s-5); transition: border-color var(--t-fast) var(--ease); }
 .ana-block:hover { border-color: var(--c-rule-bold); }
 .ana-block__head { display: flex; align-items: center; gap: var(--s-2); margin-bottom: var(--s-3); font-size: var(--t-body); font-weight: 600; color: var(--c-ink); letter-spacing: -0.005em; }
