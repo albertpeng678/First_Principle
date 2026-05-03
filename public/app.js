@@ -144,4 +144,70 @@
   function renderAuthStub() {
     return '<div data-view="auth" style="padding:24px;color:var(--c-ink-3);text-align:center">Auth view — 待 Plan B 收尾實作</div>';
   }
+
+  // ── renderNavbar (per spec §2.10 + mockup 03+) ────────────────────────────
+  function renderNavbar() {
+    const tabs = (AppState.view === 'circles' || AppState.view === 'nsm') ?
+      `<div class="navbar__tabs">
+         <button class="navbar__tab ${AppState.view==='circles'?'is-active':''}" data-nav="circles">CIRCLES</button>
+         <button class="navbar__tab ${AppState.view==='nsm'?'is-active':''}" data-nav="nsm">北極星指標</button>
+       </div>` : '';
+
+    const right = AppState.accessToken ?
+      `<span class="navbar__email">${escHtml(AppState.userEmail || '')}</span>
+       <button class="navbar__icon-btn" data-nav="home" aria-label="回首頁"><i class="ph ph-house"></i></button>` :
+      `<button class="navbar__icon-btn" data-nav="auth" aria-label="登入"><i class="ph ph-sign-in"></i></button>`;
+
+    return `<header class="navbar">
+      <button class="navbar__icon-btn" data-nav="offcanvas" aria-label="練習記錄"><i class="ph ph-list"></i></button>
+      <div class="navbar__brand" data-nav="home">
+        <span class="navbar__brand-icon"><i class="ph ph-circles-three"></i></span>
+        <span class="navbar__brand-name">PM Drill</span>
+      </div>
+      ${tabs}
+      <div class="navbar__actions">${right}</div>
+    </header>`;
+  }
+
+  function renderGlobalBanners() {
+    const banners = [];
+    if (!AppState.isOnline) {
+      banners.push(`<div class="banner banner--offline">
+        <span class="banner__icon"><i class="ph ph-wifi-slash"></i></span>
+        <div class="banner__main"><div class="banner__title">網路離線</div>
+          <div class="banner__sub">草稿已存本機，連線恢復後自動同步</div></div>
+      </div>`);
+    }
+    if (AppState.sessionExpired) {
+      banners.push(`<div class="banner banner--session">
+        <span class="banner__icon"><i class="ph ph-info"></i></span>
+        <div class="banner__main"><div class="banner__title">登入逾時</div>
+          <div class="banner__sub">為了保護你的資料，已登出。</div></div>
+        <button class="banner__action" data-nav="auth">重新登入</button>
+      </div>`);
+    }
+    return banners.join('');
+  }
+
+  function bindNavbar() {
+    document.querySelectorAll('[data-nav]').forEach(function (el) {
+      el.addEventListener('click', function () {
+        const target = el.dataset.nav;
+        if (target === 'home')      { AppState.view = 'circles'; render(); }
+        else if (target === 'circles') { AppState.view = 'circles'; render(); }
+        else if (target === 'nsm')     { AppState.view = 'nsm';     render(); }
+        else if (target === 'auth')    { AppState.view = 'auth';    render(); }
+        else if (target === 'offcanvas') { /* Plan D 實作 */ }
+      });
+    });
+  }
+
+  // ── utils ─────────────────────────────────────────────────────────────────
+  function escHtml(s) {
+    if (s == null) return '';
+    return String(s).replace(/[&<>"']/g, function (c) {
+      return { '&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;' }[c];
+    });
+  }
+  window.escHtml = escHtml;
 })();
