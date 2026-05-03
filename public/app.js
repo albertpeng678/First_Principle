@@ -41,6 +41,14 @@
       { name: '', mechanism: '' },
     ],
 
+    // Plan B SB5 additions
+    circlesPhase1S: {
+      recommendation: '',
+      reasoning: '',
+      nsm: '',
+      tracking: { reach: '', depth: '', frequency: '', impact: '' },
+    },
+
     // Plan B additions
     circlesTypeFilter: 'design',        // 'design' | 'improve' | 'strategy'
     circlesSearchText: '',
@@ -357,6 +365,7 @@
       railTitle2: '方案三是加分項',
       railBody2: '湊數寧可不填 — 說明「前兩個已涵蓋主要可能性」也是有效回答。',
       isSolMulti: true,
+      isLstep: true,
       solCardField: {
         label: '核心機制',
         placeholders: {
@@ -370,6 +379,63 @@
           sol3Desktop: '方案名稱（10 字內）— 加分項，更激進或長線',
         },
       },
+    },
+    E: {
+      // Plan B SB5 — E step placeholder (SB6 will implement full per-sol nested 4-field)
+      eyebrow: { sim: 'Phase 1 · 寫框架', drill: 'Phase 1 · 個別步驟練習' },
+      title: 'E · 評估取捨',
+      titleDrillSuffix: '',
+      progressLabel: '取捨',
+      stepLetter: 'E',
+      stepNum: '06',
+      railTitle: 'E 步重點',
+      railIntro: 'E 步功能即將上線',
+      railBody: '評估方案的技術可行性與業務風險，完整說明取捨理由。',
+      railTitle2: '',
+      railBody2: '',
+      isEplaceholder: true,
+      fields: [],
+    },
+    S: {
+      // Plan B SB5 — S step (mockup 03 Section C line 1469-1758)
+      eyebrow: { sim: 'Phase 1 · 寫框架（最後一步）', drill: 'Phase 1 · 個別步驟練習' },
+      title: 'S · 總結推薦',
+      titleSimDesktopSuffix: '（含 NSM 與 4 追蹤維度）',
+      progressLabel: '總結',
+      stepLetter: 'S',
+      stepNum: '07',
+      isSstep: true,
+      cta: '完成 Phase 1',
+      fields: [
+        { key: '推薦方案',   placeholder: '推薦哪個方案 + 一句話總判斷',                          rows: 2 },
+        { key: '選擇理由',   placeholder: '引用 E 結論的 3 個面向 / 對比放棄方案 / 回應最大缺點', rows: 3 },
+        { key: '北極星指標', placeholder: 'NSM 定義含行為門檻 / 為什麼能反映成效',               rows: 2 },
+      ],
+      trackingDimsByType: {
+        attention:   { reach: '觸及廣度', depth: '互動深度', frequency: '習慣頻率', impact: '留存驅力' },
+        transaction: { reach: '供給廣度', depth: '需求深度', frequency: '匹配效率', impact: '復購留存' },
+        creator:     { reach: '創造廣度', depth: '成果品質', frequency: '採用廣度', impact: '商業轉化' },
+        saas:        { reach: '啟用廣度', depth: '席次深度', frequency: '黏著頻率', impact: '擴張信號' },
+      },
+      trackingPlaceholders: {
+        reach: '例：MAU ≥ 1.2M',
+        depth: '例：avg 25 min/session',
+        frequency: '例：65% 用戶 weekly ≥ 3 days',
+        impact: '例：70% retention',
+      },
+      trackingSubsByType: {
+        attention: {
+          reach: '每月至少播放 1 首歌的 MAU 數',
+          depth: '每 session 平均聆聽時長（分鐘）',
+          frequency: '每週使用 ≥ 3 天的用戶佔比',
+          impact: '擁有 ≥ 5 首收藏歌曲的 30 日留存率',
+        },
+      },
+      railTitle: 'S 步重點',
+      railIntro: '總結推薦 + NSM + 4 維度追蹤',
+      railBody: '推薦方案要可操作，NSM 必須含「行為門檻 + 為什麼能反映成效」。4 維度排除虛榮指標。',
+      railTitle2: '產業類型動態 label',
+      railBody2Dynamic: true, // rendered with type substitution
     },
   };
 
@@ -634,6 +700,261 @@
       + '</div>';
   }
 
+  // ── renderCirclesPhase1Estep: E step placeholder (Plan B SB5 — SB6 will fill) ──
+  function renderCirclesPhase1Estep(q, stepKey, stepCfg, currentStepNum) {
+    var mode = AppState.circlesMode || 'simulation';
+    var isDrill = mode === 'drill';
+    var isDesktop = window.innerWidth >= 1024;
+
+    var progressHtml = isDrill ? '' : renderProgressBar(stepKey);
+
+    var eyebrow = isDrill ? stepCfg.eyebrow.drill : stepCfg.eyebrow.sim;
+    var metaHtml;
+    if (isDrill) {
+      metaHtml = '<span class="phase-head__meta">'
+        + '<span class="save-indicator save-indicator--saved"><i class="ph ph-check"></i>已儲存</span>'
+        + '</span>';
+    } else {
+      metaHtml = '<span class="phase-head__meta">'
+        + '<span class="save-indicator save-indicator--saved"><i class="ph ph-check"></i>已儲存</span>'
+        + '<span class="phase-head__meta-sep phase-head__meta-extra">·</span>'
+        + '<span class="phase-head__meta-extra">完整模擬 · ' + currentStepNum + ' / 7 步</span>'
+        + '</span>';
+    }
+    var phaseHeadHtml = '<div class="phase-head">'
+      + '<span class="phase-head__num">' + escHtml(stepCfg.stepNum) + '</span>'
+      + '<div class="phase-head__main">'
+      + '<div class="phase-head__eyebrow">' + escHtml(eyebrow) + '</div>'
+      + '<div class="phase-head__title">' + escHtml(stepCfg.title) + '</div>'
+      + '</div>'
+      + metaHtml
+      + '</div>';
+
+    var company = (q && q.company) ? q.company : '';
+    var product = (q && q.product) ? q.product : '';
+    var companyBaseHtml = escHtml(company) + (product ? ' · ' + escHtml(product) : '');
+    var diff = (q && q.difficulty) === 'high' ? '高' : (q && q.difficulty) === 'low' ? '低' : '中';
+    var qType = (q && q.question_type) === 'improve' ? '改善題' : (q && q.question_type) === 'strategy' ? '策略題' : '設計題';
+    var companyDisplayHtml = isDesktop
+      ? companyBaseHtml + ' · ' + escHtml(qType) + ' · 難度 ' + escHtml(diff)
+      : companyBaseHtml;
+    var qTitle = (q && q.problem_statement) ? q.problem_statement : '';
+    var qchipHtml = '<div class="qchip">'
+      + '<span class="qchip__icon"><i class="ph ph-info"></i></span>'
+      + '<div class="qchip__main">'
+      + '<div class="qchip__company">' + companyDisplayHtml + '</div>'
+      + '<div class="qchip__title">' + escHtml(qTitle) + '</div>'
+      + '</div>'
+      + '<i class="ph ph-caret-down qchip__caret"></i>'
+      + '</div>';
+
+    var phaseBodyHtml = '<div class="phase-body">'
+      + '<p style="color: var(--c-ink-3); font-size: var(--t-body-sm); padding: var(--s-4) 0;">E 步功能即將上線</p>'
+      + '</div>';
+
+    var ghostHtml = '';
+    if (!isDrill) {
+      ghostHtml = '<button class="btn btn--ghost submit-bar__back" data-phase1="back">'
+        + '<i class="ph ph-arrow-left"></i>上一步'
+        + '</button>';
+    }
+    var submitBarHtml = '<div class="submit-bar">'
+      + '<div class="submit-bar__left">' + ghostHtml + '</div>'
+      + '<div class="submit-bar__right">'
+      + '<button class="btn btn--primary" data-phase1="submit">下一步<i class="ph ph-arrow-right"></i></button>'
+      + '</div>'
+      + '</div>';
+
+    return '<div data-view="circles" data-circles-phase="1" data-circles-e-step="true">'
+      + progressHtml
+      + phaseHeadHtml
+      + qchipHtml
+      + phaseBodyHtml
+      + submitBarHtml
+      + '</div>';
+  }
+
+  // ── renderCirclesPhase1Sstep: S step (Plan B SB5 — mockup 03 Section C) ────
+  function renderCirclesPhase1Sstep(q, stepKey, stepCfg, currentStepNum) {
+    var mode = AppState.circlesMode || 'simulation';
+    var isDrill = mode === 'drill';
+    var isDesktop = window.innerWidth >= 1024;
+
+    // Determine product type for dynamic labels
+    var productType = (q && typeof nsmGuessProductType === 'function') ? nsmGuessProductType(q) : 'attention';
+    var dimLabels = (stepCfg.trackingDimsByType[productType] || stepCfg.trackingDimsByType.attention);
+    var dimPlaceholders = stepCfg.trackingPlaceholders;
+    var dimSubs = (stepCfg.trackingSubsByType[productType] || stepCfg.trackingSubsByType.attention);
+    var NSM_TYPE_LABEL_LOCAL = { attention: 'attention 型', transaction: 'transaction 型', creator: 'creator 型', saas: 'saas 型' };
+    var typeLabelDisplay = NSM_TYPE_LABEL_LOCAL[productType] || 'attention 型';
+
+    // progress bar (sim only)
+    var progressHtml = isDrill ? '' : renderProgressBar(stepKey);
+
+    // phase-head
+    var eyebrow = isDrill ? stepCfg.eyebrow.drill : stepCfg.eyebrow.sim;
+    // desktop sim: append suffix
+    var titleHtml = escHtml(stepCfg.title);
+    if (!isDrill && isDesktop) {
+      titleHtml += '<span class="phase-head__title-s-suffix">' + escHtml(stepCfg.titleSimDesktopSuffix) + '</span>';
+    }
+    var metaHtml;
+    if (isDrill) {
+      metaHtml = '<span class="phase-head__meta">'
+        + '<span class="save-indicator save-indicator--saved"><i class="ph ph-check"></i>已儲存</span>'
+        + '</span>';
+    } else {
+      metaHtml = '<span class="phase-head__meta">'
+        + '<span class="save-indicator save-indicator--saved"><i class="ph ph-check"></i>已儲存</span>'
+        + '<span class="phase-head__meta-sep phase-head__meta-extra">·</span>'
+        + '<span class="phase-head__meta-extra">完整模擬 · ' + currentStepNum + ' / 7 步</span>'
+        + '</span>';
+    }
+    var phaseHeadHtml = '<div class="phase-head">'
+      + '<span class="phase-head__num">' + escHtml(stepCfg.stepNum) + '</span>'
+      + '<div class="phase-head__main">'
+      + '<div class="phase-head__eyebrow">' + escHtml(eyebrow) + '</div>'
+      + '<div class="phase-head__title">' + titleHtml + '</div>'
+      + '</div>'
+      + metaHtml
+      + '</div>';
+
+    // qchip: desktop sim adds question type + difficulty suffix
+    var company = (q && q.company) ? q.company : '';
+    var product = (q && q.product) ? q.product : '';
+    var companyBaseHtml = escHtml(company) + (product ? ' · ' + escHtml(product) : '');
+    var diff = (q && q.difficulty) === 'high' ? '高' : (q && q.difficulty) === 'low' ? '低' : '中';
+    var qType = (q && q.question_type) === 'improve' ? '改善題' : (q && q.question_type) === 'strategy' ? '策略題' : '設計題';
+    var companyDisplayHtml;
+    if (isDesktop) {
+      companyDisplayHtml = companyBaseHtml + ' · ' + escHtml(qType) + ' · 難度 ' + escHtml(diff);
+    } else if (isDrill) {
+      companyDisplayHtml = companyBaseHtml + ' · ' + escHtml(qType) + ' · 難度 ' + escHtml(diff);
+    } else {
+      companyDisplayHtml = companyBaseHtml;
+    }
+    var qTitle = (q && q.problem_statement) ? q.problem_statement : '';
+    var qchipHtml = '<div class="qchip">'
+      + '<span class="qchip__icon"><i class="ph ph-info"></i></span>'
+      + '<div class="qchip__main">'
+      + '<div class="qchip__company">' + companyDisplayHtml + '</div>'
+      + '<div class="qchip__title">' + escHtml(qTitle) + '</div>'
+      + '</div>'
+      + '<i class="ph ph-caret-down qchip__caret"></i>'
+      + '</div>';
+
+    // 3 main rt-fields (reuse renderPhase1Field but S step uses 2-button toolbar for all fields)
+    var fieldsHtml = '';
+    stepCfg.fields.forEach(function (fieldCfg, i) {
+      var key = fieldCfg.key;
+      var rows = fieldCfg.rows || 2;
+      var placeholder = fieldCfg.placeholder || '';
+      // S step: all fields use 2-button toolbar (text-b + list-bullets per mockup tablet/desktop)
+      var toolbarHtml = '<div class="rt-field__toolbar">'
+        + '<button class="rt-tbtn"><i class="ph ph-text-b"></i></button>'
+        + '<button class="rt-tbtn"><i class="ph ph-list-bullets"></i></button>'
+        + '</div>';
+      fieldsHtml += '<div class="field" data-s-field-key="' + escHtml(key) + '" data-s-field-idx="' + i + '">'
+        + '<div class="field__label-row">'
+        + '<label class="field__label">' + escHtml(key) + '</label>'
+        + '<div class="field__hint-row">'
+        + '<button class="field__hint-link"><i class="ph ph-lightbulb"></i>提示</button>'
+        + '<button class="field-example-toggle" aria-expanded="false">'
+        + '<i class="ph ph-quotes"></i>範例答案<i class="ph ph-caret-down toggle-caret"></i>'
+        + '</button>'
+        + '</div>'
+        + '</div>'
+        + '<div class="rt-field">'
+        + toolbarHtml
+        + '<textarea class="rt-textarea" rows="' + rows + '" placeholder="' + escHtml(placeholder) + '" data-s-textarea="' + escHtml(key) + '"></textarea>'
+        + '</div>'
+        + '</div>';
+    });
+
+    // tracking-section with 4 tracking-cards
+    var dimKeys = ['reach', 'depth', 'frequency', 'impact'];
+    var dimNums = ['01', '02', '03', '04'];
+    var dimEnLabels = { reach: 'reach', depth: 'depth', frequency: 'frequency', impact: 'impact' };
+    var trackingCardsHtml = '';
+    dimKeys.forEach(function (dimKey, i) {
+      var dimZh = dimLabels[dimKey];
+      var dimEn = dimEnLabels[dimKey];
+      var dimSub = dimSubs ? (dimSubs[dimKey] || '') : '';
+      var dimPlaceholder = dimPlaceholders[dimKey] || '';
+      trackingCardsHtml += '<div class="tracking-card" data-dim="' + dimKey + '">'
+        + '<span class="tracking-card__num">' + dimNums[i] + '</span>'
+        + '<div>'
+        + '<div style="display:flex; justify-content:space-between; align-items:baseline; gap:var(--s-3); margin-bottom:var(--s-1);">'
+        + '<div class="tracking-card__head">' + escHtml(dimZh) + '（' + escHtml(dimEn) + '）</div>'
+        + '<div class="field__hint-row" style="font-size: var(--t-cap);">'
+        + '<button class="field__hint-link"><i class="ph ph-lightbulb"></i>提示</button>'
+        + '<button class="field-example-toggle" aria-expanded="false"><i class="ph ph-quotes"></i>範例答案<i class="ph ph-caret-down toggle-caret"></i></button>'
+        + '</div>'
+        + '</div>'
+        + '<div class="tracking-card__sub">' + escHtml(dimSub) + '</div>'
+        + '<input type="text" placeholder="' + escHtml(dimPlaceholder) + '" data-s-tracking="' + dimKey + '">'
+        + '</div>'
+        + '</div>';
+    });
+
+    // industry text for sub line
+    var industry = (q && q.industry) ? q.industry : '';
+    var trackingSub = '分別說明北極星指標的 reach / depth / frequency / impact。本題（' + typeLabelDisplay + (industry ? ' / ' + industry : '') + '）label 自動切換為對應產業術語。';
+
+    var trackingSectionHtml = '<div class="tracking-section">'
+      + '<h3 class="tracking-section__head">追蹤指標 · 4 個維度</h3>'
+      + '<p class="tracking-section__sub">' + escHtml(trackingSub) + '</p>'
+      + '<div class="tracking-grid">' + trackingCardsHtml + '</div>'
+      + '</div>';
+
+    // desktop rail
+    var railBody2 = '本題自動歸類為「' + typeLabelDisplay + '」— 4 維度 label 是上面那組。若題目改為 supply-demand / creator-content / B2B SaaS，label 會切換對應術語（master-spec §2.5）。';
+    var railHtml = '<aside class="rail">'
+      + '<div class="rail__title">' + escHtml(stepCfg.railTitle) + '</div>'
+      + '<p style="margin-bottom: var(--s-3); color: var(--c-ink); font-weight: 500;">' + escHtml(stepCfg.railIntro) + '</p>'
+      + '<p style="line-height: 1.7;">' + escHtml(stepCfg.railBody) + '</p>'
+      + '<hr style="border: 0; border-top: 1px solid var(--c-rule); margin: var(--s-4) 0;">'
+      + '<div class="rail__title">' + escHtml(stepCfg.railTitle2) + '</div>'
+      + '<p style="line-height: 1.7;">' + escHtml(railBody2) + '</p>'
+      + '</aside>';
+
+    // phase-body: desktop sim uses phase-body--with-rail
+    var useRail = !isDrill && isDesktop;
+    var phaseBodyClass = 'phase-body' + (useRail ? ' phase-body--with-rail' : '');
+    var mainContentHtml = fieldsHtml + trackingSectionHtml;
+    var phaseBodyHtml;
+    if (useRail) {
+      phaseBodyHtml = '<div class="' + phaseBodyClass + '">'
+        + '<div>' + mainContentHtml + '</div>'
+        + railHtml
+        + '</div>';
+    } else {
+      phaseBodyHtml = '<div class="' + phaseBodyClass + '">' + mainContentHtml + '</div>';
+    }
+
+    // submit-bar: CTA = 「完成 Phase 1」; sim shows 上一步; drill no back
+    var ghostHtml = '';
+    if (!isDrill) {
+      ghostHtml = '<button class="btn btn--ghost submit-bar__back" data-phase1="back">'
+        + '<i class="ph ph-arrow-left"></i>上一步'
+        + '</button>';
+    }
+    var submitBarHtml = '<div class="submit-bar">'
+      + '<div class="submit-bar__left">' + ghostHtml + '</div>'
+      + '<div class="submit-bar__right">'
+      + '<button class="btn btn--primary" data-phase1="submit">' + escHtml(stepCfg.cta) + '<i class="ph ph-arrow-right"></i></button>'
+      + '</div>'
+      + '</div>';
+
+    return '<div data-view="circles" data-circles-phase="1" data-circles-s-step="true">'
+      + progressHtml
+      + phaseHeadHtml
+      + qchipHtml
+      + phaseBodyHtml
+      + submitBarHtml
+      + '</div>';
+  }
+
   function renderCirclesPhase1() {
     // mockup 03 Section A line 794-1216 — sim mobile / sim tablet / drill desktop
     var q = AppState.circlesSelectedQuestion;
@@ -654,6 +975,16 @@
     // ── L step branch (Plan B SB4) — sol-card multi structure ──
     if (stepCfg && stepCfg.isSolMulti) {
       return renderCirclesPhase1Lstep(q, stepKey, stepCfg, currentStepNum);
+    }
+
+    // ── E step branch (Plan B SB5) — placeholder ──
+    if (stepCfg && stepCfg.isEplaceholder) {
+      return renderCirclesPhase1Estep(q, stepKey, stepCfg, currentStepNum);
+    }
+
+    // ── S step branch (Plan B SB5) — 3 main + 4 tracking ──
+    if (stepCfg && stepCfg.isSstep) {
+      return renderCirclesPhase1Sstep(q, stepKey, stepCfg, currentStepNum);
     }
 
     // ── progress bar (sim only) ──
@@ -1720,6 +2051,26 @@
         if (AppState.circlesPhase1Solutions[idx] !== undefined) {
           AppState.circlesPhase1Solutions[idx].mechanism = e.target.value;
         }
+      });
+    });
+
+    // ── S step: 3 main rt-textarea → AppState.circlesPhase1S ──
+    document.querySelectorAll('[data-s-textarea]').forEach(function (ta) {
+      ta.addEventListener('input', function (e) {
+        var key = ta.dataset.sTextarea;
+        if (!AppState.circlesPhase1S) return;
+        if (key === '推薦方案') AppState.circlesPhase1S.recommendation = e.target.value;
+        else if (key === '選擇理由') AppState.circlesPhase1S.reasoning = e.target.value;
+        else if (key === '北極星指標') AppState.circlesPhase1S.nsm = e.target.value;
+      });
+    });
+
+    // ── S step: 4 tracking-card input → AppState.circlesPhase1S.tracking ──
+    document.querySelectorAll('[data-s-tracking]').forEach(function (input) {
+      input.addEventListener('input', function (e) {
+        var dimKey = input.dataset.sTracking;
+        if (!AppState.circlesPhase1S || !AppState.circlesPhase1S.tracking) return;
+        AppState.circlesPhase1S.tracking[dimKey] = e.target.value;
       });
     });
   }

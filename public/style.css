@@ -867,4 +867,66 @@ body:has(.submit-bar) { padding-bottom: calc(var(--touch-min) + var(--s-7)); }
   [data-circles-l-step] .phase-head__title-extra { display: inline; }
 }
 
+/* ── Plan B SB5 · S step tracking (copied from mockup 03 line 609-664) ── */
+.tracking-section {
+  margin-top: var(--s-7);
+  padding-top: var(--s-6);
+  border-top: 1px solid var(--c-rule);
+}
+.tracking-section__head {
+  display: flex;
+  align-items: center;
+  gap: var(--s-3);
+  font-size: var(--t-h3);
+  color: var(--c-navy);
+  font-weight: 600;
+  margin-bottom: var(--s-2);
+}
+.tracking-section__head::before { content: ''; width: 24px; height: 2px; background: var(--c-navy); flex: 0 0 auto; }
+.tracking-section__sub { font-size: var(--t-meta); color: var(--c-ink-3); margin-bottom: var(--s-5); }
+.tracking-grid {
+  display: flex;
+  flex-direction: column;
+  gap: var(--s-3);
+}
+.tracking-card {
+  padding: var(--s-4) var(--s-5);
+  background: var(--c-card);
+  border: 1px solid var(--c-rule);
+  border-radius: var(--r-input);
+  display: grid;
+  grid-template-columns: 36px 1fr;
+  gap: var(--s-3);
+  align-items: start;
+}
+.tracking-card__num {
+  font-family: var(--font-serif);
+  font-style: italic;
+  font-size: 22px;
+  line-height: 1;
+  color: var(--c-navy);
+  grid-row: 1 / span 3;
+}
+.tracking-card__head {
+  font-size: var(--t-body-sm);
+  font-weight: 600;
+  color: var(--c-ink);
+  margin-bottom: var(--s-1);
+}
+.tracking-card__sub { font-size: var(--t-cap); color: var(--c-ink-3); margin-bottom: var(--s-3); }
+.tracking-card input {
+  width: 100%;
+  padding: var(--s-2) var(--s-3);
+  background: var(--c-card);
+  border: 1px solid var(--c-rule-bold);
+  border-radius: var(--r-input);
+  font-size: var(--t-body-sm);
+  color: var(--c-ink);
+}
+
+/* phase-head__title-s-suffix: desktop sim suffix "（含 NSM 與 4 追蹤維度）" — hidden on mobile/tablet */
+.phase-head__title-s-suffix { display: none; }
+@media (min-width: 1024px) {
+  [data-circles-s-step] .phase-head__title-s-suffix { display: inline; }
+}
 /* ─── B SB3 · Phase 1 Form END ─── */
