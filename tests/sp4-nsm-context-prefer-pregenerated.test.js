@@ -4,7 +4,7 @@ const fs = require('fs');
 const path = require('path');
 
 // PENDING_PATH_2_REIMPL — Plan A skeleton removed getNsmContextSource helper from app.js; re-enable in Plan C (NSM) with new render layer
-describe.skip('NSM context source selection (prefer q.context over fetch)', () => {
+describe('NSM context source selection (prefer q.context over fetch)', () => {
   const APP_PATH = path.join(__dirname, '..', 'public', 'app.js');
   const src = fs.readFileSync(APP_PATH, 'utf8');
 

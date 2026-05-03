@@ -33,8 +33,7 @@ describe('NSM_QUESTIONS extracted to public/nsm-db.js', () => {
     });
   });
 
-  // PENDING_PATH_2_REIMPL — Plan A skeleton removed NSM_QUESTIONS declaration entirely from app.js; re-enable in Plan C when NSM render layer rewires window.NSM_QUESTIONS fallback
-  test.skip('public/app.js no longer embeds the 103-element NSM_QUESTIONS literal', () => {
+  test('public/app.js no longer embeds the 103-element NSM_QUESTIONS literal', () => {
     const src = fs.readFileSync(APP_PATH, 'utf8');
     // 應該只有一處宣告，且為 fallback 形式（讀 window.NSM_QUESTIONS）
     expect(src).toMatch(/(?:var|const|let)\s+NSM_QUESTIONS\s*=/);
