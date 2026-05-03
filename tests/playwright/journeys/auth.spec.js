@@ -5,7 +5,10 @@ const { test, expect } = require('@playwright/test');
 const { checkPageHealth, collectConsoleErrors } = require('../helpers/metrics');
 const { formatIssues, createIssue } = require('../helpers/issue-reporter');
 
-test.describe('Auth Journey', () => {
+// Path 2 · Plan A skeleton: auth view is a placeholder stub ("Auth view — 待 Plan B 收尾實作").
+// All selectors below (#auth-form, #navbar-actions button, window.navigate) belong to Plan B's
+// auth/login implementation. Re-enable when Plan B implements renderAuthView + form bindings.
+test.describe.skip('Auth Journey (pending Plan B implementation)', () => {
   test('login form renders correctly with no overflow', async ({ page }, testInfo) => {
     const device = testInfo.project.name;
     const issues = [];

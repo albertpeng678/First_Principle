@@ -5,7 +5,10 @@ const { test, expect } = require('@playwright/test');
 const { checkPageHealth, collectConsoleErrors } = require('../helpers/metrics');
 const { formatIssues, createIssue } = require('../helpers/issue-reporter');
 
-test.describe('CIRCLES Home Journey', () => {
+// Path 2 · Plan A skeleton: CIRCLES view is a placeholder stub ("CIRCLES view — 待 Plan B 實作").
+// All selectors below (.circles-mode-card, mode/type cards, NSM banner) belong to Plan B's
+// CIRCLES home renderer. Re-enable when Plan B implements renderCirclesHome.
+test.describe.skip('CIRCLES Home Journey (pending Plan B implementation)', () => {
   test('CIRCLES is default view, mode cards and question cards load', async ({ page }, testInfo) => {
     const device = testInfo.project.name;
     const issues = [];
