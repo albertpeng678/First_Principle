@@ -40,3 +40,16 @@ html, body {
 button { font: inherit; color: inherit; cursor: pointer; background: none; border: none; }
 a { color: inherit; text-decoration: none; }
 @media (max-width: 767px) { input, textarea, select { font-size: 16px !important; } }
+
+/* ───── LOCKED · navbar (verbatim from mockup 03+ — do not modify) ───── */
+.navbar { display: flex; align-items: center; gap: var(--s-3); padding: var(--s-3) var(--s-4); background: rgba(255,255,255,0.85); -webkit-backdrop-filter: saturate(140%) blur(10px); backdrop-filter: saturate(140%) blur(10px); border-bottom: 1px solid var(--c-rule); }
+.navbar__icon-btn { width: 40px; height: 40px; border-radius: var(--r-pill); display: inline-flex; align-items: center; justify-content: center; color: var(--c-ink-2); }
+.navbar__icon-btn:hover { background: var(--c-bg-soft); color: var(--c-ink); }
+.navbar__brand { display: flex; align-items: center; gap: var(--s-2); padding: 4px var(--s-2); border-radius: var(--r-input); cursor: pointer; }
+.navbar__brand-icon { width: 28px; height: 28px; border-radius: 6px; background: var(--c-navy); color: #fff; display: inline-flex; align-items: center; justify-content: center; font-size: 16px; }
+.navbar__brand-name { font-size: var(--t-body-sm); font-weight: 500; }
+.navbar__tabs { display: flex; gap: var(--s-2); margin-left: var(--s-4); }
+.navbar__tab { padding: 6px var(--s-3); border-radius: var(--r-pill); font-size: var(--t-meta); color: var(--c-ink-3); }
+.navbar__tab.is-active { background: var(--c-navy); color: #fff; }
+.navbar__actions { margin-left: auto; display: flex; align-items: center; gap: var(--s-2); }
+.navbar__email { font-size: var(--t-cap); color: var(--c-ink-3); max-width: 180px; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
