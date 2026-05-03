@@ -1,0 +1,885 @@
+<!doctype html>
+<html lang="zh-TW">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover, interactive-widget=resizes-visual">
+  <title>PM Drill — 15 Error · Empty · Loading 全集對齊 + 規約字典</title>
+
+  <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/@phosphor-icons/web@2.1.1/src/regular/style.css">
+  <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/@phosphor-icons/web@2.1.1/src/fill/style.css">
+  <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Instrument+Serif:ital@0;1&display=swap">
+
+  <style>
+    /* ───── LOCKED CSS — verbatim from 03/04/06/07/08/09/10/11/12/13/14 ───── */
+    :root {
+      --c-bg: #F2F0EB; --c-bg-soft: #ECE9E1; --c-bg-deep: #E5E1D7;
+      --c-card: #FFFFFF; --c-surface: #FAFAF7;
+      --c-ink: #1F1D1B; --c-ink-2: #5A5046; --c-ink-3: #8A7E70; --c-ink-4: #B8AC9D;
+      --c-rule: rgba(60,45,30,0.10); --c-rule-bold: rgba(60,45,30,0.18);
+      --c-primary: #1A56DB;
+      --c-navy: #1B2D5C; --c-navy-2: #142347; --c-navy-lt: rgba(27,45,92,0.08);
+      --c-success: #137A3D; --c-success-lt: #DCEFE0;
+      --c-warn: #B85C00; --c-warn-lt: #FBE9D0;
+      --c-danger: #B61F1F; --c-danger-lt: #FADCDC;
+      --font-sans: system-ui, -apple-system, BlinkMacSystemFont, 'PingFang TC', 'Microsoft JhengHei', 'Heiti TC', 'Noto Sans TC', sans-serif;
+      --font-serif: 'Instrument Serif', 'Times New Roman', serif;
+      --t-h1: 24px; --t-h2: 19px; --t-h3: 16px; --t-body: 15px; --t-body-sm: 14px; --t-meta: 13px; --t-cap: 12px;
+      --s-1: 4px; --s-2: 8px; --s-3: 12px; --s-4: 16px; --s-5: 20px; --s-6: 24px; --s-7: 32px; --s-8: 40px; --s-9: 56px; --s-10: 80px;
+      --r-input: 6px; --r-card: 10px; --r-pill: 999px;
+      --touch-min: 44px;
+      --t-fast: 120ms; --t-norm: 200ms; --t-slow: 300ms;
+      --ease: cubic-bezier(0.4, 0, 0.2, 1);
+      --shadow-1: 0 1px 0 rgba(60,45,30,0.04);
+      --shadow-2: 0 1px 2px rgba(60,45,30,0.06);
+      --shadow-3: 0 4px 12px rgba(60,45,30,0.08);
+    }
+
+    *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+    html, body { background: var(--c-bg); color: var(--c-ink); font-family: var(--font-sans); font-size: var(--t-body); line-height: 1.55; -webkit-font-smoothing: antialiased; }
+    button { font: inherit; color: inherit; cursor: pointer; background: none; border: none; }
+
+    .vp-grid { display: grid; grid-template-columns: 360px 768px 1280px; gap: var(--s-6); padding: var(--s-6); align-items: start; overflow-x: auto; }
+    .vp-frame { border: 1px solid var(--c-rule-bold); border-radius: var(--r-card); background: var(--c-bg); overflow: hidden; }
+    .vp-frame__label { padding: var(--s-3) var(--s-4); border-bottom: 1px solid var(--c-rule); background: var(--c-card); display: flex; justify-content: space-between; font-size: var(--t-cap); letter-spacing: 0.08em; text-transform: uppercase; color: var(--c-ink-2); }
+    .vp-frame__label span:last-child { font-family: ui-monospace, 'SF Mono', monospace; color: var(--c-ink-3); }
+    .vp-frame__inner { background: var(--c-bg); min-height: 800px; padding: var(--s-5); display: flex; flex-direction: column; gap: var(--s-5); }
+
+    .ds-page { padding: var(--s-6); max-width: 1880px; margin: 0 auto; }
+    .ds-header { margin-bottom: var(--s-7); padding-bottom: var(--s-6); border-bottom: 1px solid var(--c-rule); }
+    .ds-header h1 { font-size: var(--t-h1); margin-top: var(--s-2); }
+    .ds-header__eyebrow { font-size: var(--t-cap); letter-spacing: 0.12em; text-transform: uppercase; color: var(--c-ink-3); }
+    .ds-header__sub { color: var(--c-ink-2); font-size: var(--t-body-sm); margin-top: var(--s-3); max-width: 720px; line-height: 1.7; }
+    .vp-section-title { margin: var(--s-7) auto var(--s-3); padding-bottom: var(--s-2); border-bottom: 1px solid var(--c-rule); font-size: var(--t-h2); display: flex; align-items: baseline; gap: var(--s-3); }
+    .vp-section-title__sub { font-size: var(--t-cap); color: var(--c-ink-3); letter-spacing: 0.04em; text-transform: uppercase; }
+    .anno { background: var(--c-bg-soft); border-left: 2px solid var(--c-ink-3); padding: var(--s-3) var(--s-4); font-size: var(--t-meta); color: var(--c-ink-2); margin: var(--s-4) auto; line-height: 1.7; }
+    .anno strong { color: var(--c-ink); }
+    .anno code { font-family: ui-monospace, 'SF Mono', monospace; font-size: 12px; background: var(--c-card); padding: 1px 6px; border-radius: 4px; border: 1px solid var(--c-rule); }
+
+    /* Widget catalog header per frame */
+    .widget-label {
+      font-size: var(--t-cap);
+      letter-spacing: 0.08em;
+      text-transform: uppercase;
+      color: var(--c-ink-3);
+      font-weight: 600;
+      padding-bottom: var(--s-1);
+      margin-top: var(--s-2);
+      border-bottom: 1px solid var(--c-rule);
+    }
+    .widget-label__hint { font-size: var(--t-cap); color: var(--c-ink-4); font-weight: 400; letter-spacing: 0; text-transform: none; margin-left: var(--s-2); }
+
+    /* ───── Regulation tables (Section A) ───── */
+    .reg-grid {
+      display: grid;
+      grid-template-columns: 1fr;
+      gap: var(--s-4);
+    }
+    @media (min-width: 1024px) { .reg-grid { grid-template-columns: 1fr 1fr 1fr; } }
+    .reg-card {
+      background: var(--c-card);
+      border: 1px solid var(--c-rule);
+      border-radius: var(--r-card);
+      padding: var(--s-4) var(--s-5);
+      box-shadow: var(--shadow-1);
+    }
+    .reg-card__title {
+      font-size: var(--t-h3);
+      font-weight: 600;
+      color: var(--c-navy);
+      margin-bottom: var(--s-1);
+      display: flex; align-items: center; gap: var(--s-2);
+    }
+    .reg-card__title i { font-size: 16px; color: var(--c-navy); }
+    .reg-card__sub {
+      font-size: var(--t-cap);
+      color: var(--c-ink-3);
+      margin-bottom: var(--s-3);
+    }
+    .reg-table { width: 100%; font-size: var(--t-meta); }
+    .reg-table tr { border-bottom: 1px solid var(--c-rule); }
+    .reg-table tr:last-child { border-bottom: none; }
+    .reg-table th, .reg-table td { padding: var(--s-2) 0; text-align: left; vertical-align: top; }
+    .reg-table th { font-size: var(--t-cap); color: var(--c-ink-3); letter-spacing: 0.04em; text-transform: uppercase; font-weight: 600; }
+    .reg-table .reg-canonical { color: var(--c-success); font-weight: 600; }
+    .reg-table .reg-deprecated { color: var(--c-ink-4); text-decoration: line-through; font-size: var(--t-cap); }
+    .reg-table code { font-family: ui-monospace, 'SF Mono', monospace; font-size: 11px; background: var(--c-bg-soft); padding: 1px 4px; border-radius: 3px; border: 1px solid var(--c-rule); }
+
+    /* ───── Buttons (verbatim from 03+) ───── */
+    .btn { display: inline-flex; align-items: center; gap: var(--s-2); min-height: var(--touch-min); padding: 0 var(--s-5); border-radius: var(--r-input); font-size: var(--t-body-sm); font-weight: 500; transition: all var(--t-fast) var(--ease); position: relative; }
+    .btn--primary { background: var(--c-navy); color: #fff; }
+    .btn--primary:hover { background: var(--c-navy-2); }
+    .btn--ghost { background: transparent; color: var(--c-ink-2); border: 1px solid var(--c-rule-bold); }
+    .btn--ghost:hover { background: var(--c-bg-soft); color: var(--c-ink); }
+    .btn--danger { background: var(--c-danger); color: #fff; }
+    .btn--danger:hover { background: #951818; }
+    .btn--icon { width: 44px; padding: 0; justify-content: center; }
+    .btn[disabled], .btn.is-loading { opacity: 0.7; cursor: not-allowed; pointer-events: none; }
+    .btn__spinner {
+      width: 14px; height: 14px;
+      border: 2px solid rgba(255,255,255,0.4);
+      border-top-color: #fff;
+      border-radius: 50%;
+      animation: spin 0.8s linear infinite;
+    }
+    .btn--ghost .btn__spinner {
+      border-color: rgba(60,45,30,0.18);
+      border-top-color: var(--c-ink-2);
+    }
+    @keyframes spin { to { transform: rotate(360deg); } }
+
+    /* ───── Loading variants ───── */
+    .loading-wrap {
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      padding: var(--s-7) var(--s-5);
+      gap: var(--s-3);
+      background: var(--c-card);
+      border: 1px solid var(--c-rule);
+      border-radius: var(--r-card);
+      text-align: center;
+    }
+    .loading-spinner {
+      width: 56px; height: 56px;
+      border: 4px solid var(--c-rule);
+      border-top-color: var(--c-navy);
+      border-radius: 50%;
+      animation: spin 0.8s linear infinite;
+      margin-bottom: var(--s-2);
+    }
+    .loading-title { font-size: var(--t-h3); font-weight: 600; color: var(--c-ink); }
+    .loading-sub { font-size: var(--t-meta); color: var(--c-ink-3); max-width: 320px; }
+    .loading-sub--slow {
+      display: inline-flex;
+      align-items: center;
+      gap: 6px;
+      color: var(--c-warn);
+      font-weight: 500;
+    }
+    .loading-checklist {
+      display: flex; flex-direction: column;
+      gap: var(--s-2); margin-top: var(--s-3);
+      width: fit-content; max-width: 100%;
+      align-items: flex-start; text-align: left;
+    }
+    .loading-step { display: flex; align-items: center; gap: var(--s-3); font-size: var(--t-body-sm); color: var(--c-ink-3); }
+    .loading-step.is-done { color: var(--c-ink-2); }
+    .loading-step.is-active { color: var(--c-ink); font-weight: 500; }
+    .loading-step__icon { width: 20px; flex: 0 0 auto; display: inline-flex; justify-content: center; font-size: 16px; }
+    .loading-step.is-done .loading-step__icon { color: var(--c-success); }
+    .loading-step.is-active .loading-step__icon { color: var(--c-navy); }
+
+    /* Streaming dots (Phase 2 chat typing) */
+    .stream-dots {
+      display: inline-flex;
+      align-items: center;
+      gap: 4px;
+      background: var(--c-card);
+      border: 1px solid var(--c-rule);
+      padding: var(--s-2) var(--s-3);
+      border-radius: var(--r-pill);
+    }
+    .stream-dots__dot {
+      width: 6px; height: 6px;
+      background: var(--c-ink-3);
+      border-radius: 50%;
+      animation: pulse 1.4s ease-in-out infinite;
+    }
+    .stream-dots__dot:nth-child(2) { animation-delay: 0.2s; }
+    .stream-dots__dot:nth-child(3) { animation-delay: 0.4s; }
+    @keyframes pulse {
+      0%, 80%, 100% { opacity: 0.3; transform: scale(0.8); }
+      40% { opacity: 1; transform: scale(1); }
+    }
+
+    /* Skeleton shimmer for cards */
+    .skeleton-card {
+      background: var(--c-card);
+      border: 1px solid var(--c-rule);
+      border-radius: var(--r-card);
+      padding: var(--s-4);
+      display: flex;
+      flex-direction: column;
+      gap: var(--s-2);
+    }
+    .skeleton-line {
+      height: 12px;
+      background: linear-gradient(90deg, var(--c-bg-soft) 0%, var(--c-bg-deep) 50%, var(--c-bg-soft) 100%);
+      background-size: 200% 100%;
+      border-radius: 4px;
+      animation: shimmer 1.5s ease-in-out infinite;
+    }
+    .skeleton-line--short { width: 40%; }
+    .skeleton-line--long { width: 80%; }
+    .skeleton-line--full { width: 100%; }
+    .skeleton-line--lg { height: 18px; }
+    @keyframes shimmer {
+      0% { background-position: 200% 0; }
+      100% { background-position: -200% 0; }
+    }
+
+    /* ───── Error variants ───── */
+    .error-wrap {
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      padding: var(--s-7) var(--s-5);
+      gap: var(--s-3);
+      background: var(--c-card);
+      border: 1px solid var(--c-rule);
+      border-radius: var(--r-card);
+      text-align: center;
+    }
+    .error-wrap__icon {
+      width: 64px; height: 64px;
+      border-radius: 50%;
+      background: var(--c-danger-lt);
+      color: var(--c-danger);
+      display: inline-flex; align-items: center; justify-content: center;
+      font-size: 32px;
+      margin-bottom: var(--s-2);
+    }
+    .error-wrap__title { font-size: var(--t-h3); font-weight: 600; color: var(--c-ink); }
+    .error-wrap__sub { font-size: var(--t-meta); color: var(--c-ink-3); max-width: 320px; line-height: 1.7; }
+    .error-wrap__code { font-family: ui-monospace, 'SF Mono', monospace; font-size: var(--t-cap); color: var(--c-ink-4); background: var(--c-bg-soft); padding: 2px 8px; border-radius: var(--r-input); }
+    .error-wrap__actions { display: flex; gap: var(--s-2); margin-top: var(--s-4); flex-wrap: wrap; justify-content: center; }
+
+    /* Top sticky banner (offline / session-expired / locked / stale) */
+    .banner {
+      display: flex;
+      align-items: center;
+      gap: var(--s-3);
+      padding: var(--s-3) var(--s-4);
+      border-bottom: 1px solid;
+      font-size: var(--t-meta);
+    }
+    .banner__icon {
+      width: 24px; height: 24px;
+      border-radius: 50%;
+      display: inline-flex; align-items: center; justify-content: center;
+      font-size: 14px;
+      flex: 0 0 auto;
+    }
+    .banner__main { flex: 1; min-width: 0; }
+    .banner__title { font-weight: 600; color: var(--c-ink); }
+    .banner__sub { color: var(--c-ink-2); margin-top: 2px; }
+    .banner__action { flex: 0 0 auto; font-weight: 600; padding: var(--s-2) var(--s-3); border-radius: var(--r-input); }
+    .banner__close { width: 32px; height: 32px; border-radius: var(--r-pill); color: var(--c-ink-3); display: inline-flex; align-items: center; justify-content: center; flex: 0 0 auto; }
+    .banner__close:hover { background: var(--c-bg-soft); color: var(--c-ink); }
+
+    .banner--offline { background: var(--c-bg-deep); border-bottom-color: var(--c-rule-bold); }
+    .banner--offline .banner__icon { background: var(--c-bg-soft); color: var(--c-ink-2); }
+    .banner--offline .banner__action { color: var(--c-navy); }
+    .banner--offline .banner__action:hover { background: var(--c-navy-lt); }
+
+    .banner--session { background: var(--c-warn-lt); border-bottom-color: rgba(184,92,0,0.25); }
+    .banner--session .banner__icon { background: rgba(184,92,0,0.15); color: var(--c-warn); }
+    .banner--session .banner__title { color: var(--c-warn); }
+    .banner--session .banner__action { background: var(--c-navy); color: #fff; }
+    .banner--session .banner__action:hover { background: var(--c-navy-2); }
+
+    .banner--locked { background: var(--c-navy-lt); border-bottom-color: rgba(27,45,92,0.18); }
+    .banner--locked .banner__icon { background: rgba(27,45,92,0.15); color: var(--c-navy); }
+    .banner--locked .banner__title { color: var(--c-navy); }
+    .banner--locked .banner__action { color: var(--c-navy); }
+    .banner--locked .banner__action:hover { background: rgba(27,45,92,0.12); }
+
+    .banner--stale { background: var(--c-danger-lt); border-bottom-color: rgba(182,31,31,0.25); }
+    .banner--stale .banner__icon { background: rgba(182,31,31,0.15); color: var(--c-danger); }
+    .banner--stale .banner__title { color: var(--c-danger); }
+    .banner--stale .banner__action { background: var(--c-danger); color: #fff; }
+    .banner--stale .banner__action:hover { background: #951818; }
+
+    /* Form inline error */
+    .form-field { display: flex; flex-direction: column; gap: var(--s-1); }
+    .form-field__label { font-size: var(--t-cap); color: var(--c-ink-2); font-weight: 600; letter-spacing: 0.04em; }
+    .form-field__input {
+      padding: var(--s-3); font-size: var(--t-body-sm); color: var(--c-ink);
+      background: var(--c-card); border: 1px solid var(--c-rule-bold);
+      border-radius: var(--r-input); font-family: var(--font-sans);
+      width: 100%;
+    }
+    .form-field--error .form-field__input { border-color: var(--c-danger); background: rgba(182,31,31,0.03); }
+    .form-field__tip {
+      font-size: var(--t-cap);
+      color: var(--c-ink-3);
+      display: flex; align-items: center; gap: 4px;
+    }
+    .form-field--error .form-field__tip { color: var(--c-danger); }
+    .form-field__tip i { font-size: 13px; }
+
+    /* ───── Empty variants ───── */
+    .empty-wrap {
+      display: flex; flex-direction: column;
+      align-items: center;
+      padding: var(--s-7) var(--s-5);
+      gap: var(--s-3);
+      background: var(--c-card);
+      border: 1px solid var(--c-rule);
+      border-radius: var(--r-card);
+      text-align: center;
+    }
+    .empty-wrap__icon {
+      width: 56px; height: 56px;
+      border-radius: 50%;
+      background: var(--c-bg-soft);
+      color: var(--c-ink-3);
+      display: inline-flex; align-items: center; justify-content: center;
+      font-size: 28px;
+      margin-bottom: var(--s-2);
+    }
+    .empty-wrap__title { font-size: var(--t-body); font-weight: 600; color: var(--c-ink); }
+    .empty-wrap__sub { font-size: var(--t-meta); color: var(--c-ink-3); max-width: 320px; line-height: 1.7; }
+    .empty-wrap__action { margin-top: var(--s-3); }
+
+    /* ───── Toast notifications ───── */
+    .toast-stack {
+      display: flex;
+      flex-direction: column;
+      gap: var(--s-2);
+      padding: var(--s-3);
+      background: var(--c-bg-soft);
+      border-radius: var(--r-card);
+    }
+    .toast {
+      display: flex;
+      align-items: flex-start;
+      gap: var(--s-3);
+      padding: var(--s-3) var(--s-4);
+      background: var(--c-card);
+      border: 1px solid;
+      border-left-width: 3px;
+      border-radius: var(--r-input);
+      box-shadow: var(--shadow-2);
+      font-size: var(--t-meta);
+    }
+    .toast__icon { font-size: 18px; flex: 0 0 auto; margin-top: 1px; }
+    .toast__main { flex: 1; }
+    .toast__title { font-weight: 600; color: var(--c-ink); }
+    .toast__sub { color: var(--c-ink-2); margin-top: 2px; line-height: 1.55; }
+    .toast__close { color: var(--c-ink-3); padding: 4px; border-radius: var(--r-pill); }
+    .toast__close:hover { background: var(--c-bg-soft); color: var(--c-ink); }
+    .toast--info    { border-color: rgba(27,45,92,0.20); border-left-color: var(--c-navy); }
+    .toast--info    .toast__icon { color: var(--c-navy); }
+    .toast--success { border-color: rgba(19,122,61,0.25); border-left-color: var(--c-success); }
+    .toast--success .toast__icon { color: var(--c-success); }
+    .toast--warn    { border-color: rgba(184,92,0,0.25); border-left-color: var(--c-warn); }
+    .toast--warn    .toast__icon { color: var(--c-warn); }
+    .toast--error   { border-color: rgba(182,31,31,0.25); border-left-color: var(--c-danger); }
+    .toast--error   .toast__icon { color: var(--c-danger); }
+
+    /* ───── Confirm modal ───── */
+    .modal-backdrop {
+      background: rgba(20,15,10,0.45);
+      padding: var(--s-5);
+      border-radius: var(--r-card);
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      min-height: 360px;
+    }
+    .modal {
+      background: var(--c-card);
+      border-radius: var(--r-card);
+      padding: var(--s-5);
+      max-width: 320px;
+      width: 100%;
+      box-shadow: var(--shadow-3);
+      display: flex; flex-direction: column;
+      gap: var(--s-3);
+    }
+    .modal__icon {
+      width: 48px; height: 48px;
+      border-radius: 50%;
+      background: var(--c-danger-lt);
+      color: var(--c-danger);
+      display: inline-flex; align-items: center; justify-content: center;
+      font-size: 24px;
+      align-self: center;
+      margin-bottom: var(--s-1);
+    }
+    .modal__title { font-size: var(--t-h3); font-weight: 600; color: var(--c-ink); text-align: center; }
+    .modal__body { font-size: var(--t-meta); color: var(--c-ink-2); line-height: 1.7; text-align: center; }
+    .modal__body strong { color: var(--c-ink); }
+    .modal__actions { display: flex; gap: var(--s-2); margin-top: var(--s-2); }
+    .modal__actions .btn { flex: 1; justify-content: center; }
+  </style>
+</head>
+<body>
+  <div class="ds-page">
+    <header class="ds-header">
+      <div class="ds-header__eyebrow">Path 2 · Mockup 15 · CONTRACT-LOCKED 草稿（最終一張）</div>
+      <h1>Error · Empty · Loading 全集對齊 + 規約字典 + 補洞 state（cross-mockup audit 收尾）</h1>
+      <p class="ds-header__sub">
+        本張 mockup 把 04/05/08/11/12/13/14 散落的 loading / error / empty / banner 元件統一收攏，外加 cross-mockup audit 找出的 22 條 drift（13 HIGH / 6 MED / 3 LOW）解法。<br>
+        <strong>結構：</strong>§A 規約字典（Copy / Timeout / Iconography 三表，凍結唯一寫法）+ §B Loading 全集（page / inline-btn / streaming / skeleton）+ §C Error & Banner 全集（page error-wrap / 4 種 banner / form 錯誤）+ §D Empty / Toast / Modal（list/search/filter empty / toast 4 變體 / confirm modal）。<br>
+        <strong>同 commit 連帶 patch：</strong>00-design-system / 01-circles-home（拔 <code>--c-accent-nsm</code> 紫 token + 註解）/ 02-auth-flow（<code>auth-submit / token-expiry__btn</code> → 標準 <code>.btn</code>）/ 03-phase-1-form（<code>.btn--home</code> → <code>.navbar__icon-btn</code>；4-dim hex 註解清掉）/ 11-phase-3-score（loading timeout 註解 30s → 60s/300s）。
+      </p>
+    </header>
+
+    <!-- ============================================================ -->
+    <!-- §A — 規約字典（Copy / Timeout / Iconography）                  -->
+    <!-- ============================================================ -->
+    <h2 class="vp-section-title">A · 規約字典 — Copy / Timeout / Iconography 凍結唯一寫法<span class="vp-section-title__sub">3 tables · audit punch 1-5 + 13</span></h2>
+    <div class="anno"><strong>用途：</strong>所有 Path 2 implementer / auditor 必對照此字典；mockup 之間（含已放行 04-14）不得使用 deprecated 寫法。LOCKED — 任何新詞必須加進此表才能合法使用。</div>
+    <div class="reg-grid">
+
+      <!-- A1 · Copy 對照表 -->
+      <div class="reg-card">
+        <div class="reg-card__title"><i class="ph ph-text-aa"></i>Copy 對照</div>
+        <div class="reg-card__sub">同一動作三變體 → 凍結為唯一寫法</div>
+        <table class="reg-table">
+          <thead><tr><th>動作</th><th>正</th></tr></thead>
+          <tbody>
+            <tr><td>換新題（不重做同題）</td><td><span class="reg-canonical">再練一題</span><br><span class="reg-deprecated">再練一次 / 重練這題</span></td></tr>
+            <tr><td>重試同一 API</td><td><span class="reg-canonical">重試</span><br><span class="reg-deprecated">重新評分 / 重新提交</span></td></tr>
+            <tr><td>回上一個 step（正常 flow）</td><td><span class="reg-canonical">上一步</span><br><span class="reg-deprecated">返回 / 上一頁</span></td></tr>
+            <tr><td>回 phase 1 form 修改（gate / error）</td><td><span class="reg-canonical">返回修改</span><br><span class="reg-deprecated">返回修改答案 / 回去改</span></td></tr>
+            <tr><td>回 home 首頁</td><td><span class="reg-canonical">回首頁</span><br><span class="reg-deprecated">回主頁 / 首頁</span></td></tr>
+            <tr><td>觸發隨機抽 5 題</td><td><span class="reg-canonical">隨機抽 5 題</span><br><span class="reg-deprecated">重抽 / 隨機選題</span></td></tr>
+            <tr><td>Page header（NSM 報告頁）</td><td><span class="reg-canonical">NSM 報告</span><br><span class="reg-deprecated">北極星指標報告 / NSM 總結</span></td></tr>
+            <tr><td>Loading 標題模板</td><td><span class="reg-canonical">{動詞}{對象}中…</span><br>例：評分中… / 生成總結報告中…</td></tr>
+          </tbody>
+        </table>
+      </div>
+
+      <!-- A2 · Timeout 表 -->
+      <div class="reg-card">
+        <div class="reg-card__title"><i class="ph ph-clock-countdown"></i>Loading Timeout</div>
+        <div class="reg-card__sub">三段式時間規約（不再每處自己寫）</div>
+        <table class="reg-table">
+          <thead><tr><th>階段</th><th>UI</th></tr></thead>
+          <tbody>
+            <tr><td><code>0–60s</code> 正常</td><td>spinner + 標題 + 副文「通常需要 X-Y 秒」+ checklist</td></tr>
+            <tr><td><code>60s+</code> 慢回應</td><td>切 <code>loading-sub--slow</code> warn 橘色 inline 文字「比預期慢一些… AI 深度分析中，偶而會需要比較久時間，請再等等。」<strong>不顯示具體秒數</strong>給 user</td></tr>
+            <tr><td><code>300s</code> 硬上限</td><td>進 error-wrap（內部 timeout，不告知 user 是 300s）</td></tr>
+            <tr><td>NSM gate 例外</td><td>典型 8-15 秒；不必顯 60s+ slow（流程短）</td></tr>
+            <tr><td>Phase 4 final report</td><td>典型 30-60 秒；逾 60s 切 slow，逾 300s 進 error</td></tr>
+          </tbody>
+        </table>
+      </div>
+
+      <!-- A3 · Iconography 表 -->
+      <div class="reg-card">
+        <div class="reg-card__title"><i class="ph ph-shapes"></i>Iconography</div>
+        <div class="reg-card__sub">同概念用同 icon</div>
+        <table class="reg-table">
+          <thead><tr><th>icon</th><th>用途</th></tr></thead>
+          <tbody>
+            <tr><td><i class="ph ph-shuffle"></i> <code>ph-shuffle</code></td><td>換新題、隨機抽 5 題</td></tr>
+            <tr><td><i class="ph ph-arrow-clockwise"></i> <code>ph-arrow-clockwise</code></td><td>重試同一 API</td></tr>
+            <tr><td><i class="ph ph-arrow-left"></i> <code>ph-arrow-left</code></td><td>上一步 / 返回修改</td></tr>
+            <tr><td><i class="ph ph-arrow-right"></i> <code>ph-arrow-right</code></td><td>下一步（icon 永遠在文字<strong>後</strong>）</td></tr>
+            <tr><td><i class="ph ph-house"></i> <code>ph-house</code></td><td>回首頁</td></tr>
+            <tr><td><i class="ph ph-cloud-warning"></i> <code>ph-cloud-warning</code></td><td>API error（page error-wrap）</td></tr>
+            <tr><td><i class="ph ph-warning-circle"></i> <code>ph-warning-circle</code></td><td>需要改進 / form 錯誤</td></tr>
+            <tr><td><i class="ph ph-check-circle"></i> <code>ph-check-circle</code></td><td>表現優秀 / 完成 / success toast</td></tr>
+            <tr><td><i class="ph ph-info"></i> <code>ph-info</code></td><td>資訊 toast / 鎖定提示</td></tr>
+            <tr><td><i class="ph ph-wifi-slash"></i> <code>ph-wifi-slash</code></td><td>網路離線 banner</td></tr>
+            <tr><td><i class="ph ph-circles-three"></i> <code>ph-circles-three</code></td><td>navbar brand icon（white on navy）</td></tr>
+          </tbody>
+        </table>
+      </div>
+
+    </div>
+
+    <!-- ============================================================ -->
+    <!-- §B — Loading 全集（page / inline-btn / streaming / skeleton）  -->
+    <!-- ============================================================ -->
+    <h2 class="vp-section-title">B · Loading 全集（page-wrap / inline-btn / streaming / skeleton）<span class="vp-section-title__sub">audit punch 19 — inline btn loading 補洞 · 3 viewports</span></h2>
+    <div class="anno"><strong>視覺契約：</strong>4 個 widget — <strong>L1 page loading-wrap</strong>（11/12/13 已用，本檔再示範）/ <strong>L2 inline button loading</strong>（btn 內 14px spinner，btn disabled 不可點，文字保留「儲存中…」）/ <strong>L3 streaming dots</strong>（Phase 2 chat AI 思考中 typing indicator）/ <strong>L4 skeleton card</strong>（list 等待時的灰塊 shimmer）。所有顏色用 navy / ink 中性，無黃藍紅雜色。</div>
+    <div class="vp-grid">
+
+      <!-- B · Mobile 360 -->
+      <div class="vp-frame">
+        <div class="vp-frame__label"><span>Mobile</span><span>360 × 800</span></div>
+        <div class="vp-frame__inner" style="width:360px">
+          <div class="widget-label">L1 · Page loading-wrap<span class="widget-label__hint">同 11/12/13</span></div>
+          <div class="loading-wrap">
+            <div class="loading-spinner"></div>
+            <div class="loading-title">評分中…</div>
+            <div class="loading-sub">通常需要 8-15 秒</div>
+            <div class="loading-checklist">
+              <div class="loading-step is-done"><i class="ph-fill ph-check-circle loading-step__icon"></i>解析框架</div>
+              <div class="loading-step is-active"><i class="ph ph-circle-notch loading-step__icon" style="animation:spin 1s linear infinite"></i>計算分數</div>
+              <div class="loading-step"><i class="ph ph-circle loading-step__icon"></i>整理建議</div>
+            </div>
+          </div>
+          <div class="widget-label">L2 · Inline button loading<span class="widget-label__hint">btn 內 spinner</span></div>
+          <div style="display:flex;gap:8px;flex-wrap:wrap">
+            <button class="btn btn--primary is-loading"><span class="btn__spinner"></span>儲存中…</button>
+            <button class="btn btn--ghost is-loading"><span class="btn__spinner"></span>送出中</button>
+          </div>
+          <div class="widget-label">L3 · Streaming dots<span class="widget-label__hint">chat typing</span></div>
+          <div class="stream-dots">
+            <span class="stream-dots__dot"></span>
+            <span class="stream-dots__dot"></span>
+            <span class="stream-dots__dot"></span>
+          </div>
+          <div class="widget-label">L4 · Skeleton</div>
+          <div class="skeleton-card">
+            <div class="skeleton-line skeleton-line--lg skeleton-line--short"></div>
+            <div class="skeleton-line skeleton-line--full"></div>
+            <div class="skeleton-line skeleton-line--long"></div>
+          </div>
+        </div>
+      </div>
+
+      <!-- B · Tablet 768 -->
+      <div class="vp-frame">
+        <div class="vp-frame__label"><span>Tablet</span><span>768 × 800</span></div>
+        <div class="vp-frame__inner" style="width:768px">
+          <div class="widget-label">L1 · Page loading-wrap<span class="widget-label__hint">slow 60s+ 變體</span></div>
+          <div class="loading-wrap">
+            <div class="loading-spinner"></div>
+            <div class="loading-title">生成總結報告中…</div>
+            <div class="loading-sub loading-sub--slow">比預期慢一些… AI 深度分析中，偶而會需要比較久時間，請再等等。</div>
+            <div class="loading-checklist">
+              <div class="loading-step is-done"><i class="ph-fill ph-check-circle loading-step__icon"></i>彙整七步驟資料</div>
+              <div class="loading-step is-done"><i class="ph-fill ph-check-circle loading-step__icon"></i>計算總分與評等</div>
+              <div class="loading-step is-active"><i class="ph ph-circle-notch loading-step__icon" style="animation:spin 1s linear infinite"></i>生成 7-axis 雷達圖</div>
+              <div class="loading-step"><i class="ph ph-circle loading-step__icon"></i>整理改進建議</div>
+            </div>
+          </div>
+          <div class="widget-label">L2 · Inline button loading</div>
+          <div style="display:flex;gap:8px;flex-wrap:wrap">
+            <button class="btn btn--primary is-loading"><span class="btn__spinner"></span>儲存中…</button>
+            <button class="btn btn--ghost is-loading"><span class="btn__spinner"></span>送出中</button>
+            <button class="btn btn--primary"><i class="ph ph-check"></i>儲存（normal）</button>
+          </div>
+          <div class="widget-label">L3 · Streaming dots</div>
+          <div class="stream-dots">
+            <span class="stream-dots__dot"></span><span class="stream-dots__dot"></span><span class="stream-dots__dot"></span>
+          </div>
+          <div class="widget-label">L4 · Skeleton 2-col</div>
+          <div style="display:grid;grid-template-columns:1fr 1fr;gap:12px">
+            <div class="skeleton-card">
+              <div class="skeleton-line skeleton-line--lg skeleton-line--short"></div>
+              <div class="skeleton-line skeleton-line--full"></div>
+              <div class="skeleton-line skeleton-line--long"></div>
+            </div>
+            <div class="skeleton-card">
+              <div class="skeleton-line skeleton-line--lg skeleton-line--short"></div>
+              <div class="skeleton-line skeleton-line--full"></div>
+              <div class="skeleton-line skeleton-line--long"></div>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- B · Desktop 1280 -->
+      <div class="vp-frame">
+        <div class="vp-frame__label"><span>Desktop</span><span>1280 × 800</span></div>
+        <div class="vp-frame__inner" style="width:1280px">
+          <div class="widget-label">L1 · Page loading-wrap<span class="widget-label__hint">最大畫面也置中</span></div>
+          <div class="loading-wrap">
+            <div class="loading-spinner"></div>
+            <div class="loading-title">AI 正在審核你的框架…</div>
+            <div class="loading-sub">通常需要 8-15 秒</div>
+            <div class="loading-checklist">
+              <div class="loading-step is-done"><i class="ph-fill ph-check-circle loading-step__icon"></i>解析框架語意</div>
+              <div class="loading-step is-active"><i class="ph ph-circle-notch loading-step__icon" style="animation:spin 1s linear infinite"></i>對齊產品價值</div>
+              <div class="loading-step"><i class="ph ph-circle loading-step__icon"></i>檢查領先性</div>
+              <div class="loading-step"><i class="ph ph-circle loading-step__icon"></i>評估操作性</div>
+            </div>
+          </div>
+          <div class="widget-label">L2 · Inline button loading（含 normal 對照）</div>
+          <div style="display:flex;gap:8px;flex-wrap:wrap">
+            <button class="btn btn--primary is-loading"><span class="btn__spinner"></span>儲存中…</button>
+            <button class="btn btn--ghost is-loading"><span class="btn__spinner"></span>送出中</button>
+            <button class="btn btn--primary"><i class="ph ph-check"></i>儲存</button>
+            <button class="btn btn--ghost"><i class="ph ph-arrow-left"></i>上一步</button>
+          </div>
+          <div class="widget-label">L3 · Streaming dots（chat 上下文）</div>
+          <div style="display:flex;gap:12px;align-items:center;color:var(--c-ink-3);font-size:13px">
+            <div class="stream-dots">
+              <span class="stream-dots__dot"></span><span class="stream-dots__dot"></span><span class="stream-dots__dot"></span>
+            </div>
+            <span>教練思考中…</span>
+          </div>
+          <div class="widget-label">L4 · Skeleton 3-col</div>
+          <div style="display:grid;grid-template-columns:1fr 1fr 1fr;gap:12px">
+            <div class="skeleton-card"><div class="skeleton-line skeleton-line--lg skeleton-line--short"></div><div class="skeleton-line skeleton-line--full"></div><div class="skeleton-line skeleton-line--long"></div></div>
+            <div class="skeleton-card"><div class="skeleton-line skeleton-line--lg skeleton-line--short"></div><div class="skeleton-line skeleton-line--full"></div><div class="skeleton-line skeleton-line--long"></div></div>
+            <div class="skeleton-card"><div class="skeleton-line skeleton-line--lg skeleton-line--short"></div><div class="skeleton-line skeleton-line--full"></div><div class="skeleton-line skeleton-line--long"></div></div>
+          </div>
+        </div>
+      </div>
+
+    </div>
+
+    <!-- ============================================================ -->
+    <!-- §C — Error & Banner 全集                                       -->
+    <!-- ============================================================ -->
+    <h2 class="vp-section-title">C · Error & Banner 全集（page error-wrap / 4 banner / form-field error）<span class="vp-section-title__sub">audit punch 17/18/21 — banner 補洞 · 3 viewports</span></h2>
+    <div class="anno"><strong>視覺契約：</strong>page error-wrap（11/12/13 已示範，本檔列全 error code 對照）+ 4 種 sticky-top banner（offline / session expired / locked / stale）+ form-field error（inline border 紅 + tip 文字）。<strong>無黃色 toast banner</strong>（去 production #FFF8E7）；session expired 用 warn-lt 米色（不刺眼）；stale 用 danger-lt 淡紅（必擋）。</div>
+    <div class="vp-grid">
+
+      <!-- C · Mobile 360 -->
+      <div class="vp-frame">
+        <div class="vp-frame__label"><span>Mobile</span><span>360 × 800</span></div>
+        <div class="vp-frame__inner" style="width:360px">
+          <div class="widget-label">E1 · Page error-wrap<span class="widget-label__hint">EVAL_TIMEOUT</span></div>
+          <div class="error-wrap">
+            <div class="error-wrap__icon"><i class="ph ph-cloud-warning"></i></div>
+            <div class="error-wrap__title">評分生成失敗</div>
+            <div class="error-wrap__sub">AI 服務暫時無法回應，你的答案已自動保存。</div>
+            <div class="error-wrap__code">EVAL_TIMEOUT</div>
+            <div class="error-wrap__actions">
+              <button class="btn btn--ghost"><i class="ph ph-arrow-left"></i>返回修改</button>
+              <button class="btn btn--primary"><i class="ph ph-arrow-clockwise"></i>重試</button>
+            </div>
+          </div>
+          <div class="widget-label">B1 · Network offline banner</div>
+          <div class="banner banner--offline">
+            <span class="banner__icon"><i class="ph ph-wifi-slash"></i></span>
+            <div class="banner__main">
+              <div class="banner__title">網路離線</div>
+              <div class="banner__sub">草稿已存本機，連線恢復後自動同步</div>
+            </div>
+          </div>
+          <div class="widget-label">B2 · Session expired</div>
+          <div class="banner banner--session">
+            <span class="banner__icon"><i class="ph ph-info"></i></span>
+            <div class="banner__main">
+              <div class="banner__title">登入逾時</div>
+              <div class="banner__sub">為了保護你的資料，已登出。</div>
+            </div>
+            <button class="banner__action">重新登入</button>
+          </div>
+          <div class="widget-label">F · Form-field error</div>
+          <div class="form-field form-field--error">
+            <label class="form-field__label">北極星指標 (NSM)</label>
+            <input class="form-field__input" value="MAU">
+            <div class="form-field__tip"><i class="ph ph-warning-circle"></i>避免使用「MAU」這類過於籠統的指標</div>
+          </div>
+        </div>
+      </div>
+
+      <!-- C · Tablet 768 -->
+      <div class="vp-frame">
+        <div class="vp-frame__label"><span>Tablet</span><span>768 × 800</span></div>
+        <div class="vp-frame__inner" style="width:768px">
+          <div class="widget-label">E1 · Page error-wrap<span class="widget-label__hint">EVAL_API_ERROR</span></div>
+          <div class="error-wrap">
+            <div class="error-wrap__icon"><i class="ph ph-cloud-warning"></i></div>
+            <div class="error-wrap__title">評分服務暫時不可用</div>
+            <div class="error-wrap__sub">我們的伺服器忙線中，請稍候片刻。你的答案已自動保存。</div>
+            <div class="error-wrap__code">EVAL_API_ERROR</div>
+            <div class="error-wrap__actions">
+              <button class="btn btn--ghost"><i class="ph ph-arrow-left"></i>返回修改</button>
+              <button class="btn btn--primary"><i class="ph ph-arrow-clockwise"></i>重試</button>
+            </div>
+          </div>
+          <div class="widget-label">B3 · Locked banner（已得分鎖定）</div>
+          <div class="banner banner--locked">
+            <span class="banner__icon"><i class="ph ph-lock"></i></span>
+            <div class="banner__main">
+              <div class="banner__title">本步驟已評分，唯讀模式</div>
+              <div class="banner__sub">不可再編輯。如要重練，請從首頁重新挑題。</div>
+            </div>
+            <button class="banner__action">回首頁</button>
+          </div>
+          <div class="widget-label">B4 · Stale banner（題庫已更新，必擋）</div>
+          <div class="banner banner--stale">
+            <span class="banner__icon"><i class="ph ph-warning-circle"></i></span>
+            <div class="banner__main">
+              <div class="banner__title">題目內容已更新</div>
+              <div class="banner__sub">這個 session 是舊版題庫，無法繼續作答。</div>
+            </div>
+            <button class="banner__action">重新挑題</button>
+          </div>
+          <div class="widget-label">F · Form-field error（兩例）</div>
+          <div style="display:grid;grid-template-columns:1fr 1fr;gap:12px">
+            <div class="form-field form-field--error">
+              <label class="form-field__label">北極星指標 (NSM)</label>
+              <input class="form-field__input" value="MAU">
+              <div class="form-field__tip"><i class="ph ph-warning-circle"></i>避免使用「MAU」這類過於籠統的指標</div>
+            </div>
+            <div class="form-field">
+              <label class="form-field__label">業務連結（一般）</label>
+              <input class="form-field__input" placeholder="說明指標如何反映商業價值">
+              <div class="form-field__tip">至少 30 字</div>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- C · Desktop 1280 -->
+      <div class="vp-frame">
+        <div class="vp-frame__label"><span>Desktop</span><span>1280 × 800</span></div>
+        <div class="vp-frame__inner" style="width:1280px">
+          <div class="widget-label">E1 · Page error-wrap 全 4 種 error code</div>
+          <div style="display:grid;grid-template-columns:1fr 1fr;gap:12px">
+            <div class="error-wrap">
+              <div class="error-wrap__icon" style="font-size:24px;width:48px;height:48px"><i class="ph ph-cloud-warning"></i></div>
+              <div class="error-wrap__title" style="font-size:14px">評分逾時</div>
+              <div class="error-wrap__code">EVAL_TIMEOUT</div>
+            </div>
+            <div class="error-wrap">
+              <div class="error-wrap__icon" style="font-size:24px;width:48px;height:48px"><i class="ph ph-cloud-warning"></i></div>
+              <div class="error-wrap__title" style="font-size:14px">評分服務不可用</div>
+              <div class="error-wrap__code">EVAL_API_ERROR</div>
+            </div>
+            <div class="error-wrap">
+              <div class="error-wrap__icon" style="font-size:24px;width:48px;height:48px"><i class="ph ph-cloud-warning"></i></div>
+              <div class="error-wrap__title" style="font-size:14px">教練回應格式異常</div>
+              <div class="error-wrap__code">EVAL_PARSE_ERROR</div>
+            </div>
+            <div class="error-wrap">
+              <div class="error-wrap__icon" style="font-size:24px;width:48px;height:48px"><i class="ph ph-cloud-warning"></i></div>
+              <div class="error-wrap__title" style="font-size:14px">總結報告失敗</div>
+              <div class="error-wrap__code">REPORT_API_ERROR</div>
+            </div>
+          </div>
+          <div class="widget-label">B · Banner 4 變體 stack</div>
+          <div style="display:flex;flex-direction:column;gap:8px">
+            <div class="banner banner--offline"><span class="banner__icon"><i class="ph ph-wifi-slash"></i></span><div class="banner__main"><div class="banner__title">網路離線</div><div class="banner__sub">草稿已存本機，連線恢復後自動同步</div></div><button class="banner__close"><i class="ph ph-x"></i></button></div>
+            <div class="banner banner--session"><span class="banner__icon"><i class="ph ph-info"></i></span><div class="banner__main"><div class="banner__title">登入逾時，為保護資料已登出</div></div><button class="banner__action">重新登入</button></div>
+            <div class="banner banner--locked"><span class="banner__icon"><i class="ph ph-lock"></i></span><div class="banner__main"><div class="banner__title">本步驟已評分，唯讀模式</div><div class="banner__sub">不可再編輯。如要重練，請從首頁重新挑題。</div></div><button class="banner__action">回首頁</button></div>
+            <div class="banner banner--stale"><span class="banner__icon"><i class="ph ph-warning-circle"></i></span><div class="banner__main"><div class="banner__title">題目內容已更新，無法繼續作答</div></div><button class="banner__action">重新挑題</button></div>
+          </div>
+          <div class="widget-label">F · Form-field 對照</div>
+          <div style="display:grid;grid-template-columns:1fr 1fr 1fr;gap:12px">
+            <div class="form-field"><label class="form-field__label">正常</label><input class="form-field__input" value="留存型 NSM"><div class="form-field__tip">至少 30 字</div></div>
+            <div class="form-field form-field--error"><label class="form-field__label">錯誤</label><input class="form-field__input" value="MAU"><div class="form-field__tip"><i class="ph ph-warning-circle"></i>避免「MAU」這類過於籠統的指標</div></div>
+            <div class="form-field"><label class="form-field__label">已填（normal）</label><input class="form-field__input" value="月活 Premium 試用者數"><div class="form-field__tip">已填 12 字 / 30</div></div>
+          </div>
+        </div>
+      </div>
+
+    </div>
+
+    <!-- ============================================================ -->
+    <!-- §D — Empty / Toast / Modal 全集                                -->
+    <!-- ============================================================ -->
+    <h2 class="vp-section-title">D · Empty / Toast / Modal 全集<span class="vp-section-title__sub">audit punch 16/20/22 — toast / NSM empty / confirm modal 補洞 · 3 viewports</span></h2>
+    <div class="anno"><strong>視覺契約：</strong>3 個 empty 變體（list 無記錄 / search 無結果 / filter 無符合）+ toast 4 變體（info / success / warn / error 可堆疊）+ confirm modal（刪除確認，icon-bg danger-lt + danger primary）。Toast 全用 navy/success/warn/danger 中性 left-border + 白底，無黃色背景。</div>
+    <div class="vp-grid">
+
+      <!-- D · Mobile 360 -->
+      <div class="vp-frame">
+        <div class="vp-frame__label"><span>Mobile</span><span>360 × 800</span></div>
+        <div class="vp-frame__inner" style="width:360px">
+          <div class="widget-label">M1 · List empty<span class="widget-label__hint">offcanvas 無練習記錄</span></div>
+          <div class="empty-wrap">
+            <span class="empty-wrap__icon"><i class="ph ph-tray"></i></span>
+            <div class="empty-wrap__title">還沒有練習記錄</div>
+            <div class="empty-wrap__sub">完成任一題目後，會在此顯示練習歷程。</div>
+            <button class="btn btn--primary empty-wrap__action"><i class="ph ph-shuffle"></i>挑一題開始</button>
+          </div>
+          <div class="widget-label">T · Toast stack（4 variants）</div>
+          <div class="toast-stack">
+            <div class="toast toast--success"><i class="ph-fill ph-check-circle toast__icon"></i><div class="toast__main"><div class="toast__title">已儲存草稿</div></div><button class="toast__close"><i class="ph ph-x"></i></button></div>
+            <div class="toast toast--info"><i class="ph ph-info toast__icon"></i><div class="toast__main"><div class="toast__title">已複製連結</div></div><button class="toast__close"><i class="ph ph-x"></i></button></div>
+            <div class="toast toast--warn"><i class="ph ph-warning toast__icon"></i><div class="toast__main"><div class="toast__title">即將逾時</div><div class="toast__sub">5 分鐘內請重新登入。</div></div><button class="toast__close"><i class="ph ph-x"></i></button></div>
+            <div class="toast toast--error"><i class="ph ph-warning-circle toast__icon"></i><div class="toast__main"><div class="toast__title">儲存失敗</div><div class="toast__sub">請檢查網路後重試。</div></div><button class="toast__close"><i class="ph ph-x"></i></button></div>
+          </div>
+          <div class="widget-label">D-modal · Confirm</div>
+          <div class="modal-backdrop">
+            <div class="modal">
+              <span class="modal__icon"><i class="ph ph-trash"></i></span>
+              <div class="modal__title">刪除這筆練習記錄？</div>
+              <div class="modal__body">已完成的評分結果將永久消失，此動作<strong>無法復原</strong>。</div>
+              <div class="modal__actions">
+                <button class="btn btn--ghost">取消</button>
+                <button class="btn btn--danger"><i class="ph ph-trash"></i>刪除</button>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- D · Tablet 768 -->
+      <div class="vp-frame">
+        <div class="vp-frame__label"><span>Tablet</span><span>768 × 800</span></div>
+        <div class="vp-frame__inner" style="width:768px">
+          <div class="widget-label">M2 · Search 無結果<span class="widget-label__hint">CIRCLES home 搜尋</span></div>
+          <div class="empty-wrap">
+            <span class="empty-wrap__icon"><i class="ph ph-magnifying-glass"></i></span>
+            <div class="empty-wrap__title">找不到「<strong style="color:var(--c-navy)">Spotify Pro</strong>」相關題目</div>
+            <div class="empty-wrap__sub">試試其他公司名稱，或<strong>清除搜尋</strong>看完整題庫。</div>
+            <button class="btn btn--ghost empty-wrap__action"><i class="ph ph-x"></i>清除搜尋</button>
+          </div>
+          <div class="widget-label">M3 · Filter 無符合（NSM Step 1）</div>
+          <div class="empty-wrap">
+            <span class="empty-wrap__icon"><i class="ph ph-funnel"></i></span>
+            <div class="empty-wrap__title">「SaaS 型」分類目前沒題目</div>
+            <div class="empty-wrap__sub">切換到其他產業類型，或回到全部題庫。</div>
+            <button class="btn btn--ghost empty-wrap__action"><i class="ph ph-arrow-counter-clockwise"></i>看全部題庫</button>
+          </div>
+          <div class="widget-label">T · Toast stack 2-col vs Modal</div>
+          <div style="display:grid;grid-template-columns:1fr 1fr;gap:12px">
+            <div class="toast-stack">
+              <div class="toast toast--success"><i class="ph-fill ph-check-circle toast__icon"></i><div class="toast__main"><div class="toast__title">已匯出 PNG</div><div class="toast__sub">已下載到本機 Downloads 資料夾。</div></div></div>
+              <div class="toast toast--info"><i class="ph ph-info toast__icon"></i><div class="toast__main"><div class="toast__title">系統提示</div><div class="toast__sub">每週四凌晨會更新題庫。</div></div></div>
+              <div class="toast toast--warn"><i class="ph ph-warning toast__icon"></i><div class="toast__main"><div class="toast__title">儲存較慢</div><div class="toast__sub">網路較不穩，已啟用本機備份。</div></div></div>
+              <div class="toast toast--error"><i class="ph ph-warning-circle toast__icon"></i><div class="toast__main"><div class="toast__title">送出失敗</div><div class="toast__sub">請檢查網路後重試。</div></div></div>
+            </div>
+            <div class="modal-backdrop">
+              <div class="modal">
+                <span class="modal__icon"><i class="ph ph-trash"></i></span>
+                <div class="modal__title">刪除這筆練習記錄？</div>
+                <div class="modal__body">已完成的評分結果將永久消失，此動作<strong>無法復原</strong>。</div>
+                <div class="modal__actions">
+                  <button class="btn btn--ghost">取消</button>
+                  <button class="btn btn--danger"><i class="ph ph-trash"></i>刪除</button>
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- D · Desktop 1280 -->
+      <div class="vp-frame">
+        <div class="vp-frame__label"><span>Desktop</span><span>1280 × 800</span></div>
+        <div class="vp-frame__inner" style="width:1280px">
+          <div class="widget-label">M · Empty 3 變體 並排</div>
+          <div style="display:grid;grid-template-columns:1fr 1fr 1fr;gap:12px">
+            <div class="empty-wrap">
+              <span class="empty-wrap__icon"><i class="ph ph-tray"></i></span>
+              <div class="empty-wrap__title">還沒有練習記錄</div>
+              <div class="empty-wrap__sub">完成任一題目後，會在此顯示。</div>
+              <button class="btn btn--primary empty-wrap__action"><i class="ph ph-shuffle"></i>挑一題開始</button>
+            </div>
+            <div class="empty-wrap">
+              <span class="empty-wrap__icon"><i class="ph ph-magnifying-glass"></i></span>
+              <div class="empty-wrap__title">找不到「Spotify Pro」</div>
+              <div class="empty-wrap__sub">試試其他公司，或清除搜尋看完整題庫。</div>
+              <button class="btn btn--ghost empty-wrap__action"><i class="ph ph-x"></i>清除搜尋</button>
+            </div>
+            <div class="empty-wrap">
+              <span class="empty-wrap__icon"><i class="ph ph-funnel"></i></span>
+              <div class="empty-wrap__title">「SaaS 型」目前沒題目</div>
+              <div class="empty-wrap__sub">切換其他產業類型，或回全部題庫。</div>
+              <button class="btn btn--ghost empty-wrap__action"><i class="ph ph-arrow-counter-clockwise"></i>看全部</button>
+            </div>
+          </div>
+          <div class="widget-label">T · Toast stack 4 variants（含長文）</div>
+          <div class="toast-stack" style="max-width:480px">
+            <div class="toast toast--success"><i class="ph-fill ph-check-circle toast__icon"></i><div class="toast__main"><div class="toast__title">已儲存草稿</div><div class="toast__sub">15:32 自動同步至雲端。</div></div><button class="toast__close"><i class="ph ph-x"></i></button></div>
+            <div class="toast toast--info"><i class="ph ph-info toast__icon"></i><div class="toast__main"><div class="toast__title">系統提示</div><div class="toast__sub">每週四凌晨更新題庫，可能會看到新題目。</div></div><button class="toast__close"><i class="ph ph-x"></i></button></div>
+            <div class="toast toast--warn"><i class="ph ph-warning toast__icon"></i><div class="toast__main"><div class="toast__title">即將逾時</div><div class="toast__sub">登入即將過期，5 分鐘內請重新登入避免遺失。</div></div><button class="toast__close"><i class="ph ph-x"></i></button></div>
+            <div class="toast toast--error"><i class="ph ph-warning-circle toast__icon"></i><div class="toast__main"><div class="toast__title">送出失敗</div><div class="toast__sub">請檢查網路後重試。你的答案已自動保存於本機。</div></div><button class="toast__close"><i class="ph ph-x"></i></button></div>
+          </div>
+          <div class="widget-label">D-modal · Confirm（destructive 用 danger primary）</div>
+          <div class="modal-backdrop">
+            <div class="modal">
+              <span class="modal__icon"><i class="ph ph-trash"></i></span>
+              <div class="modal__title">刪除這筆練習記錄？</div>
+              <div class="modal__body">已完成的評分結果將永久消失，此動作<strong>無法復原</strong>。</div>
+              <div class="modal__actions">
+                <button class="btn btn--ghost">取消</button>
+                <button class="btn btn--danger"><i class="ph ph-trash"></i>刪除</button>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+
+    </div>
+
+  </div>
+</body>
+</html>

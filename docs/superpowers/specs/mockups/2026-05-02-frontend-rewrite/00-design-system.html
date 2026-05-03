@@ -40,7 +40,7 @@
       --c-primary-lt: rgba(26,86,219,0.08);
       --c-primary-mid: rgba(26,86,219,0.18);
 
-      --c-accent-nsm: #6B4FBC;     /* NSM purple — context-only */
+      /* --c-accent-nsm DEPRECATED 2026-05-03 per mockup 15 audit — Path 2 navy-only, NSM type pills 統一 navy（見 06）*/
 
       --c-success:    #137A3D;
       --c-success-lt: #DCEFE0;
@@ -573,7 +573,7 @@
       text-transform: uppercase;
     }
     .badge--circles { background: var(--c-success-lt); color: var(--c-success); }
-    .badge--nsm { background: rgba(107,79,188,0.12); color: var(--c-accent-nsm); }
+    .badge--nsm { background: var(--c-navy-lt); color: var(--c-navy); }
     .badge--drill { background: var(--c-bg-deep); color: var(--c-ink-2); }
 
     /* ───────────────────────────────────────────────────────────────
@@ -1262,8 +1262,8 @@
       color: var(--c-success);
     }
     .mode-tag--nsm {
-      background: rgba(107,79,188,0.12);
-      color: var(--c-accent-nsm);
+      background: var(--c-navy-lt);
+      color: var(--c-navy);
     }
     .mode-tag i { font-size: 11px; }
 
@@ -1406,7 +1406,7 @@
           <h3 style="font-size:var(--t-h3); margin-top:var(--s-5); margin-bottom:var(--s-3);">Action / Status</h3>
           <div class="swatch-grid" style="grid-template-columns:1fr 1fr;">
             <div class="swatch"><div class="swatch__color" style="background:var(--c-primary);"></div><div class="swatch__meta"><span class="swatch__name">primary</span><span class="swatch__hex">#1A56DB</span></div></div>
-            <div class="swatch"><div class="swatch__color" style="background:var(--c-accent-nsm);"></div><div class="swatch__meta"><span class="swatch__name">nsm</span><span class="swatch__hex">#6B4FBC</span></div></div>
+            <div class="swatch"><div class="swatch__color" style="background:var(--c-navy);"></div><div class="swatch__meta"><span class="swatch__name">nsm（用 navy）</span><span class="swatch__hex">#1B2D5C</span></div></div>
             <div class="swatch"><div class="swatch__color" style="background:var(--c-success);"></div><div class="swatch__meta"><span class="swatch__name">success</span><span class="swatch__hex">#137A3D</span></div></div>
             <div class="swatch"><div class="swatch__color" style="background:var(--c-warn);"></div><div class="swatch__meta"><span class="swatch__name">warn</span><span class="swatch__hex">#B85C00</span></div></div>
             <div class="swatch"><div class="swatch__color" style="background:var(--c-danger);"></div><div class="swatch__meta"><span class="swatch__name">danger</span><span class="swatch__hex">#B61F1F</span></div></div>
@@ -1434,7 +1434,7 @@
           <h3 style="font-size:var(--t-h3); margin-top:var(--s-5); margin-bottom:var(--s-3);">Action / Status</h3>
           <div class="swatch-grid">
             <div class="swatch"><div class="swatch__color" style="background:var(--c-primary);"></div><div class="swatch__meta"><span class="swatch__name">primary</span><span class="swatch__hex">#1A56DB</span></div></div>
-            <div class="swatch"><div class="swatch__color" style="background:var(--c-accent-nsm);"></div><div class="swatch__meta"><span class="swatch__name">nsm</span><span class="swatch__hex">#6B4FBC</span></div></div>
+            <div class="swatch"><div class="swatch__color" style="background:var(--c-navy);"></div><div class="swatch__meta"><span class="swatch__name">nsm（用 navy）</span><span class="swatch__hex">#1B2D5C</span></div></div>
             <div class="swatch"><div class="swatch__color" style="background:var(--c-success);"></div><div class="swatch__meta"><span class="swatch__name">success</span><span class="swatch__hex">#137A3D</span></div></div>
             <div class="swatch"><div class="swatch__color" style="background:var(--c-warn);"></div><div class="swatch__meta"><span class="swatch__name">warn</span><span class="swatch__hex">#B85C00</span></div></div>
             <div class="swatch"><div class="swatch__color" style="background:var(--c-danger);"></div><div class="swatch__meta"><span class="swatch__name">danger</span><span class="swatch__hex">#B61F1F</span></div></div>
@@ -1463,7 +1463,7 @@
           <div class="swatch-grid">
             <div class="swatch"><div class="swatch__color" style="background:var(--c-primary);"></div><div class="swatch__meta"><span class="swatch__name">primary</span><span class="swatch__hex">#1A56DB</span></div></div>
             <div class="swatch"><div class="swatch__color" style="background:var(--c-primary-lt);border-bottom:1px solid var(--c-rule);"></div><div class="swatch__meta"><span class="swatch__name">primary-lt</span><span class="swatch__hex">8% α</span></div></div>
-            <div class="swatch"><div class="swatch__color" style="background:var(--c-accent-nsm);"></div><div class="swatch__meta"><span class="swatch__name">nsm</span><span class="swatch__hex">#6B4FBC</span></div></div>
+            <div class="swatch"><div class="swatch__color" style="background:var(--c-navy);"></div><div class="swatch__meta"><span class="swatch__name">nsm（用 navy）</span><span class="swatch__hex">#1B2D5C</span></div></div>
             <div class="swatch"><div class="swatch__color" style="background:var(--c-success);"></div><div class="swatch__meta"><span class="swatch__name">success</span><span class="swatch__hex">#137A3D</span></div></div>
             <div class="swatch"><div class="swatch__color" style="background:var(--c-warn);"></div><div class="swatch__meta"><span class="swatch__name">warn</span><span class="swatch__hex">#B85C00</span></div></div>
             <div class="swatch"><div class="swatch__color" style="background:var(--c-danger);"></div><div class="swatch__meta"><span class="swatch__name">danger</span><span class="swatch__hex">#B61F1F</span></div></div>
@@ -2215,7 +2215,7 @@
           <div style="display:grid; gap:var(--s-3);">
             <div class="banner banner--locked"><i class="ph ph-lock-key banner__icon"></i><div><div class="banner__title">已評分鎖定 · C1 澄清情境 · 本步驟分數 76 / 100</div><div class="banner__text">本步驟答案已被評分系統審核並鎖定。如要重練本題請從首頁開新場練習。</div></div></div>
             <div class="banner banner--stale"><i class="ph ph-warning-octagon banner__icon"></i><div><div class="banner__title">題庫已更新 — 顯示為唯讀</div><div class="banner__text">這份紀錄的題目陳述（problem_statement）與資料庫目前版本不同。為避免分析錯亂，整份練習轉為唯讀；可回首頁用最新題目重練。</div></div></div>
-            <div class="banner banner--error"><i class="ph ph-cloud-warning banner__icon"></i><div><div class="banner__title">評分生成失敗 · EVAL_TIMEOUT</div><div class="banner__text">本次評分超過 30 秒未回應。請點擊「重新評分」再試一次；如多次失敗，回上一步修改答案後再提交。</div></div></div>
+            <div class="banner banner--error"><i class="ph ph-cloud-warning banner__icon"></i><div><div class="banner__title">評分生成失敗 · EVAL_TIMEOUT</div><div class="banner__text">AI 服務暫時無法回應，你的答案已自動保存。請重試或返回修改答案（內部 timeout 300s，per mockup 15 規約）。</div></div></div>
             <div class="banner banner--info"><i class="ph ph-info banner__icon"></i><div><div class="banner__title">已暫存於本機</div><div class="banner__text">未登入狀態。所有草稿存在瀏覽器 localStorage（保留 7 天）。登入後會合併到你的帳號雲端記錄。</div></div></div>
           </div>
         </div>
@@ -3128,7 +3128,7 @@
           </ul>
 
           <p class="note" style="margin-top:var(--s-4); font-size:var(--t-meta);">
-            <strong>顏色：</strong>drill = 中性深灰（不是主流路線）/ simulation = success-lt（推薦完整）/ nsm = accent purple（不同模組）。<br>
+            <strong>顏色：</strong>drill = 中性深灰（不是主流路線）/ simulation = navy（推薦完整，2026-05-03 v5 統一去 success 綠）/ nsm = navy（去原 purple，per mockup 15 audit）。<br>
             <strong>icon：</strong>drill = ph-target（聚焦單點）/ sim = ph-list-checks（多步驟）/ nsm = ph-compass（指標方向）
           </p>
         </div>

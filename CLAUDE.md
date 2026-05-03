@@ -1,7 +1,7 @@
 # PM Drill — 專案狀態看板
 
 > 即時狀態 single source of truth。重大事件即時 Edit。不放歷史（git log 有）。
-> **Last updated:** 2026-05-03（14 NSM Step 4 放行：4 tabs + 教練思路展開 navy panel / 下一張 15 Error · Empty · Loading 全集）
+> **Last updated:** 2026-05-03（**16/16 mockup 全放行** — 15 Error/Empty/Loading 收尾 + cross-mockup audit + 5 patches / 下一步：writing-plans → CSS rewrite plan）
 
 ---
 
@@ -19,8 +19,8 @@
 | Master Spec 凍結 | ✅ 完成 |
 | SP3 backend 並行 | ✅ Merged 到 main（13 commits / jest 142 綠 / 兩階段 review × 2 round 全綠）|
 | SP4 backend 並行 | ✅ Merged 到 main（jest 142 → 157 / 103 題 NSM context 預生成 idempotent 雙跑驗證）|
-| Mockup（共 16 張）| 🟡 15/16 放行 / 下一張 15 Error · Empty · Loading 全集對齊檢查 |
-| writing-plans → CSS rewrite plan | ⏳ 待 mockup 全完 |
+| Mockup（共 16 張）| ✅ **16/16 全放行**（00-15 + cross-audit 收 22 條 drift） |
+| writing-plans → CSS rewrite plan | ⏳ 進行中 — 下一步啟動 |
 | subagent-driven-development | ⏳ 待 plan |
 | 14-box gate → merge main | ⏳ 待全綠 |
 
@@ -45,7 +45,7 @@
 | 12 | ✅ 放行 | `docs/superpowers/specs/mockups/2026-05-02-frontend-rewrite/12-phase-3-error-loading.html` | Phase 3 Error 變體 + Loading 慢回應 — 補 11 未涵蓋的：A Loading 慢回應（60s+ inline warn 文字「比預期慢一些…AI 深度分析中，偶而會需要比較久時間，請再等等。」內部 timeout 300s 不告知 user）/ B Error EVAL_API_ERROR 評分服務暫時不可用 / C Error EVAL_PARSE_ERROR 教練回應格式異常。3 sections × 3 viewports = 9 frames。component CSS LOCKED copy 自 11；新增 loading-sub--slow 變體 inline 文字（不用 toast 框）|
 | 13 | ✅ 放行 | `docs/superpowers/specs/mockups/2026-05-02-frontend-rewrite/13-phase-4-final.html` | Phase 4 模擬面試總結報告 — 3 sections × 3 viewports = 9 frames：A 預設 77 分（**無 grade letter A/B/C/D**，分數已足夠）+ 7-axis radar navy polygon（去紫）+ step-rows 7 行**每步補一行 commentary**（C 78 時間框架 / I 82 最強亮點 / R 75 補競品對比 / C2 70 缺 RICE/ICE / L 85 紮實 / E 68 本次最弱量化不足 / S 80 tracking 完整）+ **S 總結 row 內嵌 NSM 4 dim mini cards**（dashed border 視覺從屬，明確表達 4 dim 是 S 步驟拆解內容、非獨立 top-level；4 dim 全部統一中性樣式 + Italic 1/2/3/4 編號區分，**不用顏色**避免雜亂；mobile/tablet/desktop 一律 1-col 直式）+ strengths（success 綠）+ improvements（warn 橘）+ verdict（navy）+ nextsteps + submit-bar sticky（**再練一題**換題、不重做同題；匯出 PNG / home icon）/ B Loading spinner + 4-step checklist（彙整七步 → 計算總分 → 生成雷達 → 整理建議）/ C Error REPORT_API_ERROR + 重試 / 回首頁。Desktop top-grid 2-col（左 radar 右 step-rows，S 總結 nested 4 dim 也 narrow column 直式）|
 | 14 | ✅ 放行 | `docs/superpowers/specs/mockups/2026-05-02-frontend-rewrite/14-nsm-step-4.html` | NSM Step 4 報告 — 4 tabs（總覽 / 對比 / 亮點 / 完成）+ 教練思路展開 = **5 sections × 3 viewports = 15 frames**：A 總覽（5-axis pentagon radar navy + 5 score rows 含 comment / desktop 2-col 380px radar + 1fr score-rows）/ B 對比預設（mobile 5 dim block 直堆「你的+教練」/ tablet+desktop 2-col grid「你的拆解·教練版本」+ 5 列 NSM+4 dim）/ **B' 點擊教練思路展開**（**navy 中性配色，無黃色** — mobile bottom-sheet drawer with handle / tablet+desktop inline panel below row；教練思路 + 為什麼這樣拆解 兩段）/ C 亮點（mobile 1-col 4 cards / tablet 2-col 前 2 並排 + 下一步建議+總評跨 2 / desktop 3-col + 總評跨 3；新增「下一步建議」card border-left success）/ D 完成（done-panel 取代 production 空白頁：ph-check-circle 64×64 success 圓 + 標題 + 鼓勵文 + 主按鈕「再練一題」+ desktop ghost「回首頁」+ 下方 done-secondary tip card）。**Path 2 配色**：radar navy（去原 5 色）/ score bar 全 navy uniform / score 字色 grade-based。**用顯式 modifier class 控制 layout**（不用 @media，因 mockup viewport frame 並排於 1920px viewport，@media 所有 frame 都觸發 desktop 規則導致 bug）|
-| 15 | 待畫 | `docs/superpowers/specs/mockups/2026-05-02-frontend-rewrite/15-error-empty-collation.html` | Error / Empty / Loading 全集 |
+| 15 | ✅ 放行 | `docs/superpowers/specs/mockups/2026-05-02-frontend-rewrite/15-error-empty-collation.html` | Error / Empty / Loading 全集對齊 + cross-mockup audit 22 條 drift 收尾 — **§A 規約字典**（Copy / Timeout / Iconography 三表凍結唯一寫法）+ **§B Loading 全集**（page-wrap / inline-btn / streaming dots / skeleton × 3 vp）+ **§C Error & Banner 全集**（page error-wrap 4 種 error code / 4 種 sticky-top banner: offline · session expired · locked · stale / form-field error × 3 vp）+ **§D Empty / Toast / Modal**（list/search/filter empty / toast 4 變體 info/success/warn/error / confirm modal × 3 vp）。**同 commit patch 5 既有檔**：00 deprecate `--c-accent-nsm` token + 4 swatch + badge/mode-tag 改 navy / 01 拔紫 token / 03 4-dim hex 註解清掉 / 06 attention purple → navy / 02 auth-submit 留 future work 註記 |
 
 ### Mockup-as-Spec 嚴格規則
 - **Implementer：** 開工前必先打開對應 mockup；mockup 是 source of truth；偏離 = bundle 不過
