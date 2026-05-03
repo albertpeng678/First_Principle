@@ -30,7 +30,8 @@
 | Plan C SB1（NSM Step 1 mockup 06）| ✅ DONE — `9fc366a` jest 157 / PW 12/12 |
 | Plan B SB1（CIRCLES Home mockup 01 minimum）| ✅ DONE — merge `aba5dd0` (sonnet implement + opus cold review fix `c1f4c07`) / jest 157 / PW 30/30 |
 | Plan B SB2（CIRCLES Home 收尾 — drill-rail + recent-rail + qcard expanded + mode-card body 3-tier + mode-tag short/long + qcard product/難度 viewport-conditional）| ✅ DONE — sonnet 7 commits + opus cold-review fix `83e6667` + 第二輪 drift fix `f517d63`（8 條 viewport-conditional 文案 line-by-line 對照 mockup 01）/ jest 157 / PW 54/54 |
-| Plan B SB3+ Phase 1-4 forms / Plan E final ship | ⏳ 待開工 |
+| Plan B SB3（Phase 1 Form 4-field 標準 mockup 03 Section A — C1/I/R/C2 sim+drill 雙變體）| ✅ DONE — sonnet 5 commits + opus cold-review fix `ccd849d`（rt-field toolbar 按鈕數量 viewport+field-idx-conditional / line-by-line vs mockup line 794-1216）/ jest 157 / PW 27/27 |
+| Plan B SB4+（L/E/S step / hint overlay / locked-stale）/ Plan E final ship | ⏳ 待開工 |
 
 ---
 
