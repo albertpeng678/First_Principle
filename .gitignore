@@ -31,3 +31,4 @@ test-results/
 audit/post-fix-*/
 螢幕擷取畫面*.png
 Image.jpg
+tests/visual/diffs/

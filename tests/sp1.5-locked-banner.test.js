@@ -22,7 +22,8 @@ function loadHelpers() {
   return ctx;
 }
 
-describe('renderLockedBanner', () => {
+// PENDING_PATH_2_REIMPL — Plan A skeleton removed renderLockedBanner; re-enable in Plan B with new BEM render layer
+describe.skip('renderLockedBanner', () => {
   test('returns empty string when not locked', () => {
     const { renderLockedBanner } = loadHelpers();
     expect(renderLockedBanner('C1', null)).toBe('');
