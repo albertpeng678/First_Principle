@@ -140,4 +140,119 @@ test.describe('B1 CIRCLES Home', () => {
     // navigation should land on NSM view
     await expect(page.locator('[data-view="nsm"], .nsm-view, .nsm-step1')).toBeVisible();
   });
+
+  // ── SB2 carry-forward tests ──────────────────────────────────
+
+  test('drill mode renders .drill-rail with title 練習步驟 + 3 drill-pill C/I/R', async ({ page }) => {
+    await page.goto('/');
+    await page.locator('.mode-card').nth(1).click(); // switch to drill
+    await page.waitForSelector('.drill-rail');
+    await expect(page.locator('.drill-rail__title')).toHaveText('練習步驟');
+    const pills = page.locator('.drill-pill');
+    expect(await pills.count()).toBe(3);
+    await expect(pills.nth(0).locator('.step-letter')).toHaveText('C');
+    await expect(pills.nth(1).locator('.step-letter')).toHaveText('I');
+    await expect(pills.nth(2).locator('.step-letter')).toHaveText('R');
+    await expect(page.locator('.drill-rail__lock')).toBeVisible();
+  });
+
+  test('drill-pill click sets active and AppState.circlesDrillStep', async ({ page }) => {
+    await page.goto('/');
+    await page.locator('.mode-card').nth(1).click();
+    await page.waitForSelector('.drill-pill');
+    await page.locator('.drill-pill').nth(1).click(); // I
+    await expect(page.locator('.drill-pill').nth(1)).toHaveClass(/is-active/);
+    const state = await page.evaluate(() => window.AppState.circlesDrillStep);
+    expect(state).toBe('I');
+  });
+
+  test('qcard click toggles is-expanded', async ({ page }) => {
+    await page.goto('/');
+    await page.waitForSelector('.qcard');
+    const first = page.locator('.qcard').first();
+    await expect(first).not.toHaveClass(/is-expanded/);
+    await first.click();
+    await expect(first).toHaveClass(/is-expanded/);
+    await first.click();
+    await expect(first).not.toHaveClass(/is-expanded/);
+  });
+
+  test('expanded qcard renders __full-statement + 4 ana-block (1 trap) + action-row', async ({ page }) => {
+    await page.goto('/');
+    await page.waitForSelector('.qcard');
+    await page.locator('.qcard').first().click();
+    await expect(page.locator('.qcard.is-expanded .qcard__full-statement')).toBeVisible();
+    const blocks = page.locator('.qcard.is-expanded .ana-block');
+    expect(await blocks.count()).toBe(4);
+    expect(await page.locator('.qcard.is-expanded .ana-block--trap').count()).toBe(1);
+    await expect(page.locator('.qcard.is-expanded .qcard__action-row')).toBeVisible();
+    await expect(page.locator('.qcard.is-expanded .qcard__btn--ghost')).toContainText('取消');
+    await expect(page.locator('.qcard.is-expanded .qcard__btn--primary')).toContainText('確認，開始練習');
+  });
+
+  test('expanded qcard primary btn → enters Phase 1 form (sets circlesSelectedQuestion + phase=1)', async ({ page }) => {
+    await page.goto('/');
+    await page.waitForSelector('.qcard');
+    await page.locator('.qcard').first().click();
+    await page.locator('.qcard__btn--primary').click();
+    const state = await page.evaluate(() => ({
+      view: window.AppState.view,
+      phase: window.AppState.circlesPhase,
+      hasQuestion: !!window.AppState.circlesSelectedQuestion,
+    }));
+    expect(state.view).toBe('circles');
+    expect(state.phase).toBe(1);
+    expect(state.hasQuestion).toBe(true);
+  });
+
+  test('recent-rail loads from history API and renders 5 .recent-item', async ({ page }) => {
+    const fakeC = Array.from({ length: 4 }, (_, i) => ({
+      id: 'c' + i, mode: i % 2 === 0 ? 'simulation' : 'drill', drill_step: i % 2 === 0 ? null : 'C1',
+      question_json: { id: 'q'+i, company: 'Co'+i, product: 'P'+i },
+      currentQuestion: { id: 'q'+i, company: 'Co'+i, product: 'P'+i },
+      status: i === 0 ? 'completed' : 'active',
+      step_scores: i === 0 ? { S: { totalScore: 78 } } : {},
+      current_phase: 2 + (i % 3),
+      updated_at: new Date(Date.now() - i * 3600000).toISOString(),
+      created_at: new Date(Date.now() - i * 3600000).toISOString(),
+    }));
+    const fakeN = [{
+      id: 'n0', question_json: { id: 'nq0', company: 'Asana', product: '工作協作' },
+      currentQuestion: { id: 'nq0', company: 'Asana', product: '工作協作' },
+      status: 'completed', scores_json: { totalScore: 92 },
+      updated_at: new Date(Date.now() - 24 * 3600000).toISOString(),
+      created_at: new Date(Date.now() - 24 * 3600000).toISOString(),
+    }];
+    await page.route('**/api/circles-sessions**', r => r.fulfill({ status: 200, contentType: 'application/json', body: JSON.stringify(fakeC) }));
+    await page.route('**/api/guest-circles-sessions**', r => r.fulfill({ status: 200, contentType: 'application/json', body: JSON.stringify(fakeC) }));
+    await page.route('**/api/nsm-sessions**', r => r.fulfill({ status: 200, contentType: 'application/json', body: JSON.stringify(fakeN) }));
+    await page.route('**/api/guest/nsm-sessions**', r => r.fulfill({ status: 200, contentType: 'application/json', body: JSON.stringify(fakeN) }));
+    await page.goto('/');
+    await page.setViewportSize({ width: 1280, height: 900 });
+    await page.waitForSelector('.recent-rail');
+    await page.waitForFunction(() => document.querySelectorAll('.recent-item').length === 5, null, { timeout: 5000 });
+    const items = page.locator('.recent-item');
+    expect(await items.count()).toBe(5);
+    // each item must contain mode-tag + __title + __phase
+    await expect(items.first().locator('.mode-tag')).toBeVisible();
+    await expect(items.first().locator('.recent-item__title')).toBeVisible();
+    await expect(items.first().locator('.recent-item__phase')).toBeVisible();
+  });
+
+  test('mode-card body desktop shows long-form text (≥30 chars)', async ({ page }) => {
+    await page.setViewportSize({ width: 1280, height: 900 });
+    await page.goto('/');
+    await page.waitForSelector('.mode-card');
+    const visibleBody = await page.locator('.mode-card').nth(0).locator('.mode-card__body:not([hidden]):not([style*="display: none"])').textContent();
+    // long form per mockup line 1020 contains "C → I → R → C → L → E → S"
+    expect(visibleBody).toMatch(/C\s*[→]\s*I\s*[→]\s*R/);
+  });
+
+  test('mode-card body mobile shows short-form text', async ({ page }) => {
+    await page.setViewportSize({ width: 360, height: 780 });
+    await page.goto('/');
+    await page.waitForSelector('.mode-card');
+    const visibleBody = await page.locator('.mode-card').nth(0).locator('.mode-card__body').first().textContent();
+    expect(visibleBody.trim()).toBe('7 步循序練習');
+  });
 });
