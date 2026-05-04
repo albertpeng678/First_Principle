@@ -486,52 +486,24 @@
     },
   };
 
-  // ── HINT_OVERLAY_TEXT — 27 cells: 7 step × 各步驟 fields ──
-  // mockup 03 Section D line 1804-1807 規約：80-100 字 zh-TW，第 1 層 hardcoded（0ms 載入）
-  var HINT_OVERLAY_TEXT = {
-    C1: {
-      '問題範圍': '先把題目的問題本身定義清楚 — 它的具體類型是什麼（行為層 / 情感層 / 系統層）？涵蓋哪些功能或場景？哪些明確排除？沒釐清這層，後面的分析會在錯的邊界上展開。',
-      '時間範圍': '為什麼是 X 天？對應的業務節奏是什麼（廣告週期 / 留存窗口 / 季度回檢）？時間框架要支撐你後面講的指標觀察期。',
-      '業務影響': '列出這題不能傷到的量化紅線 — 哪些指標不能下降、降多少視為失敗。沒有紅線 = 沒有 trade-off 判準。',
-      '假設確認': '寫 2-3 條「如果這個假設不成立，整個分析就垮」的關鍵假設。讓 reviewer 知道你哪裡有風險，而不是假裝什麼都確定。'
-    },
-    I: {
-      '目標用戶分群': '依「行為 / 情境」分群，不只人口統計。列 2-4 個具體子群，每群有清楚的觸發場景或使用習慣。',
-      '選定焦點對象': '說明為什麼選這群、不選其他群 — 痛點最集中？商業價值最高？樣本量足夠？要寫得讓 reviewer 看得出 trade-off。',
-      '用戶動機假設(JTBD)': '用「當 X 時，我想要 Y，以便 Z」格式 — X 是情境、Y 是任務、Z 是更深層 outcome。聚焦 outcome 而不是 feature。',
-      '排除對象': '寫清楚誰不在這次的範圍內 + 為什麼排除 — 不是看不起，是聚焦。明確排除可幫 reviewer 看出你的邊界判斷。'
-    },
-    R: {
-      '功能性': '用戶想完成的具體任務或操作 — 用動詞列。例：「可跳過廣告 / 廣告頻率可控 / 廣告時機可選」。',
-      '情感性': '用戶在使用過程中希望有什麼感受 — 沉浸 / 不被打斷 / 有掌控感。情感性常被忽略但決定留存。',
-      '社交性': '用戶如何在社交場合中展示或使用這個產品 — 分享、討論、認同感。',
-      '核心痛點': '寫「最根本的、用戶已嘗試但未能解決的問題」— 已試 workaround 表示需求真實。'
-    },
-    C2: {
-      '取捨標準': '列 2-3 個判斷優先級的明確標準（用戶衝擊 × 商業影響 × 實作複雜度），讓你後面的排序站得住腳。',
-      '最優先': '說明為什麼這個最優先 — 連結你前面定的取捨標準，給出量化或半量化判斷。',
-      '暫緩': '說明暫緩的邏輯 — 不是「不重要」，是「現在做風險或代價不對等」。',
-      '排序理由': '用一句話說明整體排序的核心考量 — 幫 reviewer 快速看到你的判斷主軸。'
-    },
-    L: {
-      '方案': '想 2-3 個「機制差異本質不同」的方案 — 不是同一招的小變體。每個方案要有清楚的：機制 / 為什麼這個機制能解 / 與其他方案的本質差異。'
-    },
-    E: {
-      '優點': '誠實寫每個方案最強的 1-2 個優勢 — 對應前面定的核心痛點，量化越好。不要只寫一招很棒，要寫「為什麼這招對這群人這時候特別有效」。',
-      '缺點': '寫每個方案的限制或副作用 — 哪些用戶體驗會變差、哪些情況不適用。誠實寫缺點才能看出 trade-off 理解。',
-      '風險與依賴': '具體列出技術 / 人力 / 時程 / 第三方依賴 — 不要寫「可能會失敗」這種空話。要寫「依賴 X，X 風險在 Y」。',
-      '成功指標': '量化定義方案有效 — 主指標 + 觀察期。例：「30 天內留存 +5pp」。沒量化的成功指標 = 沒辦法驗證。'
-    },
-    S: {
-      '推薦方案': '一句話總判斷 — 推薦哪個方案、為什麼這是最終選擇。要呼應你前面定的 NSM 與取捨標準。',
-      '選擇理由': '引用 E 結論的 3 個面向 — 對比放棄方案 / 回應最大缺點 / 解釋為何取捨值得。讓 reviewer 看到你的決策邏輯。',
-      '北極星指標': 'NSM 定義含行為門檻 + 為什麼能反映成效。例：「每月活躍 ≥ 1 次完整收聽的用戶數」— 動詞 + 門檻 + 理由。',
-      '觸及廣度': '產品被多少人觸及 — 用 MAU、WAU、reach 量化。對應 NSM 的「廣度」維度。',
-      '互動深度': '用戶單次或週期內互動深度 — sessions/user、minutes/session 等。對應 NSM 的「深度」維度。',
-      '習慣頻率': '用戶回訪頻率 — 7-day return、days/month。對應 NSM 的「頻率」維度。',
-      '留存驅力': '哪個行為驅動長期留存 — D30 / W4 retention 等。對應 NSM 的「留存」維度。'
+  // ── getHintApiField: UI field label → backend FIELD_GUIDANCE key (POST /api/circles-public/hint) ──
+  // backend prompts/circles-hint.js FIELD_GUIDANCE keys 與 UI config 微差異，需 alias
+  function getHintApiField(stepKey, fieldKey) {
+    var aliasMap = {
+      I: { '選定焦點對象': '選定焦點', '用戶動機假設(JTBD)': '用戶動機假設' },
+      R: { '功能性': '功能性需求', '情感性': '情感性需求', '社交性': '社交性需求' },
+      C2: { '最優先': '最優先項目', '暫緩': '暫緩項目' },
+      L: { '方案三': '方案三（可選）' },
+      E: { '優點': '方案優點', '缺點': '方案缺點' }
+    };
+    if (aliasMap[stepKey] && aliasMap[stepKey][fieldKey]) return aliasMap[stepKey][fieldKey];
+    // S step: 任何 tracking dim zh label → '追蹤指標'
+    if (stepKey === 'S') {
+      var trackingDimZhSet = ['觸及廣度','互動深度','習慣頻率','留存驅力','供給廣度','需求深度','匹配效率','復購留存','創造廣度','成果品質','採用廣度','商業轉化','啟用廣度','席次深度','黏著頻率','擴張信號'];
+      if (trackingDimZhSet.indexOf(fieldKey) >= 0) return '追蹤指標';
     }
-  };
+    return fieldKey;
+  }
 
   // ── getFieldExampleKey: 把 config field key 轉成 DB field_examples key ──
   // DB schema 與 config schema 微差異：I (JTBD) / R (需求 suffix) / C2 (項目 suffix)
@@ -572,60 +544,159 @@
     return html;
   }
 
-  // renderHintModal — mockup 03 line 1795-1812 verbatim
-  function renderHintModal(stepKey, fieldKey) {
-    var text = (HINT_OVERLAY_TEXT[stepKey] && HINT_OVERLAY_TEXT[stepKey][fieldKey]) || '提示內容稍後提供。';
-    // split into paragraphs: double newline or after sentence-ending period followed by new text
-    var paras = text.split(/\n\n/).filter(Boolean);
-    if (paras.length <= 1) {
-      // try splitting at mid-sentence: dash + space boundary
-      var parts = text.split(' — ');
-      if (parts.length >= 2) {
-        // keep first sentence + rest
-        paras = [parts[0] + '。', parts.slice(1).join(' — ')];
-      } else {
-        paras = [text];
-      }
-    }
-    var bodyHtml = paras.map(function(p, i){
-      return '<p' + (i > 0 ? ' style="margin-top: var(--s-3);"' : '') + '>' + escHtml(p) + '</p>';
-    }).join('');
+  // renderHintModalShell — mockup 03 line 1795-1812 verbatim shell；body 由 state 切換 loading/content/error
+  // state: 'loading' | 'content' | 'error'
+  function renderHintModalShell(stepKey, fieldKey, bodyInnerHtml, isLoading) {
+    var qName = (AppState.circlesSelectedQuestion && AppState.circlesSelectedQuestion.company)
+      ? AppState.circlesSelectedQuestion.company + '·' + (AppState.circlesSelectedQuestion.product || '')
+      : '本題';
+    var footHtml = isLoading
+      ? '<button class="btn btn--ghost" data-hint-action="close" style="font-size:var(--t-meta); min-height:36px;">關閉</button>'
+      : '<button class="btn btn--primary" data-hint-action="close" style="font-size:var(--t-meta); min-height:36px;">了解了</button>';
+    var iconHtml = isLoading ? '<i class="ph ph-sparkle"></i>' : '<i class="ph ph-lightbulb"></i>';
     return '<div class="hint-overlay" aria-hidden="false">'
       + '<div class="hint-overlay__backdrop" data-hint-action="close"></div>'
       + '<div class="modal-card" role="dialog" aria-modal="true">'
       +   '<div class="modal__head">'
-      +     '<span class="modal__head-icon"><i class="ph ph-lightbulb"></i></span>'
+      +     '<span class="modal__head-icon">' + iconHtml + '</span>'
       +     '<div style="flex:1;">'
       +       '<div class="modal__sub">提示 · ' + escHtml(stepKey) + '</div>'
       +       '<h3 class="modal__title">' + escHtml(fieldKey) + '</h3>'
       +     '</div>'
       +     '<button class="modal__close" data-hint-action="close" aria-label="關閉"><i class="ph ph-x"></i></button>'
       +   '</div>'
-      +   '<div class="modal__body">' + bodyHtml + '</div>'
-      +   '<div class="modal__foot">'
-      +     '<button class="btn btn--primary" data-hint-action="close" style="font-size:var(--t-meta); min-height:36px;">了解了</button>'
-      +   '</div>'
+      +   '<div class="modal__body" data-hint-body>' + bodyInnerHtml + '</div>'
+      +   '<div class="modal__foot" data-hint-foot>' + footHtml + '</div>'
       + '</div>'
       + '</div>';
   }
 
+  function _hintLoadingHtml() {
+    var qName = (AppState.circlesSelectedQuestion && AppState.circlesSelectedQuestion.company)
+      ? AppState.circlesSelectedQuestion.company + (AppState.circlesSelectedQuestion.product ? ' · ' + AppState.circlesSelectedQuestion.product : '')
+      : '本題';
+    return '<div style="padding: var(--s-5) 0; display: flex; flex-direction: column; align-items: center; gap: var(--s-3); color: var(--c-ink-3);">'
+      +   '<div class="hint-spinner" style="width:32px; height:32px; border:2px solid var(--c-rule-bold); border-top-color:var(--c-navy); border-radius:50%; animation: spin 0.8s linear infinite;"></div>'
+      +   '<div style="font-size: var(--t-body-sm); color: var(--c-ink);">教練思考中…</div>'
+      +   '<div style="font-size: var(--t-cap); text-align: center;">針對 ' + escHtml(qName) + ' 題目產生個人化提示</div>'
+      + '</div>';
+  }
+
+  function _hintErrorHtml(msg) {
+    return '<div style="padding: var(--s-4) 0; display: flex; flex-direction: column; align-items: center; gap: var(--s-3); color: var(--c-ink-3); text-align:center;">'
+      +   '<i class="ph ph-cloud-warning" style="font-size: 32px; color: var(--c-error);"></i>'
+      +   '<div style="font-size: var(--t-body-sm); color: var(--c-ink);">提示生成失敗</div>'
+      +   '<div style="font-size: var(--t-cap);">' + escHtml(msg || '請稍後再試') + '</div>'
+      +   '<button class="btn btn--ghost" data-hint-action="retry" style="font-size:var(--t-meta); min-height:36px; margin-top: var(--s-2);"><i class="ph ph-arrow-clockwise"></i>重試</button>'
+      + '</div>';
+  }
+
+  function _markdownHintToHtml(md) {
+    if (!md) return '<p>（提示為空）</p>';
+    var paras = md.split(/\n\n+/).filter(Boolean);
+    return paras.map(function(p, i) {
+      // simple bold
+      var safe = escHtml(p).replace(/\*\*([^*]+)\*\*/g, '<strong>$1</strong>').replace(/\n/g, '<br>');
+      return '<p' + (i > 0 ? ' style="margin-top: var(--s-3);"' : '') + '>' + safe + '</p>';
+    }).join('');
+  }
+
   function _hintEscHandler(e){ if (e.key === 'Escape') closeHintModal(); }
+
+  // _hintAbortController — 允許 close 時 abort in-flight fetch
+  var _hintAbortController = null;
+  // _hintCache — { stepKey:fieldKey:questionId : hint } 已 fetch 過不重打
+  var _hintCache = {};
 
   function openHintModal(stepKey, fieldKey) {
     closeHintModal(); // single-instance
     var host = document.createElement('div');
     host.id = '__hint_overlay_host__';
-    host.innerHTML = renderHintModal(stepKey, fieldKey);
+    host.dataset.stepKey = stepKey;
+    host.dataset.fieldKey = fieldKey;
     document.body.appendChild(host);
-    // bind close
-    host.querySelectorAll('[data-hint-action="close"]').forEach(function(el){
-      el.addEventListener('click', function(){ closeHintModal(); });
-    });
-    // ESC key
     document.addEventListener('keydown', _hintEscHandler);
+    _renderHintState(stepKey, fieldKey);
+  }
+
+  function _renderHintState(stepKey, fieldKey) {
+    var host = document.getElementById('__hint_overlay_host__');
+    if (!host) return;
+    var q = AppState.circlesSelectedQuestion;
+    var questionId = q && q.id;
+    var cacheKey = stepKey + ':' + fieldKey + ':' + (questionId || 'none');
+
+    if (_hintCache[cacheKey]) {
+      // Cache hit — render content immediately
+      host.innerHTML = renderHintModalShell(stepKey, fieldKey, _markdownHintToHtml(_hintCache[cacheKey]), false);
+      _bindHintHostEvents(host, stepKey, fieldKey);
+      return;
+    }
+
+    // Render loading shell
+    host.innerHTML = renderHintModalShell(stepKey, fieldKey, _hintLoadingHtml(), true);
+    _bindHintHostEvents(host, stepKey, fieldKey);
+
+    if (!questionId) {
+      // 無 questionId（未選題）→ show error
+      _swapHintBody(host, _hintErrorHtml('找不到題目，請重新選題'), false);
+      return;
+    }
+
+    // POST /api/circles-public/hint with field alias
+    var apiField = getHintApiField(stepKey, fieldKey);
+    if (_hintAbortController) try { _hintAbortController.abort(); } catch (e) {}
+    _hintAbortController = new AbortController();
+    fetch('/api/circles-public/hint', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ step: stepKey, field: apiField, questionId: questionId }),
+      signal: _hintAbortController.signal
+    }).then(function(r){
+      if (!r.ok) return r.json().then(function(j){ throw new Error(j.error || ('HTTP ' + r.status)); });
+      return r.json();
+    }).then(function(j){
+      _hintCache[cacheKey] = j.hint || '';
+      // Only update if modal still open and same field
+      var current = document.getElementById('__hint_overlay_host__');
+      if (current && current.dataset.stepKey === stepKey && current.dataset.fieldKey === fieldKey) {
+        _swapHintBody(current, _markdownHintToHtml(j.hint || ''), false);
+      }
+    }).catch(function(err){
+      if (err.name === 'AbortError') return;
+      var current = document.getElementById('__hint_overlay_host__');
+      if (current && current.dataset.stepKey === stepKey && current.dataset.fieldKey === fieldKey) {
+        _swapHintBody(current, _hintErrorHtml(err.message), false);
+      }
+    });
+  }
+
+  function _swapHintBody(host, bodyHtml, isLoading) {
+    var bodyEl = host.querySelector('[data-hint-body]');
+    var footEl = host.querySelector('[data-hint-foot]');
+    if (bodyEl) bodyEl.innerHTML = bodyHtml;
+    if (footEl) {
+      footEl.innerHTML = isLoading
+        ? '<button class="btn btn--ghost" data-hint-action="close" style="font-size:var(--t-meta); min-height:36px;">關閉</button>'
+        : '<button class="btn btn--primary" data-hint-action="close" style="font-size:var(--t-meta); min-height:36px;">了解了</button>';
+    }
+    _bindHintHostEvents(host, host.dataset.stepKey, host.dataset.fieldKey);
+  }
+
+  function _bindHintHostEvents(host, stepKey, fieldKey) {
+    host.querySelectorAll('[data-hint-action="close"]').forEach(function(el){
+      el.onclick = function(){ closeHintModal(); };
+    });
+    host.querySelectorAll('[data-hint-action="retry"]').forEach(function(el){
+      el.onclick = function(){ _renderHintState(stepKey, fieldKey); };
+    });
   }
 
   function closeHintModal() {
+    if (_hintAbortController) {
+      try { _hintAbortController.abort(); } catch (e) {}
+      _hintAbortController = null;
+    }
     var host = document.getElementById('__hint_overlay_host__');
     if (host) host.remove();
     document.removeEventListener('keydown', _hintEscHandler);

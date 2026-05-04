@@ -22,14 +22,20 @@ async function gotoStep(page, simStepIdx) {
   await page.evaluate(idx => { window.AppState.circlesSimStep = idx; window.renderApp(); }, simStepIdx);
 }
 
-test('C1 提示 click 開 modal', async ({ page }) => {
+test('C1 提示 click 開 modal — loading state + API 呼叫', async ({ page }) => {
+  // stub the AI hint API to return deterministic content (avoid 8-12s real OpenAI call in tests)
+  await page.route('**/api/circles-public/hint', r => r.fulfill({
+    status: 200, contentType: 'application/json',
+    body: JSON.stringify({ hint: '針對問題範圍的個人化 AI 提示 — 此處為測試 stub' })
+  }));
   await page.setViewportSize({ width: 360, height: 740 });
   await stub(page);
   await gotoStep(page, 0);
   await page.locator('.field__hint-link').first().click();
   await expect(page.locator('.modal-card')).toBeVisible();
   await expect(page.locator('.modal__title')).toHaveText('問題範圍');
-  await expect(page.locator('.modal__body p').first()).toContainText('問題本身定義清楚');
+  // Loading shell shows 教練思考中… briefly, then API replaces with stub content
+  await expect(page.locator('[data-hint-body]')).toContainText('AI 提示', { timeout: 5000 });
 });
 
 test('hint modal close button 收合', async ({ page }) => {
