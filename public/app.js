@@ -2107,10 +2107,16 @@
       });
     }
 
-    // drill-pill click → set circlesDrillStep + re-render
+    // drill-pill click → set circlesDrillStep + 重抽 5 題 + re-render
+    // user 親要求 2026-05-04: 切換練習步驟時題目要重新洗牌（之前沒洗,user 看不到「換步驟換題」）
     document.querySelectorAll('[data-circles="drill-pill"]').forEach(function (el) {
       el.addEventListener('click', function () {
+        var prevStep = AppState.circlesDrillStep;
         AppState.circlesDrillStep = el.dataset.step;
+        if (prevStep !== el.dataset.step) {
+          circlesPickDisplayed(false);
+          AppState.circlesExpandedQid = null; // 收合任何展開的 qcard
+        }
         render();
       });
     });
