@@ -41,6 +41,12 @@
       { name: '', mechanism: '' },
     ],
 
+    // Plan B SB7 additions
+    circlesPhase1Evaluate: [
+      { advantages: '', disadvantages: '', risks: '', metrics: '' },
+      { advantages: '', disadvantages: '', risks: '', metrics: '' },
+    ],
+
     // Plan B SB5 additions
     circlesPhase1S: {
       recommendation: '',
@@ -416,20 +422,26 @@
       },
     },
     E: {
-      // Plan B SB5 — E step placeholder (SB6 will implement full per-sol nested 4-field)
+      // Plan B SB7 — E step (mockup 03 line 1466 規則 — 沿用 L 結構，per-solution × 4 nested fields)
       eyebrow: { sim: 'Phase 1 · 寫框架', drill: 'Phase 1 · 個別步驟練習' },
       title: 'E · 評估取捨',
-      titleDrillSuffix: '',
+      titleSimDesktopSuffix: '（每個方案的優缺點 / 風險 / 成功指標）',
       progressLabel: '取捨',
       stepLetter: 'E',
       stepNum: '06',
+      isEstep: true,
       railTitle: 'E 步重點',
-      railIntro: 'E 步功能即將上線',
-      railBody: '評估方案的技術可行性與業務風險，完整說明取捨理由。',
-      railTitle2: '',
-      railBody2: '',
-      isEplaceholder: true,
-      fields: [],
+      railIntro: '誠實寫每個方案的優缺點、風險、成功指標',
+      railBody: '不要只挑優點 — 寫缺點和風險才能看出對 trade-off 的理解。風險與依賴要具體（不是「可能會失敗」這種空話）；成功指標必須量化可測。',
+      railTitle2: '為何要評估每個方案',
+      railBody2: '面試官不是在看你選哪個 — 是看你怎麼判斷取捨。寫得越誠實，越能展現產品 sense。',
+      perSolFields: [
+        { key: 'advantages',    label: '優點',       placeholder: '本方案最強的 1-2 個優勢，能解決什麼用戶痛點',                 minMax: '40-150', max: 150, rows: 3 },
+        { key: 'disadvantages', label: '缺點',       placeholder: '本方案的限制或副作用 — 哪些用戶體驗會變差，哪些情況不適用', minMax: '40-150', max: 150, rows: 3 },
+        { key: 'risks',         label: '風險與依賴', placeholder: '技術 / 人力 / 時程 / 第三方依賴 — 具體列出，不要寫「可能會失敗」', minMax: '40-150', max: 150, rows: 3 },
+        { key: 'metrics',       label: '成功指標',   placeholder: '如何驗證方案有效 — 定量指標 + 觀察期（如：30 天內 +5pp 留存）', minMax: '30-100', max: 100, rows: 2 },
+      ],
+      fields: [],  // legacy compat — renderCirclesPhase1 base 路徑不會走到這
     },
     S: {
       // Plan B SB5 — S step (mockup 03 Section C line 1469-1758)
@@ -1058,8 +1070,8 @@
       return renderCirclesPhase1Lstep(q, stepKey, stepCfg, currentStepNum);
     }
 
-    // ── E step branch (Plan B SB5) — placeholder ──
-    if (stepCfg && stepCfg.isEplaceholder) {
+    // ── E step branch (Plan B SB7) — per-sol × 4-field nested ──
+    if (stepCfg && stepCfg.isEstep) {
       return renderCirclesPhase1Estep(q, stepKey, stepCfg, currentStepNum);
     }
 
