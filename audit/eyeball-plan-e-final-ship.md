@@ -70,7 +70,71 @@
 
 ## E5: drift fix + 3 docs final ship update
 
-無 drift 需修。3 docs 待最終 update 以反映 final ship readiness。
+無 drift 需修。3 docs 已 update。
+
+## E6: Phase 1 互動 click-driven 全測 ✓ DONE — 24/24 pass
+
+實際點按驗證（非 DOM 結構檢查）：
+1. simulation mode default active
+2. drill mode click 切換
+3. mobile drill-pill row visible
+4. drill-pill R 點擊 active
+5. type-tab 產品改進切換
+6. reshuffle 重抽 5 題
+7. qcard click 展開
+8. qcard__expand 顯示展開區塊
+9. qcard 確認 → Phase 1
+10. progress 7 pills CIRCLES
+11. 提示 click → modal 開
+12. modal AI 內容載入（stub fulfilled）
+13. modal close button 收合
+14. 範例答案 toggle 展開
+15. 範例答案 populated 含 9 個 li 內容
+16. toolbar B 點擊真渲染粗體 (`<b>` element 出現)
+17. save cycle saving→saved (chromium real-time)
+18. L step default 2 sol-cards
+19. sol-add 加第三方案
+20. sol-card__remove 移除第三
+21. E step 8 nested labels (2 sol × 4)
+22. S step 4 tracking-card 各自 example button
+23. S step CTA「完成測驗」
+24. locked: banner + 看評分結果 CTA + rt-field disabled
+
+## E7: NSM Step 1 互動測 ✓ DONE — 10/10 pass
+
+mockup 06 mobile + desktop:
+1. navbar 北極星指標 tab → NSM view
+2. 5 visible random cards
+3. CTA 預設 disabled
+4. nsm-card click → expanded
+5. context 區塊顯示
+6. shuffle 重抽 5 題
+7. type filter rows 5 (all + 3 type + 1)
+8. card 選後 CTA enabled
+9. mobile NSM 5 cards visible
+10. desktop layout selector
+
+## E8: Offcanvas 互動測 ✓ DONE — 9/9 pass
+
+mockup 09 empty + list + error 三狀態:
+1. hamburger click → drawer open
+2. backdrop visible
+3. empty state 文案「尚無練習記錄」
+4. close button → drawer close
+5. drawer list (api stub)
+6. score badge presence
+7. ESC key 關閉 drawer
+8. backdrop click 關閉 drawer (mouse.click x=320 outside drawer area)
+9. error state shown (api 500)
+
+## E9: line-by-line mockup vs production 對照 ✓ DONE — 7/7 pass
+
+抽 5 處 mockup line 對照 production 實渲染:
+- CHECK 1: mockup 03 line 802-808 progress 7 letters [C,I,R,C,L,E,S] ✓
+- CHECK 2 (a/b/c): mockup 03 line 1260+1283 L 步「核心機制」label 三 viewport 全顯示 ✓ (drift fix verify)
+- CHECK 3: mockup 03 line 1493 S mobile toolbar = 1 button ✓
+- CHECK 4: mockup 03 line 1970 locked banner title「已評分鎖定 · 76 / 100」字字對 ✓
+- CHECK 5: mockup 03 line 2160-2174 save-indicator 4 state class+text 全對 ✓
 
 ---
 
