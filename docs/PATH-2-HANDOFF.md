@@ -1,7 +1,7 @@
 # Path 2 — Frontend Rewrite · 接手 Handoff
 
 > 下個 session / 帳號接手用。**先讀本檔再讀 CLAUDE.md**。
-> **Last updated:** 2026-05-04（Plan B SB5 ✅ DONE S 步 3+4 tracking 動態 type label / Plan B SB1-4 + C SB1 + D SB1 全 merged main）
+> **Last updated:** 2026-05-04（Plan B SB6 ✅ DONE qchip 題目展開 4-block / Plan B SB1-5 + C SB1 + D SB1 全 merged main）
 
 ---
 

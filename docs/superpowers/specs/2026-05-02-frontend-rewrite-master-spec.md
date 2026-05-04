@@ -2,7 +2,7 @@
 
 > **Goal:** 後端 / API / DB / OpenAI prompt / 商業邏輯 / jest 100% 不動；前端 CSS + render 從 0 重寫；目標 iOS Safari 滑順度 ≥ aistockmap.com。
 > **Authority:** 重寫對齊基準。實作完成後逐條打勾，未對齊 = 未完成。
-> **Last updated:** 2026-05-04（Plan B SB5 完成 — S 步 3+4 tracking 動態 dim label per product type / CTA「完成 Phase 1」/ desktop title suffix「（含 NSM 與 4 追蹤維度）」/ rail 動態 type substitution / sonnet implement + opus line-by-line cold-review vs mockup 03 Section C 抓 mobile rt-toolbar drift 修補 / PW 123/123 含 chromium+webkit）
+> **Last updated:** 2026-05-04（Plan B SB6 完成 — qchip 題目展開 mockup 03 Section G / renderQchipExpand panel: statement + 深入分析 navy bar + 4 qchip-ana__block (含 trap warn 橘) + 收合 btn / qchip is-expanded class + caret 反轉 / 4 處 renderer 同步 / sonnet implement plan 嚴守 mockup CSS line 94-172 整段 copy / opus cold review 4 樣產出齊（jest 157 / PW 56/56 + regression 328/328 / pixel-diff 3.47-7.01% / eyeball walk）/ 殺手鐧 3 問備答 OK）
 
 ---
 
