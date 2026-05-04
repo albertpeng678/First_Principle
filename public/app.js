@@ -201,7 +201,7 @@
 
   // ── renderNavbar (per spec §2.10 + mockup 01 / 03 / 06 contract) ──────────
   // Actions rule:
-  //   CIRCLES home guest:  mobile = nothing / tablet+ = sign-in        (mockup 01 line 803/894-896)
+  //   CIRCLES home guest:  sign-in (all viewports — user 2026-05-04 親要求 override mockup line 803)
   //   CIRCLES home authed: email + sign-out                            (mockup 01 line 986-989, no home — already at home)
   //   Deep view  guest:    sign-in + home (both visible all viewports) — user functional requirement
   //   Deep view  authed:   email + sign-out + home                     (mockup 03 line 1077)
@@ -220,7 +220,7 @@
 
     const homeBtn = '<button class="navbar__icon-btn" data-nav="home" aria-label="回首頁"><i class="ph ph-house"></i></button>';
     const signInBtn = '<button class="navbar__icon-btn" data-nav="auth" aria-label="登入"><i class="ph ph-sign-in"></i></button>';
-    const signInBtnHomeOnly = '<button class="navbar__icon-btn navbar__icon-btn--auth-only" data-nav="auth" aria-label="登入"><i class="ph ph-sign-in"></i></button>';
+
     const signOutBtn = '<button class="navbar__icon-btn" data-nav="logout" aria-label="登出"><i class="ph ph-sign-out"></i></button>';
     const emailSpan = `<span class="navbar__email">${escHtml(AppState.userEmail || '')}</span>`;
 
@@ -228,7 +228,7 @@
     if (AppState.accessToken) {
       actions = emailSpan + signOutBtn + (isCirclesHome ? '' : homeBtn);
     } else if (isCirclesHome) {
-      actions = signInBtnHomeOnly; // CSS hides on mobile per mockup 01 line 803
+      actions = signInBtn; // mobile + tablet + desktop 都顯示（user 2026-05-04 親要求）
     } else {
       actions = signInBtn + homeBtn; // deep view guest: both visible all viewports
     }
@@ -1599,10 +1599,12 @@
     // and use CSS to hide the sep+text on mobile via @media.
     var metaHtml;
     if (isDrill) {
+      // drill: save-indicator 永遠顯示;sep + 「drill 模式 · 此步驟結束即完成」
+      // 在 mobile (≤ 767px) 用 phase-head__meta-extra 隱藏(對齊 mockup line 254-258)
       metaHtml = '<span class="phase-head__meta">'
         + renderSaveIndicator()
-        + '<span class="phase-head__meta-sep">·</span>'
-        + 'drill 模式 · 此步驟結束即完成'
+        + '<span class="phase-head__meta-sep phase-head__meta-extra">·</span>'
+        + '<span class="phase-head__meta-extra">drill 模式 · 此步驟結束即完成</span>'
         + '</span>';
     } else {
       // sim: mobile shows save only; tablet+ shows save + sep + 完整模擬

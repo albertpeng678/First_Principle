@@ -473,7 +473,7 @@ body:has(.submit-bar) { padding-bottom: calc(var(--touch-min) + var(--s-7)); }
    class 但缺 hide rule，導致 mobile-360 home guest 顯示 sign-in icon。 */
 @media (max-width: 480px) {
   .navbar__tabs { display: none; }
-  .navbar__icon-btn--auth-only { display: none; }
+  /* user 親要求 2026-05-04: mobile + tablet home 都應該可以登入,不再隱藏 sign-in icon */
 }
 
 /* stats strip (verbatim mockup 01) */

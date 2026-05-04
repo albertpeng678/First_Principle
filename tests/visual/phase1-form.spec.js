@@ -99,6 +99,31 @@ test.describe('B SB3 Phase 1 Form — mockup 03 Section A', () => {
     await expect(page.locator('.submit-bar__left .btn--ghost')).toBeVisible();
   });
 
+  // user 親回報 2026-05-04: mobile drill 進 Phase 1 phase-head 破版 — 因 drill metaHtml
+  // 缺 phase-head__meta-extra class 導致 mobile @media 隱藏 rule 沒生效。修後加這條 spec 防 regression。
+  test('drill mobile-360 phase-head: meta 只剩 save-indicator (drill 模式 sep+text 隱藏)', async ({ page }) => {
+    await page.setViewportSize({ width: 360, height: 1100 });
+    await gotoDrillC1(page);
+    await expect(page.locator('.phase-head__meta')).toBeVisible();
+    // visible meta width 應該 < 100px (只剩 save-indicator 「已暫存」)
+    const meta = await page.locator('.phase-head__meta').boundingBox();
+    expect(meta.width).toBeLessThan(100);
+    // phase-head__meta-extra 元素應該存在但 display:none
+    const extraVisible = await page.locator('.phase-head__meta-extra').first().isVisible().catch(() => false);
+    expect(extraVisible).toBe(false);
+    // phase-head 整體高度不應 > 100px (避免 wrap 破版)
+    const head = await page.locator('.phase-head').boundingBox();
+    expect(head.height).toBeLessThan(110);
+  });
+
+  test('drill tablet-768 phase-head: meta 完整顯示「drill 模式 · 此步驟結束即完成」', async ({ page }) => {
+    await page.setViewportSize({ width: 768, height: 1100 });
+    await gotoDrillC1(page);
+    await expect(page.locator('.phase-head__meta-extra').first()).toBeVisible();
+    const metaText = (await page.locator('.phase-head__meta').textContent() || '').trim();
+    expect(metaText).toContain('drill 模式');
+  });
+
   test('submit-bar drill mode: only 下一步, no 上一步 ghost', async ({ page }) => {
     await gotoDrillC1(page);
     expect(await page.locator('.submit-bar__left .btn--ghost').count()).toBe(0);
