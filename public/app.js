@@ -452,7 +452,7 @@
       stepLetter: 'S',
       stepNum: '07',
       isSstep: true,
-      cta: '完成 Phase 1',
+      cta: '完成測驗',
       fields: [
         { key: '推薦方案',   placeholder: '推薦哪個方案 + 一句話總判斷',                          rows: 2 },
         { key: '選擇理由',   placeholder: '引用 E 結論的 3 個面向 / 對比放棄方案 / 回應最大缺點', rows: 3 },
@@ -539,7 +539,8 @@
     var aliasMap = {
       I: { '用戶動機假設(JTBD)': '用戶動機假設' },
       R: { '功能性': '功能性需求', '情感性': '情感性需求', '社交性': '社交性需求' },
-      C2: { '最優先': '最優先項目', '暫緩': '暫緩項目' }
+      C2: { '最優先': '最優先項目', '暫緩': '暫緩項目' },
+      L: { '方案三': '方案三（可選）' }
     };
     if (aliasMap[stepKey] && aliasMap[stepKey][fieldKey]) return aliasMap[stepKey][fieldKey];
     return fieldKey;
@@ -768,7 +769,7 @@
       + '<label class="field__label">' + escHtml(solCfg.label) + '</label>'
       + '<div class="field__hint-row">'
       + '<button class="field__hint-link" data-phase1="hint" data-field-key="方案"><i class="ph ph-lightbulb"></i>提示</button>'
-      + '<button class="field-example-toggle" aria-expanded="false" data-phase1="example-toggle" data-example-key="' + escHtml(solDataKey) + '" data-field-key="方案"><i class="ph ph-quotes"></i>範例答案<i class="ph ph-caret-down toggle-caret"></i></button>'
+      + '<button class="field-example-toggle" aria-expanded="false" data-phase1="example-toggle" data-example-key="' + escHtml(solDataKey) + '" data-field-key="' + escHtml(numLabel) + '"><i class="ph ph-quotes"></i>範例答案<i class="ph ph-caret-down toggle-caret"></i></button>'
       + '</div>'
       + '</div>'
       + '<div class="rt-field">'
@@ -778,7 +779,7 @@
       + '</div>'
       + '<textarea class="rt-textarea" rows="3" placeholder="' + escHtml(taPlaceholder) + '" data-sol-idx="' + idx + '"></textarea>'
       + '</div>'
-      + renderExampleExpand('L', '方案', solDataKey)
+      + renderExampleExpand('L', numLabel, solDataKey)
       + '</div>';
 
     return '<div class="sol-card">'

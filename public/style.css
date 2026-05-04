@@ -767,13 +767,9 @@ body:has(.submit-bar) { padding-bottom: calc(var(--touch-min) + var(--s-7)); }
   .phase-body--with-rail .rail { display: block; }
 }
 
-/* ── submit-bar: ghost btn (上一步) hidden on mobile sim, hidden entirely in drill ──
-   sim: ghost rendered always, hidden on mobile via CSS
-   drill: ghost not rendered (no DOM node) */
+/* ── submit-bar: ghost btn (上一步) — sim 全 viewport 顯示；drill 不渲染 (no DOM) ──
+   user 明確要求：mobile/tablet/desktop 都要顯示 上一步（user 親說：隨時要返回上步驟修） */
 .submit-bar__back { }
-@media (max-width: 767px) {
-  .submit-bar__back { display: none; }
-}
 
 /* ── sol-card (Plan B SB4 — mockup 03 Section B line 543-607) ──────────────── */
 .sol-card {
