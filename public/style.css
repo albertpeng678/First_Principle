@@ -1034,3 +1034,40 @@ body:has(.submit-bar) { padding-bottom: calc(var(--touch-min) + var(--s-7)); }
 }
 .qchip-collapse-btn:hover { background: var(--c-bg-soft); color: var(--c-ink); }
 /* ─── B SB6 · qchip-expand END ─── */
+
+/* ───── LOCKED · hint modal (mockup 03 Section D line 1760-1815) ───── */
+/* hint modal overlay — 浮在 form 上方 backdrop dim；mobile bottom-sheet / desktop centered */
+.hint-overlay { display: none; position: fixed; inset: 0; z-index: 100; }
+.hint-overlay[aria-hidden="false"] { display: block; }
+.hint-overlay__backdrop { position: absolute; inset: 0; background: rgba(15, 23, 42, 0.45); }
+.modal-card {
+  position: absolute; left: 50%; transform: translateX(-50%);
+  background: var(--c-card); border-radius: var(--r-card);
+  box-shadow: 0 20px 60px rgba(15,23,42,0.18);
+  width: calc(100% - var(--s-5)); max-width: 480px;
+  display: flex; flex-direction: column;
+}
+@media (max-width: 767px) {
+  /* mobile: bottom sheet up-slide — 拇指可達 */
+  .modal-card {
+    bottom: 0; transform: translateX(-50%);
+    border-bottom-left-radius: 0; border-bottom-right-radius: 0;
+    width: 100%; max-width: 100%;
+    padding-bottom: max(var(--s-3), env(safe-area-inset-bottom));
+  }
+}
+@media (min-width: 768px) {
+  /* tablet+desktop: centered fade-in */
+  .modal-card { top: 50%; transform: translate(-50%, -50%); }
+}
+.modal__head { display: flex; align-items: flex-start; gap: var(--s-3); padding: var(--s-4) var(--s-5); border-bottom: 1px solid var(--c-rule); }
+.modal__head-icon { display: inline-flex; align-items: center; justify-content: center; width: 32px; height: 32px; border-radius: 50%; background: rgba(15,23,42,0.04); color: var(--c-navy); font-size: 16px; flex-shrink: 0; }
+.modal__sub { font-size: var(--t-cap); color: var(--c-ink-3); margin-bottom: 2px; }
+.modal__title { font-size: var(--t-h3); font-weight: 600; color: var(--c-ink); margin: 0; }
+.modal__close { width: 28px; height: 28px; border-radius: 50%; display: inline-flex; align-items: center; justify-content: center; color: var(--c-ink-3); cursor: pointer; flex-shrink: 0; }
+.modal__close:hover { background: var(--c-bg-deep); color: var(--c-ink); }
+.modal__body { padding: var(--s-4) var(--s-5); font-size: var(--t-body-sm); line-height: 1.7; color: var(--c-ink); }
+.modal__body p { margin: 0; }
+.modal__body p + p { margin-top: var(--s-3); }
+.modal__foot { padding: var(--s-3) var(--s-5) var(--s-4); display: flex; justify-content: flex-end; gap: var(--s-2); border-top: 1px solid var(--c-rule); }
+/* ───── hint modal END ───── */

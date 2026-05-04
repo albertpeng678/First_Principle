@@ -486,6 +486,162 @@
     },
   };
 
+  // ── HINT_OVERLAY_TEXT — 27 cells: 7 step × 各步驟 fields ──
+  // mockup 03 Section D line 1804-1807 規約：80-100 字 zh-TW，第 1 層 hardcoded（0ms 載入）
+  var HINT_OVERLAY_TEXT = {
+    C1: {
+      '問題範圍': '先把題目的問題本身定義清楚 — 它的具體類型是什麼（行為層 / 情感層 / 系統層）？涵蓋哪些功能或場景？哪些明確排除？沒釐清這層，後面的分析會在錯的邊界上展開。',
+      '時間範圍': '為什麼是 X 天？對應的業務節奏是什麼（廣告週期 / 留存窗口 / 季度回檢）？時間框架要支撐你後面講的指標觀察期。',
+      '業務影響': '列出這題不能傷到的量化紅線 — 哪些指標不能下降、降多少視為失敗。沒有紅線 = 沒有 trade-off 判準。',
+      '假設確認': '寫 2-3 條「如果這個假設不成立，整個分析就垮」的關鍵假設。讓 reviewer 知道你哪裡有風險，而不是假裝什麼都確定。'
+    },
+    I: {
+      '目標用戶分群': '依「行為 / 情境」分群，不只人口統計。列 2-4 個具體子群，每群有清楚的觸發場景或使用習慣。',
+      '選定焦點對象': '說明為什麼選這群、不選其他群 — 痛點最集中？商業價值最高？樣本量足夠？要寫得讓 reviewer 看得出 trade-off。',
+      '用戶動機假設(JTBD)': '用「當 X 時，我想要 Y，以便 Z」格式 — X 是情境、Y 是任務、Z 是更深層 outcome。聚焦 outcome 而不是 feature。',
+      '排除對象': '寫清楚誰不在這次的範圍內 + 為什麼排除 — 不是看不起，是聚焦。明確排除可幫 reviewer 看出你的邊界判斷。'
+    },
+    R: {
+      '功能性': '用戶想完成的具體任務或操作 — 用動詞列。例：「可跳過廣告 / 廣告頻率可控 / 廣告時機可選」。',
+      '情感性': '用戶在使用過程中希望有什麼感受 — 沉浸 / 不被打斷 / 有掌控感。情感性常被忽略但決定留存。',
+      '社交性': '用戶如何在社交場合中展示或使用這個產品 — 分享、討論、認同感。',
+      '核心痛點': '寫「最根本的、用戶已嘗試但未能解決的問題」— 已試 workaround 表示需求真實。'
+    },
+    C2: {
+      '取捨標準': '列 2-3 個判斷優先級的明確標準（用戶衝擊 × 商業影響 × 實作複雜度），讓你後面的排序站得住腳。',
+      '最優先': '說明為什麼這個最優先 — 連結你前面定的取捨標準，給出量化或半量化判斷。',
+      '暫緩': '說明暫緩的邏輯 — 不是「不重要」，是「現在做風險或代價不對等」。',
+      '排序理由': '用一句話說明整體排序的核心考量 — 幫 reviewer 快速看到你的判斷主軸。'
+    },
+    L: {
+      '方案': '想 2-3 個「機制差異本質不同」的方案 — 不是同一招的小變體。每個方案要有清楚的：機制 / 為什麼這個機制能解 / 與其他方案的本質差異。'
+    },
+    E: {
+      '優點': '誠實寫每個方案最強的 1-2 個優勢 — 對應前面定的核心痛點，量化越好。不要只寫一招很棒，要寫「為什麼這招對這群人這時候特別有效」。',
+      '缺點': '寫每個方案的限制或副作用 — 哪些用戶體驗會變差、哪些情況不適用。誠實寫缺點才能看出 trade-off 理解。',
+      '風險與依賴': '具體列出技術 / 人力 / 時程 / 第三方依賴 — 不要寫「可能會失敗」這種空話。要寫「依賴 X，X 風險在 Y」。',
+      '成功指標': '量化定義方案有效 — 主指標 + 觀察期。例：「30 天內留存 +5pp」。沒量化的成功指標 = 沒辦法驗證。'
+    },
+    S: {
+      '推薦方案': '一句話總判斷 — 推薦哪個方案、為什麼這是最終選擇。要呼應你前面定的 NSM 與取捨標準。',
+      '選擇理由': '引用 E 結論的 3 個面向 — 對比放棄方案 / 回應最大缺點 / 解釋為何取捨值得。讓 reviewer 看到你的決策邏輯。',
+      '北極星指標': 'NSM 定義含行為門檻 + 為什麼能反映成效。例：「每月活躍 ≥ 1 次完整收聽的用戶數」— 動詞 + 門檻 + 理由。',
+      '觸及廣度': '產品被多少人觸及 — 用 MAU、WAU、reach 量化。對應 NSM 的「廣度」維度。',
+      '互動深度': '用戶單次或週期內互動深度 — sessions/user、minutes/session 等。對應 NSM 的「深度」維度。',
+      '習慣頻率': '用戶回訪頻率 — 7-day return、days/month。對應 NSM 的「頻率」維度。',
+      '留存驅力': '哪個行為驅動長期留存 — D30 / W4 retention 等。對應 NSM 的「留存」維度。'
+    }
+  };
+
+  // ── getFieldExampleKey: 把 config field key 轉成 DB field_examples key ──
+  // DB schema 與 config schema 微差異：I (JTBD) / R (需求 suffix) / C2 (項目 suffix)
+  function getFieldExampleKey(stepKey, fieldKey) {
+    var aliasMap = {
+      I: { '用戶動機假設(JTBD)': '用戶動機假設' },
+      R: { '功能性': '功能性需求', '情感性': '情感性需求', '社交性': '社交性需求' },
+      C2: { '最優先': '最優先項目', '暫緩': '暫緩項目' }
+    };
+    if (aliasMap[stepKey] && aliasMap[stepKey][fieldKey]) return aliasMap[stepKey][fieldKey];
+    return fieldKey;
+  }
+
+  // markdownBulletsToHtml — 簡易 markdown bullet→<li> 轉換（mockup 03 line 1942-1944 example-bullet 規格）
+  // 支援：- top, **bold**, 縮排子項（  - sub）
+  function markdownBulletsToHtml(md) {
+    if (!md) return '<li>（無內容）</li>';
+    var lines = md.split('\n');
+    var html = '';
+    var inSub = false;
+    lines.forEach(function (line) {
+      if (/^\s*$/.test(line)) return;
+      var indent = (line.match(/^\s*/) || [''])[0].length;
+      var content = line.replace(/^\s*-\s*/, '').trim();
+      if (!content) return;
+      // bold
+      content = content.replace(/\*\*([^*]+)\*\*/g, '<strong>$1</strong>');
+      if (indent >= 2) {
+        if (!inSub) { html += '<ul class="example-sub">'; inSub = true; }
+        html += '<li>' + content + '</li>';
+      } else {
+        if (inSub) { html += '</ul>'; inSub = false; }
+        html += '<li>' + content + '</li>';
+      }
+    });
+    if (inSub) html += '</ul>';
+    return html;
+  }
+
+  // renderHintModal — mockup 03 line 1795-1812 verbatim
+  function renderHintModal(stepKey, fieldKey) {
+    var text = (HINT_OVERLAY_TEXT[stepKey] && HINT_OVERLAY_TEXT[stepKey][fieldKey]) || '提示內容稍後提供。';
+    // split into paragraphs: double newline or after sentence-ending period followed by new text
+    var paras = text.split(/\n\n/).filter(Boolean);
+    if (paras.length <= 1) {
+      // try splitting at mid-sentence: dash + space boundary
+      var parts = text.split(' — ');
+      if (parts.length >= 2) {
+        // keep first sentence + rest
+        paras = [parts[0] + '。', parts.slice(1).join(' — ')];
+      } else {
+        paras = [text];
+      }
+    }
+    var bodyHtml = paras.map(function(p, i){
+      return '<p' + (i > 0 ? ' style="margin-top: var(--s-3);"' : '') + '>' + escHtml(p) + '</p>';
+    }).join('');
+    return '<div class="hint-overlay" aria-hidden="false">'
+      + '<div class="hint-overlay__backdrop" data-hint-action="close"></div>'
+      + '<div class="modal-card" role="dialog" aria-modal="true">'
+      +   '<div class="modal__head">'
+      +     '<span class="modal__head-icon"><i class="ph ph-lightbulb"></i></span>'
+      +     '<div style="flex:1;">'
+      +       '<div class="modal__sub">提示 · ' + escHtml(stepKey) + '</div>'
+      +       '<h3 class="modal__title">' + escHtml(fieldKey) + '</h3>'
+      +     '</div>'
+      +     '<button class="modal__close" data-hint-action="close" aria-label="關閉"><i class="ph ph-x"></i></button>'
+      +   '</div>'
+      +   '<div class="modal__body">' + bodyHtml + '</div>'
+      +   '<div class="modal__foot">'
+      +     '<button class="btn btn--primary" data-hint-action="close" style="font-size:var(--t-meta); min-height:36px;">了解了</button>'
+      +   '</div>'
+      + '</div>'
+      + '</div>';
+  }
+
+  function _hintEscHandler(e){ if (e.key === 'Escape') closeHintModal(); }
+
+  function openHintModal(stepKey, fieldKey) {
+    closeHintModal(); // single-instance
+    var host = document.createElement('div');
+    host.id = '__hint_overlay_host__';
+    host.innerHTML = renderHintModal(stepKey, fieldKey);
+    document.body.appendChild(host);
+    // bind close
+    host.querySelectorAll('[data-hint-action="close"]').forEach(function(el){
+      el.addEventListener('click', function(){ closeHintModal(); });
+    });
+    // ESC key
+    document.addEventListener('keydown', _hintEscHandler);
+  }
+
+  function closeHintModal() {
+    var host = document.getElementById('__hint_overlay_host__');
+    if (host) host.remove();
+    document.removeEventListener('keydown', _hintEscHandler);
+  }
+
+  // renderExampleExpand — mockup 03 line 1905-1920 verbatim
+  // dataKey 用於 unique data-attr（E 步用 sol-N-fieldKey；其他步用 fieldKey）
+  function renderExampleExpand(stepKey, fieldKey, dataKey) {
+    return '<div class="example-expand" aria-hidden="true" data-example-key="' + escHtml(dataKey) + '">'
+      + '<div class="example-expand__head">'
+      +   '<div class="example-expand__title"><i class="ph ph-quotes"></i>範例答案 — 此題預先生成，不打 LLM（&lt; 50ms）</div>'
+      +   '<button class="example-expand__close" data-phase1="example-close" data-example-key="' + escHtml(dataKey) + '" aria-label="收合"><i class="ph ph-x"></i></button>'
+      + '</div>'
+      + '<ul class="example-list" data-example-content-key="' + escHtml(dataKey) + '"><li>（載入中...）</li></ul>'
+      + '</div>';
+  }
+
   // ── CIRCLES Phase 1 Form (Plan B SB3 — mockup 03 Section A) ─────────────
   // renderCirclesPhase1 + helpers: renderProgressBar / renderPhase1Field / renderRail
 
@@ -550,8 +706,8 @@
       + '<div class="field__label-row">'
       + '<label class="field__label">' + escHtml(key) + '</label>'
       + '<div class="field__hint-row">'
-      + '<button class="field__hint-link" data-phase1="hint" data-field-idx="' + idx + '"><i class="ph ph-lightbulb"></i>提示</button>'
-      + '<button class="field-example-toggle" aria-expanded="false" data-phase1="example-toggle" data-field-idx="' + idx + '">'
+      + '<button class="field__hint-link" data-phase1="hint" data-field-key="' + escHtml(key) + '" data-field-idx="' + idx + '"><i class="ph ph-lightbulb"></i>提示</button>'
+      + '<button class="field-example-toggle" aria-expanded="false" data-phase1="example-toggle" data-example-key="' + escHtml(key) + '" data-field-key="' + escHtml(key) + '" data-field-idx="' + idx + '">'
       + '<i class="ph ph-quotes"></i>範例答案<i class="ph ph-caret-down toggle-caret"></i>'
       + '</button>'
       + '</div>'
@@ -561,13 +717,7 @@
       + '<textarea class="rt-textarea" rows="' + rows + '" placeholder="' + escHtml(placeholder) + '" data-phase1="textarea" data-field-idx="' + idx + '" data-max="' + max + '"></textarea>'
       + '</div>'
       + metaHtml
-      + '<div class="example-expand" aria-hidden="true" data-field-idx="' + idx + '">'
-      + '<div class="example-expand__head">'
-      + '<div class="example-expand__title"><i class="ph ph-quotes"></i>範例答案</div>'
-      + '<button class="example-expand__close" aria-label="收合" data-phase1="example-close" data-field-idx="' + idx + '"><i class="ph ph-x"></i></button>'
-      + '</div>'
-      + '<ul class="example-list"><li>（範例由題目資料提供）</li></ul>'
-      + '</div>'
+      + renderExampleExpand('', key, key)
       + '</div>';
   }
 
@@ -609,13 +759,16 @@
       + (isOptional ? '<button class="sol-card__remove" aria-label="移除方案三"><i class="ph ph-x"></i></button>' : '')
       + '</div>';
 
+    // dataKey for this sol-card's example expand: 'sol-N' (one example per sol)
+    var solDataKey = 'sol-' + idx;
+
     // field: mobile has label-row; tablet+ label hidden via CSS
     var fieldHtml = '<div class="field" style="margin-bottom:0;">'
       + '<div class="field__label-row">'
       + '<label class="field__label">' + escHtml(solCfg.label) + '</label>'
       + '<div class="field__hint-row">'
-      + '<button class="field__hint-link"><i class="ph ph-lightbulb"></i>提示</button>'
-      + '<button class="field-example-toggle" aria-expanded="false"><i class="ph ph-quotes"></i>範例答案<i class="ph ph-caret-down toggle-caret"></i></button>'
+      + '<button class="field__hint-link" data-phase1="hint" data-field-key="方案"><i class="ph ph-lightbulb"></i>提示</button>'
+      + '<button class="field-example-toggle" aria-expanded="false" data-phase1="example-toggle" data-example-key="' + escHtml(solDataKey) + '" data-field-key="方案"><i class="ph ph-quotes"></i>範例答案<i class="ph ph-caret-down toggle-caret"></i></button>'
       + '</div>'
       + '</div>'
       + '<div class="rt-field">'
@@ -625,6 +778,7 @@
       + '</div>'
       + '<textarea class="rt-textarea" rows="3" placeholder="' + escHtml(taPlaceholder) + '" data-sol-idx="' + idx + '"></textarea>'
       + '</div>'
+      + renderExampleExpand('L', '方案', solDataKey)
       + '</div>';
 
     return '<div class="sol-card">'
@@ -907,13 +1061,16 @@
 
     // 4 nested fields per sol-card
     var fieldsHtml = perSolFields.map(function (f) {
+      var dataKey = solIdx + '-' + f.label;  // composite: 0-優點 / 0-缺點 / 1-優點 ...
       return ''
-        + '<div class="field" style="margin-bottom: var(--s-4);">'
+        + '<div class="field" data-field-key="' + escHtml(f.label) + '" data-sol-idx="' + solIdx + '" style="margin-bottom: var(--s-4);">'
         +   '<div class="field__label-row">'
         +     '<label class="field__label">' + escHtml(f.label) + '</label>'
         +     '<div class="field__hint-row">'
-        +       '<button class="field__hint-link"><i class="ph ph-lightbulb"></i>提示</button>'
-        +       '<button class="field-example-toggle" aria-expanded="false"><i class="ph ph-quotes"></i>範例答案<i class="ph ph-caret-down toggle-caret"></i></button>'
+        +       '<button class="field__hint-link" data-phase1="hint" data-field-key="' + escHtml(f.label) + '"><i class="ph ph-lightbulb"></i>提示</button>'
+        +       '<button class="field-example-toggle" aria-expanded="false" data-phase1="example-toggle" data-example-key="' + escHtml(dataKey) + '" data-field-key="' + escHtml(f.label) + '">'
+        +         '<i class="ph ph-quotes"></i>範例答案<i class="ph ph-caret-down toggle-caret"></i>'
+        +       '</button>'
         +     '</div>'
         +   '</div>'
         +   '<div class="rt-field">'
@@ -924,6 +1081,7 @@
         +     '<textarea class="rt-textarea" rows="' + f.rows + '" placeholder="' + escHtml(f.placeholder) + '" data-circles-e-sol-idx="' + solIdx + '" data-circles-e-field-key="' + f.key + '" data-max="' + f.max + '"></textarea>'
         +   '</div>'
         +   '<div class="field__meta" style="font-size: var(--t-cap); color: var(--c-ink-3); margin-top: 2px;">建議 ' + f.minMax + ' 字</div>'
+        +   renderExampleExpand('E', f.label, dataKey)
         + '</div>';
     }).join('');
 
@@ -1023,8 +1181,8 @@
         + '<div class="field__label-row">'
         + '<label class="field__label">' + escHtml(key) + '</label>'
         + '<div class="field__hint-row">'
-        + '<button class="field__hint-link"><i class="ph ph-lightbulb"></i>提示</button>'
-        + '<button class="field-example-toggle" aria-expanded="false">'
+        + '<button class="field__hint-link" data-phase1="hint" data-field-key="' + escHtml(key) + '"><i class="ph ph-lightbulb"></i>提示</button>'
+        + '<button class="field-example-toggle" aria-expanded="false" data-phase1="example-toggle" data-example-key="' + escHtml(key) + '" data-field-key="' + escHtml(key) + '">'
         + '<i class="ph ph-quotes"></i>範例答案<i class="ph ph-caret-down toggle-caret"></i>'
         + '</button>'
         + '</div>'
@@ -1033,6 +1191,7 @@
         + toolbarHtml
         + '<textarea class="rt-textarea" rows="' + rows + '" placeholder="' + escHtml(placeholder) + '" data-s-textarea="' + escHtml(key) + '"></textarea>'
         + '</div>'
+        + renderExampleExpand('S', key, key)
         + '</div>';
     });
 
@@ -1046,18 +1205,21 @@
       var dimEn = dimEnLabels[dimKey];
       var dimSub = dimSubs ? (dimSubs[dimKey] || '') : '';
       var dimPlaceholder = dimPlaceholders[dimKey] || '';
+      // dimZh is the current label (e.g. '觸及廣度') — use for hint key lookup in HINT_OVERLAY_TEXT.S
+      var trackDataKey = 'track-' + dimKey;
       trackingCardsHtml += '<div class="tracking-card" data-dim="' + dimKey + '">'
         + '<span class="tracking-card__num">' + dimNums[i] + '</span>'
         + '<div>'
         + '<div style="display:flex; justify-content:space-between; align-items:baseline; gap:var(--s-3); margin-bottom:var(--s-1);">'
         + '<div class="tracking-card__head">' + escHtml(dimZh) + '（' + escHtml(dimEn) + '）</div>'
         + '<div class="field__hint-row" style="font-size: var(--t-cap);">'
-        + '<button class="field__hint-link"><i class="ph ph-lightbulb"></i>提示</button>'
-        + '<button class="field-example-toggle" aria-expanded="false"><i class="ph ph-quotes"></i>範例答案<i class="ph ph-caret-down toggle-caret"></i></button>'
+        + '<button class="field__hint-link" data-phase1="hint" data-field-key="' + escHtml(dimZh) + '"><i class="ph ph-lightbulb"></i>提示</button>'
+        + '<button class="field-example-toggle" aria-expanded="false" data-phase1="example-toggle" data-example-key="' + escHtml(trackDataKey) + '" data-field-key="' + escHtml(dimZh) + '"><i class="ph ph-quotes"></i>範例答案<i class="ph ph-caret-down toggle-caret"></i></button>'
         + '</div>'
         + '</div>'
         + '<div class="tracking-card__sub">' + escHtml(dimSub) + '</div>'
         + '<input type="text" placeholder="' + escHtml(dimPlaceholder) + '" data-s-tracking="' + dimKey + '">'
+        + renderExampleExpand('S', dimZh, trackDataKey)
         + '</div>'
         + '</div>';
     });
@@ -2051,11 +2213,12 @@
   var _phase1CharDebounce = null;
 
   function bindCirclesPhase1() {
-    // ── example-toggle: toggle aria-expanded + show/hide example-expand ──
+    // ── example-toggle: toggle aria-expanded + show/hide example-expand by example-key ──
     document.querySelectorAll('[data-phase1="example-toggle"]').forEach(function (btn) {
       btn.addEventListener('click', function (e) {
         e.stopPropagation();
-        var idx = btn.dataset.fieldIdx;
+        var key = btn.dataset.exampleKey || btn.dataset.fieldIdx;
+        var fieldKey = btn.dataset.fieldKey;
         var isActive = btn.getAttribute('aria-expanded') === 'true';
         var newState = !isActive;
         btn.setAttribute('aria-expanded', String(newState));
@@ -2063,26 +2226,43 @@
         // rotate caret
         var caret = btn.querySelector('.toggle-caret');
         if (caret) caret.style.transform = newState ? 'rotate(180deg)' : '';
-        // show/hide example-expand
-        var expand = document.querySelector('.example-expand[data-field-idx="' + idx + '"]');
+        // find expand by example-key (preferred) or field-idx (legacy)
+        var expand = document.querySelector('.example-expand[data-example-key="' + key + '"]')
+          || document.querySelector('.example-expand[data-field-idx="' + key + '"]');
         if (expand) {
           expand.setAttribute('aria-hidden', String(!newState));
           expand.style.display = newState ? '' : 'none';
+          // lazy populate content
+          if (newState) {
+            var contentList = expand.querySelector('.example-list');
+            if (contentList && contentList.dataset.populated !== '1') {
+              var stepKey = AppState.circlesMode === 'drill'
+                ? (AppState.circlesDrillStep || 'C1')
+                : (['C1','I','R','C2','L','E','S'][AppState.circlesSimStep || 0] || 'C1');
+              var dbKey = getFieldExampleKey(stepKey, fieldKey || key);
+              var q = AppState.circlesSelectedQuestion || {};
+              var md = (q.field_examples && q.field_examples[stepKey] && q.field_examples[stepKey][dbKey]) || '';
+              contentList.innerHTML = md ? markdownBulletsToHtml(md) : '<li>（此題尚無範例答案）</li>';
+              contentList.dataset.populated = '1';
+            }
+          }
         }
       });
     });
 
-    // ── example-close: collapse example-expand ──
+    // ── example-close: collapse example-expand by example-key ──
     document.querySelectorAll('[data-phase1="example-close"]').forEach(function (btn) {
       btn.addEventListener('click', function (e) {
         e.stopPropagation();
-        var idx = btn.dataset.fieldIdx;
-        var expand = document.querySelector('.example-expand[data-field-idx="' + idx + '"]');
+        var key = btn.dataset.exampleKey || btn.dataset.fieldIdx;
+        var expand = document.querySelector('.example-expand[data-example-key="' + key + '"]')
+          || document.querySelector('.example-expand[data-field-idx="' + key + '"]');
         if (expand) {
           expand.setAttribute('aria-hidden', 'true');
           expand.style.display = 'none';
         }
-        var toggle = document.querySelector('[data-phase1="example-toggle"][data-field-idx="' + idx + '"]');
+        var toggle = document.querySelector('[data-phase1="example-toggle"][data-example-key="' + key + '"]')
+          || document.querySelector('[data-phase1="example-toggle"][data-field-idx="' + key + '"]');
         if (toggle) {
           toggle.setAttribute('aria-expanded', 'false');
           toggle.classList.remove('is-active');
@@ -2092,11 +2272,22 @@
       });
     });
 
-    // ── hint button: SB5 will implement full overlay; here just noop / console ──
+    // ── hint button: open Tier-1 modal with hardcoded text ──
     document.querySelectorAll('[data-phase1="hint"]').forEach(function (btn) {
       btn.addEventListener('click', function (e) {
         e.stopPropagation();
-        // SB5 will implement hint overlay; placeholder
+        var stepKey = AppState.circlesMode === 'drill'
+          ? (AppState.circlesDrillStep || 'C1')
+          : (['C1','I','R','C2','L','E','S'][AppState.circlesSimStep || 0] || 'C1');
+        var fieldKey = btn.dataset.fieldKey || btn.dataset.fieldIdx;
+        // 若 fieldKey 是 idx (數字)，從 stepCfg.fields 找 key
+        if (fieldKey && /^\d+$/.test(fieldKey)) {
+          var cfg = CIRCLES_STEP_CONFIG[stepKey];
+          if (cfg && cfg.fields && cfg.fields[parseInt(fieldKey, 10)]) {
+            fieldKey = cfg.fields[parseInt(fieldKey, 10)].key;
+          }
+        }
+        openHintModal(stepKey, fieldKey || '提示');
       });
     });
 
