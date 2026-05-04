@@ -2,7 +2,7 @@
 
 > **Goal:** 後端 / API / DB / OpenAI prompt / 商業邏輯 / jest 100% 不動；前端 CSS + render 從 0 重寫；目標 iOS Safari 滑順度 ≥ aistockmap.com。
 > **Authority:** 重寫對齊基準。實作完成後逐條打勾，未對齊 = 未完成。
-> **Last updated:** 2026-05-04（**Plan B SB8 + SB9a ✅ DONE** — SB9a save-indicator 4 狀態 visual cycle 對齊 mockup 03 Section F line 2109-2186 + line 294-306 CSS / `renderSaveIndicator` helper 取代 9 處 hardcoded `--saved` / `triggerSaveCycle` debounce 800ms→saving→200ms→saved→2000ms→idle / try/catch → error state + document delegation retry / localStorage 草稿 `pmdrill:circles:draft:{qid}` 寫 P1/P1S/P1L/P1E + framework + ts / 4 state × 3 viewport = 12 PNG audit / `audit/eyeball-plan-b-sb9a.md`）
+> **Last updated:** 2026-05-04（**Plan B SB8 + SB9a + SB9b ✅ DONE** — SB9b locked/stale/save-error 三變體對齊 mockup 03 Section E line 1953-2106 / `applyPhase1StateOverlay(html)` post-render transform 不污染 4 個 phase-1 renderer / 3 banner helper（locked navy + stale red + save-error danger）+ rt-field--locked CSS（bg-soft + opacity 0.85 + toolbar opacity 0.5 + contenteditable=false）/ submit-bar primary 變體（看評分結果 / 用最新題目重練 / 下一步請先恢復連線 disabled）/ save-error 不鎖 rt-field（user 仍可改草稿）/ 10 specs Desktop-1280 全綠 + 9 PNG state×viewport audit + Phase 1 specs 3 vp regression 210/210 / `audit/eyeball-plan-b-sb9b.md`）
 
 ---
 

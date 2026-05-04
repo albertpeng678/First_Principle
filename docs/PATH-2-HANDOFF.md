@@ -1,7 +1,7 @@
 # Path 2 — Frontend Rewrite · 接手 Handoff
 
 > 下個 session / 帳號接手用。**先讀本檔再讀 CLAUDE.md**。
-> **Last updated:** 2026-05-04（**Plan B SB8 + SB9a ✅ DONE** — SB9a save-indicator 4 狀態 visual cycle (idle/saving/saved/error) + localStorage 草稿 / `triggerSaveCycle` debounce 800ms / 5 input listeners 串接 / mockup 03 Section F 對齊 / 12 PNG state×viewport audit / `audit/eyeball-plan-b-sb9a.md` / 下一步：SB9b locked/stale variants - mockup 03 Section E line 1953-2106）
+> **Last updated:** 2026-05-04（**Plan B SB8 + SB9a + SB9b ✅ DONE** — SB9b locked/stale/save-error 三變體 visual 對齊 mockup 03 Section E line 1953-2106 / `applyPhase1StateOverlay(html)` post-render transform / banner--save-error + rt-field--locked CSS / 4 phase-1 renderer return wrap / 9 PNG state×viewport audit / Phase 1 specs 3 viewport regression 210/210 / `audit/eyeball-plan-b-sb9b.md` / 下一步：Plan E final ship - iOS 真機驗證 + 完整 PR 流程）
 >
 > **Post-ship hardening 重點（2026-05-04 user rapid-fire fix）:**
 > - `routes/circles-public.js` 已存在 `POST /hint` 端點（後端 AI 已開好,前端只需呼叫）

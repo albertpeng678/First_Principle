@@ -550,6 +550,104 @@
     return found ? found.join('\n') : '';
   }
 
+  // ── Plan B SB9b: locked / stale / save-error banner + variants (mockup 03 Section E line 1953-2106) ──
+  function renderLockedBanner(score) {
+    var subText = '只鎖定編輯,答案仍可閱讀;要修改請從首頁開新場練習。';
+    var titleHtml = score != null
+      ? '已評分鎖定 · ' + score + ' / 100'
+      : '已評分鎖定';
+    return '<div class="banner banner--locked">'
+      + '<span class="banner__icon"><i class="ph ph-lock-key"></i></span>'
+      + '<div class="banner__main">'
+      + '<div class="banner__title">' + escHtml(titleHtml) + '</div>'
+      + '<div class="banner__sub">' + escHtml(subText) + '</div>'
+      + '</div>'
+      + '</div>';
+  }
+
+  function renderStaleBanner() {
+    return '<div class="banner banner--stale">'
+      + '<span class="banner__icon"><i class="ph ph-warning-octagon"></i></span>'
+      + '<div class="banner__main">'
+      + '<div class="banner__title">題庫已更新 — 顯示為唯讀</div>'
+      + '<div class="banner__sub">這份紀錄的題目陳述（problem_statement）與資料庫目前版本不同。為避免分析錯亂,整份練習轉為唯讀;可回首頁用最新題目重練。</div>'
+      + '</div>'
+      + '</div>';
+  }
+
+  function renderSaveErrorBanner() {
+    return '<div class="banner banner--save-error">'
+      + '<i class="ph ph-cloud-warning"></i>'
+      + '<div>'
+      + '<strong>離線中 · 已存於本機</strong>'
+      + '你的修改已保存到瀏覽器,等網路恢復會自動同步到雲端。也可<a href="#" data-phase1="save-retry">立即重試</a>。'
+      + '</div>'
+      + '</div>';
+  }
+
+  // applyPhase1StateOverlay — post-render transform: inject banner + rt-field--locked + submit-bar variant
+  // 用 post-process 不污染 4 個 phase-1 renderer (base / L / E / S)
+  function applyPhase1StateOverlay(html) {
+    var locked = AppState.circlesLocked;
+    var stale = AppState.circlesStale;
+    var saveError = AppState.circlesPhase1SaveState === 'error';
+    if (!locked && !stale && !saveError) return html;
+
+    // 1) inject banner: before first .phase-body OR before .submit-bar (S step has tracking-section before phase-body)
+    var bannerHtml = '';
+    if (locked) {
+      var score = (AppState.circlesScoreResult && AppState.circlesScoreResult.totalScore) || null;
+      bannerHtml = renderLockedBanner(score);
+    } else if (stale) {
+      bannerHtml = renderStaleBanner();
+    } else if (saveError) {
+      bannerHtml = renderSaveErrorBanner();
+    }
+    // inject after phase-head close (look for first '</div>' that closes a div with class containing 'phase-head')
+    // simpler: insert before first occurrence of '<div class="phase-body' or 'class="submit-bar"'
+    var injectMarker = '<div class="phase-body';
+    var idx = html.indexOf(injectMarker);
+    if (idx === -1) {
+      injectMarker = '<div class="submit-bar"';
+      idx = html.indexOf(injectMarker);
+    }
+    if (idx !== -1) {
+      html = html.slice(0, idx) + bannerHtml + html.slice(idx);
+    }
+
+    // 2) rt-field--locked: only locked + stale (save-error 不鎖,user 仍可改草稿)
+    if (locked || stale) {
+      html = html.split('class="rt-field"').join('class="rt-field rt-field--locked"');
+      html = html.split('class="rt-field rt-field__solo"').join('class="rt-field rt-field__solo rt-field--locked"');
+      // contenteditable="true" → "false"
+      html = html.split('contenteditable="true"').join('contenteditable="false"');
+      // sol-card name input + S tracking input → readonly
+      html = html.replace(/<input([^>]*?)data-s-tracking=/g, '<input$1 readonly data-s-tracking=');
+      html = html.replace(/<input class="sol-card__name-input"/g, '<input class="sol-card__name-input" readonly');
+    }
+
+    // 3) submit-bar primary 變體
+    if (locked) {
+      // 看評分結果
+      html = html.replace(
+        /<button class="btn btn--primary" data-phase1="submit">[^<]*<i class="ph ph-arrow-right"><\/i><\/button>/,
+        '<button class="btn btn--primary" data-phase1="view-score">看評分結果<i class="ph ph-arrow-right"></i></button>'
+      );
+    } else if (stale) {
+      html = html.replace(
+        /<button class="btn btn--primary" data-phase1="submit">[^<]*<i class="ph ph-arrow-right"><\/i><\/button>/,
+        '<button class="btn btn--primary" data-phase1="restart-fresh"><i class="ph ph-arrow-clockwise"></i>用最新題目重練</button>'
+      );
+    } else if (saveError) {
+      html = html.replace(
+        /<button class="btn btn--primary" data-phase1="submit">[^<]*<i class="ph ph-arrow-right"><\/i><\/button>/,
+        '<button class="btn btn--primary" data-phase1="submit" disabled>下一步（請先恢復連線）</button>'
+      );
+    }
+
+    return html;
+  }
+
   // ── Plan B SB9a: save-indicator 4-state helper (mockup 03 Section F line 2160-2174) ──
   // 後端不動 — visual cycle only + localStorage 草稿（無 PATCH /progress）
   function renderSaveIndicator(state) {
@@ -1090,13 +1188,15 @@
       + '</div>'
       + '</div>';
 
-    return '<div data-view="circles" data-circles-phase="1" data-circles-l-step="true">'
+    return applyPhase1StateOverlay(
+        '<div data-view="circles" data-circles-phase="1" data-circles-l-step="true">'
       + progressHtml
       + phaseHeadHtml
       + qchipHtml
       + phaseBodyHtml
       + submitBarHtml
-      + '</div>';
+      + '</div>'
+    );
   }
 
   // ── renderCirclesPhase1Estep: E step (Plan B SB7 — mockup 03 Section B 沿用 / line 1466) ──
@@ -1199,13 +1299,15 @@
       + '</div>'
       + '</div>';
 
-    return '<div data-view="circles" data-circles-phase="1" data-circles-e-step="true">'
+    return applyPhase1StateOverlay(
+        '<div data-view="circles" data-circles-phase="1" data-circles-e-step="true">'
       + progressHtml
       + phaseHeadHtml
       + qchipHtml
       + phaseBodyHtml
       + submitBarHtml
-      + '</div>';
+      + '</div>'
+    );
   }
 
   // ── renderEsolCard: E 步 per-sol card with 4 nested fields (Plan B SB7) ──
@@ -1432,13 +1534,15 @@
       + '</div>'
       + '</div>';
 
-    return '<div data-view="circles" data-circles-phase="1" data-circles-s-step="true">'
+    return applyPhase1StateOverlay(
+        '<div data-view="circles" data-circles-phase="1" data-circles-s-step="true">'
       + progressHtml
       + phaseHeadHtml
       + qchipHtml
       + phaseBodyHtml
       + submitBarHtml
-      + '</div>';
+      + '</div>'
+    );
   }
 
   function renderCirclesPhase1() {
@@ -1575,13 +1679,15 @@
       + '</div>'
       + '</div>';
 
-    return '<div data-view="circles" data-circles-phase="1">'
+    return applyPhase1StateOverlay(
+        '<div data-view="circles" data-circles-phase="1">'
       + progressHtml
       + phaseHeadHtml
       + qchipHtml
       + phaseBodyHtml
       + submitBarHtml
-      + '</div>';
+      + '</div>'
+    );
   }
 
   // ── CIRCLES Home (Plan B SB1 — mockup 01) ────────────────────────────────

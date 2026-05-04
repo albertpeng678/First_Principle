@@ -1,7 +1,7 @@
 # PM Drill — 專案狀態看板
 
 > 即時狀態 single source of truth。重大事件即時 Edit。不放歷史（git log 有）。
-> **Last updated:** 2026-05-04（**Plan B SB8 + SB9a ✅ DONE** — SB9a save-indicator 4 狀態 visual cycle + localStorage 草稿 / `renderSaveIndicator` helper 取代 9 處 hardcoded / debounce 800→saving→saved→idle / error retry document delegation / mockup 03 Section F line 2109-2186 對齊 / 12 PNG state×viewport audit / `audit/eyeball-plan-b-sb9a.md` / Plan B SB1-9a + C SB1 + D SB1 全 merged main）
+> **Last updated:** 2026-05-04（**Plan B SB8 + SB9a + SB9b ✅ DONE** — SB9b locked/stale/save-error 三變體 visual 對齊 mockup 03 Section E line 1953-2106 / `applyPhase1StateOverlay` post-render transform / banner--save-error + rt-field--locked CSS / 4 phase-1 renderer return 全 wrap / 9 PNG state×viewport audit / `audit/eyeball-plan-b-sb9b.md`）
 >
 > **🔴 接手 Handoff：** `docs/PATH-2-HANDOFF.md` — 下個 session / 帳號接手必先讀
 
@@ -38,7 +38,7 @@
 | Plan B SB8（全 7 步 hint modal Tier-1 hardcoded + example expand inline lazy populate — mockup 03 Section D / HINT_OVERLAY_TEXT 27 cells / getFieldExampleKey DB alias / markdownBulletsToHtml / renderHintModal + openHintModal + closeHintModal / renderExampleExpand / 4 關閉路徑 ESC+backdrop+close+了解了 / E/L/S step renderers + binder 全改寫）| ✅ DONE — sonnet `6b595ab` / jest 157 / PW hint-modal 11/11 + example-expand 10/10 + Phase 1 regression 496/496 × 8 viewport / 6 PNG director eyeball Read |
 | Plan B SB8 post-ship hardening — user 親要求 5 commits | ✅ DONE：(1) hint Tier-1 hardcoded → AI 串接 `POST /api/circles-public/hint` + 3-state modal + AbortController；(2) toolbar contenteditable 真 WYSIWYG + 統一 2-button HTML；(3) sol-card--l/--e modifier class 隔離 CSS scope；(4) rail 統一「X 步重點」單格（commit `addae74`）；(5) S 步 4 tracking-card per-dim 範例 filter（commit `5de530b`）；(6) L sol-card「核心機制」label drift fix `dd45e6d` — 21 PNG audit vs mockup 03 |
 | Plan B SB9a（save-indicator 4 狀態 visual cycle — mockup 03 Section F line 2109-2186 + line 294-306 CSS — `renderSaveIndicator` helper / 9 處 hardcoded → dynamic / `triggerSaveCycle` debounce 800ms→saving→200ms→saved→2000ms→idle / localStorage 草稿 `pmdrill:circles:draft:{qid}` / error retry document delegation / 5 input listeners 串接）| ✅ DONE — TDD red→green / 5 specs Desktop-1280 全綠 / 12 PNG state×viewport audit / `audit/eyeball-plan-b-sb9a.md` |
-| Plan B SB9b（locked / stale 變體 — mockup 03 Section E line 1953-2106 — banner--locked + banner--stale + rt-field disabled + submit-bar 變體）| ⏳ 待開工 |
+| Plan B SB9b（locked / stale / save-error 三變體 — mockup 03 Section E line 1953-2106 — banner--locked + banner--stale + banner--save-error + rt-field--locked + submit-bar 變體 / `applyPhase1StateOverlay` post-render transform / 4 phase-1 renderer return 全 wrap）| ✅ DONE — TDD red→green / 10 specs Desktop-1280 全綠 / 9 PNG state×viewport audit / `audit/eyeball-plan-b-sb9b.md` / Phase 1 全 spec 3 vp regression 210/210 |
 | Plan E final ship | ⏳ 待開工 |
 
 ---
