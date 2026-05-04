@@ -1,48 +1,6 @@
 # SB4 + SB5 Section pixel-diff report
 
-_Generated: 2026-05-04T01:37:41.687Z_
-
-## SB4 L step · mobile-360: 🟠 < 15% (state diff 預期)
-
-- mockup 358×1160 / production 360×1500 / padded 360×1500 / mismatched 30340px / **5.62%**
-- mockup PNG: `tests/visual/diffs/sb4-sb5/SB4-mobile-360-mockup.png`
-- production PNG: `tests/visual/diffs/sb4-sb5/SB4-mobile-360-production.png`
-- diff PNG: `tests/visual/diffs/sb4-sb5/SB4-mobile-360-diff.png`
-
-## SB4 L step · tablet-768: 🟡 < 5%
-
-- mockup 766×1411 / production 768×1500 / padded 768×1500 / mismatched 42160px / **3.66%**
-- mockup PNG: `tests/visual/diffs/sb4-sb5/SB4-tablet-768-mockup.png`
-- production PNG: `tests/visual/diffs/sb4-sb5/SB4-tablet-768-production.png`
-- diff PNG: `tests/visual/diffs/sb4-sb5/SB4-tablet-768-diff.png`
-
-## SB4 L step · desktop-1280: 🟡 < 5%
-
-- mockup 1278×1411 / production 1280×1500 / padded 1280×1500 / mismatched 60927px / **3.17%**
-- mockup PNG: `tests/visual/diffs/sb4-sb5/SB4-desktop-1280-mockup.png`
-- production PNG: `tests/visual/diffs/sb4-sb5/SB4-desktop-1280-production.png`
-- diff PNG: `tests/visual/diffs/sb4-sb5/SB4-desktop-1280-diff.png`
-
-## SB5 S step · mobile-360: 🟠 < 15% (state diff 預期)
-
-- mockup 358×1949 / production 360×1937 / padded 360×1949 / mismatched 50706px / **7.23%**
-- mockup PNG: `tests/visual/diffs/sb4-sb5/SB5-mobile-360-mockup.png`
-- production PNG: `tests/visual/diffs/sb4-sb5/SB5-mobile-360-production.png`
-- diff PNG: `tests/visual/diffs/sb4-sb5/SB5-mobile-360-diff.png`
-
-## SB5 S step · tablet-768: 🟡 < 5%
-
-- mockup 766×1825 / production 768×1799 / padded 768×1825 / mismatched 68819px / **4.91%**
-- mockup PNG: `tests/visual/diffs/sb4-sb5/SB5-tablet-768-mockup.png`
-- production PNG: `tests/visual/diffs/sb4-sb5/SB5-tablet-768-production.png`
-- diff PNG: `tests/visual/diffs/sb4-sb5/SB5-tablet-768-diff.png`
-
-## SB5 S step · desktop-1280: 🟡 < 5%
-
-- mockup 1278×1884 / production 1280×1799 / padded 1280×1884 / mismatched 97085px / **4.03%**
-- mockup PNG: `tests/visual/diffs/sb4-sb5/SB5-desktop-1280-mockup.png`
-- production PNG: `tests/visual/diffs/sb4-sb5/SB5-desktop-1280-production.png`
-- diff PNG: `tests/visual/diffs/sb4-sb5/SB5-desktop-1280-diff.png`
+_Generated: 2026-05-04T07:56:26.701Z_
 
 ---
 

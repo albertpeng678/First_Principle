@@ -2,7 +2,7 @@
 
 > **Goal:** 後端 / API / DB / OpenAI prompt / 商業邏輯 / jest 100% 不動；前端 CSS + render 從 0 重寫；目標 iOS Safari 滑順度 ≥ aistockmap.com。
 > **Authority:** 重寫對齊基準。實作完成後逐條打勾，未對齊 = 未完成。
-> **Last updated:** 2026-05-04（**Plan B SB8 ✅ DONE + post-ship hardening** — 7 步 hint modal AI 串接 `POST /api/circles-public/hint` + 3-state（loading/content/error）+ AbortController + per-stepKey:fieldKey:questionId cache / 7 步 desktop rail 統一單格「X 步重點」/ S 步 4 tracking-card 範例 per-dim filter 切 DB「追蹤指標」單一 entry / L sol-card 三 viewport 顯示「核心機制」label 對齊 mockup line 1260 / final commit `dd45e6d` / jest 157 / PW Mobile-360+iPad+Desktop-1280 165/165 / 21 PNG director eyeball walk vs mockup 03 / `audit/eyeball-sb8-final-audit.md`）
+> **Last updated:** 2026-05-04（**Plan B SB8 + SB9a ✅ DONE** — SB9a save-indicator 4 狀態 visual cycle 對齊 mockup 03 Section F line 2109-2186 + line 294-306 CSS / `renderSaveIndicator` helper 取代 9 處 hardcoded `--saved` / `triggerSaveCycle` debounce 800ms→saving→200ms→saved→2000ms→idle / try/catch → error state + document delegation retry / localStorage 草稿 `pmdrill:circles:draft:{qid}` 寫 P1/P1S/P1L/P1E + framework + ts / 4 state × 3 viewport = 12 PNG audit / `audit/eyeball-plan-b-sb9a.md`）
 
 ---
 

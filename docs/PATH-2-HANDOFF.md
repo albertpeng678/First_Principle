@@ -1,7 +1,7 @@
 # Path 2 — Frontend Rewrite · 接手 Handoff
 
 > 下個 session / 帳號接手用。**先讀本檔再讀 CLAUDE.md**。
-> **Last updated:** 2026-05-04（**Plan B SB8 ✅ DONE + post-ship hardening 5 commits** — hint AI 串接 / 7 步 rail 統一「X 步重點」單格 / S 步 4 tracking-card per-dim 範例 / L sol-card「核心機制」label drift fix / final commit `dd45e6d` / jest 157 / PW Mobile-360+iPad+Desktop-1280 165/165 / 21 PNG director eyeball walk vs mockup 03 / 下一步：Plan B SB9+ hint Tier-2 AI 個人化 / locked-stale / save indicator 4 狀態）
+> **Last updated:** 2026-05-04（**Plan B SB8 + SB9a ✅ DONE** — SB9a save-indicator 4 狀態 visual cycle (idle/saving/saved/error) + localStorage 草稿 / `triggerSaveCycle` debounce 800ms / 5 input listeners 串接 / mockup 03 Section F 對齊 / 12 PNG state×viewport audit / `audit/eyeball-plan-b-sb9a.md` / 下一步：SB9b locked/stale variants - mockup 03 Section E line 1953-2106）
 >
 > **Post-ship hardening 重點（2026-05-04 user rapid-fire fix）:**
 > - `routes/circles-public.js` 已存在 `POST /hint` 端點（後端 AI 已開好,前端只需呼叫）

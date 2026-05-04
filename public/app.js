@@ -47,6 +47,10 @@
       { advantages: '', disadvantages: '', risks: '', metrics: '' },
     ],
 
+    // Plan B SB9a additions — save indicator 4-state visual cycle (mockup 03 Section F line 2160-2174)
+    // states: 'idle' (已暫存) | 'saving' (儲存中) | 'saved' (已儲存到雲端) | 'error' (離線中·點擊重試)
+    circlesPhase1SaveState: 'idle',
+
     // Plan B SB5 additions
     circlesPhase1S: {
       recommendation: '',
@@ -546,6 +550,75 @@
     return found ? found.join('\n') : '';
   }
 
+  // ── Plan B SB9a: save-indicator 4-state helper (mockup 03 Section F line 2160-2174) ──
+  // 後端不動 — visual cycle only + localStorage 草稿（無 PATCH /progress）
+  function renderSaveIndicator(state) {
+    state = state || (AppState.circlesPhase1SaveState || 'idle');
+    if (state === 'saving') {
+      return '<span class="save-indicator save-indicator--saving">儲存中</span>';
+    }
+    if (state === 'saved') {
+      return '<span class="save-indicator save-indicator--saved"><i class="ph ph-check"></i>已儲存到雲端</span>';
+    }
+    if (state === 'error') {
+      return '<span class="save-indicator save-indicator--error" data-phase1="save-retry"><i class="ph ph-warning-circle"></i>離線中 · 點擊重試</span>';
+    }
+    // idle (default)
+    return '<span class="save-indicator save-indicator--idle">已暫存</span>';
+  }
+
+  // setPhase1SaveState — update AppState + in-place swap all .save-indicator HTML
+  // 不走 renderApp() 避免重置 contenteditable focus / cursor 位置
+  function setPhase1SaveState(s) {
+    AppState.circlesPhase1SaveState = s;
+    document.querySelectorAll('.save-indicator').forEach(function (el) {
+      var wrapper = document.createElement('span');
+      wrapper.innerHTML = renderSaveIndicator(s);
+      el.replaceWith(wrapper.firstChild);
+    });
+  }
+
+  // global delegation: error state click → retry save cycle
+  // 用 document-level delegation 避免 in-place swap 後失去 listener
+  if (typeof document !== 'undefined' && !document._sb9aRetryBound) {
+    document.addEventListener('click', function (e) {
+      var t = e.target.closest('[data-phase1="save-retry"]');
+      if (t) triggerSaveCycle();
+    });
+    document._sb9aRetryBound = true;
+  }
+
+  var _saveDebounce = null;
+  var _saveCycleT2 = null;
+
+  // triggerSaveCycle: input → 800ms debounce → saving → 200ms write → saved → 2000ms idle
+  // localStorage write 失敗 → error state（user 點 retry 才重跑）
+  function triggerSaveCycle() {
+    if (_saveDebounce) clearTimeout(_saveDebounce);
+    if (_saveCycleT2) clearTimeout(_saveCycleT2);
+    _saveDebounce = setTimeout(function () {
+      setPhase1SaveState('saving');
+      setTimeout(function () {
+        try {
+          var qid = (AppState.circlesSelectedQuestion || {}).id || 'unknown';
+          var payload = {
+            P1: AppState.circlesPhase1 || null,
+            P1S: AppState.circlesPhase1S || null,
+            P1L: AppState.circlesPhase1Solutions || null,
+            P1E: AppState.circlesPhase1Evaluate || null,
+            framework: AppState.circlesFrameworkDraft || null,
+            ts: Date.now()
+          };
+          localStorage.setItem('pmdrill:circles:draft:' + qid, JSON.stringify(payload));
+          setPhase1SaveState('saved');
+          _saveCycleT2 = setTimeout(function () { setPhase1SaveState('idle'); }, 2000);
+        } catch (e) {
+          setPhase1SaveState('error');
+        }
+      }, 200);
+    }, 800);
+  }
+
   // markdownBulletsToHtml — 簡易 markdown bullet→<li> 轉換（mockup 03 line 1942-1944 example-bullet 規格）
   // 支援：- top, **bold**, 縮排子項（  - sub）
   function markdownBulletsToHtml(md) {
@@ -927,11 +1000,11 @@
     var metaHtml;
     if (isDrill) {
       metaHtml = '<span class="phase-head__meta">'
-        + '<span class="save-indicator save-indicator--saved"><i class="ph ph-check"></i>已儲存</span>'
+        + renderSaveIndicator()
         + '</span>';
     } else {
       metaHtml = '<span class="phase-head__meta">'
-        + '<span class="save-indicator save-indicator--saved"><i class="ph ph-check"></i>已儲存</span>'
+        + renderSaveIndicator()
         + '<span class="phase-head__meta-sep phase-head__meta-extra">·</span>'
         + '<span class="phase-head__meta-extra">完整模擬 · ' + currentStepNum + ' / 7 步</span>'
         + '</span>';
@@ -1043,11 +1116,11 @@
     var metaHtml;
     if (isDrill) {
       metaHtml = '<span class="phase-head__meta">'
-        + '<span class="save-indicator save-indicator--saved"><i class="ph ph-check"></i>已儲存</span>'
+        + renderSaveIndicator()
         + '</span>';
     } else {
       metaHtml = '<span class="phase-head__meta">'
-        + '<span class="save-indicator save-indicator--saved"><i class="ph ph-check"></i>已儲存</span>'
+        + renderSaveIndicator()
         + '<span class="phase-head__meta-sep phase-head__meta-extra">·</span>'
         + '<span class="phase-head__meta-extra">完整模擬 · ' + currentStepNum + ' / 7 步</span>'
         + '</span>';
@@ -1208,11 +1281,11 @@
     var metaHtml;
     if (isDrill) {
       metaHtml = '<span class="phase-head__meta">'
-        + '<span class="save-indicator save-indicator--saved"><i class="ph ph-check"></i>已儲存</span>'
+        + renderSaveIndicator()
         + '</span>';
     } else {
       metaHtml = '<span class="phase-head__meta">'
-        + '<span class="save-indicator save-indicator--saved"><i class="ph ph-check"></i>已儲存</span>'
+        + renderSaveIndicator()
         + '<span class="phase-head__meta-sep phase-head__meta-extra">·</span>'
         + '<span class="phase-head__meta-extra">完整模擬 · ' + currentStepNum + ' / 7 步</span>'
         + '</span>';
@@ -1411,7 +1484,7 @@
       : stepCfg.title;
     var stepNum = stepCfg.stepNum;
     // save-indicator
-    var saveHtml = '<span class="save-indicator save-indicator--saved"><i class="ph ph-check"></i>已儲存</span>';
+    var saveHtml = renderSaveIndicator();
     // phase-head__meta: sim mobile = save only; sim tablet+ = save + 完整模擬 N/7步; drill = save + drill note
     // We render two spans and use CSS @media to swap:
     //   .phase-head__meta--mobile: only save-indicator
@@ -1422,14 +1495,14 @@
     var metaHtml;
     if (isDrill) {
       metaHtml = '<span class="phase-head__meta">'
-        + '<span class="save-indicator save-indicator--saved"><i class="ph ph-check"></i>已儲存</span>'
+        + renderSaveIndicator()
         + '<span class="phase-head__meta-sep">·</span>'
         + 'drill 模式 · 此步驟結束即完成'
         + '</span>';
     } else {
       // sim: mobile shows save only; tablet+ shows save + sep + 完整模擬
       metaHtml = '<span class="phase-head__meta">'
-        + '<span class="save-indicator save-indicator--saved"><i class="ph ph-check"></i>已儲存</span>'
+        + renderSaveIndicator()
         + '<span class="phase-head__meta-sep phase-head__meta-extra">·</span>'
         + '<span class="phase-head__meta-extra">完整模擬 · ' + currentStepNum + ' / 7 步</span>'
         + '</span>';
@@ -2388,6 +2461,7 @@
     // 改 textarea → contenteditable 後改用 input event + textContent / innerHTML
     document.querySelectorAll('[data-phase1="textarea"]').forEach(function (el) {
       el.addEventListener('input', function () {
+        triggerSaveCycle();
         if (_phase1CharDebounce) clearTimeout(_phase1CharDebounce);
         _phase1CharDebounce = setTimeout(function () {
           var idx = parseInt(el.dataset.fieldIdx, 10);
@@ -2502,6 +2576,7 @@
     document.querySelectorAll('.sol-card__name-input').forEach(function (input) {
       var idx = parseInt(input.dataset.solIdx || '0', 10);
       input.addEventListener('input', function (e) {
+        triggerSaveCycle();
         if (AppState.circlesPhase1Solutions[idx] !== undefined) {
           AppState.circlesPhase1Solutions[idx].name = e.target.value;
         }
@@ -2514,6 +2589,7 @@
       if (ta.hasAttribute('data-circles-e-sol-idx')) return;
       var idx = parseInt(ta.dataset.solIdx || '0', 10);
       ta.addEventListener('input', function (e) {
+        triggerSaveCycle();
         if (AppState.circlesPhase1Solutions[idx] !== undefined) {
           AppState.circlesPhase1Solutions[idx].mechanism = e.target.innerHTML;
         }
@@ -2523,6 +2599,7 @@
     // ── S step: 3 main rt-textarea → AppState.circlesPhase1S ──
     document.querySelectorAll('[data-s-textarea]').forEach(function (ta) {
       ta.addEventListener('input', function (e) {
+        triggerSaveCycle();
         var key = ta.dataset.sTextarea;
         if (!AppState.circlesPhase1S) return;
         // contenteditable: 用 innerHTML 保留 bold/list 格式
@@ -2536,6 +2613,7 @@
     // ── S step: 4 tracking-card input → AppState.circlesPhase1S.tracking ──
     document.querySelectorAll('[data-s-tracking]').forEach(function (input) {
       input.addEventListener('input', function (e) {
+        triggerSaveCycle();
         var dimKey = input.dataset.sTracking;
         if (!AppState.circlesPhase1S || !AppState.circlesPhase1S.tracking) return;
         AppState.circlesPhase1S.tracking[dimKey] = e.target.value;
@@ -2545,6 +2623,7 @@
     // ── E step: textarea input → AppState.circlesPhase1Evaluate (Plan B SB7) ──
     document.querySelectorAll('[data-circles-e-sol-idx]').forEach(function (el) {
       el.addEventListener('input', function () {
+        triggerSaveCycle();
         var solIdx = parseInt(el.getAttribute('data-circles-e-sol-idx'), 10);
         var key = el.getAttribute('data-circles-e-field-key');
         if (!AppState.circlesPhase1Evaluate[solIdx]) {

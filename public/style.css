@@ -108,10 +108,19 @@ body:has(.submit-bar) { padding-bottom: calc(var(--touch-min) + var(--s-7)); }
 .phase-head__meta-sep { color: var(--c-ink-4); }
 /* sim: hide extra meta (sep + 完整模擬 text) on mobile (line 818 mobile = save only) */
 @media (max-width: 767px) { .phase-head__meta-extra { display: none; } }
-/* save-indicator */
-.save-indicator { display: inline-flex; align-items: center; gap: 4px; font-size: var(--t-cap); }
-.save-indicator--saved { color: var(--c-success, #1a7f3c); }
+/* save-indicator — Plan B SB9a 4-state cycle (mockup 03 line 294-306) */
+.save-indicator { display: inline-flex; align-items: center; gap: 4px; font-size: var(--t-cap); padding: 4px 8px; border-radius: var(--r-pill, 999px); }
+.save-indicator--idle { color: var(--c-ink-3); }
+.save-indicator--saving { color: var(--c-ink-2); background: var(--c-bg-soft); }
+.save-indicator--saving::before {
+  content: ''; width: 12px; height: 12px;
+  border: 2px solid var(--c-ink-3); border-top-color: transparent;
+  border-radius: 50%; animation: spin 0.8s linear infinite;
+}
+.save-indicator--saved { color: var(--c-success, #1a7f3c); background: var(--c-success-lt, rgba(26, 127, 60, 0.08)); }
 .save-indicator--saved i { font-size: 12px; }
+.save-indicator--error { color: var(--c-danger, #c92a2a); background: var(--c-danger-lt, rgba(201, 42, 42, 0.08)); cursor: pointer; }
+.save-indicator--error i { font-size: 12px; }
 
 /* ───── LOCKED · banner family (verbatim mockup 15 §C — Bundle 0a/0c) ───── */
 .banner { display: flex; align-items: center; gap: var(--s-3); padding: var(--s-3) var(--s-4); border-bottom: 1px solid; font-size: var(--t-meta); }
