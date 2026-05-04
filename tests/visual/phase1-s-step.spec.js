@@ -71,12 +71,12 @@ test('tracking-grid renders 4 .tracking-card with __num 01-04', async ({ page })
   expect(nums[3]).toBe('04');
 });
 
-test('CTA button reads 「完成 Phase 1」', async ({ page }) => {
+test('CTA button reads 「完成測驗」（user 親要求 — Phase 1 含 NSM 仍未做，這步只完成測驗）', async ({ page }) => {
   await page.setViewportSize({ width: 1280, height: 1100 });
   await stub(page);
   await gotoSStep(page);
   const cta = await page.locator('[data-phase1="submit"]').textContent();
-  expect(cta).toContain('完成 Phase 1');
+  expect(cta).toContain('完成測驗');
 });
 
 test('desktop rail renders S 步重點', async ({ page }) => {

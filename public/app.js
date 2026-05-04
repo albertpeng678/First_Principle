@@ -753,20 +753,11 @@
     //   field 1 desktop drill  (line 1114-1118):    text-b / list-bullets / text-indent / text-outdent (4 btn)
     //   field 2/3/4 all viewports (line 887-893, 911-915, 931-935, 1023, 1040, 1057, 1157, 1174, 1191):
     //                                              text-b / list-bullets (2 btn — NO indent/outdent)
-    var toolbarHtml;
-    if (idx === 0) {
-      toolbarHtml = '<div class="rt-field__toolbar">'
-        + '<button class="rt-tbtn"><i class="ph ph-text-b"></i></button>'
-        + '<button class="rt-tbtn"><i class="ph ph-list-bullets"></i></button>'
-        + '<button class="rt-tbtn"><i class="ph ph-text-indent"></i></button>'
-        + '<button class="rt-tbtn rt-tbtn--outdent"><i class="ph ph-text-outdent"></i></button>'
-        + '</div>';
-    } else {
-      toolbarHtml = '<div class="rt-field__toolbar">'
-        + '<button class="rt-tbtn"><i class="ph ph-text-b"></i></button>'
-        + '<button class="rt-tbtn"><i class="ph ph-list-bullets"></i></button>'
-        + '</div>';
-    }
+    // user 要求全 field toolbar 一致 — 統一 2 button (B + list-bullets)，移除 indent/outdent
+    var toolbarHtml = '<div class="rt-field__toolbar">'
+      + '<button class="rt-tbtn" type="button" aria-label="粗體"><i class="ph ph-text-b"></i></button>'
+      + '<button class="rt-tbtn" type="button" aria-label="項目符號"><i class="ph ph-list-bullets"></i></button>'
+      + '</div>';
 
     var metaSpan = minMax ? '<span>建議 ' + minMax + ' 字' + (idx === 0 && hint ? ' · ' + hint : '') + '</span>' : '';
     var counterSpan = idx === 0 ? '<span class="char-counter">0 / ' + max + '</span>' : '';
@@ -845,8 +836,8 @@
       + '</div>'
       + '<div class="rt-field">'
       + '<div class="rt-field__toolbar">'
-      + '<button class="rt-tbtn"><i class="ph ph-text-b"></i></button>'
-      + '<button class="rt-tbtn"><i class="ph ph-list-bullets"></i></button>'
+      + '<button class="rt-tbtn" type="button" aria-label="粗體"><i class="ph ph-text-b"></i></button>'
+      + '<button class="rt-tbtn" type="button" aria-label="項目符號"><i class="ph ph-list-bullets"></i></button>'
       + '</div>'
       + '<textarea class="rt-textarea" rows="3" placeholder="' + escHtml(taPlaceholder) + '" data-sol-idx="' + idx + '"></textarea>'
       + '</div>'
@@ -1147,8 +1138,8 @@
         +   '</div>'
         +   '<div class="rt-field">'
         +     '<div class="rt-field__toolbar">'
-        +       '<button class="rt-tbtn"><i class="ph ph-text-b"></i></button>'
-        +       '<button class="rt-tbtn"><i class="ph ph-list-bullets"></i></button>'
+        +       '<button class="rt-tbtn" type="button" aria-label="粗體"><i class="ph ph-text-b"></i></button>'
+        +       '<button class="rt-tbtn" type="button" aria-label="項目符號"><i class="ph ph-list-bullets"></i></button>'
         +     '</div>'
         +     '<textarea class="rt-textarea" rows="' + f.rows + '" placeholder="' + escHtml(f.placeholder) + '" data-circles-e-sol-idx="' + solIdx + '" data-circles-e-field-key="' + f.key + '" data-max="' + f.max + '"></textarea>'
         +   '</div>'
@@ -1246,8 +1237,8 @@
       // S step: 2-button toolbar but mobile hides list-bullets via CSS @media
       // (mockup line 1493 mobile shows ph-text-b only; line 1581/1670 tablet+ shows both)
       var toolbarHtml = '<div class="rt-field__toolbar rt-field__toolbar--s">'
-        + '<button class="rt-tbtn"><i class="ph ph-text-b"></i></button>'
-        + '<button class="rt-tbtn"><i class="ph ph-list-bullets"></i></button>'
+        + '<button class="rt-tbtn" type="button" aria-label="粗體"><i class="ph ph-text-b"></i></button>'
+        + '<button class="rt-tbtn" type="button" aria-label="項目符號"><i class="ph ph-list-bullets"></i></button>'
         + '</div>';
       fieldsHtml += '<div class="field" data-s-field-key="' + escHtml(key) + '" data-s-field-idx="' + i + '">'
         + '<div class="field__label-row">'
@@ -2391,17 +2382,66 @@
       });
     });
 
-    // ── rt-tbtn: rich text toolbar actions ──
+    // ── rt-tbtn: textarea-aware markdown injection（取代 execCommand — textarea 不支援）──
+    // B 包 selection 為 **bold**；list-bullets 在每行前插「- 」（或移除已存在的）
     document.querySelectorAll('.rt-tbtn').forEach(function (btn) {
       btn.addEventListener('click', function (e) {
         e.preventDefault();
         var icon = btn.querySelector('i');
         if (!icon) return;
         var cls = icon.className;
-        if (cls.indexOf('ph-text-b') >= 0) document.execCommand('bold', false, null);
-        else if (cls.indexOf('ph-list-bullets') >= 0) document.execCommand('insertUnorderedList', false, null);
-        else if (cls.indexOf('ph-text-indent') >= 0) document.execCommand('indent', false, null);
-        else if (cls.indexOf('ph-text-outdent') >= 0) document.execCommand('outdent', false, null);
+        // 找最近的 textarea（同一 rt-field 內）
+        var rtField = btn.closest('.rt-field');
+        var ta = rtField ? rtField.querySelector('textarea') : null;
+        if (!ta) return;
+        var start = ta.selectionStart;
+        var end = ta.selectionEnd;
+        var before = ta.value.slice(0, start);
+        var sel = ta.value.slice(start, end);
+        var after = ta.value.slice(end);
+
+        if (cls.indexOf('ph-text-b') >= 0) {
+          // 包/解 **bold**：若 selection 已被 ** 包，剝掉；否則包上
+          if (sel.startsWith('**') && sel.endsWith('**') && sel.length >= 4) {
+            var stripped = sel.slice(2, -2);
+            ta.value = before + stripped + after;
+            ta.selectionStart = start; ta.selectionEnd = start + stripped.length;
+          } else if (sel.length === 0) {
+            // 無 selection：插入 **|** placeholder cursor 在中間
+            ta.value = before + '**粗體**' + after;
+            ta.selectionStart = start + 2; ta.selectionEnd = start + 4;
+          } else {
+            ta.value = before + '**' + sel + '**' + after;
+            ta.selectionStart = start; ta.selectionEnd = start + sel.length + 4;
+          }
+        } else if (cls.indexOf('ph-list-bullets') >= 0) {
+          // list-bullets：每行前插 「- 」（toggle — 已存在則移除）
+          // 若無 selection，作用於當前行
+          var rangeStart = start, rangeEnd = end;
+          if (start === end) {
+            // expand to current line
+            var lineStart = before.lastIndexOf('\n') + 1;
+            var lineEnd = ta.value.indexOf('\n', end);
+            if (lineEnd === -1) lineEnd = ta.value.length;
+            rangeStart = lineStart;
+            rangeEnd = lineEnd;
+          }
+          var block = ta.value.slice(rangeStart, rangeEnd);
+          var lines = block.split('\n');
+          // 若全部已是 「- 」開頭，toggle off；否則 toggle on
+          var allBulleted = lines.every(function(l){ return /^- /.test(l) || l.trim() === ''; });
+          var transformed = lines.map(function(l){
+            if (l.trim() === '') return l;
+            if (allBulleted) return l.replace(/^- /, '');
+            return /^- /.test(l) ? l : '- ' + l;
+          }).join('\n');
+          ta.value = ta.value.slice(0, rangeStart) + transformed + ta.value.slice(rangeEnd);
+          ta.selectionStart = rangeStart;
+          ta.selectionEnd = rangeStart + transformed.length;
+        }
+        ta.focus();
+        // 觸發 input event → 同步 AppState debounce
+        ta.dispatchEvent(new Event('input', { bubbles: true }));
       });
     });
 

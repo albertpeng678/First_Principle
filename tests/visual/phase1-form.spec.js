@@ -82,17 +82,21 @@ test.describe('B SB3 Phase 1 Form — mockup 03 Section A', () => {
     await expect(fields.nth(0).locator('.char-counter')).toBeVisible();
   });
 
-  test('submit-bar sim mobile: 下一步 only (ghost hidden); sim tablet: ghost 上一步 visible', async ({ page }) => {
+  test('submit-bar sim: 上一步 ghost visible on mobile/tablet/desktop (user 親要求)', async ({ page }) => {
+    // user 改契約：mobile/tablet/desktop 都要顯示「上一步」（user 隨時要返回上步驟修）
     await page.setViewportSize({ width: 360, height: 780 });
     await gotoSimC1(page);
     await expect(page.locator('.submit-bar__right .btn--primary')).toContainText('下一步');
-    // mobile sim: ghost btn exists but hidden via CSS (.submit-bar__back hidden on mobile)
-    await expect(page.locator('.submit-bar__left .btn--ghost')).not.toBeVisible();
-    // tablet sim: resize → ghost becomes visible
+    await expect(page.locator('.submit-bar__left .btn--ghost')).toBeVisible();
+    await expect(page.locator('.submit-bar__left .btn--ghost')).toContainText('上一步');
+    // tablet sim: ghost still visible
     await page.setViewportSize({ width: 768, height: 1024 });
     await page.waitForTimeout(200);
     await expect(page.locator('.submit-bar__left .btn--ghost')).toBeVisible();
-    await expect(page.locator('.submit-bar__left .btn--ghost')).toContainText('上一步');
+    // desktop sim: ghost still visible
+    await page.setViewportSize({ width: 1280, height: 800 });
+    await page.waitForTimeout(200);
+    await expect(page.locator('.submit-bar__left .btn--ghost')).toBeVisible();
   });
 
   test('submit-bar drill mode: only 下一步, no 上一步 ghost', async ({ page }) => {
