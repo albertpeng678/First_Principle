@@ -1,7 +1,7 @@
 # PM Drill — 專案狀態看板
 
 > 即時狀態 single source of truth。重大事件即時 Edit。不放歷史（git log 有）。
-> **Last updated:** 2026-05-04（user fix `c5aeeea` — Phase 1 home nav reset state + nsm-promo 置底 viewport / Plan B SB6 ✅ DONE + cold-review fix `914ca02` desktop sim base C qchip__company suffix / Plan B SB1-5 + C SB1 + D SB1 全 merged main）
+> **Last updated:** 2026-05-04（quality-first drift sweep `84640b6` — mobile-360 home guest 隱 sign-in icon mockup 01 line 803 / 全 SB1-6 drift inventory 清完：5/7 非 drift（mockup G outlier）+ 2/7 已 fixed / user fix `c5aeeea` Phase 1 home nav reset + nsm-promo 置底 / Plan B SB6 ✅ + cold-review fix `914ca02` / Plan B SB1-5 + C SB1 + D SB1 全 merged main）
 >
 > **🔴 接手 Handoff：** `docs/PATH-2-HANDOFF.md` — 下個 session / 帳號接手必先讀
 

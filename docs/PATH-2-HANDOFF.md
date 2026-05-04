@@ -1,7 +1,7 @@
 # Path 2 — Frontend Rewrite · 接手 Handoff
 
 > 下個 session / 帳號接手用。**先讀本檔再讀 CLAUDE.md**。
-> **Last updated:** 2026-05-04（Plan B SB6 ✅ DONE + cold-review fix `914ca02` — DRIFT 2 desktop sim base C qchip__company suffix / Plan B SB1-5 + C SB1 + D SB1 全 merged main）
+> **Last updated:** 2026-05-04（quality-first drift sweep `84640b6` — mobile-360 home guest sign-in 隱 / 全 SB1-6 drift 清掃完成 / Plan B SB6 ✅ + cold-review fix `914ca02` / Plan B SB1-5 + C SB1 + D SB1 全 merged main）
 
 ---
 

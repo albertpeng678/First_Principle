@@ -2,7 +2,7 @@
 
 > **Goal:** 後端 / API / DB / OpenAI prompt / 商業邏輯 / jest 100% 不動；前端 CSS + render 從 0 重寫；目標 iOS Safari 滑順度 ≥ aistockmap.com。
 > **Authority:** 重寫對齊基準。實作完成後逐條打勾，未對齊 = 未完成。
-> **Last updated:** 2026-05-04（Plan B SB6 完成 + cold-review fix `914ca02` — DRIFT 2: renderCirclesPhase1 desktop sim base C 加 isDesktop 判定，qchip__company 加「· 設計題 · 難度 中」suffix 對齊 mockup B/C/G + Lstep line 666 pattern / TDD 紅綠 / jest 157 / PW 392/392 × 8 viewport / pixel-diff 3.47-7.13% / 12 PNG director Read 含 fix 後 diff / eyeball walk doc 含 4 條 drift 誠實列表 + honest dishonesty disclosure / Layer 2 Mechanical Pixel-Diff 不再 skip — 殺手鐧 3 問備答 OK）
+> **Last updated:** 2026-05-04（quality-first drift sweep `84640b6` — 全 SB1-6 drift inventory 清完：mobile-360 home guest sign-in icon 隱（mockup 01 line 803 / @media max-width:480px hide auth-only class）/ SB6 DRIFT 1+3 mockup G outlier 非 drift / SB6 DRIFT 4 mockup demo 非 contract / Plan A carry-forward 2 條已 fixed 或設計如此 / TDD 紅綠 / jest 157 / PW 424/424 × 8 viewport / Plan B SB6 + c5aeeea + 914ca02 全收 — 殺手鐧 3 問備答 OK）
 
 ---
 
