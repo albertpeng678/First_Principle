@@ -108,4 +108,15 @@ test.describe('B SB3 Phase 1 Form — mockup 03 Section A', () => {
     await expect(page.locator('.rail')).toBeVisible();
     await expect(page.locator('.rail__title').first()).toHaveText('本步重點');
   });
+
+  // SB6 cold-review fix — DRIFT 2: mockup 03 Section G desktop line 2342 + Section B/C
+  // desktop sim base C step shows qchip__company suffix「· 設計題 · 難度 中」.
+  // Mirror existing renderCirclesPhase1Lstep desktop behavior (phase1-l-step.spec.js line 80).
+  test('desktop sim base C step qchip__company shows 設計題 · 難度 suffix', async ({ page }) => {
+    await page.setViewportSize({ width: 1280, height: 1100 });
+    await gotoSimC1(page);
+    const company = await page.locator('.qchip__company').textContent();
+    expect(company).toContain('設計題');
+    expect(company).toContain('難度');
+  });
 });

@@ -1005,6 +1005,7 @@
     var q = AppState.circlesSelectedQuestion;
     var mode = AppState.circlesMode || 'simulation';
     var isDrill = mode === 'drill';
+    var isDesktop = window.innerWidth >= 1024;
     var stepKey = isDrill ? (AppState.circlesDrillStep || 'C1') : 'C1'; // SB3 scope: C1 only; I/R/C2 same schema
     var stepCfg = CIRCLES_STEP_CONFIG[stepKey] || CIRCLES_STEP_CONFIG.C1;
     var simStepIdx = AppState.circlesSimStep || 0; // 0-based sim step index
@@ -1080,7 +1081,9 @@
     var company = (q && q.company) ? q.company : '';
     var product = (q && q.product) ? q.product : '';
     var companyDisplay = company + (product ? ' · ' + product : '');
-    if (isDrill) {
+    // mockup 03 Section B/C/G desktop sim base 全有 suffix；Section A/B/C tablet 無；
+    // 與 renderCirclesPhase1Lstep line 666 對齊（isDesktop || isDrill）
+    if (isDrill || isDesktop) {
       var diff = (q && q.difficulty) === 'high' ? '高' : (q && q.difficulty) === 'low' ? '低' : '中';
       var qType = (q && q.question_type) === 'improve' ? '改善題' : (q && q.question_type) === 'strategy' ? '策略題' : '設計題';
       companyDisplay += ' · ' + qType + ' · 難度 ' + diff;
