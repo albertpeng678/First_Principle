@@ -1,7 +1,7 @@
 # PM Drill — 專案狀態看板
 
 > 即時狀態 single source of truth。重大事件即時 Edit。不放歷史（git log 有）。
-> **Last updated:** 2026-05-04（Plan B SB6 ✅ DONE + cold-review fix `914ca02` — desktop sim base C qchip__company 加「· 設計題 · 難度 中」suffix 對齊 mockup B/C/G / Plan B SB1-5 + C SB1 + D SB1 全 merged main）
+> **Last updated:** 2026-05-04（user fix `c5aeeea` — Phase 1 home nav reset state + nsm-promo 置底 viewport / Plan B SB6 ✅ DONE + cold-review fix `914ca02` desktop sim base C qchip__company suffix / Plan B SB1-5 + C SB1 + D SB1 全 merged main）
 >
 > **🔴 接手 Handoff：** `docs/PATH-2-HANDOFF.md` — 下個 session / 帳號接手必先讀
 
