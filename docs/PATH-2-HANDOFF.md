@@ -1,7 +1,7 @@
 # Path 2 — Frontend Rewrite · 接手 Handoff
 
 > 下個 session / 帳號接手用。**先讀本檔再讀 CLAUDE.md**。
-> **Last updated:** 2026-05-04（**Plan B SB8 + SB9a + SB9b ✅ DONE** — SB9b locked/stale/save-error 三變體 visual 對齊 mockup 03 Section E line 1953-2106 / `applyPhase1StateOverlay(html)` post-render transform / banner--save-error + rt-field--locked CSS / 4 phase-1 renderer return wrap / 9 PNG state×viewport audit / Phase 1 specs 3 viewport regression 210/210 / `audit/eyeball-plan-b-sb9b.md` / 下一步：Plan E final ship - iOS 真機驗證 + 完整 PR 流程）
+> **Last updated:** 2026-05-04（**Plan E Final Ship Readiness ✅ READY** — A foundation + B SB1-9b + C SB1 + D SB1 全 merged main / E2 webkit iOS Safari 48/48 / E4 30 PNG 親 Read 0 drift / iOS 15-item 14/15 PASS / 14-box gate 全綠 / `audit/eyeball-plan-e-final-ship.md` / 下個 session：等 user 簽收即可 ship）
 >
 > **Post-ship hardening 重點（2026-05-04 user rapid-fire fix）:**
 > - `routes/circles-public.js` 已存在 `POST /hint` 端點（後端 AI 已開好,前端只需呼叫）

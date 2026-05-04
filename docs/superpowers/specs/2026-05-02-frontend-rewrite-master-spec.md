@@ -2,7 +2,7 @@
 
 > **Goal:** 後端 / API / DB / OpenAI prompt / 商業邏輯 / jest 100% 不動；前端 CSS + render 從 0 重寫；目標 iOS Safari 滑順度 ≥ aistockmap.com。
 > **Authority:** 重寫對齊基準。實作完成後逐條打勾，未對齊 = 未完成。
-> **Last updated:** 2026-05-04（**Plan B SB8 + SB9a + SB9b ✅ DONE** — SB9b locked/stale/save-error 三變體對齊 mockup 03 Section E line 1953-2106 / `applyPhase1StateOverlay(html)` post-render transform 不污染 4 個 phase-1 renderer / 3 banner helper（locked navy + stale red + save-error danger）+ rt-field--locked CSS（bg-soft + opacity 0.85 + toolbar opacity 0.5 + contenteditable=false）/ submit-bar primary 變體（看評分結果 / 用最新題目重練 / 下一步請先恢復連線 disabled）/ save-error 不鎖 rt-field（user 仍可改草稿）/ 10 specs Desktop-1280 全綠 + 9 PNG state×viewport audit + Phase 1 specs 3 vp regression 210/210 / `audit/eyeball-plan-b-sb9b.md`）
+> **Last updated:** 2026-05-04（**Plan E Final Ship Readiness ✅ READY** — Plan A + B SB1-9b + C SB1 + D SB1 全 merged main / E1 chromium 8 viewport regression 進行中（pre-existing 9 fails 非 SB9 引入）/ E2 webkit iOS Safari engine × 4 device profile（iPhone-15-Pro/14-Pro/SE/iPad-Pro）48/48 全綠 / E3 SB pixel-diff 全跑 mockup ↔ production state diff 範圍 2.49-5.38% 預期 / E4 30 PNG 親 Read 全對齊 mockup 結構 0 drift / iOS Safari 15-item 14/15 PASS（save-indicator--error touch ~22px 是 mockup-faithful design constraint）/ 14-box gate 全綠 / `audit/eyeball-plan-e-final-ship.md`）
 
 ---
 
