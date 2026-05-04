@@ -587,6 +587,38 @@
       + '</div>';
   }
 
+  // ── renderQchipExpand: qchip 題目展開 panel (Plan B SB6 — mockup 03 Section G) ──
+  function renderQchipExpand(q) {
+    if (!q) return '';
+    var an = q.analysis || {};
+    var statement = q.problem_statement || '';
+    return '<div class="qchip-expand">'
+      + '<p class="qchip-expand__statement">' + escHtml(statement) + '</p>'
+      + '<h4 class="qchip-expand__section-label">深入分析</h4>'
+      + '<div class="qchip-ana">'
+      +   '<div class="qchip-ana__block">'
+      +     '<div class="qchip-ana__head"><i class="ph ph-buildings"></i>商業背景</div>'
+      +     '<div class="qchip-ana__body">' + escHtml(an.business || '') + '</div>'
+      +   '</div>'
+      +   '<div class="qchip-ana__block">'
+      +     '<div class="qchip-ana__head"><i class="ph ph-users"></i>用戶輪廓</div>'
+      +     '<div class="qchip-ana__body">' + escHtml(an.users || '') + '</div>'
+      +   '</div>'
+      +   '<div class="qchip-ana__block qchip-ana__block--trap">'
+      +     '<div class="qchip-ana__head"><i class="ph ph-warning"></i>常見誤區</div>'
+      +     '<div class="qchip-ana__body">' + escHtml(an.traps || '') + '</div>'
+      +   '</div>'
+      +   '<div class="qchip-ana__block">'
+      +     '<div class="qchip-ana__head"><i class="ph ph-lightbulb"></i>破題切入</div>'
+      +     '<div class="qchip-ana__body">' + escHtml(an.insight || '') + '</div>'
+      +   '</div>'
+      + '</div>'
+      + '<button class="qchip-collapse-btn" data-phase1="qchip-collapse">'
+      +   '<i class="ph ph-caret-up" style="font-size:12px;"></i>收合'
+      + '</button>'
+      + '</div>';
+  }
+
   // ── renderCirclesPhase1Lstep: L step sol-multi renderer (Plan B SB4) ──────
   function renderCirclesPhase1Lstep(q, stepKey, stepCfg, currentStepNum) {
     var mode = AppState.circlesMode || 'simulation';
@@ -640,14 +672,18 @@
       companyDisplayHtml = companyBaseHtml;
     }
     var qTitle = (q && q.problem_statement) ? q.problem_statement : '';
-    var qchipHtml = '<div class="qchip">'
+    var chipExpanded = AppState.circlesChipExpanded === true;
+    var qchipClass = 'qchip' + (chipExpanded ? ' is-expanded' : '');
+    var caretIcon = chipExpanded ? 'ph-caret-up' : 'ph-caret-down';
+    var qchipHtml = '<div class="' + qchipClass + '" data-phase1="qchip-toggle">'
       + '<span class="qchip__icon"><i class="ph ph-info"></i></span>'
       + '<div class="qchip__main">'
       + '<div class="qchip__company">' + companyDisplayHtml + '</div>'
       + '<div class="qchip__title">' + escHtml(qTitle) + '</div>'
       + '</div>'
-      + '<i class="ph ph-caret-down qchip__caret"></i>'
-      + '</div>';
+      + '<i class="ph ' + caretIcon + ' qchip__caret"></i>'
+      + '</div>'
+      + (chipExpanded ? renderQchipExpand(q) : '');
 
     // sol-cards
     var solutions = AppState.circlesPhase1Solutions;
@@ -739,14 +775,18 @@
       ? companyBaseHtml + ' · ' + escHtml(qType) + ' · 難度 ' + escHtml(diff)
       : companyBaseHtml;
     var qTitle = (q && q.problem_statement) ? q.problem_statement : '';
-    var qchipHtml = '<div class="qchip">'
+    var chipExpanded = AppState.circlesChipExpanded === true;
+    var qchipClass = 'qchip' + (chipExpanded ? ' is-expanded' : '');
+    var caretIcon = chipExpanded ? 'ph-caret-up' : 'ph-caret-down';
+    var qchipHtml = '<div class="' + qchipClass + '" data-phase1="qchip-toggle">'
       + '<span class="qchip__icon"><i class="ph ph-info"></i></span>'
       + '<div class="qchip__main">'
       + '<div class="qchip__company">' + companyDisplayHtml + '</div>'
       + '<div class="qchip__title">' + escHtml(qTitle) + '</div>'
       + '</div>'
-      + '<i class="ph ph-caret-down qchip__caret"></i>'
-      + '</div>';
+      + '<i class="ph ' + caretIcon + ' qchip__caret"></i>'
+      + '</div>'
+      + (chipExpanded ? renderQchipExpand(q) : '');
 
     var phaseBodyHtml = '<div class="phase-body">'
       + '<p style="color: var(--c-ink-3); font-size: var(--t-body-sm); padding: var(--s-4) 0;">E 步功能即將上線</p>'
@@ -834,14 +874,18 @@
       companyDisplayHtml = companyBaseHtml;
     }
     var qTitle = (q && q.problem_statement) ? q.problem_statement : '';
-    var qchipHtml = '<div class="qchip">'
+    var chipExpanded = AppState.circlesChipExpanded === true;
+    var qchipClass = 'qchip' + (chipExpanded ? ' is-expanded' : '');
+    var caretIcon = chipExpanded ? 'ph-caret-up' : 'ph-caret-down';
+    var qchipHtml = '<div class="' + qchipClass + '" data-phase1="qchip-toggle">'
       + '<span class="qchip__icon"><i class="ph ph-info"></i></span>'
       + '<div class="qchip__main">'
       + '<div class="qchip__company">' + companyDisplayHtml + '</div>'
       + '<div class="qchip__title">' + escHtml(qTitle) + '</div>'
       + '</div>'
-      + '<i class="ph ph-caret-down qchip__caret"></i>'
-      + '</div>';
+      + '<i class="ph ' + caretIcon + ' qchip__caret"></i>'
+      + '</div>'
+      + (chipExpanded ? renderQchipExpand(q) : '');
 
     // 3 main rt-fields (reuse renderPhase1Field but S step uses 2-button toolbar for all fields)
     var fieldsHtml = '';
@@ -1042,14 +1086,18 @@
       companyDisplay += ' · ' + qType + ' · 難度 ' + diff;
     }
     var qTitle = (q && q.problem_statement) ? q.problem_statement : '';
-    var qchipHtml = '<div class="qchip">'
+    var chipExpanded = AppState.circlesChipExpanded === true;
+    var qchipClass = 'qchip' + (chipExpanded ? ' is-expanded' : '');
+    var caretIcon = chipExpanded ? 'ph-caret-up' : 'ph-caret-down';
+    var qchipHtml = '<div class="' + qchipClass + '" data-phase1="qchip-toggle">'
       + '<span class="qchip__icon"><i class="ph ph-info"></i></span>'
       + '<div class="qchip__main">'
       + '<div class="qchip__company">' + escHtml(companyDisplay) + '</div>'
       + '<div class="qchip__title">' + escHtml(qTitle) + '</div>'
       + '</div>'
-      + '<i class="ph ph-caret-down qchip__caret"></i>'
-      + '</div>';
+      + '<i class="ph ' + caretIcon + ' qchip__caret"></i>'
+      + '</div>'
+      + (chipExpanded ? renderQchipExpand(q) : '');
 
     // ── phase-body with 4 fields ──
     // desktop drill: phase-body--with-rail (grid) + aside.rail
@@ -2072,6 +2120,25 @@
         var dimKey = input.dataset.sTracking;
         if (!AppState.circlesPhase1S || !AppState.circlesPhase1S.tracking) return;
         AppState.circlesPhase1S.tracking[dimKey] = e.target.value;
+      });
+    });
+
+    // ── qchip-toggle: click collapsed qchip → expand (Plan B SB6) ──
+    document.querySelectorAll('[data-phase1="qchip-toggle"]').forEach(function (chip) {
+      chip.addEventListener('click', function (e) {
+        // 排除 collapse-btn 冒泡（雖然 collapse-btn 有 stopPropagation，雙保險）
+        if (e.target.closest('[data-phase1="qchip-collapse"]')) return;
+        AppState.circlesChipExpanded = !AppState.circlesChipExpanded;
+        render();
+      });
+    });
+
+    // ── qchip-collapse: collapse btn click → close panel ──
+    document.querySelectorAll('[data-phase1="qchip-collapse"]').forEach(function (btn) {
+      btn.addEventListener('click', function (e) {
+        e.stopPropagation();
+        AppState.circlesChipExpanded = false;
+        render();
       });
     });
   }
