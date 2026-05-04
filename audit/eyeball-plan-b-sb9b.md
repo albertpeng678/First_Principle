@@ -4,17 +4,29 @@
 **Plan:** `docs/superpowers/plans/2026-05-04-plan-b-sb9b-locked-stale.md`
 **Mockup ref:** 03-phase-1-form.html Section E line 1953-2106
 
-## State × viewport matrix（9 PNG）
+## State × viewport matrix（9 PNG — 全 Read 過）
 
 `/tmp/sb9b-states/{vp}-{state}.png`
 
 | viewport | locked | stale | save-error |
 |---|---|---|---|
 | mobile-360  | ✓ navy banner+lock-key+76/100 / 看評分結果 / rt-field disabled | ✓ red banner+octagon / 用最新題目重練 / rt-field disabled | ✓ red save-error banner+cloud-warning+立即重試 / 下一步請先恢復連線 disabled / rt-field 仍可編輯 |
-| tablet-768  | ✓ | ✓ | ✓ |
-| desktop-1280 | ✓ | ✓ | ✓ |
+| tablet-768  | ✓ Read 過 | ✓ Read 過 | ✓ Read 過 |
+| desktop-1280 | ✓ Read 過 | ✓ Read 過 | ✓ Read 過 |
 
-CTA + banner text 全 9 case 數據對齊 mockup Section E。
+**9/9 PNG 親 Read 全對齊 mockup Section E**（不只看 console log）。
+
+## 7 步 × 3 state cross-step 驗證（21 case）
+
+額外確認 rt-field--locked count 在不同 step 結構下都正確：
+
+| state | C1 | I | R | C2 | L | E | S | CTA |
+|---|---|---|---|---|---|---|---|---|
+| locked | rt-locked=4 | =4 | =4 | =4 | =2 (sol-card mechanism) | =8 (2sol×4nested) | =3 (3 main + 4 input readonly) | 看評分結果 |
+| stale | =4 | =4 | =4 | =4 | =2 | =8 | =3 | 用最新題目重練 |
+| save-error | =0 (不鎖) | =0 | =0 | =0 | =0 | =0 | =0 | 下一步（請先恢復連線）disabled |
+
+**21/21 case 全 banner=1 + rt-field--locked count 對 step 結構** + L step locked.png 親 Read（rt-toolbar opacity 0.5 + sol-card 整張卡視覺正常）+ S step locked.png 親 Read（3 main + 4 tracking-card readonly）。
 
 ## Director eyeball walk
 
