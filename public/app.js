@@ -689,13 +689,47 @@
   var _saveDebounce = null;
   var _saveCycleT2 = null;
 
-  // triggerSaveCycle: input → 800ms debounce → saving → 200ms write → saved → 2000ms idle
+  // ensureCirclesDraftSession — lazy-create backend session row on first save.
+  // idempotent: same user×question×mode active session is returned if already exists.
+  // Returns session object (with .id) or null on failure.
+  async function ensureCirclesDraftSession() {
+    if (AppState.circlesSession && AppState.circlesSession.id) return AppState.circlesSession;
+    var q = AppState.circlesSelectedQuestion;
+    if (!q || !q.id) return null;
+    var mode = AppState.circlesMode === 'drill' ? 'drill' : 'simulation';
+    var drillStep = mode === 'drill' ? AppState.circlesDrillStep : undefined;
+    var path = AppState.accessToken ? '/api/circles-sessions/draft' : '/api/guest-circles-sessions/draft';
+    var body = { question_id: q.id, mode: mode };
+    if (drillStep) body.drill_step = drillStep;
+    try {
+      var res = await window.apiFetch(path, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify(body),
+      });
+      if (!res.ok) return null;
+      var session = await res.json();
+      AppState.circlesSession = session;
+      return session;
+    } catch (e) {
+      return null;
+    }
+  }
+
+  // triggerSaveCycle: input → 800ms debounce → saving → 600ms write → saved → 2000ms idle
   // localStorage write 失敗 → error state（user 點 retry 才重跑）
+  // 新增：saving phase 內 lazy-create backend session + fire-and-forget PATCH progress
   function triggerSaveCycle() {
     if (_saveDebounce) clearTimeout(_saveDebounce);
     if (_saveCycleT2) clearTimeout(_saveCycleT2);
     _saveDebounce = setTimeout(function () {
       setPhase1SaveState('saving');
+      // lazy-create session in background — fire async, don't await (non-blocking)
+      ensureCirclesDraftSession().then(function () {
+        // no-op: AppState.circlesSession is set as side effect
+      }).catch(function () {
+        // network error — graceful degradation, localStorage still works
+      });
       // 600ms saving phase — 給 user 看見 spinner（200ms 太短，iOS Safari 來不及 render）
       setTimeout(function () {
         try {
@@ -711,6 +745,23 @@
           localStorage.setItem('pmdrill:circles:draft:' + qid, JSON.stringify(payload));
           setPhase1SaveState('saved');
           _saveCycleT2 = setTimeout(function () { setPhase1SaveState('idle'); }, 2000);
+          // fire-and-forget PATCH to backend — only if session id known
+          if (AppState.circlesSession && AppState.circlesSession.id) {
+            var sessionId = AppState.circlesSession.id;
+            var patchPath = AppState.accessToken
+              ? '/api/circles-sessions/' + sessionId + '/progress'
+              : '/api/guest-circles-sessions/' + sessionId + '/progress';
+            window.apiFetch(patchPath, {
+              method: 'PATCH',
+              headers: { 'Content-Type': 'application/json' },
+              body: JSON.stringify({
+                stepDrafts: payload,
+                frameworkDraft: AppState.circlesFrameworkDraft || null
+              }),
+            }).catch(function () {
+              // PATCH 失敗不影響 saved state — local 已 cache
+            });
+          }
         } catch (e) {
           setPhase1SaveState('error');
         }
@@ -2797,7 +2848,7 @@
       return `<div class="offcanvas-empty">
         <div class="offcanvas-empty__icon"><i class="ph ph-folder-open"></i></div>
         <div class="offcanvas-empty__title">尚無練習記錄</div>
-        <div class="offcanvas-empty__sub">練習完成的 CIRCLES 題目與 NSM 訓練會出現在這裡。</div>
+        <div class="offcanvas-empty__sub">進行中與已完成的 CIRCLES、NSM 練習都會出現在這裡。</div>
         <button class="btn btn--ghost offcanvas-empty__cta" data-offcanvas="close"><i class="ph ph-arrow-right"></i>開始第一題</button>
       </div>`;
     }
@@ -2859,6 +2910,19 @@
       title = questionTitle(item) || '北極星指標練習';
     }
 
+    // active 變體：meta 加「· 草稿」或「· 進行中」後綴
+    if (item.status === 'active') {
+      if (item.mode === 'drill' || item.drill_step) {
+        const stepMap = { C1: 'C 澄清', I: 'I 用戶洞察', R: 'R 重新定義', C2: 'C2 重新定義', L: 'L 解決方案', E: 'E 評估方案', S: 'S 量化策略' };
+        const stepLabel = stepMap[item.drill_step] || item.drill_step || '步驟加練';
+        metaLabel = 'CIRCLES · ' + stepLabel + ' · 草稿';
+      } else if (item.mode === 'simulation') {
+        metaLabel = 'CIRCLES · 完整 7 步 · 進行中';
+      } else {
+        metaLabel = 'NSM · 4 步 · 進行中';
+      }
+    }
+
     // Score badge — navy, only for completed sessions with a score.
     // step_scores values are EvaluatorResponse objects { totalScore, dimensions, ... } per spec §1.4.
     // NSM scores_json shape is { totalScore, scores } per prompts/nsm-evaluator.js:48.
@@ -2872,12 +2936,32 @@
         score = item.total_score || item.score || null;
       }
       if (score != null) {
-        scoreHtml = '<span class="offcanvas-item__score">' + score + '</span>';
+        scoreHtml = '<span class="offcanvas-item__score">' + score + ' 分</span>';
       }
     }
 
-    const dateStr = item.updated_at || item.created_at || '';
-    const dateFormatted = dateStr ? new Date(dateStr).toLocaleDateString('zh-TW', { month: 'numeric', day: 'numeric' }) : '';
+    // formatRelativeOrAbsolute — active sessions: 相對時間「N 分鐘前編輯」
+    // completed/scored: 絕對時間 M/D 格式
+    function formatRelativeOrAbsolute(item) {
+      var dateStr = item.updated_at || item.created_at || '';
+      if (!dateStr) return '';
+      if (item.status === 'active') {
+        var diff = Date.now() - new Date(dateStr).getTime();
+        var sec = Math.floor(diff / 1000);
+        var min = Math.floor(sec / 60);
+        var hr  = Math.floor(min / 60);
+        var day = Math.floor(hr / 24);
+        if (sec < 60)  return '剛剛編輯';
+        if (min < 60)  return min + ' 分鐘前編輯';
+        if (hr  < 24)  return hr  + ' 小時前編輯';
+        if (day < 7)   return day + ' 天前編輯';
+        // ≥ 7 天 → 絕對時間
+        return new Date(dateStr).toLocaleDateString('zh-TW', { month: 'numeric', day: 'numeric' });
+      }
+      return new Date(dateStr).toLocaleDateString('zh-TW', { month: 'numeric', day: 'numeric' });
+    }
+
+    const dateFormatted = formatRelativeOrAbsolute(item);
 
     return `<div class="offcanvas-item" data-offcanvas="item" data-id="${escHtml(item.id)}">
       <div class="offcanvas-item__title-row">

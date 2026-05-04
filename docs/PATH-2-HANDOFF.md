@@ -3,7 +3,19 @@
 > 下個 session / 帳號接手用。**先讀本檔再讀 CLAUDE.md**。
 > **Last updated:** 2026-05-04（**Plan E Final Ship Readiness ✅ READY + 2 post-ship hotfix `6708705`** — A foundation + B SB1-9b + C SB1 + D SB1 全 merged main / E2 webkit iOS Safari 48/48 / E4 30 PNG 親 Read 0 drift / iOS 15-item 14/15 PASS / 14-box gate 全綠 / `audit/eyeball-plan-e-final-ship.md` / 下個 session：等 user 簽收即可 ship）
 >
-> **Post-ship hotfix（2026-05-04 commit `6708705`）— user 親要求 2 bug:**
+> **Post-ship hotfix B — offcanvas drafts visibility (2026-05-04 — user 親要求 + user 親准呼叫既有後端):**
+> - Bug: mobile guest 打字後 offcanvas 看到「尚無練習記錄」(`PM Drill — 第一性原理訓練器 2.png`) — 違反 mockup 09 line 304 規格 (drafts/進行中也要顯示)
+> - Root cause: SB9a `triggerSaveCycle` 只寫 localStorage 沒呼叫後端 → sessions 表沒 row → list 空
+> - 修復(後端 routes/* 零動，純前端呼叫既有 endpoint):
+>   - 新 `ensureCirclesDraftSession()` async helper: `POST /api/(guest-)circles-sessions/draft` body `{question_id, mode, drill_step?}`(後端 idempotent lazy-create)
+>   - `triggerSaveCycle` 加 fire-and-forget `PATCH /:id/progress` body `{stepDrafts, frameworkDraft}`(後端 shallow merge step_drafts)
+>   - localStorage 仍寫作 instant cache + offline fallback
+>   - `renderOffcanvasItem` 加 active 變體: drill 後綴「· 草稿」/ sim「· 完整 7 步 · 進行中」/ NSM「· 4 步 · 進行中」+ 相對時間 helper (< 60min N 分鐘前 / < 24h N 小時前 / < 7d N 天前 / ≥7d 絕對 M/D); active 不顯示分數
+>   - empty copy「進行中與已完成的 CIRCLES、NSM 練習都會出現在這裡」對齊 mockup
+>   - score badge「N 分」drift fix(mockup 09 line 341 — Plan D SB1 carry-forward 順手修)
+> - 驗證: TDD 紅→綠 5 specs / Desktop+Mobile+iPad regression / 3 PNG opus 親 Read 對齊 mockup 09
+>
+> **Post-ship hotfix A（2026-05-04 commit `6708705`）— user 親要求 2 bug:**
 > - **Bug 1 — mobile home sign-in icon visible（all viewports）**：user override mockup 01 line 803「mobile guest = nothing」規格 → mobile/tablet/desktop home 統一顯示 sign-in icon。改動：
 >   - `public/app.js`：`isCirclesHome` 路徑改用 `signInBtn`(無 `--auth-only` class)；移除 `signInBtnHomeOnly` 常數
 >   - `public/style.css` line 471-477：移除 `@media max-width:480px { .navbar__icon-btn--auth-only { display:none } }` rule

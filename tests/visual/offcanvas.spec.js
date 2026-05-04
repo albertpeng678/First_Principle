@@ -61,8 +61,8 @@ test.describe('D1 Offcanvas History drawer', () => {
     await expect(page.locator('.offcanvas-empty__title')).toHaveText('尚無練習記錄');
     // mockup 09 line 560: ph-folder-open
     await expect(page.locator('.offcanvas-empty__icon i')).toHaveClass(/ph-folder-open/);
-    // mockup 09 line 562: exact sub copy
-    await expect(page.locator('.offcanvas-empty__sub')).toHaveText('練習完成的 CIRCLES 題目與 NSM 訓練會出現在這裡。');
+    // mockup 09 line 562: sub copy must mention 進行中（含草稿）and 已完成
+    await expect(page.locator('.offcanvas-empty__sub')).toHaveText('進行中與已完成的 CIRCLES、NSM 練習都會出現在這裡。');
     // mockup 09 line 563: btn--ghost + ph-arrow-right + "開始第一題"
     const cta = page.locator('.offcanvas-empty__cta');
     await expect(cta).toHaveClass(/btn--ghost/);
@@ -129,9 +129,9 @@ test.describe('D1 Offcanvas History drawer', () => {
     expect(await items.count()).toBe(3);
     // Score badges only for completed entries (2 of 3)
     expect(await page.locator('.offcanvas-item__score').count()).toBe(2);
-    // Score values must be numeric, not "[object Object]"
+    // Score values must include numeric + "分" suffix (mockup 09 line 341/348/367 spec)
     const scoreTexts = await page.locator('.offcanvas-item__score').allTextContents();
-    expect(scoreTexts.sort()).toEqual(['86', '92']);
+    expect(scoreTexts.sort()).toEqual(['86 分', '92 分']);
     // Title must not contain "[object Object]" — production currentQuestion is an object
     const titles = await page.locator('.offcanvas-item__title').allTextContents();
     for (const t of titles) {
