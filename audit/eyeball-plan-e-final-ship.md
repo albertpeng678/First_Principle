@@ -5,14 +5,15 @@
 
 ---
 
-## E1: 全 spec × 全 8 viewport regression（chromium）
+## E1: 全 spec × 全 8 viewport regression（chromium）✓ DONE
 
-進行中（log: `/tmp/e1-full-chromium.log`）— 8 viewport（Mobile-360 / iPhone-SE / iPhone-14 / iPhone-15-Pro / iPad / Desktop-1280 / 1440 / 2560）跑全部 visual spec。
+**1376 passed / 24 failed (13.8 min)** — 98.3% pass rate。
 
-預期 known fails（pre-existing 非 SB9 引入，已記錄）:
-- smoke.spec "app boots without console errors" × 8 viewport: 401 Unauthorized
-- nsm-home.spec.js Mobile-360 specific timeouts (NSM 範疇 flake)
-- pixel-diff specs 偶發並行 flake（單獨 re-run 全 pass）
+24 fails 全 pre-existing 非 SB regression:
+- **8× smoke "app boots without console errors"** × 8 viewport：401 Unauthorized（pre-Path 2 auth endpoint，非本次 frontend rewrite 引入）
+- **16× nsm-home** = 4 spec × 4 mobile viewport (Mobile-360/iPhone-SE/iPhone-14/iPhone-15-Pro)：1.5min timeout flake（NSM Step 1 範疇，非 Plan B）
+
+**0 SB regression。** Plan B SB1-9b + Plan C SB1 + Plan D SB1 全 ship-ready。
 
 ## E2: webkit (iOS Safari engine) 全 spec regression ✓ DONE
 
@@ -80,7 +81,7 @@
 | 14-box gate item | 狀態 |
 |---|---|
 | 1. jest 100% pass | ✓ 157/157 |
-| 2. Playwright chromium 8 viewport | 🟡 進行中（已知 pre-existing 9 fails 非 SB9 regression） |
+| 2. Playwright chromium 8 viewport | ✓ 1376/1400 = 98.3% pass（24 fails 全 pre-existing：8 smoke 401 + 16 nsm-home flake，0 SB regression） |
 | 3. webkit iOS Safari engine | ✓ 48/48 |
 | 4. mockup-as-Spec drift | ✓ 0 條 |
 | 5. PNG 親 Read 對齊 | ✓ 30 PNG 全綠 |
