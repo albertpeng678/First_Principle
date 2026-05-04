@@ -872,14 +872,8 @@ div.rt-textarea[contenteditable="true"] ul li { list-style: disc; }
 }
 .sol-add:hover { background: var(--c-bg-soft); border-color: var(--c-navy); color: var(--c-navy); }
 
-/* tablet+: hide field__label only inside sol-card (mockup tablet+ line 1325-1329)
-   — keep field__hint-row visible (right-aligned), only label is suppressed.
-   bug fix: label `display: none` 後 hint-row 變 flex 唯一 child, space-between 退化成 flex-start (left) — 用 margin-left: auto 強制推到右側 */
-@media (min-width: 768px) {
-  /* L 步 sol-card 內單一 field label 隱（與 sol-name 重複），E 步 4 nested fields 必須顯示 label */
-  .sol-card--l .field__label { display: none; }
-  .sol-card--l .field__label-row .field__hint-row { margin-left: auto; }
-}
+/* drift fix 2026-05-04: mockup 03 line 1260+1283 L 步 sol-card 明定有「核心機制」label,
+   原 tablet+ 隱藏規則為自作主張,移除 — label 現在三 viewport 都顯示對齊 mockup */
 
 /* phase-head__title-extra: desktop sim suffix "（2-3 個方案）" — hidden on mobile/tablet */
 .phase-head__title-extra { display: none; }
