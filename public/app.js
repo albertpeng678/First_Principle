@@ -324,7 +324,7 @@
       progressLabel: '澄清',
       stepLetter: 'C',
       stepNum: '01',
-      railTitle: '本步重點',
+      railTitle: 'C 步重點',
       railIntro: '確認題目邊界',
       railBody: '先把題目本身定義清楚 — 它的具體類型是什麼？涵蓋哪些場景？哪些明確排除？沒釐清這層，後面分析會在錯的邊界上展開。',
       railTitle2: '時間範圍提示',
@@ -343,7 +343,7 @@
       progressLabel: '用戶',
       stepLetter: 'I',
       stepNum: '02',
-      railTitle: '本步重點',
+      railTitle: 'I 步重點',
       railIntro: '鎖定目標用戶',
       railBody: '用戶分群不是列舉所有人，而是找出「最值得為誰解決」的那群。分群依據要可操作，焦點選定要有理由。',
       railTitle2: '動機假設提示',
@@ -362,7 +362,7 @@
       progressLabel: '需求',
       stepLetter: 'R',
       stepNum: '03',
-      railTitle: '本步重點',
+      railTitle: 'R 步重點',
       railIntro: '三層需求框架',
       railBody: '功能性（要完成什麼）→ 情感性（感覺如何）→ 社交性（在他人眼中如何）。三層缺一不完整，核心痛點是三層需求未被滿足的交集。',
       railTitle2: '痛點層次提示',
@@ -381,7 +381,7 @@
       progressLabel: '排序',
       stepLetter: 'C',
       stepNum: '04',
-      railTitle: '本步重點',
+      railTitle: 'C 步重點',
       railIntro: '顯性化取捨邏輯',
       railBody: '排序不是列清單，而是說明「用什麼標準決定先後」。取捨標準要與業務目標和用戶痛點連結，理由要可被質疑。',
       railTitle2: '排序理由提示',
@@ -784,13 +784,11 @@
 
   function renderRail(stepCfg) {
     // mockup 03 line 1197-1205 — desktop only aside.rail
+    // user 2026-05-04: rail 只保留 X 步重點，下方第 2 格已拿掉
     return '<aside class="rail">'
       + '<div class="rail__title">' + escHtml(stepCfg.railTitle) + '</div>'
       + '<p style="margin-bottom: var(--s-3); color: var(--c-ink); font-weight: 500;">' + escHtml(stepCfg.railIntro) + '</p>'
       + '<p style="line-height: 1.7;">' + escHtml(stepCfg.railBody) + '</p>'
-      + '<hr style="border: 0; border-top: 1px solid var(--c-rule); margin: var(--s-4) 0;">'
-      + '<div class="rail__title">' + escHtml(stepCfg.railTitle2 || '') + '</div>'
-      + '<p style="line-height: 1.7;">' + escHtml(stepCfg.railBody2 || '') + '</p>'
       + '</aside>';
   }
 
@@ -842,7 +840,7 @@
       + renderExampleExpand('L', numLabel, solDataKey)
       + '</div>';
 
-    return '<div class="sol-card">'
+    return '<div class="sol-card sol-card--l">'
       + '<div class="sol-card__num">' + numHtml + '</div>'
       + nameRowHtml
       + fieldHtml
@@ -1146,7 +1144,7 @@
         + '</div>';
     }).join('');
 
-    return '<div class="sol-card">'
+    return '<div class="sol-card sol-card--e">'
       + '<div class="sol-card__num">' + numHtml + '</div>'
       + nameDisplayHtml
       + fieldsHtml
@@ -1301,15 +1299,11 @@
       + '<div class="tracking-grid">' + trackingCardsHtml + '</div>'
       + '</div>';
 
-    // desktop rail
-    var railBody2 = '本題自動歸類為「' + typeLabelDisplay + '」— 4 維度 label 是上面那組。若題目改為 supply-demand / creator-content / B2B SaaS，label 會切換對應術語（master-spec §2.5）。';
+    // desktop rail — user 2026-05-04: 只保留 S 步重點,type-specific note 拿掉
     var railHtml = '<aside class="rail">'
       + '<div class="rail__title">' + escHtml(stepCfg.railTitle) + '</div>'
       + '<p style="margin-bottom: var(--s-3); color: var(--c-ink); font-weight: 500;">' + escHtml(stepCfg.railIntro) + '</p>'
       + '<p style="line-height: 1.7;">' + escHtml(stepCfg.railBody) + '</p>'
-      + '<hr style="border: 0; border-top: 1px solid var(--c-rule); margin: var(--s-4) 0;">'
-      + '<div class="rail__title">' + escHtml(stepCfg.railTitle2) + '</div>'
-      + '<p style="line-height: 1.7;">' + escHtml(railBody2) + '</p>'
       + '</aside>';
 
     // phase-body: desktop sim uses phase-body--with-rail
@@ -1452,14 +1446,15 @@
       + (chipExpanded ? renderQchipExpand(q) : '');
 
     // ── phase-body with 4 fields ──
-    // desktop drill: phase-body--with-rail (grid) + aside.rail
-    var phaseBodyClass = 'phase-body' + (isDrill ? ' phase-body--with-rail' : '');
+    // desktop（sim 與 drill 都顯示 rail — user 親要求 7 步全 rail 一致）
+    var useRail = isDesktop;
+    var phaseBodyClass = 'phase-body' + (useRail ? ' phase-body--with-rail' : '');
     var fieldsHtml = stepCfg.fields.map(function (f, i) {
       return renderPhase1Field(f, i, isDrill);
     }).join('');
     var phaseBodyHtml = '<div class="' + phaseBodyClass + '">'
       + '<div>' + fieldsHtml + '</div>'
-      + (isDrill ? renderRail(stepCfg) : '')
+      + (useRail ? renderRail(stepCfg) : '')
       + '</div>';
 
     // ── submit-bar ──

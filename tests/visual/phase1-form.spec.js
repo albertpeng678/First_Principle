@@ -105,12 +105,12 @@ test.describe('B SB3 Phase 1 Form — mockup 03 Section A', () => {
     await expect(page.locator('.submit-bar__right .btn--primary')).toContainText('下一步');
   });
 
-  test('desktop drill phase-body has --with-rail + rail aside「本步重點」', async ({ page }) => {
+  test('desktop drill phase-body has --with-rail + rail aside「C 步重點」(user 2026-05-04 統一 X 步重點)', async ({ page }) => {
     await page.setViewportSize({ width: 1280, height: 900 });
     await gotoDrillC1(page);
     await expect(page.locator('.phase-body--with-rail')).toBeVisible();
     await expect(page.locator('.rail')).toBeVisible();
-    await expect(page.locator('.rail__title').first()).toHaveText('本步重點');
+    await expect(page.locator('.rail__title').first()).toHaveText('C 步重點');
   });
 
   // SB6 cold-review fix — DRIFT 2: mockup 03 Section G desktop line 2342 + Section B/C

@@ -876,8 +876,9 @@ div.rt-textarea[contenteditable="true"] ul li { list-style: disc; }
    — keep field__hint-row visible (right-aligned), only label is suppressed.
    bug fix: label `display: none` 後 hint-row 變 flex 唯一 child, space-between 退化成 flex-start (left) — 用 margin-left: auto 強制推到右側 */
 @media (min-width: 768px) {
-  .sol-card .field__label { display: none; }
-  .sol-card .field__label-row .field__hint-row { margin-left: auto; }
+  /* L 步 sol-card 內單一 field label 隱（與 sol-name 重複），E 步 4 nested fields 必須顯示 label */
+  .sol-card--l .field__label { display: none; }
+  .sol-card--l .field__label-row .field__hint-row { margin-left: auto; }
 }
 
 /* phase-head__title-extra: desktop sim suffix "（2-3 個方案）" — hidden on mobile/tablet */
