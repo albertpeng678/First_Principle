@@ -254,12 +254,47 @@
     return banners.join('');
   }
 
+  // Reset CIRCLES sub-state so home renderer shows mockup 01 home (mode-cards + qcards)
+  // 而非繼續停在 Phase 1 form / qchip-expand / Phase 2 chat 等深層 state。
+  // user 2026-05-04: 「點擊回首頁、icon 都無法回首頁」— 原本 home nav 只切 view 不 reset
+  // sub-state，導致 renderView() 仍命中 renderCirclesPhase1()。
+  function resetCirclesToHome() {
+    AppState.circlesPhase = 1;
+    AppState.circlesMode = null;
+    AppState.circlesDrillStep = null;
+    AppState.circlesSimStep = 0;
+    AppState.circlesSelectedQuestion = null;
+    AppState.circlesSession = null;
+    AppState.circlesFrameworkDraft = {};
+    AppState.circlesConversation = [];
+    AppState.circlesGateResult = null;
+    AppState.circlesScoreResult = null;
+    AppState.circlesStepScores = {};
+    AppState.circlesEvaluating = false;
+    AppState.circlesEvaluateError = null;
+    AppState.circlesFinalReport = null;
+    AppState.circlesStale = false;
+    AppState.circlesLocked = false;
+    AppState.circlesChipExpanded = false;
+    AppState.circlesPhase1Solutions = [
+      { name: '', mechanism: '' },
+      { name: '', mechanism: '' },
+    ];
+    AppState.circlesPhase1S = {
+      recommendation: '',
+      reasoning: '',
+      nsm: '',
+      tracking: { reach: '', depth: '', frequency: '', impact: '' },
+    };
+    AppState.circlesExpandedQid = null;
+  }
+
   function bindNavbar() {
     document.querySelectorAll('[data-nav]').forEach(function (el) {
       el.addEventListener('click', function () {
         const target = el.dataset.nav;
-        if (target === 'home')      { AppState.view = 'circles'; render(); }
-        else if (target === 'circles') { AppState.view = 'circles'; render(); }
+        if (target === 'home')      { resetCirclesToHome(); AppState.view = 'circles'; render(); }
+        else if (target === 'circles') { resetCirclesToHome(); AppState.view = 'circles'; render(); }
         else if (target === 'nsm')     { AppState.view = 'nsm';     render(); }
         else if (target === 'auth')    { AppState.view = 'auth';    render(); }
         else if (target === 'offcanvas') {

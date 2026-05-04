@@ -37,6 +37,11 @@ html, body {
   -webkit-font-smoothing: antialiased;
   -webkit-tap-highlight-color: transparent;
 }
+/* nsm-promo 置底 鏈條 — body / #app / data-view="circles" 全 flex column min-h:100vh */
+html, body { min-height: 100vh; }
+body { display: flex; flex-direction: column; }
+#app { flex: 1; display: flex; flex-direction: column; min-height: 0; }
+[data-view="circles"] { flex: 1; display: flex; flex-direction: column; min-height: 0; }
 button { font: inherit; color: inherit; cursor: pointer; background: none; border: none; }
 a { color: inherit; text-decoration: none; }
 @media (max-width: 767px) { input, textarea, select { font-size: 16px !important; } }
@@ -605,8 +610,10 @@ body:has(.submit-bar) { padding-bottom: calc(var(--touch-min) + var(--s-7)); }
 .qa-row__body p + p { margin-top: var(--s-3); }
 .qa-row.is-open .qa-row__body { display: block; }
 
-/* nsm-promo (mockup 01 §G — bottom of home) */
-.nsm-promo { display: flex; align-items: center; justify-content: space-between; gap: var(--s-5); padding: var(--s-5) var(--s-4); background: var(--c-navy-lt); border-top: 1px solid var(--c-rule); flex-wrap: wrap; }
+/* nsm-promo (mockup 01 §G — bottom of home)
+   user 2026-05-04: 置底 — 內容短於 viewport 時也 push 到底。
+   #app + [data-view="circles"] 全 flex column min-h，nsm-promo margin-top:auto 自然下推。 */
+.nsm-promo { display: flex; align-items: center; justify-content: space-between; gap: var(--s-5); padding: var(--s-5) var(--s-4); background: var(--c-navy-lt); border-top: 1px solid var(--c-rule); flex-wrap: wrap; margin-top: auto; }
 .nsm-promo__main { flex: 1; min-width: 0; }
 .nsm-promo__title { font-size: var(--t-body); font-weight: 500; color: var(--c-navy); margin-bottom: var(--s-1); }
 .nsm-promo__sub { font-size: var(--t-meta); color: var(--c-ink-2); line-height: 1.6; }

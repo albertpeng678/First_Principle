@@ -119,4 +119,27 @@ test.describe('B SB3 Phase 1 Form — mockup 03 Section A', () => {
     expect(company).toContain('設計題');
     expect(company).toContain('難度');
   });
+
+  // user 2026-05-04 bug 1: 「在 CIRCLES 測試頁時，點擊回首頁、icon 都無法回首頁」
+  // home / brand / CIRCLES tab 必須 reset Phase 1 sub-state，回到 mockup 01 home。
+  test('navbar home icon from Phase 1 form resets to mockup 01 home', async ({ page }) => {
+    await page.setViewportSize({ width: 1280, height: 1100 });
+    await gotoSimC1(page);
+    await expect(page.locator('.qchip')).toBeVisible();
+    await page.locator('[data-nav="home"].navbar__icon-btn').click();
+    await page.waitForTimeout(200);
+    await expect(page.locator('.mode-card')).toHaveCount(2);
+    await expect(page.locator('.qcard')).toHaveCount(5);
+    await expect(page.locator('.phase-head')).toHaveCount(0);
+  });
+
+  test('navbar brand from Phase 1 form resets to mockup 01 home', async ({ page }) => {
+    await page.setViewportSize({ width: 360, height: 800 });
+    await gotoSimC1(page);
+    await expect(page.locator('.qchip')).toBeVisible();
+    await page.locator('.navbar__brand[data-nav="home"]').click();
+    await page.waitForTimeout(200);
+    await expect(page.locator('.mode-card')).toHaveCount(2);
+    await expect(page.locator('.phase-head')).toHaveCount(0);
+  });
 });
