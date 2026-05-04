@@ -744,6 +744,16 @@ body:has(.submit-bar) { padding-bottom: calc(var(--touch-min) + var(--s-7)); }
 }
 .rt-textarea { width: 100%; padding: var(--s-2) var(--s-3); font-size: var(--t-body-sm); color: var(--c-ink); font-family: var(--font-sans); border: 0; outline: 0; resize: vertical; background: transparent; line-height: 1.6; }
 .rt-textarea::placeholder { color: var(--c-ink-4); }
+/* contenteditable div 支援 WYSIWYG bold / list — 配合 toolbar execCommand */
+div.rt-textarea { min-height: 4em; white-space: pre-wrap; word-wrap: break-word; cursor: text; }
+div.rt-textarea[contenteditable="true"]:empty::before {
+  content: attr(data-placeholder);
+  color: var(--c-ink-4);
+  pointer-events: none;
+}
+div.rt-textarea[contenteditable="true"] strong { font-weight: 600; color: var(--c-ink); }
+div.rt-textarea[contenteditable="true"] ul { margin: var(--s-1) 0; padding-left: var(--s-5); }
+div.rt-textarea[contenteditable="true"] ul li { list-style: disc; }
 
 /* ── char-counter ── */
 .char-counter { font-size: var(--t-cap); color: var(--c-ink-4); font-variant-numeric: tabular-nums; }

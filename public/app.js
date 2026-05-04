@@ -777,7 +777,7 @@
       + '</div>'
       + '<div class="rt-field" data-field-idx="' + idx + '">'
       + toolbarHtml
-      + '<textarea class="rt-textarea" rows="' + rows + '" placeholder="' + escHtml(placeholder) + '" data-phase1="textarea" data-field-idx="' + idx + '" data-max="' + max + '"></textarea>'
+      + '<div class="rt-textarea" contenteditable="true" data-rows="' + rows + '" data-placeholder="' + escHtml(placeholder) + '" data-phase1="textarea" data-field-idx="' + idx + '" data-max="' + max + '" style="min-height:' + (rows * 1.6 + 1) + 'em;"></div>'
       + '</div>'
       + metaHtml
       + renderExampleExpand('', key, key)
@@ -839,7 +839,7 @@
       + '<button class="rt-tbtn" type="button" aria-label="粗體"><i class="ph ph-text-b"></i></button>'
       + '<button class="rt-tbtn" type="button" aria-label="項目符號"><i class="ph ph-list-bullets"></i></button>'
       + '</div>'
-      + '<textarea class="rt-textarea" rows="3" placeholder="' + escHtml(taPlaceholder) + '" data-sol-idx="' + idx + '"></textarea>'
+      + '<div class="rt-textarea" contenteditable="true" data-placeholder="' + escHtml(taPlaceholder) + '" data-sol-idx="' + idx + '" style="min-height:5.8em;"></div>'
       + '</div>'
       + renderExampleExpand('L', numLabel, solDataKey)
       + '</div>';
@@ -1141,7 +1141,7 @@
         +       '<button class="rt-tbtn" type="button" aria-label="粗體"><i class="ph ph-text-b"></i></button>'
         +       '<button class="rt-tbtn" type="button" aria-label="項目符號"><i class="ph ph-list-bullets"></i></button>'
         +     '</div>'
-        +     '<textarea class="rt-textarea" rows="' + f.rows + '" placeholder="' + escHtml(f.placeholder) + '" data-circles-e-sol-idx="' + solIdx + '" data-circles-e-field-key="' + f.key + '" data-max="' + f.max + '"></textarea>'
+        +     '<div class="rt-textarea" contenteditable="true" data-placeholder="' + escHtml(f.placeholder) + '" data-circles-e-sol-idx="' + solIdx + '" data-circles-e-field-key="' + f.key + '" data-max="' + f.max + '" style="min-height:' + (f.rows * 1.6 + 1) + 'em;"></div>'
         +   '</div>'
         +   '<div class="field__meta" style="font-size: var(--t-cap); color: var(--c-ink-3); margin-top: 2px;">建議 ' + f.minMax + ' 字</div>'
         +   renderExampleExpand('E', f.label, dataKey)
@@ -1252,7 +1252,7 @@
         + '</div>'
         + '<div class="rt-field">'
         + toolbarHtml
-        + '<textarea class="rt-textarea" rows="' + rows + '" placeholder="' + escHtml(placeholder) + '" data-s-textarea="' + escHtml(key) + '"></textarea>'
+        + '<div class="rt-textarea" contenteditable="true" data-placeholder="' + escHtml(placeholder) + '" data-s-textarea="' + escHtml(key) + '" style="min-height:' + (rows * 1.6 + 1) + 'em;"></div>'
         + '</div>'
         + renderExampleExpand('S', key, key)
         + '</div>';
@@ -2354,20 +2354,19 @@
       });
     });
 
-    // ── textarea input: debounce 200ms → update char-counter + draft ──
-    document.querySelectorAll('[data-phase1="textarea"]').forEach(function (ta) {
-      ta.addEventListener('input', function () {
+    // ── contenteditable input: debounce 200ms → update char-counter + draft ──
+    // 改 textarea → contenteditable 後改用 input event + textContent / innerHTML
+    document.querySelectorAll('[data-phase1="textarea"]').forEach(function (el) {
+      el.addEventListener('input', function () {
         if (_phase1CharDebounce) clearTimeout(_phase1CharDebounce);
         _phase1CharDebounce = setTimeout(function () {
-          var idx = parseInt(ta.dataset.fieldIdx, 10);
-          var max = parseInt(ta.dataset.max, 10) || 200;
-          var val = ta.value;
-          // update char-counter for field 0 only (mockup shows counter only on field 1)
+          var idx = parseInt(el.dataset.fieldIdx, 10);
+          var max = parseInt(el.dataset.max, 10) || 200;
+          var plainLen = (el.textContent || '').length;
           if (idx === 0) {
-            var counter = ta.closest('.field') && ta.closest('.field').querySelector('.char-counter');
-            if (counter) counter.textContent = val.length + ' / ' + max;
+            var counter = el.closest('.field') && el.closest('.field').querySelector('.char-counter');
+            if (counter) counter.textContent = plainLen + ' / ' + max;
           }
-          // update draft in AppState
           var stepKey = AppState.circlesMode === 'drill'
             ? (AppState.circlesDrillStep || 'C1')
             : (['C1', 'I', 'R', 'C2', 'L', 'E', 'S'][AppState.circlesSimStep || 0] || 'C1');
@@ -2376,72 +2375,32 @@
             var fieldKey = cfg.fields[idx].key;
             if (!AppState.circlesFrameworkDraft) AppState.circlesFrameworkDraft = {};
             if (!AppState.circlesFrameworkDraft[stepKey]) AppState.circlesFrameworkDraft[stepKey] = {};
-            AppState.circlesFrameworkDraft[stepKey][fieldKey] = val;
+            // 存 innerHTML 保留 <strong>/<ul>/<li> 等格式
+            AppState.circlesFrameworkDraft[stepKey][fieldKey] = el.innerHTML;
           }
         }, 200);
       });
     });
 
-    // ── rt-tbtn: textarea-aware markdown injection（取代 execCommand — textarea 不支援）──
-    // B 包 selection 為 **bold**；list-bullets 在每行前插「- 」（或移除已存在的）
+    // ── rt-tbtn: contenteditable-native via execCommand (B / list-bullets) ──
+    // contenteditable 直接支援 document.execCommand — bold 變 <strong>，list 變 <ul><li>
     document.querySelectorAll('.rt-tbtn').forEach(function (btn) {
       btn.addEventListener('click', function (e) {
         e.preventDefault();
         var icon = btn.querySelector('i');
         if (!icon) return;
         var cls = icon.className;
-        // 找最近的 textarea（同一 rt-field 內）
         var rtField = btn.closest('.rt-field');
-        var ta = rtField ? rtField.querySelector('textarea') : null;
-        if (!ta) return;
-        var start = ta.selectionStart;
-        var end = ta.selectionEnd;
-        var before = ta.value.slice(0, start);
-        var sel = ta.value.slice(start, end);
-        var after = ta.value.slice(end);
-
+        var editor = rtField ? rtField.querySelector('.rt-textarea[contenteditable="true"]') : null;
+        if (!editor) return;
+        editor.focus();
         if (cls.indexOf('ph-text-b') >= 0) {
-          // 包/解 **bold**：若 selection 已被 ** 包，剝掉；否則包上
-          if (sel.startsWith('**') && sel.endsWith('**') && sel.length >= 4) {
-            var stripped = sel.slice(2, -2);
-            ta.value = before + stripped + after;
-            ta.selectionStart = start; ta.selectionEnd = start + stripped.length;
-          } else if (sel.length === 0) {
-            // 無 selection：插入 **|** placeholder cursor 在中間
-            ta.value = before + '**粗體**' + after;
-            ta.selectionStart = start + 2; ta.selectionEnd = start + 4;
-          } else {
-            ta.value = before + '**' + sel + '**' + after;
-            ta.selectionStart = start; ta.selectionEnd = start + sel.length + 4;
-          }
+          document.execCommand('bold', false, null);
         } else if (cls.indexOf('ph-list-bullets') >= 0) {
-          // list-bullets：每行前插 「- 」（toggle — 已存在則移除）
-          // 若無 selection，作用於當前行
-          var rangeStart = start, rangeEnd = end;
-          if (start === end) {
-            // expand to current line
-            var lineStart = before.lastIndexOf('\n') + 1;
-            var lineEnd = ta.value.indexOf('\n', end);
-            if (lineEnd === -1) lineEnd = ta.value.length;
-            rangeStart = lineStart;
-            rangeEnd = lineEnd;
-          }
-          var block = ta.value.slice(rangeStart, rangeEnd);
-          var lines = block.split('\n');
-          // 若全部已是 「- 」開頭，toggle off；否則 toggle on
-          var allBulleted = lines.every(function(l){ return /^- /.test(l) || l.trim() === ''; });
-          var transformed = lines.map(function(l){
-            if (l.trim() === '') return l;
-            if (allBulleted) return l.replace(/^- /, '');
-            return /^- /.test(l) ? l : '- ' + l;
-          }).join('\n');
-          ta.value = ta.value.slice(0, rangeStart) + transformed + ta.value.slice(rangeEnd);
-          ta.selectionStart = rangeStart;
-          ta.selectionEnd = rangeStart + transformed.length;
+          document.execCommand('insertUnorderedList', false, null);
         }
-        ta.focus();
         // 觸發 input event → 同步 AppState debounce
-        ta.dispatchEvent(new Event('input', { bubbles: true }));
+        editor.dispatchEvent(new Event('input', { bubbles: true }));
       });
     });
 
@@ -2526,7 +2485,7 @@
       var idx = parseInt(ta.dataset.solIdx || '0', 10);
       ta.addEventListener('input', function (e) {
         if (AppState.circlesPhase1Solutions[idx] !== undefined) {
-          AppState.circlesPhase1Solutions[idx].mechanism = e.target.value;
+          AppState.circlesPhase1Solutions[idx].mechanism = e.target.innerHTML;
         }
       });
     });
@@ -2536,9 +2495,11 @@
       ta.addEventListener('input', function (e) {
         var key = ta.dataset.sTextarea;
         if (!AppState.circlesPhase1S) return;
-        if (key === '推薦方案') AppState.circlesPhase1S.recommendation = e.target.value;
-        else if (key === '選擇理由') AppState.circlesPhase1S.reasoning = e.target.value;
-        else if (key === '北極星指標') AppState.circlesPhase1S.nsm = e.target.value;
+        // contenteditable: 用 innerHTML 保留 bold/list 格式
+        var v = e.target.innerHTML;
+        if (key === '推薦方案') AppState.circlesPhase1S.recommendation = v;
+        else if (key === '選擇理由') AppState.circlesPhase1S.reasoning = v;
+        else if (key === '北極星指標') AppState.circlesPhase1S.nsm = v;
       });
     });
 
@@ -2559,7 +2520,7 @@
         if (!AppState.circlesPhase1Evaluate[solIdx]) {
           AppState.circlesPhase1Evaluate[solIdx] = { advantages: '', disadvantages: '', risks: '', metrics: '' };
         }
-        AppState.circlesPhase1Evaluate[solIdx][key] = el.value;
+        AppState.circlesPhase1Evaluate[solIdx][key] = el.innerHTML;
       });
     });
 
