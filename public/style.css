@@ -447,8 +447,12 @@ body:has(.submit-bar) { padding-bottom: calc(var(--touch-min) + var(--s-7)); }
 /* ───── B1 · CIRCLES Home (mockup 01) BEGIN ───── */
 
 /* mobile navbar tabs hide — Plan A carry-forward */
+/* mobile navbar auth-only sign-in hide on home — mockup 01 line 803 mobile guest = nothing
+   user 2026-05-04 quality-first drift sweep: app.js renderNavbar 用 navbar__icon-btn--auth-only
+   class 但缺 hide rule，導致 mobile-360 home guest 顯示 sign-in icon。 */
 @media (max-width: 480px) {
   .navbar__tabs { display: none; }
+  .navbar__icon-btn--auth-only { display: none; }
 }
 
 /* stats strip (verbatim mockup 01) */

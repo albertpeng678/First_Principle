@@ -263,4 +263,25 @@ test.describe('B1 CIRCLES Home', () => {
     // Verify --mobile element is actually visible at this viewport
     await expect(page.locator('.mode-card').nth(0).locator('.mode-card__body--mobile')).toBeVisible();
   });
+
+  // user 2026-05-04 quality-first drift sweep:
+  // mockup 01 line 803 mobile guest navbar = 漢堡 + brand only（無 sign-in）
+  // app.js renderNavbar 用 navbar__icon-btn--auth-only class hide on mobile，
+  // 但 style.css 缺對應 @media rule，導致 mobile-360 顯示 sign-in。
+  test('mobile-360 CIRCLES home guest navbar hides sign-in (mockup 01 line 803)', async ({ page }) => {
+    await page.setViewportSize({ width: 360, height: 800 });
+    await page.goto('/');
+    await page.waitForSelector('.qcard');
+    const signInBtn = page.locator('.navbar__icon-btn--auth-only');
+    // Element exists in DOM (renderNavbar still emits it) but should be display:none on mobile
+    const isVisible = await signInBtn.isVisible();
+    expect(isVisible).toBe(false);
+  });
+
+  test('tablet-768 CIRCLES home guest navbar shows sign-in (mockup 01 tablet+)', async ({ page }) => {
+    await page.setViewportSize({ width: 768, height: 1024 });
+    await page.goto('/');
+    await page.waitForSelector('.qcard');
+    await expect(page.locator('.navbar__icon-btn--auth-only')).toBeVisible();
+  });
 });
