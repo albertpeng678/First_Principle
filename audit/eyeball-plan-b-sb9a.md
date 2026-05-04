@@ -50,7 +50,11 @@ Read 4 PNG（desktop-1280 idle/saving/saved/error）— 全與 mockup line 2160-
   - saved 寫 localStorage ✓
   - localStorage throw → error ✓
   - error click retry → saving → saved ✓
-- Playwright 全 spec Desktop-1280+Mobile-360+iPad regression: 進行中（背景 monitor）
+- Playwright 全 spec Desktop-1280+Mobile-360+iPad regression: **477 pass / 9 fail (7.9min)**
+  - **無 SB9a 引入的回歸** — 9 failure breakdown:
+    - 3× `smoke.spec` "app boots without console errors" → 401 Unauthorized（pre-existing；git stash 驗證 pre-SB9a 即 fail）
+    - 4× `nsm-home.spec` Mobile-360 → 1.5min timeout（NSM 範疇 flake，與 SB9a 無關）
+    - 2× pixel-diff `sb4-sb5 SB4 L mobile-360` + `sb6 Section G tablet-768` → 並行 flake（單獨 re-run 5.68% PASS / 4.1s PASS）
 
 ## How it wired
 

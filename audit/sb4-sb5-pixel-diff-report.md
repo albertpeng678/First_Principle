@@ -1,6 +1,13 @@
 # SB4 + SB5 Section pixel-diff report
 
-_Generated: 2026-05-04T07:56:26.701Z_
+_Generated: 2026-05-04T08:03:21.750Z_
+
+## SB4 L step · mobile-360: 🟠 < 15% (state diff 預期)
+
+- mockup 358×1160 / production 360×1500 / padded 360×1500 / mismatched 30674px / **5.68%**
+- mockup PNG: `tests/visual/diffs/sb4-sb5/SB4-mobile-360-mockup.png`
+- production PNG: `tests/visual/diffs/sb4-sb5/SB4-mobile-360-production.png`
+- diff PNG: `tests/visual/diffs/sb4-sb5/SB4-mobile-360-diff.png`
 
 ---
 
