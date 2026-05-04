@@ -40,6 +40,44 @@
 
 **0 條 drift**。三狀態完整對齊 mockup line 1953-2106 規格。
 
+## Mockup ↔ production pixel-diff（mockup-as-Spec Layer 2）
+
+`tests/visual/sb9b-section-pixel-diff.spec.js` 跑 3 frames vs mockup line 1957-2095:
+
+| frame | diff% | verdict |
+|---|---|---|
+| Mobile · locked     | **5.38%** | 🟠 < 15% (state diff 預期 — mockup hardcoded textarea content vs production empty) |
+| Tablet · stale      | **3.14%** | 🟡 < 5% |
+| Desktop · save-error | **2.49%** | 🟡 < 5% |
+
+Mobile-locked diff PNG 親 Read：紅點全是 mockup 651px 短/production 1700px 長 padding mismatch + textarea content state diff，**無 structural drift**（navbar / phase-head / banner / 看評分結果 CTA 全位置正確）。
+
+`audit/sb9b-pixel-diff-report.md` 完整 report 含 mockup/production/diff 三 PNG 路徑。
+
+## iOS Safari 15-item 靜檢（master-spec §0.2）
+
+walk SB9a + SB9b 改動：
+
+| # | 項目 | 結果 |
+|---|---|---|
+| 1 | 100vh 不跳 | ✓ 無 100vh 新增 |
+| 2 | safe-area-inset | ✓ 沒改 submit-bar padding |
+| 3 | input ≥ 16px | ✓ 沒新增 input；tracking-card input readonly attr 不改字體 |
+| 4 | tap-highlight 透明 | ✓ 沿用 global `*` rule |
+| 5 | 動畫 GPU-accelerated | ✓ save-indicator--saving 用 `transform: rotate()`（spin keyframes line 74） |
+| 6 | sticky 行為穩定 | ✓ banner 是 normal flow 非 sticky；submit-bar 沿用 |
+| 7 | momentum scroll | ✓ 沒改 overflow |
+| 8 | 鍵盤彈出不亂跳 | ✓ contenteditable=false 在 locked 時 user 不會 focus 喚鍵盤 |
+| 9 | modal focus trap | ✓ SB9a/9b 沒動 modal（hint modal 沿用 SB8） |
+| 10 | 無 FOUC | ✓ 沒加新 CSS load |
+| 11 | touch target ≥ 44px | ⚠ `.save-indicator--error` cursor:pointer 但 padding 4px 8px → ~22px 高 < 44px。**mockup-faithful**（mockup line 306 也只給 4px 8px），記錄為已知 design constraint |
+| 12 | long content 不爆版 | ✓ banner__main 既有 `min-width: 0`；save-indicator 文字短 |
+| 13 | backdrop-filter 雙前綴 | ✓ 沒新加 |
+| 14 | 滾動性能 | ✓ 沒改 scroll 容器 |
+| 15 | layout thrashing | ✓ `setPhase1SaveState` outerHTML swap 限 phase-head 小區，不高頻 |
+
+**14/15 PASS + 1 mockup-faithful design constraint 記錄**。
+
 ## Tests / regression
 
 - jest: 進行中
