@@ -1,7 +1,7 @@
 # Path 2 — Frontend Rewrite · 接手 Handoff
 
 > 下個 session / 帳號接手用。**先讀本檔再讀 CLAUDE.md**。
-> **Last updated:** 2026-05-04（**Plan B SB7 ✅ DONE** — E 步 per-sol × 4-field nested mockup 03「E 沿用 L 結構」/ commits `f09ec0c`+`2e71083` / jest 157 / PW E-step 64/64 + Phase 1 regression 488/488 + pixel-diff 3/3 / Plan B SB1-6 + C SB1 + D SB1 全 merged main / 下一步：Plan B SB8+ hint overlay 3-tier / locked-stale / save indicator 4 狀態）
+> **Last updated:** 2026-05-04（**Plan B SB8 ✅ DONE** — 全 7 步 hint modal Tier-1 + example expand / commit `6b595ab` / jest 157 / PW hint-modal 11/11 + example-expand 10/10 + Phase 1 regression 496/496 × 8 viewport / 下一步：Plan B SB9+ hint Tier-2 AI / locked-stale / save indicator 4 狀態）
 
 ---
 
