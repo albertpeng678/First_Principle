@@ -2,7 +2,7 @@
 
 > **Goal:** 後端 / API / DB / OpenAI prompt / 商業邏輯 / jest 100% 不動；前端 CSS + render 從 0 重寫；目標 iOS Safari 滑順度 ≥ aistockmap.com。
 > **Authority:** 重寫對齊基準。實作完成後逐條打勾，未對齊 = 未完成。
-> **Last updated:** 2026-05-04（**Plan B SB7 ✅ DONE** — E 步 per-sol × 4-field nested mockup 03「E 沿用 L 結構」line 1466 / commits `f09ec0c`+`2e71083` / TDD 紅綠 / jest 157 / PW E-step 64/64 + Phase 1 regression 488/488 / pixel-diff 3/3 < 15% (mobile 5.43% / tablet 3.67% / desktop 2.99%) / 6 PNG director eyeball Read 全 review × 5 boundingBox invariants 全對齊 / `audit/eyeball-plan-b-sb7.md` + `audit/sb7-pixel-diff-report.md` / 殺手鐧 3 問備答 OK）
+> **Last updated:** 2026-05-04（**Plan B SB8 ✅ DONE + post-ship hardening** — 7 步 hint modal AI 串接 `POST /api/circles-public/hint` + 3-state（loading/content/error）+ AbortController + per-stepKey:fieldKey:questionId cache / 7 步 desktop rail 統一單格「X 步重點」/ S 步 4 tracking-card 範例 per-dim filter 切 DB「追蹤指標」單一 entry / L sol-card 三 viewport 顯示「核心機制」label 對齊 mockup line 1260 / final commit `dd45e6d` / jest 157 / PW Mobile-360+iPad+Desktop-1280 165/165 / 21 PNG director eyeball walk vs mockup 03 / `audit/eyeball-sb8-final-audit.md`）
 
 ---
 

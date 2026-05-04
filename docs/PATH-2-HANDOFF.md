@@ -1,7 +1,14 @@
 # Path 2 — Frontend Rewrite · 接手 Handoff
 
 > 下個 session / 帳號接手用。**先讀本檔再讀 CLAUDE.md**。
-> **Last updated:** 2026-05-04（**Plan B SB8 ✅ DONE** — 全 7 步 hint modal Tier-1 + example expand / commit `6b595ab` / jest 157 / PW hint-modal 11/11 + example-expand 10/10 + Phase 1 regression 496/496 × 8 viewport / 下一步：Plan B SB9+ hint Tier-2 AI / locked-stale / save indicator 4 狀態）
+> **Last updated:** 2026-05-04（**Plan B SB8 ✅ DONE + post-ship hardening 5 commits** — hint AI 串接 / 7 步 rail 統一「X 步重點」單格 / S 步 4 tracking-card per-dim 範例 / L sol-card「核心機制」label drift fix / final commit `dd45e6d` / jest 157 / PW Mobile-360+iPad+Desktop-1280 165/165 / 21 PNG director eyeball walk vs mockup 03 / 下一步：Plan B SB9+ hint Tier-2 AI 個人化 / locked-stale / save indicator 4 狀態）
+>
+> **Post-ship hardening 重點（2026-05-04 user rapid-fire fix）:**
+> - `routes/circles-public.js` 已存在 `POST /hint` 端點（後端 AI 已開好,前端只需呼叫）
+> - rt-toolbar 全 `<div contenteditable="true">` + `document.execCommand('bold'/'insertUnorderedList')` 真 WYSIWYG
+> - rail 統一「X 步重點」單格（railTitle2/railBody2 config 仍存,只是不 render — 留 future Tier-2 用）
+> - S 步 tracking 4 dim 範例答案用 `filterTrackingExampleByDim(md, dimKey)` 切 DB 單一 entry
+> - **L 步 sol-card label 三 viewport 都顯示**（之前 tablet+ 隱藏為自作主張,違反 mockup line 1260）
 
 ---
 

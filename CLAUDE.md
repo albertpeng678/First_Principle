@@ -1,7 +1,7 @@
 # PM Drill — 專案狀態看板
 
 > 即時狀態 single source of truth。重大事件即時 Edit。不放歷史（git log 有）。
-> **Last updated:** 2026-05-04（**Plan B SB8 ✅ DONE** — 全 7 步 hint modal Tier-1 + example expand / commit `6b595ab` / jest 157 / PW hint-modal 11/11 + example-expand 10/10 + Phase 1 regression 496/496 × 8 viewport / 6 PNG director eyeball Read / Plan B SB1-8 + C SB1 + D SB1 全 merged main）
+> **Last updated:** 2026-05-04（**Plan B SB8 ✅ DONE + post-ship hardening 5 commits** — hint AI 串接 / 7 步 rail 統一「X 步重點」單格 / S 步 4 tracking-card per-dim 範例 / L sol-card「核心機制」label drift fix / final commit `dd45e6d` / jest 157 / PW Mobile-360+iPad+Desktop-1280 165/165 / 21 PNG director eyeball walk vs mockup 03 / Plan B SB1-8 + C SB1 + D SB1 全 merged main）
 >
 > **🔴 接手 Handoff：** `docs/PATH-2-HANDOFF.md` — 下個 session / 帳號接手必先讀
 
@@ -36,6 +36,7 @@
 | Plan B SB6（qchip 題目展開 mockup 03 Section G — `renderQchipExpand(q)` panel: statement on surface + 「深入分析」navy 24px bar + 4 qchip-ana__block (商業背景/用戶輪廓/常見誤區 trap warn 橘/破題切入) + 收合 btn / qchip is-expanded class + caret 反轉 ph-caret-down ↔ ph-caret-up / 4 處 renderer 同步：renderCirclesPhase1 + Lstep + Estep + Sstep）| ✅ DONE — sonnet `51fd4a0` + opus cold-review fix `914ca02`（DRIFT 2: renderCirclesPhase1 desktop sim base C 加 isDesktop 判定，qchip__company 加「· 設計題 · 難度 中」對齊 mockup B/C/G + Lstep line 666 pattern；TDD 紅綠 / jest 157 / PW 392/392 × 8 viewport / pixel-diff 3.47-7.13% / 12 PNG director Read 含 fix 後 diff / eyeball walk doc 含 4 條 drift 誠實列表 + honest dishonesty disclosure）|
 | Plan B SB7（E 步 per-sol × 4-field nested mockup 03 line 1466「E 沿用 L 結構」— 2-3 sol-cards / 每張 4 nested rt-field 優點/缺點/風險與依賴/成功指標 / sol-name readonly / 不可改方案數 / desktop rail 「E 步要點」+「為何要評估每個方案」/ AppState.circlesPhase1Evaluate auto-sync）| ✅ DONE — sonnet `f09ec0c`+`2e71083` / opus cold review 4 樣產出齊：jest 157 / PW E-step 64/64 + Phase 1 regression 488/488 / pixel-diff vs L baseline mobile 5.43% tablet 3.67% desktop 2.99%（cross-state 預期，結構 PASS） / 6 PNG director eyeball Read 全 review (mobile-360/tablet-768/desktop-1280 × 2-sol/3-sol) / 5 boundingBox invariants 全對齊 / eyeball walk + pixel-diff 2 docs |
 | Plan B SB8（全 7 步 hint modal Tier-1 hardcoded + example expand inline lazy populate — mockup 03 Section D / HINT_OVERLAY_TEXT 27 cells / getFieldExampleKey DB alias / markdownBulletsToHtml / renderHintModal + openHintModal + closeHintModal / renderExampleExpand / 4 關閉路徑 ESC+backdrop+close+了解了 / E/L/S step renderers + binder 全改寫）| ✅ DONE — sonnet `6b595ab` / jest 157 / PW hint-modal 11/11 + example-expand 10/10 + Phase 1 regression 496/496 × 8 viewport / 6 PNG director eyeball Read |
+| Plan B SB8 post-ship hardening — user 親要求 5 commits | ✅ DONE：(1) hint Tier-1 hardcoded → AI 串接 `POST /api/circles-public/hint` + 3-state modal + AbortController；(2) toolbar contenteditable 真 WYSIWYG + 統一 2-button HTML；(3) sol-card--l/--e modifier class 隔離 CSS scope；(4) rail 統一「X 步重點」單格（commit `addae74`）；(5) S 步 4 tracking-card per-dim 範例 filter（commit `5de530b`）；(6) L sol-card「核心機制」label drift fix `dd45e6d` — 21 PNG audit vs mockup 03 |
 | Plan B SB9+（hint overlay Tier-2 AI 個人化 / locked-stale / save indicator 4 狀態）/ Plan E final ship | ⏳ 待開工 |
 
 ---
