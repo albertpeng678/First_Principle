@@ -497,11 +497,9 @@
       E: { '優點': '方案優點', '缺點': '方案缺點' }
     };
     if (aliasMap[stepKey] && aliasMap[stepKey][fieldKey]) return aliasMap[stepKey][fieldKey];
-    // S step: 任何 tracking dim zh label → '追蹤指標'
-    if (stepKey === 'S') {
-      var trackingDimZhSet = ['觸及廣度','互動深度','習慣頻率','留存驅力','供給廣度','需求深度','匹配效率','復購留存','創造廣度','成果品質','採用廣度','商業轉化','啟用廣度','席次深度','黏著頻率','擴張信號'];
-      if (trackingDimZhSet.indexOf(fieldKey) >= 0) return '追蹤指標';
-    }
+    // S step tracking dim：直接送 dimZh 給 backend
+    // backend FIELD_GUIDANCE 沒對應 → 落到 fallback prompt「步驟 S 中『dimZh』的面向」
+    // → AI 看到 dim 名稱 + 題目 context，生成 dim-specific 個人化 hint（非通用 4-dim）
     return fieldKey;
   }
 
@@ -1268,8 +1266,7 @@
       var dimEn = dimEnLabels[dimKey];
       var dimSub = dimSubs ? (dimSubs[dimKey] || '') : '';
       var dimPlaceholder = dimPlaceholders[dimKey] || '';
-      // dimZh is the current label (e.g. '觸及廣度') — use for hint key lookup in HINT_OVERLAY_TEXT.S
-      var trackDataKey = 'track-' + dimKey;
+      // tracking card：只留 hint button（dim-specific via API），example 移到 section header（共享 4-dim DB content）
       trackingCardsHtml += '<div class="tracking-card" data-dim="' + dimKey + '">'
         + '<span class="tracking-card__num">' + dimNums[i] + '</span>'
         + '<div>'
@@ -1277,12 +1274,10 @@
         + '<div class="tracking-card__head">' + escHtml(dimZh) + '（' + escHtml(dimEn) + '）</div>'
         + '<div class="field__hint-row" style="font-size: var(--t-cap);">'
         + '<button class="field__hint-link" data-phase1="hint" data-field-key="' + escHtml(dimZh) + '"><i class="ph ph-lightbulb"></i>提示</button>'
-        + '<button class="field-example-toggle" aria-expanded="false" data-phase1="example-toggle" data-example-key="' + escHtml(trackDataKey) + '" data-field-key="追蹤指標"><i class="ph ph-quotes"></i>範例答案<i class="ph ph-caret-down toggle-caret"></i></button>'
         + '</div>'
         + '</div>'
         + '<div class="tracking-card__sub">' + escHtml(dimSub) + '</div>'
         + '<input type="text" placeholder="' + escHtml(dimPlaceholder) + '" data-s-tracking="' + dimKey + '">'
-        + renderExampleExpand('S', '追蹤指標', trackDataKey)
         + '</div>'
         + '</div>';
     });
@@ -1291,9 +1286,18 @@
     var industry = (q && q.industry) ? q.industry : '';
     var trackingSub = '分別說明北極星指標的 reach / depth / frequency / impact。本題（' + typeLabelDisplay + (industry ? ' / ' + industry : '') + '）label 自動切換為對應產業術語。';
 
-    var trackingSectionHtml = '<div class="tracking-section">'
+    // Section-level example button — DB 「追蹤指標」單一 entry 含完整 4-dim 內容
+    var trackingExampleHtml = '<div style="display:flex; justify-content:space-between; align-items:flex-start; gap:var(--s-3); margin-bottom:var(--s-2);">'
+      + '<div style="flex:1;">'
       + '<h3 class="tracking-section__head">追蹤指標 · 4 個維度</h3>'
       + '<p class="tracking-section__sub">' + escHtml(trackingSub) + '</p>'
+      + '</div>'
+      + '<button class="field-example-toggle" aria-expanded="false" data-phase1="example-toggle" data-example-key="track-section" data-field-key="追蹤指標" style="flex-shrink:0;"><i class="ph ph-quotes"></i>範例答案（4 維度）<i class="ph ph-caret-down toggle-caret"></i></button>'
+      + '</div>';
+
+    var trackingSectionHtml = '<div class="tracking-section">'
+      + trackingExampleHtml
+      + renderExampleExpand('S', '追蹤指標', 'track-section')
       + '<div class="tracking-grid">' + trackingCardsHtml + '</div>'
       + '</div>';
 
