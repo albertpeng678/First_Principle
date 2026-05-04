@@ -2,7 +2,7 @@
 
 > **Goal:** 後端 / API / DB / OpenAI prompt / 商業邏輯 / jest 100% 不動；前端 CSS + render 從 0 重寫；目標 iOS Safari 滑順度 ≥ aistockmap.com。
 > **Authority:** 重寫對齊基準。實作完成後逐條打勾，未對齊 = 未完成。
-> **Last updated:** 2026-05-04（quality-first drift sweep `84640b6` — 全 SB1-6 drift inventory 清完：mobile-360 home guest sign-in icon 隱（mockup 01 line 803 / @media max-width:480px hide auth-only class）/ SB6 DRIFT 1+3 mockup G outlier 非 drift / SB6 DRIFT 4 mockup demo 非 contract / Plan A carry-forward 2 條已 fixed 或設計如此 / TDD 紅綠 / jest 157 / PW 424/424 × 8 viewport / Plan B SB6 + c5aeeea + 914ca02 全收 — 殺手鐧 3 問備答 OK）
+> **Last updated:** 2026-05-04（**Plan B SB7 ✅ DONE** — E 步 per-sol × 4-field nested mockup 03「E 沿用 L 結構」line 1466 / commits `f09ec0c`+`2e71083` / TDD 紅綠 / jest 157 / PW E-step 64/64 + Phase 1 regression 488/488 / pixel-diff 3/3 < 15% (mobile 5.43% / tablet 3.67% / desktop 2.99%) / 6 PNG director eyeball Read 全 review × 5 boundingBox invariants 全對齊 / `audit/eyeball-plan-b-sb7.md` + `audit/sb7-pixel-diff-report.md` / 殺手鐧 3 問備答 OK）
 
 ---
 

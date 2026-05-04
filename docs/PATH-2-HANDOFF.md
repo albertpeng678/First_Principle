@@ -1,7 +1,7 @@
 # Path 2 — Frontend Rewrite · 接手 Handoff
 
 > 下個 session / 帳號接手用。**先讀本檔再讀 CLAUDE.md**。
-> **Last updated:** 2026-05-04（quality-first drift sweep `84640b6` — mobile-360 home guest sign-in 隱 / 全 SB1-6 drift 清掃完成 / Plan B SB6 ✅ + cold-review fix `914ca02` / Plan B SB1-5 + C SB1 + D SB1 全 merged main）
+> **Last updated:** 2026-05-04（**Plan B SB7 ✅ DONE** — E 步 per-sol × 4-field nested mockup 03「E 沿用 L 結構」/ commits `f09ec0c`+`2e71083` / jest 157 / PW E-step 64/64 + Phase 1 regression 488/488 + pixel-diff 3/3 / Plan B SB1-6 + C SB1 + D SB1 全 merged main / 下一步：Plan B SB8+ hint overlay 3-tier / locked-stale / save indicator 4 狀態）
 
 ---
 

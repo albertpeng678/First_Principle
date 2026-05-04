@@ -1,7 +1,7 @@
 # PM Drill — 專案狀態看板
 
 > 即時狀態 single source of truth。重大事件即時 Edit。不放歷史（git log 有）。
-> **Last updated:** 2026-05-04（quality-first drift sweep `84640b6` — mobile-360 home guest 隱 sign-in icon mockup 01 line 803 / 全 SB1-6 drift inventory 清完：5/7 非 drift（mockup G outlier）+ 2/7 已 fixed / user fix `c5aeeea` Phase 1 home nav reset + nsm-promo 置底 / Plan B SB6 ✅ + cold-review fix `914ca02` / Plan B SB1-5 + C SB1 + D SB1 全 merged main）
+> **Last updated:** 2026-05-04（**Plan B SB7 ✅ DONE** — E 步 per-sol × 4-field nested mockup 03「E 沿用 L 結構」/ commits `f09ec0c`+`2e71083` / jest 157 / PW E-step 64/64 + Phase 1 regression 488/488 + pixel-diff 3/3 < 15% / 6 PNG director eyeball Read / Plan B SB1-6 + C SB1 + D SB1 全 merged main）
 >
 > **🔴 接手 Handoff：** `docs/PATH-2-HANDOFF.md` — 下個 session / 帳號接手必先讀
 
@@ -34,7 +34,8 @@
 | Plan B SB4（L 步 solution-multi mockup 03 Section B — sim-only 2-3 sol-cards / sol-add / sol-card__remove / desktop rail）| ✅ DONE — sonnet `b022ae7` + opus cold-review fix `aa0683a`（8 條 sol-card CSS drift 對齊 mockup line 543-607 / hint-row 顯示修正 / `phase-head__title-extra` desktop sim 後綴 / qchip 設計題·難度 desktop suffix）/ jest 157 / PW 99/99 |
 | Plan B SB5（S 步 3+4 tracking mockup 03 Section C — 3 main rt-fields + tracking-section + 4 tracking-card 動態 dim labels per product type / CTA「完成 Phase 1」/ desktop suffix「（含 NSM 與 4 追蹤維度）」/ desktop rail 動態 type substitution）| ✅ DONE — sonnet `bdbdf4a` + opus cold-review fix `b81f8a1`（mobile rt-toolbar 改 1 button 對齊 mockup line 1493）/ jest 157 / PW 123/123 |
 | Plan B SB6（qchip 題目展開 mockup 03 Section G — `renderQchipExpand(q)` panel: statement on surface + 「深入分析」navy 24px bar + 4 qchip-ana__block (商業背景/用戶輪廓/常見誤區 trap warn 橘/破題切入) + 收合 btn / qchip is-expanded class + caret 反轉 ph-caret-down ↔ ph-caret-up / 4 處 renderer 同步：renderCirclesPhase1 + Lstep + Estep + Sstep）| ✅ DONE — sonnet `51fd4a0` + opus cold-review fix `914ca02`（DRIFT 2: renderCirclesPhase1 desktop sim base C 加 isDesktop 判定，qchip__company 加「· 設計題 · 難度 中」對齊 mockup B/C/G + Lstep line 666 pattern；TDD 紅綠 / jest 157 / PW 392/392 × 8 viewport / pixel-diff 3.47-7.13% / 12 PNG director Read 含 fix 後 diff / eyeball walk doc 含 4 條 drift 誠實列表 + honest dishonesty disclosure）|
-| Plan B SB7+（E 步 per-sol 4-field nested / hint overlay 3-tier / locked-stale / save indicator 4 狀態）/ Plan E final ship | ⏳ 待開工 |
+| Plan B SB7（E 步 per-sol × 4-field nested mockup 03 line 1466「E 沿用 L 結構」— 2-3 sol-cards / 每張 4 nested rt-field 優點/缺點/風險與依賴/成功指標 / sol-name readonly / 不可改方案數 / desktop rail 「E 步要點」+「為何要評估每個方案」/ AppState.circlesPhase1Evaluate auto-sync）| ✅ DONE — sonnet `f09ec0c`+`2e71083` / opus cold review 4 樣產出齊：jest 157 / PW E-step 64/64 + Phase 1 regression 488/488 / pixel-diff vs L baseline mobile 5.43% tablet 3.67% desktop 2.99%（cross-state 預期，結構 PASS） / 6 PNG director eyeball Read 全 review (mobile-360/tablet-768/desktop-1280 × 2-sol/3-sol) / 5 boundingBox invariants 全對齊 / eyeball walk + pixel-diff 2 docs |
+| Plan B SB8+（hint overlay 3-tier / locked-stale / save indicator 4 狀態）/ Plan E final ship | ⏳ 待開工 |
 
 ---
 
