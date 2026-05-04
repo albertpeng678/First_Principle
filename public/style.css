@@ -44,7 +44,7 @@ body { display: flex; flex-direction: column; }
 [data-view="circles"] { flex: 1; display: flex; flex-direction: column; min-height: 0; }
 button { font: inherit; color: inherit; cursor: pointer; background: none; border: none; }
 a { color: inherit; text-decoration: none; }
-@media (max-width: 767px) { input, textarea, select { font-size: 16px !important; } }
+@media (max-width: 767px) { input, textarea, select, div.rt-textarea[contenteditable="true"] { font-size: 16px !important; } }
 
 /* ───── LOCKED · navbar (verbatim from mockup 03+ — do not modify) ───── */
 .navbar { display: flex; align-items: center; gap: var(--s-3); padding: var(--s-3) var(--s-4); background: rgba(255,255,255,0.85); -webkit-backdrop-filter: saturate(140%) blur(10px); backdrop-filter: saturate(140%) blur(10px); border-bottom: 1px solid var(--c-rule); }

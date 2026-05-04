@@ -696,6 +696,7 @@
     if (_saveCycleT2) clearTimeout(_saveCycleT2);
     _saveDebounce = setTimeout(function () {
       setPhase1SaveState('saving');
+      // 600ms saving phase — 給 user 看見 spinner（200ms 太短，iOS Safari 來不及 render）
       setTimeout(function () {
         try {
           var qid = (AppState.circlesSelectedQuestion || {}).id || 'unknown';
@@ -713,7 +714,7 @@
         } catch (e) {
           setPhase1SaveState('error');
         }
-      }, 200);
+      }, 600);
     }, 800);
   }
 
