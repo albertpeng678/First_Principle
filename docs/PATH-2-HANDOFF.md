@@ -1,9 +1,17 @@
 # Path 2 — Frontend Rewrite · 接手 Handoff
 
 > 下個 session / 帳號接手用。**先讀本檔再讀 CLAUDE.md**。
-> **Last updated:** 2026-05-04（**Plan E Final Ship Readiness ✅ READY** — A foundation + B SB1-9b + C SB1 + D SB1 全 merged main / E2 webkit iOS Safari 48/48 / E4 30 PNG 親 Read 0 drift / iOS 15-item 14/15 PASS / 14-box gate 全綠 / `audit/eyeball-plan-e-final-ship.md` / 下個 session：等 user 簽收即可 ship）
+> **Last updated:** 2026-05-04（**Plan E Final Ship Readiness ✅ READY + 2 post-ship hotfix `6708705`** — A foundation + B SB1-9b + C SB1 + D SB1 全 merged main / E2 webkit iOS Safari 48/48 / E4 30 PNG 親 Read 0 drift / iOS 15-item 14/15 PASS / 14-box gate 全綠 / `audit/eyeball-plan-e-final-ship.md` / 下個 session：等 user 簽收即可 ship）
 >
-> **Post-ship hardening 重點（2026-05-04 user rapid-fire fix）:**
+> **Post-ship hotfix（2026-05-04 commit `6708705`）— user 親要求 2 bug:**
+> - **Bug 1 — mobile home sign-in icon visible（all viewports）**：user override mockup 01 line 803「mobile guest = nothing」規格 → mobile/tablet/desktop home 統一顯示 sign-in icon。改動：
+>   - `public/app.js`：`isCirclesHome` 路徑改用 `signInBtn`(無 `--auth-only` class)；移除 `signInBtnHomeOnly` 常數
+>   - `public/style.css` line 471-477：移除 `@media max-width:480px { .navbar__icon-btn--auth-only { display:none } }` rule
+>   - `mockup 01 line 803-806`：mobile frame 加 `navbar__actions` + sign-in `<button>`（mockup 已同步契約更新）
+> - **Bug 2 — drill mobile phase-head 破版**（IMG_0953 user 截圖）：右側 meta「drill 模式·此步驟結束即完成」squeeze title 換行破版 → `app.js` line 1604-1607 drill metaHtml sep + text spans 加 `phase-head__meta-extra` class（@media max-width:767px 自動隱藏；mobile 只剩 save-indicator，tablet/desktop 完整顯示）。
+> - 驗證：jest 157/157 + Playwright Desktop-1280/Mobile-360/iPad 102/102 critical specs 全綠 + opus 親 Read 6 PNG（mobile/tablet/desktop × home + drill phase-head）全對齊。
+>
+> **Post-ship hardening 重點（2026-05-04 user rapid-fire fix — 之前批次）:**
 > - `routes/circles-public.js` 已存在 `POST /hint` 端點（後端 AI 已開好,前端只需呼叫）
 > - rt-toolbar 全 `<div contenteditable="true">` + `document.execCommand('bold'/'insertUnorderedList')` 真 WYSIWYG
 > - rail 統一「X 步重點」單格（railTitle2/railBody2 config 仍存,只是不 render — 留 future Tier-2 用）

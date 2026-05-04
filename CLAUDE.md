@@ -1,7 +1,7 @@
 # PM Drill — 專案狀態看板
 
 > 即時狀態 single source of truth。重大事件即時 Edit。不放歷史（git log 有）。
-> **Last updated:** 2026-05-04（**Plan E Final Ship Readiness ✅ READY** — Plan A + B SB1-9b + C SB1 + D SB1 全 merged main / E1 chromium 8 viewport regression 進行中 / E2 webkit iOS Safari 4 device profile 48/48 / E3 SB pixel-diff 全跑 state diff 預期範圍 2.49-5.38% / E4 30 PNG 親 Read 全對齊 mockup 0 drift / iOS 15-item 14/15 PASS / `audit/eyeball-plan-e-final-ship.md`）
+> **Last updated:** 2026-05-04（**Plan E Final Ship Readiness ✅ READY + 2 post-ship hotfix `6708705`** — (1) mobile home sign-in icon 全 viewport 顯示（user override mockup 01 line 803），(2) drill mobile phase-head 右側 meta「drill 模式·此步驟結束即完成」破版修正（加 `phase-head__meta-extra` class + @media max-width:767px 隱藏）— jest 157/157 / Playwright Desktop+Mobile+iPad 102/102 / 6 PNG opus 親 Read 全對齊）
 >
 > **🔴 接手 Handoff：** `docs/PATH-2-HANDOFF.md` — 下個 session / 帳號接手必先讀
 
@@ -40,6 +40,7 @@
 | Plan B SB9a（save-indicator 4 狀態 visual cycle — mockup 03 Section F line 2109-2186 + line 294-306 CSS — `renderSaveIndicator` helper / 9 處 hardcoded → dynamic / `triggerSaveCycle` debounce 800ms→saving→200ms→saved→2000ms→idle / localStorage 草稿 `pmdrill:circles:draft:{qid}` / error retry document delegation / 5 input listeners 串接）| ✅ DONE — TDD red→green / 5 specs Desktop-1280 全綠 / 12 PNG state×viewport audit / `audit/eyeball-plan-b-sb9a.md` |
 | Plan B SB9b（locked / stale / save-error 三變體 — mockup 03 Section E line 1953-2106 — banner--locked + banner--stale + banner--save-error + rt-field--locked + submit-bar 變體 / `applyPhase1StateOverlay` post-render transform / 4 phase-1 renderer return 全 wrap）| ✅ DONE — TDD red→green / 10 specs Desktop-1280 全綠 / 9 PNG state×viewport audit / `audit/eyeball-plan-b-sb9b.md` / Phase 1 全 spec 3 vp regression 210/210 |
 | Plan E Final Ship Readiness Audit | ✅ READY — E1 chromium 8 viewport（進行中）/ E2 webkit iOS Safari 4 device 48/48 / E4 30 PNG 親 Read 全對齊 mockup 0 drift / iOS 15-item 14/15 PASS + 1 mockup-faithful constraint / 14-box gate 全綠 / `audit/eyeball-plan-e-final-ship.md` |
+| Post-ship hotfix（user 親要求 `6708705`）| ✅ DONE — (1) mobile/tablet/desktop home navbar 統一顯示 sign-in icon（user override mockup 01 line 803「mobile guest = nothing」規格，mockup 已同步更新）；(2) drill mode mobile phase-head 右側 meta「drill 模式·此步驟結束即完成」squeeze title 破版修正（加 `phase-head__meta-extra` class + @media max-width:767px 自動隱藏，tablet/desktop 完整顯示）— sonnet 執行 + opus cold review 6 PNG 親 Read：mobile/tablet/desktop × home + drill phase-head 全對齊；jest 157/157 + Playwright Desktop-1280/Mobile-360/iPad 102/102 critical specs 全綠；移除 `signInBtnHomeOnly` + `--auth-only` modifier class（已無人用）|
 
 ---
 
