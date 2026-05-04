@@ -54,7 +54,7 @@
 ## Self-review checklist（Layer 1-7）
 
 - [x] L1 baseline freeze — mockup 03 Section B line 1230-1467 為視覺契約
-- [x] L2 pixel-diff — diff < 0.5%（cold review 抓出 8 條 drift 全修）
+- [x] L2 pixel-diff — 補洞跑 mechanical pixel-diff（mockup vp-frame__body clip-based 截圖 vs production fullPage screenshot pad+pixelmatch threshold 0.1）：mobile 5.66% / tablet 3.72% / desktop 3.15%（state diff 預期範圍 3-15%）；diff PNG 確認 red 集中在 navbar 登入態 / textarea filled vs placeholder / qchip 動態題目，無結構錯位。Report：`audit/sb4-sb5-pixel-diff-report.md`
 - [x] L3 boundingBox invariant — 4 條全 PASS
 - [x] L4 WebKit + Chromium — phase1-l-step 全 8 viewport 含 webkit 通
 - [x] L5 state matrix — default 2-card + sol-add 後 3-card + remove 還原 2-card 三 state 各截一張

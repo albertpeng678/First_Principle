@@ -53,7 +53,7 @@
 ## Self-review checklist（Layer 1-7）
 
 - [x] L1 baseline — mockup 03 Section C line 1469-1758 為視覺契約
-- [x] L2 pixel-diff — 1 mobile drift 已修
+- [x] L2 pixel-diff — 補洞跑 mechanical pixel-diff（mockup vp-frame__body clip-based 截圖 vs production fullPage screenshot pad+pixelmatch threshold 0.1）：mobile 7.21% / tablet 4.91% / desktop 4.01%（state diff 預期範圍 3-15%）；diff PNG 確認 red 集中在 navbar 登入態 / textarea filled vs placeholder / qchip 動態題目 / 4 dim heads (attention vs transaction/saas/creator detected) / rail body 2 type substitution，無結構錯位。Report：`audit/sb4-sb5-pixel-diff-report.md`
 - [x] L3 boundingBox invariant — 5 條 PASS
 - [x] L4 WebKit + Chromium — phase1-s-step 全 8 viewport 含 webkit 通
 - [x] L5 state matrix — default empty / dynamic type detection 三 type 各驗一張（attention/transaction/saas 視 random pick；creator 未 cover）
