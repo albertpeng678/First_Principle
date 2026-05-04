@@ -516,6 +516,36 @@
     return fieldKey;
   }
 
+  // filterTrackingExampleByDim — DB「追蹤指標」單一 entry 含完整 4-dim markdown,
+  // 用 top-level bullet 開頭的關鍵字（廣度／深度／頻率／留存或業務影響等）擷取對應 dim 段落。
+  // user 2026-05-04: 4 個 tracking-card 的範例答案要 per-dim,不是全部共享同一份。
+  function filterTrackingExampleByDim(md, dimKey) {
+    if (!md) return '';
+    var dimMarkers = {
+      reach:     ['廣度', '觸及', '啟用', '覆蓋', '影響範圍', 'reach'],
+      depth:     ['深度', '互動', '席次', '專注', 'depth'],
+      frequency: ['頻率', '習慣', '黏著', 'frequency'],
+      impact:    ['留存', '影響', '驅力', '擴張', 'impact', 'MAU', '業務']
+    };
+    var markers = dimMarkers[dimKey] || [];
+    var lines = md.split('\n');
+    var blocks = [];
+    var cur = [];
+    lines.forEach(function (ln) {
+      if (/^- /.test(ln)) {
+        if (cur.length) blocks.push(cur);
+        cur = [ln];
+      } else if (cur.length) {
+        cur.push(ln);
+      }
+    });
+    if (cur.length) blocks.push(cur);
+    var found = blocks.find(function (b) {
+      return markers.some(function (m) { return b[0].indexOf(m) !== -1; });
+    });
+    return found ? found.join('\n') : '';
+  }
+
   // markdownBulletsToHtml — 簡易 markdown bullet→<li> 轉換（mockup 03 line 1942-1944 example-bullet 規格）
   // 支援：- top, **bold**, 縮排子項（  - sub）
   function markdownBulletsToHtml(md) {
@@ -1264,18 +1294,22 @@
       var dimEn = dimEnLabels[dimKey];
       var dimSub = dimSubs ? (dimSubs[dimKey] || '') : '';
       var dimPlaceholder = dimPlaceholders[dimKey] || '';
-      // tracking card：只留 hint button（dim-specific via API），example 移到 section header（共享 4-dim DB content）
+      // user 2026-05-04: 範例答案要分開——每張 tracking-card 各自一顆按鈕 + 各自 expand,
+      // populate 時用 dim filter 抓 DB「追蹤指標」單一 entry 內對應段落
+      var exKey = 's-tracking-' + dimKey;
       trackingCardsHtml += '<div class="tracking-card" data-dim="' + dimKey + '">'
         + '<span class="tracking-card__num">' + dimNums[i] + '</span>'
         + '<div>'
         + '<div style="display:flex; justify-content:space-between; align-items:baseline; gap:var(--s-3); margin-bottom:var(--s-1);">'
         + '<div class="tracking-card__head">' + escHtml(dimZh) + '（' + escHtml(dimEn) + '）</div>'
-        + '<div class="field__hint-row" style="font-size: var(--t-cap);">'
+        + '<div class="field__hint-row" style="font-size: var(--t-cap); display:flex; gap:var(--s-3);">'
         + '<button class="field__hint-link" data-phase1="hint" data-field-key="' + escHtml(dimZh) + '"><i class="ph ph-lightbulb"></i>提示</button>'
+        + '<button class="field-example-toggle" aria-expanded="false" data-phase1="example-toggle" data-example-key="' + exKey + '" data-field-key="追蹤指標" data-tracking-dim="' + dimKey + '"><i class="ph ph-quotes"></i>範例答案<i class="ph ph-caret-down toggle-caret"></i></button>'
         + '</div>'
         + '</div>'
         + '<div class="tracking-card__sub">' + escHtml(dimSub) + '</div>'
         + '<input type="text" placeholder="' + escHtml(dimPlaceholder) + '" data-s-tracking="' + dimKey + '">'
+        + renderExampleExpand('S', '追蹤指標', exKey)
         + '</div>'
         + '</div>';
     });
@@ -1284,18 +1318,9 @@
     var industry = (q && q.industry) ? q.industry : '';
     var trackingSub = '分別說明北極星指標的 reach / depth / frequency / impact。本題（' + typeLabelDisplay + (industry ? ' / ' + industry : '') + '）label 自動切換為對應產業術語。';
 
-    // Section-level example button — DB 「追蹤指標」單一 entry 含完整 4-dim 內容
-    var trackingExampleHtml = '<div style="display:flex; justify-content:space-between; align-items:flex-start; gap:var(--s-3); margin-bottom:var(--s-2);">'
-      + '<div style="flex:1;">'
+    var trackingSectionHtml = '<div class="tracking-section">'
       + '<h3 class="tracking-section__head">追蹤指標 · 4 個維度</h3>'
       + '<p class="tracking-section__sub">' + escHtml(trackingSub) + '</p>'
-      + '</div>'
-      + '<button class="field-example-toggle" aria-expanded="false" data-phase1="example-toggle" data-example-key="track-section" data-field-key="追蹤指標" style="flex-shrink:0;"><i class="ph ph-quotes"></i>範例答案（4 維度）<i class="ph ph-caret-down toggle-caret"></i></button>'
-      + '</div>';
-
-    var trackingSectionHtml = '<div class="tracking-section">'
-      + trackingExampleHtml
-      + renderExampleExpand('S', '追蹤指標', 'track-section')
       + '<div class="tracking-grid">' + trackingCardsHtml + '</div>'
       + '</div>';
 
@@ -2304,7 +2329,13 @@
               var dbKey = getFieldExampleKey(stepKey, fieldKey || key);
               var q = AppState.circlesSelectedQuestion || {};
               var md = (q.field_examples && q.field_examples[stepKey] && q.field_examples[stepKey][dbKey]) || '';
-              contentList.innerHTML = md ? markdownBulletsToHtml(md) : '<li>（此題尚無範例答案）</li>';
+              // user 2026-05-04: S 步 tracking 4 維度 per-dim filter
+              var trackingDim = btn.dataset.trackingDim;
+              if (stepKey === 'S' && trackingDim && md) {
+                var perDim = filterTrackingExampleByDim(md, trackingDim);
+                md = perDim || md;
+              }
+              contentList.innerHTML = md ? markdownBulletsToHtml(md) : '<li>(此題尚無範例答案)</li>';
               contentList.dataset.populated = '1';
             }
           }
