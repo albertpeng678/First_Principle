@@ -23,7 +23,15 @@ app.use((err, req, res, next) => {
 // Redirect so shared links don't 404. (B3 from UAT-3.)
 app.get('/login.html', (req, res) => res.redirect(302, '/?view=login'));
 
-app.use(express.static(path.join(__dirname, 'public')));
+// 防 browser 抓舊 app.js / style.css cache（user 改動立刻看得到）
+// no-cache + must-revalidate → 每次 fetch 都檢查 ETag / Last-Modified，未變就 304 快速回
+app.use(express.static(path.join(__dirname, 'public'), {
+  setHeaders: function (res, filePath) {
+    if (filePath.endsWith('.js') || filePath.endsWith('.css') || filePath.endsWith('.html')) {
+      res.setHeader('Cache-Control', 'no-cache, must-revalidate');
+    }
+  }
+}));
 
 app.use('/api/auth', require('./routes/auth'));
 app.use('/api/migrate-guest', require('./routes/migrate'));
