@@ -2107,16 +2107,12 @@
       });
     }
 
-    // drill-pill click → set circlesDrillStep + 重抽 5 題 + re-render
-    // user 親要求 2026-05-04: 切換練習步驟時題目要重新洗牌（之前沒洗,user 看不到「換步驟換題」）
+    // drill-pill click → set circlesDrillStep + re-render
+    // 不重抽 5 題（user 確認 2026-05-04: 每題 7 步通用,不需要切 step 換題;
+    // 切 step 是讓 user 想練不同 step 時 hint+範例答案自動切 step-specific 內容,題目可同）
     document.querySelectorAll('[data-circles="drill-pill"]').forEach(function (el) {
       el.addEventListener('click', function () {
-        var prevStep = AppState.circlesDrillStep;
         AppState.circlesDrillStep = el.dataset.step;
-        if (prevStep !== el.dataset.step) {
-          circlesPickDisplayed(false);
-          AppState.circlesExpandedQid = null; // 收合任何展開的 qcard
-        }
         render();
       });
     });
