@@ -783,15 +783,20 @@
       + '</div>';
   }
 
-  // ── renderCirclesPhase1Estep: E step placeholder (Plan B SB5 — SB6 will fill) ──
+  // ── renderCirclesPhase1Estep: E step (Plan B SB7 — mockup 03 Section B 沿用 / line 1466) ──
   function renderCirclesPhase1Estep(q, stepKey, stepCfg, currentStepNum) {
     var mode = AppState.circlesMode || 'simulation';
-    var isDrill = mode === 'drill';
+    var isDrill = mode === 'drill';  // E step 不 drill 但保留 guard
     var isDesktop = window.innerWidth >= 1024;
 
     var progressHtml = isDrill ? '' : renderProgressBar(stepKey);
 
+    // phase-head — sim mobile = save only / tablet+ = save + 完整模擬 N/7
     var eyebrow = isDrill ? stepCfg.eyebrow.drill : stepCfg.eyebrow.sim;
+    var titleHtml = escHtml(stepCfg.title);
+    if (isDesktop && !isDrill && stepCfg.titleSimDesktopSuffix) {
+      titleHtml = escHtml(stepCfg.title) + '<span class="phase-head__title-extra">' + escHtml(stepCfg.titleSimDesktopSuffix) + '</span>';
+    }
     var metaHtml;
     if (isDrill) {
       metaHtml = '<span class="phase-head__meta">'
@@ -808,17 +813,18 @@
       + '<span class="phase-head__num">' + escHtml(stepCfg.stepNum) + '</span>'
       + '<div class="phase-head__main">'
       + '<div class="phase-head__eyebrow">' + escHtml(eyebrow) + '</div>'
-      + '<div class="phase-head__title">' + escHtml(stepCfg.title) + '</div>'
+      + '<div class="phase-head__title">' + titleHtml + '</div>'
       + '</div>'
       + metaHtml
       + '</div>';
 
+    // qchip — desktop sim 加 suffix（對齊 L 步 / SB6 cold-review fix）
     var company = (q && q.company) ? q.company : '';
     var product = (q && q.product) ? q.product : '';
     var companyBaseHtml = escHtml(company) + (product ? ' · ' + escHtml(product) : '');
     var diff = (q && q.difficulty) === 'high' ? '高' : (q && q.difficulty) === 'low' ? '低' : '中';
     var qType = (q && q.question_type) === 'improve' ? '改善題' : (q && q.question_type) === 'strategy' ? '策略題' : '設計題';
-    var companyDisplayHtml = isDesktop
+    var companyDisplayHtml = (isDesktop || isDrill)
       ? companyBaseHtml + ' · ' + escHtml(qType) + ' · 難度 ' + escHtml(diff)
       : companyBaseHtml;
     var qTitle = (q && q.problem_statement) ? q.problem_statement : '';
@@ -835,10 +841,35 @@
       + '</div>'
       + (chipExpanded ? renderQchipExpand(q) : '');
 
-    var phaseBodyHtml = '<div class="phase-body">'
-      + '<p style="color: var(--c-ink-3); font-size: var(--t-body-sm); padding: var(--s-4) 0;">E 步功能即將上線</p>'
-      + '</div>';
+    // sol-cards — 數量 = circlesPhase1Solutions.length
+    var solutions = AppState.circlesPhase1Solutions || [];
+    // ensure circlesPhase1Evaluate length matches solutions
+    if (!Array.isArray(AppState.circlesPhase1Evaluate)) AppState.circlesPhase1Evaluate = [];
+    while (AppState.circlesPhase1Evaluate.length < solutions.length) {
+      AppState.circlesPhase1Evaluate.push({ advantages: '', disadvantages: '', risks: '', metrics: '' });
+    }
+    while (AppState.circlesPhase1Evaluate.length > solutions.length) {
+      AppState.circlesPhase1Evaluate.pop();
+    }
 
+    var solCardsHtml = solutions.map(function (sol, solIdx) {
+      return renderEsolCard(solIdx, sol, stepCfg.perSolFields);
+    }).join('');
+
+    // phase-body — desktop sim 用 --with-rail
+    var useRail = !isDrill && isDesktop;
+    var phaseBodyClass = 'phase-body' + (useRail ? ' phase-body--with-rail' : '');
+    var phaseBodyHtml;
+    if (useRail) {
+      phaseBodyHtml = '<div class="' + phaseBodyClass + '">'
+        + '<div>' + solCardsHtml + '</div>'
+        + renderRail(stepCfg)
+        + '</div>';
+    } else {
+      phaseBodyHtml = '<div class="' + phaseBodyClass + '">' + solCardsHtml + '</div>';
+    }
+
+    // submit-bar
     var ghostHtml = '';
     if (!isDrill) {
       ghostHtml = '<button class="btn btn--ghost submit-bar__back" data-phase1="back">'
@@ -858,6 +889,48 @@
       + qchipHtml
       + phaseBodyHtml
       + submitBarHtml
+      + '</div>';
+  }
+
+  // ── renderEsolCard: E 步 per-sol card with 4 nested fields (Plan B SB7) ──
+  function renderEsolCard(solIdx, sol, perSolFields) {
+    var isOptional = solIdx === 2;
+    var numLabel = solIdx === 0 ? '方案一' : solIdx === 1 ? '方案二' : '方案三';
+    var numHtml = isOptional
+      ? numLabel + ' <span class="sol-card__optional">（選擇性）</span>'
+      : numLabel;
+    var solName = (sol && sol.name) ? sol.name : '';
+    // E 步：sol name 唯讀展示（不再 input — name 在 L 步定）
+    var nameDisplayHtml = solName
+      ? '<div class="sol-card__name-display" style="font-size: var(--t-body); font-weight: 500; color: var(--c-ink); margin-bottom: var(--s-3);">' + escHtml(solName) + '</div>'
+      : '<div class="sol-card__name-display" style="font-size: var(--t-meta); color: var(--c-ink-3); margin-bottom: var(--s-3); font-style: italic;">（未命名方案）</div>';
+
+    // 4 nested fields per sol-card
+    var fieldsHtml = perSolFields.map(function (f) {
+      return ''
+        + '<div class="field" style="margin-bottom: var(--s-4);">'
+        +   '<div class="field__label-row">'
+        +     '<label class="field__label">' + escHtml(f.label) + '</label>'
+        +     '<div class="field__hint-row">'
+        +       '<button class="field__hint-link"><i class="ph ph-lightbulb"></i>提示</button>'
+        +       '<button class="field-example-toggle" aria-expanded="false"><i class="ph ph-quotes"></i>範例答案<i class="ph ph-caret-down toggle-caret"></i></button>'
+        +     '</div>'
+        +   '</div>'
+        +   '<div class="rt-field">'
+        +     '<div class="rt-field__toolbar">'
+        +       '<button class="rt-tbtn"><i class="ph ph-text-b"></i></button>'
+        +       '<button class="rt-tbtn"><i class="ph ph-list-bullets"></i></button>'
+        +     '</div>'
+        +     '<textarea class="rt-textarea" rows="' + f.rows + '" placeholder="' + escHtml(f.placeholder) + '" data-circles-e-sol-idx="' + solIdx + '" data-circles-e-field-key="' + f.key + '" data-max="' + f.max + '"></textarea>'
+        +   '</div>'
+        +   '<div class="field__meta" style="font-size: var(--t-cap); color: var(--c-ink-3); margin-top: 2px;">建議 ' + f.minMax + ' 字</div>'
+        + '</div>';
+    }).join('');
+
+    return '<div class="sol-card">'
+      + '<div class="sol-card__num">' + numHtml + '</div>'
+      + nameDisplayHtml
+      + fieldsHtml
       + '</div>';
   }
 
@@ -2143,8 +2216,10 @@
       });
     });
 
-    // ── L step: sol-card textarea — persist mechanism to state ──
+    // ── L step: sol-card textarea — persist mechanism to state (E step textareas skipped via guard) ──
     document.querySelectorAll('.sol-card .rt-textarea').forEach(function (ta) {
+      // E step textareas 有 data-circles-e-sol-idx，跳過避免誤寫 L step state
+      if (ta.hasAttribute('data-circles-e-sol-idx')) return;
       var idx = parseInt(ta.dataset.solIdx || '0', 10);
       ta.addEventListener('input', function (e) {
         if (AppState.circlesPhase1Solutions[idx] !== undefined) {
@@ -2170,6 +2245,18 @@
         var dimKey = input.dataset.sTracking;
         if (!AppState.circlesPhase1S || !AppState.circlesPhase1S.tracking) return;
         AppState.circlesPhase1S.tracking[dimKey] = e.target.value;
+      });
+    });
+
+    // ── E step: textarea input → AppState.circlesPhase1Evaluate (Plan B SB7) ──
+    document.querySelectorAll('[data-circles-e-sol-idx]').forEach(function (el) {
+      el.addEventListener('input', function () {
+        var solIdx = parseInt(el.getAttribute('data-circles-e-sol-idx'), 10);
+        var key = el.getAttribute('data-circles-e-field-key');
+        if (!AppState.circlesPhase1Evaluate[solIdx]) {
+          AppState.circlesPhase1Evaluate[solIdx] = { advantages: '', disadvantages: '', risks: '', metrics: '' };
+        }
+        AppState.circlesPhase1Evaluate[solIdx][key] = el.value;
       });
     });
 
