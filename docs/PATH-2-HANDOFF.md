@@ -1,7 +1,7 @@
 # Path 2 — Frontend Rewrite · 接手 Handoff
 
 > 下個 session / 帳號接手用。**先讀本檔再讀 CLAUDE.md**。
-> **Last updated:** 2026-05-04（Plan B SB6 ✅ DONE qchip 題目展開 4-block / Plan B SB1-5 + C SB1 + D SB1 全 merged main）
+> **Last updated:** 2026-05-04（Plan B SB6 ✅ DONE + cold-review fix `914ca02` — DRIFT 2 desktop sim base C qchip__company suffix / Plan B SB1-5 + C SB1 + D SB1 全 merged main）
 
 ---
 
