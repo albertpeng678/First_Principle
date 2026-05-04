@@ -636,7 +636,7 @@
   function renderExampleExpand(stepKey, fieldKey, dataKey) {
     return '<div class="example-expand" aria-hidden="true" data-example-key="' + escHtml(dataKey) + '">'
       + '<div class="example-expand__head">'
-      +   '<div class="example-expand__title"><i class="ph ph-quotes"></i>範例答案 — 此題預先生成，不打 LLM（&lt; 50ms）</div>'
+      +   '<div class="example-expand__title"><i class="ph ph-quotes"></i>範例答案</div>'
       +   '<button class="example-expand__close" data-phase1="example-close" data-example-key="' + escHtml(dataKey) + '" aria-label="收合"><i class="ph ph-x"></i></button>'
       + '</div>'
       + '<ul class="example-list" data-example-content-key="' + escHtml(dataKey) + '"><li>（載入中...）</li></ul>'
@@ -1215,12 +1215,12 @@
         + '<div class="tracking-card__head">' + escHtml(dimZh) + '（' + escHtml(dimEn) + '）</div>'
         + '<div class="field__hint-row" style="font-size: var(--t-cap);">'
         + '<button class="field__hint-link" data-phase1="hint" data-field-key="' + escHtml(dimZh) + '"><i class="ph ph-lightbulb"></i>提示</button>'
-        + '<button class="field-example-toggle" aria-expanded="false" data-phase1="example-toggle" data-example-key="' + escHtml(trackDataKey) + '" data-field-key="' + escHtml(dimZh) + '"><i class="ph ph-quotes"></i>範例答案<i class="ph ph-caret-down toggle-caret"></i></button>'
+        + '<button class="field-example-toggle" aria-expanded="false" data-phase1="example-toggle" data-example-key="' + escHtml(trackDataKey) + '" data-field-key="追蹤指標"><i class="ph ph-quotes"></i>範例答案<i class="ph ph-caret-down toggle-caret"></i></button>'
         + '</div>'
         + '</div>'
         + '<div class="tracking-card__sub">' + escHtml(dimSub) + '</div>'
         + '<input type="text" placeholder="' + escHtml(dimPlaceholder) + '" data-s-tracking="' + dimKey + '">'
-        + renderExampleExpand('S', dimZh, trackDataKey)
+        + renderExampleExpand('S', '追蹤指標', trackDataKey)
         + '</div>'
         + '</div>';
     });

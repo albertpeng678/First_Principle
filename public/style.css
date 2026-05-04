@@ -863,9 +863,11 @@ body:has(.submit-bar) { padding-bottom: calc(var(--touch-min) + var(--s-7)); }
 .sol-add:hover { background: var(--c-bg-soft); border-color: var(--c-navy); color: var(--c-navy); }
 
 /* tablet+: hide field__label only inside sol-card (mockup tablet+ line 1325-1329)
-   — keep field__hint-row visible (right-aligned), only label is suppressed. */
+   — keep field__hint-row visible (right-aligned), only label is suppressed.
+   bug fix: label `display: none` 後 hint-row 變 flex 唯一 child, space-between 退化成 flex-start (left) — 用 margin-left: auto 強制推到右側 */
 @media (min-width: 768px) {
   .sol-card .field__label { display: none; }
+  .sol-card .field__label-row .field__hint-row { margin-left: auto; }
 }
 
 /* phase-head__title-extra: desktop sim suffix "（2-3 個方案）" — hidden on mobile/tablet */
