@@ -1,7 +1,125 @@
 # Path 2 — Frontend Rewrite · 接手 Handoff
 
 > 下個 session / 帳號接手用。**先讀本檔再讀 CLAUDE.md**。
-> **Last updated:** 2026-05-04（**Plan E Final Ship Readiness ✅ READY + 2 post-ship hotfix `6708705`** — A foundation + B SB1-9b + C SB1 + D SB1 全 merged main / E2 webkit iOS Safari 48/48 / E4 30 PNG 親 Read 0 drift / iOS 15-item 14/15 PASS / 14-box gate 全綠 / `audit/eyeball-plan-e-final-ship.md` / 下個 session：等 user 簽收即可 ship）
+> **Last updated:** 2026-05-05（**Plan E ✅ READY + 4 post-ship hotfix（A/B/C 已 merge / D 進行中等 user 決策）**）
+>
+> 🔴 **接手第一件事：下面「Hotfix D 進行中」是當前最重要的事，必讀。**
+>
+> ---
+>
+> **🚨 Hotfix D — offcanvas item click + Phase 1 草稿 restore（2026-05-05，working tree 未 commit，待 user 決策）:**
+>
+> **User 親報 bug**（2026-05-05 對話 + screenshot IMG #1 — Spotify · Spotify Podcast / 個別 C1 / Phase 1 · 進行中 / 4/25 那張）:
+> 1. 「目前練習紀錄雖會顯示（offcanvas），但無法點擊跳轉至測驗頁（三種裝置皆是如此）」
+> 2. 「目前點擊已儲存的問答紀錄，無法回覆到此前進行的進度（會被清空），導致儘管進入測驗，仍無以填寫的內容需從0開始」
+>
+> **設計契約（mockup 09 line 296）**:
+> > 「Item click：CIRCLES → 載入 session、NSM → 跳 step 4 報告」
+>
+> **Root cause（opus 已 trace 完）:**
+> - **Bug 1**: `public/app.js:3005` `bindOffcanvas()` 的 `[data-offcanvas]` click handler 只有 `close / retry / delete` 三分支，**完全缺 `action === 'item'` 分支**。`renderOffcanvasItem` (line 2966) 設了 `data-offcanvas="item"` 但無人接 → click 完全 no-op。
+> - **Bug 2**: 缺 reverse transform。`triggerSaveCycle` (line 737-770) 寫後端 PATCH `/progress` body `{stepDrafts: {P1, P1S, P1L, P1E, framework, ts}, frameworkDraft}` 後端 shallow merge 進 `step_drafts` JSONB column。GET endpoint 雖回 row，**前端缺把 `session.step_drafts.P1` → `circlesPhase1`、`P1S` → `circlesPhase1S`、`P1L` → `circlesPhase1Solutions`、`P1E` → `circlesPhase1Evaluate`、`framework_draft` → `circlesFrameworkDraft` 的反向 mapping**。
+>
+> **Round 1 + Round 2 已修（working tree 內，未 commit）:**
+>
+> 1. 新 helper `restoreCirclesPhase1FromSession(item)` (`public/app.js:3082-3131`)
+>    - mapping: `item.question_json/currentQuestion → circlesSelectedQuestion`
+>    - `item.mode === 'simulation' ? 'sim' : 'drill' → circlesMode`
+>    - `item.drill_step || 'C1' → circlesDrillStep`
+>    - `item.current_phase || 1 → circlesPhase`（**警告：見下面「剩餘 Critical-1」**）
+>    - `item.sim_step_index || 0 → circlesSimStep`
+>    - `item.step_drafts.P1/P1S/P1L/P1E → circlesPhase1/circlesPhase1S/circlesPhase1Solutions/circlesPhase1Evaluate`
+>    - `item.framework_draft → circlesFrameworkDraft`
+>    - localStorage `pmdrill:circles:draft:{qid}` ts > server ts → 用 local 蓋過（merge 邏輯）
+>    - **Round 2 加**: `circlesConversation = item.conversation || [] + circlesStepScores = item.step_scores || {} + phase>1 但 conversation=[] → 退回 phase 1`（safety fallback + console.log trace）
+>
+> 2. 新 helper `loadCirclesSessionFromHistory(item)` (`public/app.js:3134-3147`)
+>    - NSM (`!mode && !drill_step`) → `nsmStep=4 + nsmSession=item + view='nsm'` + close offcanvas + render
+>    - CIRCLES → call `restoreCirclesPhase1FromSession(item) + render()`
+>
+> 3. `bindOffcanvas` 加 `action === 'item'` 分支 (`public/app.js:3092` 附近)
+>    - `e.target.closest('[data-offcanvas="delete"]')` early-return 防 trash 冒泡
+>    - 從 `el.dataset.id` 找 `historyList` 對應 item
+>    - 呼叫 `loadCirclesSessionFromHistory(item)`
+>
+> 4. `bindCirclesPhase1` 內加 `populateTextareasFromDraft` IIFE (`public/app.js:2528-2611`) — render 後把 contenteditable innerHTML 寫回 DOM:
+>    - C/I/R/C2: `[data-phase1="textarea"]` ← `circlesFrameworkDraft[stepKey][fieldKey]`
+>    - L step textarea: `.rt-textarea[data-sol-idx]` ← `circlesPhase1Solutions[idx].mechanism`
+>    - L sol-card name: `input.sol-card__name-input[data-sol-idx]` ← `circlesPhase1Solutions[idx].name`（用 `.value =` 不 `.innerHTML`）
+>    - E nested: `.rt-textarea[data-circles-e-sol-idx][data-circles-e-field-key]` ← `circlesPhase1Evaluate[solIdx][fieldKey]`（4 keys: advantages/disadvantages/risks/metrics）
+>    - S textarea: `.rt-textarea[data-s-textarea]` ← `circlesPhase1S[key]`（key map: 推薦方案→recommendation / 選擇理由→reasoning / 北極星指標→nsm）
+>    - **Round 2 加 `syncCharCounter(ta)`**: 寫完 innerHTML 後就地計算 `textContent.length`，找 `.field` parent 內 `.char-counter`，從 `dataset.max`（fallback 200）寫 `counter.textContent = N + ' / ' + max`。**不 dispatch input event**（避免觸發 saveCycle 連環 PATCH）。
+>
+> 5. `bindCirclesHome` recent-rail item click handler 重構為 reuse `loadCirclesSessionFromHistory(item)`（B5 — home rail 同樣 bug 同樣修）
+>
+> 6. `window.AppState` 已在 `app.js:92` expose（spec 用 evaluate 讀）
+>
+> 7. 新 spec `tests/visual/offcanvas-item-click-restore.spec.js`（10 specs / 218 行）— TDD 紅→綠完整 cycle:
+>    - Desktop/Mobile click → phase-head visible（cover Bug 1）
+>    - 4 textarea 從 framework_draft.C1 restore（cover Bug 2）
+>    - AppState.circlesSession.id / circlesFrameworkDraft / drillStep + mode 還原
+>    - char-counter 顯示真實長度而非「0」
+>    - NSM session click → nsmStep=4 + view=nsm
+>    - step_drafts null/{} 不 throw
+>    - L step P1L solutions restore (mechanism + name)
+>
+> **驗證已過**:
+> - jest 157/157
+> - Playwright 全 8 viewport × 10 specs = **80/80 全綠**
+> - 3 PNG opus 親 Read（mobile-360 / tablet-768 / desktop-1280）：char-counter「18 / 120」+ 4 textarea 全 restore（針對 Spotify Podcast / 6 個月 / NSM 收聽時長 / 通勤族日常）+ phase-head + drill 模式 meta 完整
+> - superpowers:code-reviewer **2 輪 cold review**（spec compliance 角度檢查）
+>
+> **🔴 superpowers:code-reviewer Round 2 仍找到 2 條剩餘問題（user 決策後派 sonnet round 3 收尾）:**
+>
+> ### Critical-1 (R3 治標不治本) — 需 user 決策走後端 or 前端 path
+> `restoreCirclesPhase1FromSession` 加了 `circlesConversation = item.conversation || []` 但 **`routes/circles-sessions.js:104` + `routes/guest-circles-sessions.js:24` list endpoint `select(...)` 沒包含 `conversation` 欄位**。`loadHistory` 拉到的 list item 永遠 `conversation === undefined`。offcanvas item click 直接用 list 拿到的 `item` 做 restore，**不會 refetch GET /:id**（GET /:id 用 `select('*')` 才會回 conversation）。
+>
+> 結果：**任何 phase>1 session（Phase 2 對話中 / Phase 3 評分後 / Phase 4 報告後）restore 一定觸發 silent fallback，使用者看不到對話歷史與分數**。當前 spec 不會 catch 因為 stub 都是 `current_phase: 1`。
+>
+> 兩條修法擇一（user 必決策）:
+> - **Option A（後端動）**: `routes/circles-sessions.js:104` + `routes/guest-circles-sessions.js:24` `select(...)` 加 `conversation, scores_json, conclusion, gate_result` 欄位（payload 變大）。**違反 Path 2「後端不動」鐵則需 user 親准**。
+> - **Option B（前端動，符合鐵則）**: `loadCirclesSessionFromHistory` 改 `await fetch /api/(guest-)circles-sessions/:id` 拿全資料再 restore（多一次 round-trip，但 GET /:id 既有 endpoint）。
+>
+> **opus 推薦 Option B**（保留鐵則）。
+>
+> ### Important-2 (R1 漏網) — S 步 tracking 4 個 input 漏 restore
+> `populateTextareasFromDraft` 補了 L textarea / L name / E nested / S 3-textarea 共 4 個 forEach，**但漏了 S 步 4 個 tracking inputs**（render line 1538、binder line 2851，state path `AppState.circlesPhase1S.tracking[dimKey]`，DOM `[data-s-tracking]`）。S 步進到 tracking section 填 4 維度後 close session、再 restore，4 input 會空白。
+>
+> **修法**: `populateTextareasFromDraft` 補第 5 個 forEach 對 `[data-s-tracking]` input 用 `.value =` 從 `AppState.circlesPhase1S.tracking[dimKey]` 讀。純前端，無需 user 親准。
+>
+> ### Suggestion-3（nice-to-have）— 補 localStorage prefer spec
+> Round 2 報告聲稱補了 localStorage prefer spec 但 file 找不到 — 補一條：先 `page.evaluate(() => localStorage.setItem(...))` 寫個 newer ts，再 click item，assert AppState 是 local 版本。
+>
+> **接手 SOP（下個 agent 看這段）:**
+> 1. `cd /Users/albertpeng/Desktop/claude_project/First_Principle && git status` — 確認 working tree 仍是 hotfix D round 2（5 files changed: public/app.js, tests/visual/offcanvas-item-click-restore.spec.js, + 3 baseline PNG 既有 modified）
+> 2. `git log --oneline -5` — 確認最後 commit 是 `a9b1447 fix(nsm): mobile card 當筆 in-place expand drift fix`（hotfix C 已 push）
+> 3. **問 user**：「Critical-1 走 Option A（後端 select 加欄位）還是 Option B（前端 await GET /:id）？」— 不要擅自走 A
+> 4. user 答後 → 派 sonnet round 3:
+>    - 修 Critical-1（按 user 選擇）
+>    - 修 Important-2（S 步 tracking）
+>    - 補 localStorage prefer spec
+>    - TDD 紅 → 綠（紅燈先驗 phase=2 + conversation=[1 turn] 的 stub click 後 `circlesPhase===2 && circlesConversation.length===1`）
+>    - 全 8 viewport regression（offcanvas-item-click-restore + offcanvas-draft + offcanvas + nsm-card-inplace-expand 全跑）
+> 5. 派 superpowers:code-reviewer round 3 final cold review
+> 6. opus 親 Read 9 PNG（mobile/tablet/desktop × Phase 1 form / S 步 tracking 含內容 / Phase 2 對話 restore）
+> 7. **3 docs sync** 後再 commit / push:
+>    - `CLAUDE.md` last-updated + 進度狀態列加「Hotfix D — offcanvas item click + draft restore」
+>    - 本檔 — 把這整段「Hotfix D 進行中」改成「Hotfix D ✅ DONE」並列 commit hash + 實際採用的 option
+>    - `master-spec § 2.11` — 加「Item click 行為 + draft restore 規約」
+>
+> **驗收 SOP（user 親跑前必確認）:**
+> 1. 開 `npm start`（dev server port 4000）
+> 2. mobile-360 開瀏覽器
+> 3. 任意題目進 Phase 1 → 4 textarea 各打不同字 → 等「已暫存」出現
+> 4. 點 navbar hamburger 開 offcanvas → 確認 list 出現該 session（含「· 草稿」suffix + 相對時間）
+> 5. **點該 item** → 應自動 close offcanvas + 跳進 Phase 1 form
+> 6. 確認 4 textarea 內容仍在（不該空白）
+> 7. 確認 char-counter 顯示真實字數（不該 0/120）
+> 8. 換 tablet-768 / desktop-1280 重複 step 1-7
+> 9. 換 simulation mode（完整 7 步）測 phase 2 進對話幾輪後 close → offcanvas 再點 → 應 restore 對話 list（**這條依賴 Critical-1 修好**）
+> 10. NSM session 點 item → 跳 step 4 報告（先確認 mockup 14 NSM step 4 是否 ship）
+>
+> ---
 >
 > **Post-ship hotfix C — NSM mobile in-place expand drift fix (2026-05-05 — user 親要求):**
 > - Bug: mobile NSM Step 1 點第 1 筆(IMG_0957) → expanded panel 跑到 list 末尾(IMG_0958)，違反 mockup 06 §B in-place 規格

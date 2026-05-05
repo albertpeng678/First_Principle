@@ -88,6 +88,9 @@
     historyList: null,       // null = not loaded yet; [] = empty; [...] = items
     historyLoading: false,
     historyError: null,
+
+    // R3: loading state for session detail fetch (Option B)
+    circlesSessionLoading: false,
   };
   window.AppState = AppState;
 
@@ -173,6 +176,13 @@
   function renderView() {
     const v = AppState.view;
     if (v === 'circles') {
+      // R3-B: loading state while fetching session detail (Option B)
+      if (AppState.circlesSessionLoading) {
+        return '<div class="loading-wrap">'
+          + '<div class="loading-spinner"></div>'
+          + '<div class="loading-title">載入練習中…</div>'
+          + '</div>';
+      }
       if (AppState.circlesPhase === 1 && AppState.circlesSelectedQuestion) {
         return renderCirclesPhase1();
       }
@@ -2206,27 +2216,14 @@
       });
     });
 
-    // recent-item click → resume session (mockup 01 line 1061-1092)
+    // recent-item click → resume session via shared restore helper (B5 — mockup 01 line 1061-1092)
     document.querySelectorAll('[data-circles="recent-item"]').forEach(function (el) {
       el.addEventListener('click', function () {
         var id = el.dataset.id;
-        var isNsm = el.dataset.isnsm === '1';
         var list = AppState.circlesRecentSessions || [];
-        var item = list.find(function (i) { return i.id === id; });
+        var item = list.find(function (i) { return String(i.id) === String(id); });
         if (!item) return;
-        if (isNsm) {
-          AppState.view = 'nsm';
-          AppState.nsmStep = 4;
-          AppState.nsmSession = item;
-        } else {
-          AppState.view = 'circles';
-          AppState.circlesPhase = item.current_phase || 1;
-          AppState.circlesSession = item;
-          AppState.circlesSelectedQuestion = item.currentQuestion || item.question_json || null;
-          AppState.circlesMode = item.mode || (item.drill_step ? 'drill' : 'simulation');
-          AppState.circlesDrillStep = item.drill_step || null;
-        }
-        render();
+        loadCirclesSessionFromHistory(item);
       });
     });
     // see-all → open offcanvas history
@@ -2535,6 +2532,104 @@
   var _phase1CharDebounce = null;
 
   function bindCirclesPhase1() {
+    // ── restore textareas from circlesFrameworkDraft (after render, on session restore) ──
+    // When a session is loaded from history, AppState.circlesFrameworkDraft is populated
+    // but the textareas are blank contenteditable divs. Populate them now.
+    (function populateTextareasFromDraft() {
+      // helper: after writing textarea content, update char-counter in-place (R2)
+      // avoids dispatching 'input' event to prevent triggering saveCycle
+      function syncCharCounter(ta) {
+        var field = ta.closest('.field');
+        if (!field) return;
+        var counter = field.querySelector('.char-counter');
+        if (!counter) return;
+        var max = parseInt(ta.dataset.max, 10) || 200;
+        var len = (ta.textContent || '').length;
+        counter.textContent = len + ' / ' + max;
+      }
+
+      // ── C/I/R/C2 step: [data-phase1="textarea"] from circlesFrameworkDraft ──
+      var stepKey = AppState.circlesMode === 'drill'
+        ? (AppState.circlesDrillStep || 'C1')
+        : (['C1', 'I', 'R', 'C2', 'L', 'E', 'S'][AppState.circlesSimStep || 0] || 'C1');
+      var draftForStep = AppState.circlesFrameworkDraft && AppState.circlesFrameworkDraft[stepKey];
+      if (draftForStep) {
+        var cfg = CIRCLES_STEP_CONFIG[stepKey];
+        if (cfg && cfg.fields) {
+          var textareas = document.querySelectorAll('[data-phase1="textarea"]');
+          var draftValues = Object.values(draftForStep);
+          textareas.forEach(function (ta, idx) {
+            if (ta.innerHTML && ta.innerHTML.trim()) return;
+            var fieldIdx = parseInt(ta.dataset.fieldIdx, 10);
+            if (isNaN(fieldIdx)) fieldIdx = idx;
+            var fieldKey = cfg.fields[fieldIdx] && cfg.fields[fieldIdx].key;
+            var value = (fieldKey && draftForStep[fieldKey]) || draftValues[fieldIdx] || '';
+            if (value) {
+              ta.innerHTML = value;
+              syncCharCounter(ta); // R2: update char-counter after restore
+            }
+          });
+        }
+      }
+
+      // ── R1: L step — .rt-textarea[data-sol-idx] (mechanism) + input[data-sol-idx] (name) ──
+      var solutions = AppState.circlesPhase1Solutions;
+      if (Array.isArray(solutions)) {
+        document.querySelectorAll('.rt-textarea[data-sol-idx]').forEach(function (ta) {
+          if (ta.innerHTML && ta.innerHTML.trim()) return;
+          var idx = parseInt(ta.getAttribute('data-sol-idx'), 10);
+          if (isNaN(idx) || !solutions[idx]) return;
+          var val = solutions[idx].mechanism || '';
+          if (val) ta.innerHTML = val;
+        });
+        document.querySelectorAll('input.sol-card__name-input[data-sol-idx]').forEach(function (input) {
+          if (input.value && input.value.trim()) return;
+          var idx = parseInt(input.getAttribute('data-sol-idx'), 10);
+          if (isNaN(idx) || !solutions[idx]) return;
+          var val = solutions[idx].name || '';
+          if (val) input.value = val;
+        });
+      }
+
+      // ── R1: E step — .rt-textarea[data-circles-e-sol-idx][data-circles-e-field-key] ──
+      var evalData = AppState.circlesPhase1Evaluate;
+      if (Array.isArray(evalData)) {
+        document.querySelectorAll('.rt-textarea[data-circles-e-sol-idx]').forEach(function (ta) {
+          if (ta.innerHTML && ta.innerHTML.trim()) return;
+          var solIdx = parseInt(ta.getAttribute('data-circles-e-sol-idx'), 10);
+          var fieldKey = ta.getAttribute('data-circles-e-field-key');
+          if (isNaN(solIdx) || !fieldKey || !evalData[solIdx]) return;
+          var val = evalData[solIdx][fieldKey] || '';
+          if (val) ta.innerHTML = val;
+        });
+      }
+
+      // ── R1: S step — .rt-textarea[data-s-textarea="key"] ──
+      // key values: '推薦方案' → recommendation, '選擇理由' → reasoning, '北極星指標' → nsm
+      var sData = AppState.circlesPhase1S;
+      if (sData && typeof sData === 'object') {
+        var sKeyMap = { '推薦方案': 'recommendation', '選擇理由': 'reasoning', '北極星指標': 'nsm' };
+        document.querySelectorAll('.rt-textarea[data-s-textarea]').forEach(function (ta) {
+          if (ta.innerHTML && ta.innerHTML.trim()) return;
+          var key = ta.getAttribute('data-s-textarea');
+          var stateKey = sKeyMap[key];
+          if (!stateKey) return;
+          var val = sData[stateKey] || '';
+          if (val) ta.innerHTML = val;
+        });
+      }
+
+      // ── R3-C: S step tracking inputs — input[data-s-tracking] ──
+      document.querySelectorAll('input[data-s-tracking]').forEach(function (input) {
+        var dimKey = input.dataset.sTracking;
+        if (!dimKey) return;
+        if (input.value && input.value.trim()) return; // already has content
+        if (!AppState.circlesPhase1S || !AppState.circlesPhase1S.tracking) return;
+        var v = AppState.circlesPhase1S.tracking[dimKey];
+        if (v) input.value = v;
+      });
+    })();
+
     // ── example-toggle: toggle aria-expanded + show/hide example-expand by example-key ──
     document.querySelectorAll('[data-phase1="example-toggle"]').forEach(function (btn) {
       btn.addEventListener('click', function (e) {
@@ -3002,6 +3097,123 @@
     }
   }
 
+  // ── restoreCirclesPhase1FromSession: reverse-transform session → AppState (mockup 09 line 296) ──
+  // Matches triggerSaveCycle() payload shape exactly (P1/P1S/P1L/P1E/framework/ts).
+  function restoreCirclesPhase1FromSession(item) {
+    // Question
+    AppState.circlesSelectedQuestion = item.question_json || item.currentQuestion || null;
+    // Session pointer
+    AppState.circlesSession = item;
+    // Mode + drill step
+    AppState.circlesMode = item.mode === 'simulation' ? 'sim' : 'drill';
+    AppState.circlesDrillStep = item.drill_step || 'C1';
+    // Phase + sim step pointer
+    AppState.circlesPhase = item.current_phase || 1;
+    AppState.circlesSimStep = item.sim_step_index || 0;
+    // Step drafts reverse-transform — match triggerSaveCycle payload shape
+    var sd = item.step_drafts || {};
+    AppState.circlesPhase1 = sd.P1 || null;
+    AppState.circlesPhase1S = sd.P1S || null;
+    AppState.circlesPhase1Solutions = sd.P1L || null;
+    AppState.circlesPhase1Evaluate = sd.P1E || null;
+    // Framework draft (contenteditable C/I/R/C2 fields source of truth)
+    AppState.circlesFrameworkDraft = item.framework_draft || {};
+    // R3: restore Phase 2/3/4 sub-state (conversation + step_scores)
+    AppState.circlesConversation = item.conversation || [];
+    AppState.circlesStepScores = item.step_scores || {};
+    // R3: safety fallback — if phase > 1 but conversation is empty, snap back to phase 1
+    // so user sees their Phase 1 draft instead of an empty Phase 2/3/4 shell
+    if (AppState.circlesPhase > 1 && AppState.circlesConversation.length === 0) {
+      console.log('[restore] phase > 1 but conversation empty — snapping back to Phase 1 draft');
+      AppState.circlesPhase = 1;
+    }
+    // localStorage cache merge — prefer newer ts (instant cache + offline fallback)
+    try {
+      var qid = (AppState.circlesSelectedQuestion || {}).id;
+      if (qid) {
+        var raw = localStorage.getItem('pmdrill:circles:draft:' + qid);
+        if (raw) {
+          var local = JSON.parse(raw);
+          var serverTs = sd.ts || new Date(item.updated_at || item.created_at || 0).getTime();
+          if (local && local.ts && local.ts > serverTs) {
+            // localStorage newer → use local versions instead
+            if (local.P1) AppState.circlesPhase1 = local.P1;
+            if (local.P1S) AppState.circlesPhase1S = local.P1S;
+            if (local.P1L) AppState.circlesPhase1Solutions = local.P1L;
+            if (local.P1E) AppState.circlesPhase1Evaluate = local.P1E;
+            if (local.framework) AppState.circlesFrameworkDraft = local.framework;
+          }
+        }
+      }
+    } catch (_) {}
+    // Switch view
+    AppState.view = 'circles';
+  }
+
+  // ── loadCirclesSessionFromHistory: routes item to circles or nsm restore ──
+  // R3-A: async + Option B (GET /:id) + AbortController + dedup
+  var _circlesFetchAbort = null;
+  var _circlesFetchInFlight = null; // session id currently fetching
+
+  async function loadCirclesSessionFromHistory(item) {
+    if (!item || !item.id) return;
+
+    // NSM path (no full restore needed — item already complete)
+    var isNsm = !item.mode && !item.drill_step;
+    if (isNsm) {
+      AppState.offcanvasOpen = false;
+      AppState.nsmStep = 4;
+      AppState.nsmSession = item;
+      AppState.view = 'nsm';
+      render();
+      return;
+    }
+
+    // CIRCLES path: dedup — already fetching same id
+    if (_circlesFetchInFlight === item.id) return;
+    // already in same form? no-op
+    if (AppState.circlesSession && AppState.circlesSession.id === item.id && AppState.view === 'circles' && AppState.circlesPhase) return;
+
+    // Cancel previous fetch if any
+    if (_circlesFetchAbort) {
+      try { _circlesFetchAbort.abort(); } catch (_) {}
+    }
+    _circlesFetchAbort = new AbortController();
+    _circlesFetchInFlight = item.id;
+
+    // Close offcanvas + show loading state
+    AppState.offcanvasOpen = false;
+    AppState.circlesSessionLoading = true;
+    AppState.view = 'circles';
+    render();
+
+    // Fetch full session detail (Option B — REST detail endpoint pattern)
+    var path = (AppState.accessToken ? '/api/circles-sessions/' : '/api/guest-circles-sessions/') + item.id;
+    var fullItem = item; // fallback to list partial
+    try {
+      var res = await window.apiFetch(path, { signal: _circlesFetchAbort.signal });
+      if (res.ok) {
+        fullItem = await res.json();
+      } else {
+        console.warn('[loadCirclesSessionFromHistory] GET', path, 'returned', res.status, '— using partial list item');
+      }
+    } catch (e) {
+      if (e && e.name === 'AbortError') {
+        // user clicked another item — abort silently, do not restore
+        _circlesFetchInFlight = null;
+        return;
+      }
+      console.warn('[loadCirclesSessionFromHistory] fetch failed', e, '— using partial list item');
+    }
+
+    _circlesFetchInFlight = null;
+    _circlesFetchAbort = null;
+    AppState.circlesSessionLoading = false;
+
+    restoreCirclesPhase1FromSession(fullItem);
+    render();
+  }
+
   function bindOffcanvas() {
     if (!AppState.offcanvasOpen) return;
     document.querySelectorAll('[data-offcanvas]').forEach(function (el) {
@@ -3020,6 +3232,15 @@
           render();
           const path = AppState.accessToken ? '/api/circles-sessions/' + id : '/api/guest-circles-sessions/' + id;
           window.apiFetch(path, { method: 'DELETE' }).catch(function () {});
+        } else if (action === 'item') {
+          // Guard: don't trigger if delete button was clicked (delete is nested inside item div)
+          if (e.target.closest('[data-offcanvas="delete"]')) return;
+          var id = el.dataset.id;
+          var item = (AppState.historyList || []).find(function (i) { return String(i.id) === String(id); });
+          if (!item) return;
+          // Close offcanvas first
+          AppState.offcanvasOpen = false;
+          loadCirclesSessionFromHistory(item);
         }
       });
     });
