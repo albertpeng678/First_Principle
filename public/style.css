@@ -252,7 +252,10 @@ body:has(.submit-bar) { padding-bottom: calc(var(--touch-min) + var(--s-7)); }
 .nsm-q-card:hover { border-color: var(--c-rule-bold); box-shadow: var(--shadow-2); }
 /* selected card spans full row + reorders to end so unselected cards stay in 2-col grid above
    (avoids 4-row awkward layout when 5 cards have 1 expanded — per user 2026-05-04) */
-.nsm-q-card.is-selected { border-color: var(--c-navy); box-shadow: 0 0 0 1px var(--c-navy), var(--shadow-2); grid-column: 1 / -1; order: 999; }
+.nsm-q-card.is-selected { border-color: var(--c-navy); box-shadow: 0 0 0 1px var(--c-navy), var(--shadow-2); grid-column: 1 / -1; }
+/* mobile (1-col grid): selected 當筆 in-place expand (user 2026-05-05 親要求) */
+/* tablet+ (2-col grid): selected order:999 推末位避免 grid 破洞 (commit becce460 2026-05-04 user 親要求) */
+@media (min-width: 768px) { .nsm-q-card.is-selected { order: 999; } }
 .nsm-q-card__head { display: flex; align-items: center; gap: var(--s-2); flex-wrap: wrap; }
 .nsm-q-card__company { padding: 3px var(--s-2); background: var(--c-navy); color: #fff; border-radius: var(--r-input); font-size: var(--t-cap); font-weight: 600; letter-spacing: 0.02em; }
 .nsm-q-card__industry { font-size: var(--t-cap); color: var(--c-ink-3); letter-spacing: 0.02em; }

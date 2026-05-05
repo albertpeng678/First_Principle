@@ -3,6 +3,12 @@
 > 下個 session / 帳號接手用。**先讀本檔再讀 CLAUDE.md**。
 > **Last updated:** 2026-05-04（**Plan E Final Ship Readiness ✅ READY + 2 post-ship hotfix `6708705`** — A foundation + B SB1-9b + C SB1 + D SB1 全 merged main / E2 webkit iOS Safari 48/48 / E4 30 PNG 親 Read 0 drift / iOS 15-item 14/15 PASS / 14-box gate 全綠 / `audit/eyeball-plan-e-final-ship.md` / 下個 session：等 user 簽收即可 ship）
 >
+> **Post-ship hotfix C — NSM mobile in-place expand drift fix (2026-05-05 — user 親要求):**
+> - Bug: mobile NSM Step 1 點第 1 筆(IMG_0957) → expanded panel 跑到 list 末尾(IMG_0958)，違反 mockup 06 §B in-place 規格
+> - Root cause: `public/style.css:255` `.nsm-q-card.is-selected { order: 999 }` 把 selected 推 grid 末尾。`order:999` 是 commit `becce460`(2026-05-04 user 親要求)修 desktop 2-col 5 卡 + 1 expanded 變 4 row 破洞的 fix，不能無腦刪
+> - 修復: viewport-conditional CSS — `@media (min-width: 768px) { .nsm-q-card.is-selected { order: 999 } }` 把推末位限縮 tablet+；mobile(< 768px)為 default order:0 當筆 in-place expand
+> - 驗證: TDD 紅→綠 / 新 spec 6 × 8 viewport = 48/48 全綠 + jest 157/157 + 9 PNG opus 親 Read + superpowers:code-reviewer ship-ready
+>
 > **Post-ship hotfix B — offcanvas drafts visibility (2026-05-04 — user 親要求 + user 親准呼叫既有後端):**
 > - Bug: mobile guest 打字後 offcanvas 看到「尚無練習記錄」(`PM Drill — 第一性原理訓練器 2.png`) — 違反 mockup 09 line 304 規格 (drafts/進行中也要顯示)
 > - Root cause: SB9a `triggerSaveCycle` 只寫 localStorage 沒呼叫後端 → sessions 表沒 row → list 空
