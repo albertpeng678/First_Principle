@@ -3154,6 +3154,38 @@
       });
     });
 
+    // ── nsm-rt-tbtn: NSM Step 2 contenteditable + Step 3 textarea toolbar ──
+    // NSM Step 2 fields use contenteditable; Step 3 dims use <textarea>.
+    // execCommand works for contenteditable (Step 2); for textarea (Step 3)
+    // bold/indent are no-ops but the click is wired (not dead).
+    document.querySelectorAll('.nsm-rt-tbtn').forEach(function (btn) {
+      btn.addEventListener('click', function (e) {
+        e.preventDefault();
+        var icon = btn.querySelector('i');
+        var rtField = btn.closest('.nsm-rt-field');
+        if (!rtField) return;
+        // contenteditable path (Step 2 nsm-rt-textarea div)
+        var ceEditor = rtField.querySelector('[contenteditable="true"]');
+        if (ceEditor) {
+          ceEditor.focus();
+          if (icon) {
+            var cls = icon.className;
+            if (cls.indexOf('ph-list-bullets') >= 0) document.execCommand('insertUnorderedList', false, null);
+            else if (cls.indexOf('ph-text-indent') >= 0) document.execCommand('indent', false, null);
+            else if (cls.indexOf('ph-text-outdent') >= 0) document.execCommand('outdent', false, null);
+          }
+          // bold: check <strong>B</strong> button (no icon)
+          var strong = btn.querySelector('strong');
+          if (strong) document.execCommand('bold', false, null);
+          ceEditor.dispatchEvent(new Event('input', { bubbles: true }));
+          return;
+        }
+        // textarea path (Step 3 dims) — focus only, no execCommand
+        var textarea = rtField.querySelector('textarea');
+        if (textarea) textarea.focus();
+      });
+    });
+
     // ── submit 下一步 ──
     var submitBtn = document.querySelector('[data-phase1="submit"]');
     if (submitBtn) {
