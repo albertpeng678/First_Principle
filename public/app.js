@@ -2290,6 +2290,57 @@
   var NSM_TYPE_ICON  = { attention: 'ph-play-circle', transaction: 'ph-shopping-cart', creator: 'ph-pencil-simple', saas: 'ph-buildings' };
   var NSM_TYPE_LABEL = { attention: '注意力型', transaction: '交易量型', creator: '創造力型', saas: 'SaaS 型' };
 
+  var NSM_DIMENSION_CONFIGS = {
+    attention: {
+      label: '注意力型',
+      typeIcon: 'ph-play-circle',
+      typeClass: 'nsm-context-card__type--attention',
+      dims: [
+        { id: 'reach',     label: '觸及廣度', desc: '有多少用戶真正觸碰到核心功能（非僅登入）',     coachQ: 'AHA 時刻是什麼動作？做到這個動作的人有多少？' },
+        { id: 'depth',     label: '互動深度', desc: '每位用戶每次使用的品質與投入程度',             coachQ: '用戶停得夠深嗎？時長、完播率、互動次數哪個更能反映價值？' },
+        { id: 'frequency', label: '習慣頻率', desc: '用戶是否形成定期回訪的使用習慣',               coachQ: '每週/每月回來幾次？DAU/MAU 比越高代表黏性越強' },
+        { id: 'retention', label: '留存驅力', desc: '什麼讓用戶持續回訪而非逐漸流失',               coachQ: '社交關係？個人化推薦？收藏習慣？找出最強的留存槓桿' },
+      ],
+    },
+    transaction: {
+      label: '交易量型',
+      typeIcon: 'ph-shopping-cart',
+      typeClass: 'nsm-context-card__type--transaction',
+      dims: [
+        { id: 'reach',     label: '供給廣度', desc: '有多少符合需求的供給方在平台',                 coachQ: '供給端的廣度與覆蓋率是否充足？' },
+        { id: 'depth',     label: '需求深度', desc: '每筆需求的訂單規模與複雜度',                   coachQ: '單筆訂單金額或訂單複雜度是否能反映價值？' },
+        { id: 'frequency', label: '匹配效率', desc: '需求成功匹配到供給的速度與比例',               coachQ: '從搜尋到成交的轉換率與時間？' },
+        { id: 'retention', label: '復購留存', desc: '完成首次交易後再次回購的比例',                 coachQ: '哪一段時間內復購比例最能反映平台健康？' },
+      ],
+    },
+    creator: {
+      label: '創造力型',
+      typeIcon: 'ph-pencil-simple',
+      typeClass: 'nsm-context-card__type--creator',
+      dims: [
+        { id: 'reach',     label: '創造廣度', desc: '有多少創作者持續產出內容',                     coachQ: '活躍創作者數與內容產出量哪個更代表平台活力？' },
+        { id: 'depth',     label: '成果品質', desc: '創作者產出內容的品質與互動量',                 coachQ: '每件作品平均互動量、停留時間怎樣最能反映品質？' },
+        { id: 'frequency', label: '採用廣度', desc: '創作者作品被消費端採用的比例',                 coachQ: '消費者觸及創作者作品的比例與深度？' },
+        { id: 'retention', label: '商業轉化', desc: '創作行為轉化為持續商業價值的能力',             coachQ: '創作者收入或商業轉化指標如何衡量？' },
+      ],
+    },
+    saas: {
+      label: 'SaaS 型',
+      typeIcon: 'ph-buildings',
+      typeClass: 'nsm-context-card__type--saas',
+      dims: [
+        { id: 'reach',     label: '啟用廣度', desc: '組織內部署席次與啟用比例',                     coachQ: '購買的席次中真正活躍使用的比例？' },
+        { id: 'depth',     label: '席次深度', desc: '每個活躍席次的功能採用深度',                   coachQ: '使用者使用幾項核心功能、進階模組？' },
+        { id: 'frequency', label: '黏著頻率', desc: '工作流嵌入企業日常程度',                       coachQ: '每週使用天數、整合到工作流的程度？' },
+        { id: 'retention', label: '擴張信號', desc: '擴張席次或加購模組的客戶比例',                 coachQ: '淨留存收入 (NRR)、加購速度怎樣最能反映擴張？' },
+      ],
+    },
+  };
+
+  function getNsmDimConfig(productType) {
+    return NSM_DIMENSION_CONFIGS[productType] || NSM_DIMENSION_CONFIGS.attention;
+  }
+
   function nsmPickDisplayed(clearSelection) {
     var pool = NSM_QUESTIONS.slice();
     if (AppState.nsmTypeFilter && AppState.nsmTypeFilter !== 'all') {
