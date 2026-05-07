@@ -263,8 +263,10 @@
     var inputHtml = isSingle
       ? '<input class="nsm-input" data-nsm-field="' + fieldId + '" placeholder="..." value="' + escHtml(value || '') + '">'
       : '<div class="nsm-rt-field"><div class="nsm-rt-toolbar">'
-        + '<button class="nsm-rt-tbtn" data-rt-cmd="bold"><strong>B</strong></button>'
-        + '<button class="nsm-rt-tbtn" data-rt-cmd="insertUnorderedList"><i class="ph ph-list-bullets"></i></button>'
+        + '<button class="nsm-rt-tbtn" data-rt-cmd="bold" title="粗體"><strong>B</strong></button>'
+        + '<button class="nsm-rt-tbtn" data-rt-cmd="insertUnorderedList" title="列點"><i class="ph ph-list-bullets"></i></button>'
+        + '<button class="nsm-rt-tbtn" data-rt-cmd="indent" title="縮排"><i class="ph ph-text-indent"></i></button>'
+        + '<button class="nsm-rt-tbtn" data-rt-cmd="outdent" title="退縮"><i class="ph ph-text-outdent"></i></button>'
         + '</div><div class="nsm-rt-textarea" contenteditable="true" data-nsm-field="' + fieldId + '">' + (value || '') + '</div></div>';
     return '<div class="nsm-field">'
       + '<div class="nsm-field__head">'
@@ -340,8 +342,10 @@
       +   '<button class="nsm-dim__hint-btn" data-nsm-hint-toggle="' + dim.id + '"><i class="ph ph-lightbulb"></i>查看教練提示</button>'
       +   '<div class="nsm-dim__hint' + (isHintOpen ? ' is-open' : '') + '">提示：以可量化、可操作、領先的標準衡量「' + escHtml(dim.label) + '」。</div>'
       +   '<div class="nsm-rt-field"><div class="nsm-rt-toolbar">'
-      +     '<button class="nsm-rt-tbtn" data-rt-cmd="bold"><strong>B</strong></button>'
-      +     '<button class="nsm-rt-tbtn" data-rt-cmd="insertUnorderedList"><i class="ph ph-list-bullets"></i></button>'
+      +     '<button class="nsm-rt-tbtn" data-rt-cmd="bold" title="粗體"><strong>B</strong></button>'
+      +     '<button class="nsm-rt-tbtn" data-rt-cmd="insertUnorderedList" title="列點"><i class="ph ph-list-bullets"></i></button>'
+      +     '<button class="nsm-rt-tbtn" data-rt-cmd="indent" title="縮排"><i class="ph ph-text-indent"></i></button>'
+      +     '<button class="nsm-rt-tbtn" data-rt-cmd="outdent" title="退縮"><i class="ph ph-text-outdent"></i></button>'
       +   '</div><textarea class="nsm-rt-textarea" data-nsm-dim="' + dim.id + '">' + escHtml(value) + '</textarea></div>'
       + '</div></div>';
   }
