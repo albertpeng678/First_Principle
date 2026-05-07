@@ -1602,6 +1602,11 @@ div.rt-textarea[contenteditable="true"] ul li { list-style: disc; }
   padding: 2px var(--s-2);
   border-radius: var(--r-pill);
   font-size: var(--t-cap);
+  font-weight: 500;
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+}
 /* ───── Plan D SB2 — Onboarding (mockup 10) ───── */
 /* Welcome card — inline above mode-section on CIRCLES home */
 .onb-welcome {
@@ -1719,6 +1724,7 @@ div.rt-textarea[contenteditable="true"] ul li { list-style: disc; }
   display: inline-flex;
   align-items: center;
   gap: 4px;
+  cursor: pointer;
 }
 .nsm-step3-intro__type i { font-size: 12px; }
 .nsm-step3-intro__type--attention { background: var(--c-navy-lt); color: var(--c-navy); border: 1px solid rgba(27,45,92,0.22); }
@@ -1798,8 +1804,6 @@ div.rt-textarea[contenteditable="true"] ul li { list-style: disc; }
 .nsm-dim__hint.is-open { display: block; }
 .nsm-dim__hint strong { color: var(--c-navy); }
 /* ───── NSM Step 2/3 END ───── */
-  cursor: pointer;
-}
 .onb-tooltip__next:hover { background: rgba(255,255,255,0.92); }
 
 /* Tooltip arrow (triangle pointing toward target) */
