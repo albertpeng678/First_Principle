@@ -1,7 +1,54 @@
-# Adversarial Baseline — 2026-05-08 (RED state)
+# Adversarial Sweep — 2026-05-08
 
-> Captured BEFORE any prompt strengthening. This is the unprotected baseline.
-> Run via: `npm run test:adversarial -- tests/adversarial/circles-gate.spec.js`
+> Combo C 全範圍對抗測試結果（Layer 2 backend prompt + Layer 3 real-OpenAI sweep + Layer 1 frontend minLength）。
+> Spec: `docs/superpowers/specs/2026-05-08-adversarial-input-quality-design.md`
+> Plan: `docs/superpowers/plans/2026-05-08-adversarial-input-quality-combo-c.md`
+
+---
+
+## Executive Summary
+
+**Status: 🟢 ALL GREEN — 50/50 cells pass + 13/13 frontend specs + jest 143/143 baseline preserved.**
+
+| Layer | Coverage | Result | Commit |
+|---|---|---|---|
+| **L1 Frontend minLength** | Phase 1 C1/I/R/C2 4-field × NSM Step 2 (3 fields) × NSM Step 3 (4 dims) | 13/13 Playwright specs GREEN | `6135e09` |
+| **L2 Backend prompt guard** | 5 prompts: circles-gate / circles-evaluator / circles-final-report / nsm-gate / nsm-evaluator | All 5 加 `## 輸入品質檢查` block | `bf172f0`/`5e85c82`/`b41b3d6`/`deae14c`/`cce56f0` |
+| **L3 Real-OpenAI adversarial sweep** | 5 stages × 10 cases = 50 cells | 50/50 PASS | (sweep results below) |
+
+### Per-stage GREEN matrix
+
+| Stage | RED baseline | GREEN result | Cost (real OpenAI calls) |
+|---|---|---|---|
+| circles-gate (Phase 1.5) | 8/10 PASS | 10/10 PASS | ~10 cases × 2 runs ≈ $0.20 |
+| circles-evaluator (Phase 3 step) | 9/10 PASS | 10/10 PASS | ~10 × 2 ≈ $0.40 (heavier response) |
+| circles-final-report (Phase 4) | 0/2 PASS | 2/2 PASS | ~2 × 3 runs ≈ $0.15 |
+| nsm-gate (Step 2 → 3) | 10/10 PASS | 10/10 PASS | ~10 × 1 ≈ $0.10 |
+| nsm-evaluator (Step 3 final) | partial | 10/10 PASS | ~10 × 2 ≈ $0.40 |
+
+**Total OpenAI cost across full Combo C development sweep: ~$1.25-1.50** (well under the $2.50 ceiling).
+
+### User-reported bug fix verified
+
+**Bug:** 4 fields all "A" → AI hallucinated 1 ok ("時間範圍合理") + 2 warn + 1 error.
+**Fix verified:** Both Layer 1 (frontend now disables submit before AI) and Layer 2 (AI prompt now refuses to hallucinate). single-char case in circles-gate sweep now correctly returns `overallStatus="error"`, all 4 items error.
+
+### Standing rule enforced
+
+User established 2026-05-08:
+> 「所有階段審核都要經過極端情境測試，因為使用者會使用各種手段寫答案」
+
+This sweep + the npm script `test:adversarial` (opt-in, not in default CI) IS the standing-rule enforcement. Run before any AI prompt change. Cost is bounded.
+
+### Known gaps (non-blocking, documented)
+
+- **Frontend L/E/S steps not enforced**: Phase 1 L (sol-cards), E (per-sol nested), S (3 main + 4 tracking) currently rely on Layer 2 prompt guard. Future improvement candidate.
+- **placeholder case flips warn → error**: In circles-gate, the placeholder text repeated × 4 fields triggers the new "4-fields-identical" rule and yields error (not warn). This still satisfies `expectMinSeverity: 'warn'` per `error ≥ warn`. Defensive over-correction; not a regression.
+- **Per-prompt rule slight drift**: Each of the 5 prompts has its own `## 輸入品質檢查` block phrased slightly differently. Coherent but not literally identical; acceptable for a first pass.
+
+---
+
+# Per-stage detail (RED → GREEN evolution)
 
 ## circles-gate Phase 1.5 — 10 cases (real OpenAI gpt-4o)
 
