@@ -324,7 +324,7 @@
       + '</div>'
       + '<div class="submit-bar">'
       +   '<div class="submit-bar__left"><button class="btn btn--ghost" data-nsm-action="back-to-step2"><i class="ph ph-arrow-left"></i>上一步</button></div>'
-      +   '<div class="submit-bar__right"><button class="btn btn--primary" data-nsm-submit ' + (canSubmit ? '' : 'disabled') + '>提交審核<i class="ph ph-arrow-right"></i></button></div>'
+      +   '<div class="submit-bar__right"><button class="btn btn--primary" data-nsm-submit ' + (canSubmit ? '' : 'disabled') + '>送出，取得 AI 評分<i class="ph ph-arrow-right"></i></button></div>'
       + '</div></div>';
   }
 
