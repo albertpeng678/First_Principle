@@ -1747,12 +1747,15 @@
       + '</ul></div></div>';
   }
 
-  function renderGateError(msg) {
+  function renderGateError(errorCode) {
+    var sub = errorCode === 'GATE_TIMEOUT'     ? '審核逾時，請稍後重試'
+            : errorCode === 'GATE_PARSE_ERROR' ? '教練回應格式異常，請重試'
+            :                                    '審核服務暫時無法使用，請重試';
     return '<div class="gate-content"><div class="error-wrap">'
       + '<i class="ph ph-cloud-warning error-wrap__icon"></i>'
       + '<div class="error-wrap__title">框架審核失敗</div>'
-      + '<div class="error-wrap__sub">' + escHtml(msg) + '</div>'
-      + '<div class="error-wrap__code">GATE_API_ERROR</div>'
+      + '<div class="error-wrap__sub">' + escHtml(sub) + '</div>'
+      + '<div class="error-wrap__code">' + escHtml(errorCode || 'GATE_API_ERROR') + '</div>'
       + '<div class="error-wrap__actions">'
       +   '<button class="btn btn--primary" data-gate-action="retry">重新審核</button>'
       +   '<button class="btn btn--ghost" data-gate-action="back">返回修改</button>'
@@ -3148,12 +3151,20 @@
         body: JSON.stringify({ step: stepKey, frameworkDraft: draft }),
       });
       if (!res.ok) {
-        AppState.circlesGateError = '伺服器回應 ' + res.status;
+        AppState.circlesGateError = 'GATE_API_ERROR';
         AppState.circlesGateLoading = false;
         render();
         return;
       }
-      AppState.circlesGateResult = await res.json();
+      var result;
+      try { result = await res.json(); } catch (_) { result = null; }
+      if (!result || !result.items) {
+        AppState.circlesGateError = 'GATE_PARSE_ERROR';
+        AppState.circlesGateLoading = false;
+        render();
+        return;
+      }
+      AppState.circlesGateResult = result;
       AppState.circlesGateLoading = false;
       render();
     } catch (e) {
@@ -3163,11 +3174,10 @@
         render();
         return;
       }
-      var errMsg = '網路錯誤'; // default
-      if (e && typeof e.message === 'string' && /^(伺服器|草稿|請求)/.test(e.message)) {
-        errMsg = e.message; // safe — already zh-TW
-      }
-      AppState.circlesGateError = errMsg;
+      var gateErrCode = (e && (e.name === 'AbortError' || (typeof e.message === 'string' && e.message.toLowerCase().includes('timeout'))))
+        ? 'GATE_TIMEOUT'
+        : 'GATE_API_ERROR';
+      AppState.circlesGateError = gateErrCode;
       AppState.circlesGateLoading = false;
       render();
     }

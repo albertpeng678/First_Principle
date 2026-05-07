@@ -136,7 +136,7 @@ test.describe('Phase 1.5 Gate (mockup 04)', () => {
       window.AppState.circlesDrillStep = 'C1';
       window.AppState.circlesSelectedQuestion = { id: 'q1', company: 'X', product: 'Y' };
       window.AppState.circlesPhase = 1.5;
-      window.AppState.circlesGateError = '伺服器回應 500';
+      window.AppState.circlesGateError = 'GATE_API_ERROR';
       window.AppState.circlesGateLoading = false;
       window.render();
     });
