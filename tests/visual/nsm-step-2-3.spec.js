@@ -1,9 +1,16 @@
 const { test, expect } = require('@playwright/test');
 
+async function mockApis(page) {
+  await page.route('**/api/circles-stats', r => r.fulfill({ status: 200, contentType: 'application/json', body: '{}' }));
+  await page.route('**/api/guest-circles-stats', r => r.fulfill({ status: 200, contentType: 'application/json', body: '{}' }));
+  await page.route('**/api/nsm-sessions', r => r.fulfill({ status: 200, contentType: 'application/json', body: '[]' }));
+  await page.route('**/api/guest/nsm-sessions', r => r.fulfill({ status: 200, contentType: 'application/json', body: '[]' }));
+  await page.route('**/api/circles-sessions', r => r.fulfill({ status: 200, contentType: 'application/json', body: '[]' }));
+  await page.route('**/api/guest-circles-sessions', r => r.fulfill({ status: 200, contentType: 'application/json', body: '[]' }));
+}
+
 async function setupNSMStep2(page, q) {
-  await page.route('**/api/(guest-)?circles-stats**', r => r.fulfill({ status: 200, contentType: 'application/json', body: '{}' }));
-  await page.route('**/api/(guest/)?nsm-sessions', r => r.fulfill({ status: 200, contentType: 'application/json', body: '[]' }));
-  await page.route('**/api/(guest-)?circles-sessions', r => r.fulfill({ status: 200, contentType: 'application/json', body: '[]' }));
+  await mockApis(page);
   await page.goto('/');
   await page.waitForSelector('.qcard');
   await page.evaluate(({ q }) => {
@@ -64,9 +71,7 @@ test.describe('NSM Step 2 + Step 3 (mockup 07)', () => {
 
   test('Step 3 attention type renders 4 dim labels: 觸及/互動/習慣/留存', async ({ page }) => {
     await page.setViewportSize({ width: 1280, height: 900 });
-    await page.route('**/api/(guest-)?circles-stats**', r => r.fulfill({ status: 200, contentType: 'application/json', body: '{}' }));
-    await page.route('**/api/(guest/)?nsm-sessions', r => r.fulfill({ status: 200, contentType: 'application/json', body: '[]' }));
-    await page.route('**/api/(guest-)?circles-sessions', r => r.fulfill({ status: 200, contentType: 'application/json', body: '[]' }));
+    await mockApis(page);
     await page.goto('/');
     await page.evaluate(({ q }) => {
       window.AppState.view = 'nsm';
@@ -84,9 +89,7 @@ test.describe('NSM Step 2 + Step 3 (mockup 07)', () => {
 
   test('Step 3 saas type renders 4 dim labels: 啟用/席次/黏著/擴張', async ({ page }) => {
     await page.setViewportSize({ width: 1280, height: 900 });
-    await page.route('**/api/(guest-)?circles-stats**', r => r.fulfill({ status: 200, contentType: 'application/json', body: '{}' }));
-    await page.route('**/api/(guest/)?nsm-sessions', r => r.fulfill({ status: 200, contentType: 'application/json', body: '[]' }));
-    await page.route('**/api/(guest-)?circles-sessions', r => r.fulfill({ status: 200, contentType: 'application/json', body: '[]' }));
+    await mockApis(page);
     await page.goto('/');
     await page.evaluate(({ q }) => {
       window.AppState.view = 'nsm';
@@ -104,9 +107,7 @@ test.describe('NSM Step 2 + Step 3 (mockup 07)', () => {
 
   test('Step 3 dim hint-toggle expands hint', async ({ page }) => {
     await page.setViewportSize({ width: 1280, height: 900 });
-    await page.route('**/api/(guest-)?circles-stats**', r => r.fulfill({ status: 200, contentType: 'application/json', body: '{}' }));
-    await page.route('**/api/(guest/)?nsm-sessions', r => r.fulfill({ status: 200, contentType: 'application/json', body: '[]' }));
-    await page.route('**/api/(guest-)?circles-sessions', r => r.fulfill({ status: 200, contentType: 'application/json', body: '[]' }));
+    await mockApis(page);
     await page.goto('/');
     await page.evaluate(({ q }) => {
       window.AppState.view = 'nsm';
@@ -114,18 +115,17 @@ test.describe('NSM Step 2 + Step 3 (mockup 07)', () => {
       window.AppState.nsmSubTab = 'nsm-step3';
       window.AppState.nsmSelectedQuestion = q;
       window.AppState.nsmGateResult = { overall_status: 'ok' };
+      // depth dim for saas has hint content — toggle it open
+      window.AppState.nsmHintExpanded = { depth: true };
       window.render();
-    }, { q: Q_ATTENTION });
+    }, { q: Q_SAAS });
     await page.waitForSelector('.nsm-dim__hint-btn');
-    await page.locator('.nsm-dim__hint-btn').first().click();
-    await expect(page.locator('.nsm-dim__hint.is-open').first()).toBeVisible();
+    await expect(page.locator('.nsm-dim__hint-content').first()).toBeVisible();
   });
 
   test('Step 3 dim textarea typing updates AppState.nsmBreakdown', async ({ page }) => {
     await page.setViewportSize({ width: 1280, height: 900 });
-    await page.route('**/api/(guest-)?circles-stats**', r => r.fulfill({ status: 200, contentType: 'application/json', body: '{}' }));
-    await page.route('**/api/(guest/)?nsm-sessions', r => r.fulfill({ status: 200, contentType: 'application/json', body: '[]' }));
-    await page.route('**/api/(guest-)?circles-sessions', r => r.fulfill({ status: 200, contentType: 'application/json', body: '[]' }));
+    await mockApis(page);
     await page.goto('/');
     await page.evaluate(({ q }) => {
       window.AppState.view = 'nsm';
@@ -144,9 +144,7 @@ test.describe('NSM Step 2 + Step 3 (mockup 07)', () => {
 
   test('Step 3 提交審核 disabled when any dim empty', async ({ page }) => {
     await page.setViewportSize({ width: 1280, height: 900 });
-    await page.route('**/api/(guest-)?circles-stats**', r => r.fulfill({ status: 200, contentType: 'application/json', body: '{}' }));
-    await page.route('**/api/(guest/)?nsm-sessions', r => r.fulfill({ status: 200, contentType: 'application/json', body: '[]' }));
-    await page.route('**/api/(guest-)?circles-sessions', r => r.fulfill({ status: 200, contentType: 'application/json', body: '[]' }));
+    await mockApis(page);
     await page.goto('/');
     await page.evaluate(({ q }) => {
       window.AppState.view = 'nsm';
@@ -168,9 +166,7 @@ test.describe('NSM Step 2 + Step 3 (mockup 07)', () => {
 
   test('Sub-tab click switches nsmSubTab + render', async ({ page }) => {
     await page.setViewportSize({ width: 1280, height: 900 });
-    await page.route('**/api/(guest-)?circles-stats**', r => r.fulfill({ status: 200, contentType: 'application/json', body: '{}' }));
-    await page.route('**/api/(guest/)?nsm-sessions', r => r.fulfill({ status: 200, contentType: 'application/json', body: '[]' }));
-    await page.route('**/api/(guest-)?circles-sessions', r => r.fulfill({ status: 200, contentType: 'application/json', body: '[]' }));
+    await mockApis(page);
     await page.goto('/');
     await page.evaluate(({ q }) => {
       window.AppState.view = 'nsm';
@@ -181,8 +177,55 @@ test.describe('NSM Step 2 + Step 3 (mockup 07)', () => {
       window.AppState.nsmDefinition = { nsm: 'X', explanation: 'Y', businessLink: 'Z' };
       window.render();
     }, { q: Q_ATTENTION });
+    await page.waitForSelector('[data-nsm-subtab="nsm-step3"]');
     await page.locator('[data-nsm-subtab="nsm-step3"]').click();
     var st = await page.evaluate(() => window.AppState.nsmSubTab);
     expect(st).toBe('nsm-step3');
+  });
+
+  test('Step 3 attention dims desc verbatim from mockup 07', async ({ page }) => {
+    await page.setViewportSize({ width: 1280, height: 900 });
+    await mockApis(page);
+    await page.goto('/');
+    await page.evaluate(({ q }) => {
+      window.AppState.view = 'nsm';
+      window.AppState.nsmStep = 3;
+      window.AppState.nsmSubTab = 'nsm-step3';
+      window.AppState.nsmSelectedQuestion = q;
+      window.AppState.nsmDefinition = { nsm: 'X', explanation: 'Y', businessLink: 'Z' };
+      window.AppState.nsmGateResult = { overall_status: 'ok' };
+      window.render();
+    }, { q: Q_ATTENTION });
+    await page.waitForSelector('.nsm-dim__desc');
+    var descs = await page.locator('.nsm-dim__desc').allTextContents();
+    expect(descs).toEqual([
+      '有多少用戶真正觸碰到核心功能（非僅登入）',
+      '每位用戶每次使用的品質與投入程度',
+      '用戶是否形成定期回訪的使用習慣',
+      '什麼讓用戶持續回訪而非逐漸流失',
+    ]);
+  });
+
+  test('Step 3 saas dims desc verbatim from mockup 07', async ({ page }) => {
+    await page.setViewportSize({ width: 1280, height: 900 });
+    await mockApis(page);
+    await page.goto('/');
+    await page.evaluate(({ q }) => {
+      window.AppState.view = 'nsm';
+      window.AppState.nsmStep = 3;
+      window.AppState.nsmSubTab = 'nsm-step3';
+      window.AppState.nsmSelectedQuestion = q;
+      window.AppState.nsmDefinition = { nsm: 'X', explanation: 'Y', businessLink: 'Z' };
+      window.AppState.nsmGateResult = { overall_status: 'ok' };
+      window.render();
+    }, { q: Q_SAAS });
+    await page.waitForSelector('.nsm-dim__desc');
+    var descs = await page.locator('.nsm-dim__desc').allTextContents();
+    expect(descs).toEqual([
+      '新客戶中有多少真正完成啟用（Activation）',
+      '每個帳號內有多少人在真正使用核心功能',
+      '使用頻率是否顯示產品已嵌入日常工作流',
+      '現有客戶是否在增加使用（NRR 指標）',
+    ]);
   });
 });
