@@ -332,6 +332,15 @@
 
   function renderNSMDim(dim, value) {
     var isHintOpen = !!(AppState.nsmHintExpanded && AppState.nsmHintExpanded[dim.id]);
+    var hintLabel = isHintOpen ? '收起教練提示' : '查看教練提示';
+    var hintHtml = '';
+    if (isHintOpen && dim.hint) {
+      // render hint — use markdownBulletsToHtml if available, else plain text
+      var hintContent = (typeof markdownBulletsToHtml === 'function')
+        ? markdownBulletsToHtml(dim.hint)
+        : escHtml(dim.hint);
+      hintHtml = '<div class="nsm-dim__hint-content">' + hintContent + '</div>';
+    }
     return '<div class="nsm-dim">'
       + '<div class="nsm-dim__head">'
       +   '<div class="nsm-dim__label">' + escHtml(dim.label) + '</div>'
@@ -339,8 +348,10 @@
       + '</div>'
       + '<div class="nsm-dim__body">'
       +   '<div class="nsm-dim__coach"><i class="ph ph-chat-dots"></i>' + escHtml(dim.coachQ) + '</div>'
-      +   '<button class="nsm-dim__hint-btn" data-nsm-hint-toggle="' + dim.id + '"><i class="ph ph-lightbulb"></i>查看教練提示</button>'
-      +   '<div class="nsm-dim__hint' + (isHintOpen ? ' is-open' : '') + '">提示：以可量化、可操作、領先的標準衡量「' + escHtml(dim.label) + '」。</div>'
+      +   '<button class="nsm-dim__hint-btn" data-nsm-hint-toggle="' + dim.id + '" aria-expanded="' + (isHintOpen ? 'true' : 'false') + '">'
+      +     '<i class="ph ph-lightbulb"></i>' + escHtml(hintLabel)
+      +   '</button>'
+      +   hintHtml
       +   '<div class="nsm-rt-field"><div class="nsm-rt-toolbar">'
       +     '<button class="nsm-rt-tbtn" data-rt-cmd="bold" title="粗體"><strong>B</strong></button>'
       +     '<button class="nsm-rt-tbtn" data-rt-cmd="insertUnorderedList" title="列點"><i class="ph ph-list-bullets"></i></button>'
