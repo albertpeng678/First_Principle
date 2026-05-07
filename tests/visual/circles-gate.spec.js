@@ -189,4 +189,80 @@ test.describe('Phase 1.5 Gate (mockup 04)', () => {
     await expect(page.locator('.gate-list')).toBeVisible();
     expect(await page.locator('.gate-item').count()).toBe(4);
   });
+
+  test('Submit fires POST gate with correct body', async ({ page }) => {
+    await page.setViewportSize({ width: 1280, height: 900 });
+    var capturedBody = null;
+    await page.route('**/api/circles-stats**', r => r.fulfill({ status: 200, contentType: 'application/json', body: '{}' }));
+    await page.route('**/api/guest-circles-stats**', r => r.fulfill({ status: 200, contentType: 'application/json', body: '{}' }));
+    await page.route('**/api/guest-circles-sessions', r => r.fulfill({ status: 200, contentType: 'application/json', body: '[]' }));
+    await page.route('**/api/guest-circles-sessions/draft', r => r.fulfill({ status: 200, contentType: 'application/json', body: JSON.stringify({ id: 'sess-test', question_id: 'q1', mode: 'drill', drill_step: 'C1', status: 'active' }) }));
+    await page.route('**/api/guest-circles-sessions/sess-test/gate', async r => {
+      try { capturedBody = JSON.parse(r.request().postData() || '{}'); } catch (_) {}
+      r.fulfill({ status: 200, contentType: 'application/json', body: JSON.stringify({ overallStatus: 'ok', items: [], canProceed: true }) });
+    });
+    await page.route('**/api/guest/nsm-sessions', r => r.fulfill({ status: 200, contentType: 'application/json', body: '[]' }));
+    await page.route('**/api/nsm-sessions', r => r.fulfill({ status: 200, contentType: 'application/json', body: '[]' }));
+    await page.goto('/');
+    await page.waitForSelector('.qcard');
+    await page.evaluate(() => {
+      window.AppState.circlesMode = 'drill';
+      window.AppState.circlesDrillStep = 'C1';
+      window.AppState.circlesSelectedQuestion = { id: 'q1', company: 'X', product: 'Y' };
+      window.AppState.circlesPhase = 1;
+      window.AppState.circlesFrameworkDraft = { C1: { '問題範圍': '聚焦免費版' } };
+      window.submitFrameworkToGate();
+    });
+    await page.waitForFunction(() => window.AppState.circlesPhase === 1.5 && window.AppState.circlesGateLoading === false, { timeout: 5000 });
+    expect(capturedBody).toBeTruthy();
+    expect(capturedBody.step).toBe('C1');
+    expect(capturedBody.frameworkDraft).toBeDefined();
+    expect(capturedBody.frameworkDraft['問題範圍']).toBe('聚焦免費版');
+  });
+
+  test('401 from gate → does NOT show error-wrap (multi-tab+401 banner handles)', async ({ page }) => {
+    await page.setViewportSize({ width: 1280, height: 900 });
+    await page.route('**/api/circles-stats**', r => r.fulfill({ status: 200, contentType: 'application/json', body: '{}' }));
+    await page.route('**/api/guest-circles-stats**', r => r.fulfill({ status: 200, contentType: 'application/json', body: '{}' }));
+    await page.route('**/api/guest-circles-sessions', r => r.fulfill({ status: 200, contentType: 'application/json', body: '[]' }));
+    await page.route('**/api/guest-circles-sessions/draft', r => r.fulfill({ status: 200, contentType: 'application/json', body: JSON.stringify({ id: 'sess-401', question_id: 'q1', mode: 'drill', drill_step: 'C1', status: 'active' }) }));
+    await page.route('**/api/guest-circles-sessions/sess-401/gate', r => r.fulfill({ status: 401, body: '{"error":"unauthorized"}' }));
+    await page.route('**/api/guest/nsm-sessions', r => r.fulfill({ status: 200, contentType: 'application/json', body: '[]' }));
+    await page.route('**/api/nsm-sessions', r => r.fulfill({ status: 200, contentType: 'application/json', body: '[]' }));
+    await page.goto('/');
+    await page.waitForSelector('.qcard');
+    await page.evaluate(() => {
+      window.AppState.circlesMode = 'drill';
+      window.AppState.circlesDrillStep = 'C1';
+      window.AppState.circlesSelectedQuestion = { id: 'q1', company: 'X', product: 'Y' };
+      window.AppState.circlesPhase = 1;
+      window.AppState.circlesFrameworkDraft = { C1: { '問題範圍': '測試 401' } };
+      window.submitFrameworkToGate();
+    });
+    await page.waitForTimeout(800);
+    // gate error-wrap should NOT appear (multi-tab+401 banner is handled elsewhere; gate stays in loading or returns silently)
+    expect(await page.locator('.gate-content .error-wrap').count()).toBe(0);
+  });
+
+  test('Empty draft submit → banner visible 「請至少填寫一個欄位再提交審核」', async ({ page }) => {
+    await page.setViewportSize({ width: 1280, height: 900 });
+    await page.route('**/api/circles-stats**', r => r.fulfill({ status: 200, contentType: 'application/json', body: '{}' }));
+    await page.route('**/api/guest-circles-stats**', r => r.fulfill({ status: 200, contentType: 'application/json', body: '{}' }));
+    await page.route('**/api/guest-circles-sessions', r => r.fulfill({ status: 200, contentType: 'application/json', body: '[]' }));
+    await page.route('**/api/guest/nsm-sessions', r => r.fulfill({ status: 200, contentType: 'application/json', body: '[]' }));
+    await page.route('**/api/nsm-sessions', r => r.fulfill({ status: 200, contentType: 'application/json', body: '[]' }));
+    await page.goto('/');
+    await page.waitForSelector('.qcard');
+    await page.evaluate(() => {
+      window.AppState.circlesMode = 'drill';
+      window.AppState.circlesDrillStep = 'C1';
+      window.AppState.circlesSelectedQuestion = { id: 'q1', company: 'X', product: 'Y' };
+      window.AppState.circlesPhase = 1;
+      window.AppState.circlesFrameworkDraft = {};
+      window.render();
+      window.submitFrameworkToGate();
+    });
+    await page.waitForTimeout(200);
+    await expect(page.locator('[data-banner="empty-hint"]')).toBeVisible();
+  });
 });

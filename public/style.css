@@ -155,6 +155,9 @@ body:has(.submit-bar) { padding-bottom: calc(var(--touch-min) + var(--s-7)); }
 .banner--stale .banner__action { background: var(--c-danger); color: #fff; }
 .banner--stale .banner__action:hover { background: #951818; }
 
+/* Plan B SB10 GAP 1 — banner--warn (empty-draft hint, mockup 15 §C warn theme) */
+.banner--warn { background: var(--c-warn-lt); border-bottom-color: rgba(184,92,0,0.25); color: var(--c-warn); font-weight: 500; }
+
 /* Plan B SB9b — banner--save-error (mockup 03 Section E line 2067-2073) */
 .banner--save-error { background: var(--c-danger-lt); color: var(--c-danger); border-left: 2px solid var(--c-danger); border-bottom-color: rgba(182,31,31,0.25); }
 .banner--save-error i.ph { color: var(--c-danger); flex: 0 0 auto; }

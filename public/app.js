@@ -53,6 +53,9 @@
     // states: 'idle' (已暫存) | 'saving' (儲存中) | 'saved' (已儲存到雲端) | 'error' (離線中·點擊重試)
     circlesPhase1SaveState: 'idle',
 
+    // Plan B SB10 — empty-draft inline hint banner (GAP 1)
+    circlesPhase1EmptyHint: false,
+
     // Plan B SB5 additions
     circlesPhase1S: {
       recommendation: '',
@@ -606,6 +609,18 @@
     var locked = AppState.circlesLocked;
     var stale = AppState.circlesStale;
     var saveError = AppState.circlesPhase1SaveState === 'error';
+    var emptyHint = AppState.circlesPhase1EmptyHint;
+
+    // Empty-draft inline hint banner (GAP 1 — spec §6 visible signal)
+    if (emptyHint) {
+      var emptyBannerHtml = '<div class="banner banner--warn" data-banner="empty-hint">請至少填寫一個欄位再提交審核</div>';
+      var emptyIdx = html.indexOf('<div class="phase-body');
+      if (emptyIdx === -1) emptyIdx = html.indexOf('<div class="submit-bar"');
+      if (emptyIdx !== -1) {
+        html = html.slice(0, emptyIdx) + emptyBannerHtml + html.slice(emptyIdx);
+      }
+    }
+
     if (!locked && !stale && !saveError) return html;
 
     // 1) inject banner: before first .phase-body OR before .submit-bar (S step has tracking-section before phase-body)
@@ -3102,6 +3117,9 @@
     var hasContent = Object.values(draft).some(function (v) { return v && String(v).trim(); });
     if (!hasContent) {
       console.warn('[gate] empty draft — skipping submit');
+      AppState.circlesPhase1EmptyHint = true;
+      render();
+      setTimeout(function () { AppState.circlesPhase1EmptyHint = false; render(); }, 3500);
       return;
     }
     AppState.circlesPhase = 1.5;
@@ -3137,6 +3155,12 @@
       AppState.circlesGateLoading = false;
       render();
     } catch (e) {
+      // 401 → apiFetch throws SESSION_EXPIRED; multi-tab+401 banner already rendered by apiFetch
+      if (e && e.code === 'SESSION_EXPIRED') {
+        AppState.circlesGateLoading = false;
+        render();
+        return;
+      }
       AppState.circlesGateError = (e && e.message) || '網路錯誤';
       AppState.circlesGateLoading = false;
       render();
