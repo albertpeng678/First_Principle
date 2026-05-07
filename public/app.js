@@ -79,6 +79,10 @@
     nsmDisplayedQuestions: [],
     nsmSearchText: '',
     nsmTypeFilter: 'all',
+    nsmDefinition: { nsm: '', explanation: '', businessLink: '' },
+    nsmBreakdown: { reach: '', depth: '', frequency: '', retention: '' },
+    nsmExampleExpanded: {},
+    nsmHintExpanded: {},
 
     // chat
     streamingActive: false,
@@ -169,6 +173,7 @@
     else document.body.style.overflow = '';
     bindAll();
     if (AppState.view === 'nsm' && AppState.nsmStep === 1) bindNSMStep1();
+    if (AppState.view === 'nsm' && (AppState.nsmStep === 2 || AppState.nsmStep === 3)) bindNSMStep2And3();
   }
   window.render = render;
   window.renderApp = render; // alias for test scripts
@@ -192,8 +197,7 @@
       return renderCirclesStub();
     }
     if (v === 'nsm') {
-      if (AppState.nsmStep === 1) return renderNSMStep1();
-      return renderNSMStub();
+      return renderNSM();
     }
     if (v === 'auth')    return renderAuthStub();
     return renderCirclesHome();
@@ -202,9 +206,227 @@
   function renderCirclesStub() {
     return '<div data-view="circles" style="padding:24px;color:var(--c-ink-3);text-align:center">CIRCLES view — 待 Plan B 實作</div>';
   }
-  function renderNSMStub() {
-    return '<div data-view="nsm" style="padding:24px;color:var(--c-ink-3);text-align:center">NSM view — Plan C SB2+ 實作中</div>';
+  function renderNSM() {
+    if (AppState.nsmStep === 1) return renderNSMStep1();
+    if (AppState.nsmStep === 2) return renderNSMStep2();
+    if (AppState.nsmStep === 3) return renderNSMStep3();
+    if (AppState.nsmStep === 4) return typeof renderNSMStep4 === 'function' ? renderNSMStep4() : '<div>NSM Step 4 not yet implemented</div>';
+    return renderNSMStep1();
   }
+
+  function renderNSMSubTabs() {
+    var st = AppState.nsmSubTab || 'nsm-step2';
+    var gateOk = AppState.nsmGateResult && (AppState.nsmGateResult.overall_status === 'ok' || AppState.nsmGateResult.overall_status === 'warn');
+    var step2HasContent = !!(AppState.nsmDefinition && AppState.nsmDefinition.nsm && AppState.nsmDefinition.businessLink);
+    return '<div class="nsm-sub-tabs">'
+      + '<button class="nsm-sub-tab' + (st === 'nsm-step2' ? ' is-active' : '') + '" data-nsm-subtab="nsm-step2">步驟 2：定義 NSM</button>'
+      + '<button class="nsm-sub-tab' + (st === 'nsm-gate' ? ' is-active' : '') + '"' + (step2HasContent ? '' : ' disabled') + ' data-nsm-subtab="nsm-gate">NSM 審核</button>'
+      + '<button class="nsm-sub-tab' + (st === 'nsm-step3' ? ' is-active' : '') + '"' + (gateOk ? '' : ' disabled') + ' data-nsm-subtab="nsm-step3">步驟 3：拆解</button>'
+      + '</div>';
+  }
+
+  function renderNSMStep2() {
+    var q = AppState.nsmSelectedQuestion || {};
+    var ptype = nsmGuessProductType(q);
+    var typeCfg = getNsmDimConfig(ptype);
+    var def = AppState.nsmDefinition || { nsm: '', explanation: '', businessLink: '' };
+    var canSubmit = !!(def.nsm && def.nsm.trim() && def.businessLink && def.businessLink.trim());
+    return '<div data-view="nsm">'
+      + '<div class="phase-head">'
+      +   '<span class="phase-head__num">2</span>'
+      +   '<div class="phase-head__main">'
+      +     '<div class="phase-head__eyebrow">NSM · 北極星訓練</div>'
+      +     '<div class="phase-head__title">定義 NSM</div>'
+      +   '</div>'
+      + '</div>'
+      + renderNSMSubTabs()
+      + renderNSMProgress(2)
+      + '<div class="nsm-body">'
+      +   renderNSMContextCard(q, typeCfg)
+      +   renderNSMGuide()
+      +   renderNSMField('nsm', '北極星指標 (NSM)', def.nsm, '<strong>例：</strong>每月完成至少一首完整曲目播放的活躍月用戶數', /*single*/ true)
+      +   renderNSMField('explanation', '定義說明', def.explanation, '<strong>例：</strong>說明 NSM 的具體量化定義與行為閾值', false)
+      +   renderNSMField('businessLink', '與業務目標連結', def.businessLink, '<strong>例：</strong>NSM 上升直接對應廣告營收上升或留存率提升', false)
+      + '</div>'
+      + '<div class="submit-bar">'
+      +   '<div class="submit-bar__left"><button class="btn btn--ghost" data-nsm-action="back"><i class="ph ph-arrow-left"></i>上一步</button></div>'
+      +   '<div class="submit-bar__right"><button class="btn btn--primary" data-nsm-submit ' + (canSubmit ? '' : 'disabled') + '>提交審核<i class="ph ph-arrow-right"></i></button></div>'
+      + '</div></div>';
+  }
+
+  function renderNSMField(fieldId, label, value, exampleHtml, isSingle) {
+    var isOpen = !!(AppState.nsmExampleExpanded && AppState.nsmExampleExpanded[fieldId]);
+    var caret = isOpen ? 'ph-caret-down' : 'ph-caret-right';
+    var inputHtml = isSingle
+      ? '<input class="nsm-input" data-nsm-field="' + fieldId + '" placeholder="..." value="' + escHtml(value || '') + '">'
+      : '<div class="nsm-rt-field"><div class="nsm-rt-toolbar">'
+        + '<button class="nsm-rt-tbtn" data-rt-cmd="bold"><strong>B</strong></button>'
+        + '<button class="nsm-rt-tbtn" data-rt-cmd="insertUnorderedList"><i class="ph ph-list-bullets"></i></button>'
+        + '</div><div class="nsm-rt-textarea" contenteditable="true" data-nsm-field="' + fieldId + '">' + (value || '') + '</div></div>';
+    return '<div class="nsm-field">'
+      + '<div class="nsm-field__head">'
+      +   '<label class="nsm-field__label">' + escHtml(label) + '</label>'
+      +   '<button class="nsm-field__example-toggle" data-nsm-example-toggle="' + fieldId + '"><i class="ph ' + caret + '"></i>查看範例</button>'
+      + '</div>'
+      + '<div class="nsm-field__example' + (isOpen ? ' is-open' : '') + '">' + exampleHtml + '</div>'
+      + inputHtml
+      + '</div>';
+  }
+
+  function renderNSMGuide() {
+    return '<div class="nsm-guide">'
+      + '<div class="nsm-guide__title"><i class="ph ph-path"></i>3 步定義法</div>'
+      + '<div class="nsm-guide__step"><span class="nsm-guide__num">1</span><div class="nsm-guide__body"><strong>找 AHA 時刻</strong><p>用戶第一次真正感受到產品價值的那個動作是什麼？</p></div></div>'
+      + '<div class="nsm-guide__step"><span class="nsm-guide__num">2</span><div class="nsm-guide__body"><strong>轉成可量化指標</strong><p>把那個動作表達成「誰 × 做了什麼行為 × 多少量/頻率」的具體數字。</p></div></div>'
+      + '<div class="nsm-guide__step"><span class="nsm-guide__num">3</span><div class="nsm-guide__body"><strong>做虛榮指標檢驗</strong><p>問自己：如果這個數字翻倍，產品的商業收益一定增加嗎？</p></div></div>'
+      + '</div>';
+  }
+
+  function renderNSMContextCard(q, typeCfg) {
+    return '<div class="nsm-context-card">'
+      + '<div class="nsm-context-card__top">'
+      +   '<span class="nsm-context-card__company">' + escHtml(q.company || '') + '</span>'
+      +   '<span class="nsm-context-card__industry">' + escHtml(q.industry || '') + '</span>'
+      +   '<span class="nsm-context-card__type ' + typeCfg.typeClass + '"><i class="ph ' + typeCfg.typeIcon + '"></i>' + escHtml(typeCfg.label) + '</span>'
+      + '</div>'
+      + '<p class="nsm-context-card__scenario">' + escHtml(q.scenario || '') + '</p>'
+      + '</div>';
+  }
+
+  function renderNSMStep3() {
+    var q = AppState.nsmSelectedQuestion || {};
+    var ptype = nsmGuessProductType(q);
+    var typeCfg = getNsmDimConfig(ptype);
+    var br = AppState.nsmBreakdown || {};
+    var canSubmit = typeCfg.dims.every(function (d) { return br[d.id] && String(br[d.id]).trim(); });
+    return '<div data-view="nsm">'
+      + '<div class="phase-head">'
+      +   '<span class="phase-head__num">3</span>'
+      +   '<div class="phase-head__main">'
+      +     '<div class="phase-head__eyebrow">NSM · 北極星訓練</div>'
+      +     '<div class="phase-head__title">拆解輸入指標</div>'
+      +   '</div>'
+      + '</div>'
+      + renderNSMSubTabs()
+      + renderNSMProgress(3)
+      + '<div class="nsm-body">'
+      +   '<div class="nsm-step3-banner"><i class="ph ph-target"></i><strong>你的 NSM：</strong>' + escHtml((AppState.nsmDefinition || {}).nsm || '') + '</div>'
+      +   '<div class="nsm-step3-intro">'
+      +     '<div class="nsm-step3-intro__top">'
+      +       '<span class="nsm-step3-intro__type nsm-step3-intro__type--' + ptype + '"><i class="ph ' + typeCfg.typeIcon + '"></i>' + escHtml(typeCfg.label) + '</span>'
+      +     '</div>'
+      +     '<p>輸入指標是驅動 NSM 的<strong>領先訊號</strong>——這些指標翻倍，NSM 應該跟著成長。以下 4 個維度依 <strong>' + escHtml(typeCfg.label) + '</strong> 產品特性設計。</p>'
+      +   '</div>'
+      +   typeCfg.dims.map(function (d) { return renderNSMDim(d, br[d.id] || ''); }).join('')
+      + '</div>'
+      + '<div class="submit-bar">'
+      +   '<div class="submit-bar__left"><button class="btn btn--ghost" data-nsm-action="back-to-step2"><i class="ph ph-arrow-left"></i>上一步</button></div>'
+      +   '<div class="submit-bar__right"><button class="btn btn--primary" data-nsm-submit ' + (canSubmit ? '' : 'disabled') + '>提交審核<i class="ph ph-arrow-right"></i></button></div>'
+      + '</div></div>';
+  }
+
+  function renderNSMDim(dim, value) {
+    var isHintOpen = !!(AppState.nsmHintExpanded && AppState.nsmHintExpanded[dim.id]);
+    return '<div class="nsm-dim">'
+      + '<div class="nsm-dim__head">'
+      +   '<div class="nsm-dim__label">' + escHtml(dim.label) + '</div>'
+      +   '<div class="nsm-dim__desc">' + escHtml(dim.desc) + '</div>'
+      + '</div>'
+      + '<div class="nsm-dim__body">'
+      +   '<div class="nsm-dim__coach"><i class="ph ph-chat-dots"></i>' + escHtml(dim.coachQ) + '</div>'
+      +   '<button class="nsm-dim__hint-btn" data-nsm-hint-toggle="' + dim.id + '"><i class="ph ph-lightbulb"></i>查看教練提示</button>'
+      +   '<div class="nsm-dim__hint' + (isHintOpen ? ' is-open' : '') + '">提示：以可量化、可操作、領先的標準衡量「' + escHtml(dim.label) + '」。</div>'
+      +   '<div class="nsm-rt-field"><div class="nsm-rt-toolbar">'
+      +     '<button class="nsm-rt-tbtn" data-rt-cmd="bold"><strong>B</strong></button>'
+      +     '<button class="nsm-rt-tbtn" data-rt-cmd="insertUnorderedList"><i class="ph ph-list-bullets"></i></button>'
+      +   '</div><textarea class="nsm-rt-textarea" data-nsm-dim="' + dim.id + '">' + escHtml(value) + '</textarea></div>'
+      + '</div></div>';
+  }
+
+  function bindNSMStep2And3() {
+    document.querySelectorAll('[data-nsm-subtab]').forEach(function (el) {
+      el.addEventListener('click', function () {
+        if (el.disabled) return;
+        AppState.nsmSubTab = el.dataset.nsmSubtab;
+        if (AppState.nsmSubTab === 'nsm-step2') AppState.nsmStep = 2;
+        else if (AppState.nsmSubTab === 'nsm-step3') AppState.nsmStep = 3;
+        render();
+      });
+    });
+    document.querySelectorAll('[data-nsm-example-toggle]').forEach(function (btn) {
+      btn.addEventListener('click', function () {
+        var fid = btn.dataset.nsmExampleToggle;
+        AppState.nsmExampleExpanded[fid] = !AppState.nsmExampleExpanded[fid];
+        render();
+      });
+    });
+    document.querySelectorAll('[data-nsm-hint-toggle]').forEach(function (btn) {
+      btn.addEventListener('click', function () {
+        var did = btn.dataset.nsmHintToggle;
+        AppState.nsmHintExpanded[did] = !AppState.nsmHintExpanded[did];
+        render();
+      });
+    });
+    document.querySelectorAll('[data-nsm-field]').forEach(function (el) {
+      el.addEventListener('input', function () {
+        var fid = el.dataset.nsmField;
+        var v = el.tagName === 'INPUT' ? el.value : el.innerHTML;
+        if (!AppState.nsmDefinition) AppState.nsmDefinition = { nsm: '', explanation: '', businessLink: '' };
+        AppState.nsmDefinition[fid] = v;
+        triggerNsmSaveCycle();
+      });
+    });
+    document.querySelectorAll('[data-nsm-dim]').forEach(function (el) {
+      el.addEventListener('input', function () {
+        var did = el.dataset.nsmDim;
+        if (!AppState.nsmBreakdown) AppState.nsmBreakdown = {};
+        AppState.nsmBreakdown[did] = el.value;
+        triggerNsmSaveCycle();
+      });
+    });
+    var backBtn = document.querySelector('[data-nsm-action="back"]');
+    if (backBtn) {
+      backBtn.addEventListener('click', function () {
+        AppState.nsmStep = 1;
+        render();
+      });
+    }
+    var backToStep2Btn = document.querySelector('[data-nsm-action="back-to-step2"]');
+    if (backToStep2Btn) {
+      backToStep2Btn.addEventListener('click', function () {
+        AppState.nsmStep = 2;
+        AppState.nsmSubTab = 'nsm-step2';
+        render();
+      });
+    }
+  }
+
+  var _nsmSaveTimer = null;
+  function triggerNsmSaveCycle() {
+    if (_nsmSaveTimer) clearTimeout(_nsmSaveTimer);
+    _nsmSaveTimer = setTimeout(function () {
+      try {
+        var qid = (AppState.nsmSelectedQuestion || {}).id || 'unknown';
+        var payload = {
+          user_nsm: (AppState.nsmDefinition || {}).nsm || '',
+          user_breakdown: AppState.nsmBreakdown || {},
+        };
+        localStorage.setItem('pmdrill:nsm:draft:' + qid, JSON.stringify(Object.assign({}, payload, { ts: Date.now() })));
+        var sessionId = AppState.nsmSession && AppState.nsmSession.id;
+        if (sessionId) {
+          var path = (AppState.accessToken ? '/api/nsm-sessions/' : '/api/guest/nsm-sessions/') + sessionId + '/progress';
+          window.apiFetch(path, {
+            method: 'PATCH',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify(payload),
+          }).catch(function () {});
+        }
+      } catch (_) {}
+    }, 800);
+  }
+
+  window.renderNSMStep2 = renderNSMStep2;
+  window.renderNSMStep3 = renderNSMStep3;
   function renderAuthStub() {
     return '<div data-view="auth" style="padding:24px;color:var(--c-ink-3);text-align:center">Auth view — 待 Plan B 收尾實作</div>';
   }

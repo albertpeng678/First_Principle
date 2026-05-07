@@ -16,7 +16,7 @@ async function setupNSMStep2(page, q) {
   await page.waitForSelector('.nsm-sub-tabs', { timeout: 3000 });
 }
 
-const Q_ATTENTION = { id: 'q-att', company: 'Spotify', industry: '音樂串流', scenario: 'Podcast NSM', product: 'Spotify Podcast' };
+const Q_ATTENTION = { id: 'q-att', company: 'Spotify', industry: '音樂串流', scenario: '為 Spotify 定義北極星指標，衡量用戶日常收聽行為', product: 'Spotify Music' };
 const Q_SAAS      = { id: 'q-saas', company: 'Slack', industry: 'B2B SaaS', scenario: 'Workspace activation', product: 'Slack' };
 
 test.describe('NSM Step 2 + Step 3 (mockup 07)', () => {
