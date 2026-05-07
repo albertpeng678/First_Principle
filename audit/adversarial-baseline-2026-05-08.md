@@ -58,9 +58,9 @@
 | Stage | Status |
 |---|---|
 | circles-evaluator (Phase 3 step score) | GREEN 10/10 — Task 4 |
-| circles-final-report (Phase 4) | TBD — Task 6 |
-| nsm-gate | TBD — Task 7 |
-| nsm-evaluator | TBD — Task 8 |
+| circles-final-report (Phase 4) | GREEN 2/2 — Task 5 |
+| nsm-gate | GREEN 10/10 — Task 6 |
+| nsm-evaluator | TBD — Task 7 |
 
 ---
 
@@ -165,4 +165,42 @@ The prompt was also strengthened to steer the LLM away from "完整" in the garb
 [garbage-final] overallScore= 20 grade= D headline= 多步輸入不足，需重練基礎 coachVerdict= 本次表現無法有效評分，因多個步驟內容嚴重不足。建議學員重練基礎，確保每步驟內容充實，為後續分析奠定基礎。期待下次能看到更具體的分析與建議。
 [strong-final] overallScore= 80 grade= B headline= 思路清晰，競品分析待加強
 2 passed (10.6s)
+```
+
+---
+
+## nsm-gate Step 2 (Plan Task 6)
+
+> RED baseline: nsm-gate CRITERIA_GUIDE already sophisticated enough — 10/10 PASS on first run (no prompt guard needed for RED).
+> GREEN: After adding `## 輸入品質檢查` block, all 10/10 PASS confirmed with hardened rules.
+
+| # | Case id        | Expected min severity | Actual overallStatus | Pass? | Notes |
+|---|----------------|-----------------------|----------------------|-------|-------|
+| 1 | single-char    | error                 | error                | Y     | All 4 items error — AI correctly rejected "A" as invalid NSM definition |
+| 2 | repeat-char    | error                 | error                | Y     | All 4 items error — repeat-char rule triggered |
+| 3 | whitespace     | error                 | error                | Y     | All 4 items error — pure whitespace rule triggered |
+| 4 | unicode-emoji  | error                 | error                | Y     | All 4 items error — emoji/unicode rule triggered |
+| 5 | wrong-lang     | error                 | error                | Y     | All 4 items error — wrong language / off-topic |
+| 6 | off-topic      | error                 | error                | Y     | All 4 items error — off-topic content |
+| 7 | placeholder    | warn                  | error                | Y     | All 4 items error — text lacks nsm specifics (error ≥ warn, PASS) |
+| 8 | extreme-long   | error                 | error                | Y     | All 4 items error — extreme repeat-char rule triggered |
+| 9 | injection      | error                 | error                | Y     | All 4 items error — HTML/JS injection detected |
+| 10| borderline-ok  | ok                    | warn                 | Y     | NSM定義清晰度=warn, 業務連結=ok, 可測量=ok, 非虛榮=warn — canProceed=true (warn ≥ ok, PASS) |
+
+GREEN: 10 / 10 PASS
+
+### Raw log excerpt (GREEN run)
+
+```
+[single-char] overallStatus=error canProceed=false items=[{"criterion":"NSM定義清晰度","status":"error"},{"criterion":"與業務目標的連結","status":"error"},{"criterion":"可測量性","status":"error"},{"criterion":"非虛榮指標","status":"error"}]
+[repeat-char] overallStatus=error canProceed=false items=[{"criterion":"NSM定義清晰度","status":"error"},{"criterion":"與業務目標的連結","status":"error"},{"criterion":"可測量性","status":"error"},{"criterion":"非虛榮指標","status":"error"}]
+[whitespace] overallStatus=error canProceed=false items=[{"criterion":"NSM定義清晰度","status":"error"},{"criterion":"與業務目標的連結","status":"error"},{"criterion":"可測量性","status":"error"},{"criterion":"非虛榮指標","status":"error"}]
+[unicode-emoji] overallStatus=error canProceed=false items=[{"criterion":"NSM定義清晰度","status":"error"},{"criterion":"與業務目標的連結","status":"error"},{"criterion":"可測量性","status":"error"},{"criterion":"非虛榮指標","status":"error"}]
+[wrong-lang] overallStatus=error canProceed=false items=[{"criterion":"NSM定義清晰度","status":"error"},{"criterion":"與業務目標的連結","status":"error"},{"criterion":"可測量性","status":"error"},{"criterion":"非虛榮指標","status":"error"}]
+[off-topic] overallStatus=error canProceed=false items=[{"criterion":"NSM定義清晰度","status":"error"},{"criterion":"與業務目標的連結","status":"error"},{"criterion":"可測量性","status":"error"},{"criterion":"非虛榮指標","status":"error"}]
+[placeholder] overallStatus=error canProceed=false items=[{"criterion":"NSM定義清晰度","status":"error"},{"criterion":"與業務目標的連結","status":"error"},{"criterion":"可測量性","status":"error"},{"criterion":"非虛榮指標","status":"error"}]
+[extreme-long] overallStatus=error canProceed=false items=[{"criterion":"NSM定義清晰度","status":"error"},{"criterion":"與業務目標的連結","status":"error"},{"criterion":"可測量性","status":"error"},{"criterion":"非虛榮指標","status":"error"}]
+[injection] overallStatus=error canProceed=false items=[{"criterion":"NSM定義清晰度","status":"error"},{"criterion":"與業務目標的連結","status":"error"},{"criterion":"可測量性","status":"error"},{"criterion":"非虛榮指標","status":"error"}]
+[borderline-ok] overallStatus=warn canProceed=true items=[{"criterion":"NSM定義清晰度","status":"warn"},{"criterion":"與業務目標的連結","status":"ok"},{"criterion":"可測量性","status":"ok"},{"criterion":"非虛榮指標","status":"warn"}]
+10 passed (26.2s)
 ```

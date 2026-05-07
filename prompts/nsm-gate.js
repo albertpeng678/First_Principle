@@ -113,7 +113,24 @@ ${i + 1}. ${c.name}
 • canProceed = false 當且僅當有任何 status 為 "error"
 • overallStatus = items 中最嚴重的 status（error > warn > ok）
 • 嚴格評分——寧可多給 warn 也不要放水；只有真正符合 ok 條件才給 ok
-• feedback 要具體指出「哪裡好」或「哪裡有問題」，不要說廢話如「定義不夠清晰」`;
+• feedback 要具體指出「哪裡好」或「哪裡有問題」，不要說廢話如「定義不夠清晰」
+
+## 輸入品質檢查（最高優先級，先於 4 項標準）
+
+凡 nsm 或 rationale 欄位符合以下任一條件 → 該欄位視為無有效輸入，4 項標準全部 status="error"：
+
+- 字數 < 10（剝除空白後計算）
+- 重複單一字元（如「aaaa」「同同同同」）
+- 純 whitespace / 全形空白
+- 純 emoji / 隨機 unicode 序列
+- 內容與題目情境完全無關（如「我喜歡吃蘋果」）
+- 明顯為 HTML/JS injection 嘗試
+- nsm 與 rationale 完全相同字串（無分化）
+
+**嚴禁** 對上述任一條件回傳「定義清晰」「合理」「具體」等正面語。
+**嚴禁** 給 status="ok" 或 "warn" 於 < 10 字輸入或無意義輸入。
+
+任一觸發 → overallStatus="error" + canProceed=false + 4 items 全 error。`;
 
   const userMsg = `學員的 NSM 定義：
 ${nsm || '（未填）'}
