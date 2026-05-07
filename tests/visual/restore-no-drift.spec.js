@@ -90,4 +90,82 @@ test.describe('Phase 1 restore — partial-fill no-drift (Bug B)', () => {
     expect((await textareas.nth(0).textContent()).trim()).toBe('B'); // 問題範圍
     expect((await textareas.nth(1).textContent()).trim()).toBe('T'); // 時間範圍
   });
+
+  test('I step: partial-fill (idx 0 + idx 3 only) → idx 1 idx 2 stay empty', async ({ page }) => {
+    await page.setViewportSize({ width: 1280, height: 900 });
+    const session = {
+      id: 'sess-i-partial', question_id: 'q-i',
+      question_json: { id: 'q-i', company: 'X', product: 'Y' },
+      mode: 'drill', drill_step: 'I', current_phase: 1, sim_step_index: 1, status: 'active',
+      step_drafts: { ts: Date.now() },
+      framework_draft: { I: { '目標用戶分群': 'GroupA', '排除對象': 'ExcludeZ' } },
+      created_at: new Date().toISOString(), updated_at: new Date().toISOString(),
+    };
+    stubAll(page, session, session);
+    await openSessionViaOffcanvas(page);
+    const ta = page.locator('.rt-textarea');
+    expect((await ta.nth(0).textContent()).trim()).toBe('GroupA');
+    expect((await ta.nth(1).textContent()).trim()).toBe('');
+    expect((await ta.nth(2).textContent()).trim()).toBe('');
+    expect((await ta.nth(3).textContent()).trim()).toBe('ExcludeZ');
+  });
+
+  test('R step: partial-fill (only 核心痛點 idx 3) → idx 3 only', async ({ page }) => {
+    await page.setViewportSize({ width: 1280, height: 900 });
+    const session = {
+      id: 'sess-r-partial', question_id: 'q-r',
+      question_json: { id: 'q-r', company: 'X', product: 'Y' },
+      mode: 'drill', drill_step: 'R', current_phase: 1, sim_step_index: 2, status: 'active',
+      step_drafts: { ts: Date.now() },
+      framework_draft: { R: { '核心痛點': 'CorePain99' } },
+      created_at: new Date().toISOString(), updated_at: new Date().toISOString(),
+    };
+    stubAll(page, session, session);
+    await openSessionViaOffcanvas(page);
+    const ta = page.locator('.rt-textarea');
+    expect((await ta.nth(0).textContent()).trim()).toBe('');
+    expect((await ta.nth(1).textContent()).trim()).toBe('');
+    expect((await ta.nth(2).textContent()).trim()).toBe('');
+    expect((await ta.nth(3).textContent()).trim()).toBe('CorePain99');
+  });
+
+  test('C2 step: partial-fill (idx 1 + idx 2) → idx 0 idx 3 empty, no drift', async ({ page }) => {
+    await page.setViewportSize({ width: 1280, height: 900 });
+    const session = {
+      id: 'sess-c2-partial', question_id: 'q-c2',
+      question_json: { id: 'q-c2', company: 'X', product: 'Y' },
+      mode: 'drill', drill_step: 'C2', current_phase: 1, sim_step_index: 3, status: 'active',
+      step_drafts: { ts: Date.now() },
+      framework_draft: { C2: { '最優先': 'P1', '暫緩': 'P2' } },
+      created_at: new Date().toISOString(), updated_at: new Date().toISOString(),
+    };
+    stubAll(page, session, session);
+    await openSessionViaOffcanvas(page);
+    const ta = page.locator('.rt-textarea');
+    expect((await ta.nth(0).textContent()).trim()).toBe('');
+    expect((await ta.nth(1).textContent()).trim()).toBe('P1');
+    expect((await ta.nth(2).textContent()).trim()).toBe('P2');
+    expect((await ta.nth(3).textContent()).trim()).toBe('');
+  });
+
+  test('Legacy English-key alias: framework_draft uses {boundaryScope, timeWindow} → restored to Chinese-keyed slots', async ({ page }) => {
+    await page.setViewportSize({ width: 1280, height: 900 });
+    const session = {
+      id: 'sess-legacy', question_id: 'q-legacy',
+      question_json: { id: 'q-legacy', company: 'Old', product: 'Schema' },
+      mode: 'drill', drill_step: 'C1', current_phase: 1, sim_step_index: 0, status: 'active',
+      step_drafts: { ts: Date.now() - 7 * 24 * 60 * 60 * 1000 }, // pre-migration timestamp
+      framework_draft: { C1: { boundaryScope: 'Legacy-bound', timeWindow: 'Legacy-time' } },
+      created_at: new Date().toISOString(), updated_at: new Date().toISOString(),
+    };
+    stubAll(page, session, session);
+    // Pre-clear localStorage to avoid override from prior tests
+    await page.addInitScript(() => { try { localStorage.clear(); } catch (_) {} });
+    await openSessionViaOffcanvas(page);
+    const ta = page.locator('.rt-textarea');
+    expect((await ta.nth(0).textContent()).trim()).toBe('Legacy-bound');
+    expect((await ta.nth(1).textContent()).trim()).toBe('Legacy-time');
+    expect((await ta.nth(2).textContent()).trim()).toBe('');
+    expect((await ta.nth(3).textContent()).trim()).toBe('');
+  });
 });
