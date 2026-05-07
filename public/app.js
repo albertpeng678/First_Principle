@@ -3144,7 +3144,6 @@
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ step: stepKey, frameworkDraft: draft }),
       });
-      if (res.status === 401) return; // multi-tab+401 banner handles it
       if (!res.ok) {
         AppState.circlesGateError = 'Server returned ' + res.status;
         AppState.circlesGateLoading = false;
