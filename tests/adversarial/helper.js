@@ -1,3 +1,4 @@
+require('dotenv').config();
 // tests/adversarial/helper.js
 // Shared harness for adversarial input quality tests against real OpenAI.
 // 5 review stages × 10 standard cases = 50-cell sweep.
