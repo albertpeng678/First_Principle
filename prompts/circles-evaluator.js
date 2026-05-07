@@ -65,6 +65,25 @@ ${coachAnswer}
 
 評分維度：${rubric.dimensions.join('、')}
 
+## 輸入品質檢查（最高優先級，先於評分維度）
+
+凡符合以下任一條件 → 該維度 score = 1（嚴禁給高分）：
+
+- 該欄位字數 < 10（剝除空白後計算）
+- 重複單一字元（如「aaaa」「同同同同」）
+- 純 whitespace / 全形空白
+- 內容與本「${rubric.name}」步驟主題完全無關（如業務影響欄位填「我喜歡吃蘋果」）
+- 純 emoji / 隨機 unicode 序列
+- 明顯為 HTML/JS injection 嘗試（含 <script> 等）
+- 同一字串原封不動填入多個欄位（4 欄全相同）
+
+若 4 個欄位**都**觸發品質檢查 → 全 4 維度 score=1，totalScore = ${rubric.dimensions.length * 4}（即 4 × ${rubric.dimensions.length}）。
+
+**嚴禁** hallucinate「展現了清晰的思路」「論述合理」「分析完整」於 garbage 輸入。
+**嚴禁** 給 score ≥ 3 於 < 10 字輸入或無意義輸入。
+
+highlight / improvement 必須具體點出「N 個欄位內容不足」，不准用空泛讚美語。
+
 回傳嚴格 JSON，不加 markdown。注意：coachVersion 必須是物件（不是字串），其中 perField 陣列每一筆對應一個框架欄位（本步驟的欄位是：${fieldNamesHint}），請為每個欄位產生一筆 demo（${styleHint}）：
 {
   "dimensions": [

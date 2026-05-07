@@ -57,7 +57,7 @@
 
 | Stage | Status |
 |---|---|
-| circles-evaluator (Phase 3 step score) | TBD — Task 5 |
+| circles-evaluator (Phase 3 step score) | GREEN 10/10 — Task 4 |
 | circles-final-report (Phase 4) | TBD — Task 6 |
 | nsm-gate | TBD — Task 7 |
 | nsm-evaluator | TBD — Task 8 |
@@ -99,4 +99,42 @@ GREEN summary: 10 / 10 PASS. Target: 10 / 10.
 [injection] overallStatus=error canProceed=false items=[{"field":"問題範圍","status":"error","title":"輸入無意義"},{"field":"時間範圍","status":"error","title":"輸入無意義"},{"field":"業務影響","status":"error","title":"輸入無意義"},{"field":"假設確認","status":"error","title":"輸入無意義"}]
 [borderline-ok] overallStatus=ok canProceed=true items=[{"field":"問題範圍","status":"ok","title":"範圍明確"},{"field":"時間範圍","status":"ok","title":"時間合理"},{"field":"業務影響","status":"ok","title":"影響明確"},{"field":"假設確認","status":"ok","title":"假設合理"}]
 10 passed (26.6s)
+```
+
+---
+
+## circles-evaluator Phase 3 step (Plan Task 4)
+
+> RED baseline: evaluator already handled most garbage cases naturally (9/10 PASS before prompt guard — whitespace borderline at exactly 40, all others low).
+> GREEN: after adding `## 輸入品質檢查` block, all garbage scores drop to 16 (all 4 dims score=1), and borderline-ok rises to 90.
+
+| # | Case id        | Expected totalScore | Actual totalScore | Pass? | Notes |
+|---|----------------|---------------------|-------------------|-------|-------|
+| 1 | single-char    | ≤ 40                | 16                | Y     | All 4 dims score=1 — quality guard fired (< 10 chars) |
+| 2 | repeat-char    | ≤ 40                | 16                | Y     | All 4 dims score=1 — repeat-char rule triggered |
+| 3 | whitespace     | ≤ 40                | 16                | Y     | All 4 dims score=1 — pure whitespace rule triggered (was 40 in RED, now 16) |
+| 4 | unicode-emoji  | ≤ 40                | 16                | Y     | All 4 dims score=1 — emoji/unicode rule triggered |
+| 5 | wrong-lang     | ≤ 40                | 16                | Y     | All 4 dims score=1 — off-topic/language rule triggered |
+| 6 | off-topic      | ≤ 40                | 16                | Y     | All 4 dims score=1 — off-topic rule triggered |
+| 7 | placeholder    | ≤ 40                | 16                | Y     | All 4 dims score=1 — 4-fields-identical rule triggered |
+| 8 | extreme-long   | ≤ 40                | 16                | Y     | All 4 dims score=1 — repeat-char/extreme-length rule triggered |
+| 9 | injection      | ≤ 40                | 16                | Y     | All 4 dims score=1 — HTML/JS injection rule triggered |
+| 10| borderline-ok  | ≥ 40                | 90                | Y     | perFieldInputs 4 distinct valid answers; dims 4/5/5/4 |
+
+GREEN: 10 / 10 PASS
+
+### Raw log excerpt (GREEN run)
+
+```
+[single-char] totalScore=16 dims=[{"name":"問題範圍","score":1},{"name":"時間範圍","score":1},{"name":"業務影響","score":1},{"name":"假設確認","score":1}]
+[repeat-char] totalScore=16 dims=[{"name":"問題邊界清晰度","score":1},{"name":"時間範圍合理性","score":1},{"name":"業務影響連結","score":1},{"name":"假設排除完整性","score":1}]
+[whitespace] totalScore=16 dims=[{"name":"問題邊界清晰度","score":1},{"name":"時間範圍合理性","score":1},{"name":"業務影響連結","score":1},{"name":"假設排除完整性","score":1}]
+[unicode-emoji] totalScore=16 dims=[{"name":"問題範圍","score":1},{"name":"時間範圍","score":1},{"name":"業務影響","score":1},{"name":"假設確認","score":1}]
+[wrong-lang] totalScore=16 dims=[{"name":"問題範圍","score":1},{"name":"時間範圍","score":1},{"name":"業務影響","score":1},{"name":"假設確認","score":1}]
+[off-topic] totalScore=16 dims=[{"name":"問題範圍","score":1},{"name":"時間範圍","score":1},{"name":"業務影響","score":1},{"name":"假設確認","score":1}]
+[placeholder] totalScore=16 dims=[{"name":"問題範圍","score":1},{"name":"時間範圍","score":1},{"name":"業務影響","score":1},{"name":"假設確認","score":1}]
+[extreme-long] totalScore=16 dims=[{"name":"問題範圍","score":1},{"name":"時間範圍","score":1},{"name":"業務影響","score":1},{"name":"假設確認","score":1}]
+[injection] totalScore=16 dims=[{"name":"問題邊界清晰度","score":1},{"name":"時間範圍合理性","score":1},{"name":"業務影響連結","score":1},{"name":"假設排除完整性","score":1}]
+[borderline-ok] totalScore=90 dims=[{"name":"問題邊界清晰度","score":5},{"name":"時間範圍合理性","score":5},{"name":"業務影響連結","score":4},{"name":"假設排除完整性","score":4}]
+10 passed (36.2s)
 ```
