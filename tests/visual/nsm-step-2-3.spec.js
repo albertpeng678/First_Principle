@@ -59,11 +59,16 @@ test.describe('NSM Step 2 + Step 3 (mockup 07)', () => {
     await expect(btn).toBeDisabled();
   });
 
-  test('Step 2 提交審核 enabled when both filled', async ({ page }) => {
+  test('Step 2 提交審核 enabled when all 3 fields meet minLength floor', async ({ page }) => {
     await page.setViewportSize({ width: 1280, height: 900 });
     await setupNSMStep2(page, Q_ATTENTION);
     await page.evaluate(() => {
-      window.AppState.nsmDefinition = { nsm: 'A', explanation: '', businessLink: 'B' };
+      // nsm floor=10, explanation floor=30, businessLink floor=30 (non-whitespace chars)
+      window.AppState.nsmDefinition = {
+        nsm: '每月活躍聆聽用戶總數量',  // 11 chars — above floor=10
+        explanation: '定義說明需要足夠字數才能通過最低長度驗證請填寫完整說明內容字數需達到三十個非空白字元',  // >30
+        businessLink: '業務連結說明需要足夠字數才能通過最低長度驗證請填寫完整說明字數需達到三十個非空白字元以上'  // >30
+      };
       window.render();
     });
     await expect(page.locator('[data-nsm-submit]')).toBeEnabled();

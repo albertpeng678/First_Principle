@@ -247,7 +247,7 @@
     var ptype = nsmGuessProductType(q);
     var typeCfg = getNsmDimConfig(ptype);
     var def = AppState.nsmDefinition || { nsm: '', explanation: '', businessLink: '' };
-    var canSubmit = !!(def.nsm && def.nsm.trim() && def.businessLink && def.businessLink.trim());
+    var canSubmit = fieldMinLengthOk(def.nsm, 10) && fieldMinLengthOk(def.explanation, 30) && fieldMinLengthOk(def.businessLink, 30);
     return '<div data-view="nsm">'
       + '<div class="phase-head">'
       +   '<span class="phase-head__num">2</span>'
@@ -317,7 +317,7 @@
     var ptype = nsmGuessProductType(q);
     var typeCfg = getNsmDimConfig(ptype);
     var br = AppState.nsmBreakdown || {};
-    var canSubmit = typeCfg.dims.every(function (d) { return br[d.id] && String(br[d.id]).trim(); });
+    var canSubmit = typeCfg.dims.every(function (d) { return fieldMinLengthOk(br[d.id], 20); });
     return '<div data-view="nsm">'
       + '<div class="phase-head">'
       +   '<span class="phase-head__num">3</span>'
@@ -962,6 +962,16 @@
       }
     }
 
+    // Layer 1: minLength gate — disable submit when any standard field below floor
+    // (Not gated on locked/stale — those are handled below)
+    var minLengthBlocked = !locked && !stale && computePhase1MinLengthBlocked();
+    if (minLengthBlocked) {
+      html = html.replace(
+        /<button class="btn btn--primary" data-phase1="submit">/,
+        '<button class="btn btn--primary" data-phase1="submit" disabled>'
+      );
+    }
+
     if (!locked && !stale && !saveError) return html;
 
     // 1) inject banner: before first .phase-body OR before .submit-bar (S step has tracking-section before phase-body)
@@ -1055,6 +1065,38 @@
       if (t) triggerSaveCycle();
     });
     document._sb9aRetryBound = true;
+  }
+
+  // Layer 1: click on disabled [data-phase1="submit"] → show inline tip near submit-bar
+  // (click events don't fire on disabled buttons but DO bubble from parent elements)
+  if (typeof document !== 'undefined' && !document._minLengthTipBound) {
+    document.addEventListener('click', function (e) {
+      var btn = e.target.closest && e.target.closest('[data-phase1="submit"]');
+      if (!btn || !btn.disabled) return;
+      var stepKey = AppState.circlesMode === 'drill'
+        ? AppState.circlesDrillStep
+        : (['C1', 'I', 'R', 'C2', 'L', 'E', 'S'][AppState.circlesSimStep || 0] || 'C1');
+      var stepCfg = CIRCLES_STEP_CONFIG[stepKey];
+      if (!stepCfg || !stepCfg.fields || !stepCfg.fields.length) return;
+      var draft = (AppState.circlesFrameworkDraft && AppState.circlesFrameworkDraft[stepKey]) || {};
+      var blocked = stepCfg.fields.find(function (f) {
+        return !fieldMinLengthOk(draft[f.key], parseFloor(f.minMax));
+      });
+      if (blocked) {
+        showSubmitBlockTip('「' + blocked.key + '」至少需要 ' + parseFloor(blocked.minMax) + ' 字');
+      }
+    });
+    document._minLengthTipBound = true;
+  }
+
+  function showSubmitBlockTip(msg) {
+    var existing = document.querySelector('.submit-block-tip');
+    if (existing) existing.remove();
+    var tip = document.createElement('div');
+    tip.className = 'submit-block-tip';
+    tip.textContent = msg;
+    document.body.appendChild(tip);
+    setTimeout(function () { if (tip && tip.parentNode) tip.remove(); }, 4000);
   }
 
   var _saveDebounce = null;
@@ -1384,7 +1426,22 @@
       + '</div>';
 
     var metaSpan = minMax ? '<span>建議 ' + minMax + ' 字' + (idx === 0 && hint ? ' · ' + hint : '') + '</span>' : '';
-    var counterSpan = idx === 0 ? '<span class="char-counter">0 / ' + max + '</span>' : '';
+    // char-counter (field 1 only): show current length + warn class when below floor
+    var counterSpan = '';
+    if (idx === 0) {
+      var floorN = parseFloor(minMax);
+      // fetch current draft value to compute length at render time
+      var _stepKey = AppState.circlesMode === 'drill'
+        ? (AppState.circlesDrillStep || 'C1')
+        : (['C1', 'I', 'R', 'C2', 'L', 'E', 'S'][AppState.circlesSimStep || 0] || 'C1');
+      var _draft = (AppState.circlesFrameworkDraft && AppState.circlesFrameworkDraft[_stepKey]) || {};
+      var _rawVal = _draft[key] || '';
+      var _currentLen = String(_rawVal).replace(/<[^>]*>/g, '').trim().replace(/\s/g, '').length;
+      var _isBelowFloor = floorN > 0 && _currentLen < floorN;
+      var counterClass = _isBelowFloor ? 'char-counter is-below-floor' : 'char-counter';
+      var floorSuffix = _isBelowFloor ? '（至少 ' + floorN + ' 字）' : '';
+      counterSpan = '<span class="' + counterClass + '">' + _currentLen + ' / ' + max + (floorSuffix ? ' ' + floorSuffix : '') + '</span>';
+    }
     var metaHtml = (metaSpan || counterSpan)
       ? '<div class="field__meta">' + metaSpan + counterSpan + '</div>'
       : '';
@@ -3301,11 +3358,8 @@
         _phase1CharDebounce = setTimeout(function () {
           var idx = parseInt(el.dataset.fieldIdx, 10);
           var max = parseInt(el.dataset.max, 10) || 200;
-          var plainLen = (el.textContent || '').length;
-          if (idx === 0) {
-            var counter = el.closest('.field') && el.closest('.field').querySelector('.char-counter');
-            if (counter) counter.textContent = plainLen + ' / ' + max;
-          }
+          var plainText = (el.textContent || '');
+          var nonWsLen = plainText.replace(/\s/g, '').length;
           var stepKey = AppState.circlesMode === 'drill'
             ? (AppState.circlesDrillStep || 'C1')
             : (['C1', 'I', 'R', 'C2', 'L', 'E', 'S'][AppState.circlesSimStep || 0] || 'C1');
@@ -3316,6 +3370,24 @@
             if (!AppState.circlesFrameworkDraft[stepKey]) AppState.circlesFrameworkDraft[stepKey] = {};
             // 存 innerHTML 保留 <strong>/<ul>/<li> 等格式
             AppState.circlesFrameworkDraft[stepKey][fieldKey] = el.innerHTML;
+          }
+          // Update char-counter (field 1 only) — also update warn class + floor suffix
+          if (idx === 0) {
+            var counter = el.closest('.field') && el.closest('.field').querySelector('.char-counter');
+            if (counter) {
+              var fieldCfg = cfg && cfg.fields && cfg.fields[0];
+              var floorN = fieldCfg ? parseFloor(fieldCfg.minMax) : 0;
+              var isBelowFloor = floorN > 0 && nonWsLen < floorN;
+              counter.className = isBelowFloor ? 'char-counter is-below-floor' : 'char-counter';
+              var floorSuffix = isBelowFloor ? '（至少 ' + floorN + ' 字）' : '';
+              counter.textContent = nonWsLen + ' / ' + max + (floorSuffix ? ' ' + floorSuffix : '');
+            }
+          }
+          // Layer 1: update submit button disabled state in-place (no full re-render)
+          var submitBtn = document.querySelector('[data-phase1="submit"]');
+          if (submitBtn && !AppState.circlesLocked && !AppState.circlesStale) {
+            var blocked = computePhase1MinLengthBlocked();
+            submitBtn.disabled = blocked;
           }
         }, 200);
       });
@@ -4067,6 +4139,43 @@
       });
       window._onbEscBound = true;
     }
+  }
+
+  // ── Layer 1 Combo C: frontend minLength gate ──────────────────────────────
+  // Prevents obvious garbage from reaching AI gate / evaluator.
+  // Called at render time to compute disabled state + warn class.
+  function fieldMinLengthOk(value, floor) {
+    if (!floor || floor <= 0) return true;
+    var v = String(value == null ? '' : value).replace(/<[^>]*>/g, '').trim();
+    var nonWhitespace = v.replace(/\s/g, '');
+    if (nonWhitespace.length < floor) return false;
+    // reject single repeated character (e.g. "AAAA...")
+    if (nonWhitespace.length >= 3 && new Set(nonWhitespace.split('')).size === 1) return false;
+    return true;
+  }
+
+  function parseFloor(minMax) {
+    if (!minMax || typeof minMax !== 'string') return 0;
+    var m = minMax.match(/^(\d+)/);
+    return m ? parseInt(m[1], 10) : 0;
+  }
+
+  // Returns true when any required Phase 1 C1/I/R/C2 field is below its minMax floor.
+  // L/E/S steps rely on Layer 2 (prompt guard) — documented gap.
+  function computePhase1MinLengthBlocked() {
+    var stepKey = AppState.circlesMode === 'drill'
+      ? AppState.circlesDrillStep
+      : (['C1', 'I', 'R', 'C2', 'L', 'E', 'S'][AppState.circlesSimStep || 0] || 'C1');
+    if (!stepKey) return false;
+    var stepCfg = CIRCLES_STEP_CONFIG[stepKey];
+    if (!stepCfg) return false;
+    // Only enforce on 4-field standard steps (C1/I/R/C2); L/E/S have nested structures
+    if (!stepCfg.fields || !stepCfg.fields.length || stepCfg.isSolMulti || stepCfg.isEstep || stepCfg.isSstep) return false;
+    var draft = (AppState.circlesFrameworkDraft && AppState.circlesFrameworkDraft[stepKey]) || {};
+    return stepCfg.fields.some(function (f) {
+      var floor = parseFloor(f.minMax);
+      return !fieldMinLengthOk(draft[f.key], floor);
+    });
   }
 
   // ── utils ─────────────────────────────────────────────────────────────────

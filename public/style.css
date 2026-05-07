@@ -784,6 +784,11 @@ div.rt-textarea[contenteditable="true"] ul li { list-style: disc; }
 
 /* ── char-counter ── */
 .char-counter { font-size: var(--t-cap); color: var(--c-ink-4); font-variant-numeric: tabular-nums; }
+/* Layer 1 Combo C: warn variant when below minMax floor */
+.char-counter.is-below-floor { color: var(--c-warn); font-weight: 600; }
+
+/* Layer 1 Combo C: inline tip shown on disabled submit click */
+.submit-block-tip { position: fixed; right: 16px; bottom: calc(var(--touch-min) + var(--s-7) + 8px); background: var(--c-warn); color: #fff; padding: 6px 14px; border-radius: 6px; font-size: 13px; white-space: nowrap; pointer-events: none; z-index: 200; }
 
 /* ── example-expand (line 858-873 mobile / 1127-1142 desktop) ── */
 .example-expand { display: none; background: var(--c-bg-soft); border: 1px solid var(--c-rule); border-radius: var(--r-card); padding: var(--s-3) var(--s-4); margin-top: var(--s-2); }
