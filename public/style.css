@@ -1319,3 +1319,369 @@ div.rt-textarea[contenteditable="true"] ul li { list-style: disc; }
 .error-wrap__code { font-family: ui-monospace, 'SF Mono', monospace; font-size: var(--t-cap); color: var(--c-ink-4); letter-spacing: 0.08em; }
 .error-wrap__actions { display: flex; gap: var(--s-3); flex-wrap: wrap; justify-content: center; }
 /* ───── Plan B SB10 Gate END ───── */
+/* ───────────────────────────────────────────
+   Plan C SB2 — NSM Step 2 + Step 3 components
+   (LOCKED from mockup 07 lines 255-643)
+   ─────────────────────────────────────────── */
+
+/* sub-tabs (步驟 2 / NSM 審核 / 步驟 3) */
+.nsm-sub-tabs {
+  display: flex;
+  gap: 0;
+  padding: 0 var(--s-4);
+  background: var(--c-bg-soft);
+  border-bottom: 1px solid var(--c-rule);
+  overflow-x: auto;
+  -webkit-overflow-scrolling: touch;
+}
+.nsm-sub-tab {
+  flex: 0 0 auto;
+  padding: var(--s-3) var(--s-3);
+  font-size: var(--t-body-sm);
+  color: var(--c-ink-3);
+  border-bottom: 2px solid transparent;
+  white-space: nowrap;
+  transition: color var(--t-fast) var(--ease), border-color var(--t-fast) var(--ease);
+}
+.nsm-sub-tab:hover:not([disabled]) { color: var(--c-ink-2); }
+.nsm-sub-tab.is-active { color: var(--c-navy); border-bottom-color: var(--c-navy); font-weight: 600; }
+.nsm-sub-tab[disabled] { color: var(--c-ink-4); cursor: not-allowed; }
+@media (min-width: 768px) {
+  .nsm-sub-tabs { padding: 0 var(--s-5); }
+  .nsm-sub-tab { padding: var(--s-3) var(--s-4); }
+}
+
+/* context card (selected company + scenario header) */
+.nsm-context-card {
+  background: var(--c-card);
+  border: 1px solid var(--c-rule);
+  border-radius: var(--r-card);
+  padding: var(--s-4);
+  margin-bottom: var(--s-4);
+  display: flex;
+  flex-direction: column;
+  gap: var(--s-2);
+}
+.nsm-context-card__top {
+  display: flex;
+  align-items: center;
+  gap: var(--s-2);
+  flex-wrap: wrap;
+}
+.nsm-context-card__company {
+  padding: 3px var(--s-2);
+  background: var(--c-navy);
+  color: #fff;
+  border-radius: var(--r-input);
+  font-size: var(--t-cap);
+  font-weight: 600;
+}
+.nsm-context-card__industry {
+  font-size: var(--t-cap);
+  color: var(--c-ink-3);
+}
+.nsm-context-card__type {
+  margin-left: auto;
+  padding: 2px var(--s-2);
+  border-radius: var(--r-pill);
+  font-size: var(--t-cap);
+  font-weight: 500;
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+}
+.nsm-context-card__type i { font-size: 12px; }
+.nsm-context-card__type--attention   { background: var(--c-navy-lt); color: var(--c-navy); border: 1px solid rgba(27,45,92,0.22); }
+.nsm-context-card__type--transaction { background: rgba(19,122,61,0.10); color: var(--c-success); border: 1px solid rgba(19,122,61,0.22); }
+.nsm-context-card__type--creator     { background: rgba(184,92,0,0.10); color: var(--c-warn); border: 1px solid rgba(184,92,0,0.22); }
+.nsm-context-card__type--saas        { background: rgba(26,86,219,0.10); color: var(--c-primary); border: 1px solid rgba(26,86,219,0.22); }
+.nsm-context-card__scenario {
+  font-size: var(--t-body-sm);
+  color: var(--c-ink-2);
+  line-height: 1.7;
+}
+.nsm-context-card__hint {
+  font-size: var(--t-cap);
+  color: var(--c-ink-3);
+  display: inline-flex;
+  align-items: flex-start;
+  gap: 4px;
+  padding-top: var(--s-2);
+  border-top: 1px solid var(--c-rule);
+}
+.nsm-context-card__hint i { font-size: 13px; color: var(--c-ink-3); flex: 0 0 auto; margin-top: 2px; }
+
+/* 3-step guide (找 AHA / 量化 / 虛榮檢驗) */
+.nsm-guide {
+  background: var(--c-bg-soft);
+  border: 1px solid var(--c-rule);
+  border-radius: var(--r-card);
+  padding: var(--s-4);
+  margin-bottom: var(--s-5);
+}
+.nsm-guide__title {
+  font-size: var(--t-cap);
+  letter-spacing: 0.06em;
+  text-transform: uppercase;
+  color: var(--c-ink-3);
+  font-weight: 500;
+  margin-bottom: var(--s-3);
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+}
+.nsm-guide__title i { font-size: 13px; color: var(--c-navy); }
+.nsm-guide__step {
+  display: flex;
+  gap: var(--s-3);
+  align-items: flex-start;
+  padding: var(--s-2) 0;
+}
+.nsm-guide__step + .nsm-guide__step { border-top: 1px solid var(--c-rule); }
+.nsm-guide__num {
+  width: 22px; height: 22px;
+  border-radius: 50%;
+  background: var(--c-navy);
+  color: #fff;
+  font-family: var(--font-serif);
+  font-style: italic;
+  font-size: 13px;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  flex: 0 0 auto;
+  margin-top: 2px;
+}
+.nsm-guide__body { flex: 1; min-width: 0; }
+.nsm-guide__body strong { font-size: var(--t-body-sm); color: var(--c-ink); font-weight: 600; }
+.nsm-guide__body p { font-size: var(--t-meta); color: var(--c-ink-2); line-height: 1.7; margin-top: 2px; }
+
+/* field group (label + 範例 toggle + input/textarea) */
+.nsm-field { margin-bottom: var(--s-5); }
+.nsm-field__head {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  margin-bottom: var(--s-2);
+  gap: var(--s-3);
+}
+.nsm-field__label {
+  font-size: var(--t-meta);
+  color: var(--c-ink-2);
+  font-weight: 600;
+  letter-spacing: 0.02em;
+}
+.nsm-field__example-toggle {
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+  font-size: var(--t-cap);
+  color: var(--c-navy);
+  padding: 4px var(--s-2);
+  border-radius: var(--r-input);
+  transition: background var(--t-fast) var(--ease);
+}
+.nsm-field__example-toggle:hover { background: var(--c-navy-lt); }
+.nsm-field__example-toggle i { font-size: 12px; }
+.nsm-field__example {
+  display: none;
+  background: var(--c-navy-lt);
+  border-left: 2px solid var(--c-navy);
+  padding: var(--s-3);
+  margin-bottom: var(--s-2);
+  font-size: var(--t-meta);
+  color: var(--c-ink-2);
+  line-height: 1.7;
+  border-radius: 0 var(--r-input) var(--r-input) 0;
+}
+.nsm-field__example.is-open { display: block; }
+.nsm-field__example strong { color: var(--c-navy); font-weight: 600; }
+.nsm-input, .nsm-textarea {
+  width: 100%;
+  background: var(--c-card);
+  border: 1px solid var(--c-rule-bold);
+  border-radius: var(--r-input);
+  padding: 10px var(--s-3);
+  font-size: var(--t-body-sm);
+  color: var(--c-ink);
+  font-family: inherit;
+  line-height: 1.6;
+  transition: border-color var(--t-fast) var(--ease), box-shadow var(--t-fast) var(--ease);
+}
+.nsm-textarea { padding: var(--s-3); resize: vertical; min-height: 76px; }
+.nsm-input:focus, .nsm-textarea:focus { outline: none; border-color: var(--c-navy); box-shadow: 0 0 0 3px var(--c-navy-lt); }
+.nsm-input::placeholder, .nsm-textarea::placeholder { color: var(--c-ink-4); }
+
+/* rich-text toolbar (mock — 與 03 phase1 textarea 對齊) */
+.nsm-rt-field {
+  border: 1px solid var(--c-rule-bold);
+  border-radius: var(--r-input);
+  background: var(--c-card);
+  transition: border-color var(--t-fast) var(--ease), box-shadow var(--t-fast) var(--ease);
+  overflow: hidden;
+}
+.nsm-rt-field:focus-within { border-color: var(--c-navy); box-shadow: 0 0 0 3px var(--c-navy-lt); }
+.nsm-rt-toolbar {
+  display: flex;
+  gap: 2px;
+  padding: 4px var(--s-2);
+  border-bottom: 1px solid var(--c-rule);
+  background: var(--c-bg-soft);
+}
+.nsm-rt-tbtn {
+  width: 28px; height: 28px;
+  border-radius: 4px;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  color: var(--c-ink-2);
+  font-size: 12px;
+  transition: background var(--t-fast) var(--ease);
+}
+.nsm-rt-tbtn:hover { background: var(--c-bg-deep); color: var(--c-ink); }
+.nsm-rt-field textarea, .nsm-rt-field .nsm-rt-textarea {
+  width: 100%;
+  border: none;
+  background: transparent;
+  padding: var(--s-3);
+  font-size: var(--t-body-sm);
+  color: var(--c-ink);
+  font-family: inherit;
+  line-height: 1.7;
+  resize: vertical;
+  min-height: 88px;
+  outline: none;
+  display: block;
+}
+.nsm-rt-field [contenteditable] {
+  width: 100%;
+  min-height: 88px;
+  padding: var(--s-3);
+  font-size: var(--t-body-sm);
+  color: var(--c-ink);
+  font-family: inherit;
+  line-height: 1.7;
+  outline: none;
+}
+
+/* step3 NSM reminder banner (top of 拆解) */
+.nsm-step3-banner {
+  background: var(--c-navy-lt);
+  border: 1px solid rgba(27,45,92,0.18);
+  border-radius: var(--r-input);
+  padding: var(--s-3) var(--s-4);
+  margin-bottom: var(--s-4);
+  display: flex;
+  gap: var(--s-2);
+  align-items: flex-start;
+  font-size: var(--t-meta);
+  color: var(--c-navy-2);
+  line-height: 1.7;
+}
+.nsm-step3-banner i { color: var(--c-navy); font-size: 16px; flex: 0 0 auto; margin-top: 2px; }
+.nsm-step3-banner strong { color: var(--c-navy); font-weight: 600; margin-right: 4px; }
+
+/* step3 type intro (with type badge + 4-dim hint) */
+.nsm-step3-intro {
+  background: var(--c-bg-soft);
+  border: 1px solid var(--c-rule);
+  border-radius: var(--r-card);
+  padding: var(--s-4);
+  margin-bottom: var(--s-5);
+  display: flex;
+  flex-direction: column;
+  gap: var(--s-2);
+}
+.nsm-step3-intro__top {
+  display: flex;
+  align-items: center;
+  gap: var(--s-2);
+  flex-wrap: wrap;
+}
+.nsm-step3-intro__type {
+  padding: 2px var(--s-2);
+  border-radius: var(--r-pill);
+  font-size: var(--t-cap);
+  font-weight: 500;
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+}
+.nsm-step3-intro__type i { font-size: 12px; }
+.nsm-step3-intro__type--attention { background: var(--c-navy-lt); color: var(--c-navy); border: 1px solid rgba(27,45,92,0.22); }
+.nsm-step3-intro__type--transaction { background: rgba(19,122,61,0.10); color: var(--c-success); border: 1px solid rgba(19,122,61,0.22); }
+.nsm-step3-intro__type--creator { background: rgba(184,92,0,0.10); color: var(--c-warn); border: 1px solid rgba(184,92,0,0.22); }
+.nsm-step3-intro__type--saas { background: rgba(26,86,219,0.10); color: var(--c-primary); border: 1px solid rgba(26,86,219,0.22); }
+.nsm-step3-intro p {
+  font-size: var(--t-meta);
+  color: var(--c-ink-2);
+  line-height: 1.7;
+}
+.nsm-step3-intro strong { color: var(--c-ink); font-weight: 600; }
+
+/* 4-dim section card (動態 label) */
+.nsm-dim {
+  background: var(--c-card);
+  border: 1px solid var(--c-rule);
+  border-radius: var(--r-card);
+  margin-bottom: var(--s-3);
+  overflow: hidden;
+}
+.nsm-dim__head {
+  padding: var(--s-3) var(--s-4);
+  border-left: 4px solid var(--c-navy);
+  background: var(--c-surface);
+  border-bottom: 1px solid var(--c-rule);
+}
+.nsm-dim__label {
+  font-size: var(--t-body-sm);
+  color: var(--c-ink);
+  font-weight: 600;
+  letter-spacing: -0.005em;
+}
+.nsm-dim__desc {
+  font-size: var(--t-cap);
+  color: var(--c-ink-3);
+  margin-top: 2px;
+  line-height: 1.6;
+}
+.nsm-dim__body { padding: var(--s-4); }
+.nsm-dim__coach {
+  display: flex;
+  gap: var(--s-2);
+  padding: var(--s-3);
+  background: var(--c-bg-soft);
+  border-radius: var(--r-input);
+  margin-bottom: var(--s-3);
+  font-size: var(--t-meta);
+  color: var(--c-ink-2);
+  line-height: 1.6;
+}
+.nsm-dim__coach i { color: var(--c-navy); font-size: 14px; flex: 0 0 auto; margin-top: 2px; }
+.nsm-dim__hint-btn {
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+  padding: 6px var(--s-2);
+  font-size: var(--t-cap);
+  color: var(--c-navy);
+  border-radius: var(--r-input);
+  margin-bottom: var(--s-3);
+  transition: background var(--t-fast) var(--ease);
+}
+.nsm-dim__hint-btn:hover { background: var(--c-navy-lt); }
+.nsm-dim__hint-btn i { font-size: 12px; }
+.nsm-dim__hint {
+  display: none;
+  background: var(--c-navy-lt);
+  border-left: 2px solid var(--c-navy);
+  padding: var(--s-3);
+  margin-bottom: var(--s-3);
+  font-size: var(--t-meta);
+  color: var(--c-ink-2);
+  line-height: 1.7;
+  border-radius: 0 var(--r-input) var(--r-input) 0;
+}
+.nsm-dim__hint.is-open { display: block; }
+.nsm-dim__hint strong { color: var(--c-navy); }
+/* ───── NSM Step 2/3 END ───── */
