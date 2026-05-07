@@ -718,6 +718,8 @@
 
   var _saveDebounce = null;
   var _saveCycleT2 = null;
+  var EMPTY_HINT_VISIBLE_MS = 3500;
+  var emptyHintTimerId = null;
 
   // ensureCirclesDraftSession — lazy-create backend session row on first save.
   // idempotent: same user×question×mode active session is returned if already exists.
@@ -3119,7 +3121,8 @@
       console.warn('[gate] empty draft — skipping submit');
       AppState.circlesPhase1EmptyHint = true;
       render();
-      setTimeout(function () { AppState.circlesPhase1EmptyHint = false; render(); }, 3500);
+      clearTimeout(emptyHintTimerId);
+      emptyHintTimerId = setTimeout(function () { AppState.circlesPhase1EmptyHint = false; render(); }, EMPTY_HINT_VISIBLE_MS);
       return;
     }
     AppState.circlesPhase = 1.5;
