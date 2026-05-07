@@ -40,6 +40,7 @@ app.use('/api/nsm-context', require('./routes/nsm-context'));
 app.use('/api/nsm-sessions', require('./routes/nsm-sessions'));
 app.use('/api/circles-sessions', require('./routes/circles-sessions'));
 app.use('/api/circles-stats', requireAuth, require('./routes/circles-stats'));
+app.use('/api/guest-circles-stats', require('./routes/guest-circles-stats'));
 app.use('/api/guest-circles-sessions', require('./routes/guest-circles-sessions'));
 app.use('/api/circles-public', require('./routes/circles-public'));
 app.use('/api/guest/nsm-sessions', require('./routes/guest-nsm-sessions'));
