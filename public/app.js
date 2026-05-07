@@ -2549,6 +2549,18 @@
       }
 
       // ── C/I/R/C2 step: [data-phase1="textarea"] from circlesFrameworkDraft ──
+      // Canonical lookup uses Chinese keys from CIRCLES_STEP_CONFIG.fields[i].key.
+      // ENGLISH_ALIAS provides read-only compatibility for sessions saved before
+      // the Chinese-key migration (legacy data + older test fixtures).
+      // No positional Object.values() fallback — that caused Bug B mapping drift.
+      var ENGLISH_ALIAS = {
+        '問題範圍': 'boundaryScope', '時間範圍': 'timeWindow',
+        '業務影響': 'businessImpact', '假設確認': 'assumption',
+        '目標用戶分群': 'targetSegment', '選定焦點對象': 'focusGroup',
+        '用戶動機假設(JTBD)': 'jtbd', '排除對象': 'excluded',
+        '功能性': 'functional', '情感性': 'emotional', '社交性': 'social', '核心痛點': 'corePain',
+        '取捨標準': 'criteria', '最優先': 'priority', '暫緩': 'defer', '排序理由': 'rationale',
+      };
       var stepKey = AppState.circlesMode === 'drill'
         ? (AppState.circlesDrillStep || 'C1')
         : (['C1', 'I', 'R', 'C2', 'L', 'E', 'S'][AppState.circlesSimStep || 0] || 'C1');
@@ -2557,16 +2569,22 @@
         var cfg = CIRCLES_STEP_CONFIG[stepKey];
         if (cfg && cfg.fields) {
           var textareas = document.querySelectorAll('[data-phase1="textarea"]');
-          var draftValues = Object.values(draftForStep);
           textareas.forEach(function (ta, idx) {
             if (ta.innerHTML && ta.innerHTML.trim()) return;
             var fieldIdx = parseInt(ta.dataset.fieldIdx, 10);
             if (isNaN(fieldIdx)) fieldIdx = idx;
             var fieldKey = cfg.fields[fieldIdx] && cfg.fields[fieldIdx].key;
-            var value = (fieldKey && draftForStep[fieldKey]) || draftValues[fieldIdx] || '';
+            if (!fieldKey) return;
+            // canonical Chinese-key lookup
+            var value = draftForStep[fieldKey];
+            // legacy English-alias fallback (read-only; does not affect saves)
+            if (value == null || value === '') {
+              var alias = ENGLISH_ALIAS[fieldKey];
+              if (alias) value = draftForStep[alias];
+            }
             if (value) {
               ta.innerHTML = value;
-              syncCharCounter(ta); // R2: update char-counter after restore
+              syncCharCounter(ta);
             }
           });
         }
