@@ -25,6 +25,8 @@
     circlesFrameworkDraft: {},
     circlesConversation: [],
     circlesGateResult: null,
+    circlesGateLoading: false,
+    circlesGateError: null,
     circlesScoreResult: null,
     circlesStepScores: {},
     circlesEvaluating: false,
@@ -182,6 +184,9 @@
           + '<div class="loading-spinner"></div>'
           + '<div class="loading-title">載入練習中…</div>'
           + '</div>';
+      }
+      if (AppState.circlesPhase === 1.5) {
+        return renderCirclesGate();
       }
       if (AppState.circlesPhase === 1 && AppState.circlesSelectedQuestion) {
         return renderCirclesPhase1();
@@ -1607,6 +1612,141 @@
     );
   }
 
+  // ── renderCirclesGate (Plan B SB10 — mockup 04 Phase 1.5 Gate) ──────────────
+  function renderCirclesGate() {
+    var q = AppState.circlesSelectedQuestion || {};
+    var stepKey = AppState.circlesMode === 'drill'
+      ? (AppState.circlesDrillStep || 'C1')
+      : (['C1','I','R','C2','L','E','S'][AppState.circlesSimStep || 0] || 'C1');
+    var stepCfg = CIRCLES_STEP_CONFIG[stepKey] || CIRCLES_STEP_CONFIG.C1;
+    // chrome (navbar rendered externally by render(); only progress + phase-head + qchip here)
+    var progressHtml = renderProgressBar(stepKey);
+    var phaseHeadHtml = '<div class="phase-head">'
+      + '<span class="phase-head__num">1.5</span>'
+      + '<div class="phase-head__main">'
+      +   '<div class="phase-head__eyebrow">Phase 1.5 · 框架審核</div>'
+      +   '<div class="phase-head__title">' + escHtml(stepCfg.title) + '</div>'
+      + '</div></div>';
+    var qTitle = (q && q.problem_statement) ? q.problem_statement : '';
+    var qCompany = (q && q.company) ? escHtml(q.company) : '';
+    var qProduct = (q && q.product) ? escHtml(q.product) : '';
+    var qCompanyLine = qProduct ? (qCompany + ' · ' + qProduct) : qCompany;
+    var chipExpanded = AppState.circlesChipExpanded === true;
+    var qchipClass = 'qchip' + (chipExpanded ? ' is-expanded' : '');
+    var caretIcon = chipExpanded ? 'ph-caret-up' : 'ph-caret-down';
+    var qchipHtml = '<div class="' + qchipClass + '" data-phase1="qchip-toggle">'
+      + '<span class="qchip__icon"><i class="ph ph-info"></i></span>'
+      + '<div class="qchip__main">'
+      +   '<div class="qchip__company">' + qCompanyLine + '</div>'
+      +   '<div class="qchip__title">' + escHtml(qTitle) + '</div>'
+      + '</div>'
+      + '<i class="ph ' + caretIcon + ' qchip__caret"></i>'
+      + '</div>'
+      + (chipExpanded ? renderQchipExpand(q) : '');
+    // body
+    var bodyHtml;
+    if (AppState.circlesGateError) {
+      bodyHtml = renderGateError(AppState.circlesGateError);
+    } else if (AppState.circlesGateLoading) {
+      bodyHtml = renderGateLoading(stepCfg);
+    } else if (AppState.circlesGateResult) {
+      bodyHtml = renderGateResult(AppState.circlesGateResult, stepCfg);
+    } else {
+      bodyHtml = renderGateLoading(stepCfg); // fallback if 1.5 entered without state
+    }
+    // sticky submit-bar only on error overall_status
+    var stickyBar = '';
+    var st = AppState.circlesGateResult && AppState.circlesGateResult.overallStatus;
+    if (st === 'error') {
+      stickyBar = '<div class="submit-bar">'
+        + '<div class="submit-bar__left"></div>'
+        + '<div class="submit-bar__right">'
+        +   '<button class="btn btn--primary" data-gate-action="back"><i class="ph ph-arrow-left"></i>返回修改</button>'
+        + '</div></div>';
+    }
+    return '<div data-view="circles" data-circles-phase="1.5">'
+      + progressHtml + phaseHeadHtml + qchipHtml + bodyHtml + stickyBar
+      + '</div>';
+  }
+
+  function renderGateResult(result, stepCfg) {
+    var status = result.overallStatus;
+    var transitionTitle = status === 'ok'    ? '框架完整'
+                        : status === 'warn'  ? '框架可通過'
+                        :                       '方向需修正';
+    var transitionSub = status === 'ok'   ? '所有欄位都對齊到 ' + escHtml(stepCfg.stepLetter) + ' 步核心定義'
+                      : status === 'warn' ? '可繼續但有 ' + countByStatus(result.items, 'warn') + ' 個建議優化點'
+                      :                     '有 ' + countByStatus(result.items, 'error') + ' 個方向性問題需修正';
+    var iconCls = status === 'ok'   ? 'ph-check-circle'
+                : status === 'warn' ? 'ph-warning'
+                :                     'ph-x-circle';
+    var actionHtml = (status === 'ok' || status === 'warn')
+      ? '<button class="gate-transition__action" data-gate-action="proceed">繼續 <i class="ph ph-arrow-right"></i></button>'
+      : '';
+    var okCount = countByStatus(result.items, 'ok');
+    var totalCount = result.items.length;
+    var itemsHtml = (result.items || []).map(renderGateItem).join('');
+    return '<div class="gate-content"><div class="gate-wrap">'
+      + '<div class="gate-transition gate-transition--' + status + '">'
+      +   '<i class="ph-fill ' + iconCls + ' gate-transition__icon"></i>'
+      +   '<div class="gate-transition__main">'
+      +     '<div class="gate-transition__title">' + escHtml(transitionTitle) + '</div>'
+      +     '<div class="gate-transition__sub">' + escHtml(transitionSub) + '</div>'
+      +   '</div>'
+      +   actionHtml
+      + '</div>'
+      + '<div class="gate-section-label">逐欄位回饋 <span class="gate-section-label__count">' + okCount + ' / ' + totalCount + ' 通過</span></div>'
+      + '<div class="gate-list">' + itemsHtml + '</div>'
+      + '</div></div>';
+  }
+
+  function renderGateItem(item) {
+    var iconName = item.status === 'ok' ? 'ph-check-circle'
+                 : item.status === 'warn' ? 'ph-warning'
+                 :                          'ph-x-circle';
+    var suggestionHtml = item.suggestion
+      ? '<div class="gate-item__suggestion"><strong>修正方向：</strong>' + escHtml(item.suggestion) + '</div>'
+      : '';
+    return '<div class="gate-item gate-item--' + item.status + '">'
+      + '<i class="ph-fill ' + iconName + ' gate-item__icon"></i>'
+      + '<div class="gate-item__main">'
+      +   '<div class="gate-item__field">' + escHtml(item.field) + '</div>'
+      +   '<div class="gate-item__title">' + escHtml(item.title) + '</div>'
+      +   '<div class="gate-item__reason">' + escHtml(item.reason) + '</div>'
+      +   suggestionHtml
+      + '</div></div>';
+  }
+
+  function renderGateLoading(stepCfg) {
+    return '<div class="gate-content"><div class="gate-loading">'
+      + '<div class="gate-loading__spinner"></div>'
+      + '<div class="gate-loading__title">正在審核框架</div>'
+      + '<div class="gate-loading__sub">教練閱讀你的回答中…</div>'
+      + '<ul class="gate-loading__checklist">'
+      +   '<li class="is-done"><i class="ph ph-check"></i>解析欄位內容</li>'
+      +   '<li class="is-active"><i class="ph ph-circle-notch"></i>對照 ' + escHtml(stepCfg.stepLetter) + ' 步重點</li>'
+      +   '<li><i class="ph ph-circle"></i>檢查方向性</li>'
+      +   '<li><i class="ph ph-circle"></i>整理回饋</li>'
+      + '</ul></div></div>';
+  }
+
+  function renderGateError(msg) {
+    return '<div class="gate-content"><div class="error-wrap">'
+      + '<i class="ph ph-cloud-warning error-wrap__icon"></i>'
+      + '<div class="error-wrap__title">框架審核失敗</div>'
+      + '<div class="error-wrap__sub">' + escHtml(msg) + '</div>'
+      + '<div class="error-wrap__code">GATE_API_ERROR</div>'
+      + '<div class="error-wrap__actions">'
+      +   '<button class="btn btn--primary" data-gate-action="retry">重新審核</button>'
+      +   '<button class="btn btn--ghost" data-gate-action="back">返回修改</button>'
+      + '</div></div></div>';
+  }
+
+  function countByStatus(items, st) { return (items || []).filter(function (i) { return i.status === st; }).length; }
+
+  // expose for tests
+  window.renderCirclesGate = renderCirclesGate;
+
   function renderCirclesPhase1() {
     // mockup 03 Section A line 794-1216 — sim mobile / sim tablet / drill desktop
     var q = AppState.circlesSelectedQuestion;
@@ -2526,6 +2666,9 @@
         && AppState.circlesSelectedQuestion) {
       bindCirclesPhase1();
     }
+    if (AppState.view === 'circles' && AppState.circlesPhase === 1.5) {
+      bindCirclesGate();
+    }
   }
 
   // ── bindCirclesPhase1 (Plan B SB3 — mockup 03 Section A interactions) ────
@@ -2789,21 +2932,19 @@
       submitBtn.addEventListener('click', function () {
         var mode = AppState.circlesMode || 'simulation';
         if (mode === 'drill') {
-          // drill: single step done → go to Phase 1.5 Gate (stub for now)
-          // SB4 will implement Gate; for now stub phase transition
-          AppState.circlesPhase = 1.5;
-          render();
+          // drill: single step done → go to Phase 1.5 Gate
+          submitFrameworkToGate();
         } else {
           // sim: advance to next step (if at last sim step, go Phase 1.5)
           var stepOrder = ['C1', 'I', 'R', 'C2', 'L', 'E', 'S'];
           var nextIdx = (AppState.circlesSimStep || 0) + 1;
           if (nextIdx >= stepOrder.length) {
             // all 7 steps done in Phase 1 — go to Phase 1.5
-            AppState.circlesPhase = 1.5;
+            submitFrameworkToGate();
           } else {
             AppState.circlesSimStep = nextIdx;
+            render();
           }
-          render();
         }
       });
     }
@@ -2927,6 +3068,81 @@
       });
     });
   }
+
+  // ── bindCirclesGate (Plan B SB10 — mockup 04 gate actions) ──────────────
+  function bindCirclesGate() {
+    document.querySelectorAll('[data-gate-action]').forEach(function (el) {
+      el.addEventListener('click', function () {
+        var act = el.dataset.gateAction;
+        if (act === 'proceed') {
+          AppState.circlesPhase = 2;
+          clearGateState();
+          render();
+        } else if (act === 'back') {
+          AppState.circlesPhase = 1;
+          clearGateState();
+          render();
+        } else if (act === 'retry') {
+          submitFrameworkToGate();
+        }
+      });
+    });
+  }
+  function clearGateState() {
+    AppState.circlesGateResult = null;
+    AppState.circlesGateLoading = false;
+    AppState.circlesGateError = null;
+  }
+
+  async function submitFrameworkToGate() {
+    var stepKey = AppState.circlesMode === 'drill'
+      ? (AppState.circlesDrillStep || 'C1')
+      : (['C1','I','R','C2','L','E','S'][AppState.circlesSimStep || 0] || 'C1');
+    var draft = (AppState.circlesFrameworkDraft && AppState.circlesFrameworkDraft[stepKey]) || {};
+    var hasContent = Object.values(draft).some(function (v) { return v && String(v).trim(); });
+    if (!hasContent) {
+      console.warn('[gate] empty draft — skipping submit');
+      return;
+    }
+    AppState.circlesPhase = 1.5;
+    AppState.circlesGateLoading = true;
+    AppState.circlesGateResult = null;
+    AppState.circlesGateError = null;
+    render();
+    try {
+      await ensureCirclesDraftSession();
+    } catch (_) {}
+    var sid = AppState.circlesSession && AppState.circlesSession.id;
+    if (!sid) {
+      AppState.circlesGateError = '無法建立 session，請重試';
+      AppState.circlesGateLoading = false;
+      render();
+      return;
+    }
+    var path = (AppState.accessToken ? '/api/circles-sessions/' : '/api/guest-circles-sessions/') + sid + '/gate';
+    try {
+      var res = await window.apiFetch(path, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ step: stepKey, frameworkDraft: draft }),
+      });
+      if (res.status === 401) return; // multi-tab+401 banner handles it
+      if (!res.ok) {
+        AppState.circlesGateError = 'Server returned ' + res.status;
+        AppState.circlesGateLoading = false;
+        render();
+        return;
+      }
+      AppState.circlesGateResult = await res.json();
+      AppState.circlesGateLoading = false;
+      render();
+    } catch (e) {
+      AppState.circlesGateError = (e && e.message) || '網路錯誤';
+      AppState.circlesGateLoading = false;
+      render();
+    }
+  }
+  window.submitFrameworkToGate = submitFrameworkToGate;
 
   // ── Offcanvas History (Plan D SB1 — mockup 09) ───────────────────────────
 
