@@ -38,6 +38,7 @@ async function setupGateMode(page, mode, gateResult) {
   await page.goto('/');
   await page.waitForSelector('.qcard');
   await page.evaluate(({ mode, gateResult }) => {
+    window.AppState.view = 'circles';
     window.AppState.circlesMode = mode;
     window.AppState.circlesDrillStep = 'C1';
     window.AppState.circlesSelectedQuestion = { id: 'q1', company: 'Spotify', product: 'Spotify Podcast' };
@@ -92,6 +93,7 @@ test.describe('Phase 1.5 Gate (mockup 04)', () => {
     await page.goto('/');
     await page.waitForSelector('.qcard');
     await page.evaluate(() => {
+      window.AppState.view = 'circles';
       window.AppState.circlesMode = 'drill';
       window.AppState.circlesDrillStep = 'C1';
       window.AppState.circlesSelectedQuestion = { id: 'q1', company: 'X', product: 'Y' };
@@ -99,8 +101,8 @@ test.describe('Phase 1.5 Gate (mockup 04)', () => {
       window.AppState.circlesGateLoading = true;
       window.render();
     });
-    await expect(page.locator('.gate-loading__spinner')).toBeVisible();
-    expect(await page.locator('.gate-loading__checklist li').count()).toBe(4);
+    await expect(page.locator('.gate-spinner')).toBeVisible();
+    expect(await page.locator('.gate-loading-checklist li').count()).toBe(4);
   });
 
   test('OK 繼續 click → circlesPhase = 2', async ({ page }) => {
@@ -129,11 +131,12 @@ test.describe('Phase 1.5 Gate (mockup 04)', () => {
     await page.goto('/');
     await page.waitForSelector('.qcard');
     await page.evaluate(() => {
+      window.AppState.view = 'circles';
       window.AppState.circlesMode = 'drill';
       window.AppState.circlesDrillStep = 'C1';
       window.AppState.circlesSelectedQuestion = { id: 'q1', company: 'X', product: 'Y' };
       window.AppState.circlesPhase = 1.5;
-      window.AppState.circlesGateError = 'Server returned 500';
+      window.AppState.circlesGateError = '伺服器回應 500';
       window.AppState.circlesGateLoading = false;
       window.render();
     });
@@ -149,6 +152,7 @@ test.describe('Phase 1.5 Gate (mockup 04)', () => {
     await page.goto('/');
     await page.waitForSelector('.qcard');
     await page.evaluate(({ ok }) => {
+      window.AppState.view = 'circles';
       window.AppState.circlesMode = 'drill';
       window.AppState.circlesDrillStep = 'I';
       window.AppState.circlesSelectedQuestion = { id: 'q1', company: 'X', product: 'Y' };
@@ -170,6 +174,7 @@ test.describe('Phase 1.5 Gate (mockup 04)', () => {
     await page.goto('/');
     await page.waitForSelector('.qcard');
     await page.evaluate(() => {
+      window.AppState.view = 'circles';
       window.AppState.circlesMode = 'drill';
       window.AppState.circlesDrillStep = 'C1';
       window.AppState.circlesSelectedQuestion = { id: 'q1', company: 'X', product: 'Y' };
@@ -206,6 +211,7 @@ test.describe('Phase 1.5 Gate (mockup 04)', () => {
     await page.goto('/');
     await page.waitForSelector('.qcard');
     await page.evaluate(() => {
+      window.AppState.view = 'circles';
       window.AppState.circlesMode = 'drill';
       window.AppState.circlesDrillStep = 'C1';
       window.AppState.circlesSelectedQuestion = { id: 'q1', company: 'X', product: 'Y' };
@@ -232,6 +238,7 @@ test.describe('Phase 1.5 Gate (mockup 04)', () => {
     await page.goto('/');
     await page.waitForSelector('.qcard');
     await page.evaluate(() => {
+      window.AppState.view = 'circles';
       window.AppState.circlesMode = 'drill';
       window.AppState.circlesDrillStep = 'C1';
       window.AppState.circlesSelectedQuestion = { id: 'q1', company: 'X', product: 'Y' };
@@ -254,6 +261,7 @@ test.describe('Phase 1.5 Gate (mockup 04)', () => {
     await page.goto('/');
     await page.waitForSelector('.qcard');
     await page.evaluate(() => {
+      window.AppState.view = 'circles';
       window.AppState.circlesMode = 'drill';
       window.AppState.circlesDrillStep = 'C1';
       window.AppState.circlesSelectedQuestion = { id: 'q1', company: 'X', product: 'Y' };

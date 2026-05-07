@@ -1733,15 +1733,15 @@
   }
 
   function renderGateLoading(stepCfg) {
-    return '<div class="gate-content"><div class="gate-loading">'
-      + '<div class="gate-loading__spinner"></div>'
-      + '<div class="gate-loading__title">正在審核框架</div>'
-      + '<div class="gate-loading__sub">教練閱讀你的回答中…</div>'
-      + '<ul class="gate-loading__checklist">'
-      +   '<li class="is-done"><i class="ph ph-check"></i>解析欄位內容</li>'
-      +   '<li class="is-active"><i class="ph ph-circle-notch"></i>對照 ' + escHtml(stepCfg.stepLetter) + ' 步重點</li>'
-      +   '<li><i class="ph ph-circle"></i>檢查方向性</li>'
-      +   '<li><i class="ph ph-circle"></i>整理回饋</li>'
+    return '<div class="gate-content"><div class="gate-loading-wrap">'
+      + '<div class="gate-spinner"></div>'
+      + '<div class="gate-loading-title">正在審核框架</div>'
+      + '<div class="gate-loading-sub">教練閱讀你的回答中…</div>'
+      + '<ul class="gate-loading-checklist">'
+      +   '<li class="gate-loading-step is-done"><span class="gate-loading-step__icon"><i class="ph ph-check"></i></span>解析欄位內容</li>'
+      +   '<li class="gate-loading-step is-active"><span class="gate-loading-step__icon"><i class="ph ph-circle-notch"></i></span>對照 ' + escHtml(stepCfg.stepLetter) + ' 步重點</li>'
+      +   '<li class="gate-loading-step is-pending"><span class="gate-loading-step__icon"><i class="ph ph-circle"></i></span>檢查方向性</li>'
+      +   '<li class="gate-loading-step is-pending"><span class="gate-loading-step__icon"><i class="ph ph-circle"></i></span>整理回饋</li>'
       + '</ul></div></div>';
   }
 
