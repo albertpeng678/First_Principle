@@ -1098,3 +1098,136 @@ div.rt-textarea[contenteditable="true"] ul li { list-style: disc; }
 .modal__body p + p { margin-top: var(--s-3); }
 .modal__foot { padding: var(--s-3) var(--s-5) var(--s-4); display: flex; justify-content: flex-end; gap: var(--s-2); border-top: 1px solid var(--c-rule); }
 /* ───── hint modal END ───── */
+
+/* ───── Plan D SB2 — Onboarding (mockup 10) ───── */
+/* Welcome card — inline above mode-section on CIRCLES home */
+.onb-welcome {
+  background: var(--c-card);
+  border: 1px solid var(--c-rule);
+  border-radius: var(--r-card);
+  padding: var(--s-5);
+  margin-bottom: var(--s-4);
+  box-shadow: var(--shadow-2);
+}
+.onb-welcome__icon {
+  width: 44px; height: 44px;
+  border-radius: var(--r-input);
+  background: var(--c-navy);
+  color: #fff;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 22px;
+  margin-bottom: var(--s-3);
+}
+.onb-welcome__title {
+  font-size: var(--t-h2);
+  font-weight: 600;
+  color: var(--c-ink);
+  letter-spacing: -0.01em;
+  margin-bottom: var(--s-2);
+}
+.onb-welcome__body {
+  font-size: var(--t-body-sm);
+  color: var(--c-ink-2);
+  line-height: 1.7;
+  margin-bottom: var(--s-4);
+  max-width: 540px;
+}
+.onb-welcome__actions { display: flex; gap: var(--s-2); flex-wrap: wrap; }
+.onb-welcome__actions .btn { min-height: 40px; padding: 0 var(--s-4); }
+
+/* Spotlight ring — applied directly on target element via .onb-targeted class.
+   Dual ring: 2px white inner halo + 6px navy outer + 9999px outer page-dim.
+   Mobile uses same pattern as desktop (per user override 2026-05-03):
+   full-page dim + floating tooltip near target, no sticky-bottom. */
+.onb-targeted {
+  position: relative;
+  z-index: 5;
+  box-shadow:
+    0 0 0 2px #fff,
+    0 0 0 6px var(--c-navy),
+    0 0 0 9999px rgba(20,15,10,0.45);
+  border-radius: var(--r-input);
+}
+
+/* Overlay wrapper — positions tooltip absolutely over page */
+.onb-overlay {
+  position: fixed;
+  inset: 0;
+  z-index: 55;
+  pointer-events: none;
+}
+.onb-overlay > * { pointer-events: auto; }
+
+/* Tooltip card — dark bg, white text, absolute positioned near target */
+.onb-tooltip {
+  position: fixed;
+  background: var(--c-ink);
+  color: #fff;
+  padding: var(--s-3) var(--s-4);
+  border-radius: var(--r-input);
+  width: 300px;
+  box-shadow: var(--shadow-tooltip);
+  z-index: 60;
+  /* Default position: upper-right area, override via inline style per step */
+  top: 120px;
+  right: 24px;
+}
+.onb-tooltip__step {
+  font-size: 10.5px;
+  letter-spacing: 0.5px;
+  text-transform: uppercase;
+  color: rgba(255,255,255,0.55);
+  font-weight: 600;
+  margin-bottom: 4px;
+}
+.onb-tooltip__title {
+  font-size: var(--t-body);
+  font-weight: 600;
+  margin-bottom: var(--s-1);
+  letter-spacing: -0.005em;
+}
+.onb-tooltip__body {
+  font-size: var(--t-meta);
+  color: rgba(255,255,255,0.78);
+  line-height: 1.7;
+  margin-bottom: var(--s-3);
+}
+.onb-tooltip__actions {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  gap: var(--s-2);
+}
+.onb-tooltip__skip {
+  color: rgba(255,255,255,0.55);
+  font-size: var(--t-meta);
+  cursor: pointer;
+}
+.onb-tooltip__skip:hover { color: rgba(255,255,255,0.85); }
+.onb-tooltip__next {
+  background: #fff;
+  color: var(--c-ink);
+  padding: 6px var(--s-3);
+  border-radius: var(--r-input);
+  font-size: var(--t-meta);
+  font-weight: 500;
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+  cursor: pointer;
+}
+.onb-tooltip__next:hover { background: rgba(255,255,255,0.92); }
+
+/* Tooltip arrow (triangle pointing toward target) */
+.onb-tooltip__arrow {
+  position: absolute;
+  width: 0; height: 0;
+  border: 7px solid transparent;
+}
+.onb-tooltip__arrow--left   { left: -14px; top: 24px; border-right-color: var(--c-ink); }
+.onb-tooltip__arrow--right  { right: -14px; top: 24px; border-left-color: var(--c-ink); }
+.onb-tooltip__arrow--top    { top: -14px; left: 24px; border-bottom-color: var(--c-ink); }
+.onb-tooltip__arrow--bottom { bottom: -14px; left: 24px; border-top-color: var(--c-ink); }
+/* ───── Onboarding END ───── */
