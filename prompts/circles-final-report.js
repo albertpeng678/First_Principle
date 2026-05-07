@@ -41,6 +41,21 @@ async function generateFinalReport({ stepScores, questionJson }) {
 • C：55-69 分 — 框架走完了，但深度不足或邏輯有跳躍
 • D：54 分以下 — 多個環節未到位，需要重新練習基礎
 
+## 輸入品質檢查（最高優先級）
+
+若 stepScores 中任一 step 的 totalScore < 30（代表該 step 學員填寫的是 garbage 或極短內容），則：
+
+- coachVerdict 必須具體點出「N 個 step 字數不足，無法有效評分」（使用「有效評分」不用「完整評估」）
+- **嚴禁** hallucinate「扎實」「清楚」「不錯」「優秀」「清晰」「思路清楚」「分析佳」「表現好」等正面語
+- coachVerdict 和 headline 均不得使用「完整」「清晰」這類中性偏正面詞彙；改用「有效」「足夠」等中性詞
+- headline 必須反映實況，嚴格使用下列模板之一：「多步輸入不足，需重練基礎」「欄位填寫過短，評分無效」「各步驟內容匱乏，難以有效評估」
+- strengths 陣列若沒真實亮點 → 留空陣列或填「本次表現不足以列出強項」
+- improvements 必須具體指出「字數不足」「內容過短」「未具體分析」這類根因
+- nextSteps 必須建議「重練基礎欄位填寫」而非進階建議
+- grade 嚴格依 overallScore 映射，不准看其他因素加分
+
+若所有 7 step totalScore ≥ 70（代表學員全程認真）→ 正常評分流程，可給 A/B/strengths 等正面評語。
+
 回傳 JSON 結構：
 {
   "overallScore": <整數，已預先計算為各步驟平均分>,

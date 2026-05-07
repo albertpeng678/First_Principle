@@ -138,3 +138,31 @@ GREEN: 10 / 10 PASS
 [borderline-ok] totalScore=90 dims=[{"name":"問題邊界清晰度","score":5},{"name":"時間範圍合理性","score":5},{"name":"業務影響連結","score":4},{"name":"假設排除完整性","score":4}]
 10 passed (36.2s)
 ```
+
+---
+
+## circles-final-report Phase 4 (Plan Task 5)
+
+> 2 scenarios: all-garbage 7-step (each step totalScore=20) → expect grade D + overallScore < 40 + no hallucinated praise.
+> strong 7-step (each step totalScore=80) → expect grade A/B + overallScore ≥ 70.
+
+| Scenario | Expected | Actual overallScore | Actual grade | coachVerdict has praise? | Pass? |
+|---|---|---|---|---|---|
+| all-garbage | grade=D, score<40, no praise in verdict | 20 | D | No | Y |
+| strong | grade=A or B, score≥70 | 80 | B | (n/a) | Y |
+
+GREEN: 2 / 2 PASS
+
+### Notes on regex design
+
+The original task spec regex `/完整/` creates false positives in Chinese because "完整" appears in negative contexts ("無法完整評估", "步驟不完整"). The spec regex was refined to exclude "完整" (high ambiguity) and focus on unambiguous praise words: `扎實|不錯|優秀|(?<!不)清楚|(?<!不)清晰|思路.{0,5}清晰|分析.{0,5}佳|論述.{0,5}強|表現.{0,5}好`.
+
+The prompt was also strengthened to steer the LLM away from "完整" in the garbage path — using "有效評分" instead of "完整評估", and providing template headlines like "多步輸入不足，需重練基礎".
+
+### Raw log excerpt
+
+```
+[garbage-final] overallScore= 20 grade= D headline= 多步輸入不足，需重練基礎 coachVerdict= 本次表現無法有效評分，因多個步驟內容嚴重不足。建議學員重練基礎，確保每步驟內容充實，為後續分析奠定基礎。期待下次能看到更具體的分析與建議。
+[strong-final] overallScore= 80 grade= B headline= 思路清晰，競品分析待加強
+2 passed (10.6s)
+```
