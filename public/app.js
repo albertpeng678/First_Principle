@@ -75,6 +75,9 @@
     nsmContext: null,
     nsmContextLoading: false,
     nsmGateResult: null,
+    nsmGateError: null,
+    nsmEvalResult: null,
+    nsmEvalError: null,
     nsmActiveCompareNode: null,
     nsmDisplayedQuestions: [],
     nsmSearchText: '',
@@ -397,6 +400,101 @@
         AppState.nsmStep = 2;
         AppState.nsmSubTab = 'nsm-step2';
         render();
+      });
+    }
+
+    // ── [data-nsm-submit] — Step 2 gate + Step 3 evaluate ──────────────────
+    var nsmSubmitBtn = document.querySelector('[data-nsm-submit]');
+    if (nsmSubmitBtn) {
+      nsmSubmitBtn.addEventListener('click', async function () {
+        if (nsmSubmitBtn.disabled) return;
+        var subTab = AppState.nsmSubTab || 'nsm-step2';
+
+        // Helper: lazy-create NSM session if needed
+        async function ensureNsmSession() {
+          if (AppState.nsmSession && AppState.nsmSession.id) return AppState.nsmSession.id;
+          var q = AppState.nsmSelectedQuestion || {};
+          var basePath = AppState.accessToken ? '/api/nsm-sessions' : '/api/guest/nsm-sessions';
+          var res = await window.apiFetch(basePath, {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({ questionId: q.id, questionJson: q }),
+          });
+          if (!res.ok) throw new Error('session_create_failed');
+          var data = await res.json();
+          var sessionId = data.sessionId || data.id;
+          AppState.nsmSession = { id: sessionId };
+          return sessionId;
+        }
+
+        if (subTab === 'nsm-step2') {
+          // Step 2 → Gate
+          nsmSubmitBtn.disabled = true;
+          nsmSubmitBtn.innerHTML = '<i class="ph ph-circle-notch"></i>審核中…';
+          AppState.nsmGateError = null;
+          try {
+            var sessionId = await ensureNsmSession();
+            var def = AppState.nsmDefinition || {};
+            var rationale = [def.explanation || '', def.businessLink || ''].filter(Boolean).join('\n\n');
+            var basePath = AppState.accessToken ? '/api/nsm-sessions/' : '/api/guest/nsm-sessions/';
+            var res = await window.apiFetch(basePath + sessionId + '/gate', {
+              method: 'POST',
+              headers: { 'Content-Type': 'application/json' },
+              body: JSON.stringify({ nsm: def.nsm || '', rationale: rationale }),
+            });
+            if (!res.ok) {
+              var err = await res.json().catch(function () { return {}; });
+              AppState.nsmGateError = err.error || 'gate_error';
+              render();
+              return;
+            }
+            var result = await res.json();
+            AppState.nsmGateResult = result;
+            if (result.overall_status === 'error') {
+              // keep on Step 2, gate result inline (mockup 08 rendering)
+              render();
+            } else {
+              // ok or warn → advance to Step 3
+              AppState.nsmSubTab = 'nsm-step3';
+              AppState.nsmStep = 3;
+              render();
+            }
+          } catch (e) {
+            AppState.nsmGateError = e.message || 'gate_error';
+            render();
+          }
+        } else if (subTab === 'nsm-step3') {
+          // Step 3 → Evaluate
+          nsmSubmitBtn.disabled = true;
+          nsmSubmitBtn.innerHTML = '<i class="ph ph-circle-notch"></i>評分中…';
+          AppState.nsmEvalError = null;
+          try {
+            var sessionId = await ensureNsmSession();
+            var basePath = AppState.accessToken ? '/api/nsm-sessions/' : '/api/guest/nsm-sessions/';
+            var res = await window.apiFetch(basePath + sessionId + '/evaluate', {
+              method: 'POST',
+              headers: { 'Content-Type': 'application/json' },
+              body: JSON.stringify({
+                userNsm: (AppState.nsmDefinition || {}).nsm || '',
+                userBreakdown: AppState.nsmBreakdown || {},
+              }),
+            });
+            if (!res.ok) {
+              var err = await res.json().catch(function () { return {}; });
+              AppState.nsmEvalError = err.error || 'eval_error';
+              render();
+              return;
+            }
+            var result = await res.json();
+            AppState.nsmEvalResult = result;
+            // Step 4 rendering deferred to bundle 14
+            console.info('NSM eval done', result);
+            render();
+          } catch (e) {
+            AppState.nsmEvalError = e.message || 'eval_error';
+            render();
+          }
+        }
       });
     }
   }
