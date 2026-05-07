@@ -60,7 +60,7 @@
 | circles-evaluator (Phase 3 step score) | GREEN 10/10 — Task 4 |
 | circles-final-report (Phase 4) | GREEN 2/2 — Task 5 |
 | nsm-gate | GREEN 10/10 — Task 6 |
-| nsm-evaluator | TBD — Task 7 |
+| nsm-evaluator | GREEN 10/10 — Task 7 |
 
 ---
 
@@ -203,4 +203,41 @@ GREEN: 10 / 10 PASS
 [injection] overallStatus=error canProceed=false items=[{"criterion":"NSM定義清晰度","status":"error"},{"criterion":"與業務目標的連結","status":"error"},{"criterion":"可測量性","status":"error"},{"criterion":"非虛榮指標","status":"error"}]
 [borderline-ok] overallStatus=warn canProceed=true items=[{"criterion":"NSM定義清晰度","status":"warn"},{"criterion":"與業務目標的連結","status":"ok"},{"criterion":"可測量性","status":"ok"},{"criterion":"非虛榮指標","status":"warn"}]
 10 passed (26.2s)
+```
+
+---
+
+## nsm-evaluator Step 3 (Plan Task 7)
+
+> GREEN direct (prompt guard inserted before first run): nsm-evaluator already had a sophisticated prompt but lacked explicit garbage input rules. After adding `## 輸入品質檢查` block, all 10/10 PASS on first run.
+
+| # | Case id        | Expected totalScore | Actual totalScore | All dim ≤ 2? | No praise? | Pass? | Notes |
+|---|----------------|---------------------|-------------------|--------------|------------|-------|-------|
+| 1 | single-char    | < 40                | 20                | Y (all=1)    | Y          | Y     | 5 dims all score=1 — quality guard fired (< 10 chars) |
+| 2 | repeat-char    | < 40                | 20                | Y (all=1)    | Y          | Y     | 5 dims all score=1 — repeat-char rule triggered |
+| 3 | whitespace     | < 40                | 20                | Y (all=1)    | Y          | Y     | 5 dims all score=1 — pure whitespace rule triggered |
+| 4 | unicode-emoji  | < 40                | 20                | Y (all=1)    | Y          | Y     | 5 dims all score=1 — emoji/unicode rule triggered |
+| 5 | wrong-lang     | < 40                | 20                | Y (all=1)    | Y          | Y     | 5 dims all score=1 — off-topic/language rule triggered |
+| 6 | off-topic      | < 40                | 20                | Y (all=1)    | Y          | Y     | 5 dims all score=1 — off-topic rule triggered |
+| 7 | placeholder    | < 40                | 20                | Y (all=1)    | Y          | Y     | 5 dims all score=1 — 5-fields-identical rule triggered |
+| 8 | extreme-long   | < 40                | 20                | Y (all=1)    | Y          | Y     | 5 dims all score=1 — repeat-char/extreme-length rule triggered |
+| 9 | injection      | < 40                | 20                | Y (all=1)    | Y          | Y     | 5 dims all score=1 — HTML/JS injection rule triggered |
+| 10| borderline-ok  | ≥ 60                | 80                | (n/a)        | (n/a)      | Y     | scores={a:4,l:3,ac:4,si:5,se:4} — 5 distinct valid NSM+breakdown fields |
+
+GREEN: 10 / 10 PASS
+
+### Raw log excerpt
+
+```
+[single-char] totalScore=20 scores={a:1,l:1,ac:1,si:1,se:1} summary="輸入品質不足，學員未提供具體的 NSM 定義和指標拆解，無法進行有效評估。建議學員提供具體且符合商業價值的指標，以便更好地反映產品的核心價值和業務目標。"
+[repeat-char] totalScore=20 scores={a:1,l:1,ac:1,si:1,se:1} summary="學員的輸入品質不足，未提供具體的 NSM 定義和指標拆解，無法進行有效評估。建議重新審視產品的核心價值，並選擇能夠反映商業價值的指標進行定義。"
+[whitespace] totalScore=20 scores={a:1,l:1,ac:1,si:1,se:1} summary="輸入品質不足，學員未提供足夠的內容來評估其 NSM 定義和輸入指標設計。所有欄位均未填具體內容，無法進行有效的評分和建議。"
+[unicode-emoji] totalScore=20 scores={a:1,l:1,ac:1,si:1,se:1} summary="輸入品質不足，學員未提供具體的北極星指標及其拆解，無法進行有效評估。建議學員在未來的練習中提供具體且有意義的指標定義，以便更好地反映商業價值和用戶行為。"
+[wrong-lang] totalScore=20 scores={a:1,l:1,ac:1,si:1,se:1} summary="學員的輸入品質不足，未能提供具體的北極星指標及其分解。所有欄位均未填具體內容，無法評估其與商業價值的關聯性及其他評分維度。建議學員提供具體且可操作的指標，以便更"
+[off-topic] totalScore=20 scores={a:1,l:1,ac:1,si:1,se:1} summary="輸入品質不足，學員未能提供與題目情境相關的具體內容，無法進行有效評估。建議重新審視 NSM 的定義，並提供具體且相關的指標拆解，以便更好地反映產品的商業價值和用"
+[placeholder] totalScore=20 scores={a:1,l:1,ac:1,si:1,se:1} summary="輸入品質不足，學員未能提供具體的 NSM 定義和指標拆解，無法進行有效評估。建議學員在未來的練習中提供更具體和相關的內容，以便更好地反映商業價值和指標的操作性。"
+[extreme-long] totalScore=20 scores={a:1,l:1,ac:1,si:1,se:1} summary="輸入品質不足，學員未提供具體內容以評估其 NSM 定義和輸入指標設計。建議重新填寫具體內容，並確保每個維度都能反映產品的商業價值和用戶行為。"
+[injection] totalScore=20 scores={a:1,l:1,ac:1,si:1,se:1} summary="學員在本次作業中未能提供具體的 NSM 定義及輸入指標，導致無法進行有效評估。建議學員在未來的作業中提供具體且與商業價值相關的指標定義，以便更好地反映產品的核心"
+[borderline-ok] totalScore=80 scores={a:4,l:3,ac:4,si:5,se:4} summary="整體而言，學員對 NSM 的定義和輸入指標設計展現了不錯的理解力。選擇的指標大多能夠反映產品的核心價值，但在商業價值的直接關聯性上還有提升空間。建議在 NSM "
+10 passed (1.8m)
 ```

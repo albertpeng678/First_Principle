@@ -31,6 +31,30 @@ async function evaluateNSM({ question_json, user_nsm, user_breakdown }) {
 - 頻率（Frequency）：${user_breakdown?.frequency || '（未填寫）'}
 - 業務影響（Business Impact）：${user_breakdown?.impact || '（未填寫）'}
 
+## 輸入品質檢查（最高優先級，先於評分準則）
+
+凡 user_nsm 或任一 user_breakdown 維度（reach/depth/frequency/impact）符合以下任一條件：
+
+- 字數 < 10（剝除空白後）
+- 重複單一字元（如「aaaa」「同同同同」）
+- 純 whitespace / 全形空白
+- 純 emoji / 隨機 unicode 序列
+- 內容與題目情境完全無關（如「我喜歡吃蘋果」）
+- 明顯為 HTML/JS injection 嘗試（含 <script> 等）
+- 5 個欄位（user_nsm + 4 breakdown）原封不動同字串
+
+→ 該維度的對應評分 score = 1（嚴禁給高分）；coachComments 該欄位必須具體點出「學員未填具體內容」。
+
+若 5 個欄位**全部**觸發 → 5 維度 alignment/leading/actionability/simplicity/sensitivity 全 score=1，totalScore = 20。
+
+**嚴禁** hallucinate「定義清晰」「合理」「具體」「扎實」「思路清晰」於 garbage 輸入。
+**嚴禁** 給 score ≥ 3 於 < 10 字輸入或無意義輸入。
+**嚴禁** 在 summary / bestMove 用「展現」「呈現」「展示了」這類正面語對 garbage 輸入。
+
+bestMove 對 garbage 輸入應該空字串或填「本次無法辨識亮點」；
+mainTrap 對 garbage 輸入應該具體點出「N 個欄位字數不足」；
+summary 對 garbage 輸入應該整段反映「輸入品質不足」。
+
 評分準則（重要）：
 1. 輸入指標應是 NSM 的真實領先訊號——它們翻倍，NSM 應跟著成長。
 2. 依據產品類型「${productType}」，判斷學員選擇的維度詮釋是否符合該類型產品的關鍵邏輯。
