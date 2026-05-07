@@ -168,4 +168,108 @@ test.describe('Phase 1 restore — partial-fill no-drift (Bug B)', () => {
     expect((await ta.nth(2).textContent()).trim()).toBe('');
     expect((await ta.nth(3).textContent()).trim()).toBe('');
   });
+
+  test('L step: only solutions[1] filled → sol-card 0 empty, sol-card 1 shows it', async ({ page }) => {
+    await page.setViewportSize({ width: 1280, height: 900 });
+    const session = {
+      id: 'sess-l-partial', question_id: 'q-l',
+      question_json: { id: 'q-l', company: 'X', product: 'Y' },
+      mode: 'drill', drill_step: 'L', current_phase: 1, sim_step_index: 4, status: 'active',
+      step_drafts: {
+        P1L: [
+          { name: '', mechanism: '' },
+          { name: 'SolB-name', mechanism: 'SolB-mechanism' },
+        ],
+        ts: Date.now(),
+      },
+      framework_draft: {},
+      created_at: new Date().toISOString(), updated_at: new Date().toISOString(),
+    };
+    stubAll(page, session, session);
+    await openSessionViaOffcanvas(page);
+    await page.waitForSelector('.sol-card', { timeout: 5000 });
+    const m0 = await page.locator('.rt-textarea[data-sol-idx="0"]').textContent();
+    const m1 = await page.locator('.rt-textarea[data-sol-idx="1"]').textContent();
+    const n0 = await page.locator('input.sol-card__name-input[data-sol-idx="0"]').inputValue();
+    const n1 = await page.locator('input.sol-card__name-input[data-sol-idx="1"]').inputValue();
+    expect(m0.trim()).toBe('');
+    expect(m1.trim()).toBe('SolB-mechanism');
+    expect(n0).toBe('');
+    expect(n1).toBe('SolB-name');
+  });
+
+  test('E step: only sol[1].metrics filled → other 7 nested fields empty', async ({ page }) => {
+    await page.setViewportSize({ width: 1280, height: 900 });
+    const session = {
+      id: 'sess-e-partial', question_id: 'q-e',
+      question_json: { id: 'q-e', company: 'X', product: 'Y' },
+      mode: 'drill', drill_step: 'E', current_phase: 1, sim_step_index: 5, status: 'active',
+      step_drafts: {
+        P1L: [
+          { name: 'SolA', mechanism: 'A-mech' },
+          { name: 'SolB', mechanism: 'B-mech' },
+        ],
+        P1E: [
+          { advantages: '', disadvantages: '', risks: '', metrics: '' },
+          { advantages: '', disadvantages: '', risks: '', metrics: 'Metric-99' },
+        ],
+        ts: Date.now(),
+      },
+      framework_draft: {},
+      created_at: new Date().toISOString(), updated_at: new Date().toISOString(),
+    };
+    stubAll(page, session, session);
+    await openSessionViaOffcanvas(page);
+    await page.waitForSelector('.rt-textarea[data-circles-e-sol-idx]', { timeout: 5000 });
+    const sol0Adv = await page.locator('.rt-textarea[data-circles-e-sol-idx="0"][data-circles-e-field-key="advantages"]').textContent();
+    const sol1Metrics = await page.locator('.rt-textarea[data-circles-e-sol-idx="1"][data-circles-e-field-key="metrics"]').textContent();
+    expect(sol0Adv.trim()).toBe('');
+    expect(sol1Metrics.trim()).toBe('Metric-99');
+  });
+
+  test('S main: only reasoning filled → recommendation + nsm empty', async ({ page }) => {
+    await page.setViewportSize({ width: 1280, height: 900 });
+    const session = {
+      id: 'sess-s-main', question_id: 'q-s',
+      question_json: { id: 'q-s', company: 'X', product: 'Y' },
+      mode: 'drill', drill_step: 'S', current_phase: 1, sim_step_index: 6, status: 'active',
+      step_drafts: {
+        P1S: { recommendation: '', reasoning: 'Reason-OK', nsm: '', tracking: { reach: '', depth: '', frequency: '', impact: '' } },
+        ts: Date.now(),
+      },
+      framework_draft: {},
+      created_at: new Date().toISOString(), updated_at: new Date().toISOString(),
+    };
+    stubAll(page, session, session);
+    await openSessionViaOffcanvas(page);
+    await page.waitForSelector('.rt-textarea[data-s-textarea]', { timeout: 5000 });
+    const rec = await page.locator('.rt-textarea[data-s-textarea="推薦方案"]').textContent();
+    const reason = await page.locator('.rt-textarea[data-s-textarea="選擇理由"]').textContent();
+    const nsm = await page.locator('.rt-textarea[data-s-textarea="北極星指標"]').textContent();
+    expect(rec.trim()).toBe('');
+    expect(reason.trim()).toBe('Reason-OK');
+    expect(nsm.trim()).toBe('');
+  });
+
+  test('S tracking: only frequency filled → other 3 dims empty', async ({ page }) => {
+    await page.setViewportSize({ width: 1280, height: 900 });
+    const session = {
+      id: 'sess-s-track', question_id: 'q-st',
+      question_json: { id: 'q-st', company: 'X', product: 'Y' },
+      mode: 'drill', drill_step: 'S', current_phase: 1, sim_step_index: 6, status: 'active',
+      step_drafts: {
+        P1S: { recommendation: 'R', reasoning: 'Why', nsm: 'NSM', tracking: { reach: '', depth: '', frequency: 'freq-99', impact: '' } },
+        ts: Date.now(),
+      },
+      framework_draft: {},
+      created_at: new Date().toISOString(), updated_at: new Date().toISOString(),
+    };
+    stubAll(page, session, session);
+    await openSessionViaOffcanvas(page);
+    await page.waitForSelector('input[data-s-tracking]', { timeout: 5000 });
+    expect(await page.locator('input[data-s-tracking="reach"]').inputValue()).toBe('');
+    expect(await page.locator('input[data-s-tracking="depth"]').inputValue()).toBe('');
+    expect(await page.locator('input[data-s-tracking="frequency"]').inputValue()).toBe('freq-99');
+    expect(await page.locator('input[data-s-tracking="impact"]').inputValue()).toBe('');
+  });
 });
