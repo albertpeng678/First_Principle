@@ -13,7 +13,9 @@
     guestId: null,                      // UUIDv4
     isOnline: navigator.onLine,
     sessionExpired: false,
-    onboardingComplete: !!localStorage.getItem('onboardingComplete'),
+    onboardingComplete: localStorage.getItem('circles_onboarding_done') === '1',
+    onboardingActive: false,    // Plan D SB2 — true while tour running
+    onboardingStep: 0,          // Plan D SB2 — 0 = welcome, 1-4 = tour steps
 
     // CIRCLES (Plans B/D fill render)
     circlesPhase: 1,
@@ -107,7 +109,7 @@
   window.AppState = AppState;
 
   // ── Persistence (per spec §2.1 — localStorage keys) ───────────────────────
-  const PERSISTED_KEYS = ['view', 'accessToken', 'guestId', 'onboardingComplete', 'circlesMode', 'circlesPhase', 'circlesDrillStep', 'circlesSelectedQuestion'];
+  const PERSISTED_KEYS = ['view', 'accessToken', 'guestId', 'circlesMode', 'circlesPhase', 'circlesDrillStep', 'circlesSelectedQuestion'];
   function persist() {
     try {
       const snapshot = {};
@@ -134,6 +136,10 @@
     AppState.guestId = ensureGuestId();
     bindGlobalListeners();
     render();
+    // Plan D SB2: background history load on boot so onboarding trigger can
+    // determine if user is first-time (no sessions) or returning (has sessions).
+    // loadHistory → maybeStartOnboarding → render() with onboarding if needed.
+    loadHistory();
   });
 
   function ensureGuestId() {
@@ -176,7 +182,7 @@
     const navbar = renderNavbar();
     const banners = renderGlobalBanners();
     const view = renderView();
-    app.innerHTML = navbar + banners + renderOffcanvas() + view;
+    app.innerHTML = navbar + banners + renderOffcanvas() + view + renderOnboardingOverlay();
     if (AppState.offcanvasOpen) document.body.style.overflow = 'hidden';
     else document.body.style.overflow = '';
     bindAll();
@@ -2490,7 +2496,7 @@
     //   mobile  (≤767, line 833/837):     short
     //   tablet  (768-1023, line 925/929):  medium
     //   desktop (≥1024, line 1020/1024):   long
-    var modeSelectorHtml = '<div class="mode-selector">'
+    var modeSelectorHtml = '<div class="mode-selector mode-section">'
       + '<button class="mode-card' + (mode === 'simulation' ? ' is-active' : '') + '" data-circles="mode" data-mode="simulation" data-circles-mode="simulation">'
       + '<div class="mode-card__head"><i class="ph ph-list-checks"></i><span class="mode-card__title">完整模擬</span></div>'
       + '<div class="mode-card__body mode-card__body--mobile">7 步循序練習</div>'
@@ -2546,8 +2552,12 @@
 
     // ── home wrapper center content ──
     // drill mode → mobile/tablet: prepend drill-pill-row above mode-selector
+    // Plan D SB2: prepend onboarding welcome card (step 0) if active
     var isDrill = mode === 'drill';
-    var centerHtml = (isDrill ? renderDrillPillRow() : '')
+    var onbWelcomeHtml = (AppState.onboardingActive && AppState.onboardingStep === 0)
+      ? renderOnbWelcome() : '';
+    var centerHtml = onbWelcomeHtml
+      + (isDrill ? renderDrillPillRow() : '')
       + modeSelectorHtml + searchHtml + typeTabsHtml + qListHtml + reshuffleHtml;
 
     // ── recent-rail from AppState.circlesRecentSessions (mockup 01 line 1061-1092) ──
@@ -3066,6 +3076,7 @@
         && !AppState.circlesSession
         && !AppState.circlesSelectedQuestion) {
       bindCirclesHome();
+      bindOnboarding();
     }
     if (AppState.view === 'circles'
         && AppState.circlesPhase === 1
@@ -3780,6 +3791,7 @@
         return new Date(b.updated_at || b.created_at) - new Date(a.updated_at || a.created_at);
       });
       AppState.historyLoading = false;
+      maybeStartOnboarding();
       render();
     } catch (e) {
       if (e.code === 'SESSION_EXPIRED') return;
@@ -3945,6 +3957,116 @@
       }
     }
     document.addEventListener('keydown', escHandler);
+  }
+
+  // ── Plan D SB2 — Onboarding (mockup 10) ─────────────────────────────────
+
+  // Step targets — selector / title / body / arrow direction
+  var ONBOARDING_TARGETS = {
+    1: { selector: '.mode-section', title: '選擇練習模式', body: '建議首次選「完整模擬」走完整流程，熟悉後再用「步驟加練」針對弱點刻意練習。', arrow: 'top' },
+    2: { selector: '.type-tabs',    title: '選擇題型',     body: '三類題型各有特色：產品設計重發散、產品改進重診斷、產品策略重格局。', arrow: 'top' },
+    3: { selector: '.qcard',        title: '看題目卡',     body: '每張卡片附帶業界場景，點開可預覽題目背景與分析框架。', arrow: 'top' },
+    4: { selector: '.qcard.is-expanded, .qcard:first-child', title: '開始練習', body: '先讀題目說明再決定：合適就點「確認，開始練習」進入 Phase 1，不合適可上一步換題。', arrow: 'top' },
+  };
+
+  // Trigger: show onboarding only when historyList is loaded AND empty, no flag, home view
+  function maybeStartOnboarding() {
+    if (AppState.onboardingComplete) return;
+    if (AppState.onboardingActive) return;
+    // historyList === null means "not loaded yet" — wait until loaded to avoid false-positive
+    if (AppState.historyList === null) return;
+    var hasHistory = AppState.historyList.length > 0;
+    if (hasHistory) return;
+    if (AppState.view !== 'circles') return;
+    if (AppState.circlesPhase !== 1) return;
+    if (AppState.circlesSelectedQuestion) return;
+    AppState.onboardingActive = true;
+    AppState.onboardingStep = 0;
+  }
+
+  function renderOnbWelcome() {
+    return '<div class="onb-welcome">'
+      + '<div class="onb-welcome__icon"><i class="ph-fill ph-hand-waving"></i></div>'
+      + '<div class="onb-welcome__title">歡迎來到 PM Drill</div>'
+      + '<p class="onb-welcome__body">CIRCLES 是 PM 面試常用的七步框架。第一次使用？建議跟著引導跑一輪，5 分鐘內了解整個流程。</p>'
+      + '<div class="onb-welcome__actions">'
+      +   '<button class="btn btn--primary" data-onb-action="start">開始引導<i class="ph ph-arrow-right"></i></button>'
+      +   '<button class="btn btn--ghost" data-onb-action="skip">直接自己選題</button>'
+      + '</div></div>';
+  }
+
+  function renderOnboardingOverlay() {
+    if (!AppState.onboardingActive) return '';
+    var step = AppState.onboardingStep;
+    if (step === 0) return '';   // welcome is inline, not overlay
+    var t = ONBOARDING_TARGETS[step];
+    if (!t) return '';
+    var nextOrFinish = step < 4
+      ? '<button class="onb-tooltip__next" data-onb-action="next">下一步<i class="ph ph-arrow-right"></i></button>'
+      : '<button class="onb-tooltip__next" data-onb-action="finish">開始練習<i class="ph ph-check"></i></button>';
+    return '<div class="onb-overlay">'
+      +    '<div class="onb-tooltip onb-tooltip--' + t.arrow + '" data-onb-step="' + step + '">'
+      +      '<div class="onb-tooltip__arrow onb-tooltip__arrow--' + t.arrow + '"></div>'
+      +      '<div class="onb-tooltip__step">第 ' + step + ' 步 / 共 4 步</div>'
+      +      '<div class="onb-tooltip__title">' + escHtml(t.title) + '</div>'
+      +      '<p class="onb-tooltip__body">' + escHtml(t.body) + '</p>'
+      +      '<div class="onb-tooltip__actions">'
+      +        '<span class="onb-tooltip__skip" data-onb-action="skip">略過引導</span>'
+      +        nextOrFinish
+      +      '</div>'
+      +    '</div>'
+      + '</div>';
+  }
+
+  function applyOnboardingTargetClass() {
+    document.querySelectorAll('.onb-targeted').forEach(function (el) { el.classList.remove('onb-targeted'); });
+    if (!AppState.onboardingActive || AppState.onboardingStep === 0) return;
+    var t = ONBOARDING_TARGETS[AppState.onboardingStep];
+    if (!t) return;
+    var el = document.querySelector(t.selector);
+    if (el) el.classList.add('onb-targeted');
+  }
+
+  function bindOnboarding() {
+    document.querySelectorAll('[data-onb-action]').forEach(function (el) {
+      el.addEventListener('click', function (e) {
+        e.stopPropagation();
+        var act = el.dataset.onbAction;
+        if (act === 'start') {
+          AppState.onboardingStep = 1;
+          render();
+          applyOnboardingTargetClass();
+        } else if (act === 'next') {
+          AppState.onboardingStep++;
+          render();
+          applyOnboardingTargetClass();
+        } else if (act === 'skip' || act === 'finish') {
+          localStorage.setItem('circles_onboarding_done', '1');
+          AppState.onboardingComplete = true;
+          AppState.onboardingActive = false;
+          AppState.onboardingStep = 0;
+          document.querySelectorAll('.onb-targeted').forEach(function (el) { el.classList.remove('onb-targeted'); });
+          render();
+        }
+      });
+    });
+    if (AppState.onboardingActive && AppState.onboardingStep > 0) {
+      applyOnboardingTargetClass();
+    }
+    // Esc handler (one-shot bound per page lifecycle)
+    if (!window._onbEscBound) {
+      document.addEventListener('keydown', function escSkip(e) {
+        if (e.key === 'Escape' && AppState.onboardingActive) {
+          localStorage.setItem('circles_onboarding_done', '1');
+          AppState.onboardingComplete = true;
+          AppState.onboardingActive = false;
+          AppState.onboardingStep = 0;
+          document.querySelectorAll('.onb-targeted').forEach(function (el) { el.classList.remove('onb-targeted'); });
+          render();
+        }
+      });
+      window._onbEscBound = true;
+    }
   }
 
   // ── utils ─────────────────────────────────────────────────────────────────
