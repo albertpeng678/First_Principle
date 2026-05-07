@@ -2106,7 +2106,7 @@
     try {
       var controller = new AbortController();
       var timer = setTimeout(function () { controller.abort(); }, 5000);
-      var path = '/api/circles-stats';
+      var path = AppState.accessToken ? '/api/circles-stats' : '/api/guest-circles-stats';
       var headers = {};
       if (AppState.accessToken) headers['Authorization'] = 'Bearer ' + AppState.accessToken;
       else if (AppState.guestId) headers['X-Guest-ID'] = AppState.guestId;
