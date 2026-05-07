@@ -3148,7 +3148,7 @@
         body: JSON.stringify({ step: stepKey, frameworkDraft: draft }),
       });
       if (!res.ok) {
-        AppState.circlesGateError = 'Server returned ' + res.status;
+        AppState.circlesGateError = '伺服器回應 ' + res.status;
         AppState.circlesGateLoading = false;
         render();
         return;
@@ -3163,7 +3163,11 @@
         render();
         return;
       }
-      AppState.circlesGateError = (e && e.message) || '網路錯誤';
+      var errMsg = '網路錯誤'; // default
+      if (e && typeof e.message === 'string' && /^(伺服器|草稿|請求)/.test(e.message)) {
+        errMsg = e.message; // safe — already zh-TW
+      }
+      AppState.circlesGateError = errMsg;
       AppState.circlesGateLoading = false;
       render();
     }
