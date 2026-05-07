@@ -13,7 +13,7 @@ test.describe('Adversarial — circles-gate Phase 1.5', () => {
   for (const c of ADVERSARIAL_CASES) {
     test(`[${c.id}] should produce status meeting min severity "${c.expectMinSeverity}"`, async () => {
       test.setTimeout(60_000); // OpenAI calls can be slow
-      const draft = {
+      const draft = c.perFieldInputs || {
         '問題範圍':  c.input,
         '時間範圍':  c.input,
         '業務影響':  c.input,

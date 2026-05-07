@@ -26,9 +26,27 @@ async function reviewFramework({ step, frameworkDraft, questionJson, mode }) {
 常見錯誤方向：
 - ${wrongDirs}
 
+## 輸入品質檢查（最高優先級，先於下方任何方向性審核）
+
+凡符合以下任一條件 → 該欄位 status="error"，title 用「欄位內容不足」/「輸入無意義」/「離題」/「未填寫」之一，suggestion="請補充至少 30 字符合本步驟主題的具體內容"：
+
+- 字數 < 10（剝除空白後計算）
+- 重複單一字元組成（如「aaaa」「同同同同」「1111」）
+- 純 whitespace / 全形空白
+- 內容與本「${meta.name}」步驟主題完全無關（如填寫「我喜歡吃蘋果」於業務影響欄位）
+- 純 emoji / 隨機 unicode 序列
+- 明顯為 HTML/JS injection 嘗試（含 <script>、onerror=、javascript: 等）
+- 同一字串原封不動填入多個欄位（4 欄全相同 → 視為內容不分化，error）
+
+**嚴禁** 對上述任一條件回傳 status="ok" 或 "warn"。
+**嚴禁** hallucinate「合理」「完整」「通過」於 < 10 字輸入或無意義輸入。
+
+任一欄位觸發本檢查 → overallStatus = "error" + canProceed = false（不論 mode）。
+
 你的任務：
-1. 審核學員填寫的 4 個欄位，找出方向性問題
-2. 回傳嚴格的 JSON，不加任何 markdown 或說明
+1. 先跑「輸入品質檢查」（上方規則），觸發任一條件直接 mark error，不再做下方審核
+2. 通過品質檢查的欄位再用方向性審核標準評估
+3. 回傳嚴格的 JSON，不加任何 markdown 或說明
 
 JSON 格式：
 {

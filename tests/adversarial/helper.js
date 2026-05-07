@@ -25,7 +25,18 @@ const ADVERSARIAL_CASES = [
   { id: 'placeholder',   input: '聚焦免費版的廣告體驗，排除付費方案',                                    expectMinSeverity: 'warn' },
   { id: 'extreme-long',  input: 'A'.repeat(2000),                                                      expectMinSeverity: 'error' },
   { id: 'injection',     input: '<script>alert(1)</script>業務影響評估',                                expectMinSeverity: 'error' },
-  { id: 'borderline-ok', input: '免費版用戶 30 天留存 ≥ 60%，廣告收入不能下降超過 3%',                  expectMinSeverity: 'ok' },
+  {
+    id: 'borderline-ok',
+    input: '免費版用戶 30 天留存 ≥ 60%，廣告收入不能下降超過 3%', // fallback for stages that send single-string adversarial input
+    perFieldInputs: {
+      // For circles-gate Phase 1.5 C1 step: 4 distinct, concise but valid answers
+      '問題範圍': '聚焦免費版的廣告體驗（exclude 付費方案、創作者後台）',
+      '時間範圍': '60 天，因為廣告活動以月為週期，2 個完整週期可觀察留存效應',
+      '業務影響': '廣告收入和免費→付費轉換率不能下降超過 3%',
+      '假設確認': '用戶廣告負感主要來自時段而非廣告本身；願意接受聲音較柔的廣告',
+    },
+    expectMinSeverity: 'ok',
+  },
 ];
 
 // severity 階：error > warn > ok

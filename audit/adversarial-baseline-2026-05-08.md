@@ -61,3 +61,42 @@
 | circles-final-report (Phase 4) | TBD — Task 6 |
 | nsm-gate | TBD — Task 7 |
 | nsm-evaluator | TBD — Task 8 |
+
+---
+
+## GREEN matrix — after Task 3 fix (Plan Task 3)
+
+> Same 10 cases re-run AFTER:
+> 1. helper.js borderline-ok now uses perFieldInputs (4 distinct valid answers)
+> 2. prompts/circles-gate.js gained `## 輸入品質檢查` section
+
+| # | Case id        | Expected min severity | Actual overallStatus | Pass? | Notes |
+|---|----------------|-----------------------|----------------------|-------|-------|
+| 1 | single-char    | error                 | error                | Y     | All 4 fields "欄位內容不足" — prompt quality guard fired on < 10 chars |
+| 2 | repeat-char    | error                 | error                | Y     | All 4 fields "輸入無意義" — repeat-char rule triggered |
+| 3 | whitespace     | error                 | error                | Y     | All 4 fields "欄位內容不足" — whitespace/pure blank rule triggered |
+| 4 | unicode-emoji  | error                 | error                | Y     | All 4 fields "輸入無意義" — emoji/unicode rule triggered |
+| 5 | wrong-lang     | error                 | error                | Y     | All 4 fields "輸入無意義" — off-topic/language rule triggered |
+| 6 | off-topic      | error                 | error                | Y     | All 4 fields "輸入無意義" — off-topic rule triggered |
+| 7 | placeholder    | warn                  | error                | Y     | All 4 fields "輸入無意義" — 4-fields-identical rule triggered (same text × 4); error ≥ warn, PASS |
+| 8 | extreme-long   | error                 | error                | Y     | All 4 fields "輸入無意義" — repeat-char / extreme-length rule triggered |
+| 9 | injection      | error                 | error                | Y     | All 4 fields "輸入無意義" — HTML/JS injection rule triggered |
+| 10| borderline-ok  | ok                    | ok                   | Y     | All 4 fields ok — perFieldInputs 4 distinct valid answers; canProceed=true |
+
+GREEN summary: 10 / 10 PASS. Target: 10 / 10.
+
+### Raw log excerpt (GREEN run)
+
+```
+[single-char] overallStatus=error canProceed=false items=[{"field":"問題範圍","status":"error","title":"欄位內容不足"},{"field":"時間範圍","status":"error","title":"欄位內容不足"},{"field":"業務影響","status":"error","title":"欄位內容不足"},{"field":"假設確認","status":"error","title":"欄位內容不足"}]
+[repeat-char] overallStatus=error canProceed=false items=[{"field":"問題範圍","status":"error","title":"輸入無意義"},{"field":"時間範圍","status":"error","title":"輸入無意義"},{"field":"業務影響","status":"error","title":"輸入無意義"},{"field":"假設確認","status":"error","title":"輸入無意義"}]
+[whitespace] overallStatus=error canProceed=false items=[{"field":"問題範圍","status":"error","title":"欄位內容不足"},{"field":"時間範圍","status":"error","title":"欄位內容不足"},{"field":"業務影響","status":"error","title":"欄位內容不足"},{"field":"假設確認","status":"error","title":"欄位內容不足"}]
+[unicode-emoji] overallStatus=error canProceed=false items=[{"field":"問題範圍","status":"error","title":"輸入無意義"},{"field":"時間範圍","status":"error","title":"輸入無意義"},{"field":"業務影響","status":"error","title":"輸入無意義"},{"field":"假設確認","status":"error","title":"輸入無意義"}]
+[wrong-lang] overallStatus=error canProceed=false items=[{"field":"問題範圍","status":"error","title":"輸入無意義"},{"field":"時間範圍","status":"error","title":"輸入無意義"},{"field":"業務影響","status":"error","title":"輸入無意義"},{"field":"假設確認","status":"error","title":"輸入無意義"}]
+[off-topic] overallStatus=error canProceed=false items=[{"field":"問題範圍","status":"error","title":"輸入無意義"},{"field":"時間範圍","status":"error","title":"輸入無意義"},{"field":"業務影響","status":"error","title":"輸入無意義"},{"field":"假設確認","status":"error","title":"輸入無意義"}]
+[placeholder] overallStatus=error canProceed=false items=[{"field":"問題範圍","status":"error","title":"輸入無意義"},{"field":"時間範圍","status":"error","title":"輸入無意義"},{"field":"業務影響","status":"error","title":"輸入無意義"},{"field":"假設確認","status":"error","title":"輸入無意義"}]
+[extreme-long] overallStatus=error canProceed=false items=[{"field":"問題範圍","status":"error","title":"輸入無意義"},{"field":"時間範圍","status":"error","title":"輸入無意義"},{"field":"業務影響","status":"error","title":"輸入無意義"},{"field":"假設確認","status":"error","title":"輸入無意義"}]
+[injection] overallStatus=error canProceed=false items=[{"field":"問題範圍","status":"error","title":"輸入無意義"},{"field":"時間範圍","status":"error","title":"輸入無意義"},{"field":"業務影響","status":"error","title":"輸入無意義"},{"field":"假設確認","status":"error","title":"輸入無意義"}]
+[borderline-ok] overallStatus=ok canProceed=true items=[{"field":"問題範圍","status":"ok","title":"範圍明確"},{"field":"時間範圍","status":"ok","title":"時間合理"},{"field":"業務影響","status":"ok","title":"影響明確"},{"field":"假設確認","status":"ok","title":"假設合理"}]
+10 passed (26.6s)
+```
