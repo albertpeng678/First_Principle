@@ -1,24 +1,24 @@
 # SB9b Section E pixel-diff report
 
-_Generated: 2026-05-04T09:03:40.096Z_
+_Generated: 2026-05-08T01:24:18.359Z_
 
 ## SB9b Section E · Mobile · locked: 🟠 < 15% (state diff 預期)
 
-- mockup 358×651 / production 360×1700 / padded 360×1700 / mismatched 33012px / **5.39%**
+- mockup 358×651 / production 360×1700 / padded 360×1700 / mismatched 33250px / **5.43%**
 - mockup PNG: `tests/visual/diffs/sb9b/mobile-360-mockup.png`
 - production PNG: `tests/visual/diffs/sb9b/mobile-360-production.png`
 - diff PNG: `tests/visual/diffs/sb9b/mobile-360-diff.png`
 
 ## SB9b Section E · Tablet · stale: 🟡 < 5%
 
-- mockup 766×720 / production 768×1700 / padded 768×1700 / mismatched 41382px / **3.17%**
+- mockup 766×720 / production 768×1700 / padded 768×1700 / mismatched 41271px / **3.16%**
 - mockup PNG: `tests/visual/diffs/sb9b/tablet-768-mockup.png`
 - production PNG: `tests/visual/diffs/sb9b/tablet-768-production.png`
 - diff PNG: `tests/visual/diffs/sb9b/tablet-768-diff.png`
 
 ## SB9b Section E · Desktop · save-error: 🟡 < 5%
 
-- mockup 1278×679 / production 1280×1700 / padded 1280×1700 / mismatched 54519px / **2.51%**
+- mockup 1278×679 / production 1280×1700 / padded 1280×1700 / mismatched 50883px / **2.34%**
 - mockup PNG: `tests/visual/diffs/sb9b/desktop-1280-mockup.png`
 - production PNG: `tests/visual/diffs/sb9b/desktop-1280-production.png`
 - diff PNG: `tests/visual/diffs/sb9b/desktop-1280-diff.png`
