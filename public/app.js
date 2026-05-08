@@ -94,6 +94,14 @@
     nsmExampleExpanded: {},
     nsmHintExpanded: {},
 
+    // Plan B Phase 2 Chat additions (mockup 05)
+    circlesPhase2Streaming: false,
+    circlesPhase2StreamingTurn: null,        // { userMessage, deltaText }
+    circlesPhase2ConclusionMode: false,
+    circlesPhase2ConclusionDraft: '',
+    circlesPhase2ExampleOpen: false,
+    circlesPhase2CoachHintExpanded: {},      // { turnIdx: boolean }
+
     // chat
     streamingActive: false,
 
@@ -211,6 +219,9 @@
       if (AppState.circlesPhase === 1 && !AppState.circlesSession && !AppState.circlesSelectedQuestion) {
         return renderCirclesHome();
       }
+      if (AppState.circlesPhase === 2 && AppState.circlesSession && AppState.circlesSelectedQuestion) {
+        return renderCirclesPhase2();
+      }
       return renderCirclesStub();
     }
     if (v === 'nsm') {
@@ -223,6 +234,13 @@
   function renderCirclesStub() {
     return '<div data-view="circles" style="padding:24px;color:var(--c-ink-3);text-align:center">CIRCLES view — 待 Plan B 實作</div>';
   }
+
+  // ── renderCirclesPhase2 (Plan B Phase 2 — mockup 05) ──────────────────────
+  function renderCirclesPhase2() {
+    return '<div data-view="circles" data-phase="2"><div class="phase2-loading">Phase 2 placeholder</div></div>';
+  }
+  window.renderCirclesPhase2 = renderCirclesPhase2;
+
   function renderNSM() {
     if (AppState.nsmStep === 1) return renderNSMStep1();
     if (AppState.nsmStep === 2) return renderNSMStep2();
