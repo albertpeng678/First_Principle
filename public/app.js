@@ -2056,47 +2056,50 @@
     if (_saveCycleT2) clearTimeout(_saveCycleT2);
     _saveDebounce = setTimeout(function () {
       setPhase1SaveState('saving');
-      // lazy-create session in background — fire async, don't await (non-blocking)
-      ensureCirclesDraftSession().then(function () {
-        // no-op: AppState.circlesSession is set as side effect
-      }).catch(function () {
-        // network error — graceful degradation, localStorage still works
-      });
-      // 600ms saving phase — 給 user 看見 spinner（200ms 太短，iOS Safari 來不及 render）
-      setTimeout(function () {
+      var qid = (AppState.circlesSelectedQuestion || {}).id || 'unknown';
+      var payload = {
+        P1: AppState.circlesPhase1 || null,
+        P1S: AppState.circlesPhase1S || null,
+        P1L: AppState.circlesPhase1Solutions || null,
+        P1E: AppState.circlesPhase1Evaluate || null,
+        framework: AppState.circlesFrameworkDraft || null,
+        ts: Date.now()
+      };
+      // 1. localStorage IMMEDIATELY (sync, never blocked by network race)
+      try {
+        localStorage.setItem('pmdrill:circles:draft:' + qid, JSON.stringify(payload));
+      } catch (e) {
+        setPhase1SaveState('error');
+        return;
+      }
+      // 2. Backend persistence — AWAIT session creation BEFORE PATCH so first-save
+      //    POST /draft latency cannot cause PATCH to be skipped (root cause of P0
+      //    user-reported "draft disappeared" — backend step_drafts left at {}).
+      (async function persistBackend() {
         try {
-          var qid = (AppState.circlesSelectedQuestion || {}).id || 'unknown';
-          var payload = {
-            P1: AppState.circlesPhase1 || null,
-            P1S: AppState.circlesPhase1S || null,
-            P1L: AppState.circlesPhase1Solutions || null,
-            P1E: AppState.circlesPhase1Evaluate || null,
-            framework: AppState.circlesFrameworkDraft || null,
-            ts: Date.now()
-          };
-          localStorage.setItem('pmdrill:circles:draft:' + qid, JSON.stringify(payload));
-          setPhase1SaveState('saved');
-          _saveCycleT2 = setTimeout(function () { setPhase1SaveState('idle'); }, 2000);
-          // fire-and-forget PATCH to backend — only if session id known
+          if (!AppState.circlesSession || !AppState.circlesSession.id) {
+            await ensureCirclesDraftSession();
+          }
           if (AppState.circlesSession && AppState.circlesSession.id) {
-            var sessionId = AppState.circlesSession.id;
+            var sid = AppState.circlesSession.id;
             var patchPath = AppState.accessToken
-              ? '/api/circles-sessions/' + sessionId + '/progress'
-              : '/api/guest-circles-sessions/' + sessionId + '/progress';
-            window.apiFetch(patchPath, {
+              ? '/api/circles-sessions/' + sid + '/progress'
+              : '/api/guest-circles-sessions/' + sid + '/progress';
+            await window.apiFetch(patchPath, {
               method: 'PATCH',
               headers: { 'Content-Type': 'application/json' },
               body: JSON.stringify({
                 stepDrafts: payload,
                 frameworkDraft: AppState.circlesFrameworkDraft || null
               }),
-            }).catch(function () {
-              // PATCH 失敗不影響 saved state — local 已 cache
             });
           }
-        } catch (e) {
-          setPhase1SaveState('error');
-        }
+        } catch (_) { /* network error — local cache remains source of truth */ }
+      })();
+      // 3. Visual cycle (600ms saving spinner — preserve UX, parallel to backend)
+      setTimeout(function () {
+        setPhase1SaveState('saved');
+        _saveCycleT2 = setTimeout(function () { setPhase1SaveState('idle'); }, 2000);
       }, 600);
     }, 800);
   }
@@ -3679,18 +3682,57 @@
       });
     });
     // confirm — enter Phase 1 with selected question
+    // P0: must restore existing draft (in_progress session OR localStorage cache)
+    // for this qid — previously this path skipped both, wiping user's saved work.
     document.querySelectorAll('[data-circles="qcard-confirm"]').forEach(function (el) {
       el.addEventListener('click', function (e) {
         e.stopPropagation();
         var qid = el.dataset.qid;
         var q = (window.CIRCLES_QUESTIONS || []).find(function (x) { return x.id === qid; });
         if (!q) return;
+        var mode = AppState.circlesMode === 'drill' ? 'drill' : 'simulation';
+        var drillStep = mode === 'drill' ? AppState.circlesDrillStep : null;
+        // Resume already-loaded session if recent rail / history list contains a
+        // matching in-progress draft. Use the shared restore helper which fetches
+        // session detail + populates frameworkDraft + step_drafts.
+        var pools = [
+          AppState.circlesRecentSessions || [],
+          AppState.historyList || [],
+        ];
+        var existing = null;
+        for (var pi = 0; pi < pools.length && !existing; pi++) {
+          existing = pools[pi].find(function (s) {
+            if (!s || s.question_id !== qid) return false;
+            if (s.status && s.status !== 'active' && s.status !== 'in_progress') return false;
+            if (s.mode && s.mode !== mode) return false;
+            if (mode === 'drill' && drillStep && s.drill_step !== drillStep) return false;
+            return true;
+          });
+        }
+        if (existing) {
+          loadCirclesSessionFromHistory(existing);
+          return;
+        }
+        // No live session — seed AppState from localStorage cache so user's
+        // typed-but-not-yet-synced draft is not silently dropped.
         AppState.circlesSelectedQuestion = q;
         AppState.circlesPhase = 1;
         AppState.circlesSimStep = 0;
         AppState.circlesExpandedQid = null;
-        // reset L step solutions for new question
         AppState.circlesPhase1Solutions = [{ name: '', mechanism: '' }, { name: '', mechanism: '' }];
+        try {
+          var raw = localStorage.getItem('pmdrill:circles:draft:' + qid);
+          if (raw) {
+            var local = JSON.parse(raw);
+            if (local && typeof local === 'object') {
+              if (local.framework) AppState.circlesFrameworkDraft = local.framework;
+              if (local.P1) AppState.circlesPhase1 = local.P1;
+              if (local.P1S) AppState.circlesPhase1S = local.P1S;
+              if (Array.isArray(local.P1L) && local.P1L.length) AppState.circlesPhase1Solutions = local.P1L;
+              if (local.P1E) AppState.circlesPhase1Evaluate = local.P1E;
+            }
+          }
+        } catch (_) { /* localStorage unreadable — fresh start */ }
         render();
       });
     });
@@ -5553,7 +5595,10 @@
       console.log('[restore] phase > 1 but conversation empty — snapping back to Phase 1 draft');
       AppState.circlesPhase = 1;
     }
-    // localStorage cache merge — prefer newer ts (instant cache + offline fallback)
+    // localStorage cache merge — prefer newer ts OR fall back to local when the
+    // backend session row carries no draft content (e.g. very first PATCH lost
+    // to a race / transient network failure). Without this fallback the user's
+    // typed-but-not-yet-synced work would be irrecoverably hidden.
     try {
       var qid = (AppState.circlesSelectedQuestion || {}).id;
       if (qid) {
@@ -5561,11 +5606,14 @@
         if (raw) {
           var local = JSON.parse(raw);
           var serverTs = sd.ts || new Date(item.updated_at || item.created_at || 0).getTime();
-          if (local && local.ts && local.ts > serverTs) {
-            // localStorage newer → use local versions instead
+          var sdEmpty = !sd.P1 && !sd.P1S && !sd.P1L && !sd.P1E && !sd.framework;
+          var fdEmpty = !item.framework_draft || Object.keys(item.framework_draft || {}).length === 0;
+          var backendEmpty = sdEmpty && fdEmpty;
+          var localFresher = local && local.ts && local.ts > serverTs;
+          if (local && (localFresher || backendEmpty)) {
             if (local.P1) AppState.circlesPhase1 = local.P1;
             if (local.P1S) AppState.circlesPhase1S = local.P1S;
-            if (local.P1L) AppState.circlesPhase1Solutions = local.P1L;
+            if (Array.isArray(local.P1L) && local.P1L.length) AppState.circlesPhase1Solutions = local.P1L;
             if (local.P1E) AppState.circlesPhase1Evaluate = local.P1E;
             if (local.framework) AppState.circlesFrameworkDraft = local.framework;
           }
