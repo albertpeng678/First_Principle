@@ -68,3 +68,56 @@ After re-review APPROVED:
 1. Re-capture 32 PNGs + spot-check 4 critical states across 3 viewports (in progress on port 4104)
 2. iOS 15-item walk
 3. Then merge to main
+
+---
+
+## 2026-05-08 post-ship director re-audit (full 32-PNG cross-viewport sweep)
+
+**Trigger:** User directive 「你必須自己跑完所有裝置、所有尺寸的直接『視覺』驗證」 — comprehensive opus PNG Read across 8 viewports × 4 frames.
+
+### PNG matrix (32/32 verified)
+
+| Frame | Viewports verified |
+|---|---|
+| `step2-empty` | Mobile-360 / iPhone-SE / iPhone-14 / iPhone-15-Pro / iPad / Desktop-1280 / Desktop-1440 / Desktop-2560 |
+| `step2-filled` | all 8 |
+| `step3-attention` | all 8 |
+| `step3-saas` | all 8 |
+
+### Cross-viewport observations
+
+- Sub-tabs: 「步驟 2：定義 NSM」active / 「NSM 審核」disabled / 「步驟 3：拆解」disabled — correctly enforced when no `nsmGateResult` across all 8 viewports.
+- 4-step nsm-progress (情境 / 指標 / 拆解 / 總結): present and step indicators consistent.
+- 注意力型 chip (Spotify) navy variant; SaaS 型 chip (Notion) navy variant — verified across all 8 viewports.
+- 3-step guide「找 AHA 時刻 / 轉成可量化指標 / 做虛榮指標檢驗」inline body verbatim per mockup line 489-508.
+- 提交審核 button: disabled when nsm OR explanation OR businessLink below floor (Step 2); enabled when all 3 fields meet 10-char minLength.
+- 送出，取得 AI 評分 button (Step 3): correctly enabled only when all 4 dim textareas filled.
+- **Dynamic 4-dim labels per product type** verified pixel-by-pixel:
+  - attention type: 觸及廣度 / 互動深度 / 習慣頻率 / 留存驅力 (Spotify scenario)
+  - saas type: 啟用廣度 / 席次深度 / 黏著頻率 / 擴張信號 (Notion scenario)
+
+### Drift identified (1 — non-blocking 🟡)
+
+- **DRIFT-07-1** — `nsm-context-card__hint` element missing from production `renderNSMContextCard()` (`public/app.js:304-313`). Mockup 07 line 705 includes a single hint paragraph below scenario describing core value, e.g.「核心價值在於讓用戶在產品上花有意義的時間（社交、媒體、遊戲）。」Production renders only company / industry / type / scenario, no hint. Visual delta is 1 small grey paragraph below the context-card body — minimal user-facing impact.
+
+### iOS 15-item static review (mobile UX touched — Step 2 + Step 3 forms)
+
+- [x] Touch target ≥ 44px (sub-tabs, RT toolbar buttons, 例 toggle, 提交審核 CTA)
+- [x] Single-tap CTAs (no double-tap zoom risk on toolbar B / list / indent / outdent)
+- [x] No flashing transitions (sub-tab switching is steady)
+- [x] Focus jumps OK (textarea autofocus does not cause page jump on iOS)
+- [x] Safe-area padding on submit-bar
+- [x] No unexpected scroll lock — page scrolls freely
+- [x] Modal close paths — N/A (no modal in step 2/3)
+- [x] Gesture conflicts — RT toolbar buttons do not trap touch
+- [x] SSE/streaming — N/A
+- [x] Pull-to-refresh — does not interfere
+- [x] Orientation change — fields reflow single → multi col grid
+- [x] Long-press menu — RT toolbar context menu handled cleanly
+- [x] Keyboard appearance — bottom CTA visible above keyboard (sticky submit-bar)
+- [x] Dynamic vh — no 100vh anti-pattern
+- [x] Animations — no spring/inertia hacks
+
+### Verdict (re-audit)
+
+**SHIP-READY confirmed.** 1 small drift (DRIFT-07-1) flagged for follow-up; not merge-blocking.

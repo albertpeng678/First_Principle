@@ -97,3 +97,35 @@ Pending — pixel-diff via `pixelmatch` between captured `audit/png-mockup-10/we
 ## Verdict
 
 **SHIP-READY**. Two 🟡 items (step 3 selector + step 4 expand scope) are mockup-contract drifts the director PNG-reviewed and accepted at PNG threshold. Worth filing as follow-up tracking note but not merge-blocking.
+
+---
+
+## 2026-05-08 post-ship director re-audit (full 40-PNG cross-viewport sweep)
+
+**Trigger:** User directive 「你必須自己跑完所有裝置、所有尺寸的直接『視覺』驗證，禁止偷懶」 — comprehensive opus PNG Read across 8 viewports × 5 frames.
+
+### PNG matrix (40/40 verified)
+
+| Frame | Viewports verified |
+|---|---|
+| `welcome` | Mobile-360 / iPhone-SE / iPhone-14 / iPhone-15-Pro / iPad / Desktop-1280 / Desktop-1440 / Desktop-2560 |
+| `step1` (選擇練習模式) | all 8 |
+| `step2` (選擇題型) | all 8 |
+| `step3` (看題目卡) | all 8 |
+| `step4` (開始練習) | all 8 |
+
+### Cross-viewport observations
+
+- Welcome card: hand-waving icon + 「歡迎來到 PM Drill」title + body text + 「開始引導」navy / 「直接自己選題」ghost — present and correctly stacked across all 8 viewports.
+- Coachmark tooltip pattern: 「第 N 步 / 共 4 步」counter + bold title + body + 「略過引導」link / 「下一步」navy CTA. Step 4 CTA correctly switches to 「開始練習 ✓」 across all 8 viewports.
+- `.onb-targeted` dual-ring (2px white inner halo + 6px navy outer + 9999px page-dim) renders correctly per viewport — no clipping or off-screen on Mobile-360 / iPhone-SE.
+- Mobile pattern parity: floating tooltip near target (NOT sticky-bottom) confirmed across Mobile-360 / iPhone-SE / iPhone-14 / iPhone-15-Pro.
+
+### Drifts confirmed (both existing 🟡 follow-ups, non-blocking)
+
+- **DRIFT-10-1** — Step 3 spotlight wraps single first card (`.qcard`) instead of whole `.q-list` rail per mockup line 296-321. Carry-forward.
+- **DRIFT-10-2** — Step 4 spotlight on collapsed `.qcard:first-child` instead of auto-expanded q-card with desc + CTA per mockup line 877. Carry-forward.
+
+### Verdict (re-audit)
+
+**SHIP-READY confirmed.** No new blockers found. Two existing 🟡 drifts remain as follow-ups.

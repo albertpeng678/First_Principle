@@ -79,3 +79,48 @@ Items 4/6/8 (memory leak / copy drift `所有欄位` / mobile spec coverage) def
 ## Verdict
 
 **SHIP-READY** — pending re-review pass. jest 160/160, PW 14/14, all 5 critical 🟡 items addressed. Next: re-dispatch code-quality reviewer for fix verification.
+
+---
+
+## 2026-05-08 post-ship director re-audit (full 32-PNG cross-viewport sweep)
+
+**Trigger:** User directive 「你必須自己跑完所有裝置、所有尺寸的直接『視覺』驗證」 — comprehensive opus PNG Read across 8 viewports × 4 frames.
+
+### PNG matrix (32/32 verified)
+
+| Frame | Viewports verified |
+|---|---|
+| `gate-ok` | Mobile-360 / iPhone-SE / iPhone-14 / iPhone-15-Pro / iPad / Desktop-1280 / Desktop-1440 / Desktop-2560 |
+| `gate-warn` | all 8 |
+| `gate-error` | all 8 |
+| `gate-loading` | all 8 |
+
+### Cross-viewport observations
+
+- Banner colors verified per state: ok = green, warn = orange, error = red — no drift across viewports.
+- Submit-bar behavior matches `red-blocks` rule:
+  - ok: 繼續 navy CTA visible
+  - warn: 繼續 navy CTA visible (warn allows proceed)
+  - error: 「返回修改」 only — no 繼續, no 帶風險繼續, no simulation override (drill + sim identical)
+- gate-loading: navy spinner + 4-step checklist (active/done states correct).
+- 4 gate-items render per state: green-check / amber-warn / red-X icons aligned to gate-list grid.
+
+### Drifts pending fix (9 transition copy/icon items — Task 21 carry-forward)
+
+The post-ship transition state expansion identified 9 copy/icon drifts during gate state polish (already documented in current Task 21 backlog):
+
+1. warn icon variant
+2. warn title copy
+3. warn sub copy
+4. warn item count
+5. error title copy
+6. error sub copy
+7. error item count
+8. suggestion strong text
+9. ok sub copy
+
+These are all small text/icon variant drifts — none change render structure. Pending fix as part of Task 21.
+
+### Verdict (re-audit)
+
+**SHIP-READY confirmed for current shipped state.** 9 small transition copy/icon drifts queued under Task 21 — minor polish, not user-blocking.
