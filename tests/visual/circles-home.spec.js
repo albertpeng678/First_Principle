@@ -6,8 +6,13 @@ const { test, expect } = require('@playwright/test');
 test.describe('B1 CIRCLES Home', () => {
 
   test.beforeEach(async ({ page }) => {
-    // Stub stats endpoint so renderStats has deterministic counts
+    // Stub stats endpoints so renderStats has deterministic counts
+    // Bug A fix (e01dcc0): guest users hit /api/guest-circles-stats; auth users hit /api/circles-stats
     await page.route('**/api/circles-stats**', (r) => r.fulfill({
+      status: 200, contentType: 'application/json',
+      body: JSON.stringify({ completed: 12, active: 3, weeklyCompleted: 5 })
+    }));
+    await page.route('**/api/guest-circles-stats**', (r) => r.fulfill({
       status: 200, contentType: 'application/json',
       body: JSON.stringify({ completed: 12, active: 3, weeklyCompleted: 5 })
     }));

@@ -963,16 +963,19 @@
     }
 
     // Layer 1: minLength gate — disable submit when any standard field below floor
-    // (Not gated on locked/stale — those are handled below)
+    // (Defer minLength replacement until AFTER locked/stale/saveError swap their button HTML;
+    //  otherwise their regex (which matches a bare data-phase1="submit"> with no attrs) won't fire.)
     var minLengthBlocked = !locked && !stale && computePhase1MinLengthBlocked();
-    if (minLengthBlocked) {
-      html = html.replace(
-        /<button class="btn btn--primary" data-phase1="submit">/,
-        '<button class="btn btn--primary" data-phase1="submit" disabled>'
-      );
-    }
 
-    if (!locked && !stale && !saveError) return html;
+    if (!locked && !stale && !saveError) {
+      if (minLengthBlocked) {
+        html = html.replace(
+          /<button class="btn btn--primary" data-phase1="submit">/,
+          '<button class="btn btn--primary" data-phase1="submit" disabled>'
+        );
+      }
+      return html;
+    }
 
     // 1) inject banner: before first .phase-body OR before .submit-bar (S step has tracking-section before phase-body)
     var bannerHtml = '';
