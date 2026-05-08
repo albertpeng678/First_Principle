@@ -314,3 +314,499 @@ test.describe('Phase 2 Chat — Task A3: Section B bubbles + turn counter', () =
     await expect(page.locator('.bubble--coach .bubble__section .ph-graduation-cap').first()).toBeVisible();
   });
 });
+
+// ─── Task B1: Section C — Streaming SSE + 3-dot bubble ───────────────────────
+
+const SAMPLE_CONVERSATION_3_TURNS = [
+  ...SAMPLE_CONVERSATION_2_TURNS,
+  {
+    userMessage: '那業務上有什麼限制？例如不能改首頁、不能動付費機制？',
+    interviewee: '主要限制是不能動付費訂閱流程，首頁可以改但需要設計審核。',
+    coaching: '很好，已經把業務約束框清楚了。',
+    hint: '可以再問預算和時間 constraint。',
+  },
+];
+
+test.describe('Phase 2 Chat — Task B1: Section C streaming', () => {
+  test('Section C: streaming=true renders 3-dot bubble + disabled input', async ({ page }) => {
+    await mockApis(page);
+    await page.goto('/');
+    await page.waitForSelector('.navbar');
+    await page.evaluate(({ q, conv }) => {
+      Object.assign(window.AppState, {
+        view: 'circles',
+        circlesPhase: 2,
+        circlesSession: { id: 's1' },
+        circlesSelectedQuestion: q,
+        circlesDrillStep: 'C1',
+        circlesConversation: conv,
+        circlesMode: 'drill',
+        circlesPhase2Streaming: true,
+        circlesPhase2StreamingTurn: { userMessage: '那業務有什麼限制？', deltaText: '' },
+      });
+      window.renderApp();
+    }, { q: SAMPLE_QUESTION, conv: SAMPLE_CONVERSATION_2_TURNS });
+
+    // Streaming bubble visible
+    await expect(page.locator('.bubble__streaming')).toBeVisible();
+    // Input placeholder shows waiting message
+    await expect(page.locator('.input-bar__textarea')).toHaveAttribute('placeholder', '等待回應中...');
+    // Send button is disabled
+    await expect(page.locator('.input-bar__send')).toBeDisabled();
+  });
+
+  test('Section C: streaming=true shows user message bubble for current streaming turn', async ({ page }) => {
+    await mockApis(page);
+    await page.goto('/');
+    await page.waitForSelector('.navbar');
+    await page.evaluate(({ q, conv }) => {
+      Object.assign(window.AppState, {
+        view: 'circles',
+        circlesPhase: 2,
+        circlesSession: { id: 's1' },
+        circlesSelectedQuestion: q,
+        circlesDrillStep: 'C1',
+        circlesConversation: conv,
+        circlesMode: 'drill',
+        circlesPhase2Streaming: true,
+        circlesPhase2StreamingTurn: { userMessage: '正在等待的這句話', deltaText: '' },
+      });
+      window.renderApp();
+    }, { q: SAMPLE_QUESTION, conv: SAMPLE_CONVERSATION_2_TURNS });
+
+    // User bubble for streaming turn shows userMessage
+    await expect(page.locator('.bubble--user').last()).toContainText('正在等待的這句話');
+    // Interviewee streaming bubble below
+    await expect(page.locator('.bubble--interviewee').last()).toContainText('');
+    await expect(page.locator('.bubble__streaming')).toBeVisible();
+  });
+
+  test('Section C: error state renders inline error + 重新發送 button', async ({ page }) => {
+    await mockApis(page);
+    await page.goto('/');
+    await page.waitForSelector('.navbar');
+    await page.evaluate(({ q, conv }) => {
+      Object.assign(window.AppState, {
+        view: 'circles',
+        circlesPhase: 2,
+        circlesSession: { id: 's1' },
+        circlesSelectedQuestion: q,
+        circlesDrillStep: 'C1',
+        circlesConversation: conv,
+        circlesMode: 'drill',
+        circlesPhase2Streaming: false,
+        circlesPhase2StreamError: true,
+        circlesPhase2StreamingTurn: { userMessage: '失敗的訊息', deltaText: '' },
+      });
+      window.renderApp();
+    }, { q: SAMPLE_QUESTION, conv: SAMPLE_CONVERSATION_2_TURNS });
+
+    // Error banner visible
+    await expect(page.locator('.phase2-stream-error')).toBeVisible();
+    // 重新發送 button visible
+    await expect(page.locator('[data-phase2="retry"]')).toBeVisible();
+  });
+
+  test('Section C: send button click with message ≥ 5 chars sets streaming=true', async ({ page }) => {
+    await mockApis(page);
+    // Mock the SSE endpoint to hang (never resolve) — just test the state change
+    await page.route('**/api/guest-circles-sessions/**/message', async (route) => {
+      // Return a minimal SSE response that hangs
+      await route.fulfill({
+        status: 200,
+        contentType: 'text/event-stream',
+        body: '',
+      });
+    });
+    await page.goto('/');
+    await page.waitForSelector('.navbar');
+    await page.evaluate(({ q }) => {
+      Object.assign(window.AppState, {
+        view: 'circles',
+        circlesPhase: 2,
+        circlesSession: { id: 'sess-001' },
+        circlesSelectedQuestion: q,
+        circlesDrillStep: 'C1',
+        circlesConversation: [],
+        circlesMode: 'drill',
+        circlesPhase2Streaming: false,
+      });
+      window.renderApp();
+    }, { q: SAMPLE_QUESTION });
+
+    // Type a message and send
+    const textarea = page.locator('.input-bar__textarea');
+    await textarea.fill('這是一個超過五字的問題');
+    await page.locator('.input-bar__send').click();
+
+    // After click, streaming should become true (re-render shows streaming UI)
+    await expect(page.locator('.bubble__streaming')).toBeVisible({ timeout: 3000 });
+  });
+
+  test('Section C: send button disabled when message < 5 chars', async ({ page }) => {
+    await mockApis(page);
+    await page.goto('/');
+    await page.waitForSelector('.navbar');
+    await page.evaluate(({ q }) => {
+      Object.assign(window.AppState, {
+        view: 'circles',
+        circlesPhase: 2,
+        circlesSession: { id: 'sess-001' },
+        circlesSelectedQuestion: q,
+        circlesDrillStep: 'C1',
+        circlesConversation: [],
+        circlesMode: 'drill',
+        circlesPhase2Streaming: false,
+      });
+      window.renderApp();
+    }, { q: SAMPLE_QUESTION });
+
+    // Type short message
+    const textarea = page.locator('.input-bar__textarea');
+    await textarea.fill('嗯');
+    // Check for inline tip (at least 5 chars)
+    await expect(page.locator('.phase2-min-tip')).toBeVisible();
+  });
+});
+
+// ─── Task B2: Section D — turns ≥ 3 submit pill ──────────────────────────────
+
+test.describe('Phase 2 Chat — Task B2: Section D submit pill', () => {
+  test('Section D: turns < 3 → no submit pill', async ({ page }) => {
+    await mockApis(page);
+    await page.goto('/');
+    await page.waitForSelector('.navbar');
+    await page.evaluate(({ q, conv }) => {
+      Object.assign(window.AppState, {
+        view: 'circles',
+        circlesPhase: 2,
+        circlesSession: { id: 's1' },
+        circlesSelectedQuestion: q,
+        circlesDrillStep: 'C1',
+        circlesConversation: conv,
+        circlesMode: 'drill',
+        circlesPhase2Streaming: false,
+        circlesPhase2ConclusionMode: false,
+      });
+      window.renderApp();
+    }, { q: SAMPLE_QUESTION, conv: SAMPLE_CONVERSATION_2_TURNS });
+
+    await expect(page.locator('.submit-row__btn')).toHaveCount(0);
+  });
+
+  test('Section D: turns ≥ 3 → submit pill visible', async ({ page }) => {
+    await mockApis(page);
+    await page.goto('/');
+    await page.waitForSelector('.navbar');
+    await page.evaluate(({ q, conv }) => {
+      Object.assign(window.AppState, {
+        view: 'circles',
+        circlesPhase: 2,
+        circlesSession: { id: 's1' },
+        circlesSelectedQuestion: q,
+        circlesDrillStep: 'C1',
+        circlesConversation: conv,
+        circlesMode: 'drill',
+        circlesPhase2Streaming: false,
+        circlesPhase2ConclusionMode: false,
+      });
+      window.renderApp();
+    }, { q: SAMPLE_QUESTION, conv: SAMPLE_CONVERSATION_3_TURNS });
+
+    await expect(page.locator('.submit-row__btn')).toBeVisible();
+    await expect(page.locator('.submit-row__btn')).toContainText('對話足夠了，提交這個步驟');
+  });
+
+  test('Section D: click pill → circlesPhase2ConclusionMode = true', async ({ page }) => {
+    await mockApis(page);
+    await page.goto('/');
+    await page.waitForSelector('.navbar');
+    await page.evaluate(({ q, conv }) => {
+      Object.assign(window.AppState, {
+        view: 'circles',
+        circlesPhase: 2,
+        circlesSession: { id: 's1' },
+        circlesSelectedQuestion: q,
+        circlesDrillStep: 'C1',
+        circlesConversation: conv,
+        circlesMode: 'drill',
+        circlesPhase2Streaming: false,
+        circlesPhase2ConclusionMode: false,
+      });
+      window.renderApp();
+    }, { q: SAMPLE_QUESTION, conv: SAMPLE_CONVERSATION_3_TURNS });
+
+    await page.locator('.submit-row__btn').click();
+
+    const conclusionMode = await page.evaluate(() => window.AppState.circlesPhase2ConclusionMode);
+    expect(conclusionMode).toBe(true);
+    // conclusion-box should now be visible
+    await expect(page.locator('.conclusion-box')).toBeVisible();
+  });
+});
+
+// ─── Task B3: Section E — Conclusion box ─────────────────────────────────────
+
+test.describe('Phase 2 Chat — Task B3: Section E conclusion-box', () => {
+  test('Section E: conclusion mode dims chat + shows conclusion-box with 2px navy border', async ({ page }) => {
+    await mockApis(page);
+    await page.goto('/');
+    await page.waitForSelector('.navbar');
+    await page.evaluate(({ q, conv }) => {
+      Object.assign(window.AppState, {
+        view: 'circles',
+        circlesPhase: 2,
+        circlesSession: { id: 's1' },
+        circlesSelectedQuestion: q,
+        circlesDrillStep: 'C1',
+        circlesConversation: conv,
+        circlesMode: 'drill',
+        circlesPhase2Streaming: false,
+        circlesPhase2ConclusionMode: true,
+        circlesPhase2ConclusionDraft: '',
+        circlesPhase2ExampleOpen: false,
+      });
+      window.renderApp();
+    }, { q: SAMPLE_QUESTION, conv: SAMPLE_CONVERSATION_3_TURNS });
+
+    // conclusion-box visible
+    await expect(page.locator('.conclusion-box')).toBeVisible();
+    // chat content dimmed
+    await expect(page.locator('.chat-content.chat-content--dimmed')).toBeVisible();
+    // title present
+    await expect(page.locator('.conclusion-box__title')).toContainText('整理你這個步驟確認了什麼');
+    // rt-field visible
+    await expect(page.locator('.conclusion-box .rt-field')).toBeVisible();
+    // conclusion-actions visible
+    await expect(page.locator('.conclusion-actions')).toBeVisible();
+    // back button
+    await expect(page.locator('.conclusion-actions__back')).toContainText('繼續對話');
+    // submit button
+    await expect(page.locator('.conclusion-actions__submit')).toBeVisible();
+  });
+
+  test('Section E: example toggle expand/collapse', async ({ page }) => {
+    await mockApis(page);
+    await page.goto('/');
+    await page.waitForSelector('.navbar');
+    await page.evaluate(({ q, conv }) => {
+      Object.assign(window.AppState, {
+        view: 'circles',
+        circlesPhase: 2,
+        circlesSession: { id: 's1' },
+        circlesSelectedQuestion: q,
+        circlesDrillStep: 'C1',
+        circlesConversation: conv,
+        circlesMode: 'drill',
+        circlesPhase2Streaming: false,
+        circlesPhase2ConclusionMode: true,
+        circlesPhase2ConclusionDraft: '',
+        circlesPhase2ExampleOpen: false,
+      });
+      window.renderApp();
+    }, { q: SAMPLE_QUESTION, conv: SAMPLE_CONVERSATION_3_TURNS });
+
+    // Initially collapsed
+    await expect(page.locator('.conclusion-box__example')).not.toHaveClass(/is-open/);
+    // Click toggle
+    await page.locator('.conclusion-box__example-head').click();
+    // Should be open
+    await expect(page.locator('.conclusion-box__example')).toHaveClass(/is-open/);
+  });
+
+  test('Section E: textarea below 30 chars → 確認提交 disabled', async ({ page }) => {
+    await mockApis(page);
+    await page.goto('/');
+    await page.waitForSelector('.navbar');
+    await page.evaluate(({ q, conv }) => {
+      Object.assign(window.AppState, {
+        view: 'circles',
+        circlesPhase: 2,
+        circlesSession: { id: 's1' },
+        circlesSelectedQuestion: q,
+        circlesDrillStep: 'C1',
+        circlesConversation: conv,
+        circlesMode: 'drill',
+        circlesPhase2Streaming: false,
+        circlesPhase2ConclusionMode: true,
+        circlesPhase2ConclusionDraft: '太短',
+      });
+      window.renderApp();
+    }, { q: SAMPLE_QUESTION, conv: SAMPLE_CONVERSATION_3_TURNS });
+
+    await expect(page.locator('.conclusion-actions__submit')).toBeDisabled();
+  });
+
+  test('Section E: textarea ≥ 30 chars → 確認提交 enabled', async ({ page }) => {
+    await mockApis(page);
+    await page.goto('/');
+    await page.waitForSelector('.navbar');
+    await page.evaluate(({ q, conv }) => {
+      Object.assign(window.AppState, {
+        view: 'circles',
+        circlesPhase: 2,
+        circlesSession: { id: 's1' },
+        circlesSelectedQuestion: q,
+        circlesDrillStep: 'C1',
+        circlesConversation: conv,
+        circlesMode: 'drill',
+        circlesPhase2Streaming: false,
+        circlesPhase2ConclusionMode: true,
+        circlesPhase2ConclusionDraft: '這是超過三十個字的結論文字，應該要能夠啟用提交按鈕了，好的。',
+      });
+      window.renderApp();
+    }, { q: SAMPLE_QUESTION, conv: SAMPLE_CONVERSATION_3_TURNS });
+
+    await expect(page.locator('.conclusion-actions__submit')).toBeEnabled();
+  });
+
+  test('Section E: 繼續對話 click → conclusionMode false + draft preserved', async ({ page }) => {
+    await mockApis(page);
+    await page.goto('/');
+    await page.waitForSelector('.navbar');
+    const DRAFT = '這是一段保存的草稿文字，應該在切回對話後保留。';
+    await page.evaluate(({ q, conv, draft }) => {
+      Object.assign(window.AppState, {
+        view: 'circles',
+        circlesPhase: 2,
+        circlesSession: { id: 's1' },
+        circlesSelectedQuestion: q,
+        circlesDrillStep: 'C1',
+        circlesConversation: conv,
+        circlesMode: 'drill',
+        circlesPhase2Streaming: false,
+        circlesPhase2ConclusionMode: true,
+        circlesPhase2ConclusionDraft: draft,
+      });
+      window.renderApp();
+    }, { q: SAMPLE_QUESTION, conv: SAMPLE_CONVERSATION_3_TURNS, draft: DRAFT });
+
+    await page.locator('.conclusion-actions__back').click();
+
+    const state = await page.evaluate(() => ({
+      conclusionMode: window.AppState.circlesPhase2ConclusionMode,
+      draft: window.AppState.circlesPhase2ConclusionDraft,
+    }));
+    expect(state.conclusionMode).toBe(false);
+    expect(state.draft).toBe(DRAFT);
+  });
+
+  test('Section E: 確認提交 click → POST conclusion-check ok + evaluate-step ok → circlesPhase=3', async ({ page }) => {
+    await mockApis(page);
+    await page.route('**/api/guest-circles-sessions/**/conclusion-check', r =>
+      r.fulfill({ status: 200, contentType: 'application/json', body: JSON.stringify({ ok: true }) })
+    );
+    await page.route('**/api/guest-circles-sessions/**/evaluate-step', r =>
+      r.fulfill({ status: 200, contentType: 'application/json', body: JSON.stringify({ totalScore: 78, dimensions: [] }) })
+    );
+    await page.goto('/');
+    await page.waitForSelector('.navbar');
+    await page.evaluate(({ q, conv }) => {
+      Object.assign(window.AppState, {
+        view: 'circles',
+        circlesPhase: 2,
+        circlesSession: { id: 'sess-456' },
+        circlesSelectedQuestion: q,
+        circlesDrillStep: 'C1',
+        circlesConversation: conv,
+        circlesMode: 'drill',
+        circlesPhase2Streaming: false,
+        circlesPhase2ConclusionMode: true,
+        circlesPhase2ConclusionDraft: '問題範圍：聚焦免費 podcast 用戶的 7 日留存；時間框架：H2 內看到 18%→25% 提升；業務約束：不動付費機制。',
+      });
+      window.renderApp();
+    }, { q: SAMPLE_QUESTION, conv: SAMPLE_CONVERSATION_3_TURNS });
+
+    await page.locator('.conclusion-actions__submit').click();
+
+    // Wait for phase transition
+    await page.waitForTimeout(500);
+    const phase = await page.evaluate(() => window.AppState.circlesPhase);
+    expect(phase).toBe(3);
+  });
+});
+
+// ─── Task B4: Section F — Locked banner + 2-button row ───────────────────────
+
+test.describe('Phase 2 Chat — Task B4: Section F locked', () => {
+  test('Section F: locked step → banner visible + 2-button row + no input', async ({ page }) => {
+    await mockApis(page);
+    await page.goto('/');
+    await page.waitForSelector('.navbar');
+    await page.evaluate(({ q, conv }) => {
+      Object.assign(window.AppState, {
+        view: 'circles',
+        circlesPhase: 2,
+        circlesSession: { id: 's1' },
+        circlesSelectedQuestion: q,
+        circlesDrillStep: 'C1',
+        circlesConversation: conv,
+        circlesMode: 'drill',
+        circlesPhase2Streaming: false,
+        circlesPhase2ConclusionMode: false,
+        // step is scored → locked
+        circlesStepScores: { C1: { totalScore: 78, dimensions: [] } },
+      });
+      window.renderApp();
+    }, { q: SAMPLE_QUESTION, conv: SAMPLE_CONVERSATION_3_TURNS });
+
+    // locked-banner visible
+    await expect(page.locator('.locked-banner')).toBeVisible();
+    await expect(page.locator('.locked-banner')).toContainText('此步驟已評分');
+    // no input bar
+    await expect(page.locator('.input-bar')).toHaveCount(0);
+    // 2-button row
+    await expect(page.locator('[data-phase2="go-phase1"]')).toBeVisible();
+    await expect(page.locator('[data-phase2="go-phase3"]')).toBeVisible();
+  });
+
+  test('Section F: 上一步（看框架）click → circlesPhase = 1', async ({ page }) => {
+    await mockApis(page);
+    await page.goto('/');
+    await page.waitForSelector('.navbar');
+    await page.evaluate(({ q, conv }) => {
+      Object.assign(window.AppState, {
+        view: 'circles',
+        circlesPhase: 2,
+        circlesSession: { id: 's1' },
+        circlesSelectedQuestion: q,
+        circlesDrillStep: 'C1',
+        circlesConversation: conv,
+        circlesMode: 'drill',
+        circlesPhase2Streaming: false,
+        circlesPhase2ConclusionMode: false,
+        circlesStepScores: { C1: { totalScore: 78, dimensions: [] } },
+      });
+      window.renderApp();
+    }, { q: SAMPLE_QUESTION, conv: SAMPLE_CONVERSATION_3_TURNS });
+
+    await page.locator('[data-phase2="go-phase1"]').click();
+    const phase = await page.evaluate(() => window.AppState.circlesPhase);
+    expect(phase).toBe(1);
+  });
+
+  test('Section F: 回評分 click → circlesPhase = 3', async ({ page }) => {
+    await mockApis(page);
+    await page.goto('/');
+    await page.waitForSelector('.navbar');
+    await page.evaluate(({ q, conv }) => {
+      Object.assign(window.AppState, {
+        view: 'circles',
+        circlesPhase: 2,
+        circlesSession: { id: 's1' },
+        circlesSelectedQuestion: q,
+        circlesDrillStep: 'C1',
+        circlesConversation: conv,
+        circlesMode: 'drill',
+        circlesPhase2Streaming: false,
+        circlesPhase2ConclusionMode: false,
+        circlesStepScores: { C1: { totalScore: 78, dimensions: [] } },
+      });
+      window.renderApp();
+    }, { q: SAMPLE_QUESTION, conv: SAMPLE_CONVERSATION_3_TURNS });
+
+    await page.locator('[data-phase2="go-phase3"]').click();
+    const phase = await page.evaluate(() => window.AppState.circlesPhase);
+    expect(phase).toBe(3);
+  });
+});

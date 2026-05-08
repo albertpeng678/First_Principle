@@ -97,6 +97,7 @@
     // Plan B Phase 2 Chat additions (mockup 05)
     circlesPhase2Streaming: false,
     circlesPhase2StreamingTurn: null,        // { userMessage, deltaText }
+    circlesPhase2StreamError: false,         // true when SSE fails → show 重新發送
     circlesPhase2ConclusionMode: false,
     circlesPhase2ConclusionDraft: '',
     circlesPhase2ExampleOpen: false,
@@ -242,32 +243,132 @@
     C1: {
       title: 'C · 澄清情境',
       icebreakerText: '先與被訪談者澄清題目本身的邊界 — 具體在問什麼問題、涵蓋哪些功能或場景、有哪些業務限制不能突破。',
+      conclusionSub: '說明問題範圍、時間框架、業務約束，以及你確認或待確認的假設。',
+      conclusionSubDesktop: '說明問題範圍、時間框架、業務約束，以及你確認或待確認的假設。建議 80-120 字。',
+      conclusionPlaceholder: '針對這題，整理你澄清的問題範圍、時間框架、業務約束，以及假設確認...',
+      conclusionExample: '問題範圍：聚焦免費 podcast 用戶在新用戶階段的 7 日留存（不含付費 / 不含音樂類）；時間框架：H2 內看到 18%→25% 提升；業務約束：不可動付費機制 / 預算彈性 / Q3 上線為 stretch；假設：留存提升受 onboarding 動線影響大於內容推薦演算法本身（待 Phase 2 驗證）。',
     },
     I: {
       title: 'I · 定義用戶',
       icebreakerText: '了解目標用戶 — 他們是誰、什麼情境下會使用、目前如何解決問題。',
+      conclusionSub: '描述目標用戶輪廓、使用情境、現有解法。',
+      conclusionSubDesktop: '描述目標用戶輪廓、使用情境、現有解法。建議 60-100 字。',
+      conclusionPlaceholder: '針對這題，整理目標用戶是誰、使用情境、現有解法...',
+      conclusionExample: '目標用戶：30 天內新註冊但未養成每週收聽習慣的免費用戶（DAU < 2）；情境：零碎時間（通勤 / 睡前）想找內容消磨時間但不知從何開始；現有解法：主要靠首頁推薦但點擊率低（CTR 約 8%）。',
     },
     R: {
       title: 'R · 發掘需求',
       icebreakerText: '挖掘真實需求 — 痛點頻率、嚴重度、現有方案的不足。',
+      conclusionSub: '列出關鍵需求並標註頻率/嚴重度/現有方案不足。',
+      conclusionSubDesktop: '列出關鍵需求並標註頻率/嚴重度/現有方案不足。建議 60-100 字。',
+      conclusionPlaceholder: '針對這題，整理關鍵需求 + 頻率/嚴重度/現有方案的不足...',
+      conclusionExample: '最高頻痛點（每週觸發）：找不到感興趣的 podcast 主題（嚴重度高）；次高頻：訂閱的節目更新不穩定導致失聯（嚴重度中）；現有方案不足：首頁推薦過廣、缺乏基於收聽歷史的個人化。',
     },
     C2: {
       title: 'C · 優先排序',
       icebreakerText: '排序需求 — RICE / ICE / 戰略對齊。',
+      conclusionSub: '排序 + RICE/ICE/戰略對齊摘要。',
+      conclusionSubDesktop: '排序 + RICE/ICE/戰略對齊摘要。建議 60-100 字。',
+      conclusionPlaceholder: '針對這題，整理排序邏輯 + 主要依據...',
+      conclusionExample: '最優先（RICE 最高）：onboarding 個人化主題選擇流程（觸及全部新用戶 × 留存影響大 × 3 週可上線）；暫緩：下載離線功能（僅付費用戶受益，不符合本次範圍）。',
     },
     L: {
       title: 'L · 提出方案',
       icebreakerText: '列方案 — 至少 2-3 個獨立方案，包含明顯不同 mechanism。',
+      conclusionSub: '列方案 + 每個方案核心 mechanism。',
+      conclusionSubDesktop: '列方案 + 每個方案核心 mechanism。建議 80-120 字。',
+      conclusionPlaceholder: '針對這題，整理你提出的方案 + 各方案核心機制...',
+      conclusionExample: '方案 A：onboarding 主題問卷 — 新用戶首次開啟立即填 3 個興趣，系統生成專屬播放清單（mechanism：興趣信號冷啟動）；方案 B：社群跟隨機制 — 邀請好友或 influencer 的收聽清單（mechanism：social proof）；方案 C：週報推播 — 每週一封「你可能感興趣的 5 集」（mechanism：主動觸達）。',
     },
     E: {
       title: 'E · 評估取捨',
       icebreakerText: '評估每個方案 — 優點 / 缺點 / 風險 / 成功指標。',
+      conclusionSub: '每個方案的優缺點/風險/成功指標摘要。',
+      conclusionSubDesktop: '每個方案的優缺點/風險/成功指標摘要。建議 80-120 字。',
+      conclusionPlaceholder: '針對這題，整理每個方案的優點、缺點、風險與成功指標...',
+      conclusionExample: '方案 A 優：冷啟動立即有個人化；缺：問卷完成率可能低；風險：回答不誠實導致推薦偏差；成功指標：7 日留存 +7pp。方案 B 優：病毒擴散；缺：需要社群網路密度；風險：好友圈品味差異大。',
     },
     S: {
       title: 'S · 總結追蹤',
       icebreakerText: '總結並設定 tracking — 主推薦方案 + 4 維度追蹤。',
+      conclusionSub: '主推薦方案 + 4 維度追蹤摘要。',
+      conclusionSubDesktop: '主推薦方案 + 4 維度追蹤摘要。建議 80-120 字。',
+      conclusionPlaceholder: '針對這題，整理主推薦方案 + 4 維度 tracking...',
+      conclusionExample: '主推方案 A（onboarding 問卷）× 方案 C（週報推播）搭配。追蹤：(1) 留存 — 7 日 18%→25%；(2) 參與 — 問卷完成率 > 60%；(3) 轉化 — 播放清單播放率；(4) 健康 — podcast 取消訂閱率不上升。',
     },
   };
+
+  // ── renderPhase2QchipHtml (shared helper) ─────────────────────────────────
+  function renderPhase2QchipHtml(q) {
+    var company = q.company || '';
+    var product = q.product || '';
+    var isDesktop = window.innerWidth >= 1024;
+    var isDrill = AppState.circlesMode === 'drill';
+    var companyBase = escHtml(company) + (product ? ' · ' + escHtml(product) : '');
+    var qType = q.question_type === 'improve' ? '改善題' : q.question_type === 'strategy' ? '策略題' : '設計題';
+    var companyDisplay;
+    if (isDesktop) {
+      companyDisplay = companyBase + '（Drill mode · ' + escHtml(qType) + '）';
+    } else if (window.innerWidth >= 768) {
+      companyDisplay = companyBase + (isDrill ? '（Drill · ' + escHtml(qType) + '）' : '');
+    } else {
+      companyDisplay = companyBase;
+    }
+    var qTitle = q.problem_statement || '';
+    return '<button class="qchip" data-phase2="qchip">'
+      + '<span class="qchip__icon"><i class="ph ph-bookmark-simple"></i></span>'
+      + '<div class="qchip__main">'
+      + '<div class="qchip__company">' + companyDisplay + '</div>'
+      + '<div class="qchip__title">' + escHtml(qTitle) + '</div>'
+      + '</div>'
+      + '<i class="ph ph-caret-right qchip__caret"></i>'
+      + '</button>';
+  }
+
+  // ── renderConclusionBox (Section E — mockup 05 line 1553-1575) ───────────
+  function renderConclusionBox(stepKey) {
+    var cfg = PHASE2_STEP_CONFIG[stepKey] || PHASE2_STEP_CONFIG.C1;
+    var draft = AppState.circlesPhase2ConclusionDraft || '';
+    var isOpen = AppState.circlesPhase2ExampleOpen;
+    var isDesktop = window.innerWidth >= 1024;
+    var subText = isDesktop ? escHtml(cfg.conclusionSubDesktop) : escHtml(cfg.conclusionSub);
+    var meetsFloor = draft.trim().length >= 30;
+
+    var exampleHtml = '<div class="conclusion-box__example' + (isOpen ? ' is-open' : '') + '">'
+      + '<div class="conclusion-box__example-head" data-phase2="example-toggle">'
+      + '<span class="conclusion-box__example-label">範例（不同題目）</span>'
+      + '<span class="conclusion-box__example-toggle">' + (isOpen ? '收起 ▴' : '展開 ▾') + '</span>'
+      + '</div>'
+      + '<div class="conclusion-box__example-body">' + escHtml(cfg.conclusionExample) + '</div>'
+      + '</div>';
+
+    var rtFieldHtml = '<div class="rt-field">'
+      + '<div class="rt-toolbar">'
+      + '<button class="rt-tbtn" aria-label="粗體"><strong>B</strong></button>'
+      + '<button class="rt-tbtn" aria-label="列點"><i class="ph ph-list-bullets"></i></button>'
+      + '<button class="rt-tbtn" aria-label="增加縮排"><i class="ph ph-text-indent"></i></button>'
+      + '<button class="rt-tbtn" aria-label="減少縮排"><i class="ph ph-text-outdent"></i></button>'
+      + '</div>'
+      + '<textarea class="rt-textarea" rows="4" placeholder="' + escHtml(cfg.conclusionPlaceholder) + '" data-phase2="conclusion-textarea">'
+      + escHtml(draft)
+      + '</textarea>'
+      + '</div>';
+
+    var actionsHtml = '<div class="conclusion-actions">'
+      + '<button class="conclusion-actions__back" data-phase2="conclusion-back"><i class="ph ph-arrow-left"></i>繼續對話</button>'
+      + '<button class="conclusion-actions__submit' + (meetsFloor ? '' : ' is-disabled') + '"'
+      + (meetsFloor ? '' : ' disabled')
+      + ' data-phase2="conclusion-submit">確認提交</button>'
+      + '</div>';
+
+    return '<div class="conclusion-box">'
+      + '<div class="conclusion-box__title">整理你這個步驟確認了什麼</div>'
+      + '<div class="conclusion-box__sub">' + subText + '</div>'
+      + exampleHtml
+      + rtFieldHtml
+      + actionsHtml
+      + '</div>';
+  }
 
   function renderCirclesPhase2() {
     var q = AppState.circlesSelectedQuestion || {};
@@ -278,13 +379,73 @@
     var conversation = AppState.circlesConversation || [];
     var turnCount = conversation.length;
 
+    // ── Section F: locked (current step already scored) ──────────────────────
+    var stepScores = AppState.circlesStepScores || {};
+    if (stepScores[stepKey] && stepScores[stepKey].totalScore != null) {
+      return renderCirclesPhase2Locked(q, stepKey, phase2Cfg, conversation, stepScores[stepKey]);
+    }
+
     // ── progress bar (always visible in Phase 2 — mockup 05 shows it) ──
     var progressHtml = renderProgressBar(stepKey);
+    var qchipHtml = renderPhase2QchipHtml(q);
 
-    // ── phase-head ──
-    // Desktop: show meta with turn count + 建議 5-10 輪; tablet: show turn count; mobile: none
+    // ── Section E: conclusion mode (dim chat + conclusion box) ───────────────
+    if (AppState.circlesPhase2ConclusionMode) {
+      var metaHtmlE = '<div class="phase-head__meta">'
+        + '<span class="phase-head__meta-extra--tablet-plus">' + turnCount + ' 輪 · 邊界已釐清</span>'
+        + '<span class="phase-head__meta-sep phase-head__meta-extra--desktop">·</span>'
+        + '<span class="phase-head__meta-extra--desktop">填完即進評分</span>'
+        + '</div>';
+      var phaseHeadHtmlE = '<div class="phase-head">'
+        + '<span class="phase-head__num">2</span>'
+        + '<div class="phase-head__main">'
+        + '<div class="phase-head__eyebrow">Phase 2 · 整理結論</div>'
+        + '<div class="phase-head__title">' + escHtml(phase2Cfg.title) + '</div>'
+        + '</div>'
+        + metaHtmlE
+        + '</div>';
+
+      // chat body dimmed
+      var bubblesHtmlE = conversation.map(function (turn, idx) {
+        return renderChatBubble(turn, idx);
+      }).join('');
+      var dimmedChatHtml = '<div class="chat-content chat-content--dimmed">'
+        + '<div class="chat-body">' + bubblesHtmlE + '</div>'
+        + '</div>';
+
+      return '<div data-view="circles" data-phase="2">'
+        + progressHtml
+        + phaseHeadHtmlE
+        + qchipHtml
+        + dimmedChatHtml
+        + renderConclusionBox(stepKey)
+        + '</div>';
+    }
+
+    // ── Section C: streaming state ────────────────────────────────────────────
+    var streaming = AppState.circlesPhase2Streaming;
+    var streamTurn = AppState.circlesPhase2StreamingTurn;
+    var streamError = AppState.circlesPhase2StreamError;
+
+    // ── phase-head meta ──────────────────────────────────────────────────────
     var metaHtml;
-    if (turnCount > 0) {
+    if (streaming) {
+      metaHtml = '<div class="phase-head__meta">'
+        + '<span class="phase-head__meta-extra--tablet-plus">' + (turnCount + 1) + ' 輪 · 等待回應中</span>'
+        + '<span class="phase-head__meta-sep phase-head__meta-extra--desktop">·</span>'
+        + '<span class="phase-head__meta-extra--desktop">已用 ' + Math.max(1, Math.round(turnCount * 3)) + ' 分鐘</span>'
+        + '<span class="phase-head__meta-sep phase-head__meta-extra--desktop">·</span>'
+        + '<span class="phase-head__meta-extra--desktop">等待被訪談者回應...</span>'
+        + '</div>';
+    } else if (turnCount >= 3) {
+      metaHtml = '<div class="phase-head__meta">'
+        + '<span class="phase-head__meta-extra--tablet-plus">' + turnCount + ' 輪 · 可結束</span>'
+        + '<span class="phase-head__meta-sep phase-head__meta-extra--desktop">·</span>'
+        + '<span class="phase-head__meta-extra--desktop">已用 ' + Math.max(1, Math.round(turnCount * 3)) + ' 分鐘</span>'
+        + '<span class="phase-head__meta-sep phase-head__meta-extra--desktop">·</span>'
+        + '<span class="phase-head__meta-extra--desktop">邊界已釐清，可進結論</span>'
+        + '</div>';
+    } else if (turnCount > 0) {
       metaHtml = '<div class="phase-head__meta">'
         + '<span class="phase-head__meta-extra--tablet-plus">' + turnCount + ' 輪對話</span>'
         + '<span class="phase-head__meta-sep phase-head__meta-extra--desktop">·</span>'
@@ -297,6 +458,7 @@
         + '<span class="phase-head__meta-extra--desktop">建議 5-10 輪對話 · 隨時可暫停</span>'
         + '</div>';
     }
+
     var phaseHeadHtml = '<div class="phase-head">'
       + '<span class="phase-head__num">2</span>'
       + '<div class="phase-head__main">'
@@ -306,37 +468,9 @@
       + metaHtml
       + '</div>';
 
-    // ── qchip (compact — bookmark icon, reusing .qchip class LOCKED from mockup 03) ──
-    var company = q.company || '';
-    var product = q.product || '';
-    var isDesktop = window.innerWidth >= 1024;
-    var isDrill = AppState.circlesMode === 'drill';
-    var companyBase = escHtml(company) + (product ? ' · ' + escHtml(product) : '');
-    var qType = q.question_type === 'improve' ? '改善題' : q.question_type === 'strategy' ? '策略題' : '設計題';
-    var diff = q.difficulty === 'high' ? '高' : q.difficulty === 'low' ? '低' : '中';
-    var companyDisplay;
-    if (isDesktop) {
-      companyDisplay = companyBase + '（Drill mode · ' + escHtml(qType) + '）';
-    } else if (window.innerWidth >= 768) {
-      // tablet: company + product + (Drill · Design)
-      companyDisplay = companyBase + (isDrill ? '（Drill · ' + escHtml(qType) + '）' : '');
-    } else {
-      // mobile: company · product only
-      companyDisplay = companyBase;
-    }
-    var qTitle = q.problem_statement || '';
-    var qchipHtml = '<button class="qchip" data-phase2="qchip">'
-      + '<span class="qchip__icon"><i class="ph ph-bookmark-simple"></i></span>'
-      + '<div class="qchip__main">'
-      + '<div class="qchip__company">' + companyDisplay + '</div>'
-      + '<div class="qchip__title">' + escHtml(qTitle) + '</div>'
-      + '</div>'
-      + '<i class="ph ph-caret-right qchip__caret"></i>'
-      + '</button>';
-
-    // ── chat-body: icebreaker (empty) OR bubbles (has turns) ──
+    // ── chat-body ─────────────────────────────────────────────────────────────
     var chatBodyHtml;
-    if (turnCount === 0) {
+    if (turnCount === 0 && !streaming) {
       // Section A: empty + icebreaker
       chatBodyHtml = '<div class="chat-content">'
         + '<div class="chat-body">'
@@ -347,26 +481,69 @@
         + '</div>'
         + '</div>';
     } else {
-      // Section B: conversation bubbles
+      // Section B/C/D: conversation bubbles
       var bubblesHtml = conversation.map(function (turn, idx) {
         return renderChatBubble(turn, idx);
       }).join('');
+
+      // Section C: append streaming bubble at end
+      if (streaming && streamTurn) {
+        var userStreamBubble = '<div class="bubble bubble--user">' + escHtml(streamTurn.userMessage || '') + '</div>';
+        var streamingBubble = '<div class="bubble bubble--interviewee">'
+          + '<div class="bubble__section">被訪談者</div>'
+          + '<span class="bubble__streaming"><span></span><span></span><span></span></span>'
+          + '</div>';
+        bubblesHtml += userStreamBubble + streamingBubble;
+      }
+
+      // Section C error: inline error banner
+      var errorBannerHtml = '';
+      if (streamError && streamTurn) {
+        errorBannerHtml = '<div class="phase2-stream-error">'
+          + '<i class="ph ph-warning-circle"></i>'
+          + '<span>回應失敗，請重新發送。</span>'
+          + '<button class="phase2-stream-error__retry" data-phase2="retry">重新發送</button>'
+          + '</div>';
+      }
+
       chatBodyHtml = '<div class="chat-content">'
         + '<div class="chat-body">' + bubblesHtml + '</div>'
+        + errorBannerHtml
         + '</div>';
     }
 
-    // ── back button row (mockup 05 line 712-714: btn--ghost 上一步) ──
+    // ── back button row ──────────────────────────────────────────────────────
     var backRowHtml = '<div class="phase-back-row">'
       + '<button class="btn btn--ghost" data-phase2="back"><i class="ph ph-arrow-left"></i>上一步</button>'
       + '</div>';
 
-    // ── input bar (Section A/B: always visible) ──
+    // ── input bar ─────────────────────────────────────────────────────────────
+    // Section D: turns ≥ 3 + not streaming → show submit pill above input
+    var suggestHtml = '';
+    if (turnCount >= 3 && !streaming && !AppState.circlesPhase2ConclusionMode) {
+      suggestHtml = '<div class="input-bar__suggest">'
+        + '<button class="submit-row__btn" data-phase2="conclude">對話足夠了，提交這個步驟 <i class="ph ph-arrow-right"></i></button>'
+        + '</div>';
+    }
+
+    // Section C: disabled input placeholder changes
+    var minTipHtml = '';
+    var inputDisabled = streaming ? ' disabled' : '';
+    var inputPlaceholder = streaming ? '等待回應中...' : '輸入你的問題...';
+    var sendDisabled = streaming ? ' disabled' : '';
+    var sendClass = streaming ? ' is-locked' : '';
+
     var inputBarHtml = '<div class="input-bar">'
+      + suggestHtml
       + '<div class="input-bar__row">'
-      + '<textarea class="input-bar__textarea" placeholder="輸入你的問題..." rows="1" data-phase2="message-input"></textarea>'
-      + '<button class="input-bar__send" aria-label="送出" data-phase2="send"><i class="ph ph-paper-plane-tilt"></i></button>'
+      + '<textarea class="input-bar__textarea" placeholder="' + inputPlaceholder + '" rows="1"'
+      + inputDisabled
+      + ' data-phase2="message-input"></textarea>'
+      + '<button class="input-bar__send' + sendClass + '" aria-label="' + (streaming ? '等待中' : '送出') + '"'
+      + sendDisabled
+      + ' data-phase2="send"><i class="ph ph-paper-plane-tilt"></i></button>'
       + '</div>'
+      + '<div class="phase2-min-tip" style="display:none" data-phase2="min-tip">至少 5 字</div>'
       + '</div>';
 
     return '<div data-view="circles" data-phase="2">'
@@ -379,6 +556,66 @@
       + '</div>';
   }
   window.renderCirclesPhase2 = renderCirclesPhase2;
+
+  // ── renderCirclesPhase2Locked (Section F — mockup 05 line 1740-1943) ──────
+  function renderCirclesPhase2Locked(q, stepKey, phase2Cfg, conversation, scoreData) {
+    var progressHtml = renderProgressBar(stepKey);
+    var qchipHtml = renderPhase2QchipHtml(q);
+    var totalScore = scoreData && scoreData.totalScore;
+
+    // phase-head with 已評分 suffix
+    var metaHtml = '<div class="phase-head__meta">'
+      + '<span class="phase-head__meta-extra--tablet-plus">' + (conversation.length) + ' 輪對話 · 已評分</span>'
+      + (totalScore != null
+        ? '<span class="phase-head__meta-sep phase-head__meta-extra--desktop">·</span>'
+          + '<span class="phase-head__meta-extra--desktop">當次得分 ' + totalScore + '</span>'
+        : '')
+      + '</div>';
+    var phaseHeadHtml = '<div class="phase-head">'
+      + '<span class="phase-head__num">2</span>'
+      + '<div class="phase-head__main">'
+      + '<div class="phase-head__eyebrow">Phase 2 · 對話練習（已評分）</div>'
+      + '<div class="phase-head__title">' + escHtml(phase2Cfg.title) + '</div>'
+      + '</div>'
+      + metaHtml
+      + '</div>';
+
+    // locked-banner (mockup 05 line 1767-1770)
+    var isDesktop = window.innerWidth >= 1024;
+    var lockedBody = '<strong>此步驟已評分。</strong>對話保留供 review，無法繼續'
+      + (isDesktop ? ' — 想重練請從首頁選同類題目重新開始。' : '。');
+    var lockedBannerHtml = '<div class="locked-banner">'
+      + '<i class="ph ph-lock-simple"></i>'
+      + '<div>' + lockedBody + '</div>'
+      + '</div>';
+
+    // chat body — read-only (no editing affordance)
+    var bubblesHtml = conversation.map(function (turn, idx) {
+      return renderChatBubble(turn, idx);
+    }).join('');
+    var chatBodyHtml = '<div class="chat-content">'
+      + '<div class="chat-body">' + bubblesHtml + '</div>'
+      + '</div>';
+
+    // 2-button submit-bar (mockup 05 line 1792-1799)
+    var submitBarHtml = '<div class="submit-bar">'
+      + '<div class="submit-bar__left">'
+      + '<button class="btn btn--ghost" data-phase2="go-phase1"><i class="ph ph-arrow-left"></i>上一步（看框架）</button>'
+      + '</div>'
+      + '<div class="submit-bar__right">'
+      + '<button class="btn btn--primary" data-phase2="go-phase3">回評分</button>'
+      + '</div>'
+      + '</div>';
+
+    return '<div data-view="circles" data-phase="2">'
+      + progressHtml
+      + phaseHeadHtml
+      + lockedBannerHtml
+      + qchipHtml
+      + chatBodyHtml
+      + submitBarHtml
+      + '</div>';
+  }
 
   // ── renderChatBubble (Phase 2 — 3 role types per turn) ───────────────────
   function renderChatBubble(turn, idx) {
@@ -409,6 +646,102 @@
     return userBubble + intervieweeBubble + coachBubble;
   }
   window.renderChatBubble = renderChatBubble;
+
+  // ── streamCirclesMessage (SSE wire-up — Task B1) ──────────────────────────
+  // Uses fetch + ReadableStream (not EventSource) to allow POST body + auth headers.
+  window._phase2AbortController = null;
+
+  async function streamCirclesMessage(userMessage) {
+    var sessionId = AppState.circlesSession && AppState.circlesSession.id;
+    if (!sessionId) return;
+
+    // Abort any previous in-flight stream
+    if (window._phase2AbortController) {
+      try { window._phase2AbortController.abort(); } catch (_) {}
+    }
+    var ctrl = new AbortController();
+    window._phase2AbortController = ctrl;
+
+    var basePath = AppState.accessToken
+      ? '/api/circles-sessions/'
+      : '/api/guest-circles-sessions/';
+    var url = basePath + sessionId + '/message';
+
+    var headers = { 'Content-Type': 'application/json' };
+    if (AppState.accessToken) headers['Authorization'] = 'Bearer ' + AppState.accessToken;
+    else if (AppState.guestId) headers['X-Guest-ID'] = AppState.guestId;
+
+    try {
+      var response = await fetch(url, {
+        method: 'POST',
+        headers: headers,
+        body: JSON.stringify({ userMessage: userMessage }),
+        signal: ctrl.signal,
+      });
+
+      if (!response.ok) {
+        throw new Error('HTTP ' + response.status);
+      }
+
+      var reader = response.body.getReader();
+      var decoder = new TextDecoder();
+      var buffer = '';
+
+      while (true) {
+        var result = await reader.read();
+        if (result.done) break;
+
+        buffer += decoder.decode(result.value, { stream: true });
+
+        // Process complete SSE lines from buffer
+        var lines = buffer.split('\n');
+        buffer = lines.pop(); // keep incomplete last line
+
+        for (var i = 0; i < lines.length; i++) {
+          var line = lines[i].trim();
+          if (!line.startsWith('data: ')) continue;
+          var jsonStr = line.slice(6);
+          if (!jsonStr) continue;
+
+          var parsed;
+          try { parsed = JSON.parse(jsonStr); } catch (_) { continue; }
+
+          if (parsed.delta !== undefined) {
+            // accumulate delta text
+            if (!AppState.circlesPhase2StreamingTurn) {
+              AppState.circlesPhase2StreamingTurn = { userMessage: userMessage, deltaText: '' };
+            }
+            AppState.circlesPhase2StreamingTurn.deltaText = (AppState.circlesPhase2StreamingTurn.deltaText || '') + parsed.delta;
+            // no re-render on each delta for performance — wait for done
+          } else if (parsed.done && parsed.turn) {
+            // SSE complete — push turn to conversation
+            AppState.circlesConversation = (AppState.circlesConversation || []).concat([parsed.turn]);
+            AppState.circlesPhase2Streaming = false;
+            AppState.circlesPhase2StreamingTurn = null;
+            AppState.circlesPhase2StreamError = false;
+            render();
+            // Scroll chat body to bottom
+            setTimeout(function () {
+              var chatBody = document.querySelector('.chat-body');
+              if (chatBody) chatBody.lastElementChild && chatBody.lastElementChild.scrollIntoView({ block: 'end' });
+            }, 50);
+            return;
+          } else if (parsed.error !== undefined) {
+            AppState.circlesPhase2Streaming = false;
+            AppState.circlesPhase2StreamError = true;
+            render();
+            return;
+          }
+        }
+      }
+    } catch (e) {
+      if (e.name === 'AbortError') return; // user navigated away
+      AppState.circlesPhase2Streaming = false;
+      AppState.circlesPhase2StreamError = true;
+      render();
+    }
+  }
+  window.streamCirclesMessage = streamCirclesMessage;
 
   function renderNSM() {
     if (AppState.nsmStep === 1) return renderNSMStep1();
@@ -3359,13 +3692,214 @@
       });
     });
 
-    // ── back button ──
+    // ── back button (go to Phase 1) ──
     var backBtn = document.querySelector('[data-phase2="back"]');
     if (backBtn) {
       backBtn.addEventListener('click', function () {
-        // go back to Phase 1 (form)
         AppState.circlesPhase = 1;
         render();
+      });
+    }
+
+    // ── Section F: locked nav buttons ──
+    var goPhase1Btn = document.querySelector('[data-phase2="go-phase1"]');
+    if (goPhase1Btn) {
+      goPhase1Btn.addEventListener('click', function () {
+        AppState.circlesPhase = 1;
+        render();
+      });
+    }
+    var goPhase3Btn = document.querySelector('[data-phase2="go-phase3"]');
+    if (goPhase3Btn) {
+      goPhase3Btn.addEventListener('click', function () {
+        AppState.circlesPhase = 3;
+        render();
+      });
+    }
+
+    // ── Section D: conclude pill ──
+    var concludeBtn = document.querySelector('[data-phase2="conclude"]');
+    if (concludeBtn) {
+      concludeBtn.addEventListener('click', function () {
+        AppState.circlesPhase2ConclusionMode = true;
+        AppState.circlesPhase2ExampleOpen = window.innerWidth >= 768; // tablet+ default open
+        render();
+      });
+    }
+
+    // ── Section E: example toggle ──
+    var exampleHead = document.querySelector('[data-phase2="example-toggle"]');
+    if (exampleHead) {
+      exampleHead.addEventListener('click', function () {
+        AppState.circlesPhase2ExampleOpen = !AppState.circlesPhase2ExampleOpen;
+        render();
+      });
+    }
+
+    // ── Section E: conclusion textarea — persist draft + update submit btn ──
+    var conclusionTextarea = document.querySelector('[data-phase2="conclusion-textarea"]');
+    if (conclusionTextarea) {
+      conclusionTextarea.addEventListener('input', function () {
+        var val = conclusionTextarea.value;
+        AppState.circlesPhase2ConclusionDraft = val;
+        // Update submit button enabled state without full re-render
+        var submitBtn = document.querySelector('.conclusion-actions__submit');
+        if (submitBtn) {
+          var meetsFloor = val.trim().length >= 30;
+          if (meetsFloor) {
+            submitBtn.disabled = false;
+            submitBtn.classList.remove('is-disabled');
+          } else {
+            submitBtn.disabled = true;
+            submitBtn.classList.add('is-disabled');
+          }
+        }
+        // Persist to localStorage for crash recovery
+        var sessionId = AppState.circlesSession && AppState.circlesSession.id;
+        var stepKey = AppState.circlesMode === 'drill'
+          ? (AppState.circlesDrillStep || 'C1')
+          : (['C1', 'I', 'R', 'C2', 'L', 'E', 'S'][AppState.circlesSimStep || 0] || 'C1');
+        if (sessionId) {
+          try {
+            localStorage.setItem('pmdrill:phase2:conclusion:' + sessionId + ':' + stepKey, val);
+          } catch (_) {}
+        }
+      });
+    }
+
+    // ── Section E: back to conversation ──
+    var conclusionBackBtn = document.querySelector('[data-phase2="conclusion-back"]');
+    if (conclusionBackBtn) {
+      conclusionBackBtn.addEventListener('click', function () {
+        // preserve draft — do not clear circlesPhase2ConclusionDraft
+        AppState.circlesPhase2ConclusionMode = false;
+        render();
+      });
+    }
+
+    // ── Section E: confirm submit → POST conclusion-check → evaluate-step ──
+    var conclusionSubmitBtn = document.querySelector('[data-phase2="conclusion-submit"]');
+    if (conclusionSubmitBtn) {
+      conclusionSubmitBtn.addEventListener('click', async function () {
+        if (conclusionSubmitBtn.disabled || conclusionSubmitBtn.classList.contains('is-disabled')) return;
+        var draft = AppState.circlesPhase2ConclusionDraft || '';
+        if (draft.trim().length < 30) return;
+
+        var sessionId = AppState.circlesSession && AppState.circlesSession.id;
+        if (!sessionId) return;
+
+        var basePath = AppState.accessToken ? '/api/circles-sessions/' : '/api/guest-circles-sessions/';
+        var headers = { 'Content-Type': 'application/json' };
+        if (AppState.accessToken) headers['Authorization'] = 'Bearer ' + AppState.accessToken;
+        else if (AppState.guestId) headers['X-Guest-ID'] = AppState.guestId;
+
+        // Disable button during submit
+        conclusionSubmitBtn.disabled = true;
+        conclusionSubmitBtn.classList.add('is-disabled');
+
+        try {
+          // Step 1: conclusion-check
+          var checkRes = await fetch(basePath + sessionId + '/conclusion-check', {
+            method: 'POST',
+            headers: headers,
+            body: JSON.stringify({ conclusionText: draft }),
+          });
+          var checkData = await checkRes.json().catch(function () { return {}; });
+
+          // On ok (or if ok field is absent but no error), proceed to evaluate
+          if (checkRes.ok && (checkData.ok !== false)) {
+            // Step 2: evaluate-step
+            var evalRes = await fetch(basePath + sessionId + '/evaluate-step', {
+              method: 'POST',
+              headers: headers,
+              body: '{}',
+            });
+            if (evalRes.ok) {
+              var evalData = await evalRes.json().catch(function () { return {}; });
+              // Store score result
+              var stepKey = AppState.circlesMode === 'drill'
+                ? (AppState.circlesDrillStep || 'C1')
+                : (['C1', 'I', 'R', 'C2', 'L', 'E', 'S'][AppState.circlesSimStep || 0] || 'C1');
+              if (!AppState.circlesStepScores) AppState.circlesStepScores = {};
+              AppState.circlesStepScores[stepKey] = evalData;
+              AppState.circlesScoreResult = evalData;
+              // Clear conclusion draft + mode
+              AppState.circlesPhase2ConclusionDraft = '';
+              AppState.circlesPhase2ConclusionMode = false;
+              // Advance to Phase 3
+              AppState.circlesPhase = 3;
+              render();
+            } else {
+              // evaluate-step failed — re-enable button
+              conclusionSubmitBtn.disabled = false;
+              conclusionSubmitBtn.classList.remove('is-disabled');
+            }
+          } else {
+            // conclusion-check warn/error — log and re-enable (future improvement: inline guidance)
+            console.warn('[Phase 2] conclusion-check returned:', checkData);
+            conclusionSubmitBtn.disabled = false;
+            conclusionSubmitBtn.classList.remove('is-disabled');
+          }
+        } catch (e) {
+          console.error('[Phase 2] conclusion submit error:', e);
+          conclusionSubmitBtn.disabled = false;
+          conclusionSubmitBtn.classList.remove('is-disabled');
+        }
+      });
+    }
+
+    // ── Section C: send button + Enter key ──────────────────────────────────
+    var sendBtn = document.querySelector('[data-phase2="send"]');
+    var messageInput = document.querySelector('[data-phase2="message-input"]');
+    var minTip = document.querySelector('[data-phase2="min-tip"]');
+
+    if (sendBtn && messageInput) {
+      function doSend() {
+        var msg = messageInput.value.trim();
+        if (msg.length < 5) {
+          // show min tip
+          if (minTip) minTip.style.display = '';
+          return;
+        }
+        if (minTip) minTip.style.display = 'none';
+        if (AppState.circlesPhase2Streaming) return;
+
+        // Set streaming state
+        AppState.circlesPhase2Streaming = true;
+        AppState.circlesPhase2StreamError = false;
+        AppState.circlesPhase2StreamingTurn = { userMessage: msg, deltaText: '' };
+        messageInput.value = '';
+        render();
+
+        // Start SSE stream
+        streamCirclesMessage(msg);
+      }
+
+      sendBtn.addEventListener('click', doSend);
+      messageInput.addEventListener('keydown', function (e) {
+        if (e.key === 'Enter' && !e.shiftKey) {
+          e.preventDefault();
+          doSend();
+        }
+      });
+      // Show/hide min-tip as user types
+      messageInput.addEventListener('input', function () {
+        var len = messageInput.value.trim().length;
+        if (minTip) minTip.style.display = len > 0 && len < 5 ? '' : 'none';
+      });
+    }
+
+    // ── Section C: retry button (error state) ────────────────────────────────
+    var retryBtn = document.querySelector('[data-phase2="retry"]');
+    if (retryBtn) {
+      retryBtn.addEventListener('click', function () {
+        var streamTurn = AppState.circlesPhase2StreamingTurn;
+        if (!streamTurn || !streamTurn.userMessage) return;
+        var msg = streamTurn.userMessage;
+        AppState.circlesPhase2Streaming = true;
+        AppState.circlesPhase2StreamError = false;
+        render();
+        streamCirclesMessage(msg);
       });
     }
   }
