@@ -1,0 +1,87 @@
+#!/usr/bin/env bash
+# pre-commit — race regression smoke for draft persistence
+#
+# Triggers ONLY when public/app.js diff touches save/restore/preflight surface.
+# Spins up dev server, runs draft-data-loss-fix + preflight specs on Desktop-1280
+# (~20 sec total). Kills server on exit.
+#
+# Bypass with `git commit --no-verify` if you intentionally need to skip.
+# Install via `npm run setup-hooks` (idempotent symlink to .git/hooks/pre-commit).
+
+set -u
+
+# Skip if public/app.js not staged
+if ! git diff --cached --name-only --diff-filter=ACMR | grep -q "^public/app\.js$"; then
+  exit 0
+fi
+
+# Skip if staged diff doesn't touch the save/restore/preflight code path
+SENTINEL_RE='(triggerSaveCycle|persistDraft|persistBackend|ensureCirclesDraftSession|restoreCirclesPhase1FromSession|loadCirclesSessionFromHistory|preflightDraftSession|circlesFrameworkDraft|circlesPhase1Solutions|qcard-confirm|populateTextareasFromDraft|loadDraftFor)'
+if ! git diff --cached public/app.js | grep -qE "$SENTINEL_RE"; then
+  exit 0
+fi
+
+echo "→ pre-commit: race regression smoke (public/app.js critical path touched)"
+
+PORT=4000
+SERVER_LOG=/tmp/pmdrill-precommit-server.log
+SERVER_PID_FILE=/tmp/pmdrill-precommit-server.pid
+
+# Kill any stale server first
+if [ -f "$SERVER_PID_FILE" ]; then
+  OLD_PID=$(cat "$SERVER_PID_FILE" 2>/dev/null || true)
+  if [ -n "$OLD_PID" ] && kill -0 "$OLD_PID" 2>/dev/null; then
+    kill "$OLD_PID" 2>/dev/null || true
+  fi
+  rm -f "$SERVER_PID_FILE"
+fi
+
+# Start dev server in background
+PORT=$PORT node server.js > "$SERVER_LOG" 2>&1 &
+SERVER_PID=$!
+echo $SERVER_PID > "$SERVER_PID_FILE"
+
+# Always cleanup
+cleanup() {
+  if [ -n "${SERVER_PID:-}" ]; then
+    kill "$SERVER_PID" 2>/dev/null || true
+  fi
+  rm -f "$SERVER_PID_FILE"
+}
+trap cleanup EXIT
+
+# Wait for server ready (max 15 sec)
+READY=0
+for i in $(seq 1 15); do
+  if curl -fs -o /dev/null "http://localhost:$PORT/"; then
+    READY=1
+    break
+  fi
+  sleep 1
+done
+
+if [ $READY -ne 1 ]; then
+  echo "✗ pre-commit: dev server failed to start on port $PORT (see $SERVER_LOG)"
+  exit 1
+fi
+
+# Run target specs Desktop-1280 only (~20 sec)
+PLAYWRIGHT_FORCE_TTY=0 FORCE_COLOR=0 npx playwright test \
+  tests/visual/draft-data-loss-fix.spec.js \
+  tests/visual/preflight-session-creation.spec.js \
+  --config tests/visual/playwright.config.js \
+  --project Desktop-1280 \
+  --reporter=line 2>&1 | tail -12
+
+EXIT=$?
+
+if [ $EXIT -ne 0 ]; then
+  echo ""
+  echo "✗ pre-commit: race regression FAILED."
+  echo "  Investigate before committing — this is the P0 draft data loss surface."
+  echo "  Bypass with --no-verify ONLY if you fully understand the risk."
+  exit 1
+fi
+
+echo "✓ pre-commit: race regression OK"
+exit 0
