@@ -32,9 +32,14 @@ const SAMPLE_CONVERSATION = [
 ];
 
 const VIEWPORTS = [
-  { name: 'mobile', width: 360, height: 900 },
-  { name: 'tablet', width: 768, height: 900 },
-  { name: 'desktop', width: 1280, height: 900 },
+  { name: 'Mobile-360',    width: 360,  height: 900 },
+  { name: 'iPhone-SE',     width: 375,  height: 900 },
+  { name: 'iPhone-14',     width: 390,  height: 900 },
+  { name: 'iPhone-15-Pro', width: 430,  height: 900 },
+  { name: 'iPad',          width: 768,  height: 900 },
+  { name: 'Desktop-1280',  width: 1280, height: 900 },
+  { name: 'Desktop-1440',  width: 1440, height: 900 },
+  { name: 'Desktop-2560',  width: 2560, height: 900 },
 ];
 
 async function mockApis(page) {
