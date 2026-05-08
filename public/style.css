@@ -2594,3 +2594,200 @@ div.rt-textarea[contenteditable="true"] ul li { list-style: disc; }
 .error-wrap__code { font-family: ui-monospace, 'SF Mono', monospace; font-size: var(--t-cap); color: var(--c-ink-4); background: var(--c-bg-soft); padding: 2px 8px; border-radius: var(--r-input); margin-top: var(--s-1); }
 .error-wrap__actions { display: flex; gap: var(--s-2); margin-top: var(--s-4); flex-wrap: wrap; justify-content: center; }
 /* ───── Phase 2 Chat END ───── */
+
+/* ───── Plan B Phase 4 — Final Report (mockup 13) ───── */
+
+/* Report body container */
+.report-body {
+  padding: var(--s-5) var(--s-4);
+  max-width: 920px;
+  margin: 0 auto;
+  width: 100%;
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  gap: var(--s-4);
+}
+@media (min-width: 768px) { .report-body { padding: var(--s-6) var(--s-5); } }
+@media (min-width: 1024px) { .report-body { max-width: 1180px; padding: var(--s-7) var(--s-6); } }
+
+/* Grade card — big score + headline */
+.grade-card {
+  background: var(--c-card);
+  border: 1px solid var(--c-rule);
+  border-radius: var(--r-card);
+  padding: var(--s-7) var(--s-5);
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: var(--s-3);
+  box-shadow: var(--shadow-1);
+}
+.grade-card__score-row {
+  display: flex;
+  align-items: baseline;
+  gap: var(--s-2);
+}
+.grade-card__score-num {
+  font-family: var(--font-serif);
+  font-style: italic;
+  font-size: 88px;
+  color: var(--c-navy);
+  line-height: 1;
+  letter-spacing: -0.02em;
+}
+.grade-card__score-unit {
+  font-size: var(--t-h2);
+  color: var(--c-ink-2);
+  font-weight: 500;
+}
+.grade-card__headline {
+  font-size: var(--t-body);
+  color: var(--c-ink-2);
+  text-align: center;
+  max-width: 480px;
+  line-height: 1.6;
+}
+
+/* Top grid: radar + step-rows (mobile/tablet stack, desktop 2-col) */
+.top-grid {
+  display: flex;
+  flex-direction: column;
+  gap: var(--s-4);
+}
+@media (min-width: 1024px) {
+  .top-grid--desktop {
+    flex-direction: row;
+    align-items: stretch;
+  }
+  .top-grid--desktop > * { flex: 1; min-width: 0; }
+}
+
+/* Panel card */
+.panel-card {
+  background: var(--c-card);
+  border: 1px solid var(--c-rule);
+  border-radius: var(--r-card);
+  padding: var(--s-4);
+  box-shadow: var(--shadow-1);
+}
+.panel-card__title {
+  font-size: var(--t-cap);
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+  color: var(--c-ink-3);
+  font-weight: 600;
+  margin-bottom: var(--s-3);
+  display: flex;
+  align-items: center;
+  gap: var(--s-2);
+}
+.panel-card__title i { color: var(--c-navy); font-size: 14px; }
+
+/* Radar SVG */
+.radar-svg {
+  width: 100%;
+  height: 240px;
+  display: block;
+}
+@media (min-width: 1024px) { .radar-svg { height: 280px; } }
+.radar-svg .axis { stroke: var(--c-rule-bold); stroke-width: 1; }
+.radar-svg .ring { stroke: var(--c-rule); stroke-width: 1; fill: none; }
+.radar-svg .poly { fill: rgba(27,45,92,0.16); stroke: var(--c-navy); stroke-width: 2; }
+.radar-svg .dot { fill: var(--c-navy); }
+.radar-svg .label { font-size: 11px; fill: var(--c-ink-2); font-weight: 500; font-family: var(--font-sans); }
+
+/* Step rows */
+.step-rows__list { display: flex; flex-direction: column; }
+.step-rows__row {
+  padding: var(--s-3) 0;
+  border-bottom: 1px solid var(--c-rule);
+}
+.step-rows__row:last-child { border-bottom: none; }
+.step-rows__head {
+  display: flex;
+  justify-content: space-between;
+  align-items: baseline;
+  gap: var(--s-3);
+  font-size: var(--t-body-sm);
+}
+.step-rows__name { color: var(--c-ink); font-weight: 500; }
+.step-rows__name-key {
+  font-family: var(--font-serif);
+  font-style: italic;
+  color: var(--c-ink-3);
+  margin-right: var(--s-2);
+}
+.step-rows__score {
+  font-family: var(--font-serif);
+  font-style: italic;
+  font-size: 22px;
+  color: var(--c-navy);
+  font-weight: 400;
+  letter-spacing: -0.01em;
+  flex: 0 0 auto;
+}
+.step-rows__score--high { color: var(--c-success); }
+.step-rows__score--mid  { color: var(--c-navy); }
+.step-rows__score--low  { color: var(--c-warn); }
+.step-rows__note {
+  font-size: var(--t-meta);
+  color: var(--c-ink-3);
+  line-height: 1.6;
+  margin-top: var(--s-1);
+  padding-right: 40px;
+}
+
+/* Feedback cards: strengths / improvements / verdict */
+.feedback-card {
+  border-radius: var(--r-card);
+  padding: var(--s-4);
+  border: 1px solid;
+}
+.feedback-card__title {
+  font-size: var(--t-cap);
+  letter-spacing: 0.06em;
+  text-transform: uppercase;
+  font-weight: 600;
+  margin-bottom: var(--s-2);
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+}
+.feedback-card__title i { font-size: 14px; }
+.feedback-card__list {
+  margin: 0;
+  padding-left: var(--s-5);
+  font-size: var(--t-body-sm);
+  color: var(--c-ink-2);
+  line-height: 1.7;
+}
+.feedback-card__list li { margin-bottom: var(--s-1); }
+.feedback-card__list li:last-child { margin-bottom: 0; }
+.feedback-card__text {
+  font-size: var(--t-body-sm);
+  color: var(--c-ink-2);
+  line-height: 1.7;
+}
+
+.feedback-card--strengths { background: rgba(19,122,61,0.05); border-color: rgba(19,122,61,0.25); }
+.feedback-card--strengths .feedback-card__title { color: var(--c-success); }
+
+.feedback-card--improvements { background: rgba(184,92,0,0.05); border-color: rgba(184,92,0,0.25); }
+.feedback-card--improvements .feedback-card__title { color: var(--c-warn); }
+
+.feedback-card--verdict { background: var(--c-navy-lt); border-color: rgba(27,45,92,0.20); }
+.feedback-card--verdict .feedback-card__title { color: var(--c-navy); }
+
+/* Nextsteps card */
+.nextsteps-card {
+  background: var(--c-card);
+  border: 1px solid var(--c-rule);
+  border-radius: var(--r-card);
+  padding: var(--s-3) var(--s-4);
+  font-size: var(--t-body-sm);
+  color: var(--c-ink-2);
+  line-height: 1.7;
+}
+.nextsteps-card__label { font-weight: 600; color: var(--c-navy); margin-right: 4px; }
+/* ───── Plan B Phase 4 END ───── */

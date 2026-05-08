@@ -120,6 +120,10 @@
     circlesPhase3Error: null,            // null | { code: string, message: string }
     circlesPhase3DimExpanded: {},        // Record<dimIndex, boolean> — user manual expand
     circlesPhase3CoachDemoOpen: false,   // coach-demo accordion user toggle
+
+    // Plan B Phase 4 — final report (mockup 13)
+    circlesPhase4LoadingStep: 0,         // 0-3 — Loading checklist current active step
+    circlesPhase4Error: null,            // null | { code: string, message: string }
   };
   window.AppState = AppState;
 
@@ -232,6 +236,9 @@
       if (AppState.circlesPhase === 3 && AppState.circlesSession) {
         return renderCirclesPhase3();
       }
+      if (AppState.circlesPhase === 4 && AppState.circlesSession) {
+        return renderCirclesPhase4();
+      }
       return renderCirclesStub();
     }
     if (v === 'nsm') {
@@ -243,6 +250,364 @@
 
   function renderCirclesStub() {
     return '<div data-view="circles" style="padding:24px;color:var(--c-ink-3);text-align:center">CIRCLES view — 待 Plan B 實作</div>';
+  }
+
+  // ── renderCirclesPhase4 (Plan B Phase 4 — mockup 13) ──────────────────────
+  // Phase 4 state matrix:
+  //   1. circlesPhase4Error set         → Section C Error
+  //   2. !circlesFinalReport            → Section B Loading (auto-trigger POST final-report)
+  //   3. circlesFinalReport exists      → Section A success report
+
+  // Timers for Phase 4 loading state
+  var _phase4LoadingInterval = null;
+  var _phase4LoadingTimeout  = null;
+
+  function clearPhase4Timers() {
+    if (_phase4LoadingInterval) { clearInterval(_phase4LoadingInterval); _phase4LoadingInterval = null; }
+    if (_phase4LoadingTimeout)  { clearTimeout(_phase4LoadingTimeout);   _phase4LoadingTimeout  = null; }
+  }
+
+  function renderPhase4Nav() {
+    var q = AppState.circlesSelectedQuestion || {};
+    var company = escHtml(q.company || '');
+    var product = escHtml(q.product  || '');
+    var sub = company && product ? (company + ' · ' + product) : (company || product);
+    return '<div class="circles-nav">'
+      + '<button class="circles-nav__back" data-phase4="nav-back" aria-label="返回"><i class="ph ph-arrow-left"></i></button>'
+      + '<div class="circles-nav__main">'
+      + '<div class="circles-nav__title">模擬面試總結報告</div>'
+      + (sub ? '<div class="circles-nav__sub">' + escHtml(sub) + '</div>' : '')
+      + '</div>'
+      + '</div>';
+  }
+
+  // Radar SVG helper — 7-axis heptagon from circlesStepScores
+  function renderPhase4RadarSVG() {
+    var stepKeys  = ['C1', 'I', 'R', 'C2', 'L', 'E', 'S'];
+    var stepLabels = { C1: 'C 澄清', I: 'I 用戶', R: 'R 需求', C2: 'C2 排序', L: 'L 方案', E: 'E 取捨', S: 'S 總結' };
+    var scores = AppState.circlesStepScores || {};
+
+    // SVG geometry — centre (120, 110), max-radius 92
+    var cx = 120, cy = 110, maxR = 92;
+    // For ring reference polygon we use a 5-sided ring drawn as 2 rings; simplified: just draw 3 concentric
+    // 7 axes at angle: -π/2 + 2π*i/7 starting from top (C1 = top)
+    var n = 7;
+    var angles = stepKeys.map(function (_, i) {
+      return -Math.PI / 2 + (2 * Math.PI * i) / n;
+    });
+
+    // Outer vertices (maxR)
+    var outerPts = angles.map(function (a) {
+      return { x: cx + maxR * Math.cos(a), y: cy + maxR * Math.sin(a) };
+    });
+
+    // Data polygon — scale score/100 within maxR
+    var dataPts = stepKeys.map(function (k, i) {
+      var score = (scores[k] && scores[k].totalScore != null) ? scores[k].totalScore : 0;
+      var r = maxR * Math.max(0, Math.min(100, score)) / 100;
+      return { x: cx + r * Math.cos(angles[i]), y: cy + r * Math.sin(angles[i]) };
+    });
+
+    function ptsStr(pts) {
+      return pts.map(function (p) { return p.x.toFixed(1) + ',' + p.y.toFixed(1); }).join(' ');
+    }
+
+    // Rings at 25/50/75% of maxR
+    var rings = [0.75, 0.5, 0.25].map(function (frac) {
+      var rPts = angles.map(function (a) {
+        var r = maxR * frac;
+        return { x: cx + r * Math.cos(a), y: cy + r * Math.sin(a) };
+      });
+      return '<polygon class="ring" points="' + ptsStr(rPts) + '"/>';
+    }).join('');
+
+    // Axis lines
+    var axes = outerPts.map(function (p) {
+      return '<line class="axis" x1="' + cx + '" y1="' + cy + '" x2="' + p.x.toFixed(1) + '" y2="' + p.y.toFixed(1) + '"/>';
+    }).join('');
+
+    // Labels — positioned just beyond outerPts with anchor logic
+    var labelOffset = 20;
+    var labels = stepKeys.map(function (k, i) {
+      var a = angles[i];
+      var lx = cx + (maxR + labelOffset) * Math.cos(a);
+      var ly = cy + (maxR + labelOffset) * Math.sin(a);
+      // text-anchor: if near left → end, near right → start, else middle
+      var anchor = Math.cos(a) < -0.3 ? 'end' : (Math.cos(a) > 0.3 ? 'start' : 'middle');
+      // vertical adjust: top labels shift up, bottom labels shift down
+      var dy = Math.sin(a) < -0.3 ? 0 : (Math.sin(a) > 0.3 ? 12 : 4);
+      return '<text class="label" x="' + lx.toFixed(1) + '" y="' + (ly + dy).toFixed(1) + '" text-anchor="' + anchor + '">'
+        + escHtml(stepLabels[k]) + '</text>';
+    }).join('');
+
+    // Data dots
+    var dots = dataPts.map(function (p) {
+      return '<circle class="dot" cx="' + p.x.toFixed(1) + '" cy="' + p.y.toFixed(1) + '" r="3"/>';
+    }).join('');
+
+    return '<svg class="radar-svg" viewBox="0 0 240 240" preserveAspectRatio="xMidYMid meet" role="img" aria-label="七步驟雷達圖">'
+      + rings
+      + axes
+      + '<polygon class="poly" points="' + ptsStr(dataPts) + '"/>'
+      + dots
+      + labels
+      + '</svg>';
+  }
+
+  function renderPhase4Loading() {
+    var steps = [
+      '彙整七步驟資料',
+      '計算總分與評等',
+      '生成 7-axis 雷達圖',
+      '整理改進建議',
+    ];
+    var currentStep = AppState.circlesPhase4LoadingStep || 0;
+    var stepHtml = steps.map(function (label, idx) {
+      var cls, icon;
+      if (idx < currentStep) {
+        cls = 'loading-step is-done';
+        icon = '<i class="ph ph-check-circle"></i>';
+      } else if (idx === currentStep) {
+        cls = 'loading-step is-active';
+        icon = '<i class="ph ph-circle-notch"></i>';
+      } else {
+        cls = 'loading-step is-pending';
+        icon = '<i class="ph ph-circle"></i>';
+      }
+      return '<div class="' + cls + '"><span class="loading-step__icon">' + icon + '</span>' + escHtml(label) + '</div>';
+    }).join('');
+
+    return '<div data-view="circles" data-phase="4">'
+      + renderPhase4Nav()
+      + '<div class="loading-wrap">'
+      + '<div class="loading-spinner"></div>'
+      + '<div class="loading-title">生成總結報告中</div>'
+      + '<div class="loading-sub">七步框架評分整合中，預計 30-60 秒</div>'
+      + '<div class="loading-checklist">' + stepHtml + '</div>'
+      + '</div>'
+      + '</div>';
+  }
+
+  function renderPhase4Error() {
+    var err = AppState.circlesPhase4Error || {};
+    var code = err.code || 'REPORT_API_ERROR';
+    var subCopy;
+    if (code === 'REPORT_API_ERROR') {
+      subCopy = '總結報告 API 暫時不可用，你的七步驟評分已自動保存。請稍後重試或回首頁挑下一題。';
+    } else if (code === 'REPORT_TIMEOUT') {
+      subCopy = '總結報告生成超時，七步驟評分已自動保存。請稍後重試。';
+    } else if (code === 'REPORT_PARSE_ERROR') {
+      subCopy = '教練回應格式異常，請重試。';
+    } else {
+      subCopy = '報告生成發生錯誤，請重試。';
+    }
+    return '<div data-view="circles" data-phase="4">'
+      + renderPhase4Nav()
+      + '<div class="error-wrap">'
+      + '<div class="error-wrap__icon"><i class="ph-fill ph-cloud-warning"></i></div>'
+      + '<div class="error-wrap__title">報告生成失敗</div>'
+      + '<div class="error-wrap__sub">' + escHtml(subCopy) + '</div>'
+      + '<code class="error-wrap__code">' + escHtml(code) + '</code>'
+      + '<div class="error-wrap__actions">'
+      + '<button class="btn btn--ghost" data-phase4="go-home"><i class="ph ph-house"></i>回首頁</button>'
+      + '<button class="btn btn--primary" data-phase4="retry"><i class="ph ph-arrow-clockwise"></i>重試</button>'
+      + '</div>'
+      + '</div>'
+      + '</div>';
+  }
+
+  function renderPhase4Success() {
+    var report = AppState.circlesFinalReport || {};
+    var stepScores = AppState.circlesStepScores || {};
+    var q = AppState.circlesSelectedQuestion || {};
+
+    // Step rows config
+    var stepOrder  = ['C1', 'I', 'R', 'C2', 'L', 'E', 'S'];
+    var stepConfig = [
+      { key: 'C1',  letterKey: 'C',  title: '澄清' },
+      { key: 'I',   letterKey: 'I',  title: '用戶' },
+      { key: 'R',   letterKey: 'R',  title: '需求' },
+      { key: 'C2',  letterKey: 'C2', title: '排序' },
+      { key: 'L',   letterKey: 'L',  title: '方案' },
+      { key: 'E',   letterKey: 'E',  title: '取捨' },
+      { key: 'S',   letterKey: 'S',  title: '總結' },
+    ];
+
+    // ── Grade card ──────────────────────────────────────────────────────────
+    var overallScore = report.overallScore != null ? report.overallScore : '—';
+    var headline = report.headline || '';
+    var gradeCardHtml = '<div class="grade-card">'
+      + '<div class="grade-card__score-row">'
+      + '<span class="grade-card__score-num">' + escHtml(String(overallScore)) + '</span>'
+      + '<span class="grade-card__score-unit">分</span>'
+      + '</div>'
+      + (headline ? '<div class="grade-card__headline">' + escHtml(headline) + '</div>' : '')
+      + '</div>';
+
+    // ── Radar panel ─────────────────────────────────────────────────────────
+    var radarHtml = '<div class="panel-card">'
+      + '<div class="panel-card__title"><i class="ph ph-radio-button"></i>各步驟雷達圖</div>'
+      + renderPhase4RadarSVG()
+      + '</div>';
+
+    // ── Step rows panel ──────────────────────────────────────────────────────
+    var stepRowsHtml = '<div class="step-rows__list">';
+    stepConfig.forEach(function (sc) {
+      var sd = stepScores[sc.key] || {};
+      var score = sd.totalScore != null ? Math.round(sd.totalScore) : null;
+      var scoreCls = score == null ? '' : (score >= 80 ? ' step-rows__score--high' : (score <= 69 ? ' step-rows__score--low' : ' step-rows__score--mid'));
+      var scoreStr = score != null ? String(score) : '—';
+      // commentary: use highlight from phase 3 score
+      var commentary = sd.highlight || '';
+      stepRowsHtml += '<div class="step-rows__row">'
+        + '<div class="step-rows__head">'
+        + '<span class="step-rows__name"><span class="step-rows__name-key">' + escHtml(sc.letterKey) + '</span>' + escHtml(sc.title) + '</span>'
+        + '<span class="step-rows__score' + scoreCls + '">' + escHtml(scoreStr) + '</span>'
+        + '</div>'
+        + (commentary ? '<div class="step-rows__note">' + escHtml(commentary) + '</div>' : '')
+        + '</div>';
+    });
+    stepRowsHtml += '</div>';
+
+    var stepRowsPanelHtml = '<div class="panel-card">'
+      + '<div class="panel-card__title"><i class="ph ph-list-numbers"></i>各步驟分數（明細）</div>'
+      + stepRowsHtml
+      + '</div>';
+
+    // Desktop 2-col: top-grid + top-grid--desktop modifier on desktop
+    var isDesktop = window.innerWidth >= 1024;
+    var topGridCls = 'top-grid' + (isDesktop ? ' top-grid--desktop' : '');
+    var topGridHtml = '<div class="' + topGridCls + '">' + radarHtml + stepRowsPanelHtml + '</div>';
+
+    // ── Feedback cards ───────────────────────────────────────────────────────
+    var strengths = Array.isArray(report.strengths) ? report.strengths : [];
+    var improvements = Array.isArray(report.improvements) ? report.improvements : [];
+    var coachVerdict = report.coachVerdict || '';
+    var nextSteps = report.nextSteps || '';
+
+    var strengthsHtml = strengths.length > 0
+      ? '<div class="feedback-card feedback-card--strengths">'
+        + '<div class="feedback-card__title"><i class="ph-fill ph-check-circle"></i>表現優秀</div>'
+        + '<ul class="feedback-card__list">'
+        + strengths.map(function (s) { return '<li>' + escHtml(s) + '</li>'; }).join('')
+        + '</ul></div>'
+      : '';
+
+    var improvementsHtml = improvements.length > 0
+      ? '<div class="feedback-card feedback-card--improvements">'
+        + '<div class="feedback-card__title"><i class="ph-fill ph-warning-circle"></i>需要改進</div>'
+        + '<ul class="feedback-card__list">'
+        + improvements.map(function (s) { return '<li>' + escHtml(s) + '</li>'; }).join('')
+        + '</ul></div>'
+      : '';
+
+    var verdictHtml = coachVerdict
+      ? '<div class="feedback-card feedback-card--verdict">'
+        + '<div class="feedback-card__title"><i class="ph-fill ph-graduation-cap"></i>教練總評</div>'
+        + '<p class="feedback-card__text">' + escHtml(coachVerdict) + '</p>'
+        + '</div>'
+      : '';
+
+    var nextStepsHtml = nextSteps
+      ? '<div class="nextsteps-card"><span class="nextsteps-card__label">建議下一步：</span>' + escHtml(nextSteps) + '</div>'
+      : '';
+
+    // ── Report body ──────────────────────────────────────────────────────────
+    var reportBodyHtml = '<div class="report-body">'
+      + gradeCardHtml
+      + topGridHtml
+      + strengthsHtml
+      + improvementsHtml
+      + verdictHtml
+      + nextStepsHtml
+      + '</div>';
+
+    // ── Submit bar ───────────────────────────────────────────────────────────
+    var submitBarHtml = '<div class="submit-bar">'
+      + '<div class="submit-bar__left"><button class="btn btn--ghost btn--icon" data-phase4="go-home"><i class="ph ph-house"></i></button></div>'
+      + '<div class="submit-bar__right">'
+      + '<button class="btn btn--ghost" data-phase4="export-png"><i class="ph ph-download-simple"></i>匯出 PNG</button>'
+      + '<button class="btn btn--primary" data-phase4="retry-question"><i class="ph ph-shuffle"></i>再練一題</button>'
+      + '</div>'
+      + '</div>';
+
+    return '<div data-view="circles" data-phase="4">'
+      + renderPhase4Nav()
+      + reportBodyHtml
+      + submitBarHtml
+      + '</div>';
+  }
+
+  // _phase4FinalReportFired exposed on AppState._phase4FinalReportFired for testability
+  function getPhase4Fired() { return AppState._phase4FinalReportFired || false; }
+  function setPhase4Fired(v) { AppState._phase4FinalReportFired = v; }
+
+  function renderCirclesPhase4() {
+    if (AppState.circlesPhase4Error) {
+      clearPhase4Timers();
+      return renderPhase4Error();
+    }
+    if (!AppState.circlesFinalReport) {
+      // Auto-fire POST final-report exactly once per Phase 4 entry
+      if (!getPhase4Fired()) {
+        setPhase4Fired(true);
+        triggerFinalReport();
+      }
+      // Start loading timers if not already running
+      if (!_phase4LoadingInterval) {
+        _phase4LoadingInterval = setInterval(function () {
+          if (AppState.circlesPhase4LoadingStep < 3) {
+            AppState.circlesPhase4LoadingStep++;
+            render();
+          }
+        }, 7000);
+      }
+      if (!_phase4LoadingTimeout) {
+        _phase4LoadingTimeout = setTimeout(function () {
+          clearPhase4Timers();
+          AppState.circlesPhase4Error = { code: 'REPORT_TIMEOUT', message: '總結報告生成超時' };
+          render();
+        }, 60000);
+      }
+      return renderPhase4Loading();
+    }
+    clearPhase4Timers();
+    return renderPhase4Success();
+  }
+
+  async function triggerFinalReport() {
+    var sessionId = AppState.circlesSession && AppState.circlesSession.id;
+    if (!sessionId) {
+      AppState.circlesPhase4Error = { code: 'REPORT_API_ERROR', message: 'no session' };
+      render();
+      return;
+    }
+    var basePath = AppState.accessToken
+      ? '/api/circles-sessions/'
+      : '/api/guest-circles-sessions/';
+    try {
+      var res = await window.apiFetch(basePath + sessionId + '/final-report', {
+        method: 'POST',
+        body: '{}',
+      });
+      if (res.ok) {
+        var data = await res.json();
+        AppState.circlesFinalReport = data;
+        clearPhase4Timers();
+        render();
+      } else {
+        var errData = await res.json().catch(function () { return {}; });
+        var errCode = errData.code || 'REPORT_API_ERROR';
+        clearPhase4Timers();
+        AppState.circlesPhase4Error = { code: errCode, message: errData.error || 'API error' };
+        render();
+      }
+    } catch (e) {
+      if (e && e.code === 'SESSION_EXPIRED') return;
+      clearPhase4Timers();
+      AppState.circlesPhase4Error = { code: 'REPORT_API_ERROR', message: e.message || 'network error' };
+      render();
+    }
   }
 
   // ── renderCirclesPhase2 (Plan B Phase 2 — mockup 05) ──────────────────────
@@ -1200,6 +1565,11 @@
     AppState.circlesPhase3DimExpanded = {};
     AppState.circlesPhase3CoachDemoOpen = false;
     AppState._phase3CoachDemoInitialized = false;
+    // Phase 4 state reset
+    AppState.circlesPhase4Error = null;
+    AppState.circlesPhase4LoadingStep = 0;
+    clearPhase4Timers();
+    setPhase4Fired(false);
   }
 
   function bindNavbar() {
@@ -4138,6 +4508,66 @@
     }
     if (AppState.view === 'circles' && AppState.circlesPhase === 3) {
       bindCirclesPhase3();
+    }
+    if (AppState.view === 'circles' && AppState.circlesPhase === 4) {
+      bindCirclesPhase4();
+    }
+  }
+
+  // ── bindCirclesPhase4 (Plan B Phase 4 — mockup 13) ───────────────────────
+  function bindCirclesPhase4() {
+    // nav-back
+    var navBackBtn = document.querySelector('[data-phase4="nav-back"]');
+    if (navBackBtn) {
+      navBackBtn.addEventListener('click', function () {
+        clearPhase4Timers();
+        // Go back to Phase 3 score (sim), or home
+        AppState.circlesPhase = AppState.circlesScoreResult ? 3 : 1;
+        render();
+      });
+    }
+
+    // go-home
+    document.querySelectorAll('[data-phase4="go-home"]').forEach(function (btn) {
+      btn.addEventListener('click', function () {
+        clearPhase4Timers();
+        resetCirclesToHome();
+        AppState.view = 'circles';
+        render();
+      });
+    });
+
+    // retry
+    var retryBtn = document.querySelector('[data-phase4="retry"]');
+    if (retryBtn) {
+      retryBtn.addEventListener('click', function () {
+        clearPhase4Timers();
+        AppState.circlesPhase4Error = null;
+        AppState.circlesPhase4LoadingStep = 0;
+        AppState.circlesFinalReport = null;
+        setPhase4Fired(false);
+        render();
+      });
+    }
+
+    // retry-question (再練一題 — go home, reshuffle)
+    var retryQBtn = document.querySelector('[data-phase4="retry-question"]');
+    if (retryQBtn) {
+      retryQBtn.addEventListener('click', function () {
+        clearPhase4Timers();
+        resetCirclesToHome();
+        AppState.view = 'circles';
+        AppState.circlesDisplayedQuestions = [];
+        render();
+      });
+    }
+
+    // export-png (stub)
+    var exportBtn = document.querySelector('[data-phase4="export-png"]');
+    if (exportBtn) {
+      exportBtn.addEventListener('click', function () {
+        console.log('export PNG TBD');
+      });
     }
   }
 
