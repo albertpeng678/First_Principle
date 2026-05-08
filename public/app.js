@@ -4839,8 +4839,31 @@
 
   // ── bindCirclesPhase1 (Plan B SB3 — mockup 03 Section A interactions) ────
   var _phase1CharDebounce = null;
+  // P1 永久解：track per-qid in-flight pre-flight to dedupe rapid re-renders.
+  // Module-scope (not AppState) to avoid leaking into save payload / restore shape.
+  var _phase1PreflightInFlightForQid = null;
 
   function bindCirclesPhase1() {
+    // ── PRE-FLIGHT: ensure backend session exists at Phase 1 mount, before any
+    // user input. Closes the saveCycle race window permanently — by the time
+    // user types, session.id is already set. Idempotent on backend (POST /draft
+    // dedups on (user|guest, qid, mode, drillStep)). De-duped here per-qid so
+    // rapid re-renders don't pile up requests; switching question allows a new
+    // fire for the new qid. Skipped when session already exists (restored or
+    // q-card-confirm matched a pool item).
+    (function preflightDraftSession() {
+      if (AppState.circlesSession && AppState.circlesSession.id) return;
+      var qid = AppState.circlesSelectedQuestion && AppState.circlesSelectedQuestion.id;
+      if (!qid) return;
+      if (_phase1PreflightInFlightForQid === qid) return;
+      _phase1PreflightInFlightForQid = qid;
+      ensureCirclesDraftSession()
+        .catch(function () { /* network error — local cache covers offline */ })
+        .finally(function () {
+          if (_phase1PreflightInFlightForQid === qid) _phase1PreflightInFlightForQid = null;
+        });
+    })();
+
     // ── restore textareas from circlesFrameworkDraft (after render, on session restore) ──
     // When a session is loaded from history, AppState.circlesFrameworkDraft is populated
     // but the textareas are blank contenteditable divs. Populate them now.
