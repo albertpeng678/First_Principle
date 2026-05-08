@@ -3342,6 +3342,32 @@
     if (AppState.view === 'circles' && AppState.circlesPhase === 1.5) {
       bindCirclesGate();
     }
+    if (AppState.view === 'circles' && AppState.circlesPhase === 2) {
+      bindCirclesPhase2();
+    }
+  }
+
+  // ── bindCirclesPhase2 (Plan B Phase 2 — mockup 05) ───────────────────────
+  function bindCirclesPhase2() {
+    // ── coach hint toggle — data-phase2="hint-toggle" data-turn-idx="N" ──
+    document.querySelectorAll('[data-phase2="hint-toggle"]').forEach(function (btn) {
+      btn.addEventListener('click', function () {
+        var idx = parseInt(btn.getAttribute('data-turn-idx'), 10);
+        if (!AppState.circlesPhase2CoachHintExpanded) AppState.circlesPhase2CoachHintExpanded = {};
+        AppState.circlesPhase2CoachHintExpanded[idx] = !AppState.circlesPhase2CoachHintExpanded[idx];
+        render();
+      });
+    });
+
+    // ── back button ──
+    var backBtn = document.querySelector('[data-phase2="back"]');
+    if (backBtn) {
+      backBtn.addEventListener('click', function () {
+        // go back to Phase 1 (form)
+        AppState.circlesPhase = 1;
+        render();
+      });
+    }
   }
 
   // ── bindCirclesPhase1 (Plan B SB3 — mockup 03 Section A interactions) ────
