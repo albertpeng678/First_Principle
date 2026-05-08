@@ -48,6 +48,18 @@ async function mockApis(page) {
 
 test.describe.configure({ mode: 'serial' });
 
+const SAMPLE_CONVERSATION_3 = [
+  ...SAMPLE_CONVERSATION,
+  {
+    userMessage: '那業務上有什麼限制？例如不能改首頁、不能動付費機制？',
+    interviewee: '主要限制是不能動付費訂閱流程，首頁可以改但需要設計審核。不可改的還有 podcast 授權協議相關功能。',
+    coaching: '很好，已經把業務約束框清楚了。',
+    hint: '可以再問預算和時間 constraint。',
+  },
+];
+
+const CONCLUSION_DRAFT = '問題範圍：聚焦免費 podcast 用戶在新用戶階段的 7 日留存（不含付費 / 不含音樂類）；時間框架：H2 內看到 18%→25% 提升；業務約束：不可動付費機制。';
+
 test('capture production Phase 2 Sections A + B — 6 PNGs', async ({ page }) => {
   test.setTimeout(120000);
   if (!fs.existsSync(OUT_DIR)) fs.mkdirSync(OUT_DIR, { recursive: true });
@@ -84,5 +96,111 @@ test('capture production Phase 2 Sections A + B — 6 PNGs', async ({ page }) =>
     await page.waitForSelector('.bubble--user', { timeout: 5000 });
     await page.waitForTimeout(300);
     await page.screenshot({ path: path.join(OUT_DIR, 'section-B-' + vp.name + '.png'), fullPage: false });
+  }
+});
+
+test('capture production Phase 2 Sections C + D + E + F — 12 PNGs', async ({ page }) => {
+  test.setTimeout(120000);
+  if (!fs.existsSync(OUT_DIR)) fs.mkdirSync(OUT_DIR, { recursive: true });
+  await mockApis(page);
+
+  for (const vp of VIEWPORTS) {
+    await page.setViewportSize({ width: vp.width, height: vp.height });
+    await page.goto('/');
+    await page.waitForSelector('.navbar');
+
+    // ── Section C: streaming state (3-dot bubble) ──
+    await page.evaluate(({ q, conv }) => {
+      Object.assign(window.AppState, {
+        view: 'circles',
+        circlesPhase: 2,
+        circlesSession: { id: 'test-session' },
+        circlesSelectedQuestion: q,
+        circlesDrillStep: 'C1',
+        circlesConversation: conv,
+        circlesMode: 'drill',
+        circlesPhase2CoachHintExpanded: {},
+        circlesPhase2Streaming: true,
+        circlesPhase2StreamingTurn: { userMessage: '那業務上有什麼限制？例如不能改首頁、不能動付費機制？', deltaText: '' },
+        circlesPhase2StreamError: false,
+        circlesPhase2ConclusionMode: false,
+        circlesStepScores: {},
+      });
+      window.renderApp();
+    }, { q: SAMPLE_QUESTION, conv: SAMPLE_CONVERSATION });
+    await page.waitForSelector('.bubble__streaming', { timeout: 5000 });
+    await page.waitForTimeout(300);
+    await page.screenshot({ path: path.join(OUT_DIR, 'section-C-' + vp.name + '.png'), fullPage: false });
+
+    // ── Section D: turns ≥ 3, submit pill ──
+    await page.evaluate(({ q, conv }) => {
+      Object.assign(window.AppState, {
+        view: 'circles',
+        circlesPhase: 2,
+        circlesSession: { id: 'test-session' },
+        circlesSelectedQuestion: q,
+        circlesDrillStep: 'C1',
+        circlesConversation: conv,
+        circlesMode: 'drill',
+        circlesPhase2CoachHintExpanded: {},
+        circlesPhase2Streaming: false,
+        circlesPhase2StreamingTurn: null,
+        circlesPhase2StreamError: false,
+        circlesPhase2ConclusionMode: false,
+        circlesStepScores: {},
+      });
+      window.renderApp();
+    }, { q: SAMPLE_QUESTION, conv: SAMPLE_CONVERSATION_3 });
+    await page.waitForSelector('.submit-row__btn', { timeout: 5000 });
+    await page.waitForTimeout(300);
+    await page.screenshot({ path: path.join(OUT_DIR, 'section-D-' + vp.name + '.png'), fullPage: false });
+
+    // ── Section E: conclusion mode ──
+    await page.evaluate(({ q, conv, draft }) => {
+      Object.assign(window.AppState, {
+        view: 'circles',
+        circlesPhase: 2,
+        circlesSession: { id: 'test-session' },
+        circlesSelectedQuestion: q,
+        circlesDrillStep: 'C1',
+        circlesConversation: conv,
+        circlesMode: 'drill',
+        circlesPhase2CoachHintExpanded: {},
+        circlesPhase2Streaming: false,
+        circlesPhase2StreamingTurn: null,
+        circlesPhase2StreamError: false,
+        circlesPhase2ConclusionMode: true,
+        circlesPhase2ConclusionDraft: draft,
+        circlesPhase2ExampleOpen: false,
+        circlesStepScores: {},
+      });
+      window.renderApp();
+    }, { q: SAMPLE_QUESTION, conv: SAMPLE_CONVERSATION_3, draft: CONCLUSION_DRAFT });
+    await page.waitForSelector('.conclusion-box', { timeout: 5000 });
+    await page.waitForTimeout(300);
+    await page.screenshot({ path: path.join(OUT_DIR, 'section-E-' + vp.name + '.png'), fullPage: false });
+
+    // ── Section F: locked (step already scored) ──
+    await page.evaluate(({ q, conv }) => {
+      Object.assign(window.AppState, {
+        view: 'circles',
+        circlesPhase: 2,
+        circlesSession: { id: 'test-session' },
+        circlesSelectedQuestion: q,
+        circlesDrillStep: 'C1',
+        circlesConversation: conv,
+        circlesMode: 'drill',
+        circlesPhase2CoachHintExpanded: {},
+        circlesPhase2Streaming: false,
+        circlesPhase2StreamingTurn: null,
+        circlesPhase2StreamError: false,
+        circlesPhase2ConclusionMode: false,
+        circlesStepScores: { C1: { totalScore: 78, dimensions: [] } },
+      });
+      window.renderApp();
+    }, { q: SAMPLE_QUESTION, conv: SAMPLE_CONVERSATION_3 });
+    await page.waitForSelector('.locked-banner', { timeout: 5000 });
+    await page.waitForTimeout(300);
+    await page.screenshot({ path: path.join(OUT_DIR, 'section-F-' + vp.name + '.png'), fullPage: false });
   }
 });
