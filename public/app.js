@@ -236,10 +236,179 @@
   }
 
   // ── renderCirclesPhase2 (Plan B Phase 2 — mockup 05) ──────────────────────
+
+  // Step-specific Phase 2 copy tables (mockup 05 + spec §2)
+  var PHASE2_STEP_CONFIG = {
+    C1: {
+      title: 'C · 澄清情境',
+      icebreakerText: '先與被訪談者澄清題目本身的邊界 — 具體在問什麼問題、涵蓋哪些功能或場景、有哪些業務限制不能突破。',
+    },
+    I: {
+      title: 'I · 定義用戶',
+      icebreakerText: '了解目標用戶 — 他們是誰、什麼情境下會使用、目前如何解決問題。',
+    },
+    R: {
+      title: 'R · 發掘需求',
+      icebreakerText: '挖掘真實需求 — 痛點頻率、嚴重度、現有方案的不足。',
+    },
+    C2: {
+      title: 'C · 優先排序',
+      icebreakerText: '排序需求 — RICE / ICE / 戰略對齊。',
+    },
+    L: {
+      title: 'L · 提出方案',
+      icebreakerText: '列方案 — 至少 2-3 個獨立方案，包含明顯不同 mechanism。',
+    },
+    E: {
+      title: 'E · 評估取捨',
+      icebreakerText: '評估每個方案 — 優點 / 缺點 / 風險 / 成功指標。',
+    },
+    S: {
+      title: 'S · 總結追蹤',
+      icebreakerText: '總結並設定 tracking — 主推薦方案 + 4 維度追蹤。',
+    },
+  };
+
   function renderCirclesPhase2() {
-    return '<div data-view="circles" data-phase="2"><div class="phase2-loading">Phase 2 placeholder</div></div>';
+    var q = AppState.circlesSelectedQuestion || {};
+    var stepKey = AppState.circlesMode === 'drill'
+      ? (AppState.circlesDrillStep || 'C1')
+      : (['C1', 'I', 'R', 'C2', 'L', 'E', 'S'][AppState.circlesSimStep || 0] || 'C1');
+    var phase2Cfg = PHASE2_STEP_CONFIG[stepKey] || PHASE2_STEP_CONFIG.C1;
+    var conversation = AppState.circlesConversation || [];
+    var turnCount = conversation.length;
+
+    // ── progress bar (always visible in Phase 2 — mockup 05 shows it) ──
+    var progressHtml = renderProgressBar(stepKey);
+
+    // ── phase-head ──
+    // Desktop: show meta with turn count + 建議 5-10 輪; tablet: show turn count; mobile: none
+    var metaHtml;
+    if (turnCount > 0) {
+      metaHtml = '<div class="phase-head__meta">'
+        + '<span class="phase-head__meta-extra--tablet-plus">' + turnCount + ' 輪對話</span>'
+        + '<span class="phase-head__meta-sep phase-head__meta-extra--desktop">·</span>'
+        + '<span class="phase-head__meta-extra--desktop">已用 ' + Math.max(1, Math.round(turnCount * 3)) + ' 分鐘</span>'
+        + '<span class="phase-head__meta-sep phase-head__meta-extra--desktop">·</span>'
+        + '<span class="phase-head__meta-extra--desktop">建議 5-10 輪</span>'
+        + '</div>';
+    } else {
+      metaHtml = '<div class="phase-head__meta">'
+        + '<span class="phase-head__meta-extra--desktop">建議 5-10 輪對話 · 隨時可暫停</span>'
+        + '</div>';
+    }
+    var phaseHeadHtml = '<div class="phase-head">'
+      + '<span class="phase-head__num">2</span>'
+      + '<div class="phase-head__main">'
+      + '<div class="phase-head__eyebrow">PHASE 2 · 對話練習</div>'
+      + '<div class="phase-head__title">' + escHtml(phase2Cfg.title) + '</div>'
+      + '</div>'
+      + metaHtml
+      + '</div>';
+
+    // ── qchip (compact — bookmark icon, reusing .qchip class LOCKED from mockup 03) ──
+    var company = q.company || '';
+    var product = q.product || '';
+    var isDesktop = window.innerWidth >= 1024;
+    var isDrill = AppState.circlesMode === 'drill';
+    var companyBase = escHtml(company) + (product ? ' · ' + escHtml(product) : '');
+    var qType = q.question_type === 'improve' ? '改善題' : q.question_type === 'strategy' ? '策略題' : '設計題';
+    var diff = q.difficulty === 'high' ? '高' : q.difficulty === 'low' ? '低' : '中';
+    var companyDisplay;
+    if (isDesktop) {
+      companyDisplay = companyBase + '（Drill mode · ' + escHtml(qType) + '）';
+    } else if (window.innerWidth >= 768) {
+      // tablet: company + product + (Drill · Design)
+      companyDisplay = companyBase + (isDrill ? '（Drill · ' + escHtml(qType) + '）' : '');
+    } else {
+      // mobile: company · product only
+      companyDisplay = companyBase;
+    }
+    var qTitle = q.problem_statement || '';
+    var qchipHtml = '<button class="qchip" data-phase2="qchip">'
+      + '<span class="qchip__icon"><i class="ph ph-bookmark-simple"></i></span>'
+      + '<div class="qchip__main">'
+      + '<div class="qchip__company">' + companyDisplay + '</div>'
+      + '<div class="qchip__title">' + escHtml(qTitle) + '</div>'
+      + '</div>'
+      + '<i class="ph ph-caret-right qchip__caret"></i>'
+      + '</button>';
+
+    // ── chat-body: icebreaker (empty) OR bubbles (has turns) ──
+    var chatBodyHtml;
+    if (turnCount === 0) {
+      // Section A: empty + icebreaker
+      chatBodyHtml = '<div class="chat-content">'
+        + '<div class="chat-body">'
+        + '<div class="icebreaker">'
+        + '<div class="icebreaker__label"><i class="ph ph-compass"></i>開始提問方向</div>'
+        + '<div class="icebreaker__text">' + escHtml(phase2Cfg.icebreakerText) + '</div>'
+        + '</div>'
+        + '</div>'
+        + '</div>';
+    } else {
+      // Section B: conversation bubbles
+      var bubblesHtml = conversation.map(function (turn, idx) {
+        return renderChatBubble(turn, idx);
+      }).join('');
+      chatBodyHtml = '<div class="chat-content">'
+        + '<div class="chat-body">' + bubblesHtml + '</div>'
+        + '</div>';
+    }
+
+    // ── back button row (mockup 05 line 712-714: btn--ghost 上一步) ──
+    var backRowHtml = '<div class="phase-back-row">'
+      + '<button class="btn btn--ghost" data-phase2="back"><i class="ph ph-arrow-left"></i>上一步</button>'
+      + '</div>';
+
+    // ── input bar (Section A/B: always visible) ──
+    var inputBarHtml = '<div class="input-bar">'
+      + '<div class="input-bar__row">'
+      + '<textarea class="input-bar__textarea" placeholder="輸入你的問題..." rows="1" data-phase2="message-input"></textarea>'
+      + '<button class="input-bar__send" aria-label="送出" data-phase2="send"><i class="ph ph-paper-plane-tilt"></i></button>'
+      + '</div>'
+      + '</div>';
+
+    return '<div data-view="circles" data-phase="2">'
+      + progressHtml
+      + phaseHeadHtml
+      + qchipHtml
+      + chatBodyHtml
+      + backRowHtml
+      + inputBarHtml
+      + '</div>';
   }
   window.renderCirclesPhase2 = renderCirclesPhase2;
+
+  // ── renderChatBubble (Phase 2 — 3 role types per turn) ───────────────────
+  function renderChatBubble(turn, idx) {
+    var hintExpanded = AppState.circlesPhase2CoachHintExpanded && AppState.circlesPhase2CoachHintExpanded[idx];
+    var hintToggleText = hintExpanded
+      ? '<i class="ph ph-caret-down"></i>收起教練提示'
+      : '<i class="ph ph-caret-right"></i>查看教練提示';
+    var hintContentHtml = hintExpanded && turn.hint
+      ? '<div class="bubble--coach__hint-content">' + escHtml(turn.hint) + '</div>'
+      : '';
+
+    var userBubble = '<div class="bubble bubble--user">' + escHtml(turn.userMessage || '') + '</div>';
+    var intervieweeBubble = '<div class="bubble bubble--interviewee">'
+      + '<div class="bubble__section">被訪談者</div>'
+      + escHtml(turn.interviewee || '')
+      + '</div>';
+    var coachBubble = '<div class="bubble bubble--coach">'
+      + '<div class="bubble__section"><i class="ph ph-graduation-cap"></i>教練點評</div>'
+      + escHtml(turn.coaching || '')
+      + (turn.hint
+          ? '<button class="bubble--coach__hint-toggle" data-phase2="hint-toggle" data-turn-idx="' + idx + '" aria-expanded="' + (hintExpanded ? 'true' : 'false') + '">'
+            + hintToggleText
+            + '</button>'
+          : '')
+      + hintContentHtml
+      + '</div>';
+
+    return userBubble + intervieweeBubble + coachBubble;
+  }
+  window.renderChatBubble = renderChatBubble;
 
   function renderNSM() {
     if (AppState.nsmStep === 1) return renderNSMStep1();
@@ -601,13 +770,22 @@
     const signOutBtn = '<button class="navbar__icon-btn" data-nav="logout" aria-label="登出"><i class="ph ph-sign-out"></i></button>';
     const emailSpan = `<span class="navbar__email">${escHtml(AppState.userEmail || '')}</span>`;
 
+    // Phase 2: turn counter badge in navbar (mockup 05 line 865-866)
+    const isPhase2WithTurns = view === 'circles'
+      && AppState.circlesPhase === 2
+      && AppState.circlesConversation
+      && AppState.circlesConversation.length > 0;
+    const turnBadge = isPhase2WithTurns
+      ? `<span class="turn-badge">${AppState.circlesConversation.length} 輪</span>`
+      : '';
+
     let actions;
     if (AppState.accessToken) {
-      actions = emailSpan + signOutBtn + (isCirclesHome ? '' : homeBtn);
+      actions = emailSpan + turnBadge + signOutBtn + (isCirclesHome ? '' : homeBtn);
     } else if (isCirclesHome) {
       actions = signInBtn; // mobile + tablet + desktop 都顯示（user 2026-05-04 親要求）
     } else {
-      actions = signInBtn + homeBtn; // deep view guest: both visible all viewports
+      actions = turnBadge + signInBtn + homeBtn; // deep view guest: both visible all viewports
     }
 
     return `<header class="navbar">

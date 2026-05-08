@@ -1822,3 +1822,239 @@ div.rt-textarea[contenteditable="true"] ul li { list-style: disc; }
 .onb-tooltip__arrow--top    { top: -14px; left: 24px; border-bottom-color: var(--c-ink); }
 .onb-tooltip__arrow--bottom { bottom: -14px; left: 24px; border-top-color: var(--c-ink); }
 /* ───── Onboarding END ───── */
+
+/* ───── Phase 2 Chat (mockup 05) ───── */
+
+/* phase-head meta visibility helpers — Phase 2 specific */
+.phase-head__meta-extra--tablet-plus { display: none; }
+.phase-head__meta-extra--desktop { display: none; }
+@media (min-width: 768px) {
+  .phase-head__meta-extra--tablet-plus { display: inline; }
+}
+@media (min-width: 1024px) {
+  .phase-head__meta-extra--desktop { display: inline; }
+}
+
+/* chat layout — flex column fills remaining height */
+.chat-content {
+  flex: 1;
+  min-height: 0;
+  overflow-y: auto;
+  display: flex;
+  flex-direction: column;
+}
+.chat-body {
+  padding: var(--s-5) var(--s-4);
+  max-width: 920px;
+  margin: 0 auto;
+  width: 100%;
+  display: flex;
+  flex-direction: column;
+  gap: var(--s-3);
+  flex: 1;
+}
+@media (min-width: 768px) {
+  .chat-body { padding: var(--s-6) var(--s-5); }
+}
+
+/* icebreaker */
+.icebreaker {
+  background: var(--c-navy-lt);
+  border: 1px solid rgba(27,45,92,0.18);
+  border-radius: var(--r-input);
+  padding: var(--s-3) var(--s-4);
+  margin-bottom: var(--s-3);
+}
+.icebreaker__label {
+  font-size: var(--t-cap);
+  font-weight: 600;
+  color: var(--c-navy);
+  letter-spacing: 0.04em;
+  display: flex;
+  align-items: center;
+  gap: var(--s-1);
+  margin-bottom: var(--s-1);
+}
+.icebreaker__label i { font-size: 14px; }
+.icebreaker__text {
+  font-size: var(--t-body-sm);
+  color: var(--c-ink-2);
+  line-height: 1.7;
+}
+
+/* bubble base */
+.bubble {
+  padding: var(--s-3) var(--s-4);
+  max-width: 88%;
+  font-size: var(--t-body-sm);
+  line-height: 1.7;
+  color: var(--c-ink);
+}
+.bubble__section {
+  font-size: var(--t-cap);
+  font-weight: 600;
+  letter-spacing: 0.04em;
+  margin-bottom: var(--s-1);
+  display: flex;
+  align-items: center;
+  gap: var(--s-1);
+}
+.bubble__section i { font-size: 12px; }
+
+/* user bubble — right-aligned */
+.bubble--user {
+  background: var(--c-card);
+  border: 1px solid var(--c-rule-bold);
+  border-radius: var(--r-card) 4px var(--r-card) var(--r-card);
+  align-self: flex-end;
+  margin-left: auto;
+}
+
+/* interviewee bubble — left-aligned, warm tan */
+.bubble--interviewee {
+  background: var(--c-bg-soft);
+  border: 1px solid var(--c-rule);
+  border-radius: 4px var(--r-card) var(--r-card) var(--r-card);
+  align-self: flex-start;
+}
+.bubble--interviewee .bubble__section { color: var(--c-ink-3); }
+
+/* coach bubble — left-aligned, navy left-border */
+.bubble--coach {
+  background: var(--c-card);
+  border: 1px solid var(--c-rule);
+  border-left: 2px solid var(--c-navy);
+  border-radius: 4px var(--r-input) var(--r-input) var(--r-input);
+  align-self: flex-start;
+  max-width: 88%;
+  font-size: var(--t-meta);
+  padding: var(--s-3);
+}
+.bubble--coach .bubble__section { color: var(--c-navy); }
+.bubble--coach .bubble__section i { color: var(--c-navy); }
+.bubble--coach__hint-toggle {
+  margin-top: var(--s-2);
+  font-size: var(--t-cap);
+  color: var(--c-ink-3);
+  display: inline-flex;
+  align-items: center;
+  gap: var(--s-1);
+  cursor: pointer;
+  min-height: 44px;
+  padding: var(--s-1) 0;
+}
+.bubble--coach__hint-toggle i { font-size: 11px; }
+.bubble--coach__hint-content {
+  margin-top: var(--s-2);
+  padding: var(--s-2) var(--s-3);
+  background: var(--c-bg-soft);
+  border-radius: var(--r-input);
+  font-size: var(--t-cap);
+  color: var(--c-ink-2);
+  line-height: 1.7;
+}
+
+/* streaming indicator inside bubble */
+.bubble__streaming {
+  display: inline-flex;
+  align-items: center;
+  gap: 3px;
+  margin-left: 4px;
+}
+.bubble__streaming span {
+  width: 5px;
+  height: 5px;
+  border-radius: 50%;
+  background: var(--c-ink-3);
+  animation: stream-pulse 1.2s infinite ease-in-out;
+}
+.bubble__streaming span:nth-child(2) { animation-delay: 0.15s; }
+.bubble__streaming span:nth-child(3) { animation-delay: 0.3s; }
+@keyframes stream-pulse {
+  0%, 80%, 100% { opacity: 0.3; transform: scale(0.8); }
+  40% { opacity: 1; transform: scale(1); }
+}
+
+/* turn count badge in nav */
+.turn-badge {
+  font-size: var(--t-meta);
+  color: var(--c-ink-2);
+  background: var(--c-bg-soft);
+  padding: 2px var(--s-2);
+  border-radius: var(--r-pill);
+  flex: 0 0 auto;
+}
+
+/* phase-back row (上一步) */
+.phase-back-row {
+  padding: var(--s-2) var(--s-4);
+  background: transparent;
+  max-width: 920px;
+  margin: 0 auto;
+  width: 100%;
+  display: flex;
+}
+
+/* input bar */
+.input-bar {
+  background: var(--c-card);
+  border-top: 1px solid var(--c-rule);
+  padding: var(--s-3) var(--s-4) max(var(--s-3), env(safe-area-inset-bottom));
+  display: flex;
+  flex-direction: column;
+  gap: var(--s-2);
+  align-items: stretch;
+}
+.input-bar__row {
+  display: flex;
+  gap: var(--s-2);
+  align-items: flex-end;
+}
+.input-bar__textarea {
+  flex: 1;
+  min-height: 44px;
+  max-height: 120px;
+  padding: 10px var(--s-3);
+  border: 1px solid var(--c-rule-bold);
+  border-radius: var(--r-input);
+  background: var(--c-surface);
+  font-size: var(--t-body-sm);
+  line-height: 1.5;
+  color: var(--c-ink);
+  resize: none;
+  font-family: inherit;
+}
+.input-bar__textarea::placeholder { color: var(--c-ink-3); }
+.input-bar__textarea:focus { outline: none; border-color: var(--c-navy); box-shadow: 0 0 0 3px var(--c-navy-lt); }
+@media (max-width: 767px) {
+  .input-bar__textarea { font-size: 16px; } /* prevent iOS zoom */
+}
+.input-bar__send {
+  width: 44px;
+  height: 44px;
+  flex: 0 0 auto;
+  background: var(--c-navy);
+  color: #fff;
+  border-radius: var(--r-input);
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 18px;
+}
+.input-bar__send:hover { background: var(--c-navy-2); }
+.input-bar__send:disabled, .input-bar__send.is-locked { background: var(--c-ink-4); cursor: not-allowed; }
+
+/* locked banner */
+.locked-banner {
+  background: var(--c-bg-deep);
+  border-bottom: 1px solid var(--c-rule);
+  padding: var(--s-3) var(--s-4);
+  display: flex;
+  align-items: center;
+  gap: var(--s-2);
+  font-size: var(--t-meta);
+  color: var(--c-ink-2);
+}
+.locked-banner i { color: var(--c-ink-3); font-size: 16px; flex: 0 0 auto; }
+.locked-banner strong { color: var(--c-ink); font-weight: 600; }
+/* ───── Phase 2 Chat END ───── */
