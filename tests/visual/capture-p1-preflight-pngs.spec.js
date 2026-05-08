@@ -7,9 +7,14 @@ const fs = require('fs');
 const OUT_DIR = path.resolve(__dirname, '../../audit/png-p1-preflight');
 
 const VIEWPORTS = [
-  { name: 'mobile-360',   width: 360,  height: 1100 },
-  { name: 'tablet-768',   width: 768,  height: 1100 },
-  { name: 'desktop-1280', width: 1280, height: 1100 },
+  { name: 'mobile-360',     width: 360,  height: 1100 },
+  { name: 'iphone-se-375',  width: 375,  height: 1100 },
+  { name: 'iphone-14-390',  width: 390,  height: 1100 },
+  { name: 'iphone-15-430',  width: 430,  height: 1100 },
+  { name: 'tablet-768',     width: 768,  height: 1100 },
+  { name: 'desktop-1280',   width: 1280, height: 1100 },
+  { name: 'desktop-1440',   width: 1440, height: 1100 },
+  { name: 'desktop-2560',   width: 2560, height: 1100 },
 ];
 
 test('capture Phase 1 form post pre-flight — 3 vp', async ({ page }) => {
