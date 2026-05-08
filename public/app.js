@@ -114,6 +114,12 @@
 
     // R3: loading state for session detail fetch (Option B)
     circlesSessionLoading: false,
+
+    // Plan B Phase 3 — score view (mockup 11)
+    circlesPhase3LoadingStep: 1,         // 0-3 — Loading checklist current active step (starts at 1: 解析框架 done)
+    circlesPhase3Error: null,            // null | { code: string, message: string }
+    circlesPhase3DimExpanded: {},        // Record<dimIndex, boolean> — user manual expand
+    circlesPhase3CoachDemoOpen: false,   // coach-demo accordion user toggle
   };
   window.AppState = AppState;
 
@@ -222,6 +228,9 @@
       }
       if (AppState.circlesPhase === 2 && AppState.circlesSession && AppState.circlesSelectedQuestion) {
         return renderCirclesPhase2();
+      }
+      if (AppState.circlesPhase === 3 && AppState.circlesSession) {
+        return renderCirclesPhase3();
       }
       return renderCirclesStub();
     }
@@ -1185,6 +1194,12 @@
       tracking: { reach: '', depth: '', frequency: '', impact: '' },
     };
     AppState.circlesExpandedQid = null;
+    // Phase 3 state reset
+    AppState.circlesPhase3Error = null;
+    AppState.circlesPhase3LoadingStep = 0;
+    AppState.circlesPhase3DimExpanded = {};
+    AppState.circlesPhase3CoachDemoOpen = false;
+    AppState._phase3CoachDemoInitialized = false;
   }
 
   function bindNavbar() {
@@ -3657,6 +3672,449 @@
     }
   }
 
+  // ── renderCirclesPhase3 (Plan B Phase 3 — mockup 11) ─────────────────────────
+  // Phase 3 state matrix:
+  //   1. circlesPhase3Error set        → Section D Error
+  //   2. !circlesScoreResult           → Section C Loading
+  //   3. circlesScoreResult exists     → Section A/B (data-driven)
+
+  // Timers for loading state — stored on window to allow cleanup
+  var _phase3LoadingInterval = null;
+  var _phase3LoadingTimeout = null;
+
+  function clearPhase3Timers() {
+    if (_phase3LoadingInterval) { clearInterval(_phase3LoadingInterval); _phase3LoadingInterval = null; }
+    if (_phase3LoadingTimeout)  { clearTimeout(_phase3LoadingTimeout);   _phase3LoadingTimeout  = null; }
+  }
+
+  function renderCirclesProgressBar(activeStepKey) {
+    // mockup 11 — .circles-progress (larger dots, labels below)
+    var steps = [
+      { letter: 'C', label: '釐清', key: 'C1' },
+      { letter: 'I', label: '用戶', key: 'I'  },
+      { letter: 'R', label: '需求', key: 'R'  },
+      { letter: 'C', label: '排序', key: 'C2' },
+      { letter: 'L', label: '方案', key: 'L'  },
+      { letter: 'E', label: '取捨', key: 'E'  },
+      { letter: 'S', label: '總結', key: 'S'  },
+    ];
+    var stepOrder = ['C1', 'I', 'R', 'C2', 'L', 'E', 'S'];
+    var activeIdx = stepOrder.indexOf(activeStepKey);
+    var html = '<div class="circles-progress">';
+    steps.forEach(function (s, idx) {
+      var isDone   = idx < activeIdx;
+      var isActive = idx === activeIdx;
+      var stepCls  = 'circles-progress__step' + (isDone ? ' is-done' : '') + (isActive ? ' is-active' : '');
+      var lineCls  = 'circles-progress__line' + (isDone ? ' is-done' : '');
+      html += '<div class="' + stepCls + '">'
+            + '<div class="circles-progress__dot">' + escHtml(s.letter) + '</div>'
+            + '<div class="circles-progress__label">' + escHtml(s.label) + '</div>'
+            + '</div>';
+      if (idx < steps.length - 1) {
+        html += '<div class="' + lineCls + '"></div>';
+      }
+    });
+    return html + '</div>';
+  }
+
+  function renderCirclesNav(stepKey) {
+    // mockup 11 circles-nav (back row + title + subtitle)
+    var q = AppState.circlesSelectedQuestion || {};
+    var company = escHtml(q.company || '');
+    var product = escHtml(q.product  || '');
+    var stepTitles = { C1: '澄清情境', I: '用戶分析', R: '需求分析', C2: '方案排序', L: '方案列舉', E: '方案取捨', S: 'NSM 總結' };
+    var stepTitle = escHtml((stepTitles[stepKey] || stepKey) + ' 評分結果');
+    var sub = company && product ? (company + ' · ' + product) : (company || product);
+    return '<div class="circles-nav">'
+      + '<button class="circles-nav__back" data-phase3="nav-back" aria-label="返回"><i class="ph ph-arrow-left"></i></button>'
+      + '<div class="circles-nav__main">'
+      + '<div class="circles-nav__title">' + stepTitle + '</div>'
+      + (sub ? '<div class="circles-nav__sub">' + escHtml(sub) + '</div>' : '')
+      + '</div>'
+      + '</div>';
+  }
+
+  function renderPhase3Loading() {
+    // Section C — 4-step checklist driven by AppState.circlesPhase3LoadingStep (0-3)
+    var steps = [
+      { label: '解析框架' },
+      { label: '計算分數' },
+      { label: '生成示範答案' },
+      { label: '整理建議' },
+    ];
+    var currentStep = AppState.circlesPhase3LoadingStep || 0;
+    var stepHtml = steps.map(function (s, idx) {
+      var cls, icon;
+      if (idx < currentStep) {
+        cls = 'loading-step is-done';
+        icon = '<i class="ph ph-check"></i>';
+      } else if (idx === currentStep) {
+        cls = 'loading-step is-active';
+        icon = '<i class="ph ph-circle-notch"></i>';
+      } else {
+        cls = 'loading-step is-pending';
+        icon = '<i class="ph ph-circle"></i>';
+      }
+      return '<div class="' + cls + '"><span class="loading-step__icon">' + icon + '</span>' + escHtml(s.label) + '</div>';
+    }).join('');
+
+    var stepKey = AppState.circlesMode === 'drill'
+      ? (AppState.circlesDrillStep || 'C1')
+      : (['C1', 'I', 'R', 'C2', 'L', 'E', 'S'][AppState.circlesSimStep || 0] || 'C1');
+
+    return '<div data-view="circles" data-phase="3">'
+      + renderCirclesNav(stepKey)
+      + renderCirclesProgressBar(stepKey)
+      + '<div class="loading-wrap">'
+      + '<div class="loading-spinner"></div>'
+      + '<div class="loading-title">正在生成評分</div>'
+      + '<div class="loading-sub">AI 正在評估你的回答，需要約 5-10 秒。請勿關閉本頁。</div>'
+      + '<div class="loading-checklist">' + stepHtml + '</div>'
+      + '</div>'
+      + '</div>';
+  }
+
+  function renderPhase3Error() {
+    // Section D — error state
+    var err = AppState.circlesPhase3Error || {};
+    var code = err.code || 'EVAL_TIMEOUT';
+    var subCopy;
+    if (code === 'EVAL_TIMEOUT') {
+      subCopy = 'AI 服務暫時無法回應，請稍後再試。你的答案已自動保存。';
+    } else if (code === 'EVAL_API_ERROR') {
+      subCopy = '評分服務暫時不可用，請稍後再試。你的答案已自動保存。';
+    } else if (code === 'EVAL_PARSE_ERROR') {
+      subCopy = '教練回應格式異常，請重試。';
+    } else {
+      subCopy = '評分服務發生錯誤，請重試。';
+    }
+    var stepKey = AppState.circlesMode === 'drill'
+      ? (AppState.circlesDrillStep || 'C1')
+      : (['C1', 'I', 'R', 'C2', 'L', 'E', 'S'][AppState.circlesSimStep || 0] || 'C1');
+
+    return '<div data-view="circles" data-phase="3">'
+      + renderCirclesNav(stepKey)
+      + renderCirclesProgressBar(stepKey)
+      + '<div class="error-wrap">'
+      + '<div class="error-wrap__icon"><i class="ph-fill ph-cloud-warning"></i></div>'
+      + '<div class="error-wrap__title">評分生成失敗</div>'
+      + '<div class="error-wrap__sub">' + escHtml(subCopy) + '</div>'
+      + '<code class="error-wrap__code">' + escHtml(code) + '</code>'
+      + '<div class="error-wrap__actions">'
+      + '<button class="btn btn--ghost" data-phase3="back-to-phase1"><i class="ph ph-arrow-left"></i>返回修改答案</button>'
+      + '<button class="btn btn--primary" data-phase3="retry"><i class="ph ph-arrow-clockwise"></i>重新評分</button>'
+      + '</div>'
+      + '</div>'
+      + '</div>';
+  }
+
+  function renderPhase3Score() {
+    // Section A (high score) / Section B (low score, data-driven)
+    var result = AppState.circlesScoreResult || {};
+    var dims = result.dimensions || [];
+    var cv = result.coachVersion || {};
+    var stepKey = AppState.circlesMode === 'drill'
+      ? (AppState.circlesDrillStep || 'C1')
+      : (['C1', 'I', 'R', 'C2', 'L', 'E', 'S'][AppState.circlesSimStep || 0] || 'C1');
+    var stepTitles = { C1: 'C — 澄清情境', I: 'I — 用戶分析', R: 'R — 需求分析', C2: 'C — 方案排序', L: 'L — 方案列舉', E: 'E — 方案取捨', S: 'S — NSM 總結' };
+    var stepSub = stepTitles[stepKey] || stepKey;
+
+    // Determine if ANY dim has score ≤ 2 (auto-expand rule)
+    var hasLowDim = dims.some(function (d) { return (d.score || 0) <= 2; });
+    // Auto-open coach-demo on first render if any low dim (unless user already set it)
+    if (hasLowDim && AppState.circlesPhase3CoachDemoOpen === false && !AppState._phase3CoachDemoInitialized) {
+      AppState.circlesPhase3CoachDemoOpen = true;
+    }
+    AppState._phase3CoachDemoInitialized = true;
+
+    var isDesktop = window.innerWidth >= 1024;
+
+    // ── dim-row HTML ─────────────────────────────────────────────────────────
+    var dimListHtml = '<div class="dim-list">';
+    dims.forEach(function (dim, idx) {
+      var score = dim.score || 0;
+      var isLow = score <= 2;
+      // auto-expand logic: low dim always open; non-low dim: desktop → open, mobile/tablet → check user toggle
+      var userToggled = AppState.circlesPhase3DimExpanded[idx];
+      var isOpen;
+      if (isLow) {
+        isOpen = true; // always open for low score
+      } else if (userToggled !== undefined) {
+        isOpen = userToggled;
+      } else {
+        isOpen = isDesktop; // desktop auto-expand all
+      }
+      var dimCls = 'dim-row' + (isLow ? ' is-low' : '') + (isOpen ? ' is-open' : '');
+      var barPct = Math.round((score / 5) * 100);
+      var dimCv = dim.coachVersion || {};
+      var cvText = dimCv.text || '';
+
+      var bodyHtml = '';
+      if (isOpen) {
+        bodyHtml = '<div class="dim-row__body">'
+          + (dim.comment ? '<div class="dim-row__comment">' + escHtml(dim.comment) + '</div>' : '')
+          + (cvText ? '<div class="dim-row__coach-version"><div class="dim-row__coach-version-label">教練版本</div><div class="dim-row__coach-version-text">' + escHtml(cvText) + '</div></div>' : '')
+          + (dim.suggestion ? '<div class="dim-row__tip"><i class="ph ph-lightbulb"></i>' + escHtml(dim.suggestion) + '</div>' : '')
+          + '</div>';
+      }
+
+      dimListHtml += '<div class="' + dimCls + '" data-dim-idx="' + idx + '">'
+        + '<div class="dim-row__head" data-phase3="dim-toggle" data-dim-idx="' + idx + '">'
+        + '<div class="dim-row__main">'
+        + '<div class="dim-row__head-row">'
+        + '<span class="dim-row__name">' + escHtml(dim.name || '') + '</span>'
+        + '<span class="dim-row__score">' + score + '<span class="dim-row__score-max"> / 5</span></span>'
+        + '</div>'
+        + '<div class="dim-row__bar-wrap"><div class="dim-row__bar-fill" style="width:' + barPct + '%"></div></div>'
+        + '</div>'
+        + '<i class="ph ph-caret-right dim-row__caret"></i>'
+        + '</div>'
+        + bodyHtml
+        + '</div>';
+    });
+    dimListHtml += '</div>';
+
+    // ── highlight-grid HTML ──────────────────────────────────────────────────
+    var highlightHtml = '<div class="highlight-grid">'
+      + '<div class="highlight-card highlight-card--good">'
+      + '<div class="highlight-card__label"><i class="ph-fill ph-check-circle"></i>最強表現</div>'
+      + '<div class="highlight-card__text">' + escHtml(result.strengths || '') + '</div>'
+      + '</div>'
+      + '<div class="highlight-card highlight-card--improve">'
+      + '<div class="highlight-card__label"><i class="ph-fill ph-warning-circle"></i>最需改進</div>'
+      + '<div class="highlight-card__text">' + escHtml(result.improvements || '') + '</div>'
+      + '</div>'
+      + '</div>';
+
+    // ── coach-demo HTML ──────────────────────────────────────────────────────
+    var coachOpen = AppState.circlesPhase3CoachDemoOpen;
+    var coachCls = 'coach-demo' + (coachOpen ? ' is-open' : '');
+    var coachBodyHtml = '';
+    if (coachOpen) {
+      var section1 = cv.context
+        ? '<div class="coach-section"><div class="coach-section__title"><i class="ph ph-flag"></i>為什麼這個步驟重要</div><div class="coach-section__body">' + escHtml(cv.context) + '</div></div>'
+        : '';
+      var perFieldHtml = '';
+      var perField = cv.perField || [];
+      if (perField.length > 0) {
+        perFieldHtml = '<div class="coach-section"><div class="coach-section__title"><i class="ph ph-list-numbers"></i>逐欄位示範</div>'
+          + '<div class="coach-fields">'
+          + perField.map(function (f) {
+              return '<div class="coach-field">'
+                + '<div class="coach-field__label">' + escHtml(f.label || '') + '</div>'
+                + '<div class="coach-field__text">' + escHtml(f.text || '') + '</div>'
+                + '</div>';
+            }).join('')
+          + '</div></div>';
+      }
+      var section3 = cv.reasoning
+        ? '<div class="coach-section"><div class="coach-section__title"><i class="ph ph-quotes"></i>為什麼這樣答</div><div class="coach-reasoning">' + escHtml(cv.reasoning) + '</div></div>'
+        : '';
+      coachBodyHtml = '<div class="coach-demo__body">'
+        + section1
+        + perFieldHtml
+        + section3
+        + '</div>';
+    }
+    var coachDemoHtml = '<div class="' + coachCls + '">'
+      + '<div class="coach-demo__head" data-phase3="coach-demo-toggle">'
+      + '<span class="coach-demo__icon"><i class="ph-fill ph-graduation-cap"></i></span>'
+      + '<span class="coach-demo__title">教練示範答案</span>'
+      + '<i class="ph ph-caret-right coach-demo__caret"></i>'
+      + '</div>'
+      + coachBodyHtml
+      + '</div>';
+
+    // ── score-total HTML ─────────────────────────────────────────────────────
+    var scoreTotalHtml = '<div class="score-total">'
+      + '<div class="score-total__num">' + escHtml(String(result.totalScore || 0)) + '</div>'
+      + '<div class="score-total__sub"><strong>' + escHtml(stepSub) + '</strong> 步驟得分</div>'
+      + '</div>';
+
+    // ── submit-bar ────────────────────────────────────────────────────────────
+    var submitBarHtml = '<div class="submit-bar">'
+      + '<div class="submit-bar__left"><button class="btn btn--ghost" data-phase3="go-home"><i class="ph ph-house"></i>回首頁</button></div>'
+      + '<div class="submit-bar__right"><button class="btn btn--primary" data-phase3="retry-question"><i class="ph ph-shuffle"></i>再練一題</button></div>'
+      + '</div>';
+
+    // ── layout: mobile/tablet flat, desktop 2-col ────────────────────────────
+    var desktopCls = isDesktop ? ' score-body--desktop' : '';
+    var scoreBodyHtml = '<div class="score-body' + desktopCls + '">'
+      + '<div class="score-col-left">'
+      + scoreTotalHtml
+      + highlightHtml
+      + coachDemoHtml
+      + '</div>'
+      + dimListHtml
+      + '</div>';
+
+    return '<div data-view="circles" data-phase="3">'
+      + renderCirclesNav(stepKey)
+      + renderCirclesProgressBar(stepKey)
+      + scoreBodyHtml
+      + submitBarHtml
+      + '</div>';
+  }
+
+  function renderCirclesPhase3() {
+    // State matrix (spec §5)
+    if (AppState.circlesPhase3Error) {
+      clearPhase3Timers();
+      return renderPhase3Error();
+    }
+    if (!AppState.circlesScoreResult) {
+      // Start loading timers if not already running
+      if (!_phase3LoadingInterval) {
+        _phase3LoadingInterval = setInterval(function () {
+          if (AppState.circlesPhase3LoadingStep < 3) {
+            AppState.circlesPhase3LoadingStep++;
+            render();
+          }
+        }, 5000);
+      }
+      if (!_phase3LoadingTimeout) {
+        _phase3LoadingTimeout = setTimeout(function () {
+          clearPhase3Timers();
+          AppState.circlesPhase3Error = { code: 'EVAL_TIMEOUT', message: 'AI 服務暫時無法回應' };
+          render();
+        }, 30000);
+      }
+      return renderPhase3Loading();
+    }
+    // Score result exists — Section A or B (data-driven)
+    clearPhase3Timers();
+    return renderPhase3Score();
+  }
+
+  function bindCirclesPhase3() {
+    // ── dim-row toggle ────────────────────────────────────────────────────────
+    document.querySelectorAll('[data-phase3="dim-toggle"]').forEach(function (btn) {
+      btn.addEventListener('click', function () {
+        var idx = parseInt(btn.getAttribute('data-dim-idx'), 10);
+        var current = AppState.circlesPhase3DimExpanded[idx];
+        // Current open state: was it open? (account for low-score always-open)
+        var dimRow = btn.closest('.dim-row');
+        var wasOpen = dimRow && dimRow.classList.contains('is-open');
+        AppState.circlesPhase3DimExpanded[idx] = !wasOpen;
+        render();
+      });
+    });
+
+    // ── coach-demo toggle ─────────────────────────────────────────────────────
+    var coachHead = document.querySelector('[data-phase3="coach-demo-toggle"]');
+    if (coachHead) {
+      coachHead.addEventListener('click', function () {
+        AppState.circlesPhase3CoachDemoOpen = !AppState.circlesPhase3CoachDemoOpen;
+        render();
+      });
+    }
+
+    // ── nav-back (circles-nav back arrow) ─────────────────────────────────────
+    var navBackBtn = document.querySelector('[data-phase3="nav-back"]');
+    if (navBackBtn) {
+      navBackBtn.addEventListener('click', function () {
+        clearPhase3Timers();
+        AppState.circlesPhase = 1;
+        AppState.circlesPhase3Error = null;
+        AppState.circlesPhase3LoadingStep = 1;
+        AppState._phase3CoachDemoInitialized = false;
+        render();
+      });
+    }
+
+    // ── back-to-phase1 ────────────────────────────────────────────────────────
+    document.querySelectorAll('[data-phase3="back-to-phase1"]').forEach(function (btn) {
+      btn.addEventListener('click', function () {
+        clearPhase3Timers();
+        AppState.circlesPhase = 1;
+        AppState.circlesPhase3Error = null;
+        AppState.circlesPhase3LoadingStep = 1;
+        AppState._phase3CoachDemoInitialized = false;
+        render();
+      });
+    });
+
+    // ── retry (重新評分) ──────────────────────────────────────────────────────
+    var retryBtn = document.querySelector('[data-phase3="retry"]');
+    if (retryBtn) {
+      retryBtn.addEventListener('click', function () {
+        clearPhase3Timers();
+        AppState.circlesPhase3Error = null;
+        AppState.circlesPhase3LoadingStep = 1;
+        AppState.circlesScoreResult = null;
+        AppState._phase3CoachDemoInitialized = false;
+        render();
+        // Fire evaluate-step API
+        retryEvaluateStep();
+      });
+    }
+
+    // ── go-home ───────────────────────────────────────────────────────────────
+    var goHomeBtn = document.querySelector('[data-phase3="go-home"]');
+    if (goHomeBtn) {
+      goHomeBtn.addEventListener('click', function () {
+        clearPhase3Timers();
+        resetCirclesToHome();
+        AppState.view = 'circles';
+        render();
+      });
+    }
+
+    // ── retry-question (再練一題) ─────────────────────────────────────────────
+    var retryQBtn = document.querySelector('[data-phase3="retry-question"]');
+    if (retryQBtn) {
+      retryQBtn.addEventListener('click', function () {
+        clearPhase3Timers();
+        resetCirclesToHome();
+        AppState.view = 'circles';
+        // Re-shuffle displayed questions so user gets a new set
+        AppState.circlesDisplayedQuestions = [];
+        render();
+      });
+    }
+  }
+
+  async function retryEvaluateStep() {
+    // Re-invoke evaluate-step for the current session + step
+    var sessionId = AppState.circlesSession && AppState.circlesSession.id;
+    if (!sessionId) {
+      AppState.circlesPhase3Error = { code: 'EVAL_API_ERROR', message: 'no session' };
+      render();
+      return;
+    }
+    var basePath = AppState.accessToken
+      ? '/api/circles-sessions/'
+      : '/api/guest-circles-sessions/';
+    try {
+      var res = await window.apiFetch(basePath + sessionId + '/evaluate-step', {
+        method: 'POST',
+        body: '{}',
+      });
+      if (res.ok) {
+        var data = await res.json();
+        var stepKey = AppState.circlesMode === 'drill'
+          ? (AppState.circlesDrillStep || 'C1')
+          : (['C1', 'I', 'R', 'C2', 'L', 'E', 'S'][AppState.circlesSimStep || 0] || 'C1');
+        if (!AppState.circlesStepScores) AppState.circlesStepScores = {};
+        AppState.circlesStepScores[stepKey] = data;
+        AppState.circlesScoreResult = data;
+        clearPhase3Timers();
+        render();
+      } else {
+        var errData = await res.json().catch(function () { return {}; });
+        var errCode = errData.code || 'EVAL_API_ERROR';
+        clearPhase3Timers();
+        AppState.circlesPhase3Error = { code: errCode, message: errData.error || 'API error' };
+        render();
+      }
+    } catch (e) {
+      if (e && e.code === 'SESSION_EXPIRED') return;
+      clearPhase3Timers();
+      AppState.circlesPhase3Error = { code: 'EVAL_API_ERROR', message: e.message || 'network error' };
+      render();
+    }
+  }
+
   function bindAll() {
     bindNavbar();
     bindOffcanvas();
@@ -3677,6 +4135,9 @@
     }
     if (AppState.view === 'circles' && AppState.circlesPhase === 2) {
       bindCirclesPhase2();
+    }
+    if (AppState.view === 'circles' && AppState.circlesPhase === 3) {
+      bindCirclesPhase3();
     }
   }
 
