@@ -10,13 +10,28 @@
 - Item 5: renderNSMSubTabs() removed — DOM-absent contract (Sub-A)
 - Item 6: NSMGuide Step 3 vanity-check phrasing rewrite (Sub-B)
 
-**Total PNGs reviewed:** 15 (5 scenarios × 3 viewports)
+**Total PNG captures:** 15 filenames (5 scenarios × 3 viewports)
+**Distinct visual surfaces:** 9 unique (Item 3 Step 2 + Item 3 Step 3 + non-visual items share same Step 2 surface)
+**Verification mix:** 9 PNG director-Read + 3 spec-assertion-only (Items 1/5/6 inherently non-visual)
 **Mockup contracts referenced:** mockup 03 / 06 / 07 v3 / 08 v2 / 09
 **PNG directory:** `audit/png-phase1/`
 
 ---
 
+## Why some PNGs are duplicates (transparency)
+
+Items 1, 5, and 6 are non-visual contract changes:
+- **Item 1 preflight**: A network POST fired on mount. Verified by `nsm-preflight-session.spec.js` asserting `preflightCount >= 1`. The PNG looks identical to baseline Step 2 (no UI added).
+- **Item 5 sub-tabs removal**: Verified by `nsm-sub-tabs-removed.spec.js` asserting `count() === 0`. The PNG shows absence — visually equivalent to baseline.
+- **Item 6 guide vanity rewrite**: Text-content change inside `nsm-guide__step:nth(2)`. Verified by `nsm-guide-vanity-rewrite.spec.js` asserting new text presence + old text absence. The PNG includes this text but viewport-clipped above-the-fold may not show it on Desktop-1280.
+
+This results in 3 capture scenarios × 3 viewports = 9 PNGs that are byte-identical duplicates of one another. We retain them as filename markers for the verification matrix, but director-Read effort focused on the 9 unique visual surfaces (Item 3 expand on both Step 2 and Step 3 across 3 viewports).
+
+---
+
 ## Scenario A — Item 1: Preflight Session on Step 2 Mount (3 PNG)
+
+> **Note**: Non-visual item — verification primarily by spec assertion. PNGs included for matrix completeness; visual is identical to baseline Step 2 collapsed state.
 
 ### mobile-360 (`item1-preflight-step2-mount-Mobile-360.png`)
 
@@ -57,6 +72,8 @@ Desktop shows context card with 「收合」toggle + 「深入分析」label. Al
 
 ## Scenario C — Item 5: No Sub-Tabs on Step 2 (3 PNG)
 
+> **Note**: Non-visual item — verification primarily by spec assertion. PNGs included for matrix completeness; visual is identical to baseline Step 2 collapsed state.
+
 ### mobile-360 (`item5-no-sub-tabs-step2-Mobile-360.png`)
 
 Visually identical to Scenario A mobile — this confirms the absence of sub-tabs. Between the nsm-progress bar and the context card, there is **no row of tabs** (no「步驟 2 定義 NSM」/「NSM 審核 Gate」tab strip). The layout goes directly: progress bar → context card → guide section → submit bar → field rows. DOM-removed contract held. Sub-tabs were removed by Item 5 (commits 3edd088 / b5e36ed). Item 5 PASS.
@@ -72,6 +89,8 @@ Desktop confirms DOM removal cleanly. No horizontal sub-tab navigation between p
 ---
 
 ## Scenario D — Item 6: Guide Step 3 Vanity Text (3 PNG)
+
+> **Note**: Non-visual item — verification primarily by spec assertion. PNGs included for matrix completeness; visual is identical to baseline Step 2 collapsed state.
 
 **Note:** These PNGs capture the same Step 2 state as Scenarios A and C (collapsed context). The guide section is visible in the viewport. The spec (`nsm-guide-vanity-rewrite.spec.js`) verifies the exact text content; the PNG confirms the guide section renders with all 3 steps visible.
 
@@ -113,7 +132,7 @@ Desktop Step 3 shows context card expanded (4 blocks) in the narrow centered con
 | DRIFT-P1-07-2 | 🟡 non-blocking | Scenario D guide PNGs show step 3 guide text partially clipped in mobile viewport (below fold). Scrolling required. This is expected — mobile viewport height 1100px is shorter than the full-page guide section. Content is correct. |
 | DRIFT-P1-08-1 | 🟠 expected | Gate §A/B/C production viewport clip vs mockup fullPage height. Established pattern (all 12 prior gate audit results follow this). Non-blocking per CLAUDE.md convention. |
 
-**0 🔴 structural drift across all 15 PNGs.**
+**0 🔴 structural drift across all 9 unique visual surfaces (15 total captures, 6 byte-identical duplicates for non-visual items).**
 
 ---
 
@@ -156,6 +175,7 @@ All 6 Phase 1 items verified across 15 PNGs (5 scenarios × 3 viewports):
 - Item 4 qchip stale: spec-verified (circles-qchip-stale-fix.spec.js 2/2 pass), no visual surface change
 - Item 5 sub-tabs removed: zero `.nsm-sub-tabs` / `.nsm-sub-tab` in any viewport or state
 - Item 6 guide rewrite: new phrasing「如實反映用戶體會到產品價值」confirmed in production
+- 9 unique visual surfaces director-Read; 3 non-visual items spec-asserted (transparent disclosure above)
 
 BoundingBox invariants: **40/40** (5 invariants × 8 viewports)
 jest baseline: **160/160** maintained
