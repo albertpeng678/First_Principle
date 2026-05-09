@@ -2791,3 +2791,354 @@ div.rt-textarea[contenteditable="true"] ul li { list-style: disc; }
 }
 .nextsteps-card__label { font-weight: 600; color: var(--c-navy); margin-right: 4px; }
 /* ───── Plan B Phase 4 END ───── */
+
+/* ═══════════════════════════════════════════════════════════════════════════
+   NSM Step 4 · Final Report — mockup 14 (CONTRACT-LOCKED verbatim copy)
+   ══════════════════════════════════════════════════════════════════════════ */
+
+/* nsm-summary large score + company */
+.nsm-summary {
+  padding: var(--s-5) var(--s-4);
+  background: var(--c-card);
+  border-bottom: 1px solid var(--c-rule);
+  display: flex;
+  align-items: baseline;
+  gap: var(--s-3);
+}
+.nsm-summary__score {
+  font-family: var(--font-serif);
+  font-style: italic;
+  font-size: 56px;
+  color: var(--c-navy);
+  line-height: 1;
+  letter-spacing: -0.02em;
+  flex: 0 0 auto;
+}
+.nsm-summary__unit {
+  font-size: var(--t-h3);
+  color: var(--c-ink-3);
+  flex: 0 0 auto;
+}
+.nsm-summary__company {
+  margin-left: auto;
+  font-size: var(--t-body-sm);
+  color: var(--c-ink-2);
+  font-weight: 500;
+  text-align: right;
+}
+.nsm-summary__company-name { font-weight: 600; color: var(--c-ink); }
+.nsm-summary__company-sub { font-size: var(--t-cap); color: var(--c-ink-3); margin-top: 2px; }
+
+/* tab-bar — underline-style 4 tabs */
+.tab-bar {
+  display: flex;
+  background: var(--c-card);
+  border-bottom: 1px solid var(--c-rule);
+  padding: 0 var(--s-2);
+  gap: 0;
+}
+.tab-bar__btn {
+  flex: 1;
+  padding: var(--s-3) var(--s-2);
+  font-size: var(--t-body-sm);
+  color: var(--c-ink-3);
+  border-bottom: 2px solid transparent;
+  transition: color var(--t-fast) var(--ease), border-color var(--t-fast) var(--ease);
+  min-height: var(--touch-min);
+}
+.tab-bar__btn:hover { color: var(--c-ink-2); }
+.tab-bar__btn.is-active { color: var(--c-navy); border-bottom-color: var(--c-navy); font-weight: 600; }
+
+/* nsm-radar-svg */
+.nsm-radar-svg {
+  width: 100%;
+  height: 220px;
+  display: block;
+}
+.nsm-radar-svg .axis { stroke: var(--c-rule-bold); stroke-width: 1; }
+.nsm-radar-svg .ring { stroke: var(--c-rule); stroke-width: 1; fill: none; }
+.nsm-radar-svg .poly { fill: rgba(27,45,92,0.16); stroke: var(--c-navy); stroke-width: 2; }
+.nsm-radar-svg .dot { fill: var(--c-navy); }
+.nsm-radar-svg .label { font-size: 11px; fill: var(--c-ink-2); font-weight: 500; font-family: var(--font-sans); }
+
+/* nsm-score-rows 5 dim */
+.nsm-score-rows { display: flex; flex-direction: column; }
+.nsm-score-row {
+  padding: var(--s-3) 0;
+  border-bottom: 1px solid var(--c-rule);
+}
+.nsm-score-row:last-child { border-bottom: none; }
+.nsm-score-row__head {
+  display: flex;
+  justify-content: space-between;
+  align-items: baseline;
+  gap: var(--s-3);
+  margin-bottom: var(--s-2);
+}
+.nsm-score-row__name { font-size: var(--t-body-sm); font-weight: 500; color: var(--c-ink); }
+.nsm-score-row__score {
+  font-family: var(--font-serif);
+  font-style: italic;
+  font-size: 22px;
+  color: var(--c-navy);
+  letter-spacing: -0.01em;
+  flex: 0 0 auto;
+}
+.nsm-score-row__score-max { font-size: var(--t-cap); color: var(--c-ink-3); font-style: normal; font-family: var(--font-sans); margin-left: 2px; }
+.nsm-score-row__score--high { color: var(--c-success); }
+.nsm-score-row__score--mid  { color: var(--c-navy); }
+.nsm-score-row__score--low  { color: var(--c-warn); }
+.nsm-score-row__bar-wrap {
+  height: 6px;
+  background: var(--c-bg-deep);
+  border-radius: var(--r-pill);
+  overflow: hidden;
+  margin-bottom: var(--s-2);
+}
+.nsm-score-row__bar-fill {
+  height: 100%;
+  background: var(--c-navy);
+  border-radius: var(--r-pill);
+  transition: width var(--t-norm) var(--ease);
+}
+.nsm-score-row__bar-fill--low { background: var(--c-warn); }
+.nsm-score-row__comment { font-size: var(--t-meta); color: var(--c-ink-2); line-height: 1.65; }
+
+/* Tab 1 · 總覽 — 2-col for desktop (modifier class — no @media) */
+.nsm-overview { display: flex; flex-direction: column; gap: var(--s-4); }
+.nsm-overview--desktop { flex-direction: row; align-items: flex-start; gap: var(--s-6); }
+.nsm-overview--desktop > .panel-card:first-child { flex: 0 0 380px; }
+.nsm-overview--desktop > .panel-card:last-child { flex: 1; }
+
+/* Tab 2 · 對比 */
+.nsm-compare { display: flex; flex-direction: column; gap: var(--s-4); }
+.nsm-compare-block { display: flex; flex-direction: column; gap: var(--s-2); }
+.nsm-compare-block__title {
+  font-size: var(--t-cap);
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+  color: var(--c-ink-3);
+  font-weight: 600;
+  padding: 0 var(--s-2);
+}
+.nsm-compare-card {
+  background: var(--c-card);
+  border: 1px solid var(--c-rule);
+  border-left-width: 3px;
+  border-radius: var(--r-card);
+  padding: var(--s-3) var(--s-4);
+  box-shadow: var(--shadow-1);
+  cursor: pointer;
+  transition: background var(--t-fast) var(--ease);
+}
+.nsm-compare-card:hover { background: var(--c-bg-soft); }
+.nsm-compare-card--yours { border-left-color: var(--c-ink-3); }
+.nsm-compare-card--coach { border-left-color: var(--c-navy); }
+.nsm-compare-card__tag {
+  display: inline-block;
+  font-size: var(--t-cap);
+  letter-spacing: 0.04em;
+  padding: 2px var(--s-2);
+  border-radius: var(--r-pill);
+  margin-bottom: var(--s-2);
+  font-weight: 500;
+}
+.nsm-compare-card--yours .nsm-compare-card__tag { background: var(--c-bg-soft); color: var(--c-ink-3); }
+.nsm-compare-card--coach .nsm-compare-card__tag { background: var(--c-navy-lt); color: var(--c-navy); }
+.nsm-compare-card__text { font-size: var(--t-body-sm); color: var(--c-ink-2); line-height: 1.6; }
+
+/* Tablet/Desktop grid compare (modifier class — no @media) */
+.nsm-compare--grid { display: flex; flex-direction: column; gap: var(--s-3); }
+.nsm-compare-grid__header {
+  display: grid;
+  grid-template-columns: 140px 1fr 1fr;
+  gap: var(--s-3);
+  padding: var(--s-2) var(--s-2);
+  font-size: var(--t-cap);
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+  color: var(--c-ink-3);
+  font-weight: 600;
+  border-bottom: 1px solid var(--c-rule);
+}
+.nsm-compare-grid__header-coach { color: var(--c-navy); display: flex; align-items: center; gap: var(--s-2); }
+.nsm-compare-grid__header-coach-hint { font-size: var(--t-cap); color: var(--c-ink-4); font-weight: 400; letter-spacing: 0; text-transform: none; }
+.nsm-compare-grid__row {
+  display: grid;
+  grid-template-columns: 140px 1fr 1fr;
+  gap: var(--s-3);
+  align-items: stretch;
+}
+.nsm-compare-grid__label {
+  font-size: var(--t-body-sm);
+  font-weight: 600;
+  color: var(--c-ink);
+  padding: var(--s-3) var(--s-2);
+  display: flex;
+  align-items: center;
+}
+.nsm-compare-grid__label-key { font-family: var(--font-serif); font-style: italic; color: var(--c-ink-3); margin-right: var(--s-2); }
+.nsm-compare--grid .nsm-compare-card { margin: 0; }
+.nsm-compare-card.is-active { box-shadow: 0 0 0 2px var(--c-navy); background: var(--c-navy-lt); }
+
+/* 教練思路 inline panel (tablet/desktop) */
+.nsm-coach-detail {
+  background: var(--c-card);
+  border: 1px solid var(--c-rule);
+  border-left: 3px solid var(--c-navy);
+  border-radius: var(--r-card);
+  padding: var(--s-4);
+  box-shadow: var(--shadow-1);
+}
+.nsm-coach-detail__head {
+  display: flex;
+  align-items: center;
+  gap: var(--s-2);
+  margin-bottom: var(--s-3);
+}
+.nsm-coach-detail__icon {
+  width: 28px; height: 28px;
+  border-radius: var(--r-pill);
+  background: var(--c-navy-lt);
+  color: var(--c-navy);
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 14px;
+  flex: 0 0 auto;
+}
+.nsm-coach-detail__title { font-size: var(--t-body-sm); font-weight: 600; color: var(--c-ink); }
+.nsm-coach-detail__title-key { font-family: var(--font-serif); font-style: italic; color: var(--c-ink-3); margin-right: var(--s-2); }
+.nsm-coach-detail__close {
+  margin-left: auto;
+  width: 32px; height: 32px;
+  border-radius: var(--r-pill);
+  color: var(--c-ink-3);
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+}
+.nsm-coach-detail__close:hover { background: var(--c-bg-soft); color: var(--c-ink); }
+.nsm-coach-detail__section { margin-bottom: var(--s-3); }
+.nsm-coach-detail__section:last-child { margin-bottom: 0; }
+.nsm-coach-detail__label {
+  font-size: var(--t-cap);
+  letter-spacing: 0.06em;
+  text-transform: uppercase;
+  color: var(--c-navy);
+  font-weight: 600;
+  margin-bottom: var(--s-1);
+}
+.nsm-coach-detail__text { font-size: var(--t-meta); color: var(--c-ink-2); line-height: 1.7; }
+.nsm-coach-detail__quote {
+  font-size: var(--t-meta);
+  color: var(--c-ink-2);
+  line-height: 1.7;
+  padding: var(--s-3);
+  background: var(--c-bg-soft);
+  border-radius: var(--r-input);
+  font-style: italic;
+}
+
+/* Mobile bottom-sheet drawer */
+.nsm-detail-sheet {
+  position: relative;
+  margin: 0 calc(-1 * var(--s-4));
+  background: var(--c-card);
+  border-top: 1px solid var(--c-rule);
+  border-radius: var(--r-card) var(--r-card) 0 0;
+  padding: var(--s-3) var(--s-4) var(--s-5);
+  box-shadow: 0 -4px 20px rgba(60,45,30,0.12);
+}
+.nsm-detail-sheet__handle {
+  width: 36px; height: 4px;
+  background: var(--c-rule-bold);
+  border-radius: var(--r-pill);
+  margin: 0 auto var(--s-3);
+}
+
+/* Tab 3 · 亮點 (modifier class — no @media) */
+.nsm-highlights { display: grid; grid-template-columns: 1fr; gap: var(--s-3); }
+.nsm-highlights--tablet { grid-template-columns: 1fr 1fr; }
+.nsm-highlights--tablet > .nsm-highlight--summary { grid-column: span 2; }
+.nsm-highlights--desktop { grid-template-columns: 1fr 1fr 1fr; }
+.nsm-highlights--desktop > .nsm-highlight--summary { grid-column: span 3; }
+.nsm-highlight {
+  background: var(--c-card);
+  border: 1px solid;
+  border-radius: var(--r-card);
+  padding: var(--s-4);
+  display: flex;
+  flex-direction: column;
+  gap: var(--s-2);
+}
+.nsm-highlight__title {
+  font-size: var(--t-cap);
+  letter-spacing: 0.06em;
+  text-transform: uppercase;
+  font-weight: 600;
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+}
+.nsm-highlight__title i { font-size: 14px; }
+.nsm-highlight__text { font-size: var(--t-body-sm); color: var(--c-ink-2); line-height: 1.7; }
+.nsm-highlight--best { background: rgba(19,122,61,0.05); border-color: rgba(19,122,61,0.25); }
+.nsm-highlight--best .nsm-highlight__title { color: var(--c-success); }
+.nsm-highlight--trap { background: rgba(184,92,0,0.05); border-color: rgba(184,92,0,0.25); }
+.nsm-highlight--trap .nsm-highlight__title { color: var(--c-warn); }
+.nsm-highlight--next { background: var(--c-navy-lt); border-color: rgba(27,45,92,0.20); border-left: 3px solid var(--c-success); }
+.nsm-highlight--next .nsm-highlight__title { color: var(--c-navy); }
+.nsm-highlight--summary { background: var(--c-card); border-color: var(--c-rule); }
+.nsm-highlight--summary .nsm-highlight__title { color: var(--c-ink-2); }
+
+/* Tab 4 · 完成 */
+.done-panel {
+  background: var(--c-card);
+  border: 1px solid var(--c-rule);
+  border-radius: var(--r-card);
+  padding: var(--s-7) var(--s-5);
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: var(--s-3);
+  text-align: center;
+  box-shadow: var(--shadow-1);
+}
+.done-panel__icon {
+  width: 64px; height: 64px;
+  border-radius: 50%;
+  background: var(--c-success-lt);
+  color: var(--c-success);
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 36px;
+  margin-bottom: var(--s-2);
+}
+.done-panel__title { font-size: var(--t-h2); font-weight: 600; color: var(--c-ink); letter-spacing: -0.005em; }
+.done-panel__body { font-size: var(--t-body-sm); color: var(--c-ink-2); line-height: 1.7; max-width: 480px; }
+.done-panel__body strong { color: var(--c-navy); font-weight: 600; }
+.done-panel__actions { display: flex; gap: var(--s-2); margin-top: var(--s-4); flex-wrap: wrap; justify-content: center; }
+.done-secondary {
+  background: var(--c-bg-soft);
+  border: 1px solid var(--c-rule);
+  border-radius: var(--r-card);
+  padding: var(--s-4);
+}
+.done-secondary__title {
+  font-size: var(--t-cap);
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+  color: var(--c-navy);
+  font-weight: 600;
+  margin-bottom: var(--s-2);
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+}
+.done-secondary__title i { font-size: 14px; }
+.done-secondary__list { margin: 0; padding-left: var(--s-5); font-size: var(--t-meta); color: var(--c-ink-2); line-height: 1.7; }
+.done-secondary__list li { margin-bottom: var(--s-1); }
+.done-secondary__list li:last-child { margin-bottom: 0; }
+/* ───── Plan C NSM Step 4 END ───── */

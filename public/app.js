@@ -207,6 +207,7 @@
     bindAll();
     if (AppState.view === 'nsm' && AppState.nsmStep === 1) bindNSMStep1();
     if (AppState.view === 'nsm' && (AppState.nsmStep === 2 || AppState.nsmStep === 3)) bindNSMStep2And3();
+    if (AppState.view === 'nsm' && AppState.nsmStep === 4) bindNSMStep4();
   }
   window.render = render;
   window.renderApp = render; // alias for test scripts
@@ -1121,7 +1122,7 @@
     if (AppState.nsmStep === 1) return renderNSMStep1();
     if (AppState.nsmStep === 2) return renderNSMStep2();
     if (AppState.nsmStep === 3) return renderNSMStep3();
-    if (AppState.nsmStep === 4) return typeof renderNSMStep4 === 'function' ? renderNSMStep4() : '<div>NSM Step 4 not yet implemented</div>';
+    if (AppState.nsmStep === 4) return renderNSMStep4();
     return renderNSMStep1();
   }
 
@@ -1448,6 +1449,443 @@
 
   window.renderNSMStep2 = renderNSMStep2;
   window.renderNSMStep3 = renderNSMStep3;
+
+  // ── NSM Step 4 · Final Report (mockup 14) ────────────────────────────────
+  // AppState.nsmReportTab: 'overview' | 'comparison' | 'highlights' | 'done'
+  // AppState.nsmActiveCompareNode: null | dim key string (one of 5)
+
+  // 5 NSM evaluation dims mapping evaluator keys → display labels
+  var NSM_SCORE_DIMS = [
+    { key: 'alignment',    label: '價值關聯' },
+    { key: 'leading',      label: '領先指標' },
+    { key: 'actionability',label: '操作性'   },
+    { key: 'simplicity',   label: '可理解性' },
+    { key: 'sensitivity',  label: '週期敏感' },
+  ];
+
+  // 5-axis pentagon radar: axes at angles -90°, -18°, 54°, 126°, 198° (top, top-right, bottom-right, bottom-left, top-left)
+  // matches mockup 14 verbatim
+  var NSM_RADAR_CX = 120, NSM_RADAR_CY = 110;
+  var NSM_RADAR_R_OUTER = 92;  // full radius (score 5)
+
+  function computeRadarPoint(angleRad, score) {
+    var r = (score / 5) * NSM_RADAR_R_OUTER;
+    return {
+      x: NSM_RADAR_CX + r * Math.cos(angleRad),
+      y: NSM_RADAR_CY + r * Math.sin(angleRad),
+    };
+  }
+
+  function renderNSMRadarSVG(scores) {
+    // 5 axes at: -90° (top / 價值關聯), -18° (top-right / 領先指標),
+    //             54° (bottom-right / 操作性), 126° (bottom-left / 可理解性),
+    //            198° (top-left / 週期敏感)
+    var angles = [-90, -18, 54, 126, 198].map(function (d) { return d * Math.PI / 180; });
+    var dimKeys = ['alignment', 'leading', 'actionability', 'simplicity', 'sensitivity'];
+    var dimLabels = ['價值關聯', '領先指標', '操作性', '可理解性', '週期敏感'];
+    var dimLabelAnchors = ['middle', 'start', 'middle', 'middle', 'end'];
+    var dimLabelOffsets = [
+      { x: 0, y: -4 },     // 價值關聯 — top
+      { x: 4, y: 0 },      // 領先指標 — right
+      { x: 0, y: 8 },      // 操作性 — bottom-right
+      { x: 0, y: 8 },      // 可理解性 — bottom-left
+      { x: -4, y: 0 },     // 週期敏感 — left
+    ];
+
+    // Outer ring (score=5) and mid ring (score=2.5) at 50%
+    var outerPts = angles.map(function (a) {
+      return (NSM_RADAR_CX + NSM_RADAR_R_OUTER * Math.cos(a)).toFixed(1) + ','
+           + (NSM_RADAR_CY + NSM_RADAR_R_OUTER * Math.sin(a)).toFixed(1);
+    }).join(' ');
+    var midPts = angles.map(function (a) {
+      var r = NSM_RADAR_R_OUTER * 0.5;
+      return (NSM_RADAR_CX + r * Math.cos(a)).toFixed(1) + ','
+           + (NSM_RADAR_CY + r * Math.sin(a)).toFixed(1);
+    }).join(' ');
+
+    // Data polygon
+    var dataPts = angles.map(function (a, i) {
+      var score = (scores && scores[dimKeys[i]]) || 1;
+      return computeRadarPoint(a, score);
+    });
+    var polyPts = dataPts.map(function (p) { return p.x.toFixed(1) + ',' + p.y.toFixed(1); }).join(' ');
+
+    // Axes lines
+    var axesHtml = angles.map(function (a) {
+      var tip = computeRadarPoint(a, 5);
+      return '<line class="axis" x1="' + NSM_RADAR_CX + '" y1="' + NSM_RADAR_CY
+        + '" x2="' + tip.x.toFixed(1) + '" y2="' + tip.y.toFixed(1) + '"/>';
+    }).join('');
+
+    // Dots at each data point
+    var dotsHtml = dataPts.map(function (p) {
+      return '<circle class="dot" cx="' + p.x.toFixed(1) + '" cy="' + p.y.toFixed(1) + '" r="3"/>';
+    }).join('');
+
+    // Labels — positioned slightly beyond the outer ring
+    var labelsHtml = angles.map(function (a, i) {
+      var lp = computeRadarPoint(a, 5.8);
+      var ox = dimLabelOffsets[i].x, oy = dimLabelOffsets[i].y;
+      return '<text class="label" x="' + (lp.x + ox).toFixed(1) + '" y="' + (lp.y + oy).toFixed(1)
+        + '" text-anchor="' + dimLabelAnchors[i] + '">' + escHtml(dimLabels[i]) + '</text>';
+    }).join('');
+
+    return '<svg class="nsm-radar-svg" viewBox="0 0 240 220" preserveAspectRatio="xMidYMid meet"'
+      + ' role="img" aria-label="NSM 5 維度雷達圖">'
+      + '<polygon class="ring" points="' + outerPts + '"/>'
+      + '<polygon class="ring" points="' + midPts + '"/>'
+      + axesHtml
+      + '<polygon class="poly" points="' + polyPts + '"/>'
+      + dotsHtml
+      + labelsHtml
+      + '</svg>';
+  }
+
+  function renderNSMStep4OverviewTab(evalResult, q) {
+    var isDesktop = window.innerWidth >= 1024;
+    var scores = (evalResult && evalResult.scores) || {};
+    var comments = (evalResult && evalResult.coachComments) || {};
+    var overviewCls = 'nsm-overview' + (isDesktop ? ' nsm-overview--desktop' : '');
+
+    var scoreRowsHtml = NSM_SCORE_DIMS.map(function (dim) {
+      var score = scores[dim.key] || 1;
+      var pct = (score / 5 * 100).toFixed(0) + '%';
+      var scoreCls = score >= 4 ? 'nsm-score-row__score--high' : (score <= 2 ? 'nsm-score-row__score--low' : 'nsm-score-row__score--mid');
+      var barFillCls = score <= 2 ? 'nsm-score-row__bar-fill nsm-score-row__bar-fill--low' : 'nsm-score-row__bar-fill';
+      var comment = escHtml(comments[dim.key] || '');
+      return '<div class="nsm-score-row">'
+        + '<div class="nsm-score-row__head">'
+        +   '<span class="nsm-score-row__name">' + escHtml(dim.label) + '</span>'
+        +   '<span class="nsm-score-row__score ' + scoreCls + '">' + score
+        +     '<span class="nsm-score-row__score-max">/5</span>'
+        +   '</span>'
+        + '</div>'
+        + '<div class="nsm-score-row__bar-wrap"><div class="' + barFillCls + '" style="width:' + pct + '"></div></div>'
+        + (comment ? '<div class="nsm-score-row__comment">' + comment + '</div>' : '')
+        + '</div>';
+    }).join('');
+
+    return '<div class="' + overviewCls + '">'
+      + '<div class="panel-card">'
+      +   '<div class="panel-card__title"><i class="ph ph-radio-button"></i>5 維度雷達圖</div>'
+      +   renderNSMRadarSVG(scores)
+      + '</div>'
+      + '<div class="panel-card">'
+      +   '<div class="panel-card__title"><i class="ph ph-list-numbers"></i>5 維度分數明細</div>'
+      +   '<div class="nsm-score-rows">' + scoreRowsHtml + '</div>'
+      + '</div>'
+      + '</div>';
+  }
+
+  function renderNSMStep4CoachDetail(dimKey, evalResult) {
+    var q = AppState.nsmSelectedQuestion || {};
+    var ptype = nsmGuessProductType(q);
+    var typeCfg = getNsmDimConfig(ptype);
+    var rationale = (evalResult && evalResult.coachRationale) || {};
+    var coachTree = (evalResult && evalResult.coachTree) || {};
+
+    // Map dimKey to display label + numeric key
+    var DIM_MAP = {
+      nsm:       { label: '北極星指標 (NSM)', key: 'NSM' },
+      reach:     { label: typeCfg.dims[0].label, key: '1' },
+      depth:     { label: typeCfg.dims[1].label, key: '2' },
+      frequency: { label: typeCfg.dims[2].label, key: '3' },
+      impact:    { label: typeCfg.dims[3].label, key: '4' },
+    };
+    var dimInfo = DIM_MAP[dimKey] || { label: dimKey, key: '' };
+    var thinking = escHtml(rationale[dimKey] || '');
+    var reason = escHtml(coachTree[dimKey] || '');
+
+    return '<div class="nsm-coach-detail__head">'
+      +   '<span class="nsm-coach-detail__icon"><i class="ph ph-graduation-cap"></i></span>'
+      +   '<span class="nsm-coach-detail__title"><span class="nsm-coach-detail__title-key">' + escHtml(dimInfo.key) + '</span>' + escHtml(dimInfo.label) + ' · 教練思路</span>'
+      +   '<button class="nsm-coach-detail__close" data-nsm4-action="close-coach"><i class="ph ph-x"></i></button>'
+      + '</div>'
+      + '<div class="nsm-coach-detail__section">'
+      +   '<div class="nsm-coach-detail__label">教練思路</div>'
+      +   '<div class="nsm-coach-detail__text">' + thinking + '</div>'
+      + '</div>'
+      + '<div class="nsm-coach-detail__section">'
+      +   '<div class="nsm-coach-detail__label">為什麼這樣拆解</div>'
+      +   '<div class="nsm-coach-detail__quote">' + reason + '</div>'
+      + '</div>';
+  }
+
+  function renderNSMStep4ComparisonTab(evalResult, q) {
+    var isDesktop = window.innerWidth >= 1024;
+    var isTabletPlus = window.innerWidth >= 768;
+    var activeNode = AppState.nsmActiveCompareNode;
+    var ptype = nsmGuessProductType(q || {});
+    var typeCfg = getNsmDimConfig(ptype);
+    var coachTree = (evalResult && evalResult.coachTree) || {};
+    var userDef = AppState.nsmDefinition || {};
+    var userBreakdown = AppState.nsmBreakdown || {};
+
+    // 5 rows: NSM + 4 dims
+    var COMPARE_ROWS = [
+      { key: 'nsm',       labelKey: 'NSM', label: '北極星指標',       yourText: userDef.nsm || '',           coachText: coachTree.nsm || '' },
+      { key: 'reach',     labelKey: '1',   label: typeCfg.dims[0].label, yourText: userBreakdown.reach || '',     coachText: coachTree.reach || '' },
+      { key: 'depth',     labelKey: '2',   label: typeCfg.dims[1].label, yourText: userBreakdown.depth || '',     coachText: coachTree.depth || '' },
+      { key: 'frequency', labelKey: '3',   label: typeCfg.dims[2].label, yourText: userBreakdown.frequency || '', coachText: coachTree.frequency || '' },
+      { key: 'impact',    labelKey: '4',   label: typeCfg.dims[3].label, yourText: userBreakdown.impact || '',    coachText: coachTree.impact || '' },
+    ];
+
+    if (!isTabletPlus) {
+      // Mobile: vertical stack per dim
+      var mobileBlocks = COMPARE_ROWS.map(function (row) {
+        var coachActive = activeNode === row.key;
+        var coachCardCls = 'nsm-compare-card nsm-compare-card--coach' + (coachActive ? ' is-active' : '');
+        var detailSheet = '';
+        if (coachActive) {
+          detailSheet = '<div class="nsm-detail-sheet">'
+            + '<div class="nsm-detail-sheet__handle"></div>'
+            + renderNSMStep4CoachDetail(row.key, evalResult)
+            + '</div>';
+        }
+        return '<div class="nsm-compare-block">'
+          + '<div class="nsm-compare-block__title">' + escHtml(row.label) + '</div>'
+          + '<div class="nsm-compare-card nsm-compare-card--yours">'
+          +   '<span class="nsm-compare-card__tag">你的</span>'
+          +   '<div class="nsm-compare-card__text">' + escHtml(row.yourText) + '</div>'
+          + '</div>'
+          + '<div class="' + coachCardCls + '" data-nsm4-compare-node="' + escHtml(row.key) + '">'
+          +   '<span class="nsm-compare-card__tag">教練版</span>'
+          +   '<div class="nsm-compare-card__text">' + escHtml(row.coachText) + '</div>'
+          + '</div>'
+          + detailSheet
+          + '</div>';
+      }).join('');
+      return '<div class="nsm-compare nsm-compare--stack">' + mobileBlocks + '</div>';
+    } else {
+      // Tablet/Desktop: grid layout
+      var headerRow = '<div class="nsm-compare-grid__header">'
+        + '<div></div>'
+        + '<div>你的拆解</div>'
+        + '<div class="nsm-compare-grid__header-coach">教練版本<span class="nsm-compare-grid__header-coach-hint">點擊看思路</span></div>'
+        + '</div>';
+
+      var gridRows = '';
+      COMPARE_ROWS.forEach(function (row) {
+        var coachActive = activeNode === row.key;
+        var coachCardCls = 'nsm-compare-card nsm-compare-card--coach' + (coachActive ? ' is-active' : '');
+        gridRows += '<div class="nsm-compare-grid__row">'
+          + '<div class="nsm-compare-grid__label"><span class="nsm-compare-grid__label-key">' + escHtml(row.labelKey) + '</span>' + escHtml(row.label) + '</div>'
+          + '<div class="nsm-compare-card nsm-compare-card--yours"><div class="nsm-compare-card__text">' + escHtml(row.yourText) + '</div></div>'
+          + '<div class="' + coachCardCls + '" data-nsm4-compare-node="' + escHtml(row.key) + '">'
+          +   '<div class="nsm-compare-card__text">' + escHtml(row.coachText) + '</div>'
+          + '</div>'
+          + '</div>';
+        // Inline coach detail panel after coach-active row
+        if (coachActive) {
+          gridRows += '<div class="nsm-coach-detail">'
+            + renderNSMStep4CoachDetail(row.key, evalResult)
+            + '</div>';
+        }
+      });
+
+      return '<div class="nsm-compare nsm-compare--grid">' + headerRow + gridRows + '</div>';
+    }
+  }
+
+  function renderNSMStep4HighlightsTab(evalResult) {
+    var isDesktop = window.innerWidth >= 1024;
+    var isTabletPlus = window.innerWidth >= 768;
+    var highlightsCls = 'nsm-highlights'
+      + (isDesktop ? ' nsm-highlights--desktop' : (isTabletPlus ? ' nsm-highlights--tablet' : ''));
+    var bestMove = escHtml((evalResult && evalResult.bestMove) || '');
+    var mainTrap = escHtml((evalResult && evalResult.mainTrap) || '');
+    var summary  = escHtml((evalResult && evalResult.summary) || '');
+
+    return '<div class="' + highlightsCls + '">'
+      + '<div class="nsm-highlight nsm-highlight--best">'
+      +   '<div class="nsm-highlight__title"><i class="ph-fill ph-trophy"></i>最大亮點</div>'
+      +   '<div class="nsm-highlight__text">' + bestMove + '</div>'
+      + '</div>'
+      + '<div class="nsm-highlight nsm-highlight--trap">'
+      +   '<div class="nsm-highlight__title"><i class="ph-fill ph-warning-circle"></i>主要陷阱</div>'
+      +   '<div class="nsm-highlight__text">' + mainTrap + '</div>'
+      + '</div>'
+      + '<div class="nsm-highlight nsm-highlight--next">'
+      +   '<div class="nsm-highlight__title"><i class="ph-fill ph-arrow-right"></i>下一步建議</div>'
+      +   '<div class="nsm-highlight__text">補上 30/60/90 day milestone 與虛榮指標檢驗清單；建議再加練一道不同類型題目，強化多維度指標拆解經驗。</div>'
+      + '</div>'
+      + '<div class="nsm-highlight nsm-highlight--summary">'
+      +   '<div class="nsm-highlight__title"><i class="ph-fill ph-chat-text"></i>總評</div>'
+      +   '<div class="nsm-highlight__text">' + summary + '</div>'
+      + '</div>'
+      + '</div>';
+  }
+
+  function renderNSMStep4DoneTab(evalResult) {
+    var isDesktop = window.innerWidth >= 1024;
+    var totalScore = (evalResult && evalResult.totalScore) || 0;
+    var gap = 100 - totalScore;
+    var passDims = NSM_SCORE_DIMS.filter(function (d) {
+      return evalResult && evalResult.scores && evalResult.scores[d.key] >= 3;
+    }).length;
+
+    var homeBtn = isDesktop
+      ? '<button class="btn btn--ghost" data-nsm4-action="home"><i class="ph ph-house"></i>回首頁</button>'
+      : '';
+
+    return '<div class="done-panel">'
+      +   '<div class="done-panel__icon"><i class="ph-fill ph-check-circle"></i></div>'
+      +   '<div class="done-panel__title">完成這次 NSM 訓練</div>'
+      +   '<div class="done-panel__body">本次得分 <strong>' + totalScore + ' 分</strong>，距離滿分還差 ' + gap + ' 分；'
+      +     '表現扎實，' + passDims + '/5 個維度達標，繼續練其他題型強化指標思考。</div>'
+      +   '<div class="done-panel__actions">'
+      +     homeBtn
+      +     '<button class="btn btn--primary" data-nsm4-action="retry"><i class="ph ph-shuffle"></i>再練一題</button>'
+      +   '</div>'
+      + '</div>'
+      + '<div class="done-secondary">'
+      +   '<div class="done-secondary__title"><i class="ph ph-lightbulb"></i>NSM 練習小技巧</div>'
+      +   '<ul class="done-secondary__list">'
+      +     '<li>每練一題後，回頭看「對比」tab 找出與教練版差距最大的維度</li>'
+      +     '<li>注意指標是否能被「廣告觸及」這類虛榮數據拉高</li>'
+      +     '<li>把 NSM 拆成 2 階段（啟用 → 留存），通常更能反映漏斗本質</li>'
+      +   '</ul>'
+      + '</div>';
+  }
+
+  function renderNSMStep4() {
+    var evalResult = AppState.nsmEvalResult || {};
+    var q = AppState.nsmSelectedQuestion || {};
+    var tab = AppState.nsmReportTab || 'overview';
+    var totalScore = evalResult.totalScore || 0;
+    var ptype = nsmGuessProductType(q);
+    var typeCfg = getNsmDimConfig(ptype);
+    var typeLabelShort = typeCfg ? typeCfg.label : '';
+
+    // nsm-summary company info
+    var companyName = escHtml(q.company || '');
+    var companyProduct = escHtml(q.product || '');
+    var companySub = escHtml(typeLabelShort) + (window.innerWidth >= 1024 && companyProduct ? ' · 模擬完成' : '');
+    var companyDisplayName = window.innerWidth >= 1024 && companyProduct
+      ? (companyName + ' · ' + companyProduct)
+      : companyName;
+
+    // Tab bar
+    var TABS = [
+      { key: 'overview',    label: '總覽' },
+      { key: 'comparison',  label: '對比' },
+      { key: 'highlights',  label: '亮點' },
+      { key: 'done',        label: '完成' },
+    ];
+    var tabBarHtml = '<div class="tab-bar">'
+      + TABS.map(function (t) {
+          return '<button class="tab-bar__btn' + (tab === t.key ? ' is-active' : '') + '" data-nsm4-tab="' + t.key + '">' + t.label + '</button>';
+        }).join('')
+      + '</div>';
+
+    // Tab body
+    var bodyHtml;
+    if (tab === 'overview') {
+      bodyHtml = renderNSMStep4OverviewTab(evalResult, q);
+    } else if (tab === 'comparison') {
+      bodyHtml = renderNSMStep4ComparisonTab(evalResult, q);
+    } else if (tab === 'highlights') {
+      bodyHtml = renderNSMStep4HighlightsTab(evalResult);
+    } else {
+      bodyHtml = renderNSMStep4DoneTab(evalResult);
+    }
+
+    return '<div data-view="nsm" data-nsm-step4>'
+      + renderNSMProgress(4)
+      + '<div class="nsm-nav">'
+      +   '<button class="nsm-nav__back" data-nsm4-action="back"><i class="ph ph-arrow-left"></i></button>'
+      +   '<div class="nsm-nav__main">'
+      +     '<div class="nsm-nav__title">NSM 報告</div>'
+      +     '<div class="nsm-nav__sub">' + companyDisplayName + '</div>'
+      +   '</div>'
+      + '</div>'
+      + '<div class="nsm-summary">'
+      +   '<span class="nsm-summary__score">' + totalScore + '</span>'
+      +   '<span class="nsm-summary__unit">/ 100</span>'
+      +   '<div class="nsm-summary__company">'
+      +     '<div class="nsm-summary__company-name">' + companyDisplayName + '</div>'
+      +     '<div class="nsm-summary__company-sub">' + companySub + '</div>'
+      +   '</div>'
+      + '</div>'
+      + tabBarHtml
+      + '<div class="nsm-body">'
+      +   bodyHtml
+      + '</div>'
+      + '</div>';
+  }
+
+  function bindNSMStep4() {
+    // Tab switching
+    document.querySelectorAll('[data-nsm4-tab]').forEach(function (btn) {
+      btn.addEventListener('click', function () {
+        AppState.nsmReportTab = btn.dataset.nsm4Tab;
+        AppState.nsmActiveCompareNode = null;
+        render();
+      });
+    });
+
+    // Coach card click → show thinking panel
+    document.querySelectorAll('[data-nsm4-compare-node]').forEach(function (card) {
+      card.addEventListener('click', function () {
+        var node = card.dataset.nsm4CompareNode;
+        if (AppState.nsmActiveCompareNode === node) {
+          AppState.nsmActiveCompareNode = null;
+        } else {
+          AppState.nsmActiveCompareNode = node;
+        }
+        render();
+      });
+    });
+
+    // Close coach detail
+    document.querySelectorAll('[data-nsm4-action="close-coach"]').forEach(function (btn) {
+      btn.addEventListener('click', function (e) {
+        e.stopPropagation();
+        AppState.nsmActiveCompareNode = null;
+        render();
+      });
+    });
+
+    // Back button
+    document.querySelectorAll('[data-nsm4-action="back"]').forEach(function (btn) {
+      btn.addEventListener('click', function () {
+        AppState.nsmStep = 3;
+        AppState.nsmSubTab = 'nsm-step3';
+        render();
+      });
+    });
+
+    // 再練一題 — reset to step 1, pick new questions
+    document.querySelectorAll('[data-nsm4-action="retry"]').forEach(function (btn) {
+      btn.addEventListener('click', function () {
+        AppState.nsmStep = 1;
+        AppState.nsmReportTab = 'overview';
+        AppState.nsmEvalResult = null;
+        AppState.nsmGateResult = null;
+        AppState.nsmDefinition = { nsm: '', explanation: '', businessLink: '' };
+        AppState.nsmBreakdown = { reach: '', depth: '', frequency: '', impact: '' };
+        AppState.nsmActiveCompareNode = null;
+        AppState.nsmSelectedQuestion = null;
+        nsmPickDisplayed(true);
+        render();
+      });
+    });
+
+    // 回首頁
+    document.querySelectorAll('[data-nsm4-action="home"]').forEach(function (btn) {
+      btn.addEventListener('click', function () {
+        AppState.view = 'circles';
+        AppState.nsmStep = 1;
+        AppState.nsmReportTab = 'overview';
+        AppState.nsmEvalResult = null;
+        AppState.nsmActiveCompareNode = null;
+        render();
+      });
+    });
+  }
+
+  window.renderNSMStep4 = renderNSMStep4;
+
   function renderAuthStub() {
     return '<div data-view="auth" style="padding:24px;color:var(--c-ink-3);text-align:center">Auth view — 待 Plan B 收尾實作</div>';
   }
