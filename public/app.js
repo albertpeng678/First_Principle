@@ -96,6 +96,7 @@
     nsmBreakdown: { reach: '', depth: '', frequency: '', retention: '' },
     nsmExampleExpanded: {},
     nsmHintExpanded: {},
+    nsmDimExampleExpanded: {},
     nsmContextExpanded: false,         // Step 2/3 context-card 4-block expand toggle (Gap C)
 
     // Plan B Phase 2 Chat additions (mockup 05)
@@ -1227,9 +1228,9 @@
       + '<div class="nsm-body">'
       +   renderNSMContextCard(q, typeCfg)
       +   renderNSMGuide()
-      +   renderNSMField('nsm', '北極星指標 (NSM)', def.nsm, '<strong>例：</strong>每月完成至少一首完整曲目播放的活躍月用戶數', /*single*/ true)
-      +   renderNSMField('explanation', '定義說明', def.explanation, '<strong>例：</strong>說明 NSM 的具體量化定義與行為閾值', false)
-      +   renderNSMField('businessLink', '與業務目標連結', def.businessLink, '<strong>例：</strong>NSM 上升直接對應廣告營收上升或留存率提升', false)
+      +   renderNSMField('nsm', '北極星指標 (NSM)', def.nsm, /*isSingle*/ true)
+      +   renderNSMField('explanation', '定義說明', def.explanation, false)
+      +   renderNSMField('businessLink', '與業務目標連結', def.businessLink, false)
       + '</div>'
       + '<div class="submit-bar">'
       +   '<div class="submit-bar__left"><button class="btn btn--ghost" data-nsm-action="back"><i class="ph ph-arrow-left"></i>上一步</button></div>'
@@ -1422,9 +1423,14 @@
     return html;
   }
 
-  function renderNSMField(fieldId, label, value, exampleHtml, isSingle) {
+  function renderNSMField(fieldId, label, value, isSingle) {
+    var q = AppState.nsmSelectedQuestion || {};
+    var examples = (q.field_examples && q.field_examples.step2) || {};
+    var exampleText = examples[fieldId] || '';
     var isOpen = !!(AppState.nsmExampleExpanded && AppState.nsmExampleExpanded[fieldId]);
-    var caret = isOpen ? 'ph-caret-down' : 'ph-caret-right';
+    var ariaExpanded = isOpen ? 'true' : 'false';
+    var caretStyle = isOpen ? ' style="transform:rotate(180deg)"' : '';
+
     var inputHtml = isSingle
       ? '<input class="nsm-input" data-nsm-field="' + fieldId + '" placeholder="..." value="' + escHtml(value || '') + '">'
       : '<div class="nsm-rt-field"><div class="nsm-rt-toolbar">'
@@ -1433,13 +1439,32 @@
         + '<button class="nsm-rt-tbtn" data-rt-cmd="indent" title="縮排"><i class="ph ph-text-indent"></i></button>'
         + '<button class="nsm-rt-tbtn" data-rt-cmd="outdent" title="退縮"><i class="ph ph-text-outdent"></i></button>'
         + '</div><div class="nsm-rt-textarea" contenteditable="true" data-nsm-field="' + fieldId + '">' + (value || '') + '</div></div>';
+
+    var expandHtml = '';
+    if (isOpen && exampleText) {
+      expandHtml = '<div class="example-expand" aria-hidden="false" data-nsm-example-key="' + escHtml(fieldId) + '">'
+        + '<div class="example-expand__head">'
+        +   '<div class="example-expand__title"><i class="ph ph-quotes"></i>範例答案</div>'
+        +   '<button class="example-expand__close" data-nsm-example-close="' + escHtml(fieldId) + '" aria-label="收合"><i class="ph ph-x"></i></button>'
+        + '</div>'
+        + '<ul class="example-list">' + markdownBulletsToHtml(exampleText) + '</ul>'
+        + '</div>';
+    }
+
     return '<div class="nsm-field">'
-      + '<div class="nsm-field__head">'
-      +   '<label class="nsm-field__label">' + escHtml(label) + '</label>'
-      +   '<button class="nsm-field__example-toggle" data-nsm-example-toggle="' + fieldId + '"><i class="ph ' + caret + '"></i>查看範例</button>'
+      + '<div class="field__label-row">'
+      +   '<label class="field__label">' + escHtml(label) + '</label>'
+      +   '<div class="field__hint-row">'
+      +     '<button class="field__hint-link" type="button" data-nsm-hint="' + escHtml(fieldId) + '">'
+      +       '<i class="ph ph-lightbulb"></i>提示'
+      +     '</button>'
+      +     '<button class="field-example-toggle" type="button" data-nsm-example-toggle="' + escHtml(fieldId) + '" aria-expanded="' + ariaExpanded + '">'
+      +       '<i class="ph ph-quotes"></i>範例答案<i class="ph ph-caret-down toggle-caret"' + caretStyle + '></i>'
+      +     '</button>'
+      +   '</div>'
       + '</div>'
-      + '<div class="nsm-field__example' + (isOpen ? ' is-open' : '') + '">' + exampleHtml + '</div>'
       + inputHtml
+      + expandHtml
       + '</div>';
   }
 
@@ -1539,6 +1564,26 @@
         : escHtml(dim.hint);
       hintHtml = '<div class="nsm-dim__hint-content">' + hintContent + '</div>';
     }
+
+    // Example expand from q.field_examples.step3[dim.id]
+    var q = AppState.nsmSelectedQuestion || {};
+    var step3Examples = (q.field_examples && q.field_examples.step3) || {};
+    var exampleText = step3Examples[dim.id] || '';
+    var isDimExOpen = !!(AppState.nsmDimExampleExpanded && AppState.nsmDimExampleExpanded[dim.id]);
+    var dimExAriaExpanded = isDimExOpen ? 'true' : 'false';
+    var dimExCaretStyle = isDimExOpen ? ' style="transform:rotate(180deg)"' : '';
+
+    var dimExpandHtml = '';
+    if (isDimExOpen && exampleText) {
+      dimExpandHtml = '<div class="example-expand" aria-hidden="false" data-nsm-dim-example-key="' + escHtml(dim.id) + '">'
+        + '<div class="example-expand__head">'
+        +   '<div class="example-expand__title"><i class="ph ph-quotes"></i>範例答案</div>'
+        +   '<button class="example-expand__close" data-nsm-dim-example-close="' + escHtml(dim.id) + '" aria-label="收合"><i class="ph ph-x"></i></button>'
+        + '</div>'
+        + '<ul class="example-list">' + markdownBulletsToHtml(exampleText) + '</ul>'
+        + '</div>';
+    }
+
     return '<div class="nsm-dim">'
       + '<div class="nsm-dim__head">'
       +   '<div class="nsm-dim__label">' + escHtml(dim.label) + '</div>'
@@ -1546,16 +1591,22 @@
       + '</div>'
       + '<div class="nsm-dim__body">'
       +   '<div class="nsm-dim__coach"><i class="ph ph-chat-dots"></i>' + escHtml(dim.coachQ) + '</div>'
-      +   '<button class="nsm-dim__hint-btn" data-nsm-hint-toggle="' + dim.id + '" aria-expanded="' + (isHintOpen ? 'true' : 'false') + '">'
-      +     '<i class="ph ph-lightbulb"></i>' + escHtml(hintLabel)
-      +   '</button>'
+      +   '<div class="field__hint-row">'
+      +     '<button class="nsm-dim__hint-btn" data-nsm-hint-toggle="' + escHtml(dim.id) + '" aria-expanded="' + (isHintOpen ? 'true' : 'false') + '">'
+      +       '<i class="ph ph-lightbulb"></i>' + escHtml(hintLabel)
+      +     '</button>'
+      +     (exampleText ? '<button class="field-example-toggle" type="button" data-nsm-dim-example-toggle="' + escHtml(dim.id) + '" aria-expanded="' + dimExAriaExpanded + '">'
+      +       '<i class="ph ph-quotes"></i>範例答案<i class="ph ph-caret-down toggle-caret"' + dimExCaretStyle + '></i>'
+      +     '</button>' : '')
+      +   '</div>'
       +   hintHtml
+      +   dimExpandHtml
       +   '<div class="nsm-rt-field"><div class="nsm-rt-toolbar">'
       +     '<button class="nsm-rt-tbtn" data-rt-cmd="bold" title="粗體"><strong>B</strong></button>'
       +     '<button class="nsm-rt-tbtn" data-rt-cmd="insertUnorderedList" title="列點"><i class="ph ph-list-bullets"></i></button>'
       +     '<button class="nsm-rt-tbtn" data-rt-cmd="indent" title="縮排"><i class="ph ph-text-indent"></i></button>'
       +     '<button class="nsm-rt-tbtn" data-rt-cmd="outdent" title="退縮"><i class="ph ph-text-outdent"></i></button>'
-      +   '</div><textarea class="nsm-rt-textarea" data-nsm-dim="' + dim.id + '">' + escHtml(value) + '</textarea></div>'
+      +   '</div><textarea class="nsm-rt-textarea" data-nsm-dim="' + escHtml(dim.id) + '">' + escHtml(value) + '</textarea></div>'
       + '</div></div>';
   }
 
@@ -1616,6 +1667,40 @@
         render();
       });
     });
+
+    // ── NSM Step 2 hint modal open — [data-nsm-hint] ─────────────────────────
+    document.querySelectorAll('[data-nsm-hint]').forEach(function (btn) {
+      btn.addEventListener('click', function () {
+        openNSMStep2HintModal(btn.dataset.nsmHint);
+      });
+    });
+
+    // ── NSM Step 2 field example expand/collapse — [data-nsm-example-close] ──
+    document.querySelectorAll('[data-nsm-example-close]').forEach(function (btn) {
+      btn.addEventListener('click', function () {
+        var fid = btn.dataset.nsmExampleClose;
+        if (AppState.nsmExampleExpanded) AppState.nsmExampleExpanded[fid] = false;
+        render();
+      });
+    });
+
+    // ── NSM Step 3 dim example expand/collapse ────────────────────────────────
+    document.querySelectorAll('[data-nsm-dim-example-toggle]').forEach(function (btn) {
+      btn.addEventListener('click', function () {
+        var did = btn.dataset.nsmDimExampleToggle;
+        if (!AppState.nsmDimExampleExpanded) AppState.nsmDimExampleExpanded = {};
+        AppState.nsmDimExampleExpanded[did] = !AppState.nsmDimExampleExpanded[did];
+        render();
+      });
+    });
+    document.querySelectorAll('[data-nsm-dim-example-close]').forEach(function (btn) {
+      btn.addEventListener('click', function () {
+        var did = btn.dataset.nsmDimExampleClose;
+        if (AppState.nsmDimExampleExpanded) AppState.nsmDimExampleExpanded[did] = false;
+        render();
+      });
+    });
+
     document.querySelectorAll('[data-nsm-field]').forEach(function (el) {
       el.addEventListener('input', function () {
         var fid = el.dataset.nsmField;
@@ -3624,6 +3709,141 @@
     var host = document.getElementById('__hint_overlay_host__');
     if (host) host.remove();
     document.removeEventListener('keydown', _hintEscHandler);
+  }
+
+  // ── NSM Step 2 Hint Modal — mirrors CIRCLES openHintModal pattern ──────────
+  // 3-state: loading → content → error. AbortController in-flight cancel.
+  // 4 close paths: ESC / backdrop / X / 「了解了」.
+  // Document delegation registered once; retry path included.
+
+  var _nsmHintCache = {};
+  var _nsmHintAbortController = null;
+
+  function _renderNSMHintModalShell(field, bodyHtml, isLoading, isError) {
+    var labelMap = { nsm: '北極星指標 (NSM)', explanation: '定義說明', businessLink: '與業務目標連結' };
+    var label = labelMap[field] || field;
+    var footHtml;
+    if (isLoading) {
+      footHtml = '<button class="btn btn--ghost" type="button" data-nsm-modal-close="ok">關閉</button>';
+    } else if (isError) {
+      footHtml = '<button class="btn btn--ghost" type="button" data-nsm-modal-close="ok">關閉</button>'
+        + '<button class="btn btn--primary" type="button" data-nsm-modal-retry="' + escHtml(field) + '">重試</button>';
+    } else {
+      footHtml = '<button class="btn btn--primary" type="button" data-nsm-modal-close="ok">了解了</button>';
+    }
+    var headIcon = isError
+      ? '<i class="ph-fill ph-warning-circle" style="color:var(--c-danger);"></i>'
+      : '<i class="ph ph-sparkle"></i>';
+    return '<div class="hint-overlay" aria-hidden="false">'
+      + '<div class="hint-overlay__backdrop" data-nsm-modal-close="backdrop"></div>'
+      + '<div class="modal-card" role="dialog" aria-modal="true">'
+      +   '<div class="modal__head">'
+      +     '<span class="modal__head-icon">' + headIcon + '</span>'
+      +     '<div style="flex:1;">'
+      +       '<div class="modal__sub">提示 · 個人化</div>'
+      +       '<h3 class="modal__title">' + escHtml(label) + '</h3>'
+      +     '</div>'
+      +     '<button class="modal__close" type="button" data-nsm-modal-close="x" aria-label="關閉"><i class="ph ph-x"></i></button>'
+      +   '</div>'
+      +   '<div class="modal__body">' + bodyHtml + '</div>'
+      +   '<div class="modal__foot">' + footHtml + '</div>'
+      + '</div>'
+      + '</div>';
+  }
+
+  function openNSMStep2HintModal(field) {
+    var q = AppState.nsmSelectedQuestion || {};
+    var qid = q.id;
+    if (!qid) return;
+    var cacheKey = qid + ':' + field;
+
+    // Ensure host element exists (create once, reuse across openings)
+    var host = document.getElementById('nsm-hint-modal-host');
+    if (!host) {
+      host = document.createElement('div');
+      host.id = 'nsm-hint-modal-host';
+      document.body.appendChild(host);
+    }
+
+    // Cache hit — immediate content state
+    if (_nsmHintCache[cacheKey]) {
+      var cachedHtml = markdownBulletsToHtml(_nsmHintCache[cacheKey]);
+      host.innerHTML = _renderNSMHintModalShell(field, '<ul class="example-list">' + cachedHtml + '</ul>', false, false);
+      return;
+    }
+
+    // Loading state
+    var qName = escHtml(q.company || '本題');
+    var loadingBody = '<div style="padding:var(--s-5) 0;display:flex;flex-direction:column;align-items:center;gap:var(--s-3);color:var(--c-ink-3);">'
+      + '<div class="hint-spinner" style="width:32px;height:32px;border:2px solid var(--c-rule-bold);border-top-color:var(--c-navy);border-radius:50%;animation:spin 0.8s linear infinite;"></div>'
+      + '<div style="font-size:var(--t-body-sm);color:var(--c-ink);">教練思考中…</div>'
+      + '<div style="font-size:var(--t-cap);text-align:center;">針對 ' + qName + ' 題目產生個人化提示</div>'
+      + '</div>';
+    host.innerHTML = _renderNSMHintModalShell(field, loadingBody, true, false);
+
+    // Cancel previous in-flight + start new fetch
+    if (_nsmHintAbortController) { try { _nsmHintAbortController.abort(); } catch (e) {} }
+    _nsmHintAbortController = new AbortController();
+    var draft = ((AppState.nsmDefinition || {})[field]) || '';
+
+    fetch('/api/nsm-public/step2-hint', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ questionId: qid, field: field, userDraft: draft }),
+      signal: _nsmHintAbortController.signal,
+    }).then(function (res) {
+      if (!res.ok) throw new Error('hint_fetch_failed_' + res.status);
+      return res.json();
+    }).then(function (data) {
+      _nsmHintCache[cacheKey] = data.hint || '';
+      // Only update if host is still showing this modal
+      var current = document.getElementById('nsm-hint-modal-host');
+      if (current && current.innerHTML) {
+        var contentHtml = '<ul class="example-list">' + markdownBulletsToHtml(data.hint || '') + '</ul>';
+        current.innerHTML = _renderNSMHintModalShell(field, contentHtml, false, false);
+      }
+    }).catch(function (e) {
+      if (e && e.name === 'AbortError') return;
+      var current = document.getElementById('nsm-hint-modal-host');
+      if (current && current.innerHTML) {
+        var errBody = '<div style="text-align:center;padding:var(--s-4) 0;">'
+          + '<i class="ph ph-cloud-warning" style="font-size:32px;color:var(--c-danger);"></i>'
+          + '<div style="margin-top:var(--s-2);font-size:var(--t-body-sm);color:var(--c-ink);">提示生成失敗</div>'
+          + '<div style="font-size:var(--t-cap);margin-top:var(--s-2);">教練回應暫時不可用，請稍後再試。</div>'
+          + '</div>';
+        current.innerHTML = _renderNSMHintModalShell(field, errBody, false, true);
+      }
+    });
+  }
+
+  function closeNSMStep2HintModal() {
+    if (_nsmHintAbortController) { try { _nsmHintAbortController.abort(); } catch (e) {} _nsmHintAbortController = null; }
+    var host = document.getElementById('nsm-hint-modal-host');
+    if (host) host.innerHTML = '';
+  }
+
+  // Document-level delegation for NSM hint modal close paths (registered once).
+  // 4 close paths: backdrop / X / 「了解了」 → data-nsm-modal-close=* ; retry → data-nsm-modal-retry
+  if (!window._nsmHintModalDelegateRegistered) {
+    window._nsmHintModalDelegateRegistered = true;
+    document.addEventListener('click', function (e) {
+      if (e.target.closest('[data-nsm-modal-close]')) {
+        closeNSMStep2HintModal();
+        return;
+      }
+      var retry = e.target.closest('[data-nsm-modal-retry]');
+      if (retry) {
+        var f = retry.dataset.nsmModalRetry;
+        closeNSMStep2HintModal();
+        setTimeout(function () { openNSMStep2HintModal(f); }, 100);
+      }
+    });
+    document.addEventListener('keydown', function (e) {
+      if (e.key === 'Escape') {
+        var host = document.getElementById('nsm-hint-modal-host');
+        if (host && host.innerHTML) closeNSMStep2HintModal();
+      }
+    });
   }
 
   // renderExampleExpand — mockup 03 line 1905-1920 verbatim

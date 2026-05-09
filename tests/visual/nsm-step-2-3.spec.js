@@ -23,7 +23,23 @@ async function setupNSMStep2(page, q) {
   await page.waitForSelector('[data-nsm-field="nsm"]', { timeout: 3000 });
 }
 
-const Q_ATTENTION = { id: 'q-att', company: 'Spotify', industry: '音樂串流', scenario: '為 Spotify 定義北極星指標，衡量用戶日常收聽行為', product: 'Spotify Music' };
+const Q_ATTENTION = {
+  id: 'q-att', company: 'Spotify', industry: '音樂串流',
+  scenario: '為 Spotify 定義北極星指標，衡量用戶日常收聽行為', product: 'Spotify Music',
+  field_examples: {
+    step2: {
+      nsm: '- 行為動詞：**每月完成**至少一首完整曲目播放\n- 量化門檻：月活躍用戶',
+      explanation: '- 活躍用戶定義：每月至少播放一首完整歌曲\n- 量化指標清楚',
+      businessLink: '- 直接關聯訂閱留存率\n- 用戶收聽越多越難取消訂閱',
+    },
+    step3: {
+      reach: '- 母群體：月活躍訂閱用戶\n- 達標：播放任一曲目 ≥ 30 秒',
+      depth: '- 深度行為：每月播放時長超過 10 小時',
+      frequency: '- 週期：每週\n- 頻率：至少 3 次播放行為',
+      retention: '- 三個月留存率 > 80%',
+    },
+  },
+};
 const Q_SAAS      = { id: 'q-saas', company: 'Slack', industry: 'B2B SaaS', scenario: 'Workspace activation', product: 'Slack' };
 
 test.describe('NSM Step 2 + Step 3 (mockup 07)', () => {
@@ -41,7 +57,8 @@ test.describe('NSM Step 2 + Step 3 (mockup 07)', () => {
     await setupNSMStep2(page, Q_ATTENTION);
     var firstToggle = page.locator('[data-nsm-example-toggle]').first();
     await firstToggle.click();
-    await expect(page.locator('.nsm-field__example.is-open').first()).toBeVisible();
+    // New LOCKED class structure: .example-expand rendered inline after toggle
+    await expect(page.locator('.nsm-field .example-expand').first()).toBeVisible();
   });
 
   test('Step 2 NSM input typing updates AppState.nsmDefinition.nsm', async ({ page }) => {
