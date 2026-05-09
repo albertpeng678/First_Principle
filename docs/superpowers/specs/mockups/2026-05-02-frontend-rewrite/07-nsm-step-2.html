@@ -249,35 +249,8 @@
     }
 
     /* ───────────────────────────────────────────
-       07-specific NEW components — Screen 8 sub-tabs + 定義 + 4-dim
+       07-specific NEW components — 定義 + 4-dim
        ─────────────────────────────────────────── */
-
-    /* sub-tabs (步驟 2 / NSM 審核 / 步驟 3) */
-    .nsm-sub-tabs {
-      display: flex;
-      gap: 0;
-      padding: 0 var(--s-4);
-      background: var(--c-bg-soft);
-      border-bottom: 1px solid var(--c-rule);
-      overflow-x: auto;
-      -webkit-overflow-scrolling: touch;
-    }
-    .nsm-sub-tab {
-      flex: 0 0 auto;
-      padding: var(--s-3) var(--s-3);
-      font-size: var(--t-body-sm);
-      color: var(--c-ink-3);
-      border-bottom: 2px solid transparent;
-      white-space: nowrap;
-      transition: color var(--t-fast) var(--ease), border-color var(--t-fast) var(--ease);
-    }
-    .nsm-sub-tab:hover:not([disabled]) { color: var(--c-ink-2); }
-    .nsm-sub-tab.is-active { color: var(--c-navy); border-bottom-color: var(--c-navy); font-weight: 600; }
-    .nsm-sub-tab[disabled] { color: var(--c-ink-4); cursor: not-allowed; }
-    @media (min-width: 768px) {
-      .nsm-sub-tabs { padding: 0 var(--s-5); }
-      .nsm-sub-tab { padding: var(--s-3) var(--s-4); }
-    }
 
     /* context card (selected company + scenario header) */
     .nsm-context-card {
@@ -339,6 +312,90 @@
     }
     .nsm-context-card__hint i { font-size: 13px; color: var(--c-ink-3); flex: 0 0 auto; margin-top: 2px; }
 
+    /* context card expand toggle */
+    .nsm-context-card__expand-toggle {
+      display: inline-flex;
+      align-items: center;
+      gap: 4px;
+      padding: 6px var(--s-2);
+      font-size: var(--t-cap);
+      color: var(--c-navy);
+      border-radius: var(--r-input);
+      margin-top: var(--s-2);
+      transition: background var(--t-fast) var(--ease);
+    }
+    .nsm-context-card__expand-toggle:hover { background: var(--c-navy-lt); }
+    .nsm-context-card__expand-toggle i { font-size: 12px; }
+
+    /* context card expand panel (深入了解問題) */
+    .nsm-context-card__expand {
+      margin-top: var(--s-3);
+      padding-top: var(--s-3);
+      border-top: 1px solid var(--c-rule);
+    }
+    .nsm-context-card__expand-label {
+      display: flex;
+      align-items: center;
+      gap: var(--s-3);
+      margin: 0 0 var(--s-4);
+      font-size: var(--t-body-sm);
+      font-weight: 600;
+      color: var(--c-navy);
+      letter-spacing: -0.005em;
+    }
+    .nsm-context-card__expand-label::before {
+      content: '';
+      width: 24px;
+      height: 2px;
+      background: var(--c-navy);
+      flex: 0 0 auto;
+    }
+    .nsm-context-card__ana {
+      display: flex;
+      flex-direction: column;
+      gap: var(--s-3);
+    }
+    .nsm-context-card__ana-block {
+      padding: var(--s-3) var(--s-4);
+      background: var(--c-card);
+      border: 1px solid var(--c-rule);
+      border-radius: var(--r-input);
+    }
+    .nsm-context-card__ana-head {
+      display: flex;
+      align-items: center;
+      gap: var(--s-2);
+      font-size: var(--t-body-sm);
+      font-weight: 600;
+      color: var(--c-ink);
+      margin-bottom: var(--s-2);
+    }
+    .nsm-context-card__ana-head i { font-size: 18px; color: var(--c-navy); flex: 0 0 auto; width: 24px; text-align: center; }
+    .nsm-context-card__ana-body {
+      font-size: var(--t-body-sm);
+      line-height: 1.7;
+      color: var(--c-ink-2);
+      padding-left: 32px;
+    }
+    .nsm-context-card__ana-block--trap {
+      background: linear-gradient(0deg, rgba(184,92,0,0.04), rgba(184,92,0,0.04)), var(--c-card);
+      border-color: rgba(184,92,0,0.18);
+    }
+    .nsm-context-card__ana-block--trap .nsm-context-card__ana-head,
+    .nsm-context-card__ana-block--trap .nsm-context-card__ana-head i { color: var(--c-warn); }
+    .nsm-context-card__collapse-btn {
+      margin-top: var(--s-4);
+      padding: 6px 12px;
+      font-size: var(--t-meta);
+      color: var(--c-ink-3);
+      border: 1px solid var(--c-rule);
+      border-radius: var(--r-input);
+      display: inline-flex;
+      align-items: center;
+      gap: var(--s-1);
+    }
+    .nsm-context-card__collapse-btn:hover { background: var(--c-bg-soft); color: var(--c-ink); }
+
     /* 3-step guide (找 AHA / 量化 / 虛榮檢驗) */
     .nsm-guide {
       background: var(--c-bg-soft);
@@ -384,44 +441,126 @@
     .nsm-guide__body strong { font-size: var(--t-body-sm); color: var(--c-ink); font-weight: 600; }
     .nsm-guide__body p { font-size: var(--t-meta); color: var(--c-ink-2); line-height: 1.7; margin-top: 2px; }
 
-    /* field group (label + 範例 toggle + input/textarea) */
+    /* field group (label + 提示 + 範例答案 toggle + input/textarea) */
+    /* LOCKED from mockup 03 — DO NOT MODIFY */
     .nsm-field { margin-bottom: var(--s-5); }
-    .nsm-field__head {
+    .field__label-row {
       display: flex;
-      align-items: center;
+      align-items: baseline;
       justify-content: space-between;
-      margin-bottom: var(--s-2);
       gap: var(--s-3);
+      margin-bottom: var(--s-2);
+      flex-wrap: wrap;
     }
-    .nsm-field__label {
-      font-size: var(--t-meta);
-      color: var(--c-ink-2);
-      font-weight: 600;
-      letter-spacing: 0.02em;
+    .field__hint-row {
+      flex: 0 0 auto;
+      margin-left: auto;  /* 強制靠右，即使 wrap */
     }
-    .nsm-field__example-toggle {
+    .field__label {
+      font-size: var(--t-body-sm);
+      color: var(--c-ink);
+      font-weight: 500;
+      letter-spacing: -0.005em;
+    }
+    .field__hint-link {
       display: inline-flex;
       align-items: center;
       gap: 4px;
       font-size: var(--t-cap);
+      color: var(--c-ink-3);
+      transition: color var(--t-fast) var(--ease);
+      cursor: pointer;
+    }
+    .field__hint-link:hover { color: var(--c-navy); }
+    .field__hint-link i { font-size: 14px; }
+    /* ─── field 兩種 hint links（提示 + 範例答案）─── */
+    .field__hint-row {
+      display: flex;
+      gap: var(--s-3);
+      flex-wrap: wrap;
+      align-items: center;
+    }
+    .field__hint-link.is-active {
       color: var(--c-navy);
-      padding: 4px var(--s-2);
+      font-weight: 500;
+    }
+    .field-example-toggle {
+      display: inline-flex;
+      align-items: center;
+      gap: 4px;
+      font-size: var(--t-cap);
+      color: var(--c-ink-3);
+      transition: color var(--t-fast) var(--ease);
+      cursor: pointer;
+    }
+    .field-example-toggle:hover { color: var(--c-navy); }
+    .field-example-toggle i { font-size: 14px; }
+    .field-example-toggle[aria-expanded="true"] { color: var(--c-navy); font-weight: 500; }
+    .field-example-toggle[aria-expanded="true"] i.toggle-caret { transform: rotate(180deg); }
+    .field-example-toggle i.toggle-caret { transition: transform var(--t-fast) var(--ease); font-size: 12px; }
+    /* ─── example bullet inline expand（spec 2026-04-28 bullet-format）─── */
+    .example-expand {
+      margin-top: var(--s-3);
+      padding: var(--s-4) var(--s-5);
+      background: var(--c-surface);
+      border: 1px solid var(--c-rule);
       border-radius: var(--r-input);
-      transition: background var(--t-fast) var(--ease);
+      animation: fadeSlideIn var(--t-norm) var(--ease);
     }
-    .nsm-field__example-toggle:hover { background: var(--c-navy-lt); }
-    .nsm-field__example-toggle i { font-size: 12px; }
-    .nsm-field__example {
-      background: var(--c-navy-lt);
-      border-left: 2px solid var(--c-navy);
-      padding: var(--s-3);
-      margin-bottom: var(--s-2);
-      font-size: var(--t-meta);
+    @keyframes fadeSlideIn {
+      from { opacity: 0; transform: translateY(-4px); }
+      to { opacity: 1; transform: translateY(0); }
+    }
+    .example-expand__head {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      margin-bottom: var(--s-3);
+      padding-bottom: var(--s-2);
+      border-bottom: 1px solid var(--c-rule);
+    }
+    .example-expand__title {
+      display: inline-flex;
+      align-items: center;
+      gap: var(--s-2);
+      font-size: var(--t-cap);
+      letter-spacing: 0.04em;
+      text-transform: uppercase;
+      color: var(--c-navy);
+    }
+    .example-expand__close {
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+      width: 24px; height: 24px;
+      border-radius: 4px;
+      color: var(--c-ink-3);
+      font-size: 14px;
+    }
+    .example-expand__close:hover { background: var(--c-bg-soft); color: var(--c-ink); }
+    .example-list {
+      list-style: disc;
+      padding-left: var(--s-5);
+      font-size: var(--t-body-sm);
+      line-height: 1.8;
       color: var(--c-ink-2);
-      line-height: 1.7;
-      border-radius: 0 var(--r-input) var(--r-input) 0;
     }
-    .nsm-field__example strong { color: var(--c-navy); font-weight: 600; }
+    .example-list li + li { margin-top: var(--s-1); }
+    .example-list ul { list-style: circle; padding-left: var(--s-4); margin-top: var(--s-1); }
+    /* nsm-dim head uses field__label-row — add border-left accent + bg */
+    .nsm-dim > .field__label-row {
+      padding: var(--s-3) var(--s-4);
+      border-left: 4px solid var(--c-navy);
+      background: var(--c-surface);
+      border-bottom: 1px solid var(--c-rule);
+      margin-bottom: 0;
+    }
+    .nsm-dim__desc {
+      padding: var(--s-2) var(--s-4) 0;
+      font-size: var(--t-cap);
+      color: var(--c-ink-3);
+      line-height: 1.6;
+    }
     .nsm-input, .nsm-textarea {
       width: 100%;
       background: var(--c-card);
@@ -439,46 +578,47 @@
     .nsm-input::placeholder, .nsm-textarea::placeholder { color: var(--c-ink-4); }
     .nsm-input.is-filled, .nsm-textarea.is-filled { background: var(--c-card); }
 
-    /* rich-text toolbar (mock — 與 03 phase1 textarea 對齊) */
-    .nsm-rt-field {
+    /* rt-field — LOCKED verbatim from mockup 03 */
+    .rt-field {
       border: 1px solid var(--c-rule-bold);
       border-radius: var(--r-input);
       background: var(--c-card);
       transition: border-color var(--t-fast) var(--ease), box-shadow var(--t-fast) var(--ease);
       overflow: hidden;
     }
-    .nsm-rt-field:focus-within { border-color: var(--c-navy); box-shadow: 0 0 0 3px var(--c-navy-lt); }
-    .nsm-rt-toolbar {
+    .rt-field:focus-within {
+      border-color: var(--c-primary);
+      box-shadow: var(--shadow-focus);
+    }
+    .rt-field__toolbar {
       display: flex;
-      gap: 2px;
-      padding: 4px var(--s-2);
+      gap: var(--s-1);
+      padding: var(--s-2) var(--s-3);
       border-bottom: 1px solid var(--c-rule);
-      background: var(--c-bg-soft);
+      background: var(--c-surface);
     }
-    .nsm-rt-tbtn {
+    .rt-tbtn {
       width: 28px; height: 28px;
+      display: inline-flex; align-items: center; justify-content: center;
       border-radius: 4px;
-      display: inline-flex;
-      align-items: center;
-      justify-content: center;
       color: var(--c-ink-2);
-      font-size: 12px;
-      transition: background var(--t-fast) var(--ease);
+      font-size: 14px;
     }
-    .nsm-rt-tbtn:hover { background: var(--c-bg-deep); color: var(--c-ink); }
-    .nsm-rt-field textarea {
+    .rt-tbtn:hover { background: var(--c-bg-soft); color: var(--c-ink); }
+    .rt-tbtn[aria-pressed="true"] { background: var(--c-navy-lt); color: var(--c-navy); }
+    .rt-textarea {
       width: 100%;
-      border: none;
+      padding: var(--s-3) var(--s-4);
       background: transparent;
-      padding: var(--s-3);
-      font-size: var(--t-body-sm);
-      color: var(--c-ink);
-      font-family: inherit;
-      line-height: 1.7;
-      resize: vertical;
-      min-height: 88px;
+      border: 0;
       outline: none;
+      font-size: var(--t-body);
+      line-height: 1.7;
+      color: var(--c-ink);
+      min-height: 88px;
+      resize: vertical;
     }
+    .rt-textarea::placeholder { color: var(--c-ink-4); }
 
     /* vanity warning banner — NO bypass (per red-blocks rule) */
     .nsm-vanity {
@@ -578,24 +718,9 @@
       margin-bottom: var(--s-3);
       overflow: hidden;
     }
-    .nsm-dim__head {
-      padding: var(--s-3) var(--s-4);
-      border-left: 4px solid var(--c-navy);
-      background: var(--c-surface);
-      border-bottom: 1px solid var(--c-rule);
-    }
-    .nsm-dim__label {
-      font-size: var(--t-body-sm);
-      color: var(--c-ink);
-      font-weight: 600;
-      letter-spacing: -0.005em;
-    }
-    .nsm-dim__desc {
-      font-size: var(--t-cap);
-      color: var(--c-ink-3);
-      margin-top: 2px;
-      line-height: 1.6;
-    }
+    /* .nsm-dim__head, .nsm-dim__label, .nsm-dim__hint-btn, .nsm-dim__hint-content DELETED */
+    /* → replaced by LOCKED .field__label-row + .field__hint-row pattern (see above) */
+    /* .nsm-dim__desc styles merged into LOCKED section above */
     .nsm-dim__body { padding: var(--s-4); }
     .nsm-dim__coach {
       display: flex;
@@ -609,30 +734,6 @@
       line-height: 1.6;
     }
     .nsm-dim__coach i { color: var(--c-navy); font-size: 14px; flex: 0 0 auto; margin-top: 2px; }
-    .nsm-dim__hint-btn {
-      display: inline-flex;
-      align-items: center;
-      gap: 4px;
-      padding: 6px var(--s-2);
-      font-size: var(--t-cap);
-      color: var(--c-navy);
-      border-radius: var(--r-input);
-      margin-bottom: var(--s-3);
-      transition: background var(--t-fast) var(--ease);
-    }
-    .nsm-dim__hint-btn:hover { background: var(--c-navy-lt); }
-    .nsm-dim__hint-btn i { font-size: 12px; }
-    .nsm-dim__hint-content {
-      background: var(--c-navy-lt);
-      border-left: 2px solid var(--c-navy);
-      padding: var(--s-3);
-      margin-bottom: var(--s-3);
-      font-size: var(--t-meta);
-      color: var(--c-ink-2);
-      line-height: 1.7;
-      border-radius: 0 var(--r-input) var(--r-input) 0;
-    }
-    .nsm-dim__hint-content strong { color: var(--c-navy); }
 
     /* viewport frame internal */
     .vp-frame__inner {
@@ -641,6 +742,60 @@
       display: flex;
       flex-direction: column;
     }
+
+    /* ─── modal overlay（form 在後，modal 在上）— LOCKED verbatim from 03 ─── */
+    @keyframes spin { to { transform: rotate(360deg); } }
+    .overlay-frame {
+      position: relative;
+      min-height: 540px;
+      overflow: hidden;
+    }
+    .overlay-frame__backdrop {
+      position: absolute;
+      inset: 0;
+      background: rgba(31,29,27,0.45);
+      z-index: 1;
+    }
+    .overlay-frame .modal-card {
+      position: absolute;
+      top: 50%;
+      left: 50%;
+      transform: translate(-50%, -50%);
+      z-index: 2;
+      width: calc(100% - var(--s-7));
+      max-width: 520px;
+    }
+    .overlay-frame--bottom .modal-card {
+      top: auto;
+      bottom: 0;
+      left: 0;
+      transform: none;
+      width: 100%;
+      max-width: 100%;
+      border-radius: var(--r-card) var(--r-card) 0 0;
+    }
+    .overlay-frame--bottom .overlay-frame__backdrop { bottom: 0; }
+    .modal-card {
+      width: 100%;
+      max-width: 520px;
+      background: var(--c-card);
+      border-radius: var(--r-card);
+      box-shadow: var(--shadow-3);
+      overflow: hidden;
+    }
+    .modal__head {
+      padding: var(--s-5) var(--s-5) var(--s-3);
+      border-bottom: 1px solid var(--c-rule);
+      display: flex;
+      align-items: flex-start;
+      gap: var(--s-3);
+    }
+    .modal__head-icon { width: 36px; height: 36px; border-radius: var(--r-input); background: var(--c-navy-lt); color: var(--c-navy); display: inline-flex; align-items: center; justify-content: center; font-size: 18px; }
+    .modal__title { font-size: var(--t-h3); flex: 1; }
+    .modal__sub { font-size: var(--t-cap); color: var(--c-ink-3); letter-spacing: 0.04em; text-transform: uppercase; margin-top: 2px; }
+    .modal__close { width: 32px; height: 32px; flex: 0 0 auto; border-radius: var(--r-pill); color: var(--c-ink-3); display: inline-flex; align-items: center; justify-content: center; }
+    .modal__body { padding: var(--s-4) var(--s-5); font-size: var(--t-body-sm); line-height: 1.75; color: var(--c-ink); max-height: 280px; overflow-y: auto; }
+    .modal__foot { padding: var(--s-3) var(--s-5); border-top: 1px solid var(--c-rule); display: flex; justify-content: flex-end; gap: var(--s-2); background: var(--c-bg-soft); }
   </style>
 </head>
 <body>
@@ -649,10 +804,10 @@
       <div class="ds-header__eyebrow">Path 2 · Mockup 07 · CONTRACT-LOCKED 草稿</div>
       <h1>NSM 步驟 2 / 步驟 3 — 定義 NSM + 4-dim 動態拆解</h1>
       <p class="ds-header__sub">
-        Screen 8 兩個內容 sub-tab：步驟 2「定義 NSM」（3 fields：北極星指標 / 定義說明 / 與業務目標連結 + 3 步定義法 guide）
+        Screen 8：步驟 2「定義 NSM」（3 fields：北極星指標 / 定義說明 / 與業務目標連結 + 3 步定義法 guide）
         與 步驟 3「拆解輸入指標」（4-dim section cards，<strong>label / subtitle / coachQ / placeholder 全動態</strong> 隨 product type 切換 — 規格詳見
         <code>NSM_DIMENSION_CONFIGS</code>，4 type × 4 dim = 16 組組合）。
-        中間 sub-tab「NSM 審核」是 08 mockup 的範圍（gate result 紅 = 必擋）。
+        NSM 審核是 08 mockup 的範圍（gate result 紅 = 必擋）。
         Component 樣式整段 LOCKED copy 自 06（root tokens / navbar / phase-head / submit-bar / btn / nsm-progress / nsm-body）。
       </p>
     </header>
@@ -660,8 +815,8 @@
     <!-- ============================================================ -->
     <!-- Section A — Step 2 sub-tab · 定義 NSM 空白                   -->
     <!-- ============================================================ -->
-    <h2 class="vp-section-title">A · 步驟 2 定義 NSM <span class="vp-section-title__sub">empty · 第一張查看範例展開 · sub-tab Step2 active / Gate disabled / Step3 disabled</span></h2>
-    <div class="anno"><strong>視覺契約：</strong>navbar + phase-head（Step 2 · 定義 NSM）+ <code>nsm-sub-tabs</code>（步驟 2 active / NSM 審核 disabled / 步驟 3 disabled）+ <code>nsm-progress</code>（情境 done · 指標 active · 拆解 / 總結 pending）+ context-card（Spotify · 音樂串流 · 注意力型 navy）+ 3 步定義法 guide + 3 fields（NSM input / 定義說明 / 業務連結，第一張查看範例展開）+ submit-bar（提交審核 disabled，等 NSM 與業務連結都填寫）。</div>
+    <h2 class="vp-section-title">A · 步驟 2 定義 NSM <span class="vp-section-title__sub">empty · 第一張查看範例展開</span></h2>
+    <div class="anno"><strong>視覺契約：</strong>navbar + phase-head（Step 2 · 定義 NSM）+ <code>nsm-progress</code>（情境 done · 指標 active · 拆解 / 總結 pending）+ context-card（Spotify · 音樂串流 · 注意力型 navy）+ <strong>「深入了解問題」展開面板</strong>（三個 viewport 全部展開；4-block：商業模式 / 使用者 / 常見陷阱 / 破題切入）+ 3 步定義法 guide + <strong>3 fields 用 LOCKED <code>.field__hint-row</code> 並排「提示」+「範例答案」button（mirror mockup 03）；first field example-expand visible 作為視覺契約</strong> + submit-bar（提交審核 disabled）。</div>
     <div class="vp-grid">
 
       <!-- A · Mobile 360 -->
@@ -679,11 +834,6 @@
               <div class="phase-head__eyebrow">NSM · 北極星訓練</div>
               <div class="phase-head__title">定義 NSM</div>
             </div>
-          </div>
-          <div class="nsm-sub-tabs">
-            <button class="nsm-sub-tab is-active">步驟 2：定義 NSM</button>
-            <button class="nsm-sub-tab" disabled>NSM 審核</button>
-            <button class="nsm-sub-tab" disabled>步驟 3：拆解</button>
           </div>
           <div class="nsm-progress">
             <div class="nsm-progress__step is-done"><div class="nsm-progress__dot">1</div><div class="nsm-progress__label">情境</div></div>
@@ -703,6 +853,29 @@
               </div>
               <p class="nsm-context-card__scenario">為 Spotify Podcast 業務定義北極星指標，目標是衡量新用戶能否養成日常收聽習慣。</p>
               <span class="nsm-context-card__hint"><i class="ph ph-info"></i>核心價值在於讓用戶在產品上花有意義的時間（社交、媒體、遊戲）。</span>
+              <button class="nsm-context-card__expand-toggle"><i class="ph ph-caret-up"></i>收合</button>
+              <div class="nsm-context-card__expand">
+                <div class="nsm-context-card__expand-label">深入分析</div>
+                <div class="nsm-context-card__ana">
+                  <div class="nsm-context-card__ana-block">
+                    <div class="nsm-context-card__ana-head"><i class="ph ph-buildings"></i>商業模式</div>
+                    <div class="nsm-context-card__ana-body">Spotify 透過廣告支援的免費層和訂閱制雙軌賺錢，Podcast 是增加用戶黏性與 Premium 轉換率的核心槓桿——留存 Podcast 聽眾即留存廣告庫存與潛在訂閱客群。</div>
+                  </div>
+                  <div class="nsm-context-card__ana-block">
+                    <div class="nsm-context-card__ana-head"><i class="ph ph-users"></i>使用者</div>
+                    <div class="nsm-context-card__ana-body">主要用戶是通勤、運動、開車等場景下的成人聽眾，習慣串流音樂後才嘗試 Podcast；「subscribe → listen」漏斗顯示多數人訂閱後 7 天內未開啟任何單集。</div>
+                  </div>
+                  <div class="nsm-context-card__ana-block nsm-context-card__ana-block--trap">
+                    <div class="nsm-context-card__ana-head"><i class="ph ph-warning"></i>常見陷阱</div>
+                    <div class="nsm-context-card__ana-body">把「訂閱數」或「下載量」當 NSM——這些指標反映被動意圖，無法表示用戶真的養成收聽習慣。直接套用音樂留存策略也行不通：Podcast 是 content-driven、需要更高注意力承諾，與音樂的 mood-driven 完全不同。</div>
+                  </div>
+                  <div class="nsm-context-card__ana-block">
+                    <div class="nsm-context-card__ana-head"><i class="ph ph-lightbulb"></i>破題切入</div>
+                    <div class="nsm-context-card__ana-body">核心洞察：Podcast 的 AHA 時刻是「完成首集」而非「開始播放」。先定義「留存」具體指什麼（訂閱留存 / 完播留存 / 回流留存），再往上推算 NSM 應指向哪個行為。</div>
+                  </div>
+                </div>
+                <button class="nsm-context-card__collapse-btn"><i class="ph ph-caret-up" style="font-size:12px;"></i>收合</button>
+              </div>
             </div>
             <div class="nsm-guide">
               <div class="nsm-guide__title"><i class="ph ph-path"></i>3 步定義法</div>
@@ -724,48 +897,65 @@
                 <span class="nsm-guide__num">3</span>
                 <div class="nsm-guide__body">
                   <strong>做虛榮指標檢驗</strong>
-                  <p>問自己：如果這個數字翻倍，Spotify 的商業收益一定增加嗎？</p>
+                  <p>問自己：這個指標是否真的能如實反映「用戶體會到產品價值」？</p>
                 </div>
               </div>
             </div>
             <div class="nsm-field">
-              <div class="nsm-field__head">
-                <label class="nsm-field__label">北極星指標 (NSM)</label>
-                <button class="nsm-field__example-toggle"><i class="ph ph-caret-down"></i>查看範例</button>
-              </div>
-              <div class="nsm-field__example">
-                <strong>例 (Spotify)：</strong>每月完成至少一首完整曲目播放的活躍月用戶數 — 反映真正的聆聽行為，非背景播放。
+              <div class="field__label-row">
+                <label class="field__label">北極星指標 (NSM)</label>
+                <div class="field__hint-row">
+                  <div class="field__hint-row">
+                    <button class="field__hint-link"><i class="ph ph-lightbulb"></i>提示</button>
+                    <button class="field-example-toggle is-active" aria-expanded="true"><i class="ph ph-quotes"></i>範例答案<i class="ph ph-caret-down toggle-caret" style="transform:rotate(180deg)"></i></button>
+                  </div>
+                </div>
               </div>
               <input class="nsm-input" placeholder="用一句話定義你的 NSM，包含量化描述...">
-            </div>
-            <div class="nsm-field">
-              <div class="nsm-field__head">
-                <label class="nsm-field__label">定義說明</label>
-                <button class="nsm-field__example-toggle"><i class="ph ph-caret-right"></i>查看範例</button>
-              </div>
-              <div class="nsm-rt-field">
-                <div class="nsm-rt-toolbar">
-                  <button class="nsm-rt-tbtn" title="粗體"><strong>B</strong></button>
-                  <button class="nsm-rt-tbtn" title="列點"><i class="ph ph-list-bullets"></i></button>
-                  <button class="nsm-rt-tbtn" title="縮排"><i class="ph ph-text-indent"></i></button>
-                  <button class="nsm-rt-tbtn" title="退縮"><i class="ph ph-text-outdent"></i></button>
+              <div class="example-expand">
+                <div class="example-expand__head">
+                  <div class="example-expand__title"><i class="ph ph-quotes"></i>範例答案</div>
+                  <button class="example-expand__close" aria-label="收合"><i class="ph ph-x"></i></button>
                 </div>
-                <textarea placeholder="解釋為什麼要這樣定義，避免哪些虛榮陷阱..." rows="3"></textarea>
+                <ul class="example-list">
+                  <li>每月有多少新用戶在註冊後的 7 天內，至少完成 3 集 Podcast 收聽（每集 ≥ 5 分鐘）</li>
+                </ul>
               </div>
             </div>
             <div class="nsm-field">
-              <div class="nsm-field__head">
-                <label class="nsm-field__label">與業務目標的連結</label>
-                <button class="nsm-field__example-toggle"><i class="ph ph-caret-right"></i>查看範例</button>
-              </div>
-              <div class="nsm-rt-field">
-                <div class="nsm-rt-toolbar">
-                  <button class="nsm-rt-tbtn" title="粗體"><strong>B</strong></button>
-                  <button class="nsm-rt-tbtn" title="列點"><i class="ph ph-list-bullets"></i></button>
-                  <button class="nsm-rt-tbtn" title="縮排"><i class="ph ph-text-indent"></i></button>
-                  <button class="nsm-rt-tbtn" title="退縮"><i class="ph ph-text-outdent"></i></button>
+              <div class="field__label-row">
+                <label class="field__label">定義說明</label>
+                <div class="field__hint-row">
+                  <div class="field__hint-row">
+                    <button class="field__hint-link"><i class="ph ph-lightbulb"></i>提示</button>
+                    <button class="field-example-toggle" aria-expanded="false"><i class="ph ph-quotes"></i>範例答案<i class="ph ph-caret-down toggle-caret"></i></button>
+                  </div>
                 </div>
-                <textarea placeholder="這個 NSM 如何驅動營收/留存/獲利..." rows="3"></textarea>
+              </div>
+              <div class="rt-field">
+                <div class="rt-field__toolbar">
+                  <button class="rt-tbtn"><i class="ph ph-text-b"></i></button>
+                  <button class="rt-tbtn"><i class="ph ph-list-bullets"></i></button>
+                </div>
+                <textarea class="rt-textarea" placeholder="解釋為什麼要這樣定義，避免哪些虛榮陷阱..." rows="3"></textarea>
+              </div>
+            </div>
+            <div class="nsm-field">
+              <div class="field__label-row">
+                <label class="field__label">與業務目標的連結</label>
+                <div class="field__hint-row">
+                  <div class="field__hint-row">
+                    <button class="field__hint-link"><i class="ph ph-lightbulb"></i>提示</button>
+                    <button class="field-example-toggle" aria-expanded="false"><i class="ph ph-quotes"></i>範例答案<i class="ph ph-caret-down toggle-caret"></i></button>
+                  </div>
+                </div>
+              </div>
+              <div class="rt-field">
+                <div class="rt-field__toolbar">
+                  <button class="rt-tbtn"><i class="ph ph-text-b"></i></button>
+                  <button class="rt-tbtn"><i class="ph ph-list-bullets"></i></button>
+                </div>
+                <textarea class="rt-textarea" placeholder="這個 NSM 如何驅動營收/留存/獲利..." rows="3"></textarea>
               </div>
             </div>
           </div>
@@ -800,11 +990,6 @@
             </div>
             <div class="phase-head__meta"><span>Spotify · 音樂串流</span></div>
           </div>
-          <div class="nsm-sub-tabs">
-            <button class="nsm-sub-tab is-active">步驟 2：定義 NSM</button>
-            <button class="nsm-sub-tab" disabled>NSM 審核</button>
-            <button class="nsm-sub-tab" disabled>步驟 3：拆解指標</button>
-          </div>
           <div class="nsm-progress">
             <div class="nsm-progress__step is-done"><div class="nsm-progress__dot">1</div><div class="nsm-progress__label">情境</div></div>
             <div class="nsm-progress__line is-done"></div>
@@ -823,6 +1008,29 @@
               </div>
               <p class="nsm-context-card__scenario">為 Spotify Podcast 業務定義北極星指標，目標是衡量新用戶能否養成日常收聽習慣。</p>
               <span class="nsm-context-card__hint"><i class="ph ph-info"></i>核心價值在於讓用戶在產品上花有意義的時間（社交、媒體、遊戲）。</span>
+              <button class="nsm-context-card__expand-toggle"><i class="ph ph-caret-up"></i>收合</button>
+              <div class="nsm-context-card__expand">
+                <div class="nsm-context-card__expand-label">深入分析</div>
+                <div class="nsm-context-card__ana">
+                  <div class="nsm-context-card__ana-block">
+                    <div class="nsm-context-card__ana-head"><i class="ph ph-buildings"></i>商業模式</div>
+                    <div class="nsm-context-card__ana-body">Spotify 透過廣告支援的免費層和訂閱制雙軌賺錢，Podcast 是增加用戶黏性與 Premium 轉換率的核心槓桿——留存 Podcast 聽眾即留存廣告庫存與潛在訂閱客群。</div>
+                  </div>
+                  <div class="nsm-context-card__ana-block">
+                    <div class="nsm-context-card__ana-head"><i class="ph ph-users"></i>使用者</div>
+                    <div class="nsm-context-card__ana-body">主要用戶是通勤、運動、開車等場景下的成人聽眾，習慣串流音樂後才嘗試 Podcast；「subscribe → listen」漏斗顯示多數人訂閱後 7 天內未開啟任何單集。</div>
+                  </div>
+                  <div class="nsm-context-card__ana-block nsm-context-card__ana-block--trap">
+                    <div class="nsm-context-card__ana-head"><i class="ph ph-warning"></i>常見陷阱</div>
+                    <div class="nsm-context-card__ana-body">把「訂閱數」或「下載量」當 NSM——這些指標反映被動意圖，無法表示用戶真的養成收聽習慣。直接套用音樂留存策略也行不通：Podcast 是 content-driven、需要更高注意力承諾，與音樂的 mood-driven 完全不同。</div>
+                  </div>
+                  <div class="nsm-context-card__ana-block">
+                    <div class="nsm-context-card__ana-head"><i class="ph ph-lightbulb"></i>破題切入</div>
+                    <div class="nsm-context-card__ana-body">核心洞察：Podcast 的 AHA 時刻是「完成首集」而非「開始播放」。先定義「留存」具體指什麼（訂閱留存 / 完播留存 / 回流留存），再往上推算 NSM 應指向哪個行為。</div>
+                  </div>
+                </div>
+                <button class="nsm-context-card__collapse-btn"><i class="ph ph-caret-up" style="font-size:12px;"></i>收合</button>
+              </div>
             </div>
             <div class="nsm-guide">
               <div class="nsm-guide__title"><i class="ph ph-path"></i>3 步定義法</div>
@@ -836,45 +1044,64 @@
               </div>
               <div class="nsm-guide__step">
                 <span class="nsm-guide__num">3</span>
-                <div class="nsm-guide__body"><strong>做虛榮指標檢驗</strong><p>問自己：如果這個數字翻倍，Spotify 的商業收益一定增加嗎？</p></div>
+                <div class="nsm-guide__body"><strong>做虛榮指標檢驗</strong><p>問自己：這個指標是否真的能如實反映「用戶體會到產品價值」？</p></div>
               </div>
             </div>
             <div class="nsm-field">
-              <div class="nsm-field__head">
-                <label class="nsm-field__label">北極星指標 (NSM)</label>
-                <button class="nsm-field__example-toggle"><i class="ph ph-caret-down"></i>查看範例</button>
+              <div class="field__label-row">
+                <label class="field__label">北極星指標 (NSM)</label>
+                <div class="field__hint-row">
+                  <div class="field__hint-row">
+                    <button class="field__hint-link"><i class="ph ph-lightbulb"></i>提示</button>
+                    <button class="field-example-toggle is-active" aria-expanded="true"><i class="ph ph-quotes"></i>範例答案<i class="ph ph-caret-down toggle-caret" style="transform:rotate(180deg)"></i></button>
+                  </div>
+                </div>
               </div>
-              <div class="nsm-field__example"><strong>例 (Spotify)：</strong>每月完成至少一首完整曲目播放的活躍月用戶數 — 反映真正的聆聽行為，非背景播放。</div>
               <input class="nsm-input" placeholder="用一句話定義你的 NSM，包含量化描述...">
-            </div>
-            <div class="nsm-field">
-              <div class="nsm-field__head">
-                <label class="nsm-field__label">定義說明</label>
-                <button class="nsm-field__example-toggle"><i class="ph ph-caret-right"></i>查看範例</button>
-              </div>
-              <div class="nsm-rt-field">
-                <div class="nsm-rt-toolbar">
-                  <button class="nsm-rt-tbtn"><strong>B</strong></button>
-                  <button class="nsm-rt-tbtn"><i class="ph ph-list-bullets"></i></button>
-                  <button class="nsm-rt-tbtn"><i class="ph ph-text-indent"></i></button>
-                  <button class="nsm-rt-tbtn"><i class="ph ph-text-outdent"></i></button>
+              <div class="example-expand">
+                <div class="example-expand__head">
+                  <div class="example-expand__title"><i class="ph ph-quotes"></i>範例答案</div>
+                  <button class="example-expand__close" aria-label="收合"><i class="ph ph-x"></i></button>
                 </div>
-                <textarea placeholder="解釋為什麼要這樣定義，避免哪些虛榮陷阱..." rows="3"></textarea>
+                <ul class="example-list">
+                  <li>每月有多少新用戶在註冊後的 7 天內，至少完成 3 集 Podcast 收聽（每集 ≥ 5 分鐘）</li>
+                </ul>
               </div>
             </div>
             <div class="nsm-field">
-              <div class="nsm-field__head">
-                <label class="nsm-field__label">與業務目標的連結</label>
-                <button class="nsm-field__example-toggle"><i class="ph ph-caret-right"></i>查看範例</button>
-              </div>
-              <div class="nsm-rt-field">
-                <div class="nsm-rt-toolbar">
-                  <button class="nsm-rt-tbtn"><strong>B</strong></button>
-                  <button class="nsm-rt-tbtn"><i class="ph ph-list-bullets"></i></button>
-                  <button class="nsm-rt-tbtn"><i class="ph ph-text-indent"></i></button>
-                  <button class="nsm-rt-tbtn"><i class="ph ph-text-outdent"></i></button>
+              <div class="field__label-row">
+                <label class="field__label">定義說明</label>
+                <div class="field__hint-row">
+                  <div class="field__hint-row">
+                    <button class="field__hint-link"><i class="ph ph-lightbulb"></i>提示</button>
+                    <button class="field-example-toggle" aria-expanded="false"><i class="ph ph-quotes"></i>範例答案<i class="ph ph-caret-down toggle-caret"></i></button>
+                  </div>
                 </div>
-                <textarea placeholder="這個 NSM 如何驅動營收/留存/獲利..." rows="3"></textarea>
+              </div>
+              <div class="rt-field">
+                <div class="rt-field__toolbar">
+                  <button class="rt-tbtn"><i class="ph ph-text-b"></i></button>
+                  <button class="rt-tbtn"><i class="ph ph-list-bullets"></i></button>
+                </div>
+                <textarea class="rt-textarea" placeholder="解釋為什麼要這樣定義，避免哪些虛榮陷阱..." rows="3"></textarea>
+              </div>
+            </div>
+            <div class="nsm-field">
+              <div class="field__label-row">
+                <label class="field__label">與業務目標的連結</label>
+                <div class="field__hint-row">
+                  <div class="field__hint-row">
+                    <button class="field__hint-link"><i class="ph ph-lightbulb"></i>提示</button>
+                    <button class="field-example-toggle" aria-expanded="false"><i class="ph ph-quotes"></i>範例答案<i class="ph ph-caret-down toggle-caret"></i></button>
+                  </div>
+                </div>
+              </div>
+              <div class="rt-field">
+                <div class="rt-field__toolbar">
+                  <button class="rt-tbtn"><i class="ph ph-text-b"></i></button>
+                  <button class="rt-tbtn"><i class="ph ph-list-bullets"></i></button>
+                </div>
+                <textarea class="rt-textarea" placeholder="這個 NSM 如何驅動營收/留存/獲利..." rows="3"></textarea>
               </div>
             </div>
           </div>
@@ -914,11 +1141,6 @@
               <span>3 步定義法</span>
             </div>
           </div>
-          <div class="nsm-sub-tabs">
-            <button class="nsm-sub-tab is-active">步驟 2：定義 NSM</button>
-            <button class="nsm-sub-tab" disabled>NSM 審核</button>
-            <button class="nsm-sub-tab" disabled>步驟 3：拆解指標</button>
-          </div>
           <div class="nsm-progress">
             <div class="nsm-progress__step is-done"><div class="nsm-progress__dot">1</div><div class="nsm-progress__label">情境</div></div>
             <div class="nsm-progress__line is-done"></div>
@@ -937,6 +1159,29 @@
               </div>
               <p class="nsm-context-card__scenario">為 Spotify Podcast 業務定義北極星指標，目標是衡量新用戶能否養成日常收聽習慣。</p>
               <span class="nsm-context-card__hint"><i class="ph ph-info"></i>核心價值在於讓用戶在產品上花有意義的時間（社交、媒體、遊戲）。</span>
+              <button class="nsm-context-card__expand-toggle"><i class="ph ph-caret-up"></i>收合</button>
+              <div class="nsm-context-card__expand">
+                <div class="nsm-context-card__expand-label">深入分析</div>
+                <div class="nsm-context-card__ana">
+                  <div class="nsm-context-card__ana-block">
+                    <div class="nsm-context-card__ana-head"><i class="ph ph-buildings"></i>商業模式</div>
+                    <div class="nsm-context-card__ana-body">Spotify 透過廣告支援的免費層和訂閱制雙軌賺錢，Podcast 是增加用戶黏性與 Premium 轉換率的核心槓桿——留存 Podcast 聽眾即留存廣告庫存與潛在訂閱客群。</div>
+                  </div>
+                  <div class="nsm-context-card__ana-block">
+                    <div class="nsm-context-card__ana-head"><i class="ph ph-users"></i>使用者</div>
+                    <div class="nsm-context-card__ana-body">主要用戶是通勤、運動、開車等場景下的成人聽眾，習慣串流音樂後才嘗試 Podcast；「subscribe → listen」漏斗顯示多數人訂閱後 7 天內未開啟任何單集。</div>
+                  </div>
+                  <div class="nsm-context-card__ana-block nsm-context-card__ana-block--trap">
+                    <div class="nsm-context-card__ana-head"><i class="ph ph-warning"></i>常見陷阱</div>
+                    <div class="nsm-context-card__ana-body">把「訂閱數」或「下載量」當 NSM——這些指標反映被動意圖，無法表示用戶真的養成收聽習慣。直接套用音樂留存策略也行不通：Podcast 是 content-driven、需要更高注意力承諾，與音樂的 mood-driven 完全不同。</div>
+                  </div>
+                  <div class="nsm-context-card__ana-block">
+                    <div class="nsm-context-card__ana-head"><i class="ph ph-lightbulb"></i>破題切入</div>
+                    <div class="nsm-context-card__ana-body">核心洞察：Podcast 的 AHA 時刻是「完成首集」而非「開始播放」。先定義「留存」具體指什麼（訂閱留存 / 完播留存 / 回流留存），再往上推算 NSM 應指向哪個行為。</div>
+                  </div>
+                </div>
+                <button class="nsm-context-card__collapse-btn"><i class="ph ph-caret-up" style="font-size:12px;"></i>收合</button>
+              </div>
             </div>
             <div class="nsm-guide">
               <div class="nsm-guide__title"><i class="ph ph-path"></i>3 步定義法</div>
@@ -950,45 +1195,65 @@
               </div>
               <div class="nsm-guide__step">
                 <span class="nsm-guide__num">3</span>
-                <div class="nsm-guide__body"><strong>做虛榮指標檢驗</strong><p>問自己：如果這個數字翻倍，Spotify 的商業收益一定增加嗎？</p></div>
+                <div class="nsm-guide__body"><strong>做虛榮指標檢驗</strong><p>問自己：這個指標是否真的能如實反映「用戶體會到產品價值」？</p></div>
               </div>
             </div>
             <div class="nsm-field">
-              <div class="nsm-field__head">
-                <label class="nsm-field__label">北極星指標 (NSM)</label>
-                <button class="nsm-field__example-toggle"><i class="ph ph-caret-down"></i>查看範例</button>
+              <div class="field__label-row">
+                <label class="field__label">北極星指標 (NSM)</label>
+                <div class="field__hint-row">
+                  <div class="field__hint-row">
+                    <button class="field__hint-link"><i class="ph ph-lightbulb"></i>提示</button>
+                    <button class="field-example-toggle is-active" aria-expanded="true"><i class="ph ph-quotes"></i>範例答案<i class="ph ph-caret-down toggle-caret" style="transform:rotate(180deg)"></i></button>
+                  </div>
+                </div>
               </div>
-              <div class="nsm-field__example"><strong>例 (Spotify)：</strong>每月完成至少一首完整曲目播放的活躍月用戶數 — 反映真正的聆聽行為，非背景播放。</div>
               <input class="nsm-input" placeholder="用一句話定義你的 NSM，包含量化描述...">
-            </div>
-            <div class="nsm-field">
-              <div class="nsm-field__head">
-                <label class="nsm-field__label">定義說明</label>
-                <button class="nsm-field__example-toggle"><i class="ph ph-caret-right"></i>查看範例</button>
-              </div>
-              <div class="nsm-rt-field">
-                <div class="nsm-rt-toolbar">
-                  <button class="nsm-rt-tbtn"><strong>B</strong></button>
-                  <button class="nsm-rt-tbtn"><i class="ph ph-list-bullets"></i></button>
-                  <button class="nsm-rt-tbtn"><i class="ph ph-text-indent"></i></button>
-                  <button class="nsm-rt-tbtn"><i class="ph ph-text-outdent"></i></button>
+              <div class="example-expand">
+                <div class="example-expand__head">
+                  <div class="example-expand__title"><i class="ph ph-quotes"></i>範例答案</div>
+                  <button class="example-expand__close" aria-label="收合"><i class="ph ph-x"></i></button>
                 </div>
-                <textarea placeholder="解釋為什麼要這樣定義，避免哪些虛榮陷阱..." rows="3"></textarea>
+                <ul class="example-list">
+                  <li>每月有多少新用戶在註冊後的 7 天內，至少完成 3 集 Podcast 收聽（每集 ≥ 5 分鐘）</li>
+                </ul>
               </div>
             </div>
             <div class="nsm-field">
-              <div class="nsm-field__head">
-                <label class="nsm-field__label">與業務目標的連結</label>
-                <button class="nsm-field__example-toggle"><i class="ph ph-caret-right"></i>查看範例</button>
-              </div>
-              <div class="nsm-rt-field">
-                <div class="nsm-rt-toolbar">
-                  <button class="nsm-rt-tbtn"><strong>B</strong></button>
-                  <button class="nsm-rt-tbtn"><i class="ph ph-list-bullets"></i></button>
-                  <button class="nsm-rt-tbtn"><i class="ph ph-text-indent"></i></button>
-                  <button class="nsm-rt-tbtn"><i class="ph ph-text-outdent"></i></button>
+              <div class="field__label-row">
+                <label class="field__label">定義說明</label>
+                <div class="field__hint-row">
+                  <div class="field__hint-row">
+                    <button class="field__hint-link"><i class="ph ph-lightbulb"></i>提示</button>
+                    <button class="field-example-toggle" aria-expanded="false"><i class="ph ph-quotes"></i>範例答案<i class="ph ph-caret-down toggle-caret"></i></button>
+                  </div>
                 </div>
-                <textarea placeholder="這個 NSM 如何驅動營收/留存/獲利..." rows="3"></textarea>
+              </div>
+              <div class="rt-field">
+                <div class="rt-field__toolbar">
+                  <button class="rt-tbtn"><i class="ph ph-text-b"></i></button>
+                  <button class="rt-tbtn"><i class="ph ph-list-bullets"></i></button>
+                  <button class="rt-tbtn"><i class="ph ph-text-indent"></i></button>
+                </div>
+                <textarea class="rt-textarea" placeholder="解釋為什麼要這樣定義，避免哪些虛榮陷阱..." rows="3"></textarea>
+              </div>
+            </div>
+            <div class="nsm-field">
+              <div class="field__label-row">
+                <label class="field__label">與業務目標的連結</label>
+                <div class="field__hint-row">
+                  <div class="field__hint-row">
+                    <button class="field__hint-link"><i class="ph ph-lightbulb"></i>提示</button>
+                    <button class="field-example-toggle" aria-expanded="false"><i class="ph ph-quotes"></i>範例答案<i class="ph ph-caret-down toggle-caret"></i></button>
+                  </div>
+                </div>
+              </div>
+              <div class="rt-field">
+                <div class="rt-field__toolbar">
+                  <button class="rt-tbtn"><i class="ph ph-text-b"></i></button>
+                  <button class="rt-tbtn"><i class="ph ph-list-bullets"></i></button>
+                </div>
+                <textarea class="rt-textarea" placeholder="這個 NSM 如何驅動營收/留存/獲利..." rows="3"></textarea>
               </div>
             </div>
           </div>
@@ -1005,7 +1270,7 @@
     <!-- Section B — Step 3 sub-tab · attention 型 4-dim 空白          -->
     <!-- ============================================================ -->
     <h2 class="vp-section-title">B · 步驟 3 拆解（注意力型 4-dim 空白）<span class="vp-section-title__sub">attention 動態 label：觸及廣度 / 互動深度 / 習慣頻率 / 留存驅力</span></h2>
-    <div class="anno"><strong>視覺契約：</strong>sub-tab Step3 active（前提：Gate 已通過）+ <code>nsm-progress</code> 拆解 active + step3-banner（你的 NSM）+ step3-intro（type badge attention navy + 4-dim 隨產品特性說明）+ 4 張 nsm-dim card（label / desc / coachQ / 查看教練提示 button / textarea + rt-toolbar）。<strong>動態 label 來源：</strong><code>NSM_DIMENSION_CONFIGS.attention</code> — 觸及廣度（reach）/ 互動深度（depth）/ 習慣頻率（frequency）/ 留存驅力（impact）。submit-bar：「送出，取得 AI 評分」disabled。</div>
+    <div class="anno"><strong>視覺契約：</strong><code>nsm-progress</code> 拆解 active + <strong>nsm-context-card 4-block expand（mirror Section A）商業模式 / 使用者 / 常見陷阱 / 破題切入（Spotify Podcast 內容，三 viewport 全展開）</strong> + step3-banner（你的 NSM）+ step3-intro（type badge attention navy + 4-dim 隨產品特性說明）+ <strong>4 張 nsm-dim card 用 LOCKED <code>.field__hint-row</code> pattern；first dim (觸及廣度) example-expand visible</strong>。<strong>動態 label 來源：</strong><code>NSM_DIMENSION_CONFIGS.attention</code> — 觸及廣度（reach）/ 互動深度（depth）/ 習慣頻率（frequency）/ 留存驅力（impact）。submit-bar：「送出，取得 AI 評分」disabled。</div>
     <div class="vp-grid">
 
       <!-- B · Mobile 360 -->
@@ -1024,11 +1289,6 @@
               <div class="phase-head__title">拆解輸入指標</div>
             </div>
           </div>
-          <div class="nsm-sub-tabs">
-            <button class="nsm-sub-tab">步驟 2</button>
-            <button class="nsm-sub-tab">NSM 審核</button>
-            <button class="nsm-sub-tab is-active">步驟 3：拆解</button>
-          </div>
           <div class="nsm-progress">
             <div class="nsm-progress__step is-done"><div class="nsm-progress__dot">1</div><div class="nsm-progress__label">情境</div></div>
             <div class="nsm-progress__line is-done"></div>
@@ -1039,6 +1299,37 @@
             <div class="nsm-progress__step"><div class="nsm-progress__dot">4</div><div class="nsm-progress__label">總結</div></div>
           </div>
           <div class="nsm-body">
+            <div class="nsm-context-card">
+              <div class="nsm-context-card__top">
+                <span class="nsm-context-card__company">Spotify</span>
+                <span class="nsm-context-card__industry">音樂串流</span>
+                <span class="nsm-context-card__type nsm-context-card__type--attention"><i class="ph ph-play-circle"></i>注意力型</span>
+              </div>
+              <p class="nsm-context-card__scenario">為 Spotify Podcast 業務定義北極星指標，目標是衡量新用戶能否養成日常收聽習慣。</p>
+              <button class="nsm-context-card__expand-toggle"><i class="ph ph-caret-up"></i>收合</button>
+              <div class="nsm-context-card__expand">
+                <div class="nsm-context-card__expand-label">深入分析</div>
+                <div class="nsm-context-card__ana">
+                  <div class="nsm-context-card__ana-block">
+                    <div class="nsm-context-card__ana-head"><i class="ph ph-buildings"></i>商業模式</div>
+                    <div class="nsm-context-card__ana-body">Spotify 透過免費 + Premium 訂閱混合制收費，Podcast 是擴大內容生態與廣告變現的關鍵。</div>
+                  </div>
+                  <div class="nsm-context-card__ana-block">
+                    <div class="nsm-context-card__ana-head"><i class="ph ph-users"></i>使用者</div>
+                    <div class="nsm-context-card__ana-body">通勤、運動、開車場景的免費 + 訂閱混合用戶；Podcast 用戶 30 天留存比音樂用戶低約 27 個百分點。</div>
+                  </div>
+                  <div class="nsm-context-card__ana-block nsm-context-card__ana-block--trap">
+                    <div class="nsm-context-card__ana-head"><i class="ph ph-warning"></i>常見陷阱</div>
+                    <div class="nsm-context-card__ana-body">把 DAU 或 App 開啟次數當 NSM —— 這些指標只反映用戶來過，無法證明真正消費了 Podcast 內容。</div>
+                  </div>
+                  <div class="nsm-context-card__ana-block">
+                    <div class="nsm-context-card__ana-head"><i class="ph ph-lightbulb"></i>破題切入</div>
+                    <div class="nsm-context-card__ana-body">核心是讓用戶把 Podcast 整合進日常情境，NSM 應反映「真正完成有意義收聽」的行為。</div>
+                  </div>
+                </div>
+                <button class="nsm-context-card__collapse-btn"><i class="ph ph-caret-up" style="font-size:12px;"></i>收合</button>
+              </div>
+            </div>
             <div class="nsm-step3-banner">
               <i class="ph ph-target"></i>
               <span><strong>你的 NSM：</strong>每月完成至少一首完整曲目播放的活躍月用戶數</span>
@@ -1051,81 +1342,102 @@
             </div>
 
             <div class="nsm-dim">
-              <div class="nsm-dim__head">
-                <div class="nsm-dim__label">觸及廣度</div>
-                <div class="nsm-dim__desc">有多少用戶真正觸碰到核心功能（非僅登入）</div>
+              <div class="field__label-row">
+                <label class="field__label">觸及廣度</label>
+                <div class="field__hint-row">
+                  <div class="field__hint-row">
+                    <button class="field__hint-link"><i class="ph ph-lightbulb"></i>提示</button>
+                    <button class="field-example-toggle is-active" aria-expanded="true"><i class="ph ph-quotes"></i>範例答案<i class="ph ph-caret-down toggle-caret" style="transform:rotate(180deg)"></i></button>
+                  </div>
+                </div>
               </div>
+              <div class="nsm-dim__desc">有多少用戶真正觸碰到核心功能（非僅登入）</div>
               <div class="nsm-dim__body">
                 <div class="nsm-dim__coach"><i class="ph ph-chat-dots"></i>AHA 時刻是什麼動作？做到這個動作的人有多少？</div>
-                <button class="nsm-dim__hint-btn"><i class="ph ph-lightbulb"></i>查看教練提示</button>
-                <div class="nsm-rt-field">
-                  <div class="nsm-rt-toolbar">
-                    <button class="nsm-rt-tbtn"><strong>B</strong></button>
-                    <button class="nsm-rt-tbtn"><i class="ph ph-list-bullets"></i></button>
-                    <button class="nsm-rt-tbtn"><i class="ph ph-text-indent"></i></button>
-                    <button class="nsm-rt-tbtn"><i class="ph ph-text-outdent"></i></button>
+                <div class="rt-field">
+                  <div class="rt-field__toolbar">
+                    <button class="rt-tbtn"><i class="ph ph-text-b"></i></button>
+                    <button class="rt-tbtn"><i class="ph ph-list-bullets"></i></button>
                   </div>
-                  <textarea placeholder="例：每月至少播放 1 首歌的月活用戶數（不是登入數）" rows="2"></textarea>
+                  <textarea class="rt-textarea" placeholder="例：每月至少播放 1 首歌的月活用戶數（不是登入數）" rows="2"></textarea>
+                </div>
+                <div class="example-expand">
+                  <div class="example-expand__head">
+                    <div class="example-expand__title"><i class="ph ph-quotes"></i>範例答案</div>
+                    <button class="example-expand__close" aria-label="收合"><i class="ph ph-x"></i></button>
+                  </div>
+                  <ul class="example-list">
+                    <li>每月使用 Spotify Podcast 的活躍 MAU 占總音樂用戶比例（達到 5 分鐘 + 1 集門檻）</li>
+                  </ul>
                 </div>
               </div>
             </div>
 
             <div class="nsm-dim">
-              <div class="nsm-dim__head">
-                <div class="nsm-dim__label">互動深度</div>
-                <div class="nsm-dim__desc">每位用戶每次使用的品質與投入程度</div>
+              <div class="field__label-row">
+                <label class="field__label">互動深度</label>
+                <div class="field__hint-row">
+                  <div class="field__hint-row">
+                    <button class="field__hint-link"><i class="ph ph-lightbulb"></i>提示</button>
+                    <button class="field-example-toggle" aria-expanded="false"><i class="ph ph-quotes"></i>範例答案<i class="ph ph-caret-down toggle-caret"></i></button>
+                  </div>
+                </div>
               </div>
+              <div class="nsm-dim__desc">每位用戶每次使用的品質與投入程度</div>
               <div class="nsm-dim__body">
                 <div class="nsm-dim__coach"><i class="ph ph-chat-dots"></i>用戶停得夠深嗎？時長、完播率、互動次數哪個更能反映價值？</div>
-                <button class="nsm-dim__hint-btn"><i class="ph ph-lightbulb"></i>查看教練提示</button>
-                <div class="nsm-rt-field">
-                  <div class="nsm-rt-toolbar">
-                    <button class="nsm-rt-tbtn"><strong>B</strong></button>
-                    <button class="nsm-rt-tbtn"><i class="ph ph-list-bullets"></i></button>
-                    <button class="nsm-rt-tbtn"><i class="ph ph-text-indent"></i></button>
-                    <button class="nsm-rt-tbtn"><i class="ph ph-text-outdent"></i></button>
+                <div class="rt-field">
+                  <div class="rt-field__toolbar">
+                    <button class="rt-tbtn"><i class="ph ph-text-b"></i></button>
+                    <button class="rt-tbtn"><i class="ph ph-list-bullets"></i></button>
                   </div>
-                  <textarea placeholder="例：每個 session 平均聆聽時長（分鐘）" rows="2"></textarea>
+                  <textarea class="rt-textarea" placeholder="例：每個 session 平均聆聽時長（分鐘）" rows="2"></textarea>
                 </div>
               </div>
             </div>
 
             <div class="nsm-dim">
-              <div class="nsm-dim__head">
-                <div class="nsm-dim__label">習慣頻率</div>
-                <div class="nsm-dim__desc">用戶是否形成定期回訪的使用習慣</div>
+              <div class="field__label-row">
+                <label class="field__label">習慣頻率</label>
+                <div class="field__hint-row">
+                  <div class="field__hint-row">
+                    <button class="field__hint-link"><i class="ph ph-lightbulb"></i>提示</button>
+                    <button class="field-example-toggle" aria-expanded="false"><i class="ph ph-quotes"></i>範例答案<i class="ph ph-caret-down toggle-caret"></i></button>
+                  </div>
+                </div>
               </div>
+              <div class="nsm-dim__desc">用戶是否形成定期回訪的使用習慣</div>
               <div class="nsm-dim__body">
                 <div class="nsm-dim__coach"><i class="ph ph-chat-dots"></i>每週/每月回來幾次？DAU/MAU 比越高代表黏性越強</div>
-                <button class="nsm-dim__hint-btn"><i class="ph ph-lightbulb"></i>查看教練提示</button>
-                <div class="nsm-rt-field">
-                  <div class="nsm-rt-toolbar">
-                    <button class="nsm-rt-tbtn"><strong>B</strong></button>
-                    <button class="nsm-rt-tbtn"><i class="ph ph-list-bullets"></i></button>
-                    <button class="nsm-rt-tbtn"><i class="ph ph-text-indent"></i></button>
-                    <button class="nsm-rt-tbtn"><i class="ph ph-text-outdent"></i></button>
+                <div class="rt-field">
+                  <div class="rt-field__toolbar">
+                    <button class="rt-tbtn"><i class="ph ph-text-b"></i></button>
+                    <button class="rt-tbtn"><i class="ph ph-list-bullets"></i></button>
                   </div>
-                  <textarea placeholder="例：每週平均使用天數 ≥ 3 的用戶佔比" rows="2"></textarea>
+                  <textarea class="rt-textarea" placeholder="例：每週平均使用天數 ≥ 3 的用戶佔比" rows="2"></textarea>
                 </div>
               </div>
             </div>
 
             <div class="nsm-dim">
-              <div class="nsm-dim__head">
-                <div class="nsm-dim__label">留存驅力</div>
-                <div class="nsm-dim__desc">什麼讓用戶持續回訪而非逐漸流失</div>
+              <div class="field__label-row">
+                <label class="field__label">留存驅力</label>
+                <div class="field__hint-row">
+                  <div class="field__hint-row">
+                    <button class="field__hint-link"><i class="ph ph-lightbulb"></i>提示</button>
+                    <button class="field-example-toggle" aria-expanded="false"><i class="ph ph-quotes"></i>範例答案<i class="ph ph-caret-down toggle-caret"></i></button>
+                  </div>
+                </div>
               </div>
+              <div class="nsm-dim__desc">什麼讓用戶持續回訪而非逐漸流失</div>
               <div class="nsm-dim__body">
                 <div class="nsm-dim__coach"><i class="ph ph-chat-dots"></i>社交關係？個人化推薦？收藏習慣？找出最強的留存槓桿</div>
-                <button class="nsm-dim__hint-btn"><i class="ph ph-lightbulb"></i>查看教練提示</button>
-                <div class="nsm-rt-field">
-                  <div class="nsm-rt-toolbar">
-                    <button class="nsm-rt-tbtn"><strong>B</strong></button>
-                    <button class="nsm-rt-tbtn"><i class="ph ph-list-bullets"></i></button>
-                    <button class="nsm-rt-tbtn"><i class="ph ph-text-indent"></i></button>
-                    <button class="nsm-rt-tbtn"><i class="ph ph-text-outdent"></i></button>
+                <div class="rt-field">
+                  <div class="rt-field__toolbar">
+                    <button class="rt-tbtn"><i class="ph ph-text-b"></i></button>
+                    <button class="rt-tbtn"><i class="ph ph-list-bullets"></i></button>
                   </div>
-                  <textarea placeholder="例：擁有 ≥5 首收藏歌曲的用戶 30 日留存率" rows="2"></textarea>
+                  <textarea class="rt-textarea" placeholder="例：擁有 ≥5 首收藏歌曲的用戶 30 日留存率" rows="2"></textarea>
                 </div>
               </div>
             </div>
@@ -1155,11 +1467,6 @@
             </div>
             <div class="phase-head__meta"><span>注意力型</span></div>
           </div>
-          <div class="nsm-sub-tabs">
-            <button class="nsm-sub-tab">步驟 2：定義 NSM</button>
-            <button class="nsm-sub-tab">NSM 審核</button>
-            <button class="nsm-sub-tab is-active">步驟 3：拆解指標</button>
-          </div>
           <div class="nsm-progress">
             <div class="nsm-progress__step is-done"><div class="nsm-progress__dot">1</div><div class="nsm-progress__label">情境</div></div>
             <div class="nsm-progress__line is-done"></div>
@@ -1170,6 +1477,37 @@
             <div class="nsm-progress__step"><div class="nsm-progress__dot">4</div><div class="nsm-progress__label">總結</div></div>
           </div>
           <div class="nsm-body">
+            <div class="nsm-context-card">
+              <div class="nsm-context-card__top">
+                <span class="nsm-context-card__company">Spotify</span>
+                <span class="nsm-context-card__industry">音樂串流</span>
+                <span class="nsm-context-card__type nsm-context-card__type--attention"><i class="ph ph-play-circle"></i>注意力型</span>
+              </div>
+              <p class="nsm-context-card__scenario">為 Spotify Podcast 業務定義北極星指標，目標是衡量新用戶能否養成日常收聽習慣。</p>
+              <button class="nsm-context-card__expand-toggle"><i class="ph ph-caret-up"></i>收合</button>
+              <div class="nsm-context-card__expand">
+                <div class="nsm-context-card__expand-label">深入分析</div>
+                <div class="nsm-context-card__ana">
+                  <div class="nsm-context-card__ana-block">
+                    <div class="nsm-context-card__ana-head"><i class="ph ph-buildings"></i>商業模式</div>
+                    <div class="nsm-context-card__ana-body">Spotify 透過免費 + Premium 訂閱混合制收費，Podcast 是擴大內容生態與廣告變現的關鍵。</div>
+                  </div>
+                  <div class="nsm-context-card__ana-block">
+                    <div class="nsm-context-card__ana-head"><i class="ph ph-users"></i>使用者</div>
+                    <div class="nsm-context-card__ana-body">通勤、運動、開車場景的免費 + 訂閱混合用戶；Podcast 用戶 30 天留存比音樂用戶低約 27 個百分點。</div>
+                  </div>
+                  <div class="nsm-context-card__ana-block nsm-context-card__ana-block--trap">
+                    <div class="nsm-context-card__ana-head"><i class="ph ph-warning"></i>常見陷阱</div>
+                    <div class="nsm-context-card__ana-body">把 DAU 或 App 開啟次數當 NSM —— 這些指標只反映用戶來過，無法證明真正消費了 Podcast 內容。</div>
+                  </div>
+                  <div class="nsm-context-card__ana-block">
+                    <div class="nsm-context-card__ana-head"><i class="ph ph-lightbulb"></i>破題切入</div>
+                    <div class="nsm-context-card__ana-body">核心是讓用戶把 Podcast 整合進日常情境，NSM 應反映「真正完成有意義收聽」的行為。</div>
+                  </div>
+                </div>
+                <button class="nsm-context-card__collapse-btn"><i class="ph ph-caret-up" style="font-size:12px;"></i>收合</button>
+              </div>
+            </div>
             <div class="nsm-step3-banner">
               <i class="ph ph-target"></i>
               <span><strong>你的 NSM：</strong>每月完成至少一首完整曲目播放的活躍月用戶數</span>
@@ -1182,46 +1520,47 @@
             </div>
 
             <div class="nsm-dim">
-              <div class="nsm-dim__head"><div class="nsm-dim__label">觸及廣度</div><div class="nsm-dim__desc">有多少用戶真正觸碰到核心功能（非僅登入）</div></div>
+              <div class="field__label-row"><label class="field__label">觸及廣度</label><div class="field__hint-row"><div class="field__hint-row"><button class="field__hint-link"><i class="ph ph-lightbulb"></i>提示</button><button class="field-example-toggle is-active" aria-expanded="true"><i class="ph ph-quotes"></i>範例答案<i class="ph ph-caret-down toggle-caret" style="transform:rotate(180deg)"></i></button></div></div></div>
+              <div class="nsm-dim__desc">有多少用戶真正觸碰到核心功能（非僅登入）</div>
               <div class="nsm-dim__body">
                 <div class="nsm-dim__coach"><i class="ph ph-chat-dots"></i>AHA 時刻是什麼動作？做到這個動作的人有多少？</div>
-                <button class="nsm-dim__hint-btn"><i class="ph ph-lightbulb"></i>查看教練提示</button>
-                <div class="nsm-rt-field">
-                  <div class="nsm-rt-toolbar"><button class="nsm-rt-tbtn"><strong>B</strong></button><button class="nsm-rt-tbtn"><i class="ph ph-list-bullets"></i></button><button class="nsm-rt-tbtn"><i class="ph ph-text-indent"></i></button><button class="nsm-rt-tbtn"><i class="ph ph-text-outdent"></i></button></div>
-                  <textarea placeholder="例：每月至少播放 1 首歌的月活用戶數（不是登入數）" rows="2"></textarea>
+                <div class="rt-field">
+                  <div class="rt-field__toolbar"><button class="rt-tbtn"><i class="ph ph-text-b"></i></button><button class="rt-tbtn"><i class="ph ph-list-bullets"></i></button></div>
+                  <textarea class="rt-textarea" placeholder="例：每月至少播放 1 首歌的月活用戶數（不是登入數）" rows="2"></textarea>
                 </div>
+                <div class="example-expand"><div class="example-expand__head"><div class="example-expand__title"><i class="ph ph-quotes"></i>範例答案</div><button class="example-expand__close" aria-label="收合"><i class="ph ph-x"></i></button></div><ul class="example-list"><li>每月使用 Spotify Podcast 的活躍 MAU 占總音樂用戶比例（達到 5 分鐘 + 1 集門檻）</li></ul></div>
               </div>
             </div>
             <div class="nsm-dim">
-              <div class="nsm-dim__head"><div class="nsm-dim__label">互動深度</div><div class="nsm-dim__desc">每位用戶每次使用的品質與投入程度</div></div>
+              <div class="field__label-row"><label class="field__label">互動深度</label><div class="field__hint-row"><div class="field__hint-row"><button class="field__hint-link"><i class="ph ph-lightbulb"></i>提示</button><button class="field-example-toggle" aria-expanded="false"><i class="ph ph-quotes"></i>範例答案<i class="ph ph-caret-down toggle-caret"></i></button></div></div></div>
+              <div class="nsm-dim__desc">每位用戶每次使用的品質與投入程度</div>
               <div class="nsm-dim__body">
                 <div class="nsm-dim__coach"><i class="ph ph-chat-dots"></i>用戶停得夠深嗎？時長、完播率、互動次數哪個更能反映價值？</div>
-                <button class="nsm-dim__hint-btn"><i class="ph ph-lightbulb"></i>查看教練提示</button>
-                <div class="nsm-rt-field">
-                  <div class="nsm-rt-toolbar"><button class="nsm-rt-tbtn"><strong>B</strong></button><button class="nsm-rt-tbtn"><i class="ph ph-list-bullets"></i></button><button class="nsm-rt-tbtn"><i class="ph ph-text-indent"></i></button><button class="nsm-rt-tbtn"><i class="ph ph-text-outdent"></i></button></div>
-                  <textarea placeholder="例：每個 session 平均聆聽時長（分鐘）" rows="2"></textarea>
+                <div class="rt-field">
+                  <div class="rt-field__toolbar"><button class="rt-tbtn"><i class="ph ph-text-b"></i></button><button class="rt-tbtn"><i class="ph ph-list-bullets"></i></button></div>
+                  <textarea class="rt-textarea" placeholder="例：每個 session 平均聆聽時長（分鐘）" rows="2"></textarea>
                 </div>
               </div>
             </div>
             <div class="nsm-dim">
-              <div class="nsm-dim__head"><div class="nsm-dim__label">習慣頻率</div><div class="nsm-dim__desc">用戶是否形成定期回訪的使用習慣</div></div>
+              <div class="field__label-row"><label class="field__label">習慣頻率</label><div class="field__hint-row"><div class="field__hint-row"><button class="field__hint-link"><i class="ph ph-lightbulb"></i>提示</button><button class="field-example-toggle" aria-expanded="false"><i class="ph ph-quotes"></i>範例答案<i class="ph ph-caret-down toggle-caret"></i></button></div></div></div>
+              <div class="nsm-dim__desc">用戶是否形成定期回訪的使用習慣</div>
               <div class="nsm-dim__body">
                 <div class="nsm-dim__coach"><i class="ph ph-chat-dots"></i>每週/每月回來幾次？DAU/MAU 比越高代表黏性越強</div>
-                <button class="nsm-dim__hint-btn"><i class="ph ph-lightbulb"></i>查看教練提示</button>
-                <div class="nsm-rt-field">
-                  <div class="nsm-rt-toolbar"><button class="nsm-rt-tbtn"><strong>B</strong></button><button class="nsm-rt-tbtn"><i class="ph ph-list-bullets"></i></button><button class="nsm-rt-tbtn"><i class="ph ph-text-indent"></i></button><button class="nsm-rt-tbtn"><i class="ph ph-text-outdent"></i></button></div>
-                  <textarea placeholder="例：每週平均使用天數 ≥ 3 的用戶佔比" rows="2"></textarea>
+                <div class="rt-field">
+                  <div class="rt-field__toolbar"><button class="rt-tbtn"><i class="ph ph-text-b"></i></button><button class="rt-tbtn"><i class="ph ph-list-bullets"></i></button></div>
+                  <textarea class="rt-textarea" placeholder="例：每週平均使用天數 ≥ 3 的用戶佔比" rows="2"></textarea>
                 </div>
               </div>
             </div>
             <div class="nsm-dim">
-              <div class="nsm-dim__head"><div class="nsm-dim__label">留存驅力</div><div class="nsm-dim__desc">什麼讓用戶持續回訪而非逐漸流失</div></div>
+              <div class="field__label-row"><label class="field__label">留存驅力</label><div class="field__hint-row"><div class="field__hint-row"><button class="field__hint-link"><i class="ph ph-lightbulb"></i>提示</button><button class="field-example-toggle" aria-expanded="false"><i class="ph ph-quotes"></i>範例答案<i class="ph ph-caret-down toggle-caret"></i></button></div></div></div>
+              <div class="nsm-dim__desc">什麼讓用戶持續回訪而非逐漸流失</div>
               <div class="nsm-dim__body">
                 <div class="nsm-dim__coach"><i class="ph ph-chat-dots"></i>社交關係？個人化推薦？收藏習慣？找出最強的留存槓桿</div>
-                <button class="nsm-dim__hint-btn"><i class="ph ph-lightbulb"></i>查看教練提示</button>
-                <div class="nsm-rt-field">
-                  <div class="nsm-rt-toolbar"><button class="nsm-rt-tbtn"><strong>B</strong></button><button class="nsm-rt-tbtn"><i class="ph ph-list-bullets"></i></button><button class="nsm-rt-tbtn"><i class="ph ph-text-indent"></i></button><button class="nsm-rt-tbtn"><i class="ph ph-text-outdent"></i></button></div>
-                  <textarea placeholder="例：擁有 ≥5 首收藏歌曲的用戶 30 日留存率" rows="2"></textarea>
+                <div class="rt-field">
+                  <div class="rt-field__toolbar"><button class="rt-tbtn"><i class="ph ph-text-b"></i></button><button class="rt-tbtn"><i class="ph ph-list-bullets"></i></button></div>
+                  <textarea class="rt-textarea" placeholder="例：擁有 ≥5 首收藏歌曲的用戶 30 日留存率" rows="2"></textarea>
                 </div>
               </div>
             </div>
@@ -1251,11 +1590,6 @@
             </div>
             <div class="phase-head__meta"><span>Spotify · 注意力型</span><span class="phase-head__meta-sep">·</span><span>4 維度</span></div>
           </div>
-          <div class="nsm-sub-tabs">
-            <button class="nsm-sub-tab">步驟 2：定義 NSM</button>
-            <button class="nsm-sub-tab">NSM 審核</button>
-            <button class="nsm-sub-tab is-active">步驟 3：拆解指標</button>
-          </div>
           <div class="nsm-progress">
             <div class="nsm-progress__step is-done"><div class="nsm-progress__dot">1</div><div class="nsm-progress__label">情境</div></div>
             <div class="nsm-progress__line is-done"></div>
@@ -1266,6 +1600,37 @@
             <div class="nsm-progress__step"><div class="nsm-progress__dot">4</div><div class="nsm-progress__label">總結</div></div>
           </div>
           <div class="nsm-body">
+            <div class="nsm-context-card">
+              <div class="nsm-context-card__top">
+                <span class="nsm-context-card__company">Spotify</span>
+                <span class="nsm-context-card__industry">音樂串流</span>
+                <span class="nsm-context-card__type nsm-context-card__type--attention"><i class="ph ph-play-circle"></i>注意力型</span>
+              </div>
+              <p class="nsm-context-card__scenario">為 Spotify Podcast 業務定義北極星指標，目標是衡量新用戶能否養成日常收聽習慣。</p>
+              <button class="nsm-context-card__expand-toggle"><i class="ph ph-caret-up"></i>收合</button>
+              <div class="nsm-context-card__expand">
+                <div class="nsm-context-card__expand-label">深入分析</div>
+                <div class="nsm-context-card__ana">
+                  <div class="nsm-context-card__ana-block">
+                    <div class="nsm-context-card__ana-head"><i class="ph ph-buildings"></i>商業模式</div>
+                    <div class="nsm-context-card__ana-body">Spotify 透過免費 + Premium 訂閱混合制收費，Podcast 是擴大內容生態與廣告變現的關鍵。</div>
+                  </div>
+                  <div class="nsm-context-card__ana-block">
+                    <div class="nsm-context-card__ana-head"><i class="ph ph-users"></i>使用者</div>
+                    <div class="nsm-context-card__ana-body">通勤、運動、開車場景的免費 + 訂閱混合用戶；Podcast 用戶 30 天留存比音樂用戶低約 27 個百分點。</div>
+                  </div>
+                  <div class="nsm-context-card__ana-block nsm-context-card__ana-block--trap">
+                    <div class="nsm-context-card__ana-head"><i class="ph ph-warning"></i>常見陷阱</div>
+                    <div class="nsm-context-card__ana-body">把 DAU 或 App 開啟次數當 NSM —— 這些指標只反映用戶來過，無法證明真正消費了 Podcast 內容。</div>
+                  </div>
+                  <div class="nsm-context-card__ana-block">
+                    <div class="nsm-context-card__ana-head"><i class="ph ph-lightbulb"></i>破題切入</div>
+                    <div class="nsm-context-card__ana-body">核心是讓用戶把 Podcast 整合進日常情境，NSM 應反映「真正完成有意義收聽」的行為。</div>
+                  </div>
+                </div>
+                <button class="nsm-context-card__collapse-btn"><i class="ph ph-caret-up" style="font-size:12px;"></i>收合</button>
+              </div>
+            </div>
             <div class="nsm-step3-banner">
               <i class="ph ph-target"></i>
               <span><strong>你的 NSM：</strong>每月完成至少一首完整曲目播放的活躍月用戶數</span>
@@ -1278,46 +1643,47 @@
             </div>
 
             <div class="nsm-dim">
-              <div class="nsm-dim__head"><div class="nsm-dim__label">觸及廣度</div><div class="nsm-dim__desc">有多少用戶真正觸碰到核心功能（非僅登入）</div></div>
+              <div class="field__label-row"><label class="field__label">觸及廣度</label><div class="field__hint-row"><div class="field__hint-row"><button class="field__hint-link"><i class="ph ph-lightbulb"></i>提示</button><button class="field-example-toggle is-active" aria-expanded="true"><i class="ph ph-quotes"></i>範例答案<i class="ph ph-caret-down toggle-caret" style="transform:rotate(180deg)"></i></button></div></div></div>
+              <div class="nsm-dim__desc">有多少用戶真正觸碰到核心功能（非僅登入）</div>
               <div class="nsm-dim__body">
                 <div class="nsm-dim__coach"><i class="ph ph-chat-dots"></i>AHA 時刻是什麼動作？做到這個動作的人有多少？</div>
-                <button class="nsm-dim__hint-btn"><i class="ph ph-lightbulb"></i>查看教練提示</button>
-                <div class="nsm-rt-field">
-                  <div class="nsm-rt-toolbar"><button class="nsm-rt-tbtn"><strong>B</strong></button><button class="nsm-rt-tbtn"><i class="ph ph-list-bullets"></i></button><button class="nsm-rt-tbtn"><i class="ph ph-text-indent"></i></button><button class="nsm-rt-tbtn"><i class="ph ph-text-outdent"></i></button></div>
-                  <textarea placeholder="例：每月至少播放 1 首歌的月活用戶數（不是登入數）" rows="2"></textarea>
+                <div class="rt-field">
+                  <div class="rt-field__toolbar"><button class="rt-tbtn"><i class="ph ph-text-b"></i></button><button class="rt-tbtn"><i class="ph ph-list-bullets"></i></button><button class="rt-tbtn"><i class="ph ph-text-indent"></i></button></div>
+                  <textarea class="rt-textarea" placeholder="例：每月至少播放 1 首歌的月活用戶數（不是登入數）" rows="2"></textarea>
                 </div>
+                <div class="example-expand"><div class="example-expand__head"><div class="example-expand__title"><i class="ph ph-quotes"></i>範例答案</div><button class="example-expand__close" aria-label="收合"><i class="ph ph-x"></i></button></div><ul class="example-list"><li>每月使用 Spotify Podcast 的活躍 MAU 占總音樂用戶比例（達到 5 分鐘 + 1 集門檻）</li></ul></div>
               </div>
             </div>
             <div class="nsm-dim">
-              <div class="nsm-dim__head"><div class="nsm-dim__label">互動深度</div><div class="nsm-dim__desc">每位用戶每次使用的品質與投入程度</div></div>
+              <div class="field__label-row"><label class="field__label">互動深度</label><div class="field__hint-row"><div class="field__hint-row"><button class="field__hint-link"><i class="ph ph-lightbulb"></i>提示</button><button class="field-example-toggle" aria-expanded="false"><i class="ph ph-quotes"></i>範例答案<i class="ph ph-caret-down toggle-caret"></i></button></div></div></div>
+              <div class="nsm-dim__desc">每位用戶每次使用的品質與投入程度</div>
               <div class="nsm-dim__body">
                 <div class="nsm-dim__coach"><i class="ph ph-chat-dots"></i>用戶停得夠深嗎？時長、完播率、互動次數哪個更能反映價值？</div>
-                <button class="nsm-dim__hint-btn"><i class="ph ph-lightbulb"></i>查看教練提示</button>
-                <div class="nsm-rt-field">
-                  <div class="nsm-rt-toolbar"><button class="nsm-rt-tbtn"><strong>B</strong></button><button class="nsm-rt-tbtn"><i class="ph ph-list-bullets"></i></button><button class="nsm-rt-tbtn"><i class="ph ph-text-indent"></i></button><button class="nsm-rt-tbtn"><i class="ph ph-text-outdent"></i></button></div>
-                  <textarea placeholder="例：每個 session 平均聆聽時長（分鐘）" rows="2"></textarea>
+                <div class="rt-field">
+                  <div class="rt-field__toolbar"><button class="rt-tbtn"><i class="ph ph-text-b"></i></button><button class="rt-tbtn"><i class="ph ph-list-bullets"></i></button></div>
+                  <textarea class="rt-textarea" placeholder="例：每個 session 平均聆聽時長（分鐘）" rows="2"></textarea>
                 </div>
               </div>
             </div>
             <div class="nsm-dim">
-              <div class="nsm-dim__head"><div class="nsm-dim__label">習慣頻率</div><div class="nsm-dim__desc">用戶是否形成定期回訪的使用習慣</div></div>
+              <div class="field__label-row"><label class="field__label">習慣頻率</label><div class="field__hint-row"><div class="field__hint-row"><button class="field__hint-link"><i class="ph ph-lightbulb"></i>提示</button><button class="field-example-toggle" aria-expanded="false"><i class="ph ph-quotes"></i>範例答案<i class="ph ph-caret-down toggle-caret"></i></button></div></div></div>
+              <div class="nsm-dim__desc">用戶是否形成定期回訪的使用習慣</div>
               <div class="nsm-dim__body">
                 <div class="nsm-dim__coach"><i class="ph ph-chat-dots"></i>每週/每月回來幾次？DAU/MAU 比越高代表黏性越強</div>
-                <button class="nsm-dim__hint-btn"><i class="ph ph-lightbulb"></i>查看教練提示</button>
-                <div class="nsm-rt-field">
-                  <div class="nsm-rt-toolbar"><button class="nsm-rt-tbtn"><strong>B</strong></button><button class="nsm-rt-tbtn"><i class="ph ph-list-bullets"></i></button><button class="nsm-rt-tbtn"><i class="ph ph-text-indent"></i></button><button class="nsm-rt-tbtn"><i class="ph ph-text-outdent"></i></button></div>
-                  <textarea placeholder="例：每週平均使用天數 ≥ 3 的用戶佔比" rows="2"></textarea>
+                <div class="rt-field">
+                  <div class="rt-field__toolbar"><button class="rt-tbtn"><i class="ph ph-text-b"></i></button><button class="rt-tbtn"><i class="ph ph-list-bullets"></i></button></div>
+                  <textarea class="rt-textarea" placeholder="例：每週平均使用天數 ≥ 3 的用戶佔比" rows="2"></textarea>
                 </div>
               </div>
             </div>
             <div class="nsm-dim">
-              <div class="nsm-dim__head"><div class="nsm-dim__label">留存驅力</div><div class="nsm-dim__desc">什麼讓用戶持續回訪而非逐漸流失</div></div>
+              <div class="field__label-row"><label class="field__label">留存驅力</label><div class="field__hint-row"><div class="field__hint-row"><button class="field__hint-link"><i class="ph ph-lightbulb"></i>提示</button><button class="field-example-toggle" aria-expanded="false"><i class="ph ph-quotes"></i>範例答案<i class="ph ph-caret-down toggle-caret"></i></button></div></div></div>
+              <div class="nsm-dim__desc">什麼讓用戶持續回訪而非逐漸流失</div>
               <div class="nsm-dim__body">
                 <div class="nsm-dim__coach"><i class="ph ph-chat-dots"></i>社交關係？個人化推薦？收藏習慣？找出最強的留存槓桿</div>
-                <button class="nsm-dim__hint-btn"><i class="ph ph-lightbulb"></i>查看教練提示</button>
-                <div class="nsm-rt-field">
-                  <div class="nsm-rt-toolbar"><button class="nsm-rt-tbtn"><strong>B</strong></button><button class="nsm-rt-tbtn"><i class="ph ph-list-bullets"></i></button><button class="nsm-rt-tbtn"><i class="ph ph-text-indent"></i></button><button class="nsm-rt-tbtn"><i class="ph ph-text-outdent"></i></button></div>
-                  <textarea placeholder="例：擁有 ≥5 首收藏歌曲的用戶 30 日留存率" rows="2"></textarea>
+                <div class="rt-field">
+                  <div class="rt-field__toolbar"><button class="rt-tbtn"><i class="ph ph-text-b"></i></button><button class="rt-tbtn"><i class="ph ph-list-bullets"></i></button></div>
+                  <textarea class="rt-textarea" placeholder="例：擁有 ≥5 首收藏歌曲的用戶 30 日留存率" rows="2"></textarea>
                 </div>
               </div>
             </div>
@@ -1335,7 +1701,7 @@
     <!-- Section C — Step 3 sub-tab · saas 型 4-dim 已填 + 教練提示展開 -->
     <!-- ============================================================ -->
     <h2 class="vp-section-title">C · 步驟 3 拆解（SaaS 型 4-dim 已填 + 教練提示展開）<span class="vp-section-title__sub">saas 動態 label：啟用廣度 / 席次深度 / 黏著頻率 / 擴張信號 — 證明 4-dim 隨 product type 動態切換</span></h2>
-    <div class="anno"><strong>視覺契約：</strong>同 B 結構但 type 切換為 <strong>SaaS 型</strong>（primary blue badge）+ 4-dim label 全變：啟用廣度 / 席次深度 / 黏著頻率 / 擴張信號（<code>NSM_DIMENSION_CONFIGS.saas</code>）。第 1 dim 已填、第 2 dim 教練提示展開（顯示 <code>nsmHints</code> 內容）、第 3-4 dim 空白。submit-bar：「送出，取得 AI 評分」<strong>enabled</strong>（部分填寫即可送出，AI 評分會檢查完整度）。</div>
+    <div class="anno"><strong>視覺契約：</strong>同 B 結構但 type 切換為 <strong>SaaS 型</strong>（primary blue badge）+ 4-dim label 全變：啟用廣度 / 席次深度 / 黏著頻率 / 擴張信號（<code>NSM_DIMENSION_CONFIGS.saas</code>）。第 1 dim 已填、<strong>第 2 dim 範例答案展開（LOCKED <code>.example-expand</code> pattern，取代原 nsm-dim__hint-content）</strong>、第 3-4 dim 空白。submit-bar：「送出，取得 AI 評分」<strong>enabled</strong>。</div>
     <div class="vp-grid">
 
       <!-- C · Mobile 360 -->
@@ -1353,11 +1719,6 @@
               <div class="phase-head__eyebrow">NSM · 北極星訓練</div>
               <div class="phase-head__title">拆解輸入指標</div>
             </div>
-          </div>
-          <div class="nsm-sub-tabs">
-            <button class="nsm-sub-tab">步驟 2</button>
-            <button class="nsm-sub-tab">NSM 審核</button>
-            <button class="nsm-sub-tab is-active">步驟 3：拆解</button>
           </div>
           <div class="nsm-progress">
             <div class="nsm-progress__step is-done"><div class="nsm-progress__dot">1</div><div class="nsm-progress__label">情境</div></div>
@@ -1381,52 +1742,58 @@
             </div>
 
             <div class="nsm-dim">
-              <div class="nsm-dim__head"><div class="nsm-dim__label">啟用廣度</div><div class="nsm-dim__desc">新客戶中有多少真正完成啟用（Activation）</div></div>
+              <div class="field__label-row"><label class="field__label">啟用廣度</label><div class="field__hint-row"><div class="field__hint-row"><button class="field__hint-link"><i class="ph ph-lightbulb"></i>提示</button><button class="field-example-toggle" aria-expanded="false"><i class="ph ph-quotes"></i>範例答案<i class="ph ph-caret-down toggle-caret"></i></button></div></div></div>
+              <div class="nsm-dim__desc">新客戶中有多少真正完成啟用（Activation）</div>
               <div class="nsm-dim__body">
                 <div class="nsm-dim__coach"><i class="ph ph-chat-dots"></i>注意是 activation，不是 signup——誰真正跑完了核心工作流？</div>
-                <button class="nsm-dim__hint-btn"><i class="ph ph-lightbulb"></i>查看教練提示</button>
-                <div class="nsm-rt-field">
-                  <div class="nsm-rt-toolbar"><button class="nsm-rt-tbtn"><strong>B</strong></button><button class="nsm-rt-tbtn"><i class="ph ph-list-bullets"></i></button><button class="nsm-rt-tbtn"><i class="ph ph-text-indent"></i></button><button class="nsm-rt-tbtn"><i class="ph ph-text-outdent"></i></button></div>
-                  <textarea rows="3">建立 7 天內完成至少 3 次核心工作流（建專案 + 邀請成員 + 提交首份成果）的新帳號比例 — 這比 signup 更能預測 90 日續訂率。</textarea>
+                <div class="rt-field">
+                  <div class="rt-field__toolbar"><button class="rt-tbtn"><i class="ph ph-text-b"></i></button><button class="rt-tbtn"><i class="ph ph-list-bullets"></i></button></div>
+                  <textarea class="rt-textarea" rows="3">建立 7 天內完成至少 3 次核心工作流（建專案 + 邀請成員 + 提交首份成果）的新帳號比例 — 這比 signup 更能預測 90 日續訂率。</textarea>
                 </div>
               </div>
             </div>
 
             <div class="nsm-dim">
-              <div class="nsm-dim__head"><div class="nsm-dim__label">席次深度</div><div class="nsm-dim__desc">每個帳號內有多少人在真正使用核心功能</div></div>
+              <div class="field__label-row"><label class="field__label">席次深度</label><div class="field__hint-row"><div class="field__hint-row"><button class="field__hint-link"><i class="ph ph-lightbulb"></i>提示</button><button class="field-example-toggle is-active" aria-expanded="true"><i class="ph ph-quotes"></i>範例答案<i class="ph ph-caret-down toggle-caret" style="transform:rotate(180deg)"></i></button></div></div></div>
+              <div class="nsm-dim__desc">每個帳號內有多少人在真正使用核心功能</div>
               <div class="nsm-dim__body">
                 <div class="nsm-dim__coach"><i class="ph ph-chat-dots"></i>企業付費，但有幾個人實際在用？席次利用率多高？</div>
-                <button class="nsm-dim__hint-btn" aria-expanded="true"><i class="ph ph-lightbulb"></i>收起教練提示</button>
-                <div class="nsm-dim__hint-content">
-                  <strong>席次利用率拆法：</strong>分母用「已開通席次數」、分子用「過去 30 天有登入並完成核心動作的人數」。注意排除 admin、IT、純 viewer 角色 — 那些是「被動觀察」非「主動使用」。例如：100 席的客戶若 60 人活躍，席次利用率 = 60%；低於 40% 通常代表續約風險。
+                <div class="rt-field">
+                  <div class="rt-field__toolbar"><button class="rt-tbtn"><i class="ph ph-text-b"></i></button><button class="rt-tbtn"><i class="ph ph-list-bullets"></i></button></div>
+                  <textarea class="rt-textarea" placeholder="例：每個帳號每月平均活躍使用者數（席次利用率）" rows="2"></textarea>
                 </div>
-                <div class="nsm-rt-field">
-                  <div class="nsm-rt-toolbar"><button class="nsm-rt-tbtn"><strong>B</strong></button><button class="nsm-rt-tbtn"><i class="ph ph-list-bullets"></i></button><button class="nsm-rt-tbtn"><i class="ph ph-text-indent"></i></button><button class="nsm-rt-tbtn"><i class="ph ph-text-outdent"></i></button></div>
-                  <textarea placeholder="例：每個帳號每月平均活躍使用者數（席次利用率）" rows="2"></textarea>
+                <div class="example-expand">
+                  <div class="example-expand__head">
+                    <div class="example-expand__title"><i class="ph ph-quotes"></i>範例答案</div>
+                    <button class="example-expand__close" aria-label="收合"><i class="ph ph-x"></i></button>
+                  </div>
+                  <ul class="example-list">
+                    <li>席次利用率：分母「已開通席次數」／分子「過去 30 天有完成核心動作的人數」，排除 admin / IT / 純 viewer 角色。100 席客戶若 60 人活躍 = 60%；低於 40% 通常代表續約風險。</li>
+                  </ul>
                 </div>
               </div>
             </div>
 
             <div class="nsm-dim">
-              <div class="nsm-dim__head"><div class="nsm-dim__label">黏著頻率</div><div class="nsm-dim__desc">使用頻率是否顯示產品已嵌入日常工作流</div></div>
+              <div class="field__label-row"><label class="field__label">黏著頻率</label><div class="field__hint-row"><div class="field__hint-row"><button class="field__hint-link"><i class="ph ph-lightbulb"></i>提示</button><button class="field-example-toggle" aria-expanded="false"><i class="ph ph-quotes"></i>範例答案<i class="ph ph-caret-down toggle-caret"></i></button></div></div></div>
+              <div class="nsm-dim__desc">使用頻率是否顯示產品已嵌入日常工作流</div>
               <div class="nsm-dim__body">
                 <div class="nsm-dim__coach"><i class="ph ph-chat-dots"></i>每天都用 vs 偶爾用——是剛需工具嗎？DAU/MAU 比多高？</div>
-                <button class="nsm-dim__hint-btn"><i class="ph ph-lightbulb"></i>查看教練提示</button>
-                <div class="nsm-rt-field">
-                  <div class="nsm-rt-toolbar"><button class="nsm-rt-tbtn"><strong>B</strong></button><button class="nsm-rt-tbtn"><i class="ph ph-list-bullets"></i></button><button class="nsm-rt-tbtn"><i class="ph ph-text-indent"></i></button><button class="nsm-rt-tbtn"><i class="ph ph-text-outdent"></i></button></div>
-                  <textarea placeholder="例：每週使用核心功能 ≥ 3 次的帳號佔比" rows="2"></textarea>
+                <div class="rt-field">
+                  <div class="rt-field__toolbar"><button class="rt-tbtn"><i class="ph ph-text-b"></i></button><button class="rt-tbtn"><i class="ph ph-list-bullets"></i></button></div>
+                  <textarea class="rt-textarea" placeholder="例：每週使用核心功能 ≥ 3 次的帳號佔比" rows="2"></textarea>
                 </div>
               </div>
             </div>
 
             <div class="nsm-dim">
-              <div class="nsm-dim__head"><div class="nsm-dim__label">擴張信號</div><div class="nsm-dim__desc">現有客戶是否在增加使用（NRR 指標）</div></div>
+              <div class="field__label-row"><label class="field__label">擴張信號</label><div class="field__hint-row"><div class="field__hint-row"><button class="field__hint-link"><i class="ph ph-lightbulb"></i>提示</button><button class="field-example-toggle" aria-expanded="false"><i class="ph ph-quotes"></i>範例答案<i class="ph ph-caret-down toggle-caret"></i></button></div></div></div>
+              <div class="nsm-dim__desc">現有客戶是否在增加使用（NRR 指標）</div>
               <div class="nsm-dim__body">
                 <div class="nsm-dim__coach"><i class="ph ph-chat-dots"></i>NRR &gt; 100% 代表客戶在擴張——多少比例帳號在 90 天內擴展？</div>
-                <button class="nsm-dim__hint-btn"><i class="ph ph-lightbulb"></i>查看教練提示</button>
-                <div class="nsm-rt-field">
-                  <div class="nsm-rt-toolbar"><button class="nsm-rt-tbtn"><strong>B</strong></button><button class="nsm-rt-tbtn"><i class="ph ph-list-bullets"></i></button><button class="nsm-rt-tbtn"><i class="ph ph-text-indent"></i></button><button class="nsm-rt-tbtn"><i class="ph ph-text-outdent"></i></button></div>
-                  <textarea placeholder="例：90 天內增加席次或升級方案的帳號比例" rows="2"></textarea>
+                <div class="rt-field">
+                  <div class="rt-field__toolbar"><button class="rt-tbtn"><i class="ph ph-text-b"></i></button><button class="rt-tbtn"><i class="ph ph-list-bullets"></i></button></div>
+                  <textarea class="rt-textarea" placeholder="例：90 天內增加席次或升級方案的帳號比例" rows="2"></textarea>
                 </div>
               </div>
             </div>
@@ -1456,11 +1823,6 @@
             </div>
             <div class="phase-head__meta"><span>SaaS 型</span></div>
           </div>
-          <div class="nsm-sub-tabs">
-            <button class="nsm-sub-tab">步驟 2：定義 NSM</button>
-            <button class="nsm-sub-tab">NSM 審核</button>
-            <button class="nsm-sub-tab is-active">步驟 3：拆解指標</button>
-          </div>
           <div class="nsm-progress">
             <div class="nsm-progress__step is-done"><div class="nsm-progress__dot">1</div><div class="nsm-progress__label">情境</div></div>
             <div class="nsm-progress__line is-done"></div>
@@ -1483,49 +1845,47 @@
             </div>
 
             <div class="nsm-dim">
-              <div class="nsm-dim__head"><div class="nsm-dim__label">啟用廣度</div><div class="nsm-dim__desc">新客戶中有多少真正完成啟用（Activation）</div></div>
+              <div class="field__label-row"><label class="field__label">啟用廣度</label><div class="field__hint-row"><div class="field__hint-row"><button class="field__hint-link"><i class="ph ph-lightbulb"></i>提示</button><button class="field-example-toggle" aria-expanded="false"><i class="ph ph-quotes"></i>範例答案<i class="ph ph-caret-down toggle-caret"></i></button></div></div></div>
+              <div class="nsm-dim__desc">新客戶中有多少真正完成啟用（Activation）</div>
               <div class="nsm-dim__body">
                 <div class="nsm-dim__coach"><i class="ph ph-chat-dots"></i>注意是 activation，不是 signup——誰真正跑完了核心工作流？</div>
-                <button class="nsm-dim__hint-btn"><i class="ph ph-lightbulb"></i>查看教練提示</button>
-                <div class="nsm-rt-field">
-                  <div class="nsm-rt-toolbar"><button class="nsm-rt-tbtn"><strong>B</strong></button><button class="nsm-rt-tbtn"><i class="ph ph-list-bullets"></i></button><button class="nsm-rt-tbtn"><i class="ph ph-text-indent"></i></button><button class="nsm-rt-tbtn"><i class="ph ph-text-outdent"></i></button></div>
-                  <textarea rows="3">建立 7 天內完成至少 3 次核心工作流（建專案 + 邀請成員 + 提交首份成果）的新帳號比例 — 這比 signup 更能預測 90 日續訂率。</textarea>
+                <div class="rt-field">
+                  <div class="rt-field__toolbar"><button class="rt-tbtn"><i class="ph ph-text-b"></i></button><button class="rt-tbtn"><i class="ph ph-list-bullets"></i></button></div>
+                  <textarea class="rt-textarea" rows="3">建立 7 天內完成至少 3 次核心工作流（建專案 + 邀請成員 + 提交首份成果）的新帳號比例 — 這比 signup 更能預測 90 日續訂率。</textarea>
                 </div>
               </div>
             </div>
             <div class="nsm-dim">
-              <div class="nsm-dim__head"><div class="nsm-dim__label">席次深度</div><div class="nsm-dim__desc">每個帳號內有多少人在真正使用核心功能</div></div>
+              <div class="field__label-row"><label class="field__label">席次深度</label><div class="field__hint-row"><div class="field__hint-row"><button class="field__hint-link"><i class="ph ph-lightbulb"></i>提示</button><button class="field-example-toggle is-active" aria-expanded="true"><i class="ph ph-quotes"></i>範例答案<i class="ph ph-caret-down toggle-caret" style="transform:rotate(180deg)"></i></button></div></div></div>
+              <div class="nsm-dim__desc">每個帳號內有多少人在真正使用核心功能</div>
               <div class="nsm-dim__body">
                 <div class="nsm-dim__coach"><i class="ph ph-chat-dots"></i>企業付費，但有幾個人實際在用？席次利用率多高？</div>
-                <button class="nsm-dim__hint-btn" aria-expanded="true"><i class="ph ph-lightbulb"></i>收起教練提示</button>
-                <div class="nsm-dim__hint-content">
-                  <strong>席次利用率拆法：</strong>分母用「已開通席次數」、分子用「過去 30 天有登入並完成核心動作的人數」。注意排除 admin、IT、純 viewer 角色 — 那些是「被動觀察」非「主動使用」。例如：100 席的客戶若 60 人活躍，席次利用率 = 60%；低於 40% 通常代表續約風險。
+                <div class="rt-field">
+                  <div class="rt-field__toolbar"><button class="rt-tbtn"><i class="ph ph-text-b"></i></button><button class="rt-tbtn"><i class="ph ph-list-bullets"></i></button></div>
+                  <textarea class="rt-textarea" placeholder="例：每個帳號每月平均活躍使用者數（席次利用率）" rows="2"></textarea>
                 </div>
-                <div class="nsm-rt-field">
-                  <div class="nsm-rt-toolbar"><button class="nsm-rt-tbtn"><strong>B</strong></button><button class="nsm-rt-tbtn"><i class="ph ph-list-bullets"></i></button><button class="nsm-rt-tbtn"><i class="ph ph-text-indent"></i></button><button class="nsm-rt-tbtn"><i class="ph ph-text-outdent"></i></button></div>
-                  <textarea placeholder="例：每個帳號每月平均活躍使用者數（席次利用率）" rows="2"></textarea>
-                </div>
+                <div class="example-expand"><div class="example-expand__head"><div class="example-expand__title"><i class="ph ph-quotes"></i>範例答案</div><button class="example-expand__close" aria-label="收合"><i class="ph ph-x"></i></button></div><ul class="example-list"><li>席次利用率：分母「已開通席次數」／分子「過去 30 天有完成核心動作的人數」，排除 admin / IT / 純 viewer 角色。100 席客戶若 60 人活躍 = 60%；低於 40% 通常代表續約風險。</li></ul></div>
               </div>
             </div>
             <div class="nsm-dim">
-              <div class="nsm-dim__head"><div class="nsm-dim__label">黏著頻率</div><div class="nsm-dim__desc">使用頻率是否顯示產品已嵌入日常工作流</div></div>
+              <div class="field__label-row"><label class="field__label">黏著頻率</label><div class="field__hint-row"><div class="field__hint-row"><button class="field__hint-link"><i class="ph ph-lightbulb"></i>提示</button><button class="field-example-toggle" aria-expanded="false"><i class="ph ph-quotes"></i>範例答案<i class="ph ph-caret-down toggle-caret"></i></button></div></div></div>
+              <div class="nsm-dim__desc">使用頻率是否顯示產品已嵌入日常工作流</div>
               <div class="nsm-dim__body">
                 <div class="nsm-dim__coach"><i class="ph ph-chat-dots"></i>每天都用 vs 偶爾用——是剛需工具嗎？DAU/MAU 比多高？</div>
-                <button class="nsm-dim__hint-btn"><i class="ph ph-lightbulb"></i>查看教練提示</button>
-                <div class="nsm-rt-field">
-                  <div class="nsm-rt-toolbar"><button class="nsm-rt-tbtn"><strong>B</strong></button><button class="nsm-rt-tbtn"><i class="ph ph-list-bullets"></i></button><button class="nsm-rt-tbtn"><i class="ph ph-text-indent"></i></button><button class="nsm-rt-tbtn"><i class="ph ph-text-outdent"></i></button></div>
-                  <textarea placeholder="例：每週使用核心功能 ≥ 3 次的帳號佔比" rows="2"></textarea>
+                <div class="rt-field">
+                  <div class="rt-field__toolbar"><button class="rt-tbtn"><i class="ph ph-text-b"></i></button><button class="rt-tbtn"><i class="ph ph-list-bullets"></i></button></div>
+                  <textarea class="rt-textarea" placeholder="例：每週使用核心功能 ≥ 3 次的帳號佔比" rows="2"></textarea>
                 </div>
               </div>
             </div>
             <div class="nsm-dim">
-              <div class="nsm-dim__head"><div class="nsm-dim__label">擴張信號</div><div class="nsm-dim__desc">現有客戶是否在增加使用（NRR 指標）</div></div>
+              <div class="field__label-row"><label class="field__label">擴張信號</label><div class="field__hint-row"><div class="field__hint-row"><button class="field__hint-link"><i class="ph ph-lightbulb"></i>提示</button><button class="field-example-toggle" aria-expanded="false"><i class="ph ph-quotes"></i>範例答案<i class="ph ph-caret-down toggle-caret"></i></button></div></div></div>
+              <div class="nsm-dim__desc">現有客戶是否在增加使用（NRR 指標）</div>
               <div class="nsm-dim__body">
                 <div class="nsm-dim__coach"><i class="ph ph-chat-dots"></i>NRR &gt; 100% 代表客戶在擴張——多少比例帳號在 90 天內擴展？</div>
-                <button class="nsm-dim__hint-btn"><i class="ph ph-lightbulb"></i>查看教練提示</button>
-                <div class="nsm-rt-field">
-                  <div class="nsm-rt-toolbar"><button class="nsm-rt-tbtn"><strong>B</strong></button><button class="nsm-rt-tbtn"><i class="ph ph-list-bullets"></i></button><button class="nsm-rt-tbtn"><i class="ph ph-text-indent"></i></button><button class="nsm-rt-tbtn"><i class="ph ph-text-outdent"></i></button></div>
-                  <textarea placeholder="例：90 天內增加席次或升級方案的帳號比例" rows="2"></textarea>
+                <div class="rt-field">
+                  <div class="rt-field__toolbar"><button class="rt-tbtn"><i class="ph ph-text-b"></i></button><button class="rt-tbtn"><i class="ph ph-list-bullets"></i></button></div>
+                  <textarea class="rt-textarea" placeholder="例：90 天內增加席次或升級方案的帳號比例" rows="2"></textarea>
                 </div>
               </div>
             </div>
@@ -1555,11 +1915,6 @@
             </div>
             <div class="phase-head__meta"><span>Asana 風 · SaaS 型</span><span class="phase-head__meta-sep">·</span><span>4 維度</span></div>
           </div>
-          <div class="nsm-sub-tabs">
-            <button class="nsm-sub-tab">步驟 2：定義 NSM</button>
-            <button class="nsm-sub-tab">NSM 審核</button>
-            <button class="nsm-sub-tab is-active">步驟 3：拆解指標</button>
-          </div>
           <div class="nsm-progress">
             <div class="nsm-progress__step is-done"><div class="nsm-progress__dot">1</div><div class="nsm-progress__label">情境</div></div>
             <div class="nsm-progress__line is-done"></div>
@@ -1582,49 +1937,47 @@
             </div>
 
             <div class="nsm-dim">
-              <div class="nsm-dim__head"><div class="nsm-dim__label">啟用廣度</div><div class="nsm-dim__desc">新客戶中有多少真正完成啟用（Activation）</div></div>
+              <div class="field__label-row"><label class="field__label">啟用廣度</label><div class="field__hint-row"><div class="field__hint-row"><button class="field__hint-link"><i class="ph ph-lightbulb"></i>提示</button><button class="field-example-toggle" aria-expanded="false"><i class="ph ph-quotes"></i>範例答案<i class="ph ph-caret-down toggle-caret"></i></button></div></div></div>
+              <div class="nsm-dim__desc">新客戶中有多少真正完成啟用（Activation）</div>
               <div class="nsm-dim__body">
                 <div class="nsm-dim__coach"><i class="ph ph-chat-dots"></i>注意是 activation，不是 signup——誰真正跑完了核心工作流？</div>
-                <button class="nsm-dim__hint-btn"><i class="ph ph-lightbulb"></i>查看教練提示</button>
-                <div class="nsm-rt-field">
-                  <div class="nsm-rt-toolbar"><button class="nsm-rt-tbtn"><strong>B</strong></button><button class="nsm-rt-tbtn"><i class="ph ph-list-bullets"></i></button><button class="nsm-rt-tbtn"><i class="ph ph-text-indent"></i></button><button class="nsm-rt-tbtn"><i class="ph ph-text-outdent"></i></button></div>
-                  <textarea rows="3">建立 7 天內完成至少 3 次核心工作流（建專案 + 邀請成員 + 提交首份成果）的新帳號比例 — 這比 signup 更能預測 90 日續訂率。</textarea>
+                <div class="rt-field">
+                  <div class="rt-field__toolbar"><button class="rt-tbtn"><i class="ph ph-text-b"></i></button><button class="rt-tbtn"><i class="ph ph-list-bullets"></i></button><button class="rt-tbtn"><i class="ph ph-text-indent"></i></button></div>
+                  <textarea class="rt-textarea" rows="3">建立 7 天內完成至少 3 次核心工作流（建專案 + 邀請成員 + 提交首份成果）的新帳號比例 — 這比 signup 更能預測 90 日續訂率。</textarea>
                 </div>
               </div>
             </div>
             <div class="nsm-dim">
-              <div class="nsm-dim__head"><div class="nsm-dim__label">席次深度</div><div class="nsm-dim__desc">每個帳號內有多少人在真正使用核心功能</div></div>
+              <div class="field__label-row"><label class="field__label">席次深度</label><div class="field__hint-row"><div class="field__hint-row"><button class="field__hint-link"><i class="ph ph-lightbulb"></i>提示</button><button class="field-example-toggle is-active" aria-expanded="true"><i class="ph ph-quotes"></i>範例答案<i class="ph ph-caret-down toggle-caret" style="transform:rotate(180deg)"></i></button></div></div></div>
+              <div class="nsm-dim__desc">每個帳號內有多少人在真正使用核心功能</div>
               <div class="nsm-dim__body">
                 <div class="nsm-dim__coach"><i class="ph ph-chat-dots"></i>企業付費，但有幾個人實際在用？席次利用率多高？</div>
-                <button class="nsm-dim__hint-btn" aria-expanded="true"><i class="ph ph-lightbulb"></i>收起教練提示</button>
-                <div class="nsm-dim__hint-content">
-                  <strong>席次利用率拆法：</strong>分母用「已開通席次數」、分子用「過去 30 天有登入並完成核心動作的人數」。注意排除 admin、IT、純 viewer 角色 — 那些是「被動觀察」非「主動使用」。例如：100 席的客戶若 60 人活躍，席次利用率 = 60%；低於 40% 通常代表續約風險。
+                <div class="rt-field">
+                  <div class="rt-field__toolbar"><button class="rt-tbtn"><i class="ph ph-text-b"></i></button><button class="rt-tbtn"><i class="ph ph-list-bullets"></i></button></div>
+                  <textarea class="rt-textarea" placeholder="例：每個帳號每月平均活躍使用者數（席次利用率）" rows="2"></textarea>
                 </div>
-                <div class="nsm-rt-field">
-                  <div class="nsm-rt-toolbar"><button class="nsm-rt-tbtn"><strong>B</strong></button><button class="nsm-rt-tbtn"><i class="ph ph-list-bullets"></i></button><button class="nsm-rt-tbtn"><i class="ph ph-text-indent"></i></button><button class="nsm-rt-tbtn"><i class="ph ph-text-outdent"></i></button></div>
-                  <textarea placeholder="例：每個帳號每月平均活躍使用者數（席次利用率）" rows="2"></textarea>
-                </div>
+                <div class="example-expand"><div class="example-expand__head"><div class="example-expand__title"><i class="ph ph-quotes"></i>範例答案</div><button class="example-expand__close" aria-label="收合"><i class="ph ph-x"></i></button></div><ul class="example-list"><li>席次利用率：分母「已開通席次數」／分子「過去 30 天有完成核心動作的人數」，排除 admin / IT / 純 viewer 角色。100 席客戶若 60 人活躍 = 60%；低於 40% 通常代表續約風險。</li></ul></div>
               </div>
             </div>
             <div class="nsm-dim">
-              <div class="nsm-dim__head"><div class="nsm-dim__label">黏著頻率</div><div class="nsm-dim__desc">使用頻率是否顯示產品已嵌入日常工作流</div></div>
+              <div class="field__label-row"><label class="field__label">黏著頻率</label><div class="field__hint-row"><div class="field__hint-row"><button class="field__hint-link"><i class="ph ph-lightbulb"></i>提示</button><button class="field-example-toggle" aria-expanded="false"><i class="ph ph-quotes"></i>範例答案<i class="ph ph-caret-down toggle-caret"></i></button></div></div></div>
+              <div class="nsm-dim__desc">使用頻率是否顯示產品已嵌入日常工作流</div>
               <div class="nsm-dim__body">
                 <div class="nsm-dim__coach"><i class="ph ph-chat-dots"></i>每天都用 vs 偶爾用——是剛需工具嗎？DAU/MAU 比多高？</div>
-                <button class="nsm-dim__hint-btn"><i class="ph ph-lightbulb"></i>查看教練提示</button>
-                <div class="nsm-rt-field">
-                  <div class="nsm-rt-toolbar"><button class="nsm-rt-tbtn"><strong>B</strong></button><button class="nsm-rt-tbtn"><i class="ph ph-list-bullets"></i></button><button class="nsm-rt-tbtn"><i class="ph ph-text-indent"></i></button><button class="nsm-rt-tbtn"><i class="ph ph-text-outdent"></i></button></div>
-                  <textarea placeholder="例：每週使用核心功能 ≥ 3 次的帳號佔比" rows="2"></textarea>
+                <div class="rt-field">
+                  <div class="rt-field__toolbar"><button class="rt-tbtn"><i class="ph ph-text-b"></i></button><button class="rt-tbtn"><i class="ph ph-list-bullets"></i></button></div>
+                  <textarea class="rt-textarea" placeholder="例：每週使用核心功能 ≥ 3 次的帳號佔比" rows="2"></textarea>
                 </div>
               </div>
             </div>
             <div class="nsm-dim">
-              <div class="nsm-dim__head"><div class="nsm-dim__label">擴張信號</div><div class="nsm-dim__desc">現有客戶是否在增加使用（NRR 指標）</div></div>
+              <div class="field__label-row"><label class="field__label">擴張信號</label><div class="field__hint-row"><div class="field__hint-row"><button class="field__hint-link"><i class="ph ph-lightbulb"></i>提示</button><button class="field-example-toggle" aria-expanded="false"><i class="ph ph-quotes"></i>範例答案<i class="ph ph-caret-down toggle-caret"></i></button></div></div></div>
+              <div class="nsm-dim__desc">現有客戶是否在增加使用（NRR 指標）</div>
               <div class="nsm-dim__body">
                 <div class="nsm-dim__coach"><i class="ph ph-chat-dots"></i>NRR &gt; 100% 代表客戶在擴張——多少比例帳號在 90 天內擴展？</div>
-                <button class="nsm-dim__hint-btn"><i class="ph ph-lightbulb"></i>查看教練提示</button>
-                <div class="nsm-rt-field">
-                  <div class="nsm-rt-toolbar"><button class="nsm-rt-tbtn"><strong>B</strong></button><button class="nsm-rt-tbtn"><i class="ph ph-list-bullets"></i></button><button class="nsm-rt-tbtn"><i class="ph ph-text-indent"></i></button><button class="nsm-rt-tbtn"><i class="ph ph-text-outdent"></i></button></div>
-                  <textarea placeholder="例：90 天內增加席次或升級方案的帳號比例" rows="2"></textarea>
+                <div class="rt-field">
+                  <div class="rt-field__toolbar"><button class="rt-tbtn"><i class="ph ph-text-b"></i></button><button class="rt-tbtn"><i class="ph ph-list-bullets"></i></button></div>
+                  <textarea class="rt-textarea" placeholder="例：90 天內增加席次或升級方案的帳號比例" rows="2"></textarea>
                 </div>
               </div>
             </div>
@@ -1637,6 +1990,265 @@
       </div>
 
     </div>
+
+  <!-- ═══════════════════ D. 點擊提示後的 overlay 樣子 ═══════════════════ -->
+  <h2 class="vp-section-title">D. 點擊提示後的 overlay 樣子 <span class="vp-section-title__sub">form 在後 dim 45% / modal 在上 / loading→content→error 3 狀態</span></h2>
+
+  <div class="vp-grid">
+
+    <!-- Mobile: bottom-sheet, AI loading state -->
+    <div class="vp-frame">
+      <div class="vp-frame__label"><span>Mobile · AI 提示 loading（bottom sheet）</span><span>360 px</span></div>
+      <div class="vp-frame__body">
+        <div class="navbar"><button class="navbar__icon-btn"><i class="ph ph-list"></i></button>
+          <div class="navbar__brand"><span class="navbar__brand-icon"><i class="ph ph-circles-three"></i></span><span class="navbar__brand-name">PM Drill</span></div><div class="navbar__actions"><button class="navbar__icon-btn" aria-label="回首頁"><i class="ph ph-house"></i></button></div></div>
+        <div class="phase-head"><span class="phase-head__num">02</span><div class="phase-head__main"><div class="phase-head__eyebrow">NSM · 步驟 2</div><div class="phase-head__title">定義 NSM</div></div>
+        </div>
+        <div class="nsm-progress">
+          <div class="nsm-progress__step is-done"><div class="nsm-progress__dot"><i class="ph ph-check" style="font-size:12px;"></i></div><div class="nsm-progress__label">情境</div></div>
+          <div class="nsm-progress__line is-done"></div>
+          <div class="nsm-progress__step is-active"><div class="nsm-progress__dot">2</div><div class="nsm-progress__label">指標</div></div>
+          <div class="nsm-progress__line"></div>
+          <div class="nsm-progress__step"><div class="nsm-progress__dot">3</div><div class="nsm-progress__label">拆解</div></div>
+          <div class="nsm-progress__line"></div>
+          <div class="nsm-progress__step"><div class="nsm-progress__dot">4</div><div class="nsm-progress__label">總結</div></div>
+        </div>
+        <div class="overlay-frame overlay-frame--bottom">
+          <!-- form behind dim -->
+          <div style="padding: var(--s-4); opacity: 0.45;">
+            <div class="nsm-context-card">
+              <div class="nsm-context-card__top">
+                <span class="nsm-context-card__company">Spotify</span>
+                <span class="nsm-context-card__industry">音樂串流</span>
+                <span class="nsm-context-card__type nsm-context-card__type--attention"><i class="ph ph-eye"></i>注意力型</span>
+              </div>
+              <div class="nsm-context-card__scenario">如何提升 Spotify Podcast 的用戶留存率？</div>
+            </div>
+            <div class="nsm-field">
+              <div class="field__label-row">
+                <label class="field__label">北極星指標 (NSM)</label>
+                <div class="field__hint-row">
+                  <button class="field__hint-link is-active"><i class="ph ph-lightbulb"></i>提示</button>
+                  <button class="field-example-toggle" aria-expanded="false"><i class="ph ph-quotes"></i>範例答案<i class="ph ph-caret-down toggle-caret"></i></button>
+                </div>
+              </div>
+              <div class="rt-field">
+                <div class="rt-field__toolbar"><button class="rt-tbtn"><i class="ph ph-text-b"></i></button><button class="rt-tbtn"><i class="ph ph-list-bullets"></i></button></div>
+                <textarea class="rt-textarea" rows="2">每月完整收聽至少一集 Podcast 的用戶數</textarea>
+              </div>
+            </div>
+          </div>
+          <!-- backdrop -->
+          <div class="overlay-frame__backdrop"></div>
+          <!-- bottom sheet -->
+          <div class="modal-card">
+            <div class="modal__head">
+              <span class="modal__head-icon"><i class="ph ph-sparkle"></i></span>
+              <div style="flex:1;">
+                <div class="modal__sub">提示</div>
+                <h3 class="modal__title">北極星指標 (NSM)</h3>
+              </div>
+              <button class="modal__close"><i class="ph ph-x"></i></button>
+            </div>
+            <div style="padding: var(--s-7) var(--s-5); display: flex; flex-direction: column; align-items: center; gap: var(--s-3); color: var(--c-ink-3);">
+              <div style="width:32px; height:32px; border:2px solid var(--c-rule-bold); border-top-color:var(--c-navy); border-radius:50%; animation: spin 0.8s linear infinite;"></div>
+              <div style="font-size: var(--t-body-sm);">教練思考中…</div>
+              <div style="font-size: var(--t-cap);">針對 Spotify Podcast 題目 + 你目前的草稿產生個人化提示</div>
+            </div>
+            <div class="modal__foot">
+              <button class="btn btn--ghost" style="font-size:var(--t-meta); min-height:36px;" disabled>關閉</button>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- Tablet: centered modal, AI content state -->
+    <div class="vp-frame">
+      <div class="vp-frame__label"><span>Tablet · AI 提示 content</span><span>768 px</span></div>
+      <div class="vp-frame__body">
+        <div class="navbar"><button class="navbar__icon-btn"><i class="ph ph-list"></i></button>
+          <div class="navbar__brand"><span class="navbar__brand-icon"><i class="ph ph-circles-three"></i></span><span class="navbar__brand-name">PM Drill</span></div><nav class="navbar__tabs"><span class="navbar__tab">CIRCLES</span><span class="navbar__tab is-active">北極星指標</span></nav><div class="navbar__actions"><button class="navbar__icon-btn" aria-label="回首頁"><i class="ph ph-house"></i></button></div></div>
+        <div class="phase-head"><span class="phase-head__num">02</span><div class="phase-head__main"><div class="phase-head__eyebrow">NSM · 步驟 2</div><div class="phase-head__title">定義 NSM</div></div>
+        </div>
+        <div class="nsm-progress">
+          <div class="nsm-progress__step is-done"><div class="nsm-progress__dot"><i class="ph ph-check" style="font-size:12px;"></i></div><div class="nsm-progress__label">情境</div></div>
+          <div class="nsm-progress__line is-done"></div>
+          <div class="nsm-progress__step is-active"><div class="nsm-progress__dot">2</div><div class="nsm-progress__label">指標</div></div>
+          <div class="nsm-progress__line"></div>
+          <div class="nsm-progress__step"><div class="nsm-progress__dot">3</div><div class="nsm-progress__label">拆解</div></div>
+          <div class="nsm-progress__line"></div>
+          <div class="nsm-progress__step"><div class="nsm-progress__dot">4</div><div class="nsm-progress__label">總結</div></div>
+        </div>
+        <div class="overlay-frame">
+          <!-- form behind -->
+          <div style="padding: var(--s-5); opacity: 0.45;">
+            <div class="nsm-context-card">
+              <div class="nsm-context-card__top">
+                <span class="nsm-context-card__company">Spotify</span>
+                <span class="nsm-context-card__industry">音樂串流</span>
+                <span class="nsm-context-card__type nsm-context-card__type--attention"><i class="ph ph-eye"></i>注意力型</span>
+              </div>
+              <div class="nsm-context-card__scenario">如何提升 Spotify Podcast 的用戶留存率？</div>
+            </div>
+            <div class="nsm-field">
+              <div class="field__label-row">
+                <label class="field__label">北極星指標 (NSM)</label>
+                <div class="field__hint-row">
+                  <button class="field__hint-link is-active"><i class="ph ph-lightbulb"></i>提示</button>
+                  <button class="field-example-toggle" aria-expanded="false"><i class="ph ph-quotes"></i>範例答案<i class="ph ph-caret-down toggle-caret"></i></button>
+                </div>
+              </div>
+              <div class="rt-field">
+                <div class="rt-field__toolbar"><button class="rt-tbtn"><i class="ph ph-text-b"></i></button><button class="rt-tbtn"><i class="ph ph-list-bullets"></i></button></div>
+                <textarea class="rt-textarea" rows="2">每月完整收聽至少一集 Podcast 的用戶數</textarea>
+              </div>
+            </div>
+            <div class="nsm-field">
+              <div class="field__label-row">
+                <label class="field__label">定義說明</label>
+                <div class="field__hint-row">
+                  <button class="field__hint-link"><i class="ph ph-lightbulb"></i>提示</button>
+                  <button class="field-example-toggle" aria-expanded="false"><i class="ph ph-quotes"></i>範例答案<i class="ph ph-caret-down toggle-caret"></i></button>
+                </div>
+              </div>
+              <div class="rt-field">
+                <div class="rt-field__toolbar"><button class="rt-tbtn"><i class="ph ph-text-b"></i></button><button class="rt-tbtn"><i class="ph ph-list-bullets"></i></button></div>
+                <textarea class="rt-textarea" rows="2" placeholder="說明這個指標如何代表用戶從產品中獲得真正價值…"></textarea>
+              </div>
+            </div>
+          </div>
+          <div class="overlay-frame__backdrop"></div>
+          <div class="modal-card">
+            <div class="modal__head">
+              <span class="modal__head-icon"><i class="ph ph-sparkle"></i></span>
+              <div style="flex:1;">
+                <div class="modal__sub">提示 · 個人化</div>
+                <h3 class="modal__title">北極星指標 (NSM)</h3>
+              </div>
+              <button class="modal__close"><i class="ph ph-x"></i></button>
+            </div>
+            <div class="modal__body">
+              <p>定義 NSM 時，先想：什麼動作能直接代表「用戶從你的產品裡得到價值」？對 Spotify Podcast 來說，光是「打開 App」不夠，要有真正的內容消費行為。</p>
+              <p style="margin-top: var(--s-3);">避免兩個常見陷阱：1) 把廣度（DAU）當深度（真正聽完）；2) 把流量當價值。能反映「重複回來、養成習慣」的指標，才是穩定的 NSM。</p>
+              <p style="margin-top: var(--s-3); color: var(--c-ink-3); font-size: var(--t-cap);">由 GPT-4o 針對你目前草稿生成 · 8 秒前</p>
+            </div>
+            <div class="modal__foot">
+              <button class="btn btn--primary" style="font-size:var(--t-meta); min-height:36px;">了解了</button>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- Desktop: centered modal, AI error state -->
+    <div class="vp-frame">
+      <div class="vp-frame__label"><span>Desktop · AI 提示 error retry</span><span>1280 px</span></div>
+      <div class="vp-frame__body">
+        <div class="navbar"><button class="navbar__icon-btn"><i class="ph ph-list"></i></button>
+          <div class="navbar__brand"><span class="navbar__brand-icon"><i class="ph ph-circles-three"></i></span><span class="navbar__brand-name">PM Drill</span></div><nav class="navbar__tabs"><span class="navbar__tab">CIRCLES</span><span class="navbar__tab is-active">北極星指標</span></nav><div class="navbar__actions"><button class="navbar__icon-btn" aria-label="回首頁"><i class="ph ph-house"></i></button></div></div>
+        <div class="phase-head"><span class="phase-head__num">02</span><div class="phase-head__main"><div class="phase-head__eyebrow">NSM · 步驟 2</div><div class="phase-head__title">定義 NSM</div></div>
+        </div>
+        <div class="nsm-progress">
+          <div class="nsm-progress__step is-done"><div class="nsm-progress__dot"><i class="ph ph-check" style="font-size:12px;"></i></div><div class="nsm-progress__label">情境</div></div>
+          <div class="nsm-progress__line is-done"></div>
+          <div class="nsm-progress__step is-active"><div class="nsm-progress__dot">2</div><div class="nsm-progress__label">指標</div></div>
+          <div class="nsm-progress__line"></div>
+          <div class="nsm-progress__step"><div class="nsm-progress__dot">3</div><div class="nsm-progress__label">拆解</div></div>
+          <div class="nsm-progress__line"></div>
+          <div class="nsm-progress__step"><div class="nsm-progress__dot">4</div><div class="nsm-progress__label">總結</div></div>
+        </div>
+        <div class="overlay-frame">
+          <!-- form behind -->
+          <div style="padding: var(--s-5); opacity: 0.45;">
+            <div class="nsm-context-card">
+              <div class="nsm-context-card__top">
+                <span class="nsm-context-card__company">Spotify</span>
+                <span class="nsm-context-card__industry">音樂串流</span>
+                <span class="nsm-context-card__type nsm-context-card__type--attention"><i class="ph ph-eye"></i>注意力型</span>
+              </div>
+              <div class="nsm-context-card__scenario">如何提升 Spotify Podcast 的用戶留存率？</div>
+            </div>
+            <div class="nsm-field">
+              <div class="field__label-row">
+                <label class="field__label">北極星指標 (NSM)</label>
+                <div class="field__hint-row">
+                  <button class="field__hint-link is-active"><i class="ph ph-lightbulb"></i>提示</button>
+                  <button class="field-example-toggle" aria-expanded="false"><i class="ph ph-quotes"></i>範例答案<i class="ph ph-caret-down toggle-caret"></i></button>
+                </div>
+              </div>
+              <div class="rt-field">
+                <div class="rt-field__toolbar"><button class="rt-tbtn"><i class="ph ph-text-b"></i></button><button class="rt-tbtn"><i class="ph ph-list-bullets"></i></button></div>
+                <textarea class="rt-textarea" rows="2">每月完整收聽至少一集 Podcast 的用戶數</textarea>
+              </div>
+            </div>
+            <div class="nsm-field">
+              <div class="field__label-row">
+                <label class="field__label">定義說明</label>
+                <div class="field__hint-row">
+                  <button class="field__hint-link"><i class="ph ph-lightbulb"></i>提示</button>
+                  <button class="field-example-toggle" aria-expanded="false"><i class="ph ph-quotes"></i>範例答案<i class="ph ph-caret-down toggle-caret"></i></button>
+                </div>
+              </div>
+              <div class="rt-field">
+                <div class="rt-field__toolbar"><button class="rt-tbtn"><i class="ph ph-text-b"></i></button><button class="rt-tbtn"><i class="ph ph-list-bullets"></i></button></div>
+                <textarea class="rt-textarea" rows="2">「完整收聽」定義為播放超過單集時長 80%，排除背景播放、靜音播放行為</textarea>
+              </div>
+            </div>
+            <div class="nsm-field">
+              <div class="field__label-row">
+                <label class="field__label">與業務目標連結</label>
+                <div class="field__hint-row">
+                  <button class="field__hint-link"><i class="ph ph-lightbulb"></i>提示</button>
+                  <button class="field-example-toggle" aria-expanded="false"><i class="ph ph-quotes"></i>範例答案<i class="ph ph-caret-down toggle-caret"></i></button>
+                </div>
+              </div>
+              <div class="rt-field">
+                <div class="rt-field__toolbar"><button class="rt-tbtn"><i class="ph ph-text-b"></i></button><button class="rt-tbtn"><i class="ph ph-list-bullets"></i></button></div>
+                <textarea class="rt-textarea" rows="2" placeholder="說明此 NSM 如何與 Spotify 的商業目標直接連結…"></textarea>
+              </div>
+            </div>
+          </div>
+          <div class="overlay-frame__backdrop"></div>
+          <div class="modal-card">
+            <div class="modal__head">
+              <span class="modal__head-icon" style="background: var(--c-danger-lt); color: var(--c-danger);"><i class="ph-fill ph-warning-circle"></i></span>
+              <div style="flex:1;">
+                <div class="modal__sub">提示</div>
+                <h3 class="modal__title">北極星指標 (NSM)</h3>
+              </div>
+              <button class="modal__close"><i class="ph ph-x"></i></button>
+            </div>
+            <div style="text-align:center; padding: var(--s-6);">
+              <div style="width:48px; height:48px; margin: 0 auto var(--s-3); display:flex; align-items:center; justify-content:center; background: rgba(235,80,67,0.10); border-radius:50%;">
+                <i class="ph-fill ph-warning-circle" style="font-size:24px; color: var(--c-danger);"></i>
+              </div>
+              <h4 style="font-size: var(--t-h3); margin-bottom: var(--s-2);">提示生成失敗</h4>
+              <p style="color: var(--c-ink-3); font-size: var(--t-body-sm);">教練回應暫時不可用。請稍後再試，或先繼續寫你目前的想法。</p>
+            </div>
+            <div class="modal__foot">
+              <button class="btn btn--ghost" style="font-size:var(--t-meta); min-height:36px;">關閉</button>
+              <button class="btn btn--primary" style="font-size:var(--t-meta); min-height:36px;">重試</button>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+  </div>
+
+  <p class="anno">
+    <strong>D · 提示 modal 規格（mirror CIRCLES mockup 03 Section D）：</strong>
+    <ul style="margin:var(--s-2) 0 0 var(--s-5); padding-left:var(--s-3); line-height:1.7;">
+      <li>Modal 觸發：點 nsm-field 或 nsm-dim head row 的「提示」button (<code>ph-lightbulb</code>)</li>
+      <li>Modal head icon: <code>ph-sparkle</code>（AI 個人化專用，與 trigger lightbulb 區分）</li>
+      <li>3 狀態切換：loading（spinner + 教練思考中…）/ content（AI 生成的 2-3 段文字）/ error（紅 warning-circle + 重試 + 關閉）</li>
+      <li>4 close paths: ESC / backdrop click / 右上 X / 「了解了」/「關閉」 button</li>
+      <li>Mobile: bottom-sheet up-slide / Tablet+Desktop: centered fade-in</li>
+      <li>Backdrop dim 45% — user 仍可看到後方表單草稿</li>
+      <li>不分 Tier 1/2 — NSM 提示直接 AI 動態（mirror CIRCLES SB8 post-ship hardening）</li>
+    </ul>
+  </p>
 
   </div>
 </body>

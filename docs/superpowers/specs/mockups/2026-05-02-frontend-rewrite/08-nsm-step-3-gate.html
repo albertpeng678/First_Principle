@@ -127,32 +127,6 @@
     .btn--ghost:hover { background: var(--c-bg-soft); color: var(--c-ink); }
     .btn[disabled], .btn.is-disabled { background: var(--c-ink-4); color: #fff; cursor: not-allowed; opacity: 0.6; }
 
-    /* ───── SUB-TABS — LOCKED from 07 ───── */
-    .nsm-sub-tabs {
-      display: flex; gap: 0;
-      padding: 0 var(--s-4);
-      background: var(--c-bg-soft);
-      border-bottom: 1px solid var(--c-rule);
-      overflow-x: auto;
-      -webkit-overflow-scrolling: touch;
-    }
-    .nsm-sub-tab {
-      flex: 0 0 auto;
-      padding: var(--s-3) var(--s-3);
-      font-size: var(--t-body-sm);
-      color: var(--c-ink-3);
-      border-bottom: 2px solid transparent;
-      white-space: nowrap;
-      transition: color var(--t-fast) var(--ease), border-color var(--t-fast) var(--ease);
-    }
-    .nsm-sub-tab:hover:not([disabled]) { color: var(--c-ink-2); }
-    .nsm-sub-tab.is-active { color: var(--c-navy); border-bottom-color: var(--c-navy); font-weight: 600; }
-    .nsm-sub-tab[disabled] { color: var(--c-ink-4); cursor: not-allowed; }
-    @media (min-width: 768px) {
-      .nsm-sub-tabs { padding: 0 var(--s-5); }
-      .nsm-sub-tab { padding: var(--s-3) var(--s-4); }
-    }
-
     /* ───── GATE — LOCKED from 04 ───── */
     .gate-wrap {
       padding: var(--s-5) var(--s-4);
@@ -319,11 +293,11 @@
       <div class="ds-header__eyebrow">Path 2 · Mockup 08 · CONTRACT-LOCKED 草稿</div>
       <h1>NSM 審核 Gate — 5 criteria 三態 + Loading（紅 = 必擋 · 無 simulation override）</h1>
       <p class="ds-header__sub">
-        Screen 8 中間 sub-tab「NSM 審核」。AI 對學員填寫的 NSM 定義跑 5 維度檢核：
+        NSM 審核 Gate：AI 對學員填寫的 NSM 定義跑 5 維度檢核：
         <strong>價值關聯性 / 領先指標性 / 操作性 / 可理解性 / 週期敏感</strong>（見 <code>nsm_trainer_full_spec.md</code>）。
         三態 + Loading：A 全綠 ok / B 含黃 warn（仍通過）/ C 含紅 error（必擋）/ D Loading 審核中。
         <strong>紅 = 必擋規則：</strong>任一紅 item =「返回修改」<strong>唯一動作</strong>，無「帶風險繼續」、無 simulation override，drill 與 simulation 行為一致（Master Spec § 2.4）。
-        Component CSS 整段 LOCKED copy 自 04（gate-transition / gate-item / gate-loading）+ 07（nsm-sub-tabs）+ 03（navbar / phase-head / submit-bar / btn）。
+        Component CSS 整段 LOCKED copy 自 04（gate-transition / gate-item / gate-loading）+ 03（navbar / phase-head / submit-bar / btn）。
       </p>
     </header>
 
@@ -331,7 +305,7 @@
     <!-- Section A — OK 通過                                          -->
     <!-- ============================================================ -->
     <h2 class="vp-section-title">A · 通過（5 綠）<span class="vp-section-title__sub">overallStatus = ok · canProceed true · CTA 繼續到 步驟 3</span></h2>
-    <div class="anno"><strong>視覺契約：</strong>navbar + phase-head（NSM 品質審核）+ sub-tabs（步驟 2 / <strong>NSM 審核 active</strong> / 步驟 3 enabled）+ gate-transition--ok（綠勾 · 通過審核 · 可進入拆解）+ gate-summary（公司情境 · 你的 NSM）+ gate-list（5 張 ok cards：價值關聯 / 領先指標 / 操作性 / 可理解 / 週期敏感）+ submit-bar（「上一步」ghost + 「繼續到 步驟 3」primary）。</div>
+    <div class="anno"><strong>視覺契約：</strong>navbar + phase-head（NSM 品質審核）+ gate-transition--ok（綠勾 · 通過審核 · 可進入拆解）+ gate-summary（公司情境 · 你的 NSM）+ gate-list（5 張 ok cards：價值關聯 / 領先指標 / 操作性 / 可理解 / 週期敏感）+ submit-bar（「上一步」ghost + 「繼續到 步驟 3」primary）。</div>
     <div class="vp-grid">
 
       <!-- A · Mobile 360 -->
@@ -349,11 +323,6 @@
               <div class="phase-head__eyebrow">NSM · 北極星訓練</div>
               <div class="phase-head__title">NSM 品質審核</div>
             </div>
-          </div>
-          <div class="nsm-sub-tabs">
-            <button class="nsm-sub-tab">步驟 2</button>
-            <button class="nsm-sub-tab is-active">NSM 審核</button>
-            <button class="nsm-sub-tab">步驟 3：拆解</button>
           </div>
           <div class="gate-content">
             <div class="gate-wrap">
@@ -438,11 +407,6 @@
             </div>
             <div class="phase-head__meta"><span>5 維度</span></div>
           </div>
-          <div class="nsm-sub-tabs">
-            <button class="nsm-sub-tab">步驟 2：定義 NSM</button>
-            <button class="nsm-sub-tab is-active">NSM 審核</button>
-            <button class="nsm-sub-tab">步驟 3：拆解指標</button>
-          </div>
           <div class="gate-content">
             <div class="gate-wrap">
               <div class="gate-transition gate-transition--ok">
@@ -525,11 +489,6 @@
               <div class="phase-head__title">NSM 品質審核</div>
             </div>
             <div class="phase-head__meta"><span>Spotify · 音樂串流</span><span class="phase-head__meta-sep">·</span><span>5 維度</span></div>
-          </div>
-          <div class="nsm-sub-tabs">
-            <button class="nsm-sub-tab">步驟 2：定義 NSM</button>
-            <button class="nsm-sub-tab is-active">NSM 審核</button>
-            <button class="nsm-sub-tab">步驟 3：拆解指標</button>
           </div>
           <div class="gate-content">
             <div class="gate-wrap">
@@ -621,11 +580,6 @@
               <div class="phase-head__title">NSM 品質審核</div>
             </div>
           </div>
-          <div class="nsm-sub-tabs">
-            <button class="nsm-sub-tab">步驟 2</button>
-            <button class="nsm-sub-tab is-active">NSM 審核</button>
-            <button class="nsm-sub-tab">步驟 3：拆解</button>
-          </div>
           <div class="gate-content">
             <div class="gate-wrap">
               <div class="gate-transition gate-transition--warn">
@@ -713,11 +667,6 @@
             </div>
             <div class="phase-head__meta"><span>4 OK · 1 WARN</span></div>
           </div>
-          <div class="nsm-sub-tabs">
-            <button class="nsm-sub-tab">步驟 2：定義 NSM</button>
-            <button class="nsm-sub-tab is-active">NSM 審核</button>
-            <button class="nsm-sub-tab">步驟 3：拆解指標</button>
-          </div>
           <div class="gate-content">
             <div class="gate-wrap">
               <div class="gate-transition gate-transition--warn">
@@ -786,11 +735,6 @@
             </div>
             <div class="phase-head__meta"><span>蝦皮 · 電商</span><span class="phase-head__meta-sep">·</span><span>4 OK · 1 WARN</span></div>
           </div>
-          <div class="nsm-sub-tabs">
-            <button class="nsm-sub-tab">步驟 2：定義 NSM</button>
-            <button class="nsm-sub-tab is-active">NSM 審核</button>
-            <button class="nsm-sub-tab">步驟 3：拆解指標</button>
-          </div>
           <div class="gate-content">
             <div class="gate-wrap">
               <div class="gate-transition gate-transition--warn">
@@ -846,8 +790,8 @@
     <!-- ============================================================ -->
     <!-- Section C — ERROR 需修正方向（紅 = 必擋 · 無 override）       -->
     <!-- ============================================================ -->
-    <h2 class="vp-section-title">C · 需修正方向（含紅）<span class="vp-section-title__sub">overallStatus = error · canProceed false · CTA 唯一「上一步修改」 · 步驟 3 sub-tab 仍 disabled</span></h2>
-    <div class="anno"><strong>視覺契約：</strong>含至少 1 張 <code>gate-item--error</code>（紅 X · 紅底 · 紅建議框）。Transition bar 為 <code>--error</code>（紅 · 「需修正方向」）。Sub-tab「步驟 3：拆解」<strong>保持 disabled</strong>（gatePassed false）。submit-bar：<strong>只有「上一步修改」一顆 primary 按鈕</strong>（無 ghost 上一步、無「帶風險繼續」、無 simulation override — Master Spec § 2.4）。本案例：「DAU」是經典虛榮指標 — 觸發 alignment + leading 雙紅。</div>
+    <h2 class="vp-section-title">C · 需修正方向（含紅）<span class="vp-section-title__sub">overallStatus = error · canProceed false · CTA 唯一「上一步修改」</span></h2>
+    <div class="anno"><strong>視覺契約：</strong>含至少 1 張 <code>gate-item--error</code>（紅 X · 紅底 · 紅建議框）。Transition bar 為 <code>--error</code>（紅 · 「需修正方向」）。submit-bar：<strong>只有「上一步修改」一顆 primary 按鈕</strong>（無 ghost 上一步、無「帶風險繼續」、無 simulation override — Master Spec § 2.4）。本案例：「DAU」是經典虛榮指標 — 觸發 alignment + leading 雙紅。</div>
     <div class="vp-grid">
 
       <!-- C · Mobile 360 -->
@@ -865,11 +809,6 @@
               <div class="phase-head__eyebrow">NSM · 北極星訓練</div>
               <div class="phase-head__title">NSM 品質審核</div>
             </div>
-          </div>
-          <div class="nsm-sub-tabs">
-            <button class="nsm-sub-tab">步驟 2</button>
-            <button class="nsm-sub-tab is-active">NSM 審核</button>
-            <button class="nsm-sub-tab" disabled>步驟 3：拆解</button>
           </div>
           <div class="gate-content">
             <div class="gate-wrap">
@@ -961,11 +900,6 @@
             </div>
             <div class="phase-head__meta"><span>2 ERROR · 1 WARN · 2 OK</span></div>
           </div>
-          <div class="nsm-sub-tabs">
-            <button class="nsm-sub-tab">步驟 2：定義 NSM</button>
-            <button class="nsm-sub-tab is-active">NSM 審核</button>
-            <button class="nsm-sub-tab" disabled>步驟 3：拆解指標</button>
-          </div>
           <div class="gate-content">
             <div class="gate-wrap">
               <div class="gate-transition gate-transition--error">
@@ -1038,11 +972,6 @@
             </div>
             <div class="phase-head__meta"><span>Spotify · 音樂串流</span><span class="phase-head__meta-sep">·</span><span>2 ERROR · 1 WARN · 2 OK</span></div>
           </div>
-          <div class="nsm-sub-tabs">
-            <button class="nsm-sub-tab">步驟 2：定義 NSM</button>
-            <button class="nsm-sub-tab is-active">NSM 審核</button>
-            <button class="nsm-sub-tab" disabled>步驟 3：拆解指標</button>
-          </div>
           <div class="gate-content">
             <div class="gate-wrap">
               <div class="gate-transition gate-transition--error">
@@ -1102,8 +1031,8 @@
     <!-- ============================================================ -->
     <!-- Section D — Loading                                          -->
     <!-- ============================================================ -->
-    <h2 class="vp-section-title">D · Loading 審核中<span class="vp-section-title__sub">AppState.nsmGateLoading=true · spinner + checklist · sub-tab Step3 disabled · 無 submit-bar</span></h2>
-    <div class="anno"><strong>視覺契約：</strong>navbar + phase-head + sub-tabs（NSM 審核 active · 步驟 3 disabled）+ <code>gate-loading-wrap</code>（48px navy 旋轉 spinner + title + sub）+ <code>gate-loading-checklist</code> 4 步：解析 NSM 語意 done · 對齊產品價值 active · 檢查領先性 pending · 評估操作性 pending。**無 submit-bar**（loading 期間不允許離開）。</div>
+    <h2 class="vp-section-title">D · Loading 審核中<span class="vp-section-title__sub">AppState.nsmGateLoading=true · spinner + checklist · 無 submit-bar</span></h2>
+    <div class="anno"><strong>視覺契約：</strong>navbar + phase-head + <code>gate-loading-wrap</code>（48px navy 旋轉 spinner + title + sub）+ <code>gate-loading-checklist</code> 4 步：解析 NSM 語意 done · 對齊產品價值 active · 檢查領先性 pending · 評估操作性 pending。**無 submit-bar**（loading 期間不允許離開）。</div>
     <div class="vp-grid">
 
       <!-- D · Mobile 360 -->
@@ -1121,11 +1050,6 @@
               <div class="phase-head__eyebrow">NSM · 北極星訓練</div>
               <div class="phase-head__title">NSM 品質審核</div>
             </div>
-          </div>
-          <div class="nsm-sub-tabs">
-            <button class="nsm-sub-tab">步驟 2</button>
-            <button class="nsm-sub-tab is-active">NSM 審核</button>
-            <button class="nsm-sub-tab" disabled>步驟 3：拆解</button>
           </div>
           <div class="gate-content">
             <div class="gate-loading-wrap">
@@ -1161,11 +1085,6 @@
             </div>
             <div class="phase-head__meta"><span>審核中</span></div>
           </div>
-          <div class="nsm-sub-tabs">
-            <button class="nsm-sub-tab">步驟 2：定義 NSM</button>
-            <button class="nsm-sub-tab is-active">NSM 審核</button>
-            <button class="nsm-sub-tab" disabled>步驟 3：拆解指標</button>
-          </div>
           <div class="gate-content">
             <div class="gate-loading-wrap">
               <div class="gate-spinner"></div>
@@ -1199,11 +1118,6 @@
               <div class="phase-head__title">NSM 品質審核</div>
             </div>
             <div class="phase-head__meta"><span>審核中 · 約 8-12 秒</span></div>
-          </div>
-          <div class="nsm-sub-tabs">
-            <button class="nsm-sub-tab">步驟 2：定義 NSM</button>
-            <button class="nsm-sub-tab is-active">NSM 審核</button>
-            <button class="nsm-sub-tab" disabled>步驟 3：拆解指標</button>
           </div>
           <div class="gate-content">
             <div class="gate-loading-wrap">

@@ -66,8 +66,8 @@
 | 04 | ✅ 放行 | `docs/superpowers/specs/mockups/2026-05-02-frontend-rewrite/04-phase-1-5-gate.html` | Phase 1.5 Gate 三態 ok/warn/error（紅 = 必擋，drill+sim 一致）+ loading |
 | 05 | ✅ 放行 | `docs/superpowers/specs/mockups/2026-05-02-frontend-rewrite/05-phase-2-chat.html` | Phase 2 對話三角色 bubble + 4 種底部狀態（input / submit-row / streaming / conclusion / locked）|
 | 06 | ✅ 放行 | `docs/superpowers/specs/mockups/2026-05-02-frontend-rewrite/06-nsm-step-1.html` | NSM Step 1 — 5 卡 + 4-欄 context + 桌面 3-col rail（200px filter / 1fr cards / 220px 近期練習）；4-step nsm-progress（情境/指標/拆解/總結）；4 type pills 全 navy/success/warn/primary（**全棧無紫色**）|
-| 07 | ✅ 放行 | `docs/superpowers/specs/mockups/2026-05-02-frontend-rewrite/07-nsm-step-2.html` | NSM 步驟 2/3 — Screen 8 內容 sub-tabs：步驟 2 定義 NSM（context-card + 3 步定義法 guide + 3 fields 北極星指標 / 定義說明 / 業務連結 + 查看範例 toggle）+ 步驟 3 拆解 4-dim card（label / desc / coachQ / 教練提示 + rt-toolbar textarea）；**4-dim 動態 label 隨 product type 切換** — attention（觸及廣度 / 互動深度 / 習慣頻率 / 留存驅力）vs saas（啟用廣度 / 席次深度 / 黏著頻率 / 擴張信號）；submit「上一步」統一語彙；component CSS 整段 LOCKED copy 自 06 |
-| 08 | ✅ 放行 | `docs/superpowers/specs/mockups/2026-05-02-frontend-rewrite/08-nsm-step-3-gate.html` | NSM 審核 Gate — 5 維度檢核（價值關聯 / 領先指標 / 操作性 / 可理解 / 週期敏感）三態 + Loading；A 通過 5 綠 / B 通過附提醒 4 綠+1 黃 / C 需修正方向含紅（**唯一動作「上一步修改」**，無「帶風險繼續」、無 simulation override）/ D Loading spinner + 4-step checklist；component CSS LOCKED copy 04（gate-transition / gate-item / gate-loading）+ 07（sub-tabs）+ 03（navbar / phase-head / submit-bar / btn）|
+| 07 | ✅ 放行 v3 | `docs/superpowers/specs/mockups/2026-05-02-frontend-rewrite/07-nsm-step-2.html` | NSM 步驟 2/3 — A 步驟 2 定義 NSM（context-card + **「深入了解問題」expand 4-block**：商業模式 / 使用者 / 常見陷阱（warn 橘）/ 破題切入 — pre-generated `q.context` data；3 步定義法 guide v2「虛榮指標檢驗」**改寫為「能否如實反映用戶體會到產品價值」**；3 fields 北極星指標 / 定義說明 / 業務連結 +「提示」+「範例答案」LOCKED right-align reuse mockup 03 `.field__hint-row`/`.field__hint-link`/`.field-example-toggle`/`.example-expand`）+ B/C 步驟 3 拆解（attention + saas 雙 section）4-dim card（label / desc / coachQ / 教練提示 + LOCKED `.rt-field` toolbar viewport-conditional B/list/indent/outdent）+ context-card 4-block expand mirror Section A + 「提示」+「範例答案」LOCKED；**D 點擊提示後 overlay**（mirror mockup 03 Section D — 3 viewport × 3 modal 狀態：Mobile bottom-sheet AI loading / Tablet centered AI content / Desktop centered AI error retry / sparkle icon / 4 close paths ESC+backdrop+X+button / backdrop dim 45% / 不分 Tier 1/2，AI dynamic only）；**4-dim 動態 label 隨 product type 切換** — attention（觸及廣度 / 互動深度 / 習慣頻率 / 留存驅力）vs saas（啟用廣度 / 席次深度 / 黏著頻率 / 擴張信號）；**v3 全 NSM-only 變體 NUKE**：`.nsm-rt-*` / `.nsm-field__hint-toggle` / `.nsm-dim__hint-btn` / `<strong>B</strong>` 全清，1:1 LOCKED reuse mockup 03；**v2 移除 nsm-sub-tabs**（與 nsm-progress 4-dot 重複）；component CSS LOCKED copy 自 03 + 06 |
+| 08 | ✅ 放行 v2 | `docs/superpowers/specs/mockups/2026-05-02-frontend-rewrite/08-nsm-step-3-gate.html` | NSM 審核 Gate — 5 維度檢核（價值關聯 / 領先指標 / 操作性 / 可理解 / 週期敏感）三態 + Loading；A 通過 5 綠 / B 通過附提醒 4 綠+1 黃 / C 需修正方向含紅（**唯一動作「上一步修改」**，無「帶風險繼續」、無 simulation override）/ D Loading spinner + 4-step checklist；**v2 移除 nsm-sub-tabs**（與 nsm-progress 4-dot 重複，carry-forward 自 07 v2）；component CSS LOCKED copy 04（gate-transition / gate-item / gate-loading）+ 03（navbar / phase-head / submit-bar / btn）|
 | 09 | ✅ 放行 | `docs/superpowers/specs/mockups/2026-05-02-frontend-rewrite/09-offcanvas-history.html` | Offcanvas 練習記錄 — drawer 280px from left + backdrop dim · 4 狀態（list / empty / loading / error）× 3 viewport · **單一 navy score badge 配色**（完成才有，其他 greyscale）· 每筆 3 行（title 允許 line-clamp-2 不截斷 + meta + date）· **區分 drill 單步「C 澄清 / L 方案 / I 用戶 ...」vs simulation「完整 7 步」vs「NSM · 4 步」** · hover 顯示 trash icon · component CSS 整段 LOCKED copy 自 03 / 04 / 06 / 07 / 08 |
 | 10 | ✅ 放行 | `docs/superpowers/specs/mockups/2026-05-02-frontend-rewrite/10-onboarding.html` | Onboarding — Welcome card（hand-waving + 開始引導 / 直接自己選題）+ **4-step coachmark tour**（練習模式 / 選擇題型 / 挑一道題目 / 開始練習）· 5 sections × 3 viewports = 15 frames · spotlight = `.onb-targeted` 直接掛在目標元素（auto-sized 永遠對齊，無雙重 dim）· dual ring（2px 白 inner halo + 6px navy outer + 9999px 全頁 dim outer）對任何 target 顏色都對比清楚 · **mobile 採 desktop 同 pattern**（全頁 dim + 浮動 tooltip near target，非 sticky-bottom）· Step 4 spotlight 圍**整張 expanded q-card**（含描述+button），讓 user 讀完題目說明再決定 |
 | 11 | ✅ 放行 | `docs/superpowers/specs/mockups/2026-05-02-frontend-rewrite/11-phase-3-score.html` | Phase 3 步驟分數 — 4 sections × 3 viewports = 12 frames：A 預設 78 分（mobile/tablet 4 dim 折疊 / desktop 2-col 全展開）/ B 低分 52 + 邏輯性 1/5 warn 自動展開 + 教練示範 3 sections 全展開（情境前置 / 逐欄位示範 4 fields / reasoning）/ C Loading 56px navy spinner + 4-step checklist / D Error 紅圓 cloud-warning + EVAL_TIMEOUT + 重新評分/返回修改。Desktop 用 flex + display:contents + order 規則：左欄（380px）score+highlights+coach 自然 stack、右欄 dim-list — 避免 grid-row span 撐高 col-1 issue。**移除 circles-nav 重複的灰色 home button**（navbar 右上 home 唯一） |
@@ -126,7 +126,7 @@
 
 ---
 
-## Standing Rules（核心 7 條 — 完整版見 memory）
+## Standing Rules（核心 8 條 — 完整版見 memory）
 
 1. CLAUDE.md 即時更新（本檔）
 2. Mockup 三裝置並排（mobile 360 / tablet 768 / desktop 1280）+ user 放行才實作
@@ -135,6 +135,7 @@
 5. iOS Safari 15-item checklist（Master Spec §0.2）每次 ship 前必走
 6. Pitch-ready standard：1px 對齊嚴格 / 4-grid 間距 / 無 magic 數值
 7. Path 2 期間不動 backend / API / prompts / DB / jest
+8. **Karpathy guidelines** 為標準執行綱要（4 條：Think Before / Simplicity First / Surgical Changes / Goal-Driven）— implementer subagent dispatch 必 prepend；main agent 寫/改/review code 必套；trivial task 例外
 
 ---
 
@@ -152,4 +153,4 @@
 - **SP3 / SP4 specs：** `docs/superpowers/specs/2026-05-02-sp3-*.md` / `2026-05-02-sp4-*.md`
 - **CIRCLES DB：** `circles_plan/circles_database.json`（103 題）
 - **NSM 規格：** `nsm_plan/nsm_trainer_full_spec.md`
-- **Plugins：** superpowers v5.0.7 / frontend-design / code-review / playwright / context7
+- **Plugins：** superpowers v5.1.0 / frontend-design / code-review / playwright / context7 / karpathy-skills
