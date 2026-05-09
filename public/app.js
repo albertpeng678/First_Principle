@@ -2831,6 +2831,11 @@
           }
         } else if (target === 'nsm') {
           AppState.evalToastDismissed = false; // clear dismissed on explicit tab switch
+          // Mirror CIRCLES tab: reset to Step 1 home unless mid-eval/loading (Karpathy §2 — minimum diff).
+          if (!(AppState.nsmGateLoading || AppState.nsmEvalLoading)) {
+            AppState.nsmStep = 1;
+            AppState.nsmSubTab = null;
+          }
           AppState.view = 'nsm';
           render();
         } else if (target === 'auth')    { AppState.authError = null; AppState.view = 'auth'; render(); }
