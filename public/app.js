@@ -85,6 +85,7 @@
     nsmGateError: null,
     nsmGateLoading: false,
     nsmGateLoadingStep: 0,
+    nsmEvalLoading: false,           // mirror nsmGateLoading for Step 3 evaluate inflight tracking
     nsmEvalResult: null,
     nsmEvalError: null,
     nsmActiveCompareNode: null,
@@ -1734,6 +1735,7 @@
           nsmSubmitBtn.disabled = true;
           nsmSubmitBtn.innerHTML = '<i class="ph ph-circle-notch"></i>評分中…';
           AppState.nsmEvalError = null;
+          AppState.nsmEvalLoading = true;
           try {
             var sessionId = await ensureNsmSession();
             var basePath = AppState.accessToken ? '/api/nsm-sessions/' : '/api/guest/nsm-sessions/';
@@ -1759,6 +1761,8 @@
           } catch (e) {
             AppState.nsmEvalError = e.message || 'eval_error';
             render();
+          } finally {
+            AppState.nsmEvalLoading = false;
           }
         }
       });
