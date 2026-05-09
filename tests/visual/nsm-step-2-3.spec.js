@@ -20,18 +20,18 @@ async function setupNSMStep2(page, q) {
     window.AppState.nsmSelectedQuestion = q;
     window.render();
   }, { q });
-  await page.waitForSelector('.nsm-sub-tabs', { timeout: 3000 });
+  await page.waitForSelector('[data-nsm-field="nsm"]', { timeout: 3000 });
 }
 
 const Q_ATTENTION = { id: 'q-att', company: 'Spotify', industry: '音樂串流', scenario: '為 Spotify 定義北極星指標，衡量用戶日常收聽行為', product: 'Spotify Music' };
 const Q_SAAS      = { id: 'q-saas', company: 'Slack', industry: 'B2B SaaS', scenario: 'Workspace activation', product: 'Slack' };
 
 test.describe('NSM Step 2 + Step 3 (mockup 07)', () => {
-  test('Step 2 renders sub-tabs + 3-step guide + 3 fields', async ({ page }) => {
+  test('Step 2 renders 3-step guide + 3 fields (no sub-tabs per mockup 07 v3)', async ({ page }) => {
     await page.setViewportSize({ width: 1280, height: 900 });
     await setupNSMStep2(page, Q_ATTENTION);
-    expect(await page.locator('.nsm-sub-tab').count()).toBe(3);
-    await expect(page.locator('.nsm-sub-tab.is-active')).toHaveText(/步驟 2/);
+    expect(await page.locator('.nsm-sub-tab').count()).toBe(0);
+    expect(await page.locator('.nsm-sub-tabs').count()).toBe(0);
     expect(await page.locator('.nsm-guide__step').count()).toBe(3);
     expect(await page.locator('.nsm-field').count()).toBe(3);
   });
@@ -161,31 +161,6 @@ test.describe('NSM Step 2 + Step 3 (mockup 07)', () => {
       window.render();
     }, { q: Q_ATTENTION });
     await expect(page.locator('[data-nsm-submit]')).toBeDisabled();
-  });
-
-  test('Sub-tab disabled when no gate result', async ({ page }) => {
-    await page.setViewportSize({ width: 1280, height: 900 });
-    await setupNSMStep2(page, Q_ATTENTION);
-    await expect(page.locator('[data-nsm-subtab="nsm-step3"]')).toBeDisabled();
-  });
-
-  test('Sub-tab click switches nsmSubTab + render', async ({ page }) => {
-    await page.setViewportSize({ width: 1280, height: 900 });
-    await mockApis(page);
-    await page.goto('/');
-    await page.evaluate(({ q }) => {
-      window.AppState.view = 'nsm';
-      window.AppState.nsmStep = 2;
-      window.AppState.nsmSubTab = 'nsm-step2';
-      window.AppState.nsmSelectedQuestion = q;
-      window.AppState.nsmGateResult = { overall_status: 'ok' };
-      window.AppState.nsmDefinition = { nsm: 'X', explanation: 'Y', businessLink: 'Z' };
-      window.render();
-    }, { q: Q_ATTENTION });
-    await page.waitForSelector('[data-nsm-subtab="nsm-step3"]');
-    await page.locator('[data-nsm-subtab="nsm-step3"]').click();
-    var st = await page.evaluate(() => window.AppState.nsmSubTab);
-    expect(st).toBe('nsm-step3');
   });
 
   test('Step 3 attention dims desc verbatim from mockup 07', async ({ page }) => {

@@ -117,13 +117,6 @@ test.describe('NSM Gate Inline (mockup 08)', () => {
     await expect(page.locator('.submit-bar')).not.toBeVisible();
   });
 
-  test('Loading: step3 sub-tab is disabled', async ({ page }) => {
-    await page.setViewportSize({ width: 1280, height: 900 });
-    await setupNSMLoadingState(page);
-    const step3Tab = page.locator('[data-nsm-subtab="nsm-step3"]');
-    await expect(step3Tab).toBeDisabled();
-  });
-
   // ── Gate OK ──────────────────────────────────────────────────────────────
   test('Gate ok: gate-transition--ok visible + title 通過審核', async ({ page }) => {
     await page.setViewportSize({ width: 1280, height: 900 });
@@ -149,13 +142,6 @@ test.describe('NSM Gate Inline (mockup 08)', () => {
     await expect(page.locator('.submit-bar')).toBeVisible();
     const primaryBtn = page.locator('.submit-bar .btn--primary');
     await expect(primaryBtn).toContainText('繼續到 步驟 3');
-  });
-
-  test('Gate ok: step3 sub-tab is enabled', async ({ page }) => {
-    await page.setViewportSize({ width: 1280, height: 900 });
-    await setupNSMGateState(page, GATE_OK_RESULT);
-    const step3Tab = page.locator('[data-nsm-subtab="nsm-step3"]');
-    await expect(step3Tab).not.toBeDisabled();
   });
 
   // ── Gate WARN ────────────────────────────────────────────────────────────
@@ -193,13 +179,6 @@ test.describe('NSM Gate Inline (mockup 08)', () => {
     await expect(allBtns.first()).toContainText('上一步修改');
     // Must NOT have any 繼續 / 帶風險繼續 button
     await expect(page.locator('.submit-bar .btn').filter({ hasText: '繼續' })).toHaveCount(0);
-  });
-
-  test('Gate error: step3 sub-tab remains disabled (canProceed false)', async ({ page }) => {
-    await page.setViewportSize({ width: 1280, height: 900 });
-    await setupNSMGateState(page, GATE_ERROR_RESULT);
-    const step3Tab = page.locator('[data-nsm-subtab="nsm-step3"]');
-    await expect(step3Tab).toBeDisabled();
   });
 
   test('Gate error → click 上一步修改 → clears gate result, returns to step 2 form', async ({ page }) => {
@@ -256,11 +235,4 @@ test.describe('NSM Gate Inline (mockup 08)', () => {
     await expect(page.locator('.phase-head__title')).toContainText('NSM 品質審核');
   });
 
-  // ── NSM sub-tab nsm-gate is active ────────────────────────────────────────
-  test('Gate state: NSM 審核 sub-tab is active', async ({ page }) => {
-    await page.setViewportSize({ width: 1280, height: 900 });
-    await setupNSMGateState(page, GATE_OK_RESULT);
-    const activeTab = page.locator('.nsm-sub-tab.is-active');
-    await expect(activeTab).toContainText('NSM 審核');
-  });
 });

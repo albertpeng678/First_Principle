@@ -1205,17 +1205,6 @@
     return renderNSMStep1();
   }
 
-  function renderNSMSubTabs() {
-    var st = AppState.nsmSubTab || 'nsm-step2';
-    var gateOk = AppState.nsmGateResult && (AppState.nsmGateResult.overall_status === 'ok' || AppState.nsmGateResult.overall_status === 'warn');
-    var step2HasContent = !!(AppState.nsmDefinition && AppState.nsmDefinition.nsm && AppState.nsmDefinition.businessLink);
-    return '<div class="nsm-sub-tabs">'
-      + '<button class="nsm-sub-tab' + (st === 'nsm-step2' ? ' is-active' : '') + '" data-nsm-subtab="nsm-step2">步驟 2：定義 NSM</button>'
-      + '<button class="nsm-sub-tab' + (st === 'nsm-gate' ? ' is-active' : '') + '"' + (step2HasContent ? '' : ' disabled') + ' data-nsm-subtab="nsm-gate">NSM 審核</button>'
-      + '<button class="nsm-sub-tab' + (st === 'nsm-step3' ? ' is-active' : '') + '"' + (gateOk ? '' : ' disabled') + ' data-nsm-subtab="nsm-step3">步驟 3：拆解</button>'
-      + '</div>';
-  }
-
   function renderNSMStep2() {
     // Gate subtab: show loading / error / result inline
     var st = AppState.nsmSubTab || 'nsm-step2';
@@ -1234,7 +1223,6 @@
       +     '<div class="phase-head__title">定義 NSM</div>'
       +   '</div>'
       + '</div>'
-      + renderNSMSubTabs()
       + renderNSMProgress(2)
       + '<div class="nsm-body">'
       +   renderNSMContextCard(q, typeCfg)
@@ -1321,7 +1309,6 @@
       +   phaseNumHtml
       +   phaseMainHtml
       + '</div>'
-      + renderNSMSubTabs()
       + '<div class="gate-content">';
 
     // Loading state
@@ -1523,7 +1510,6 @@
       +     '<div class="phase-head__title">拆解輸入指標</div>'
       +   '</div>'
       + '</div>'
-      + renderNSMSubTabs()
       + renderNSMProgress(3)
       + '<div class="nsm-body">'
       +   renderNSMContextCard(q, typeCfg)
@@ -1616,15 +1602,6 @@
       });
     });
 
-    document.querySelectorAll('[data-nsm-subtab]').forEach(function (el) {
-      el.addEventListener('click', function () {
-        if (el.disabled) return;
-        AppState.nsmSubTab = el.dataset.nsmSubtab;
-        if (AppState.nsmSubTab === 'nsm-step2') AppState.nsmStep = 2;
-        else if (AppState.nsmSubTab === 'nsm-step3') AppState.nsmStep = 3;
-        render();
-      });
-    });
     document.querySelectorAll('[data-nsm-example-toggle]').forEach(function (btn) {
       btn.addEventListener('click', function () {
         var fid = btn.dataset.nsmExampleToggle;

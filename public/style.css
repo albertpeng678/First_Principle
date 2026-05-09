@@ -1350,33 +1350,6 @@ div.rt-textarea[contenteditable="true"] ul li { list-style: disc; }
    (LOCKED from mockup 07 lines 255-643)
    ─────────────────────────────────────────── */
 
-/* sub-tabs (步驟 2 / NSM 審核 / 步驟 3) */
-.nsm-sub-tabs {
-  display: flex;
-  gap: 0;
-  padding: 0 var(--s-4);
-  background: var(--c-bg-soft);
-  border-bottom: 1px solid var(--c-rule);
-  overflow-x: auto;
-  -webkit-overflow-scrolling: touch;
-}
-.nsm-sub-tab {
-  flex: 0 0 auto;
-  padding: var(--s-3) var(--s-3);
-  font-size: var(--t-body-sm);
-  color: var(--c-ink-3);
-  border-bottom: 2px solid transparent;
-  white-space: nowrap;
-  transition: color var(--t-fast) var(--ease), border-color var(--t-fast) var(--ease);
-}
-.nsm-sub-tab:hover:not([disabled]) { color: var(--c-ink-2); }
-.nsm-sub-tab.is-active { color: var(--c-navy); border-bottom-color: var(--c-navy); font-weight: 600; }
-.nsm-sub-tab[disabled] { color: var(--c-ink-4); cursor: not-allowed; }
-@media (min-width: 768px) {
-  .nsm-sub-tabs { padding: 0 var(--s-5); }
-  .nsm-sub-tab { padding: var(--s-3) var(--s-4); }
-}
-
 /* context card (selected company + scenario header) */
 .nsm-context-card {
   background: var(--c-card);
