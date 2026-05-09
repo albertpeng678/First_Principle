@@ -33,6 +33,7 @@ app.use(express.static(path.join(__dirname, 'public'), {
   }
 }));
 
+app.use('/api/config', require('./routes/config'));
 app.use('/api/auth', require('./routes/auth'));
 app.use('/api/migrate-guest', require('./routes/migrate'));
 

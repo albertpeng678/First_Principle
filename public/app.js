@@ -124,11 +124,18 @@
     // Plan B Phase 4 — final report (mockup 13)
     circlesPhase4LoadingStep: 0,         // 0-3 — Loading checklist current active step
     circlesPhase4Error: null,            // null | { code: string, message: string }
+
+    // Mockup 02 — Auth flow (login / register / logout / migration / token expiry)
+    authTab: 'login',                    // 'login' | 'register'
+    authLoading: false,                  // true while Supabase call in flight
+    authError: null,                     // null | { code: string, message: string }
+    userEmail: null,                     // authed user email (null = guest)
+    migrationBanner: null,               // null | 'showing' | 'dismissed' — post-login success
   };
   window.AppState = AppState;
 
   // ── Persistence (per spec §2.1 — localStorage keys) ───────────────────────
-  const PERSISTED_KEYS = ['view', 'accessToken', 'guestId', 'circlesMode', 'circlesPhase', 'circlesDrillStep', 'circlesSelectedQuestion'];
+  const PERSISTED_KEYS = ['view', 'accessToken', 'guestId', 'circlesMode', 'circlesPhase', 'circlesDrillStep', 'circlesSelectedQuestion', 'userEmail'];
   function persist() {
     try {
       const snapshot = {};
@@ -149,6 +156,67 @@
   window.persist = persist;
   window.restore = restore;
 
+  // ── Supabase SDK dynamic load + init ─────────────────────────────────────────
+  // Dynamic script load to avoid console errors when CDN is unreachable (test env).
+  // Fetch /api/config to get anon key, then init window.supabaseClient.
+  // Falls back silently to no-op if anything fails.
+  function loadSupabaseAndInit() {
+    // First fetch config (may 404 in old-server envs — silent on error)
+    fetch('/api/config')
+      .then(function (r) { return r.ok ? r.json() : null; })
+      .then(function (cfg) {
+        if (!cfg || !cfg.supabaseUrl || !cfg.supabaseAnonKey) {
+          // config not available — no supabase client, guest-only mode
+          window.supabaseClient = null;
+          return;
+        }
+        // Dynamically load Supabase CDN script
+        var script = document.createElement('script');
+        script.src = 'https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2.45.4/dist/umd/supabase.js';
+        script.onload = function () {
+          initSupabase(cfg.supabaseUrl, cfg.supabaseAnonKey);
+        };
+        script.onerror = function () {
+          window.supabaseClient = null;
+          _supabaseInitDone = true;
+        };
+        document.head.appendChild(script);
+      })
+      .catch(function () {
+        window.supabaseClient = null;
+        _supabaseInitDone = true;
+      });
+  }
+
+  // ── Supabase client init — async, fires before first render ─────────────────
+  // Fetches /api/config to get anon key (public by Supabase design), then inits
+  // window.supabaseClient. Falls back to no-op if CDN script not loaded or env missing.
+  var _supabaseInitDone = false;
+  function initSupabase(url, anonKey) {
+    try {
+      if (window.supabase && window.supabase.createClient && url && anonKey) {
+        window.supabaseClient = window.supabase.createClient(url, anonKey, {
+          auth: { persistSession: true, autoRefreshToken: true, detectSessionInUrl: false },
+        });
+        // Sync existing session from Supabase (handles page reload with existing token)
+        window.supabaseClient.auth.getSession().then(function (result) {
+          var session = result && result.data && result.data.session;
+          if (session && session.access_token) {
+            AppState.accessToken = session.access_token;
+            AppState.userEmail = (session.user && session.user.email) || AppState.userEmail || null;
+            render();
+          }
+        }).catch(function () {});
+      } else {
+        window.supabaseClient = null;
+      }
+      _supabaseInitDone = true;
+    } catch (e) {
+      window.supabaseClient = null;
+      _supabaseInitDone = true;
+    }
+  }
+
   // ── Boot (Plan A skeleton; Plans B/C/D/E hook into render dispatch) ───────
   document.addEventListener('DOMContentLoaded', function () {
     restore();
@@ -159,6 +227,9 @@
     // determine if user is first-time (no sessions) or returning (has sessions).
     // loadHistory → maybeStartOnboarding → render() with onboarding if needed.
     loadHistory();
+    // Mockup 02: load Supabase JS SDK dynamically + fetch config + init client
+    // Dynamic script loading prevents console errors when CDN or config endpoint is unavailable.
+    loadSupabaseAndInit();
   });
 
   function ensureGuestId() {
@@ -1886,8 +1957,415 @@
 
   window.renderNSMStep4 = renderNSMStep4;
 
-  function renderAuthStub() {
-    return '<div data-view="auth" style="padding:24px;color:var(--c-ink-3);text-align:center">Auth view — 待 Plan B 收尾實作</div>';
+  // ── Auth render (Mockup 02 — §A Login / §D Register / §E Token expiry) ──────
+  function renderAuthStub() { return renderAuth(); } // alias kept for dispatch compatibility
+
+  function renderAuth() {
+    var tab = AppState.authTab || 'login';
+    var isLogin = tab === 'login';
+    var html = '<div data-view="auth">';
+    // Token expiry card (non-blocking, floats at top of auth view)
+    if (AppState.sessionExpired) {
+      html += renderTokenExpiryCard();
+    }
+    html += '<div class="auth-page"><div class="auth-card">';
+    // Brand mark
+    html += '<div class="auth-card__brand">'
+      + '<span class="auth-card__brand-icon"><i class="ph ph-circles-three"></i></span>'
+      + '<span class="auth-card__brand-name">PM Drill</span>'
+      + '</div>';
+    // Title + sub
+    if (isLogin) {
+      html += '<h1 class="auth-card__title">歡迎回來</h1>'
+        + '<p class="auth-card__sub">' + (AppState.authLoading ? '登入中…' : '登入後練習記錄會自動同步到雲端，可在任何裝置接續練習') + '</p>';
+    } else {
+      html += '<h1 class="auth-card__title">建立帳號</h1>'
+        + '<p class="auth-card__sub">免費 — 100 題情境模擬訓練</p>';
+    }
+    // Tabs
+    var loginTabCls = 'auth-tab' + (isLogin ? ' is-active' : '');
+    var regTabCls   = 'auth-tab' + (!isLogin ? ' is-active' : '');
+    var tabDisabled = AppState.authLoading ? ' disabled' : '';
+    html += '<div class="auth-tabs">'
+      + '<button class="' + loginTabCls + '" data-auth-tab="login"' + tabDisabled + '>登入</button>'
+      + '<button class="' + regTabCls + '" data-auth-tab="register"' + tabDisabled + '>註冊</button>'
+      + '</div>';
+    // Error banner (form-level)
+    if (AppState.authError) {
+      html += renderAuthErrorBanner(AppState.authError);
+    }
+    if (isLogin) {
+      html += renderAuthLoginFields();
+    } else {
+      html += renderAuthRegisterFields();
+    }
+    html += '</div></div></div>';
+    return html;
+  }
+
+  function renderAuthLoginFields() {
+    var loading = AppState.authLoading;
+    var emailVal = escHtml(AppState._authEmail || '');
+    var pwVal = AppState._authPw ? '••••••••' : '';
+    var submitCls = 'auth-submit' + (loading ? ' auth-submit--loading' : '');
+    var submitDisabled = loading ? ' disabled' : '';
+    var submitLabel = (AppState.authError && AppState.authError.code === 'NETWORK_ERROR') ? '<i class="ph ph-arrow-clockwise"></i>重試' : '登入';
+    var inputDisabled = loading ? ' disabled' : '';
+
+    var html = '';
+    // Email field
+    html += '<div class="auth-field">'
+      + '<label class="auth-field__label">Email</label>'
+      + '<input class="auth-field__input" id="auth-email" type="email" placeholder="you@example.com"'
+      + ' autocomplete="email" value="' + emailVal + '"' + inputDisabled + '>'
+      + '</div>';
+    // Password field
+    html += '<div class="auth-field">'
+      + '<label class="auth-field__label"><span>密碼</span><a class="auth-field__hint-link" data-auth-action="forgot-pw">忘記密碼？</a></label>'
+      + '<input class="auth-field__input" id="auth-pw" type="password" placeholder="••••••••"'
+      + ' autocomplete="current-password"' + inputDisabled + '>'
+      + '</div>';
+    // Submit
+    html += '<button class="' + submitCls + '" id="auth-submit" type="button"' + submitDisabled + '>' + submitLabel + '</button>';
+    // Divider + switch
+    html += '<hr class="auth-divider">'
+      + '<p class="auth-switch">還沒有帳號？<a data-auth-tab="register">立即註冊</a></p>'
+      + '<p class="auth-guest-bypass"><a data-auth-action="guest-bypass">先以遊客模式試用 — 練習記錄存於本機 7 天，登入後自動合併</a></p>';
+    return html;
+  }
+
+  function renderAuthRegisterFields() {
+    var loading = AppState.authLoading;
+    var emailVal = escHtml(AppState._authEmail || '');
+    var submitCls = 'auth-submit' + (loading ? ' auth-submit--loading' : '');
+    var submitDisabled = loading ? ' disabled' : '';
+    var inputDisabled = loading ? ' disabled' : '';
+
+    // Check if password too short (< 6 chars) to disable submit
+    var pwLen = (AppState._authPw || '').length;
+    if (pwLen > 0 && pwLen < 6) {
+      submitDisabled = ' disabled';
+    }
+
+    var html = '';
+    // Email field — add error class if email-already-registered
+    var emailErrCls = (AppState.authError && AppState.authError.code === 'EMAIL_EXISTS') ? ' auth-field--error' : '';
+    html += '<div class="auth-field' + emailErrCls + '">'
+      + '<label class="auth-field__label">Email</label>'
+      + '<input class="auth-field__input" id="auth-email" type="email" placeholder="you@example.com"'
+      + ' autocomplete="email" value="' + emailVal + '"' + inputDisabled + '>'
+      + '</div>';
+    // Password field
+    var pwErrCls = (AppState.authError && AppState.authError.code === 'WEAK_PASSWORD') ? ' auth-field--error' : '';
+    var pwHintText = (AppState.authError && AppState.authError.code === 'WEAK_PASSWORD') ? '<span style="font-size:var(--t-cap);color:var(--c-danger);">過短</span>' : '<span style="font-size:var(--t-cap);color:var(--c-ink-3);">至少 6 字</span>';
+    html += '<div class="auth-field' + pwErrCls + '">'
+      + '<label class="auth-field__label"><span>密碼</span>' + pwHintText + '</label>'
+      + '<input class="auth-field__input" id="auth-pw" type="password" placeholder="設定密碼"'
+      + ' autocomplete="new-password"' + inputDisabled + '>';
+    if (AppState.authError && AppState.authError.code === 'WEAK_PASSWORD') {
+      html += '<div class="auth-field__error"><i class="ph ph-warning-circle"></i>密碼至少 6 字。建議用記得住但別人猜不到的句子，例如「我家狗叫小白」。</div>';
+    }
+    html += '</div>';
+    // Submit
+    html += '<button class="' + submitCls + '" id="auth-submit" type="button"' + submitDisabled + '>註冊並開始練習</button>';
+    html += '<hr class="auth-divider">'
+      + '<p class="auth-switch">已經有帳號？<a data-auth-tab="login">直接登入</a></p>';
+    return html;
+  }
+
+  function renderAuthErrorBanner(err) {
+    var icon, title, body;
+    switch (err.code) {
+      case 'INVALID_CREDENTIALS':
+        icon = 'ph-warning-circle';
+        title = '帳號或密碼錯誤';
+        body = '請再確認，或點下方「忘記密碼」重設。';
+        break;
+      case 'USER_NOT_FOUND':
+        icon = 'ph-user-minus';
+        title = '找不到此 email 對應的帳號';
+        body = '還沒註冊嗎？<a data-auth-tab="register" style="color:var(--c-danger);text-decoration:underline;">直接註冊</a>，或<a data-auth-action="guest-bypass" style="color:var(--c-danger);text-decoration:underline;">先以遊客模式試用</a>。';
+        break;
+      case 'NETWORK_ERROR':
+        icon = 'ph-cloud-warning';
+        title = '連線失敗';
+        body = '請檢查網路或稍後再試。你的草稿已存於本機，不會遺失。';
+        break;
+      case 'EMAIL_EXISTS':
+        icon = 'ph-info';
+        title = '這個 email 已經註冊過';
+        body = '改<a data-auth-tab="login" style="color:var(--c-danger);text-decoration:underline;">登入</a>，或<a data-auth-action="forgot-pw" style="color:var(--c-danger);text-decoration:underline;">忘記密碼</a> 重設。';
+        break;
+      case 'WEAK_PASSWORD':
+        // field-level error is shown inline; no separate banner
+        return '';
+      default:
+        icon = 'ph-warning-circle';
+        title = '操作失敗';
+        body = escHtml(err.message || '請稍後再試。');
+    }
+    return '<div class="auth-error-banner">'
+      + '<i class="ph ' + icon + '"></i>'
+      + '<div><strong>' + title + '</strong>' + body + '</div>'
+      + '</div>';
+  }
+
+  function renderTokenExpiryCard() {
+    return '<div class="token-expiry">'
+      + '<span class="token-expiry__icon"><i class="ph ph-clock-countdown"></i></span>'
+      + '<div class="token-expiry__main">'
+      +   '<div class="token-expiry__title">登入逾期，請重新登入</div>'
+      +   '<div class="token-expiry__body">為保護帳號安全，登入狀態定期失效。你的草稿已存於本機，重新登入後會接續到剛才的位置。</div>'
+      +   '<button class="token-expiry__btn" data-auth-action="relogin"><i class="ph ph-arrow-right" style="font-size:14px;"></i>重新登入</button>'
+      + '</div>'
+      + '</div>';
+  }
+
+  // ── bindAuth — wires auth view interactions ───────────────────────────────
+  function bindAuth() {
+    // Tab switches (login ↔ register) — delegated via data-auth-tab
+    document.querySelectorAll('[data-auth-tab]').forEach(function (el) {
+      el.addEventListener('click', function () {
+        var tab = el.getAttribute('data-auth-tab');
+        AppState.authTab = tab;
+        AppState.authError = null;
+        // preserve email across tab switch for UX continuity
+        var emailInput = document.getElementById('auth-email');
+        if (emailInput) AppState._authEmail = emailInput.value.trim();
+        AppState._authPw = '';
+        render();
+      });
+    });
+
+    // Guest bypass link
+    document.querySelectorAll('[data-auth-action="guest-bypass"]').forEach(function (el) {
+      el.addEventListener('click', function () {
+        AppState.sessionExpired = false;
+        AppState.authError = null;
+        resetCirclesToHome();
+        AppState.view = 'circles';
+        render();
+      });
+    });
+
+    // Forgot password stub (no production impl — show info)
+    document.querySelectorAll('[data-auth-action="forgot-pw"]').forEach(function (el) {
+      el.addEventListener('click', function (e) {
+        e.preventDefault();
+        alert('密碼重設功能尚未開放，請聯繫客服。');
+      });
+    });
+
+    // Re-login link (from token expiry card)
+    document.querySelectorAll('[data-auth-action="relogin"]').forEach(function (el) {
+      el.addEventListener('click', function () {
+        AppState.sessionExpired = false;
+        AppState.authError = null;
+        AppState.view = 'auth';
+        render();
+      });
+    });
+
+    // Email / password inputs — live track to AppState for re-render
+    var emailInput = document.getElementById('auth-email');
+    var pwInput    = document.getElementById('auth-pw');
+    if (emailInput) {
+      emailInput.addEventListener('input', function () {
+        AppState._authEmail = emailInput.value.trim();
+        AppState.authError = null;
+        // no re-render needed for simple tracking
+      });
+    }
+    if (pwInput) {
+      pwInput.addEventListener('input', function () {
+        AppState._authPw = pwInput.value;
+        AppState.authError = null;
+        // trigger re-render only to update disabled state on register (weak pw)
+        if (AppState.authTab === 'register') {
+          var pwLen = (AppState._authPw || '').length;
+          var submitBtn = document.getElementById('auth-submit');
+          if (submitBtn) {
+            submitBtn.disabled = (pwLen > 0 && pwLen < 6);
+          }
+        }
+      });
+    }
+
+    // Submit button
+    var submitBtn = document.getElementById('auth-submit');
+    if (submitBtn) {
+      submitBtn.addEventListener('click', function () {
+        var email = (AppState._authEmail || (emailInput && emailInput.value.trim()) || '').trim();
+        var pw    = AppState._authPw    || (pwInput    && pwInput.value)            || '';
+        if (!email || !pw) return;
+        if (AppState.authTab === 'login') {
+          doAuthLogin(email, pw);
+        } else {
+          doAuthRegister(email, pw);
+        }
+      });
+      // also allow Enter key in password field
+      if (pwInput) {
+        pwInput.addEventListener('keydown', function (e) {
+          if (e.key === 'Enter') submitBtn.click();
+        });
+      }
+    }
+  }
+
+  function doAuthLogin(email, pw) {
+    if (!window.supabaseClient) {
+      AppState.authError = { code: 'NETWORK_ERROR', message: '服務暫不可用，請重試' };
+      render();
+      return;
+    }
+    AppState.authLoading = true;
+    AppState.authError = null;
+    render();
+    window.supabaseClient.auth.signInWithPassword({ email: email, password: pw })
+      .then(function (result) {
+        AppState.authLoading = false;
+        if (result.error) {
+          var msg = result.error.message || '';
+          var code = 'INVALID_CREDENTIALS';
+          if (/not found|no user/i.test(msg) || result.error.status === 404) code = 'USER_NOT_FOUND';
+          else if (/network|fetch|connection/i.test(msg)) code = 'NETWORK_ERROR';
+          AppState.authError = { code: code, message: msg };
+          render();
+          return;
+        }
+        var session = result.data && result.data.session;
+        if (!session) {
+          AppState.authError = { code: 'NETWORK_ERROR', message: '無法取得登入憑證，請重試' };
+          render();
+          return;
+        }
+        // Login success
+        AppState.accessToken = session.access_token;
+        AppState.userEmail = (session.user && session.user.email) || email;
+        AppState.sessionExpired = false;
+        AppState.authError = null;
+        AppState._authEmail = '';
+        AppState._authPw = '';
+        // Migration — if guest had sessions, migrate them
+        var guestId = AppState.guestId || localStorage.getItem('guestId');
+        if (guestId) {
+          doMigration(guestId);
+        }
+        // Navigate to circles home
+        resetCirclesToHome();
+        AppState.view = 'circles';
+        // Restore return path if session expired redirect
+        try {
+          var ret = JSON.parse(localStorage.getItem('pmDrillReturnPath') || 'null');
+          if (ret && ret.view && Date.now() - ret.ts < 30 * 60 * 1000) {
+            AppState.view = ret.view;
+            localStorage.removeItem('pmDrillReturnPath');
+          }
+        } catch (_) {}
+        render();
+      })
+      .catch(function (e) {
+        AppState.authLoading = false;
+        AppState.authError = { code: 'NETWORK_ERROR', message: '連線失敗，請稍後再試' };
+        render();
+      });
+  }
+
+  function doAuthRegister(email, pw) {
+    if (pw.length < 6) {
+      AppState.authError = { code: 'WEAK_PASSWORD', message: '密碼至少 6 字' };
+      render();
+      return;
+    }
+    AppState.authLoading = true;
+    AppState.authError = null;
+    render();
+    // POST /api/auth/register → backend creates user with email_confirm:true
+    fetch('/api/auth/register', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ email: email, password: pw }),
+    }).then(function (r) {
+      return r.json().then(function (body) { return { ok: r.ok, body: body }; });
+    }).then(function (result) {
+      if (!result.ok) {
+        AppState.authLoading = false;
+        var msg = (result.body && result.body.error) || '註冊失敗，請重試';
+        var code = 'REGISTER_ERROR';
+        if (/already registered|duplicate|exists/i.test(msg)) code = 'EMAIL_EXISTS';
+        else if (/password|密碼/i.test(msg)) code = 'WEAK_PASSWORD';
+        AppState.authError = { code: code, message: msg };
+        render();
+        return;
+      }
+      // Registration succeeded → auto sign-in
+      if (!window.supabaseClient) {
+        AppState.authLoading = false;
+        AppState.authError = { code: 'NETWORK_ERROR', message: '服務暫不可用，請手動登入' };
+        AppState.authTab = 'login';
+        render();
+        return;
+      }
+      return window.supabaseClient.auth.signInWithPassword({ email: email, password: pw });
+    }).then(function (signInResult) {
+      if (!signInResult) return; // already handled above
+      AppState.authLoading = false;
+      if (signInResult.error) {
+        // Registration OK but auto-login failed — redirect to login tab
+        AppState.authTab = 'login';
+        AppState.authError = null;
+        render();
+        return;
+      }
+      var session = signInResult.data && signInResult.data.session;
+      if (session) {
+        AppState.accessToken = session.access_token;
+        AppState.userEmail = (session.user && session.user.email) || email;
+        AppState.sessionExpired = false;
+        AppState.authError = null;
+        AppState._authEmail = '';
+        AppState._authPw = '';
+        // New user — no migration needed (no prior guest sessions of significance)
+        resetCirclesToHome();
+        AppState.view = 'circles';
+        render();
+      }
+    }).catch(function () {
+      AppState.authLoading = false;
+      AppState.authError = { code: 'NETWORK_ERROR', message: '連線失敗，請稍後再試' };
+      render();
+    });
+  }
+
+  function doMigration(guestId) {
+    if (!guestId || !AppState.accessToken) return;
+    // Best-effort migration — fire-and-forget, no error blocks user
+    fetch('/api/migrate-guest', {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json',
+        'Authorization': 'Bearer ' + AppState.accessToken,
+        'X-Guest-ID': guestId,
+      },
+      body: JSON.stringify({}),
+    }).then(function (r) {
+      return r.json();
+    }).then(function (result) {
+      var total = (result.circles || 0) + (result.nsm || 0) + (result.legacy || 0);
+      if (total > 0) {
+        AppState.migrationBanner = 'showing';
+        render();
+        // Auto-dismiss after 5s
+        setTimeout(function () {
+          AppState.migrationBanner = 'dismissed';
+          render();
+        }, 5000);
+      }
+    }).catch(function (e) {
+      // Migration failed — log warn, don't block user
+      console.warn('[migration] failed:', e);
+    });
   }
 
   // ── renderNavbar (per spec §2.10 + mockup 01 / 03 / 06 contract) ──────────
@@ -1953,13 +2431,20 @@
           <div class="banner__sub">草稿已存本機，連線恢復後自動同步</div></div>
       </div>`);
     }
-    if (AppState.sessionExpired) {
+    if (AppState.sessionExpired && AppState.view !== 'auth') {
       banners.push(`<div class="banner banner--session">
         <span class="banner__icon"><i class="ph ph-info"></i></span>
         <div class="banner__main"><div class="banner__title">登入逾時</div>
           <div class="banner__sub">為了保護你的資料，已登出。</div></div>
         <button class="banner__action" data-nav="auth">重新登入</button>
       </div>`);
+    }
+    // Migration success banner (post-login guest→authed merge)
+    if (AppState.migrationBanner === 'showing') {
+      banners.push('<div class="migration-banner" style="margin:0;">'
+        + '<i class="ph ph-cloud-arrow-up"></i>'
+        + '<div><strong>練習記錄已合併</strong>你之前以遊客模式練的紀錄，現在永久保留在雲端。</div>'
+        + '</div>');
     }
     return banners.join('');
   }
@@ -2017,15 +2502,44 @@
         if (target === 'home')      { resetCirclesToHome(); AppState.view = 'circles'; render(); }
         else if (target === 'circles') { resetCirclesToHome(); AppState.view = 'circles'; render(); }
         else if (target === 'nsm')     { AppState.view = 'nsm';     render(); }
-        else if (target === 'auth')    { AppState.view = 'auth';    render(); }
+        else if (target === 'auth')    { AppState.authError = null; AppState.view = 'auth'; render(); }
         else if (target === 'offcanvas') {
           AppState.offcanvasOpen = true;
           AppState.historyList = null;
           render();
           loadHistory();
+        } else if (target === 'logout') {
+          doLogout();
         }
       });
     });
+  }
+
+  function doLogout() {
+    // Clear AppState
+    AppState.accessToken = null;
+    AppState.userEmail = null;
+    AppState.sessionExpired = false;
+    AppState.migrationBanner = null;
+    AppState.authError = null;
+    // Clear localStorage token entries
+    try {
+      const raw = localStorage.getItem('pmDrillState');
+      if (raw) {
+        const snap = JSON.parse(raw);
+        snap.accessToken = null;
+        snap.userEmail = null;
+        localStorage.setItem('pmDrillState', JSON.stringify(snap));
+      }
+    } catch (_) {}
+    // Sign out from Supabase (fire-and-forget)
+    if (window.supabaseClient) {
+      window.supabaseClient.auth.signOut().catch(function () {});
+    }
+    // Return to circles home as guest
+    resetCirclesToHome();
+    AppState.view = 'circles';
+    render();
   }
 
   // ── CIRCLES_STEP_CONFIG (Plan B SB3 — mockup 03 + spec §3.1) ─────────────
@@ -4982,6 +5496,9 @@
   function bindAll() {
     bindNavbar();
     bindOffcanvas();
+    if (AppState.view === 'auth') {
+      bindAuth();
+    }
     if (AppState.view === 'circles'
         && AppState.circlesPhase === 1
         && !AppState.circlesSession
