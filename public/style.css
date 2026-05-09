@@ -1118,6 +1118,27 @@ div.rt-textarea[contenteditable="true"] ul li { list-style: disc; }
 @media (min-width: 768px) { .gate-wrap { padding: var(--s-6) var(--s-5); } }
 @media (min-width: 1024px) { .gate-wrap { padding: var(--s-7) var(--s-6); } }
 
+/* gate-summary — NSM mockup 08 (company + NSM recap) */
+.gate-summary {
+  background: var(--c-bg-soft);
+  border: 1px solid var(--c-rule);
+  border-radius: var(--r-input);
+  padding: var(--s-3) var(--s-4);
+  margin-bottom: var(--s-5);
+  font-size: var(--t-meta);
+  color: var(--c-ink-2);
+  display: flex;
+  flex-direction: column;
+  gap: var(--s-1);
+  line-height: 1.7;
+}
+.gate-summary__row { display: flex; gap: var(--s-2); align-items: flex-start; }
+.gate-summary__row strong { color: var(--c-navy); font-weight: 600; flex: 0 0 auto; }
+.gate-summary__row span { flex: 1; min-width: 0; }
+
+/* nsm-gate-error-wrap */
+.nsm-gate-error-wrap { padding: var(--s-5) 0; }
+
 /* transition bar */
 .gate-transition {
   display: flex;

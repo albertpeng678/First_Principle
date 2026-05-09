@@ -83,6 +83,8 @@
     nsmContextLoading: false,
     nsmGateResult: null,
     nsmGateError: null,
+    nsmGateLoading: false,
+    nsmGateLoadingStep: 0,
     nsmEvalResult: null,
     nsmEvalError: null,
     nsmActiveCompareNode: null,
@@ -1209,6 +1211,10 @@
   }
 
   function renderNSMStep2() {
+    // Gate subtab: show loading / error / result inline
+    var st = AppState.nsmSubTab || 'nsm-step2';
+    if (st === 'nsm-gate') return renderNSMGate();
+
     var q = AppState.nsmSelectedQuestion || {};
     var ptype = nsmGuessProductType(q);
     var typeCfg = getNsmDimConfig(ptype);
@@ -1235,6 +1241,192 @@
       +   '<div class="submit-bar__left"><button class="btn btn--ghost" data-nsm-action="back"><i class="ph ph-arrow-left"></i>上一步</button></div>'
       +   '<div class="submit-bar__right"><button class="btn btn--primary" data-nsm-submit ' + (canSubmit ? '' : 'disabled') + '>提交審核<i class="ph ph-arrow-right"></i></button></div>'
       + '</div></div>';
+  }
+
+  // Loading checklist steps — mockup 08 §D verbatim
+  var NSM_GATE_LOADING_STEPS = [
+    '解析 NSM 語意',
+    '對齊產品價值',
+    '檢查領先性',
+    '評估操作性',
+  ];
+
+  function renderNSMGateItem(item) {
+    var statusIcon, cls;
+    if (item.status === 'ok') {
+      cls = 'gate-item--ok';
+      statusIcon = '<i class="ph-fill ph-check-circle gate-item__icon"></i>';
+    } else if (item.status === 'warn') {
+      cls = 'gate-item--warn';
+      statusIcon = '<i class="ph-fill ph-warning gate-item__icon"></i>';
+    } else {
+      cls = 'gate-item--error';
+      statusIcon = '<i class="ph-fill ph-x-circle gate-item__icon"></i>';
+    }
+    var suggestionHtml = '';
+    if (item.suggestion) {
+      var suggestLabel = item.status === 'error' ? '修正方向：' : '建議：';
+      suggestionHtml = '<div class="gate-item__suggestion"><strong>' + escHtml(suggestLabel) + '</strong>'
+        + '<span class="gate-item__suggestion-body">' + escHtml(item.suggestion) + '</span></div>';
+    }
+    return '<div class="gate-item ' + cls + '">'
+      + statusIcon
+      + '<div class="gate-item__main">'
+      +   '<div class="gate-item__field">' + escHtml(item.criterion) + '</div>'
+      +   '<div class="gate-item__title">' + escHtml(item.title || '') + '</div>'
+      +   '<div class="gate-item__reason">' + escHtml(item.feedback || item.comment || '') + '</div>'
+      +   suggestionHtml
+      + '</div>'
+      + '</div>';
+  }
+
+  function renderNSMGateCountLabel(items) {
+    var errCount = 0, warnCount = 0, okCount = 0;
+    (items || []).forEach(function (it) {
+      if (it.status === 'error') errCount++;
+      else if (it.status === 'warn') warnCount++;
+      else okCount++;
+    });
+    var total = (items || []).length;
+    if (errCount === 0 && warnCount === 0) return total + ' / ' + total + ' OK';
+    var parts = [];
+    if (errCount > 0) parts.push(errCount + ' ERROR');
+    if (warnCount > 0) parts.push(warnCount + ' WARN');
+    if (okCount > 0) parts.push(okCount + ' OK');
+    return parts.join(' · ');
+  }
+
+  function renderNSMGate() {
+    var q = AppState.nsmSelectedQuestion || {};
+    var def = AppState.nsmDefinition || {};
+    var result = AppState.nsmGateResult;
+    var isLoading = AppState.nsmGateLoading;
+    var gateError = AppState.nsmGateError;
+    var loadingStep = AppState.nsmGateLoadingStep || 0;
+
+    var phaseNumHtml = '<span class="phase-head__num">2.5</span>';
+    var phaseMainHtml = '<div class="phase-head__main">'
+      + '<div class="phase-head__eyebrow">NSM · 北極星訓練</div>'
+      + '<div class="phase-head__title">NSM 品質審核</div>'
+      + '</div>';
+
+    var html = '<div data-view="nsm">'
+      + '<div class="phase-head">'
+      +   phaseNumHtml
+      +   phaseMainHtml
+      + '</div>'
+      + renderNSMSubTabs()
+      + '<div class="gate-content">';
+
+    // Loading state
+    if (isLoading) {
+      html += '<div class="gate-loading-wrap">'
+        + '<div class="gate-spinner"></div>'
+        + '<div class="gate-loading-title">AI 正在審核你的 NSM 定義</div>'
+        + '<div class="gate-loading-sub">4 維度全檢核中，需要約 8-12 秒。請勿關閉本頁。</div>'
+        + '<div class="gate-loading-checklist">';
+      NSM_GATE_LOADING_STEPS.forEach(function (label, idx) {
+        var stepCls, iconHtml;
+        if (idx < loadingStep) {
+          stepCls = 'is-done';
+          iconHtml = '<span class="gate-loading-step__icon"><i class="ph ph-check"></i></span>';
+        } else if (idx === loadingStep) {
+          stepCls = 'is-active';
+          iconHtml = '<span class="gate-loading-step__icon"><i class="ph ph-circle-notch ph-spin"></i></span>';
+        } else {
+          stepCls = 'is-pending';
+          iconHtml = '<span class="gate-loading-step__icon"><i class="ph ph-circle"></i></span>';
+        }
+        html += '<div class="gate-loading-step ' + stepCls + '">' + iconHtml + escHtml(label) + '</div>';
+      });
+      html += '</div></div></div></div>';
+      return html;
+    }
+
+    // Gate API error state
+    if (gateError && !result) {
+      html += '<div class="gate-wrap">'
+        + '<div class="nsm-gate-error-wrap">'
+        +   '<div class="banner banner--save-error">'
+        +     '<i class="ph ph-cloud-warning"></i>'
+        +     '<span>審核服務暫時無法使用，請重試。</span>'
+        +   '</div>'
+        + '</div>'
+        + '</div></div>'
+        + '<div class="submit-bar">'
+        +   '<div class="submit-bar__left"><button class="btn btn--ghost" data-nsm-gate-action="back-to-step2"><i class="ph ph-arrow-left"></i>返回修改</button></div>'
+        + '</div>'
+        + '</div>';
+      return html;
+    }
+
+    // Gate result state (ok / warn / error)
+    if (result) {
+      var os = result.overall_status || result.overallStatus || 'error';
+      var items = result.items || [];
+      var canProceed = result.canProceed !== false && (os === 'ok' || os === 'warn');
+
+      // transition bar
+      var transitionCls, transitionIcon, transitionTitle, transitionSub;
+      var okCount = items.filter(function (i) { return i.status === 'ok'; }).length;
+      var errCount = items.filter(function (i) { return i.status === 'error'; }).length;
+      if (os === 'ok') {
+        transitionCls = 'gate-transition--ok';
+        transitionIcon = '<i class="ph-fill ph-check-circle gate-transition__icon"></i>';
+        transitionTitle = 'NSM 定義通過審核';
+        transitionSub = items.length + ' / ' + items.length + ' 條件達標 — 可以進入拆解指標';
+      } else if (os === 'warn') {
+        transitionCls = 'gate-transition--warn';
+        transitionIcon = '<i class="ph-fill ph-check-circle gate-transition__icon"></i>';
+        transitionTitle = '通過審核（附提醒）';
+        var warnCount = items.filter(function (i) { return i.status === 'warn'; }).length;
+        transitionSub = okCount + ' / ' + items.length + ' 達標 · ' + warnCount + ' 項可優化 — 可以進入拆解指標';
+      } else {
+        transitionCls = 'gate-transition--error';
+        transitionIcon = '<i class="ph-fill ph-x-circle gate-transition__icon"></i>';
+        transitionTitle = '需要修正方向';
+        transitionSub = errCount + ' 項根本性問題 — 請回上一步重新定義 NSM';
+      }
+
+      var countLabel = renderNSMGateCountLabel(items);
+
+      html += '<div class="gate-wrap">'
+        + '<div class="gate-transition ' + transitionCls + '">'
+        +   transitionIcon
+        +   '<div class="gate-transition__main">'
+        +     '<div class="gate-transition__title">' + transitionTitle + '</div>'
+        +     '<div class="gate-transition__sub">' + transitionSub + '</div>'
+        +   '</div>'
+        + '</div>'
+        + '<div class="gate-summary">'
+        +   '<div class="gate-summary__row"><strong>公司：</strong><span>' + escHtml((q.company || '') + (q.industry ? ' · ' + q.industry : '')) + '</span></div>'
+        +   '<div class="gate-summary__row"><strong>你的 NSM：</strong><span>' + escHtml(def.nsm || '') + '</span></div>'
+        + '</div>'
+        + '<div class="gate-section-label">' + items.length + ' 維度檢核<span class="gate-section-label__count">' + countLabel + '</span></div>'
+        + '<div class="gate-list">'
+        +   items.map(renderNSMGateItem).join('')
+        + '</div>'
+        + '</div></div>';
+
+      // submit-bar
+      if (canProceed) {
+        html += '<div class="submit-bar">'
+          + '<div class="submit-bar__left"><button class="btn btn--ghost" data-nsm-gate-action="back-to-step2"><i class="ph ph-arrow-left"></i>上一步</button></div>'
+          + '<div class="submit-bar__right"><button class="btn btn--primary" data-nsm-gate-action="proceed">繼續到 步驟 3<i class="ph ph-arrow-right"></i></button></div>'
+          + '</div>';
+      } else {
+        // error —唯一動作「上一步修改」（無 ghost、無繼續、無 override）
+        html += '<div class="submit-bar" style="justify-content:flex-end">'
+          + '<div class="submit-bar__right"><button class="btn btn--primary" data-nsm-gate-action="back-to-step2"><i class="ph ph-arrow-left"></i>上一步修改</button></div>'
+          + '</div>';
+      }
+      html += '</div>';
+      return html;
+    }
+
+    // Fallback: no result, no loading, no error — shouldn't normally hit this
+    html += '</div></div>';
+    return html;
   }
 
   function renderNSMField(fieldId, label, value, exampleHtml, isSingle) {
@@ -1398,6 +1590,28 @@
       });
     }
 
+    // ── [data-nsm-gate-action] — gate result navigation ────────────────────
+    document.querySelectorAll('[data-nsm-gate-action]').forEach(function (btn) {
+      btn.addEventListener('click', function () {
+        var action = btn.dataset.nsmGateAction;
+        if (action === 'back-to-step2') {
+          // Clear gate result and return to step 2 form
+          AppState.nsmGateResult = null;
+          AppState.nsmGateError = null;
+          AppState.nsmGateLoading = false;
+          AppState.nsmGateLoadingStep = 0;
+          AppState.nsmStep = 2;
+          AppState.nsmSubTab = 'nsm-step2';
+          render();
+        } else if (action === 'proceed') {
+          // ok/warn — advance to step 3
+          AppState.nsmSubTab = 'nsm-step3';
+          AppState.nsmStep = 3;
+          render();
+        }
+      });
+    });
+
     // ── [data-nsm-submit] — Step 2 gate + Step 3 evaluate ──────────────────
     var nsmSubmitBtn = document.querySelector('[data-nsm-submit]');
     if (nsmSubmitBtn) {
@@ -1423,10 +1637,23 @@
         }
 
         if (subTab === 'nsm-step2') {
-          // Step 2 → Gate
-          nsmSubmitBtn.disabled = true;
-          nsmSubmitBtn.innerHTML = '<i class="ph ph-circle-notch"></i>審核中…';
+          // Step 2 → Gate — show loading state + route to nsm-gate subtab
           AppState.nsmGateError = null;
+          AppState.nsmGateResult = null;
+          AppState.nsmGateLoading = true;
+          AppState.nsmGateLoadingStep = 0;
+          AppState.nsmSubTab = 'nsm-gate';
+          render();
+
+          // Tick loading steps every 2.5 s while waiting
+          var _nsmGateLoadingTimer = setInterval(function () {
+            if (!AppState.nsmGateLoading) { clearInterval(_nsmGateLoadingTimer); return; }
+            if (AppState.nsmGateLoadingStep < NSM_GATE_LOADING_STEPS.length - 1) {
+              AppState.nsmGateLoadingStep++;
+              render();
+            }
+          }, 2500);
+
           try {
             var sessionId = await ensureNsmSession();
             var def = AppState.nsmDefinition || {};
@@ -1437,6 +1664,8 @@
               headers: { 'Content-Type': 'application/json' },
               body: JSON.stringify({ nsm: def.nsm || '', rationale: rationale }),
             });
+            clearInterval(_nsmGateLoadingTimer);
+            AppState.nsmGateLoading = false;
             if (!res.ok) {
               var err = await res.json().catch(function () { return {}; });
               AppState.nsmGateError = err.error || 'gate_error';
@@ -1445,8 +1674,9 @@
             }
             var result = await res.json();
             AppState.nsmGateResult = result;
-            if (result.overall_status === 'error') {
-              // keep on Step 2, gate result inline (mockup 08 rendering)
+            var os = result.overall_status || result.overallStatus || 'error';
+            if (os === 'error') {
+              // keep on nsm-gate subtab, gate result inline (mockup 08 rendering)
               render();
             } else {
               // ok or warn → advance to Step 3
@@ -1455,6 +1685,8 @@
               render();
             }
           } catch (e) {
+            clearInterval(_nsmGateLoadingTimer);
+            AppState.nsmGateLoading = false;
             AppState.nsmGateError = e.message || 'gate_error';
             render();
           }
