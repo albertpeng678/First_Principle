@@ -1,6 +1,7 @@
 // capture-phase1-pngs.spec.js
-// Phase 1 verification bundle — captures 15 PNGs (5 scenarios × 3 viewports)
+// Phase 1 verification bundle — captures 40 PNGs (5 scenarios × 8 viewports)
 // Verifies 6 Phase 1 items (preflight / nav reset / context expand / qchip stale / sub-tabs / guide vanity)
+// Uses testInfo.project.name → run with all 8 playwright.config.js projects for full coverage
 //
 // Output: audit/png-phase1/
 const { test } = require('@playwright/test');
@@ -34,8 +35,9 @@ async function setupRoutes(page) {
   }));
 }
 
-// Only run with Desktop-1280, iPad (tablet-768), Mobile-360 — 3 representative viewports
-// These match other capture spec conventions (capture-mockup-07-pngs uses per-project)
+// Runs across all 8 projects (Mobile-360 / iPhone-SE / iPhone-14 / iPhone-15-Pro / iPad /
+// Desktop-1280 / Desktop-1440 / Desktop-2560) via playwright.config.js project matrix.
+// Each test uses testInfo.project.name for the PNG filename suffix.
 test.describe('Capture Phase 1 verification PNGs', () => {
   // Scenario A: Item 1 — preflight session on Step 2 mount
   test('item1-preflight-step2-mount', async ({ page }, testInfo) => {

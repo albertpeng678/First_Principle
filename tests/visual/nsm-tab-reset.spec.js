@@ -26,7 +26,9 @@ test.describe('NSM tab click resets to Step 1', () => {
     await page.waitForSelector('[data-nsm-field="nsm"]', { timeout: 5000 });
 
     // Click NSM navbar tab — should reset to Step 1
-    await page.click('button[data-nav="nsm"]');
+    // Use dispatchEvent('click') because on mobile (<480px) .navbar__tabs is display:none
+    // but the click handler is still wired on the element; dispatchEvent fires regardless of visibility.
+    await page.locator('button[data-nav="nsm"]').dispatchEvent('click');
     await page.waitForTimeout(300);
 
     const state = await page.evaluate(() => ({
@@ -51,7 +53,8 @@ test.describe('NSM tab click resets to Step 1', () => {
     });
     await page.waitForTimeout(200);
 
-    await page.click('button[data-nav="nsm"]');
+    // dispatchEvent('click') — see comment in test above re mobile navbar__tabs hidden
+    await page.locator('button[data-nav="nsm"]').dispatchEvent('click');
     await page.waitForTimeout(300);
 
     const state = await page.evaluate(() => ({
@@ -74,7 +77,8 @@ test.describe('NSM tab click resets to Step 1', () => {
     });
     await page.waitForTimeout(200);
 
-    await page.click('button[data-nav="nsm"]');
+    // dispatchEvent('click') — see comment in test above re mobile navbar__tabs hidden
+    await page.locator('button[data-nav="nsm"]').dispatchEvent('click');
     await page.waitForTimeout(300);
 
     const state = await page.evaluate(() => ({

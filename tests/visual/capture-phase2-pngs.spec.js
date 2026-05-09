@@ -1,6 +1,6 @@
 // tests/visual/capture-phase2-pngs.spec.js
 // Phase 2 Verification Bundle — NSM Step 2 hint+example modal visual captures
-// 7 scenarios × 3 viewports = 21 PNG
+// 7 scenarios × 8 viewports = 56 PNG
 // Output: audit/png-phase2/
 const { test } = require('@playwright/test');
 const path = require('path');
@@ -10,9 +10,14 @@ const OUT = path.resolve(__dirname, '../../audit/png-phase2');
 fs.mkdirSync(OUT, { recursive: true });
 
 const VIEWPORTS = [
-  { name: 'mobile-360', width: 360, height: 1100 },
-  { name: 'ipad-768', width: 768, height: 1100 },
-  { name: 'desktop-1280', width: 1280, height: 1100 },
+  { name: 'mobile-360',        width: 360,  height: 1100 },
+  { name: 'iphone-se-375',     width: 375,  height: 1100 },
+  { name: 'iphone-14-390',     width: 390,  height: 1100 },
+  { name: 'iphone-15-pro-430', width: 430,  height: 1100 },
+  { name: 'ipad-768',          width: 768,  height: 1100 },
+  { name: 'desktop-1280',      width: 1280, height: 1100 },
+  { name: 'desktop-1440',      width: 1440, height: 1100 },
+  { name: 'desktop-2560',      width: 2560, height: 1100 },
 ];
 
 async function mockBaseApis(page) {
