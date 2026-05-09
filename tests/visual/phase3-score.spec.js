@@ -268,14 +268,20 @@ test.describe('P3-4 Section D Error', () => {
     await expect(page.locator('.error-wrap__sub')).toContainText('AI 服務暫時無法回應');
   });
 
-  test('Error EVAL_API_ERROR: correct sub copy', async ({ page }) => {
+  test('Error EVAL_API_ERROR: correct title + sub copy (mockup 12 §B)', async ({ page }) => {
     await setupPhase3(page, { errorState: { code: 'EVAL_API_ERROR', message: 'api error' } });
-    await expect(page.locator('.error-wrap__sub')).toContainText('評分服務暫時不可用');
+    // title = 評分服務暫時不可用 (per mockup 12)
+    await expect(page.locator('.error-wrap__title')).toContainText('評分服務暫時不可用');
+    // sub = 伺服器忙線 (per mockup 12)
+    await expect(page.locator('.error-wrap__sub')).toContainText('伺服器忙線中');
   });
 
-  test('Error EVAL_PARSE_ERROR: correct sub copy', async ({ page }) => {
+  test('Error EVAL_PARSE_ERROR: correct title + sub copy (mockup 12 §C)', async ({ page }) => {
     await setupPhase3(page, { errorState: { code: 'EVAL_PARSE_ERROR', message: 'parse error' } });
-    await expect(page.locator('.error-wrap__sub')).toContainText('教練回應格式異常');
+    // title = 教練回應格式異常 (per mockup 12)
+    await expect(page.locator('.error-wrap__title')).toContainText('教練回應格式異常');
+    // sub = 無法正確解析 (per mockup 12)
+    await expect(page.locator('.error-wrap__sub')).toContainText('無法正確解析');
   });
 
   test('Error: error-code badge visible with error code text', async ({ page }) => {

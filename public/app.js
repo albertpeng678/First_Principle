@@ -117,8 +117,9 @@
     // R3: loading state for session detail fetch (Option B)
     circlesSessionLoading: false,
 
-    // Plan B Phase 3 — score view (mockup 11)
+    // Plan B Phase 3 — score view (mockup 11/12)
     circlesPhase3LoadingStep: 1,         // 0-3 — Loading checklist current active step (starts at 1: 解析框架 done)
+    circlesPhase3LoadingSlow: false,     // true after 60s in loading state (mockup 12 Section A slow variant)
     circlesPhase3Error: null,            // null | { code: string, message: string }
     circlesPhase3DimExpanded: {},        // Record<dimIndex, boolean> — user manual expand
     circlesPhase3CoachDemoOpen: false,   // coach-demo accordion user toggle
@@ -2717,6 +2718,7 @@
     // Phase 3 state reset
     AppState.circlesPhase3Error = null;
     AppState.circlesPhase3LoadingStep = 0;
+    AppState.circlesPhase3LoadingSlow = false;
     AppState.circlesPhase3DimExpanded = {};
     AppState.circlesPhase3CoachDemoOpen = false;
     AppState._phase3CoachDemoInitialized = false;
@@ -5291,10 +5293,13 @@
   // Timers for loading state — stored on window to allow cleanup
   var _phase3LoadingInterval = null;
   var _phase3LoadingTimeout = null;
+  var _phase3SlowTimeout = null;    // mockup 12: 60s slow variant timer
 
   function clearPhase3Timers() {
     if (_phase3LoadingInterval) { clearInterval(_phase3LoadingInterval); _phase3LoadingInterval = null; }
     if (_phase3LoadingTimeout)  { clearTimeout(_phase3LoadingTimeout);   _phase3LoadingTimeout  = null; }
+    if (_phase3SlowTimeout)     { clearTimeout(_phase3SlowTimeout);      _phase3SlowTimeout     = null; }
+    AppState.circlesPhase3LoadingSlow = false;
   }
 
   function renderCirclesProgressBar(activeStepKey) {
@@ -5372,31 +5377,41 @@
       ? (AppState.circlesDrillStep || 'C1')
       : (['C1', 'I', 'R', 'C2', 'L', 'E', 'S'][AppState.circlesSimStep || 0] || 'C1');
 
+    // mockup 12 Section A: 60s+ → loading-sub switches to warn slow variant (inline, no toast)
+    var loadingSubHtml = AppState.circlesPhase3LoadingSlow
+      ? '<div class="loading-sub loading-sub--slow">比預期慢一些…AI 深度分析中，偶而會需要比較久時間，請再等等。</div>'
+      : '<div class="loading-sub">AI 正在評估你的回答，請勿關閉本頁。</div>';
+
     return '<div data-view="circles" data-phase="3">'
       + renderCirclesNav(stepKey)
       + renderCirclesProgressBar(stepKey)
       + '<div class="loading-wrap">'
       + '<div class="loading-spinner"></div>'
       + '<div class="loading-title">正在生成評分</div>'
-      + '<div class="loading-sub">AI 正在評估你的回答，需要約 5-10 秒。請勿關閉本頁。</div>'
+      + loadingSubHtml
       + '<div class="loading-checklist">' + stepHtml + '</div>'
       + '</div>'
       + '</div>';
   }
 
   function renderPhase3Error() {
-    // Section D — error state
+    // Section D (mockup 11) / B / C (mockup 12) — error state
+    // Error titles and sub-copy are code-specific per mockup 12 verbatim
     var err = AppState.circlesPhase3Error || {};
     var code = err.code || 'EVAL_TIMEOUT';
-    var subCopy;
+    var titleCopy, subCopy;
     if (code === 'EVAL_TIMEOUT') {
-      subCopy = 'AI 服務暫時無法回應，請稍後再試。你的答案已自動保存。';
+      titleCopy = '評分生成失敗';
+      subCopy   = 'AI 服務暫時無法回應，請稍後再試。你的答案已自動保存。';
     } else if (code === 'EVAL_API_ERROR') {
-      subCopy = '評分服務暫時不可用，請稍後再試。你的答案已自動保存。';
+      titleCopy = '評分服務暫時不可用';
+      subCopy   = '我們的伺服器忙線中，請稍候片刻。你的答案已自動保存。';
     } else if (code === 'EVAL_PARSE_ERROR') {
-      subCopy = '教練回應格式異常，請重試。';
+      titleCopy = '教練回應格式異常';
+      subCopy   = 'AI 回傳的內容無法正確解析。重試通常能解決，或返回修改答案。';
     } else {
-      subCopy = '評分服務發生錯誤，請重試。';
+      titleCopy = '評分服務發生錯誤';
+      subCopy   = '評分服務發生錯誤，請重試。';
     }
     var stepKey = AppState.circlesMode === 'drill'
       ? (AppState.circlesDrillStep || 'C1')
@@ -5407,7 +5422,7 @@
       + renderCirclesProgressBar(stepKey)
       + '<div class="error-wrap">'
       + '<div class="error-wrap__icon"><i class="ph-fill ph-cloud-warning"></i></div>'
-      + '<div class="error-wrap__title">評分生成失敗</div>'
+      + '<div class="error-wrap__title">' + escHtml(titleCopy) + '</div>'
       + '<div class="error-wrap__sub">' + escHtml(subCopy) + '</div>'
       + '<code class="error-wrap__code">' + escHtml(code) + '</code>'
       + '<div class="error-wrap__actions">'
@@ -5582,12 +5597,21 @@
           }
         }, 5000);
       }
+      // mockup 12 Section A: 60s → slow variant (inline warn text, no toast)
+      if (!_phase3SlowTimeout) {
+        _phase3SlowTimeout = setTimeout(function () {
+          _phase3SlowTimeout = null;
+          AppState.circlesPhase3LoadingSlow = true;
+          render();
+        }, 60000);
+      }
+      // Actual timeout: 300s (5 min) per mockup 12 spec — internal, not shown to user
       if (!_phase3LoadingTimeout) {
         _phase3LoadingTimeout = setTimeout(function () {
           clearPhase3Timers();
           AppState.circlesPhase3Error = { code: 'EVAL_TIMEOUT', message: 'AI 服務暫時無法回應' };
           render();
-        }, 30000);
+        }, 300000);
       }
       return renderPhase3Loading();
     }
