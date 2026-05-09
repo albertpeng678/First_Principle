@@ -93,10 +93,8 @@ test.describe('NSM Step 2 example renders from q.field_examples (not hardcoded)'
     });
     await page.waitForSelector('.nsm-dim');
 
-    // Verify dim cards have LOCKED hint-row + example button
-    // Note: q1 (Netflix) step3 data has reach/depth/frequency/impact keys;
-    // renderNSMDim uses retention for 4th dim, so 3/4 dims match (reach/depth/frequency).
-    expect(await page.locator('.nsm-dim .field-example-toggle').count()).toBeGreaterThanOrEqual(3);
+    // Verify all 4 dim cards have example button (dim id 'impact' aligned across all sites)
+    expect(await page.locator('.nsm-dim .field-example-toggle').count()).toEqual(4);
 
     // Click first dim's example
     await page.locator('.nsm-dim .field-example-toggle').first().click();
