@@ -15,8 +15,11 @@ if ! git diff --cached --name-only --diff-filter=ACMR | grep -q "^public/app\.js
   exit 0
 fi
 
-# Skip if staged diff doesn't touch the save/restore/preflight code path
-SENTINEL_RE='(triggerSaveCycle|persistDraft|persistBackend|ensureCirclesDraftSession|restoreCirclesPhase1FromSession|loadCirclesSessionFromHistory|preflightDraftSession|circlesFrameworkDraft|circlesPhase1Solutions|qcard-confirm|populateTextareasFromDraft|loadDraftFor)'
+# Skip if staged diff doesn't touch the save/restore/preflight/draft-mode code path
+# Includes (a) save/persistence helpers (b) restore/load helpers (c) AppState fields
+# tied to draft session creation (d) mode/qcard click handlers that gate session
+# tuple identity (mode + drill_step → backend idempotent guard key).
+SENTINEL_RE='(triggerSaveCycle|persistDraft|persistBackend|ensureCirclesDraftSession|restoreCirclesPhase1FromSession|loadCirclesSessionFromHistory|preflightDraftSession|circlesFrameworkDraft|circlesPhase1Solutions|circlesDrillStep|circlesMode|circlesSelectedQuestion|qcard-confirm|data-circles-mode|populateTextareasFromDraft|loadDraftFor|renderOffcanvasItem)'
 if ! git diff --cached public/app.js | grep -qE "$SENTINEL_RE"; then
   exit 0
 fi
@@ -69,9 +72,10 @@ fi
 PLAYWRIGHT_FORCE_TTY=0 FORCE_COLOR=0 npx playwright test \
   tests/visual/draft-data-loss-fix.spec.js \
   tests/visual/preflight-session-creation.spec.js \
+  tests/visual/drill-step-default-fix.spec.js \
   --config tests/visual/playwright.config.js \
   --project Desktop-1280 \
-  --reporter=line 2>&1 | tail -12
+  --reporter=line 2>&1 | tail -16
 
 EXIT=$?
 

@@ -11,7 +11,7 @@
     "cleanup:empty-sessions": "node scripts/cleanup-empty-sessions.js",
     "cleanup:empty-sessions:dry-run": "node scripts/cleanup-empty-sessions.js --dry-run",
     "test:adversarial": "playwright test tests/adversarial/ --reporter=list",
-    "test:race-regression": "playwright test tests/visual/draft-data-loss-fix.spec.js tests/visual/preflight-session-creation.spec.js --config tests/visual/playwright.config.js --project Desktop-1280 --reporter=line",
+    "test:race-regression": "playwright test tests/visual/draft-data-loss-fix.spec.js tests/visual/preflight-session-creation.spec.js tests/visual/drill-step-default-fix.spec.js --config tests/visual/playwright.config.js --project Desktop-1280 --reporter=line",
     "setup-hooks": "ln -sf ../../scripts/hooks/pre-commit .git/hooks/pre-commit && chmod +x scripts/hooks/pre-commit && echo 'pre-commit hook installed (.git/hooks/pre-commit -> scripts/hooks/pre-commit)'"
   },
   "keywords": [],
