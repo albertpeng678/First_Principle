@@ -3617,7 +3617,21 @@
     // mode-card clicks
     document.querySelectorAll('[data-circles-mode]').forEach(function (el) {
       el.addEventListener('click', function () {
-        AppState.circlesMode = el.dataset.circlesMode;
+        var newMode = el.dataset.circlesMode;
+        AppState.circlesMode = newMode;
+        // Drill mode requires a specific step pointer for backend session row.
+        // If user enters drill mode without prior drill-pill selection, default
+        // to 'C1'. This prevents POST /draft from sending body without drill_step,
+        // which produces backend rows with drill_step=null. Such rows render as
+        // generic「步驟加練」 in offcanvas instead of specific「C 澄清」, AND get
+        // treated as a different (qid, mode, drill_step) tuple by the backend
+        // idempotent guard — so a follow-up drill-pill selection creates a
+        // SECOND session for the same question (user-reported: 4 drill sessions
+        // for 2 questions due to drill_step null vs 'C1' divergence).
+        // User-selected drill-pill is preserved across mode toggles.
+        if (newMode === 'drill' && !AppState.circlesDrillStep) {
+          AppState.circlesDrillStep = 'C1';
+        }
         render();
       });
     });
