@@ -1537,7 +1537,42 @@
       + '</div></div>';
   }
 
+  // Module-scope dedupe per qid (mirrors CIRCLES 9d92656 _phase1PreflightInFlightForQid).
+  var _nsmPreflightInFlightForQid = null;
+
+  async function ensureNsmDraftSession() {
+    if (AppState.nsmSession && AppState.nsmSession.id) return AppState.nsmSession.id;
+    var qid = (AppState.nsmSelectedQuestion || {}).id;
+    if (!qid) return null;
+    if (_nsmPreflightInFlightForQid === qid) return null;
+    _nsmPreflightInFlightForQid = qid;
+    try {
+      var basePath = AppState.accessToken ? '/api/nsm-sessions' : '/api/guest/nsm-sessions';
+      var res = await window.apiFetch(basePath, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ questionId: qid, questionJson: AppState.nsmSelectedQuestion }),
+      });
+      if (!res.ok) throw new Error('session_create_failed');
+      var data = await res.json();
+      AppState.nsmSession = { id: data.sessionId || data.id };
+      return AppState.nsmSession.id;
+    } finally {
+      if (_nsmPreflightInFlightForQid === qid) _nsmPreflightInFlightForQid = null;
+    }
+  }
+
   function bindNSMStep2And3() {
+    // Preflight session creation on Step 2/3 mount — eliminates draft race window.
+    // Mirrors CIRCLES preflightDraftSession pattern (commit 9d92656).
+    (function preflightNsmDraftSession() {
+      if (AppState.nsmStep === 2 || AppState.nsmStep === 3) {
+        ensureNsmDraftSession().catch(function (e) {
+          console.warn('[nsm preflight]', e && e.message);
+        });
+      }
+    })();
+
     document.querySelectorAll('[data-nsm-subtab]').forEach(function (el) {
       el.addEventListener('click', function () {
         if (el.disabled) return;
