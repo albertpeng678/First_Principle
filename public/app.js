@@ -1448,7 +1448,7 @@
       + '<div class="nsm-guide__title"><i class="ph ph-path"></i>3 步定義法</div>'
       + '<div class="nsm-guide__step"><span class="nsm-guide__num">1</span><div class="nsm-guide__body"><strong>找 AHA 時刻</strong><p>用戶第一次真正感受到產品價值的那個動作是什麼？</p></div></div>'
       + '<div class="nsm-guide__step"><span class="nsm-guide__num">2</span><div class="nsm-guide__body"><strong>轉成可量化指標</strong><p>把那個動作表達成「誰 × 做了什麼行為 × 多少量/頻率」的具體數字。</p></div></div>'
-      + '<div class="nsm-guide__step"><span class="nsm-guide__num">3</span><div class="nsm-guide__body"><strong>做虛榮指標檢驗</strong><p>問自己：如果這個數字翻倍，產品的商業收益一定增加嗎？</p></div></div>'
+      + '<div class="nsm-guide__step"><span class="nsm-guide__num">3</span><div class="nsm-guide__body"><strong>做虛榮指標檢驗</strong><p>問自己：這個指標是否真的能如實反映「用戶體會到產品價值」？</p></div></div>'
       + '</div>';
   }
 
