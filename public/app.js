@@ -134,6 +134,9 @@
     authError: null,                     // null | { code: string, message: string }
     userEmail: null,                     // authed user email (null = guest)
     migrationBanner: null,               // null | 'showing' | 'dismissed' — post-login success
+
+    // Mockup 16 §D — cross-tab resume-toast (Phase 3 / Phase 4 / NSM gate in-flight)
+    evalToastDismissed: false,           // user clicked X on resume-toast
   };
   window.AppState = AppState;
 
@@ -2655,6 +2658,48 @@
     </header>`;
   }
 
+  // ── renderResumeToast — Mockup 16 §D cross-tab in-flight notification ───────
+  // Shows when a background API call is in-flight and user has navigated away.
+  // Three variants: CIRCLES evaluate-step / NSM gate / Phase 4 final-report.
+  function renderResumeToast() {
+    if (AppState.evalToastDismissed) return '';
+
+    var circlesEvalAway = AppState.circlesEvaluating
+      && !(AppState.view === 'circles' && AppState.circlesPhase === 3);
+
+    var nsmGateAway = AppState.nsmGateLoading
+      && !(AppState.view === 'nsm');
+
+    var phase4Away = AppState._phase4FinalReportFired
+      && !AppState.circlesFinalReport
+      && !AppState.circlesPhase4Error
+      && !(AppState.view === 'circles' && AppState.circlesPhase === 4);
+
+    var toastCopy = null;
+    var toastNav  = null;
+    if (circlesEvalAway) {
+      toastCopy = 'CIRCLES 評分仍在背景進行中';
+      toastNav  = 'circles-phase3';
+    } else if (nsmGateAway) {
+      toastCopy = 'NSM 審核仍在背景進行中';
+      toastNav  = 'nsm';
+    } else if (phase4Away) {
+      toastCopy = '總結報告生成中';
+      toastNav  = 'circles-phase4';
+    }
+
+    if (!toastCopy) return '';
+
+    return '<div class="resume-toast" role="status" aria-live="polite" data-resume-toast-wrap>'
+      + '<span class="resume-toast__icon"><i class="ph ph-circle-notch"></i></span>'
+      + '<div class="resume-toast__body" data-resume-toast="navigate" data-resume-nav="' + toastNav + '">'
+      +   escHtml(toastCopy)
+      +   '<span class="resume-toast__hint">完成時切回自動顯示</span>'
+      + '</div>'
+      + '<button class="resume-toast__close" data-resume-toast="dismiss" aria-label="關閉提示"><i class="ph ph-x"></i></button>'
+      + '</div>';
+  }
+
   function renderGlobalBanners() {
     const banners = [];
     if (!AppState.isOnline) {
@@ -2679,6 +2724,8 @@
         + '<div><strong>練習記錄已合併</strong>你之前以遊客模式練的紀錄，現在永久保留在雲端。</div>'
         + '</div>');
     }
+    // Resume-toast — cross-tab in-flight notification (mockup 16 §D)
+    banners.push(renderResumeToast());
     return banners.join('');
   }
 
@@ -2727,16 +2774,31 @@
     AppState.circlesPhase4LoadingStep = 0;
     clearPhase4Timers();
     setPhase4Fired(false);
+    // Resume-toast reset
+    AppState.evalToastDismissed = false;
   }
 
   function bindNavbar() {
     document.querySelectorAll('[data-nav]').forEach(function (el) {
       el.addEventListener('click', function () {
         const target = el.dataset.nav;
-        if (target === 'home')      { resetCirclesToHome(); AppState.view = 'circles'; render(); }
-        else if (target === 'circles') { resetCirclesToHome(); AppState.view = 'circles'; render(); }
-        else if (target === 'nsm')     { AppState.view = 'nsm';     render(); }
-        else if (target === 'auth')    { AppState.authError = null; AppState.view = 'auth'; render(); }
+        if (target === 'home') {
+          // home always resets (intent: go back to CIRCLES home)
+          resetCirclesToHome(); AppState.view = 'circles'; render();
+        } else if (target === 'circles') {
+          // If CIRCLES evaluation is in-flight, switch view without resetting session
+          if (AppState.circlesEvaluating) {
+            AppState.evalToastDismissed = false; // clear dismissed when returning
+            AppState.view = 'circles';
+            render();
+          } else {
+            resetCirclesToHome(); AppState.view = 'circles'; render();
+          }
+        } else if (target === 'nsm') {
+          AppState.evalToastDismissed = false; // clear dismissed on explicit tab switch
+          AppState.view = 'nsm';
+          render();
+        } else if (target === 'auth')    { AppState.authError = null; AppState.view = 'auth'; render(); }
         else if (target === 'offcanvas') {
           AppState.offcanvasOpen = true;
           AppState.historyList = null;
@@ -2747,6 +2809,33 @@
         }
       });
     });
+
+    // ── Resume-toast event delegation ────────────────────────────────────────
+    document.addEventListener('click', function (e) {
+      var dismissBtn = e.target.closest('[data-resume-toast="dismiss"]');
+      if (dismissBtn) {
+        AppState.evalToastDismissed = true;
+        render();
+        return;
+      }
+      var navBody = e.target.closest('[data-resume-toast="navigate"]');
+      if (navBody) {
+        var dest = navBody.dataset.resumeNav;
+        AppState.evalToastDismissed = false;
+        if (dest === 'circles-phase3') {
+          AppState.view = 'circles';
+          // phase already 3, don't reset
+          render();
+        } else if (dest === 'circles-phase4') {
+          AppState.view = 'circles';
+          // phase already 4, don't reset
+          render();
+        } else if (dest === 'nsm') {
+          AppState.view = 'nsm';
+          render();
+        }
+      }
+    }, { capture: false });
   }
 
   function doLogout() {
@@ -5709,13 +5798,15 @@
   }
 
   async function retryEvaluateStep() {
-    // Re-invoke evaluate-step for the current session + step
+    // Re-invoke evaluate-step for the current session + step (mockup 16 §D: set circlesEvaluating)
     var sessionId = AppState.circlesSession && AppState.circlesSession.id;
     if (!sessionId) {
       AppState.circlesPhase3Error = { code: 'EVAL_API_ERROR', message: 'no session' };
       render();
       return;
     }
+    AppState.circlesEvaluating = true;
+    AppState.evalToastDismissed = false;
     var basePath = AppState.accessToken
       ? '/api/circles-sessions/'
       : '/api/guest-circles-sessions/';
@@ -5732,17 +5823,21 @@
         if (!AppState.circlesStepScores) AppState.circlesStepScores = {};
         AppState.circlesStepScores[stepKey] = data;
         AppState.circlesScoreResult = data;
+        AppState.circlesEvaluating = false;
+        AppState.evalToastDismissed = false;
         clearPhase3Timers();
         render();
       } else {
         var errData = await res.json().catch(function () { return {}; });
         var errCode = errData.code || 'EVAL_API_ERROR';
+        AppState.circlesEvaluating = false;
         clearPhase3Timers();
         AppState.circlesPhase3Error = { code: errCode, message: errData.error || 'API error' };
         render();
       }
     } catch (e) {
       if (e && e.code === 'SESSION_EXPIRED') return;
+      AppState.circlesEvaluating = false;
       clearPhase3Timers();
       AppState.circlesPhase3Error = { code: 'EVAL_API_ERROR', message: e.message || 'network error' };
       render();
@@ -5966,7 +6061,11 @@
 
           // On ok (or if ok field is absent but no error), proceed to evaluate
           if (checkRes.ok && (checkData.ok !== false)) {
-            // Step 2: evaluate-step
+            // Step 2: evaluate-step — set circlesEvaluating before fire (mockup 16 §D)
+            AppState.circlesEvaluating = true;
+            AppState.evalToastDismissed = false;
+            AppState.circlesPhase = 3; // advance view to phase 3 loading before fetch
+            render();
             var evalRes = await fetch(basePath + sessionId + '/evaluate-step', {
               method: 'POST',
               headers: headers,
@@ -5984,11 +6083,13 @@
               // Clear conclusion draft + mode
               AppState.circlesPhase2ConclusionDraft = '';
               AppState.circlesPhase2ConclusionMode = false;
-              // Advance to Phase 3
-              AppState.circlesPhase = 3;
+              // Mark evaluating done — toast auto-hides on next render
+              AppState.circlesEvaluating = false;
+              AppState.evalToastDismissed = false;
               render();
             } else {
               // evaluate-step failed — re-enable button
+              AppState.circlesEvaluating = false;
               conclusionSubmitBtn.disabled = false;
               conclusionSubmitBtn.classList.remove('is-disabled');
             }
