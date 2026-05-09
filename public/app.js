@@ -3814,8 +3814,12 @@
   // ── renderQchipExpand: qchip 題目展開 panel (Plan B SB6 — mockup 03 Section G) ──
   function renderQchipExpand(q) {
     if (!q) return '';
-    var an = q.analysis || {};
-    var statement = q.problem_statement || '';
+    // Stale snapshot fallback: when session.question_json lacks analysis,
+    // look up fresh CIRCLES_QUESTIONS by id (data-only救援, 0 視覺 change).
+    var fresh = (q.id && window.CIRCLES_QUESTIONS) ?
+      window.CIRCLES_QUESTIONS.find(function (x) { return x.id === q.id; }) : null;
+    var an = (q.analysis && q.analysis.business) ? q.analysis : ((fresh && fresh.analysis) || {});
+    var statement = q.problem_statement || (fresh && fresh.problem_statement) || '';
     return '<div class="qchip-expand">'
       + '<p class="qchip-expand__statement">' + escHtml(statement) + '</p>'
       + '<h4 class="qchip-expand__section-label">深入分析</h4>'
