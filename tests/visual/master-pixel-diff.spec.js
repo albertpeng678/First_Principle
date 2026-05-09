@@ -681,7 +681,7 @@ M07_CASES.forEach(c => {
       window.AppState.nsmSelectedQuestion = q;
       window.render();
     }, { q: M07_Q_ATTENTION });
-    await pageProd.waitForSelector('.nsm-sub-tabs', { timeout: 5000 });
+    await pageProd.waitForSelector('[data-nsm-field="nsm"]', { timeout: 5000 });
     await pageProd.waitForTimeout(400);
 
     const prodPath = path.join(OUT_DIR, `07-${c.vp}-production.png`);

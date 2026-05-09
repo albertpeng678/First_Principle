@@ -29,7 +29,7 @@ test.describe('Capture mockup 07 PNGs', () => {
       window.AppState.nsmSelectedQuestion = q;
       window.render();
     }, { q: Q_ATTENTION });
-    await page.waitForSelector('.nsm-sub-tabs', { timeout: 5000 });
+    await page.waitForSelector('[data-nsm-field="nsm"]', { timeout: 5000 });
     await page.screenshot({ path: `audit/png-mockup-07/step2-empty-${testInfo.project.name}.png`, fullPage: true });
   });
 
@@ -50,7 +50,7 @@ test.describe('Capture mockup 07 PNGs', () => {
       window.AppState.nsmExampleExpanded = { nsm: true };
       window.render();
     }, { q: Q_ATTENTION });
-    await page.waitForSelector('.nsm-sub-tabs', { timeout: 5000 });
+    await page.waitForSelector('[data-nsm-field="nsm"]', { timeout: 5000 });
     await page.screenshot({ path: `audit/png-mockup-07/step2-filled-${testInfo.project.name}.png`, fullPage: true });
   });
 
