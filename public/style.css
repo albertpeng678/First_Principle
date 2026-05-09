@@ -3485,3 +3485,75 @@ div.rt-textarea[contenteditable="true"] ul li { list-style: disc; }
   color: var(--c-navy);
 }
 /* ───── Mockup 16 §D END ───── */
+
+/* ───── NSM context-card 4-block expand (Gap C — mockup 07 v3 LOCKED) ───── */
+.nsm-context-card__expand-toggle {
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+  padding: 6px var(--s-2);
+  font-size: var(--t-cap);
+  color: var(--c-navy);
+  border-radius: var(--r-input);
+  margin-top: var(--s-2);
+  transition: background var(--t-fast) var(--ease);
+}
+.nsm-context-card__expand-toggle:hover { background: var(--c-navy-lt); }
+.nsm-context-card__expand-toggle i { font-size: 12px; }
+
+.nsm-context-card__expand {
+  margin-top: var(--s-3);
+  padding-top: var(--s-3);
+  border-top: 1px solid var(--c-rule);
+}
+.nsm-context-card__expand-label {
+  display: flex;
+  align-items: center;
+  gap: var(--s-3);
+  margin: 0 0 var(--s-4);
+  font-size: var(--t-body-sm);
+  font-weight: 600;
+  color: var(--c-navy);
+  letter-spacing: -0.005em;
+}
+.nsm-context-card__expand-label::before {
+  content: '';
+  width: 24px;
+  height: 2px;
+  background: var(--c-navy);
+  flex: 0 0 auto;
+}
+.nsm-context-card__ana {
+  display: flex;
+  flex-direction: column;
+  gap: var(--s-3);
+}
+.nsm-context-card__ana-block {
+  padding: var(--s-3) var(--s-4);
+  background: var(--c-card);
+  border: 1px solid var(--c-rule);
+  border-radius: var(--r-input);
+}
+.nsm-context-card__ana-head {
+  display: flex;
+  align-items: center;
+  gap: var(--s-2);
+  font-size: var(--t-body-sm);
+  font-weight: 600;
+  color: var(--c-ink);
+  margin-bottom: var(--s-2);
+}
+.nsm-context-card__ana-head i { font-size: 18px; color: var(--c-navy); flex: 0 0 auto; width: 24px; text-align: center; }
+.nsm-context-card__ana-body {
+  font-size: var(--t-body-sm);
+  line-height: 1.7;
+  color: var(--c-ink-2);
+  padding-left: 32px;
+}
+.nsm-context-card__ana-block--trap {
+  background: linear-gradient(0deg, rgba(184,92,0,0.04), rgba(184,92,0,0.04)), var(--c-card);
+  border-color: rgba(184,92,0,0.18);
+}
+.nsm-context-card__ana-block--trap .nsm-context-card__ana-head,
+.nsm-context-card__ana-block--trap .nsm-context-card__ana-head i { color: var(--c-warn); }
+/* ───── NSM context-card 4-block expand END ───── */

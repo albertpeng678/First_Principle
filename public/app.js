@@ -96,6 +96,7 @@
     nsmBreakdown: { reach: '', depth: '', frequency: '', retention: '' },
     nsmExampleExpanded: {},
     nsmHintExpanded: {},
+    nsmContextExpanded: false,         // Step 2/3 context-card 4-block expand toggle (Gap C)
 
     // Plan B Phase 2 Chat additions (mockup 05)
     circlesPhase2Streaming: false,
@@ -1465,6 +1466,35 @@
   }
 
   function renderNSMContextCard(q, typeCfg) {
+    var ctx = q.context || {};
+    var expanded = !!AppState.nsmContextExpanded;
+    var caret = expanded ? 'ph-caret-up' : 'ph-caret-down';
+    var toggleLabel = expanded ? '收合' : '深入了解問題';
+
+    var expandBlock = '';
+    if (expanded) {
+      expandBlock = '<div class="nsm-context-card__expand">'
+        + '<div class="nsm-context-card__expand-label">深入分析</div>'
+        + '<div class="nsm-context-card__ana">'
+        +   '<div class="nsm-context-card__ana-block">'
+        +     '<div class="nsm-context-card__ana-head"><i class="ph ph-buildings"></i>商業模式</div>'
+        +     '<div class="nsm-context-card__ana-body">' + escHtml(ctx.model || '') + '</div>'
+        +   '</div>'
+        +   '<div class="nsm-context-card__ana-block">'
+        +     '<div class="nsm-context-card__ana-head"><i class="ph ph-users"></i>使用者</div>'
+        +     '<div class="nsm-context-card__ana-body">' + escHtml(ctx.users || '') + '</div>'
+        +   '</div>'
+        +   '<div class="nsm-context-card__ana-block nsm-context-card__ana-block--trap">'
+        +     '<div class="nsm-context-card__ana-head"><i class="ph ph-warning"></i>常見陷阱</div>'
+        +     '<div class="nsm-context-card__ana-body">' + escHtml(ctx.traps || '') + '</div>'
+        +   '</div>'
+        +   '<div class="nsm-context-card__ana-block">'
+        +     '<div class="nsm-context-card__ana-head"><i class="ph ph-lightbulb"></i>破題切入</div>'
+        +     '<div class="nsm-context-card__ana-body">' + escHtml(ctx.insight || '') + '</div>'
+        +   '</div>'
+        + '</div></div>';
+    }
+
     return '<div class="nsm-context-card">'
       + '<div class="nsm-context-card__top">'
       +   '<span class="nsm-context-card__company">' + escHtml(q.company || '') + '</span>'
@@ -1472,6 +1502,10 @@
       +   '<span class="nsm-context-card__type ' + typeCfg.typeClass + '"><i class="ph ' + typeCfg.typeIcon + '"></i>' + escHtml(typeCfg.label) + '</span>'
       + '</div>'
       + '<p class="nsm-context-card__scenario">' + escHtml(q.scenario || '') + '</p>'
+      + '<button class="nsm-context-card__expand-toggle" data-nsm="context-toggle">'
+      +   '<i class="ph ' + caret + '"></i>' + toggleLabel
+      + '</button>'
+      + expandBlock
       + '</div>';
   }
 
@@ -1492,6 +1526,7 @@
       + renderNSMSubTabs()
       + renderNSMProgress(3)
       + '<div class="nsm-body">'
+      +   renderNSMContextCard(q, typeCfg)
       +   '<div class="nsm-step3-banner"><i class="ph ph-target"></i><strong>你的 NSM：</strong>' + escHtml((AppState.nsmDefinition || {}).nsm || '') + '</div>'
       +   '<div class="nsm-step3-intro">'
       +     '<div class="nsm-step3-intro__top">'
@@ -1573,6 +1608,13 @@
         });
       }
     })();
+
+    document.querySelectorAll('[data-nsm="context-toggle"]').forEach(function (el) {
+      el.addEventListener('click', function () {
+        AppState.nsmContextExpanded = !AppState.nsmContextExpanded;
+        render();
+      });
+    });
 
     document.querySelectorAll('[data-nsm-subtab]').forEach(function (el) {
       el.addEventListener('click', function () {
