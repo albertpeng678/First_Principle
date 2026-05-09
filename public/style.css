@@ -3135,6 +3135,21 @@ div.rt-textarea[contenteditable="true"] ul li { list-style: disc; }
 .done-secondary__list { margin: 0; padding-left: var(--s-5); font-size: var(--t-meta); color: var(--c-ink-2); line-height: 1.7; }
 .done-secondary__list li { margin-bottom: var(--s-1); }
 .done-secondary__list li:last-child { margin-bottom: 0; }
+/* DRIFT-S4-3 fix: Step 4 nsm-body must not inherit 720px tablet cap from Step 1/2/3.
+   Mockup 14 §body: max-width 920px base, 1180px ≥1024px — no 720px intermediate cap. */
+[data-nsm-step4] .nsm-body {
+  max-width: 920px;
+  display: flex;
+  flex-direction: column;
+  flex: 1;
+  gap: var(--s-4);
+}
+@media (min-width: 768px) {
+  [data-nsm-step4] .nsm-body { max-width: 920px; }
+}
+@media (min-width: 1024px) {
+  [data-nsm-step4] .nsm-body { max-width: 1180px; padding: var(--s-7) var(--s-6); }
+}
 /* ───── Plan C NSM Step 4 END ───── */
 
 /* ═══════════════════════════════════════════════════════════════

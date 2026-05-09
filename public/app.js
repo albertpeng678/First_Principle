@@ -2241,7 +2241,6 @@
     }
 
     return '<div data-view="nsm" data-nsm-step4>'
-      + renderNSMProgress(4)
       + '<div class="nsm-nav">'
       +   '<button class="nsm-nav__back" data-nsm4-action="back"><i class="ph ph-arrow-left"></i></button>'
       +   '<div class="nsm-nav__main">'
@@ -7274,6 +7273,7 @@
       AppState.offcanvasOpen = false;
       AppState.nsmStep = 4;
       AppState.nsmSession = item;
+      AppState.nsmEvalResult = item.scores_json || null;
       AppState.view = 'nsm';
       render();
       return;
