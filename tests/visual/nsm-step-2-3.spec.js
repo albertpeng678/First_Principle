@@ -36,7 +36,7 @@ const Q_ATTENTION = {
       reach: '- 母群體：月活躍訂閱用戶\n- 達標：播放任一曲目 ≥ 30 秒',
       depth: '- 深度行為：每月播放時長超過 10 小時',
       frequency: '- 週期：每週\n- 頻率：至少 3 次播放行為',
-      retention: '- 三個月留存率 > 80%',
+      impact: '- 三個月留存率 > 80%',
     },
   },
 };
@@ -174,7 +174,7 @@ test.describe('NSM Step 2 + Step 3 (mockup 07)', () => {
       window.AppState.nsmSubTab = 'nsm-step3';
       window.AppState.nsmSelectedQuestion = q;
       window.AppState.nsmGateResult = { overall_status: 'ok' };
-      window.AppState.nsmBreakdown = { reach: 'A', depth: '', frequency: '', retention: '' };
+      window.AppState.nsmBreakdown = { reach: 'A', depth: '', frequency: '', impact: '' };
       window.render();
     }, { q: Q_ATTENTION });
     await expect(page.locator('[data-nsm-submit]')).toBeDisabled();
