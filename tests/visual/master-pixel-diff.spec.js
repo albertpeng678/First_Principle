@@ -1,6 +1,6 @@
-// Master pixel-diff spec — 11 mockups × 3 viewports = 33 diffs
+// Master pixel-diff spec — 16 mockups × 3 viewports = 48 diffs (11 original + 5 new)
 // Layer 2 mechanical contract: mockup vp-frame__body clip vs production screenshot
-// Generated: 2026-05-08
+// Generated: 2026-05-08 | Extended: 2026-05-09 (added 02/08/12/14/16-D)
 const fs = require('fs');
 const path = require('path');
 const { test } = require('@playwright/test');
@@ -13,7 +13,7 @@ const BASE_URL = 'http://localhost:4000';
 const OUT_DIR = path.resolve(__dirname, 'diffs/master');
 fs.mkdirSync(OUT_DIR, { recursive: true });
 
-const REPORT_PATH = path.resolve(__dirname, '../../audit/pixel-diff-master-2026-05-08.md');
+const REPORT_PATH = path.resolve(__dirname, '../../audit/pixel-diff-master-2026-05-09.md');
 
 // ── Shared data payloads (reuse from existing capture specs) ──────────────────
 
@@ -70,6 +70,81 @@ const SAMPLE_FINAL_REPORT = {
   nextSteps: '建議再加練 1 次取捨型題目，重點放在量化開發成本與預期收益。',
 };
 
+// ── New mockup shared data ────────────────────────────────────────────────────
+
+const NSM_Q_SPOTIFY = {
+  id: 'q-spotify',
+  company: 'Spotify',
+  industry: '音樂串流',
+  scenario: '為 Spotify Podcast 定義北極星指標，衡量用戶收聽行為與留存',
+  product: 'Spotify Podcast'
+};
+
+const NSM_MOCK_EVAL_RESULT = {
+  scores: { alignment: 4, leading: 4, actionability: 5, simplicity: 4, sensitivity: 3 },
+  totalScore: 80,
+  coachComments: {
+    alignment: '與商業價值連結清楚，能直接對應產品 PMF 階段。',
+    leading: '是領先指標，但可進一步驗證與留存的因果關係。',
+    actionability: '可被 PM/設計團隊每日直接優化，定義具體可量測。',
+    simplicity: '指標名稱清楚，但定義公式可進一步簡化。',
+    sensitivity: '對週期敏感度尚可，但缺乏 30/60/90 day milestone。'
+  },
+  coachTree: {
+    nsm: '每月新增啟動並留存到第 30 天的 Premium 試用者數',
+    reach: '所有曝過情境式提示的 Free 用戶（月活）',
+    depth: '看到提示後進入 Premium 試用頁的轉化率',
+    frequency: '試用期內每週啟動 Premium 功能的天數 ≥ 4 天',
+    impact: '試用結束後 30 天內完成訂閱的轉換率'
+  },
+  coachRationale: {
+    nsm: '教練版 NSM 聚焦於「啟動 → 留存到 30 天」，而非廣泛的月活躍。',
+    reach: '觸及廣度應量到真正接觸到核心功能的用戶。',
+    depth: '深度指標衡量從看到提示到真正進入試用頁的轉化。',
+    frequency: '習慣頻率以「試用期內每週 ≥ 4 天啟動 Premium 功能」確保黏著。',
+    impact: '業務影響以 30 天內付費轉換率直接連結商業變現。'
+  },
+  bestMove: '把 NSM 拆成「啟用 → 留存」兩階段，準確反映漏斗本質。',
+  mainTrap: '指標可能被「短期廣告觸及」拉高，建議搭配真實互動數據佐證。',
+  summary: '整體 NSM 設計扎實，能反映產品健康。'
+};
+
+const NSM_DEF = {
+  nsm: '每月完成至少一首完整曲目播放的活躍月用戶數',
+  explanation: '聚焦真實聆聽行為，剔除背景播放。以完整播放衡量真實收聽意圖。',
+  businessLink: 'NSM 上升直接對應廣告營收與留存率提升，是最核心的業務驅動指標。'
+};
+
+const NSM_GATE_OK = {
+  overall_status: 'ok', overallStatus: 'ok', canProceed: true,
+  items: [
+    { criterion: 'NSM定義清晰度',   status: 'ok', feedback: '清晰定義具體用戶行為與量化門檻', suggestion: null },
+    { criterion: '與業務目標的連結', status: 'ok', feedback: '直接對應訂閱續費率提升', suggestion: null },
+    { criterion: '可測量性',        status: 'ok', feedback: '可用 Amplitude 埋點直接追蹤', suggestion: null },
+    { criterion: '非虛榮指標',      status: 'ok', feedback: '捕捉用戶 AHA 時刻的真實行為', suggestion: null },
+  ],
+};
+
+const NSM_GATE_WARN = {
+  overall_status: 'warn', overallStatus: 'warn', canProceed: true,
+  items: [
+    { criterion: 'NSM定義清晰度',   status: 'ok',   feedback: '清晰定義用戶行為', suggestion: null },
+    { criterion: '與業務目標的連結', status: 'warn', feedback: '邏輯有跳躍需補充', suggestion: '說明 NSM 如何直接驅動訂閱收入，補充因果機制' },
+    { criterion: '可測量性',        status: 'ok',   feedback: '可用埋點追蹤', suggestion: null },
+    { criterion: '非虛榮指標',      status: 'ok',   feedback: '行為深度指標', suggestion: null },
+  ],
+};
+
+const NSM_GATE_ERROR = {
+  overall_status: 'error', overallStatus: 'error', canProceed: false,
+  items: [
+    { criterion: 'NSM定義清晰度',   status: 'error', feedback: '這是經典虛榮指標，DAU 不代表深度價值', suggestion: '改成行為深度型指標，例如「完整播放用戶數」' },
+    { criterion: '與業務目標的連結', status: 'error', feedback: 'DAU 與訂閱續費相關性低', suggestion: '先找 Spotify 的 AHA 時刻動作再衍生指標' },
+    { criterion: '可測量性',        status: 'warn',  feedback: '過度仰賴行銷推廣', suggestion: null },
+    { criterion: '非虛榮指標',      status: 'ok',    feedback: 'DAU 直觀易懂，是唯一優點', suggestion: null },
+  ],
+};
+
 const CONVERSATION_SAMPLE = [
   {
     userMessage: '這個題目是只看 podcast，還是包含音樂？目標是訂閱用戶還是免費用戶？',
@@ -105,9 +180,15 @@ async function captureProduction(page, outPath) {
 
 // We separate header lines from per-case detail lines and combine in afterAll
 const reportHeader = [
-  '# Master Pixel-Diff Report — 11 Mockups Cross-Viewport',
+  '# Master Pixel-Diff Report — 16 Mockups Cross-Viewport (11 original + 5 new)',
   '',
   `_Generated: ${new Date().toISOString()}_`,
+  '',
+  '## Coverage',
+  '',
+  '- Original 11 mockups (01/02/03/04/05/06/07/09/10/11/13): §A first-section baseline × 3 vp',
+  '- New 5 mockups (2026-05-09 extension): 02/08/12/14/16-D — all sections × 3 vp = 60 new cases',
+  '- Total new cases: 15+12+9+15+9 = 60',
   '',
 ];
 
@@ -155,6 +236,54 @@ function recordResult(mockupId, vp, result, mockupFile, frameLabel, coverageGap)
 // Handles both .vp-frame__body (mockups 01/02/03) and .vp-frame__inner (mockups 04-13)
 
 const MOCKUP_DIR_PATH = path.resolve(__dirname, '../../docs/superpowers/specs/mockups/2026-05-02-frontend-rewrite');
+
+// tryCaptureMockupFrameNth — like tryCaptureMockupFrame but picks the nth occurrence of the label
+// Used when multiple sections share the same label ("Mobile"/"Tablet"/"Desktop") within one mockup.
+async function tryCaptureMockupFrameNth(page, mockupFile, frameLabel, labelIndex, outPath) {
+  const { PNG } = require('pngjs');
+  await page.setViewportSize({ width: 3000, height: 1080 });
+  const url = 'file://' + path.join(MOCKUP_DIR_PATH, mockupFile);
+  await page.goto(url, { waitUntil: 'load', timeout: 30000 });
+  await page.evaluate(() => document.fonts.ready);
+  await page.waitForTimeout(500);
+
+  const escaped = frameLabel.replace(/"/g, '\\"');
+  // Collect all frames matching this label text, then pick nth
+  for (const bodyClass of ['.vp-frame__body', '.vp-frame__inner']) {
+    const allFrames = page.locator(`.vp-frame:has(.vp-frame__label span:text-is("${escaped}"))`);
+    const count = await allFrames.count();
+    if (count > labelIndex) {
+      const frame = allFrames.nth(labelIndex);
+      const body = frame.locator(bodyClass).first();
+      const bodyCount = await body.count();
+      if (bodyCount > 0) {
+        try {
+          const rect = await body.evaluate(el => {
+            const r = el.getBoundingClientRect();
+            return { x: r.left + window.scrollX, y: r.top + window.scrollY, width: r.width, height: r.height };
+          });
+          const docX = Math.round(rect.x);
+          const docY = Math.round(rect.y);
+          const w = Math.round(rect.width);
+          const h = Math.round(rect.height);
+          const fullBuf = await page.screenshot({ fullPage: true, animations: 'disabled' });
+          const fullPng = PNG.sync.read(fullBuf);
+          const cropX = Math.max(0, Math.min(docX, fullPng.width - 1));
+          const cropY = Math.max(0, Math.min(docY, fullPng.height - 1));
+          const cropW = Math.min(w, fullPng.width - cropX);
+          const cropH = Math.min(h, fullPng.height - cropY);
+          const cropped = new PNG({ width: cropW, height: cropH });
+          PNG.bitblt(fullPng, cropped, cropX, cropY, cropW, cropH, 0, 0);
+          fs.writeFileSync(outPath, PNG.sync.write(cropped));
+          return true;
+        } catch (e) {
+          return false;
+        }
+      }
+    }
+  }
+  return false;
+}
 
 async function tryCaptureMockupFrame(page, mockupFile, frameLabel, outPath) {
   const { PNG } = require('pngjs');
@@ -802,13 +931,481 @@ M13_CASES.forEach(c => {
 });
 
 // ═══════════════════════════════════════════════════════════════════════════
+// MOCKUP 02 — Auth Flow (5 states × 3 viewports = 15 cases)
+// States: login-default / login-filled / login-error / register / token-expiry
+// Production state: view='auth' with matching AppState fields
+// ═══════════════════════════════════════════════════════════════════════════
+
+const M02_EXT_CASES = [
+  // §A — Login default (Mobile/Tablet/Desktop, first occurrence)
+  { vp: 'mobile-360', w: 360, h: 900, frameLabel: 'Mobile', labelIndex: 0, state: 'login-default', suffix: 'A-login-default' },
+  { vp: 'tablet-768', w: 768, h: 900, frameLabel: 'Tablet', labelIndex: 0, state: 'login-default', suffix: 'A-login-default' },
+  { vp: 'desktop-1280', w: 1280, h: 900, frameLabel: 'Desktop', labelIndex: 0, state: 'login-default', suffix: 'A-login-default' },
+  // §B — Login filled (unique labels)
+  { vp: 'mobile-360', w: 360, h: 900, frameLabel: 'Mobile · filled', labelIndex: 0, state: 'login-filled', suffix: 'B-login-filled' },
+  { vp: 'tablet-768', w: 768, h: 900, frameLabel: 'Tablet · focus', labelIndex: 0, state: 'login-filled', suffix: 'B-login-filled' },
+  { vp: 'desktop-1280', w: 1280, h: 900, frameLabel: 'Desktop · loading', labelIndex: 0, state: 'login-filled', suffix: 'B-login-filled' },
+  // §C — Login error (unique labels)
+  { vp: 'mobile-360', w: 360, h: 900, frameLabel: 'Mobile · 帳密錯', labelIndex: 0, state: 'login-error', suffix: 'C-login-error' },
+  { vp: 'tablet-768', w: 768, h: 900, frameLabel: 'Tablet · 找不到帳號', labelIndex: 0, state: 'login-error', suffix: 'C-login-error' },
+  { vp: 'desktop-1280', w: 1280, h: 900, frameLabel: 'Desktop · 連線失敗', labelIndex: 0, state: 'login-error', suffix: 'C-login-error' },
+  // §D — Register (unique labels)
+  { vp: 'mobile-360', w: 360, h: 900, frameLabel: 'Mobile · default', labelIndex: 0, state: 'register', suffix: 'D-register' },
+  { vp: 'tablet-768', w: 768, h: 900, frameLabel: 'Tablet · email 已註冊', labelIndex: 0, state: 'register', suffix: 'D-register' },
+  { vp: 'desktop-1280', w: 1280, h: 900, frameLabel: 'Desktop · 弱密碼', labelIndex: 0, state: 'register', suffix: 'D-register' },
+  // §E — Token expiry (unique labels)
+  { vp: 'mobile-360', w: 360, h: 900, frameLabel: 'Mobile · 已登入', labelIndex: 0, state: 'token-expiry', suffix: 'E-token-expiry' },
+  { vp: 'tablet-768', w: 768, h: 900, frameLabel: 'Tablet · 登入後 migration 提示', labelIndex: 0, state: 'token-expiry', suffix: 'E-token-expiry' },
+  { vp: 'desktop-1280', w: 1280, h: 900, frameLabel: 'Desktop · token 逾期', labelIndex: 0, state: 'token-expiry', suffix: 'E-token-expiry' },
+];
+
+// Production state builders for mockup 02
+async function setupM02State(page, state) {
+  const overrides = {
+    'login-default':  { authTab: 'login',    authError: null, sessionExpired: false, authLoading: false },
+    'login-filled':   { authTab: 'login',    authError: null, sessionExpired: false, authLoading: false },
+    'login-error':    { authTab: 'login',    authError: { code: 'INVALID_CREDENTIALS', message: '帳號或密碼錯誤' }, sessionExpired: false, authLoading: false },
+    'register':       { authTab: 'register', authError: null, sessionExpired: false, authLoading: false },
+    'token-expiry':   { authTab: 'login',    authError: null, sessionExpired: true,  authLoading: false },
+  }[state];
+
+  await page.evaluate((ov) => {
+    window.AppState.view = 'auth';
+    window.AppState.authTab = ov.authTab;
+    window.AppState.authLoading = ov.authLoading;
+    window.AppState.authError = ov.authError;
+    window.AppState.sessionExpired = ov.sessionExpired;
+    window.render();
+  }, overrides);
+  await page.waitForSelector('.auth-card', { timeout: 5000 });
+  await page.waitForTimeout(300);
+}
+
+M02_EXT_CASES.forEach(c => {
+  test(`02-auth-ext · ${c.suffix} · ${c.vp}`, async ({ browser }) => {
+    const ctxMock = await browser.newContext();
+    const pageMock = await ctxMock.newPage();
+    const mockupPath = path.join(OUT_DIR, `02ext-${c.suffix}-${c.vp}-mockup.png`);
+    const found = await tryCaptureMockupFrameNth(pageMock, '02-auth-flow.html', c.frameLabel, c.labelIndex, mockupPath);
+    await ctxMock.close();
+
+    if (!found) {
+      recordResult(`02-auth-ext-${c.suffix}`, c.vp, null, '02-auth-flow.html', c.frameLabel, true);
+      return;
+    }
+
+    const ctxProd = await browser.newContext();
+    const pageProd = await ctxProd.newPage();
+    await pageProd.setViewportSize({ width: c.w, height: c.h });
+    await stub(pageProd);
+    await pageProd.route('**/api/config**', r => r.fulfill({ status: 200, contentType: 'application/json', body: JSON.stringify({ supabaseUrl: '', supabaseAnonKey: '' }) }));
+    await pageProd.goto(BASE_URL);
+    await pageProd.waitForSelector('.qcard');
+    await setupM02State(pageProd, c.state);
+
+    const prodPath = path.join(OUT_DIR, `02ext-${c.suffix}-${c.vp}-production.png`);
+    const prodBuf = await captureProduction(pageProd, prodPath);
+    await ctxProd.close();
+
+    const mockupBuf = fs.readFileSync(mockupPath);
+    const diffPath = path.join(OUT_DIR, `02ext-${c.suffix}-${c.vp}-diff.png`);
+    const result = await diffPngBuffers(mockupBuf, prodBuf, diffPath);
+    recordResult(`02-auth-ext-${c.suffix}`, c.vp, result, '02-auth-flow.html', c.frameLabel, false);
+  });
+});
+
+// ═══════════════════════════════════════════════════════════════════════════
+// MOCKUP 08 — NSM Gate inline (4 states × 3 viewports = 12 cases)
+// States: ok / warn / error / loading
+// Frame labels repeat "Mobile"/"Tablet"/"Desktop" across 4 sections — use nth index
+// Production state: nsmStep=2 nsmSubTab='nsm-gate' with matching gate result
+// ═══════════════════════════════════════════════════════════════════════════
+
+const M08_CASES = [
+  // §A — OK (nth=0)
+  { vp: 'mobile-360', w: 360, h: 1100, labelIndex: 0, state: 'ok',      suffix: 'A-ok' },
+  { vp: 'tablet-768', w: 768, h: 1100, labelIndex: 0, state: 'ok',      suffix: 'A-ok' },
+  { vp: 'desktop-1280', w: 1280, h: 1100, labelIndex: 0, state: 'ok',   suffix: 'A-ok' },
+  // §B — WARN (nth=1)
+  { vp: 'mobile-360', w: 360, h: 1100, labelIndex: 1, state: 'warn',    suffix: 'B-warn' },
+  { vp: 'tablet-768', w: 768, h: 1100, labelIndex: 1, state: 'warn',    suffix: 'B-warn' },
+  { vp: 'desktop-1280', w: 1280, h: 1100, labelIndex: 1, state: 'warn', suffix: 'B-warn' },
+  // §C — ERROR (nth=2)
+  { vp: 'mobile-360', w: 360, h: 1100, labelIndex: 2, state: 'error',   suffix: 'C-error' },
+  { vp: 'tablet-768', w: 768, h: 1100, labelIndex: 2, state: 'error',   suffix: 'C-error' },
+  { vp: 'desktop-1280', w: 1280, h: 1100, labelIndex: 2, state: 'error', suffix: 'C-error' },
+  // §D — Loading (nth=3)
+  { vp: 'mobile-360', w: 360, h: 1100, labelIndex: 3, state: 'loading', suffix: 'D-loading' },
+  { vp: 'tablet-768', w: 768, h: 1100, labelIndex: 3, state: 'loading', suffix: 'D-loading' },
+  { vp: 'desktop-1280', w: 1280, h: 1100, labelIndex: 3, state: 'loading', suffix: 'D-loading' },
+];
+
+// Map label text by viewport label direction (mobile=first, tablet=second, desktop=third)
+function getVpLabelText(vp) {
+  if (vp === 'mobile-360') return 'Mobile';
+  if (vp === 'tablet-768') return 'Tablet';
+  return 'Desktop';
+}
+
+async function setupM08State(page, state) {
+  const gateResults = {
+    ok:    NSM_GATE_OK,
+    warn:  NSM_GATE_WARN,
+    error: NSM_GATE_ERROR,
+  };
+
+  if (state === 'loading') {
+    await page.evaluate(({ q, def }) => {
+      window.AppState.view = 'nsm';
+      window.AppState.nsmStep = 2;
+      window.AppState.nsmSubTab = 'nsm-gate';
+      window.AppState.nsmSelectedQuestion = q;
+      window.AppState.nsmDefinition = def;
+      window.AppState.nsmGateResult = null;
+      window.AppState.nsmGateLoading = true;
+      window.AppState.nsmGateLoadingStep = 1;
+      window.AppState.nsmGateError = null;
+      window.AppState.nsmSession = { id: 's1' };
+      window.render();
+    }, { q: NSM_Q_SPOTIFY, def: NSM_DEF });
+    await page.waitForSelector('.gate-loading-wrap', { timeout: 5000 });
+  } else {
+    const gr = gateResults[state];
+    await page.evaluate(({ q, def, gr }) => {
+      window.AppState.view = 'nsm';
+      window.AppState.nsmStep = 2;
+      window.AppState.nsmSubTab = 'nsm-gate';
+      window.AppState.nsmSelectedQuestion = q;
+      window.AppState.nsmDefinition = def;
+      window.AppState.nsmGateResult = gr;
+      window.AppState.nsmGateLoading = false;
+      window.AppState.nsmGateError = null;
+      window.AppState.nsmSession = { id: 's1' };
+      window.render();
+    }, { q: NSM_Q_SPOTIFY, def: NSM_DEF, gr });
+    const statusClass = `.gate-transition--${state}`;
+    await page.waitForSelector(statusClass, { timeout: 5000 });
+  }
+  await page.waitForTimeout(300);
+}
+
+M08_CASES.forEach(c => {
+  const frameLabel = getVpLabelText(c.vp);
+  test(`08-nsm-gate · ${c.suffix} · ${c.vp}`, async ({ browser }) => {
+    const ctxMock = await browser.newContext();
+    const pageMock = await ctxMock.newPage();
+    const mockupPath = path.join(OUT_DIR, `08-${c.suffix}-${c.vp}-mockup.png`);
+    const found = await tryCaptureMockupFrameNth(pageMock, '08-nsm-step-3-gate.html', frameLabel, c.labelIndex, mockupPath);
+    await ctxMock.close();
+
+    if (!found) {
+      recordResult(`08-nsm-gate-${c.suffix}`, c.vp, null, '08-nsm-step-3-gate.html', frameLabel, true);
+      return;
+    }
+
+    const ctxProd = await browser.newContext();
+    const pageProd = await ctxProd.newPage();
+    await pageProd.setViewportSize({ width: c.w, height: c.h });
+    await stub(pageProd);
+    await pageProd.route('**/api/nsm-sessions**', r => r.fulfill({ status: 200, contentType: 'application/json', body: '{"id":"s1","sessionId":"s1"}' }));
+    await pageProd.route('**/api/guest/nsm-sessions**', r => r.fulfill({ status: 200, contentType: 'application/json', body: '{"id":"s1","sessionId":"s1"}' }));
+    await pageProd.goto(BASE_URL);
+    await pageProd.waitForSelector('.qcard');
+    await setupM08State(pageProd, c.state);
+
+    const prodPath = path.join(OUT_DIR, `08-${c.suffix}-${c.vp}-production.png`);
+    const prodBuf = await captureProduction(pageProd, prodPath);
+    await ctxProd.close();
+
+    const mockupBuf = fs.readFileSync(mockupPath);
+    const diffPath = path.join(OUT_DIR, `08-${c.suffix}-${c.vp}-diff.png`);
+    const result = await diffPngBuffers(mockupBuf, prodBuf, diffPath);
+    recordResult(`08-nsm-gate-${c.suffix}`, c.vp, result, '08-nsm-step-3-gate.html', frameLabel, false);
+  });
+});
+
+// ═══════════════════════════════════════════════════════════════════════════
+// MOCKUP 12 — Phase 3 Error+Loading polish (3 states × 3 viewports = 9 cases)
+// States: loading-slow / api-error / parse-error
+// Frame labels repeat "Mobile"/"Tablet"/"Desktop" across 3 sections — use nth index
+// Production state: circlesPhase=3 with error / loading variants
+// ═══════════════════════════════════════════════════════════════════════════
+
+const M12_CASES = [
+  // §A — Loading 慢回應 (nth=0)
+  { vp: 'mobile-360', w: 360, h: 880, labelIndex: 0, state: 'loading-slow', suffix: 'A-loading-slow' },
+  { vp: 'tablet-768', w: 768, h: 880, labelIndex: 0, state: 'loading-slow', suffix: 'A-loading-slow' },
+  { vp: 'desktop-1280', w: 1280, h: 880, labelIndex: 0, state: 'loading-slow', suffix: 'A-loading-slow' },
+  // §B — EVAL_API_ERROR (nth=1)
+  { vp: 'mobile-360', w: 360, h: 880, labelIndex: 1, state: 'api-error', suffix: 'B-api-error' },
+  { vp: 'tablet-768', w: 768, h: 880, labelIndex: 1, state: 'api-error', suffix: 'B-api-error' },
+  { vp: 'desktop-1280', w: 1280, h: 880, labelIndex: 1, state: 'api-error', suffix: 'B-api-error' },
+  // §C — EVAL_PARSE_ERROR (nth=2)
+  { vp: 'mobile-360', w: 360, h: 880, labelIndex: 2, state: 'parse-error', suffix: 'C-parse-error' },
+  { vp: 'tablet-768', w: 768, h: 880, labelIndex: 2, state: 'parse-error', suffix: 'C-parse-error' },
+  { vp: 'desktop-1280', w: 1280, h: 880, labelIndex: 2, state: 'parse-error', suffix: 'C-parse-error' },
+];
+
+async function setupM12State(page, state) {
+  const errorMap = {
+    'loading-slow': { circlesPhase3Error: null, circlesScoreResult: null, circlesPhase3LoadingStep: 3, _phase3SlowLoading: true },
+    'api-error':    { circlesPhase3Error: { code: 'EVAL_API_ERROR', message: '評分服務暫時不可用，請稍後再試' }, circlesScoreResult: null, circlesPhase3LoadingStep: 0 },
+    'parse-error':  { circlesPhase3Error: { code: 'EVAL_PARSE_ERROR', message: '教練回應格式異常，請重新嘗試' }, circlesScoreResult: null, circlesPhase3LoadingStep: 0 },
+  }[state];
+
+  await page.evaluate(({ s }) => {
+    Object.assign(window.AppState, {
+      view: 'circles',
+      circlesPhase: 3,
+      circlesMode: 'drill',
+      circlesDrillStep: 'I',
+      circlesSession: { id: 'sess-1' },
+      circlesSelectedQuestion: { id: 'q1', company: 'Spotify', product: 'Spotify Podcast', question_type: 'design' },
+      circlesPhase3DimExpanded: {},
+      circlesPhase3CoachDemoOpen: false,
+    }, s);
+    window.render();
+  }, { s: errorMap });
+  await page.waitForTimeout(400);
+
+  if (state === 'loading-slow') {
+    await page.waitForSelector('.phase3-loading, .score-loading, .gate-loading-wrap', { timeout: 3000 }).catch(() => {});
+  } else {
+    await page.waitForSelector('.phase3-error, .score-error, [data-phase3-error]', { timeout: 3000 }).catch(() => {});
+  }
+  await page.waitForTimeout(300);
+}
+
+M12_CASES.forEach(c => {
+  const frameLabel = getVpLabelText(c.vp);
+  test(`12-phase3-polish · ${c.suffix} · ${c.vp}`, async ({ browser }) => {
+    const ctxMock = await browser.newContext();
+    const pageMock = await ctxMock.newPage();
+    const mockupPath = path.join(OUT_DIR, `12-${c.suffix}-${c.vp}-mockup.png`);
+    const found = await tryCaptureMockupFrameNth(pageMock, '12-phase-3-error-loading.html', frameLabel, c.labelIndex, mockupPath);
+    await ctxMock.close();
+
+    if (!found) {
+      recordResult(`12-phase3-${c.suffix}`, c.vp, null, '12-phase-3-error-loading.html', frameLabel, true);
+      return;
+    }
+
+    const ctxProd = await browser.newContext();
+    const pageProd = await ctxProd.newPage();
+    await pageProd.setViewportSize({ width: c.w, height: c.h });
+    await stub(pageProd);
+    await pageProd.goto(BASE_URL);
+    await pageProd.waitForSelector('.navbar');
+    await setupM12State(pageProd, c.state);
+
+    const prodPath = path.join(OUT_DIR, `12-${c.suffix}-${c.vp}-production.png`);
+    const prodBuf = await captureProduction(pageProd, prodPath);
+    await ctxProd.close();
+
+    const mockupBuf = fs.readFileSync(mockupPath);
+    const diffPath = path.join(OUT_DIR, `12-${c.suffix}-${c.vp}-diff.png`);
+    const result = await diffPngBuffers(mockupBuf, prodBuf, diffPath);
+    recordResult(`12-phase3-${c.suffix}`, c.vp, result, '12-phase-3-error-loading.html', frameLabel, false);
+  });
+});
+
+// ═══════════════════════════════════════════════════════════════════════════
+// MOCKUP 14 — NSM Step 4 Report (5 sections × 3 viewports = 15 cases)
+// Sections: A-overview / B-comparison / B'-coach-expand / C-highlights / D-done
+// Frame labels repeat "Mobile"/"Tablet"/"Desktop" across 5 sections — use nth index
+// Production state: nsmStep=4 with MOCK_EVAL_RESULT and matching nsmReportTab
+// ═══════════════════════════════════════════════════════════════════════════
+
+const M14_CASES = [
+  // §A — Tab 1 Total (nth=0)
+  { vp: 'mobile-360', w: 360, h: 1100, labelIndex: 0, tab: 'overview',    suffix: 'A-overview' },
+  { vp: 'tablet-768', w: 768, h: 1100, labelIndex: 0, tab: 'overview',    suffix: 'A-overview' },
+  { vp: 'desktop-1280', w: 1280, h: 1100, labelIndex: 0, tab: 'overview', suffix: 'A-overview' },
+  // §B — Tab 2 Comparison (nth=1)
+  { vp: 'mobile-360', w: 360, h: 1100, labelIndex: 1, tab: 'comparison',    suffix: 'B-comparison' },
+  { vp: 'tablet-768', w: 768, h: 1100, labelIndex: 1, tab: 'comparison',    suffix: 'B-comparison' },
+  { vp: 'desktop-1280', w: 1280, h: 1100, labelIndex: 1, tab: 'comparison', suffix: 'B-comparison' },
+  // §B' — Tab 2 Coach Expand (nth=2)
+  { vp: 'mobile-360', w: 360, h: 1100, labelIndex: 2, tab: 'comparison',    suffix: 'Bprime-coach-expand', coachExpand: true },
+  { vp: 'tablet-768', w: 768, h: 1100, labelIndex: 2, tab: 'comparison',    suffix: 'Bprime-coach-expand', coachExpand: true },
+  { vp: 'desktop-1280', w: 1280, h: 1100, labelIndex: 2, tab: 'comparison', suffix: 'Bprime-coach-expand', coachExpand: true },
+  // §C — Tab 3 Highlights (nth=3)
+  { vp: 'mobile-360', w: 360, h: 1100, labelIndex: 3, tab: 'highlights',    suffix: 'C-highlights' },
+  { vp: 'tablet-768', w: 768, h: 1100, labelIndex: 3, tab: 'highlights',    suffix: 'C-highlights' },
+  { vp: 'desktop-1280', w: 1280, h: 1100, labelIndex: 3, tab: 'highlights', suffix: 'C-highlights' },
+  // §D — Tab 4 Done (nth=4)
+  { vp: 'mobile-360', w: 360, h: 1100, labelIndex: 4, tab: 'done',    suffix: 'D-done' },
+  { vp: 'tablet-768', w: 768, h: 1100, labelIndex: 4, tab: 'done',    suffix: 'D-done' },
+  { vp: 'desktop-1280', w: 1280, h: 1100, labelIndex: 4, tab: 'done', suffix: 'D-done' },
+];
+
+async function setupM14State(page, tab, coachExpand) {
+  await page.evaluate(({ q, evalResult, tabName }) => {
+    window.AppState.view = 'nsm';
+    window.AppState.nsmStep = 4;
+    window.AppState.nsmReportTab = tabName;
+    window.AppState.nsmSelectedQuestion = q;
+    window.AppState.nsmDefinition = {
+      nsm: '每月活躍 Premium 試用者數',
+      explanation: '定義說明字數需要夠長才能通過最低驗證要求，確保質量達標。',
+      businessLink: '業務連結說明需要夠長才能通過最低驗證要求，建立指標可信度。'
+    };
+    window.AppState.nsmBreakdown = {
+      reach: '所有 Spotify 月活用戶',
+      depth: '點擊試用按鈕進入試用頁的人數',
+      frequency: '試用期間每週使用天數',
+      impact: '試用後付費轉換率'
+    };
+    window.AppState.nsmEvalResult = evalResult;
+    window.AppState.nsmActiveCompareNode = null;
+    window.render();
+  }, { q: NSM_Q_SPOTIFY, evalResult: NSM_MOCK_EVAL_RESULT, tabName: tab });
+  await page.waitForSelector('[data-nsm-step4]', { timeout: 5000 });
+
+  if (coachExpand) {
+    // Click first coach card to expand thinking panel
+    const coachCard = page.locator('.nsm-compare-card--coach, [data-coach-card]').first();
+    const coachCount = await coachCard.count();
+    if (coachCount > 0) {
+      await coachCard.click();
+      await page.waitForTimeout(300);
+    }
+  }
+  await page.waitForTimeout(300);
+}
+
+M14_CASES.forEach(c => {
+  const frameLabel = getVpLabelText(c.vp);
+  test(`14-nsm-step4 · ${c.suffix} · ${c.vp}`, async ({ browser }) => {
+    const ctxMock = await browser.newContext();
+    const pageMock = await ctxMock.newPage();
+    const mockupPath = path.join(OUT_DIR, `14-${c.suffix}-${c.vp}-mockup.png`);
+    const found = await tryCaptureMockupFrameNth(pageMock, '14-nsm-step-4.html', frameLabel, c.labelIndex, mockupPath);
+    await ctxMock.close();
+
+    if (!found) {
+      recordResult(`14-nsm-step4-${c.suffix}`, c.vp, null, '14-nsm-step-4.html', frameLabel, true);
+      return;
+    }
+
+    const ctxProd = await browser.newContext();
+    const pageProd = await ctxProd.newPage();
+    await pageProd.addInitScript(() => {
+      try { localStorage.setItem('circles_onboarding_done', '1'); } catch (_) {}
+    });
+    await pageProd.setViewportSize({ width: c.w, height: c.h });
+    await stub(pageProd);
+    await pageProd.goto(BASE_URL);
+    await pageProd.waitForSelector('.qcard');
+    await setupM14State(pageProd, c.tab, c.coachExpand);
+
+    const prodPath = path.join(OUT_DIR, `14-${c.suffix}-${c.vp}-production.png`);
+    const prodBuf = await captureProduction(pageProd, prodPath);
+    await ctxProd.close();
+
+    const mockupBuf = fs.readFileSync(mockupPath);
+    const diffPath = path.join(OUT_DIR, `14-${c.suffix}-${c.vp}-diff.png`);
+    const result = await diffPngBuffers(mockupBuf, prodBuf, diffPath);
+    recordResult(`14-nsm-step4-${c.suffix}`, c.vp, result, '14-nsm-step-4.html', frameLabel, false);
+  });
+});
+
+// ═══════════════════════════════════════════════════════════════════════════
+// MOCKUP 16 §D — Resume Toast (3 variants × 3 viewports = 9 cases)
+// Variants: circles-eval / nsm-gate / phase4-report
+// §D is the 4th section (labelIndex=3 for repeated labels)
+// Production state: in-flight AI operation with toast visible
+// ═══════════════════════════════════════════════════════════════════════════
+
+const M16_CASES = [
+  // Variant 1: CIRCLES eval in-flight, user on NSM (§D nth=3)
+  { vp: 'mobile-360', w: 360, h: 700, labelIndex: 3, variant: 'circles-eval',  suffix: 'D-circles-eval' },
+  { vp: 'tablet-768', w: 768, h: 700, labelIndex: 3, variant: 'circles-eval',  suffix: 'D-circles-eval' },
+  { vp: 'desktop-1280', w: 1280, h: 700, labelIndex: 3, variant: 'circles-eval', suffix: 'D-circles-eval' },
+  // Variant 2: NSM gate loading, user on CIRCLES
+  { vp: 'mobile-360', w: 360, h: 700, labelIndex: 3, variant: 'nsm-gate',  suffix: 'D-nsm-gate' },
+  { vp: 'tablet-768', w: 768, h: 700, labelIndex: 3, variant: 'nsm-gate',  suffix: 'D-nsm-gate' },
+  { vp: 'desktop-1280', w: 1280, h: 700, labelIndex: 3, variant: 'nsm-gate', suffix: 'D-nsm-gate' },
+  // Variant 3: Phase 4 report in-flight, user on NSM
+  { vp: 'mobile-360', w: 360, h: 700, labelIndex: 3, variant: 'phase4-report',  suffix: 'D-phase4-report' },
+  { vp: 'tablet-768', w: 768, h: 700, labelIndex: 3, variant: 'phase4-report',  suffix: 'D-phase4-report' },
+  { vp: 'desktop-1280', w: 1280, h: 700, labelIndex: 3, variant: 'phase4-report', suffix: 'D-phase4-report' },
+];
+
+async function setupM16State(page, variant) {
+  if (variant === 'circles-eval') {
+    await page.evaluate(() => {
+      window.AppState.circlesEvaluating = true;
+      window.AppState.circlesPhase = 3;
+      window.AppState.view = 'nsm';
+      window.AppState.evalToastDismissed = false;
+      window.AppState.circlesSession = { id: 'sess-001' };
+      window.render();
+    });
+  } else if (variant === 'nsm-gate') {
+    await page.evaluate(() => {
+      window.AppState.nsmGateLoading = true;
+      window.AppState.nsmStep = 2;
+      window.AppState.view = 'circles';
+      window.AppState.evalToastDismissed = false;
+      window.render();
+    });
+  } else if (variant === 'phase4-report') {
+    await page.evaluate(() => {
+      window.AppState._phase4FinalReportFired = true;
+      window.AppState.circlesFinalReport = null;
+      window.AppState.circlesPhase4Error = null;
+      window.AppState.circlesPhase = 4;
+      window.AppState.view = 'nsm';
+      window.AppState.evalToastDismissed = false;
+      window.render();
+    });
+  }
+  await page.waitForSelector('[data-resume-toast-wrap]', { timeout: 5000 });
+  await page.waitForTimeout(300);
+}
+
+M16_CASES.forEach(c => {
+  const frameLabel = getVpLabelText(c.vp);
+  test(`16-resume-toast · ${c.suffix} · ${c.vp}`, async ({ browser }) => {
+    const ctxMock = await browser.newContext();
+    const pageMock = await ctxMock.newPage();
+    const mockupPath = path.join(OUT_DIR, `16-${c.suffix}-${c.vp}-mockup.png`);
+    const found = await tryCaptureMockupFrameNth(pageMock, '16-flow-transitions-edge.html', frameLabel, c.labelIndex, mockupPath);
+    await ctxMock.close();
+
+    if (!found) {
+      recordResult(`16-resume-${c.suffix}`, c.vp, null, '16-flow-transitions-edge.html', frameLabel, true);
+      return;
+    }
+
+    const ctxProd = await browser.newContext();
+    const pageProd = await ctxProd.newPage();
+    await pageProd.setViewportSize({ width: c.w, height: c.h });
+    await stub(pageProd);
+    await pageProd.goto(BASE_URL);
+    await pageProd.waitForSelector('.qcard');
+    await setupM16State(pageProd, c.variant);
+
+    const prodPath = path.join(OUT_DIR, `16-${c.suffix}-${c.vp}-production.png`);
+    const prodBuf = await captureProduction(pageProd, prodPath);
+    await ctxProd.close();
+
+    const mockupBuf = fs.readFileSync(mockupPath);
+    const diffPath = path.join(OUT_DIR, `16-${c.suffix}-${c.vp}-diff.png`);
+    const result = await diffPngBuffers(mockupBuf, prodBuf, diffPath);
+    recordResult(`16-resume-${c.suffix}`, c.vp, result, '16-flow-transitions-edge.html', frameLabel, false);
+  });
+});
+
+// ═══════════════════════════════════════════════════════════════════════════
 // afterAll — build summary table + write report
 // ═══════════════════════════════════════════════════════════════════════════
 
 test.afterAll(async () => {
   const mockupOrder = [
     ['01-home', '01 home'],
-    ['02-auth', '02 auth'],
+    ['02-auth', '02 auth (§A login-default)'],
     ['03-phase1', '03 phase1 form'],
     ['04-gate', '04 gate'],
     ['05-phase2', '05 phase2 chat'],
@@ -818,6 +1415,27 @@ test.afterAll(async () => {
     ['10-onboarding', '10 onboarding'],
     ['11-phase3', '11 phase3 score'],
     ['13-phase4', '13 phase4 final'],
+    // New 5 mockups (extended 2026-05-09)
+    ['02-auth-ext-A-login-default',  '02 auth §A login-default'],
+    ['02-auth-ext-B-login-filled',   '02 auth §B login-filled'],
+    ['02-auth-ext-C-login-error',    '02 auth §C login-error'],
+    ['02-auth-ext-D-register',       '02 auth §D register'],
+    ['02-auth-ext-E-token-expiry',   '02 auth §E token-expiry'],
+    ['08-nsm-gate-A-ok',             '08 nsm-gate §A ok'],
+    ['08-nsm-gate-B-warn',           '08 nsm-gate §B warn'],
+    ['08-nsm-gate-C-error',          '08 nsm-gate §C error'],
+    ['08-nsm-gate-D-loading',        '08 nsm-gate §D loading'],
+    ['12-phase3-A-loading-slow',     '12 phase3 §A loading-slow'],
+    ['12-phase3-B-api-error',        '12 phase3 §B api-error'],
+    ['12-phase3-C-parse-error',      '12 phase3 §C parse-error'],
+    ['14-nsm-step4-A-overview',      '14 nsm-step4 §A overview'],
+    ['14-nsm-step4-B-comparison',    '14 nsm-step4 §B comparison'],
+    ['14-nsm-step4-Bprime-coach-expand', '14 nsm-step4 §B\' coach-expand'],
+    ['14-nsm-step4-C-highlights',    '14 nsm-step4 §C highlights'],
+    ['14-nsm-step4-D-done',          '14 nsm-step4 §D done'],
+    ['16-resume-D-circles-eval',     '16 resume §D circles-eval'],
+    ['16-resume-D-nsm-gate',         '16 resume §D nsm-gate'],
+    ['16-resume-D-phase4-report',    '16 resume §D phase4-report'],
   ];
 
   // Build full report: header + summary table + detail section
