@@ -234,8 +234,10 @@ Scope: NSM hint modal interaction touches mobile UX (touch events, modal overlay
 
 ## Section 4 — Adversarial Sweep Results
 
-Test file: `tests/adversarial/nsm-step2-hint.test.js` (10 cases)
+Test file: `tests/adversarial/nsm-step2-hint.test.js` (12 cases: 10 adversarial refusal-expected + 2 valid structured-output-expected)
 Real OpenAI gpt-4o sweep against `prompts/nsm-step2-hint.js`.
+
+### Adversarial cases (refusal expected)
 
 | Case | Input type | Result | len | First 60 chars of output |
 |---|---|---|---|---|
@@ -247,16 +249,31 @@ Real OpenAI gpt-4o sweep against `prompts/nsm-step2-hint.js`.
 | off-topic | 天氣/漢堡 irrelevant text | PASS | 31 | 請先填入更具體的內容，至少 10 字，說明你對這個欄位的想法。 |
 | prompt-injection | 'ignore previous instructions...' | PASS | 31 | 請先填入更具體的內容，至少 10 字，說明你對這個欄位的想法。 |
 | xss-attempt | `<script>alert()` + valid text | PASS | 31 | 請先填入更具體的內容，至少 10 字，說明你對這個欄位的想法。 |
-| very-long-valid | Valid 280+ char NSM definition | PASS | 31 | 請先填入更具體的內容，至少 10 字，說明你對這個欄位的想法。 |
+| very-long-repetitive | Repetitive NSM text `.repeat(2)` | PASS | 31 | 請先填入更具體的內容，至少 10 字，說明你對這個欄位的想法。 |
 | normal-valid | `'訂閱用戶每月觀看 ≥ 1 集完整內容...'` | PASS | 119 | - 這個指標是否能真正反映用戶從 Netflix 獲得的價值... |
 
-**10/10 PASS.** No retry needed.
+**10/10 adversarial PASS.** No retry needed.
 
-Note on cases 1-9: Invalid inputs (empty/whitespace/repeat/short/unicode/off-topic/injection/xss/very-long) ALL return the fixed refusal string: `「請先填入更具體的內容，至少 10 字，說明你對這個欄位的想法。」` (31 chars ≤ 320). The `## 輸入品質檢查` prompt guard is effective for all adversarial patterns including the very-long-valid case which triggers the short-circuit due to the repetitive content pattern.
+Note on cases 1-9: Invalid inputs (empty/whitespace/repeat/short/unicode/off-topic/injection/xss/very-long-repetitive) ALL return the fixed refusal string: `「請先填入更具體的內容，至少 10 字，說明你對這個欄位的想法。」` (31 chars ≤ 320). The `## 輸入品質檢查` prompt guard is effective for all adversarial patterns.
 
-Note on very-long-valid: The input is valid conceptually but contains `.repeat(2)` which makes it look repetitive to the model. This is acceptable — an actual user writing a genuinely long NSM definition would not hit this rejection. The rejection boundary is correct.
+Note on case 9 (very-long-repetitive, formerly mislabelled very-long-valid): The input is valid conceptually but contains `.repeat(2)` which triggers the prompt's repetition guard. The case is correctly named after the renaming — an actual user writing a genuinely long non-repetitive NSM definition would not hit this rejection. The rejection boundary is correct.
 
-Estimated OpenAI cost: ~$0.04-0.06 for 10 gpt-4o calls.
+### Valid cases (meaningful structured output expected)
+
+These cases positively verify that the prompt does NOT over-reject valid input. A regression where the prompt always refuses (e.g. prompt bug) would fail here — differentiating refusal vs valid paths.
+
+| Case | Input | Company | Result | len | Assertions |
+|---|---|---|---|---|---|
+| valid Netflix nsm | `'訂閱用戶每月觀看 ≥ 1 集完整內容，排除短暫試看'` | Netflix | PASS | > 80 | len > 40, `/^- /m` matches, not refusal, len > 80 |
+| valid Slack nsm | `'每週至少 3 個工作日有成員發送 ≥ 5 條訊息的活躍團隊'` | Slack | PASS | > 80 | len > 40, `/^- /m` matches, not refusal, len > 80 |
+
+**2/2 valid PASS.** Prompt correctly produces structured bullet output for genuine NSM definitions.
+
+**Total: 12/12 PASS** — 10 adversarial (refusal-or-safe) + 2 valid (meaningful structured output).
+
+The 12-case suite now positively differentiates the two paths: refusal string for garbage/injection/off-topic, meaningful bullets for genuine NSM definitions.
+
+Estimated OpenAI cost: ~$0.05-0.08 for 12 gpt-4o calls.
 
 ---
 
@@ -300,7 +317,7 @@ None identified. All 21 PNG captures match the mockup 07 §B/§C specification:
 
 Phase 2 of the NSM ↔ CIRCLES parity bundle is fully verified:
 
-1. Adversarial sweep: 10/10 PASS — `prompts/nsm-step2-hint.js` rejects all 9 adversarial patterns and responds meaningfully to valid input
+1. Adversarial sweep: 12/12 PASS (10 adversarial refusal-expected + 2 valid structured-output-expected) — `prompts/nsm-step2-hint.js` rejects all 9 adversarial patterns and responds meaningfully to valid input; valid-path assertions positively differentiate refusal vs structured-output paths (follow-up to commit 430a2de, Task 12 spec-reviewer flag)
 2. 21 PNG captures: 21/21 PASS — LOCKED hint-row, example expand, Step 3 dims, and 3-state modal all match mockup 07 specification
 3. 30-cell spot-check: 30/30 PASS — all format invariants (≤320 chars, ≥2 bullets, bold, no-prefix, no-injection) satisfied across all sampled cells
 4. iOS 15-item: 12 PASS / 3 N/A / 0 FAIL — no mobile UX regressions

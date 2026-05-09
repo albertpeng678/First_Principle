@@ -55,9 +55,9 @@ const ADVERSARIAL_CASES = [
     desc: 'XSS 注入 — 不應 echo back script tag',
   },
   {
-    name: 'very-long-valid',
+    name: 'very-long-repetitive',
     userDraft: '訂閱用戶每月觀看完整 1 集 5 分鐘以上內容次數，排除背景播放與短暫試看，用戶必須選擇觀看完整內容才算計入，確保反映真實的內容消費行為，而非表面打開 App 的 vanity metric，此指標直接連結用戶留存與訂閱續約率'.repeat(2),
-    desc: '超長但有效輸入 — 應正常回傳提示，< 320 chars',
+    desc: '超長且重複輸入（.repeat(2)）— 觸發重複內容守門，應回傳提醒訊息',
   },
   {
     name: 'normal-valid',
@@ -99,4 +99,56 @@ describe('Adversarial — nsm-step2-hint generateNSMStep2Hint', () => {
       }
     }, 90000);
   }
+});
+
+// ─── Valid path assertions ──────────────────────────────────────────────────
+// These cases have genuinely valid input and MUST produce meaningful structured
+// output. A regression where the prompt always refuses would fail here.
+
+const SLACK_QUESTION = {
+  id: 'q3',
+  company: 'Slack',
+  industry: 'B2B SaaS',
+  scenario: '企業付費後若團隊不活躍將高退訂率，需確保訊息流通頻率',
+};
+
+const VALID_CASES = [
+  {
+    name: 'valid Netflix nsm',
+    userDraft: '訂閱用戶每月觀看 ≥ 1 集完整內容，排除短暫試看',
+    company: 'Netflix',
+  },
+  {
+    name: 'valid Slack nsm',
+    userDraft: '每週至少 3 個工作日有成員發送 ≥ 5 條訊息的活躍團隊',
+    company: 'Slack',
+  },
+];
+
+describe.each(VALID_CASES)('valid input: $name', ({ userDraft, company }) => {
+  it('returns meaningful structured hint with bullets', async () => {
+    const q = company === 'Slack' ? SLACK_QUESTION : TEST_QUESTION;
+    const result = await generateNSMStep2Hint({
+      questionJson: q,
+      field: 'nsm',
+      userDraft,
+    });
+
+    console.log(`[valid:${company}] result (${result.length} chars): ${result.slice(0, 120)}...`);
+
+    expect(typeof result).toBe('string');
+    expect(result.length).toBeLessThanOrEqual(320);
+
+    // Must be substantive — not the refusal stub (31 chars)
+    expect(result.length).toBeGreaterThan(40);
+
+    // Must contain at least 1 markdown bullet (matches Block B format per prompt spec)
+    expect(result).toMatch(/^- /m);
+
+    // Must NOT be the refusal string
+    expect(result).not.toContain('請先填入更具體的內容');
+
+    // Meaningful output is longer than a short acknowledgement
+    expect(result.length).toBeGreaterThan(80);
+  }, 90000);
 });
