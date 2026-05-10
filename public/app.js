@@ -5797,9 +5797,19 @@
     if (!AppState.nsmDisplayedQuestions || !AppState.nsmDisplayedQuestions.length) nsmPickDisplayed(false);
     var sel = AppState.nsmSelectedQuestion;
     var listLabel = sel ? '選擇題目（已選 1）' : '選擇題目';
-    var cards = (AppState.nsmDisplayedQuestions || []).map(function (q) {
-      return renderNSMQCard(q, !!(sel && sel.id === q.id));
-    }).join('');
+    var cards;
+    if ((AppState.nsmDisplayedQuestions || []).length === 0 && AppState.nsmSearchText) {
+      cards = '<div class="nsm-empty-search">'
+        + '<div class="nsm-empty-search__icon"><i class="ph ph-magnifying-glass"></i></div>'
+        + '<div class="nsm-empty-search__title">沒有符合「' + escHtml(AppState.nsmSearchText) + '」的題目</div>'
+        + '<div class="nsm-empty-search__sub">試試其他關鍵字或'
+        + '<button class="link-btn" data-action="clear-search">清除搜尋</button></div>'
+        + '</div>';
+    } else {
+      cards = (AppState.nsmDisplayedQuestions || []).map(function (q) {
+        return renderNSMQCard(q, !!(sel && sel.id === q.id));
+      }).join('');
+    }
     var selType = sel ? nsmGuessProductType(sel) : null;
     var metaContent = sel
       ? '<span>已選：' + escHtml(sel.company) + ' · ' + escHtml(NSM_TYPE_LABEL[selType]) + '</span>'
@@ -5883,9 +5893,27 @@
     var searchInput = document.querySelector('[data-nsm="search"]');
     if (searchInput) {
       searchInput.addEventListener('input', function () {
+        var caret = searchInput.selectionStart;
         AppState.nsmSearchText = searchInput.value;
         nsmPickDisplayed(false);
         render();
+        var newInput = document.querySelector('[data-nsm="search"]');
+        if (newInput) {
+          newInput.focus();
+          try { newInput.setSelectionRange(caret, caret); } catch (_) {}
+        }
+      });
+    }
+    var step1El = document.querySelector('[data-nsm-step="1"]');
+    if (step1El) {
+      step1El.addEventListener('click', function (e) {
+        if (e.target.closest('[data-action="clear-search"]')) {
+          AppState.nsmSearchText = '';
+          var si = document.querySelector('[data-nsm="search"]');
+          if (si) si.value = '';
+          nsmPickDisplayed(false);
+          render();
+        }
       });
     }
     var startBtn = document.querySelector('[data-nsm="start"]');

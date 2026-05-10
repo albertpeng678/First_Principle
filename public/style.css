@@ -256,8 +256,13 @@ body:has(.submit-bar) { padding-bottom: calc(var(--touch-min) + var(--s-7)); }
 .nsm-shuffle:hover { background: var(--c-navy-lt); }
 
 /* nsm-q-list / nsm-q-card */
-.nsm-q-list { display: grid; gap: var(--s-3); grid-template-columns: 1fr; }
+.nsm-q-list { display: grid; gap: var(--s-3); grid-template-columns: 1fr; min-width: 100%; }
 @media (min-width: 768px) { .nsm-q-list { grid-template-columns: 1fr 1fr; } }
+.nsm-empty-search { width: 100%; min-height: 280px; display: flex; flex-direction: column; align-items: center; justify-content: center; gap: var(--s-3); padding: var(--s-6); color: var(--c-ink-3); text-align: center; grid-column: 1 / -1; }
+.nsm-empty-search__icon { font-size: 48px; opacity: 0.4; }
+.nsm-empty-search__title { font-size: var(--t-body); color: var(--c-ink); }
+.nsm-empty-search__sub { font-size: var(--t-meta); color: var(--c-ink-3); }
+.nsm-empty-search .link-btn { background: none; border: none; color: var(--c-navy); cursor: pointer; padding: 0; font-size: inherit; text-decoration: underline; }
 .nsm-q-card { padding: var(--s-4); background: var(--c-card); border: 1px solid var(--c-rule); border-radius: var(--r-card); cursor: pointer; transition: all var(--t-fast) var(--ease); display: flex; flex-direction: column; gap: var(--s-2); }
 .nsm-q-card:hover { border-color: var(--c-rule-bold); box-shadow: var(--shadow-2); }
 /* selected card spans full row + reorders to end so unselected cards stay in 2-col grid above
