@@ -747,7 +747,7 @@ body:has(.submit-bar) { padding-bottom: calc(var(--touch-min) + var(--s-7)); }
 .field__label-row { display: flex; align-items: flex-start; justify-content: space-between; gap: var(--s-3); margin-bottom: var(--s-2); }
 .field__label { font-size: var(--t-body-sm); font-weight: 600; color: var(--c-ink); }
 .field__hint-row { display: flex; align-items: center; gap: var(--s-2); flex-shrink: 0; }
-.field__hint-link { display: inline-flex; align-items: center; gap: 4px; font-size: var(--t-cap); color: var(--c-ink-3); cursor: pointer; }
+.field__hint-link { display: inline-flex; align-items: center; gap: 4px; font-size: var(--t-cap); color: var(--c-navy); cursor: pointer; }
 .field__hint-link:hover { color: var(--c-navy); }
 .field__hint-link i { font-size: 13px; }
 .field__meta { display: flex; justify-content: space-between; align-items: center; font-size: var(--t-cap); color: var(--c-ink-3); margin-top: var(--s-1); }
@@ -3248,7 +3248,7 @@ div.rt-textarea[contenteditable="true"] ul li { list-style: disc; }
 }
 .auth-field__hint-link {
   font-size: var(--t-cap);
-  color: var(--c-ink-3);
+  color: var(--c-navy);
   transition: color var(--t-fast) var(--ease);
 }
 .auth-field__hint-link:hover { color: var(--c-navy); }
