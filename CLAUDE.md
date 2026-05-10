@@ -1,14 +1,14 @@
 # PM Drill — 專案狀態看板
 
 > 即時狀態 single source of truth。**不放歷史（git log 有）**。重大事件即時 Edit。
-> **Last updated:** 2026-05-10（Phase A 結束 — NSM ↔ CIRCLES parity 4 user issues + 3 mockup amends 全 ship）
+> **Last updated:** 2026-05-10（Phase A + B 全結束 — NSM ↔ CIRCLES parity 完整 ship，6 production items wire 完成）
 
 ## 當前狀態（30 秒讀完）
 
 - **Path 2 Frontend Rewrite ✅ 17/17 mockup 全 ship**（Layer 2 pixel-diff `ba6c49f` 機械驗證 60 cases × 3 vp，0 🔴 structural drift）
-- **最近 ship**（2026-05-10）：NSM ↔ CIRCLES parity Phase A 全結束 — `c35ffa2..0f12158` 6 commits（navy unify / mockup 05 §G typewriter / mockup 07 v3 §D §E NSM locked / mockup 05 §A-F qchip+上一步 / circles-coach prompt strengthen + adversarial 9/9 / conversation persistence RED test）
-- **Baseline 不破：** jest 162/162 + Playwright +1 + adversarial 9/9
-- **Phase B production implementation pending** — 6 items（NSM Step 4 qchip wire / Phase 2 typewriter / NSM Step 2/3 lock state / NSM Step 3 dynamic hint wire / nsm-evaluator depth audit）；user 啟動才動
+- **最近 ship**（2026-05-10）：NSM ↔ CIRCLES parity Phase A + B 全結束 — Phase A `c35ffa2..0f12158` 6 commits（4 user issues + 3 mockup amends）；Phase B `d242ced..acfeeb2` 3 commits（B1 Step 4 qchip / B2 Phase 2 typewriter / B5 Step 3 dynamic hint / B3+B4 NSM lock state / B6 nsm-evaluator depth parity audit）
+- **Baseline 不破：** jest 170/187（162 + 8 nsm-step3-hint）+ Playwright +3 spec（typewriter 4/4 / qchip 6/6 / lock state 6/6）+ adversarial 17/17（9 circles-coach + 8 nsm-step3-hint）
+- **NSM ↔ CIRCLES parity 全結束** — production wire 完整 honor mockup 14 §A / 05 §G / 07 v3 §D §E LOCKED contracts；nsm-evaluator depth 確認非 shallow，加 max_tokens 1500 cap
 - **接手 Handoff：** `docs/PATH-2-HANDOFF.md` + memory `project_pending_followups_2026-05-10.md`
 
 ---
