@@ -1,0 +1,13 @@
+{
+  "streamTextLength": 127,
+  "sseChunks": 13,
+  "totalStreamDurationMs": 68,
+  "domRenderDurationMs": 23,
+  "charsPerSecUserPerspective": 1868,
+  "finalConversationLength": 3,
+  "streamError": false,
+  "streamingFinished": true,
+  "domObservationsCount": 0,
+  "renderStartCaptured": false,
+  "renderEndCaptured": false
+}

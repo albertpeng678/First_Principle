@@ -16,11 +16,26 @@ const openai = new OpenAI({ apiKey: process.env.OPENAI_API_KEY });
 const NSM_DB_PATH  = path.join(__dirname, '..', 'public', 'nsm-db.js');
 const STEP2_FIELDS = ['nsm', 'explanation', 'businessLink'];
 
-// 每欄位「主項建議」— bullet 結構提示
+// 每欄位「主項建議」— bullet 結構提示（multi-clause，mirror CIRCLES quality bar）
 const FIELD_GUIDE = {
-  nsm:          '建議主項：行為動詞 / 量化門檻 / 排除對象（避虛榮指標）',
-  explanation:  '建議主項：量化定義 / 行為閾值 / 為什麼這數字代表價值',
-  businessLink: '建議主項：NSM ↑ → 商業指標 ↑ 因果鏈 / 留存或變現的具體連結',
+  nsm: [
+    '① 行為動詞：具體到可在資料倉儲直接 query 的行為（不是「使用」「打開」，要到「完成訂單」「播放 ≥ 5 分鐘」「上傳作品」）',
+    '② 量化門檻：次數/頻率/時間，必須 instrumentable；說明觀測窗口（日/週/月）',
+    '③ 排除子句：具體點名 1 個最常見的虛榮指標（如 App 打開次數、DAU、註冊數），並說明為何不算真實價值',
+    '④ 為什麼此門檻代表「用戶已真正體驗核心價值」而非偶然造訪',
+  ].join('\n'),
+  explanation: [
+    '① 具體量化定義：numerator 是什麼行為 / denominator 是哪個母群 / 計算窗口多長',
+    '② 行為閾值的選定理由：為什麼是這個數字——參照業界基準、cohort 分析或用戶研究',
+    '③ 為什麼跨越此門檻代表「真正獲得價值」：指出用戶的 aha moment 或習慣形成的信號',
+    '④ 排除一個干擾變數（促銷暴增 / 新用戶蜜月期 / 季節性）避免指標失真',
+  ].join('\n'),
+  businessLink: [
+    '① NSM ↑ → 具體商業指標（留存率/NDR/GMV/付費轉化率）↑ 的因果鏈；必須命名具體指標，不准泛稱「滿意度」或「用戶更開心」',
+    '② 中間機制：NSM 提升後，哪個用戶行為改變驅動了商業指標（例如「習慣形成 → 月活提高 → 廣告收益 ↑」）',
+    '③ 量化估算或量級感：NSM +X% → 商業指標 +Y pp；可引用同類競品公開數據或歷史 cohort',
+    '④ 邊界條件：點出一個情況，說明 NSM 在哪種情況下可能無法代理商業健康（讓範例顯得嚴謹）',
+  ].join('\n'),
 };
 
 const STYLE_GUIDE = `style guide（嚴格遵守，違反會破版）：
@@ -39,13 +54,16 @@ const STYLE_GUIDE = `style guide（嚴格遵守，違反會破版）：
 • 句尾標點完整；最後一個 bullet 不一定要句號
 • 整段繁體中文`;
 
-// few-shot anchor：q1 Netflix nsm 欄位合格答案示範
+// few-shot anchor：q1 Netflix nsm 欄位合格答案示範（示範多子項、推理鏈、排除子句）
 const ANCHOR_FEW_SHOT = {
   field:   'nsm',
   context: '題目：訂閱用戶每月活躍觀看時長 NSM 定義 / 公司：Netflix / 情境：訂閱制',
-  output: `- 行為動詞：**完整觀看** ≥ 1 集劇集（5 分鐘以上）
-- 量化門檻：**月活躍訂閱用戶**（月內至少 1 次達標）
-- 排除：純打開 App 不播放、< 5 分鐘的試看`,
+  output: `- 行為動詞：**完整觀看** ≥ 1 部內容（連續播放 10 分鐘以上，中途換片重算）
+  - 排除「純打開 App」「< 5 分鐘預覽」——僅有曝光而非內容消費
+- 量化門檻：**月內 ≥ 2 次達標**（28 天滾動窗口）
+  - 單次觀看可能是偶然；兩次代表主動選擇回訪，是習慣形成的起點
+- 排除虛榮指標：DAU 或登入次數不計——Netflix 競爭對手（Disney+、HBO）均有「打開不看」的習慣性登入問題
+- 為何此門檻代表真實價值：觀看 ≥ 2 次的 cohort 30 天留存率比僅看 1 次高 ~22pp（業界估算）`,
 };
 
 function loadQuestions() {

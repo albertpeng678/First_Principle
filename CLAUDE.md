@@ -1,13 +1,13 @@
 # PM Drill — 專案狀態看板
 
 > 即時狀態 single source of truth。**不放歷史（git log 有）**。重大事件即時 Edit。
-> **Last updated:** 2026-05-10（Phase A + B 全結束 — NSM ↔ CIRCLES parity 完整 ship，6 production items wire 完成）
+> **Last updated:** 2026-05-10（UAT Round 5 + Bug F 全 ship — NSM Step 3 hint+example 對齊修復 + counter/parens 清理）
 
 ## 當前狀態（30 秒讀完）
 
 - **Path 2 Frontend Rewrite ✅ 17/17 mockup 全 ship**（Layer 2 pixel-diff `ba6c49f` 機械驗證 60 cases × 3 vp，0 🔴 structural drift）
-- **最近 ship**（2026-05-10）：NSM ↔ CIRCLES parity Phase A + B 全結束 — Phase A `c35ffa2..0f12158` 6 commits（4 user issues + 3 mockup amends）；Phase B `d242ced..acfeeb2` 3 commits（B1 Step 4 qchip / B2 Phase 2 typewriter / B5 Step 3 dynamic hint / B3+B4 NSM lock state / B6 nsm-evaluator depth parity audit）
-- **Baseline 不破：** jest 170/187（162 + 8 nsm-step3-hint）+ Playwright Mobile-360 747/768 + Desktop-1280 766/768 (0 failures, 21+2 環境 skip) + adversarial 17/17（9 circles-coach + 8 nsm-step3-hint）
+- **最近 ship**（2026-05-10）：UAT Round 5 + Bug F `61f0176` — NSM Step 3 hint+example button row regression fix（mobile/iPad/desktop 提示+範例答案 right-align + margin-bottom）+ Bug F counter (0/120) 移除 + SaaS dim desc 英文 parens 清理；驗證 8 vp × 3 state matrix 24 PNGs 全 cold-Read（director 親 Read，無 sampling）
+- **Baseline 不破：** jest 191/208（17 skipped）+ pre-commit race regression smoke 13/13 ✓
 - **NSM ↔ CIRCLES parity 全結束** — production wire 完整 honor mockup 14 §A / 05 §G / 07 v3 §D §E LOCKED contracts；nsm-evaluator depth 確認非 shallow，加 max_tokens 1500 cap
 - **接手 Handoff：** `docs/PATH-2-HANDOFF.md` + memory `project_pending_followups_2026-05-10.md`
 

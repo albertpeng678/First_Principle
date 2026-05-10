@@ -1,6 +1,6 @@
 # Master Pixel-Diff Report — 16 Mockups Cross-Viewport (11 original + 5 new)
 
-_Generated: 2026-05-09T13:25:29.838Z_
+_Generated: 2026-05-10T05:23:58.990Z_
 
 ## Coverage
 
@@ -12,99 +12,99 @@ _Generated: 2026-05-09T13:25:29.838Z_
 
 | Mockup | Mobile-360 | iPad-768 | Desktop-1280 |
 |---|---|---|---|
-| 01 home | 🔴 19.93% | 🟠 14.51% | 🟠 12.96% |
-| 02 auth (§A login-default) | 🔴 15.26% | 🟠 11.24% | 🟠 9.07% |
-| 03 phase1 form | 🟠 7.02% | 🟡 3.26% | 🟡 3.58% |
+| 01 home | 🔴 20.06% | 🟠 14.62% | 🟠 12.93% |
+| 02 auth (§A login-default) | 🔴 15.42% | 🟠 11.20% | 🟠 9.17% |
+| 03 phase1 form | 🟠 7.04% | 🟡 3.27% | 🟡 3.59% |
 | 04 gate | 🟠 9.40% | 🟠 5.31% | 🟡 3.49% |
-| 05 phase2 chat | 🟠 5.64% | 🟡 3.53% | 🟡 2.61% |
-| 06 nsm step1 | 🟠 12.17% | 🟠 5.49% | 🟡 3.97% |
-| 07 nsm step2 | 🟠 8.32% | 🟡 4.68% | 🟡 2.83% |
-| 09 offcanvas | 🟠 11.53% | 🟠 9.91% | 🟠 9.83% |
-| 10 onboarding | 🟠 13.83% | 🟠 10.24% | 🟠 8.84% |
+| 05 phase2 chat | 🟠 5.59% | 🟡 3.49% | 🟡 2.59% |
+| 06 nsm step1 | 🟠 13.41% | 🟠 5.20% | 🟡 3.37% |
+| 07 nsm step2 | 🟠 8.05% | 🟡 4.75% | 🟡 2.86% |
+| 09 offcanvas | 🟠 12.06% | 🟠 9.95% | 🟠 9.83% |
+| 10 onboarding | 🟠 13.77% | 🟠 10.20% | 🟠 8.88% |
 | 11 phase3 score | 🟠 8.42% | 🟠 6.26% | 🟡 4.74% |
 | 13 phase4 final | 🟠 13.88% | 🟠 9.39% | 🟠 8.96% |
-| 02 auth §A login-default | 🟡 4.28% | 🟡 3.14% | 🟡 1.92% |
-| 02 auth §B login-filled | 🟠 10.77% | 🟠 5.37% | 🟡 2.72% |
-| 02 auth §C login-error | 🟠 14.84% | 🟠 9.25% | 🟡 3.79% |
+| 02 auth §A login-default | 🟡 4.29% | 🟡 3.14% | 🟡 1.92% |
+| 02 auth §B login-filled | 🟠 10.78% | 🟠 5.37% | 🟡 2.73% |
+| 02 auth §C login-error | 🟠 14.85% | 🟠 9.25% | 🟡 3.80% |
 | 02 auth §D register | 🟠 6.58% | 🟠 9.10% | 🟡 3.56% |
-| 02 auth §E token-expiry | 🟠 10.36% | 🟠 6.38% | 🟡 4.39% |
-| 08 nsm-gate §A ok | 🟠 9.14% | 🟡 4.89% | 🟡 2.30% |
-| 08 nsm-gate §B warn | 🟠 10.30% | 🟠 6.12% | 🟡 3.15% |
-| 08 nsm-gate §C error | 🟠 10.90% | 🟠 6.90% | 🟡 3.67% |
-| 08 nsm-gate §D loading | 🟡 1.84% | 🟡 0.85% | 🟡 0.54% |
+| 02 auth §E token-expiry | 🟠 10.36% | 🟠 6.39% | 🟡 4.39% |
+| 08 nsm-gate §A ok | 🟠 9.01% | 🟠 5.03% | 🟡 2.71% |
+| 08 nsm-gate §B warn | 🟠 10.37% | 🟠 6.26% | 🟡 3.55% |
+| 08 nsm-gate §C error | 🟠 11.32% | 🟠 7.13% | 🟡 3.72% |
+| 08 nsm-gate §D loading | 🟡 1.25% | 🟡 0.70% | ✅ 0.45% |
 | 12 phase3 §A loading-slow | 🟡 2.15% | 🟡 1.03% | 🟡 0.65% |
 | 12 phase3 §B api-error | 🟡 1.07% | 🟡 0.66% | ✅ 0.48% |
 | 12 phase3 §C parse-error | 🟡 2.73% | 🟡 1.49% | 🟡 1.00% |
-| 14 nsm-step4 §A overview | 🟠 10.63% | 🟠 7.58% | 🟠 5.07% |
-| 14 nsm-step4 §B comparison | 🟠 6.23% | 🟡 3.98% | 🟡 2.96% |
-| 14 nsm-step4 §B' coach-expand | 🟠 10.08% | 🟠 6.35% | 🟡 4.05% |
-| 14 nsm-step4 §C highlights | 🟠 7.72% | 🟠 5.63% | 🟡 4.78% |
-| 14 nsm-step4 §D done | 🟠 8.44% | 🟡 4.29% | 🟡 3.22% |
-| 16 resume §D circles-eval | 🟠 11.00% | 🟠 9.07% | 🟠 5.62% |
-| 16 resume §D nsm-gate | 🟠 14.71% | 🟠 11.36% | 🟠 9.01% |
-| 16 resume §D phase4-report | 🟠 11.10% | 🟠 9.44% | 🟠 5.67% |
+| 14 nsm-step4 §A overview | 🟠 9.45% | 🟠 7.38% | 🟠 5.59% |
+| 14 nsm-step4 §B comparison | 🟠 5.72% | 🟡 3.58% | 🟡 2.27% |
+| 14 nsm-step4 §B' coach-expand | 🟠 6.71% | 🟠 8.36% | 🟠 5.70% |
+| 14 nsm-step4 §C highlights | 🟠 10.11% | 🟡 3.21% | 🟡 2.38% |
+| 14 nsm-step4 §D done | 🟠 6.29% | 🟡 3.22% | 🟡 2.11% |
+| 16 resume §D circles-eval | 🟠 11.10% | 🟠 9.30% | 🟠 5.67% |
+| 16 resume §D nsm-gate | 🟠 14.55% | 🟠 11.33% | 🟠 8.99% |
+| 16 resume §D phase4-report | 🟠 11.40% | 🟠 9.12% | 🟠 5.55% |
 
 ## 詳細 verdict per case
 
 ### Mockup 01-home · mobile-360: 🔴 ≥ 15%
 
-- mockup 358×1285 / production 360×1725 / padded 360×1725 / mismatched 123778px / **19.93%**
+- mockup 358×1285 / production 360×1703 / padded 360×1703 / mismatched 122971px / **20.06%**
 - mockup PNG: `tests/visual/diffs/master/01-home-mobile-360-mockup.png`
 - production PNG: `tests/visual/diffs/master/01-home-mobile-360-production.png`
 - diff PNG: `tests/visual/diffs/master/01-home-mobile-360-diff.png`
 
 ### Mockup 01-home · tablet-768: 🟠 < 15% (state diff 預期)
 
-- mockup 766×1092 / production 768×1483 / padded 768×1483 / mismatched 165255px / **14.51%**
+- mockup 766×1092 / production 768×1483 / padded 768×1483 / mismatched 166558px / **14.62%**
 - mockup PNG: `tests/visual/diffs/master/01-home-tablet-768-mockup.png`
 - production PNG: `tests/visual/diffs/master/01-home-tablet-768-production.png`
 - diff PNG: `tests/visual/diffs/master/01-home-tablet-768-diff.png`
 
 ### Mockup 01-home · desktop-1280: 🟠 < 15% (state diff 預期)
 
-- mockup 1278×1090 / production 1280×1503 / padded 1280×1503 / mismatched 249320px / **12.96%**
+- mockup 1278×1090 / production 1280×1503 / padded 1280×1503 / mismatched 248811px / **12.93%**
 - mockup PNG: `tests/visual/diffs/master/01-home-desktop-1280-mockup.png`
 - production PNG: `tests/visual/diffs/master/01-home-desktop-1280-production.png`
 - diff PNG: `tests/visual/diffs/master/01-home-desktop-1280-diff.png`
 
 ### Mockup 02-auth · mobile-360: 🔴 ≥ 15%
 
-- mockup 358×744 / production 360×1703 / padded 360×1703 / mismatched 93532px / **15.26%**
+- mockup 358×744 / production 360×1703 / padded 360×1703 / mismatched 94533px / **15.42%**
 - mockup PNG: `tests/visual/diffs/master/02-auth-mobile-360-mockup.png`
 - production PNG: `tests/visual/diffs/master/02-auth-mobile-360-production.png`
 - diff PNG: `tests/visual/diffs/master/02-auth-mobile-360-diff.png`
 
 ### Mockup 02-auth · tablet-768: 🟠 < 15% (state diff 預期)
 
-- mockup 766×648 / production 768×1483 / padded 768×1483 / mismatched 128016px / **11.24%**
+- mockup 766×648 / production 768×1483 / padded 768×1483 / mismatched 127558px / **11.20%**
 - mockup PNG: `tests/visual/diffs/master/02-auth-tablet-768-mockup.png`
 - production PNG: `tests/visual/diffs/master/02-auth-tablet-768-production.png`
 - diff PNG: `tests/visual/diffs/master/02-auth-tablet-768-diff.png`
 
 ### Mockup 02-auth · desktop-1280: 🟠 < 15% (state diff 預期)
 
-- mockup 1278×635 / production 1280×1503 / padded 1280×1503 / mismatched 174571px / **9.07%**
+- mockup 1278×635 / production 1280×1503 / padded 1280×1503 / mismatched 176322px / **9.17%**
 - mockup PNG: `tests/visual/diffs/master/02-auth-desktop-1280-mockup.png`
 - production PNG: `tests/visual/diffs/master/02-auth-desktop-1280-production.png`
 - diff PNG: `tests/visual/diffs/master/02-auth-desktop-1280-diff.png`
 
 ### Mockup 03-phase1 · mobile-360: 🟠 < 15% (state diff 預期)
 
-- mockup 358×1585 / production 360×1700 / padded 360×1700 / mismatched 42967px / **7.02%**
+- mockup 358×1585 / production 360×1700 / padded 360×1700 / mismatched 43068px / **7.04%**
 - mockup PNG: `tests/visual/diffs/master/03-phase1-mobile-360-mockup.png`
 - production PNG: `tests/visual/diffs/master/03-phase1-mobile-360-production.png`
 - diff PNG: `tests/visual/diffs/master/03-phase1-mobile-360-diff.png`
 
 ### Mockup 03-phase1 · tablet-768: 🟡 < 5%
 
-- mockup 766×1278 / production 768×1700 / padded 768×1700 / mismatched 42511px / **3.26%**
+- mockup 766×1278 / production 768×1700 / padded 768×1700 / mismatched 42728px / **3.27%**
 - mockup PNG: `tests/visual/diffs/master/03-phase1-tablet-768-mockup.png`
 - production PNG: `tests/visual/diffs/master/03-phase1-tablet-768-production.png`
 - diff PNG: `tests/visual/diffs/master/03-phase1-tablet-768-diff.png`
 
 ### Mockup 03-phase1 · desktop-1280: 🟡 < 5%
 
-- mockup 1278×1529 / production 1280×1700 / padded 1280×1700 / mismatched 77811px / **3.58%**
+- mockup 1278×1529 / production 1280×1700 / padded 1280×1700 / mismatched 78098px / **3.59%**
 - mockup PNG: `tests/visual/diffs/master/03-phase1-desktop-1280-mockup.png`
 - production PNG: `tests/visual/diffs/master/03-phase1-desktop-1280-production.png`
 - diff PNG: `tests/visual/diffs/master/03-phase1-desktop-1280-diff.png`
@@ -132,105 +132,105 @@ _Generated: 2026-05-09T13:25:29.838Z_
 
 ### Mockup 05-phase2 · mobile-360: 🟠 < 15% (state diff 預期)
 
-- mockup 360×880 / production 360×900 / padded 360×900 / mismatched 18274px / **5.64%**
+- mockup 360×880 / production 360×900 / padded 360×900 / mismatched 18117px / **5.59%**
 - mockup PNG: `tests/visual/diffs/master/05-phase2-mobile-360-mockup.png`
 - production PNG: `tests/visual/diffs/master/05-phase2-mobile-360-production.png`
 - diff PNG: `tests/visual/diffs/master/05-phase2-mobile-360-diff.png`
 
 ### Mockup 05-phase2 · tablet-768: 🟡 < 5%
 
-- mockup 768×880 / production 768×900 / padded 768×900 / mismatched 24431px / **3.53%**
+- mockup 768×880 / production 768×900 / padded 768×900 / mismatched 24150px / **3.49%**
 - mockup PNG: `tests/visual/diffs/master/05-phase2-tablet-768-mockup.png`
 - production PNG: `tests/visual/diffs/master/05-phase2-tablet-768-production.png`
 - diff PNG: `tests/visual/diffs/master/05-phase2-tablet-768-diff.png`
 
 ### Mockup 05-phase2 · desktop-1280: 🟡 < 5%
 
-- mockup 1280×880 / production 1280×900 / padded 1280×900 / mismatched 30108px / **2.61%**
+- mockup 1280×880 / production 1280×900 / padded 1280×900 / mismatched 29827px / **2.59%**
 - mockup PNG: `tests/visual/diffs/master/05-phase2-desktop-1280-mockup.png`
 - production PNG: `tests/visual/diffs/master/05-phase2-desktop-1280-production.png`
 - diff PNG: `tests/visual/diffs/master/05-phase2-desktop-1280-diff.png`
 
 ### Mockup 06-nsm1 · mobile-360: 🟠 < 15% (state diff 預期)
 
-- mockup 360×1068 / production 360×1147 / padded 360×1147 / mismatched 50259px / **12.17%**
+- mockup 360×1068 / production 360×1052 / padded 360×1068 / mismatched 51574px / **13.41%**
 - mockup PNG: `tests/visual/diffs/master/06-nsm1-mobile-360-mockup.png`
 - production PNG: `tests/visual/diffs/master/06-nsm1-mobile-360-production.png`
 - diff PNG: `tests/visual/diffs/master/06-nsm1-mobile-360-diff.png`
 
 ### Mockup 06-nsm1 · tablet-768: 🟠 < 15% (state diff 預期)
 
-- mockup 768×880 / production 768×900 / padded 768×900 / mismatched 37960px / **5.49%**
+- mockup 768×880 / production 768×900 / padded 768×900 / mismatched 35924px / **5.20%**
 - mockup PNG: `tests/visual/diffs/master/06-nsm1-tablet-768-mockup.png`
 - production PNG: `tests/visual/diffs/master/06-nsm1-tablet-768-production.png`
 - diff PNG: `tests/visual/diffs/master/06-nsm1-tablet-768-diff.png`
 
 ### Mockup 06-nsm1 · desktop-1280: 🟡 < 5%
 
-- mockup 1280×880 / production 1280×900 / padded 1280×900 / mismatched 45735px / **3.97%**
+- mockup 1280×880 / production 1280×900 / padded 1280×900 / mismatched 38806px / **3.37%**
 - mockup PNG: `tests/visual/diffs/master/06-nsm1-desktop-1280-mockup.png`
 - production PNG: `tests/visual/diffs/master/06-nsm1-desktop-1280-production.png`
 - diff PNG: `tests/visual/diffs/master/06-nsm1-desktop-1280-diff.png`
 
 ### Mockup 07-nsm2 · mobile-360: 🟠 < 15% (state diff 預期)
 
-- mockup 360×1470 / production 360×1314 / padded 360×1470 / mismatched 44055px / **8.32%**
+- mockup 360×2473 / production 360×1352 / padded 360×2473 / mismatched 71647px / **8.05%**
 - mockup PNG: `tests/visual/diffs/master/07-nsm2-mobile-360-mockup.png`
 - production PNG: `tests/visual/diffs/master/07-nsm2-mobile-360-production.png`
 - diff PNG: `tests/visual/diffs/master/07-nsm2-mobile-360-diff.png`
 
 ### Mockup 07-nsm2 · tablet-768: 🟡 < 5%
 
-- mockup 768×1339 / production 768×1229 / padded 768×1339 / mismatched 48131px / **4.68%**
+- mockup 768×2004 / production 768×1267 / padded 768×2004 / mismatched 73133px / **4.75%**
 - mockup PNG: `tests/visual/diffs/master/07-nsm2-tablet-768-mockup.png`
 - production PNG: `tests/visual/diffs/master/07-nsm2-tablet-768-production.png`
 - diff PNG: `tests/visual/diffs/master/07-nsm2-tablet-768-diff.png`
 
 ### Mockup 07-nsm2 · desktop-1280: 🟡 < 5%
 
-- mockup 1280×1339 / production 1280×1229 / padded 1280×1339 / mismatched 48502px / **2.83%**
+- mockup 1280×2004 / production 1280×1267 / padded 1280×2004 / mismatched 73483px / **2.86%**
 - mockup PNG: `tests/visual/diffs/master/07-nsm2-desktop-1280-mockup.png`
 - production PNG: `tests/visual/diffs/master/07-nsm2-desktop-1280-production.png`
 - diff PNG: `tests/visual/diffs/master/07-nsm2-desktop-1280-diff.png`
 
 ### Mockup 09-offcanvas · mobile-360: 🟠 < 15% (state diff 預期)
 
-- mockup 360×880 / production 360×1439 / padded 360×1439 / mismatched 59736px / **11.53%**
+- mockup 360×880 / production 360×1424 / padded 360×1424 / mismatched 61822px / **12.06%**
 - mockup PNG: `tests/visual/diffs/master/09-offcanvas-mobile-360-mockup.png`
 - production PNG: `tests/visual/diffs/master/09-offcanvas-mobile-360-production.png`
 - diff PNG: `tests/visual/diffs/master/09-offcanvas-mobile-360-diff.png`
 
 ### Mockup 09-offcanvas · tablet-768: 🟠 < 15% (state diff 預期)
 
-- mockup 768×880 / production 768×1228 / padded 768×1228 / mismatched 93483px / **9.91%**
+- mockup 768×880 / production 768×1228 / padded 768×1228 / mismatched 93846px / **9.95%**
 - mockup PNG: `tests/visual/diffs/master/09-offcanvas-tablet-768-mockup.png`
 - production PNG: `tests/visual/diffs/master/09-offcanvas-tablet-768-production.png`
 - diff PNG: `tests/visual/diffs/master/09-offcanvas-tablet-768-diff.png`
 
 ### Mockup 09-offcanvas · desktop-1280: 🟠 < 15% (state diff 預期)
 
-- mockup 1280×880 / production 1280×1248 / padded 1280×1248 / mismatched 156987px / **9.83%**
+- mockup 1280×880 / production 1280×1248 / padded 1280×1248 / mismatched 157088px / **9.83%**
 - mockup PNG: `tests/visual/diffs/master/09-offcanvas-desktop-1280-mockup.png`
 - production PNG: `tests/visual/diffs/master/09-offcanvas-desktop-1280-production.png`
 - diff PNG: `tests/visual/diffs/master/09-offcanvas-desktop-1280-diff.png`
 
 ### Mockup 10-onboarding · mobile-360: 🟠 < 15% (state diff 預期)
 
-- mockup 360×880 / production 360×1725 / padded 360×1725 / mismatched 85889px / **13.83%**
+- mockup 360×880 / production 360×1718 / padded 360×1718 / mismatched 85138px / **13.77%**
 - mockup PNG: `tests/visual/diffs/master/10-onboarding-mobile-360-mockup.png`
 - production PNG: `tests/visual/diffs/master/10-onboarding-mobile-360-production.png`
 - diff PNG: `tests/visual/diffs/master/10-onboarding-mobile-360-diff.png`
 
 ### Mockup 10-onboarding · tablet-768: 🟠 < 15% (state diff 預期)
 
-- mockup 768×880 / production 768×1483 / padded 768×1483 / mismatched 116629px / **10.24%**
+- mockup 768×880 / production 768×1483 / padded 768×1483 / mismatched 116173px / **10.20%**
 - mockup PNG: `tests/visual/diffs/master/10-onboarding-tablet-768-mockup.png`
 - production PNG: `tests/visual/diffs/master/10-onboarding-tablet-768-production.png`
 - diff PNG: `tests/visual/diffs/master/10-onboarding-tablet-768-diff.png`
 
 ### Mockup 10-onboarding · desktop-1280: 🟠 < 15% (state diff 預期)
 
-- mockup 1280×880 / production 1280×1503 / padded 1280×1503 / mismatched 169997px / **8.84%**
+- mockup 1280×880 / production 1280×1503 / padded 1280×1503 / mismatched 170837px / **8.88%**
 - mockup PNG: `tests/visual/diffs/master/10-onboarding-desktop-1280-mockup.png`
 - production PNG: `tests/visual/diffs/master/10-onboarding-desktop-1280-production.png`
 - diff PNG: `tests/visual/diffs/master/10-onboarding-desktop-1280-diff.png`
@@ -279,63 +279,63 @@ _Generated: 2026-05-09T13:25:29.838Z_
 
 ### Mockup 02-auth-ext-A-login-default · mobile-360: 🟡 < 5%
 
-- mockup 358×744 / production 360×900 / padded 360×900 / mismatched 13881px / **4.28%**
+- mockup 358×744 / production 360×900 / padded 360×900 / mismatched 13914px / **4.29%**
 - mockup PNG: `tests/visual/diffs/master/02-auth-ext-A-login-default-mobile-360-mockup.png`
 - production PNG: `tests/visual/diffs/master/02-auth-ext-A-login-default-mobile-360-production.png`
 - diff PNG: `tests/visual/diffs/master/02-auth-ext-A-login-default-mobile-360-diff.png`
 
 ### Mockup 02-auth-ext-A-login-default · tablet-768: 🟡 < 5%
 
-- mockup 766×744 / production 768×900 / padded 768×900 / mismatched 21670px / **3.14%**
+- mockup 766×744 / production 768×900 / padded 768×900 / mismatched 21707px / **3.14%**
 - mockup PNG: `tests/visual/diffs/master/02-auth-ext-A-login-default-tablet-768-mockup.png`
 - production PNG: `tests/visual/diffs/master/02-auth-ext-A-login-default-tablet-768-production.png`
 - diff PNG: `tests/visual/diffs/master/02-auth-ext-A-login-default-tablet-768-diff.png`
 
 ### Mockup 02-auth-ext-A-login-default · desktop-1280: 🟡 < 5%
 
-- mockup 1278×744 / production 1280×900 / padded 1280×900 / mismatched 22093px / **1.92%**
+- mockup 1278×744 / production 1280×900 / padded 1280×900 / mismatched 22130px / **1.92%**
 - mockup PNG: `tests/visual/diffs/master/02-auth-ext-A-login-default-desktop-1280-mockup.png`
 - production PNG: `tests/visual/diffs/master/02-auth-ext-A-login-default-desktop-1280-production.png`
 - diff PNG: `tests/visual/diffs/master/02-auth-ext-A-login-default-desktop-1280-diff.png`
 
 ### Mockup 02-auth-ext-B-login-filled · mobile-360: 🟠 < 15% (state diff 預期)
 
-- mockup 358×627 / production 360×900 / padded 360×900 / mismatched 34907px / **10.77%**
+- mockup 358×627 / production 360×900 / padded 360×900 / mismatched 34936px / **10.78%**
 - mockup PNG: `tests/visual/diffs/master/02-auth-ext-B-login-filled-mobile-360-mockup.png`
 - production PNG: `tests/visual/diffs/master/02-auth-ext-B-login-filled-mobile-360-production.png`
 - diff PNG: `tests/visual/diffs/master/02-auth-ext-B-login-filled-mobile-360-diff.png`
 
 ### Mockup 02-auth-ext-B-login-filled · tablet-768: 🟠 < 15% (state diff 預期)
 
-- mockup 766×648 / production 768×900 / padded 768×900 / mismatched 37086px / **5.37%**
+- mockup 766×648 / production 768×900 / padded 768×900 / mismatched 37114px / **5.37%**
 - mockup PNG: `tests/visual/diffs/master/02-auth-ext-B-login-filled-tablet-768-mockup.png`
 - production PNG: `tests/visual/diffs/master/02-auth-ext-B-login-filled-tablet-768-production.png`
 - diff PNG: `tests/visual/diffs/master/02-auth-ext-B-login-filled-tablet-768-diff.png`
 
 ### Mockup 02-auth-ext-B-login-filled · desktop-1280: 🟡 < 5%
 
-- mockup 1278×635 / production 1280×900 / padded 1280×900 / mismatched 31382px / **2.72%**
+- mockup 1278×635 / production 1280×900 / padded 1280×900 / mismatched 31396px / **2.73%**
 - mockup PNG: `tests/visual/diffs/master/02-auth-ext-B-login-filled-desktop-1280-mockup.png`
 - production PNG: `tests/visual/diffs/master/02-auth-ext-B-login-filled-desktop-1280-production.png`
 - diff PNG: `tests/visual/diffs/master/02-auth-ext-B-login-filled-desktop-1280-diff.png`
 
 ### Mockup 02-auth-ext-C-login-error · mobile-360: 🟠 < 15% (state diff 預期)
 
-- mockup 358×720 / production 360×900 / padded 360×900 / mismatched 48088px / **14.84%**
+- mockup 358×720 / production 360×900 / padded 360×900 / mismatched 48115px / **14.85%**
 - mockup PNG: `tests/visual/diffs/master/02-auth-ext-C-login-error-mobile-360-mockup.png`
 - production PNG: `tests/visual/diffs/master/02-auth-ext-C-login-error-mobile-360-production.png`
 - diff PNG: `tests/visual/diffs/master/02-auth-ext-C-login-error-mobile-360-diff.png`
 
 ### Mockup 02-auth-ext-C-login-error · tablet-768: 🟠 < 15% (state diff 預期)
 
-- mockup 766×730 / production 768×900 / padded 768×900 / mismatched 63923px / **9.25%**
+- mockup 766×730 / production 768×900 / padded 768×900 / mismatched 63951px / **9.25%**
 - mockup PNG: `tests/visual/diffs/master/02-auth-ext-C-login-error-tablet-768-mockup.png`
 - production PNG: `tests/visual/diffs/master/02-auth-ext-C-login-error-tablet-768-production.png`
 - diff PNG: `tests/visual/diffs/master/02-auth-ext-C-login-error-tablet-768-diff.png`
 
 ### Mockup 02-auth-ext-C-login-error · desktop-1280: 🟡 < 5%
 
-- mockup 1278×802 / production 1280×900 / padded 1280×900 / mismatched 43692px / **3.79%**
+- mockup 1278×802 / production 1280×900 / padded 1280×900 / mismatched 43728px / **3.80%**
 - mockup PNG: `tests/visual/diffs/master/02-auth-ext-C-login-error-desktop-1280-mockup.png`
 - production PNG: `tests/visual/diffs/master/02-auth-ext-C-login-error-desktop-1280-production.png`
 - diff PNG: `tests/visual/diffs/master/02-auth-ext-C-login-error-desktop-1280-diff.png`
@@ -363,126 +363,126 @@ _Generated: 2026-05-09T13:25:29.838Z_
 
 ### Mockup 02-auth-ext-E-token-expiry · mobile-360: 🟠 < 15% (state diff 預期)
 
-- mockup 358×474 / production 360×940 / padded 360×940 / mismatched 35054px / **10.36%**
+- mockup 358×474 / production 360×940 / padded 360×940 / mismatched 35068px / **10.36%**
 - mockup PNG: `tests/visual/diffs/master/02-auth-ext-E-token-expiry-mobile-360-mockup.png`
 - production PNG: `tests/visual/diffs/master/02-auth-ext-E-token-expiry-mobile-360-production.png`
 - diff PNG: `tests/visual/diffs/master/02-auth-ext-E-token-expiry-mobile-360-diff.png`
 
 ### Mockup 02-auth-ext-E-token-expiry · tablet-768: 🟠 < 15% (state diff 預期)
 
-- mockup 766×352 / production 768×900 / padded 768×900 / mismatched 44128px / **6.38%**
+- mockup 766×352 / production 768×900 / padded 768×900 / mismatched 44142px / **6.39%**
 - mockup PNG: `tests/visual/diffs/master/02-auth-ext-E-token-expiry-tablet-768-mockup.png`
 - production PNG: `tests/visual/diffs/master/02-auth-ext-E-token-expiry-tablet-768-production.png`
 - diff PNG: `tests/visual/diffs/master/02-auth-ext-E-token-expiry-tablet-768-diff.png`
 
 ### Mockup 02-auth-ext-E-token-expiry · desktop-1280: 🟡 < 5%
 
-- mockup 1278×554 / production 1280×900 / padded 1280×900 / mismatched 50570px / **4.39%**
+- mockup 1278×554 / production 1280×900 / padded 1280×900 / mismatched 50584px / **4.39%**
 - mockup PNG: `tests/visual/diffs/master/02-auth-ext-E-token-expiry-desktop-1280-mockup.png`
 - production PNG: `tests/visual/diffs/master/02-auth-ext-E-token-expiry-desktop-1280-production.png`
 - diff PNG: `tests/visual/diffs/master/02-auth-ext-E-token-expiry-desktop-1280-diff.png`
 
 ### Mockup 08-nsm-gate-A-ok · mobile-360: 🟠 < 15% (state diff 預期)
 
-- mockup 360×1437 / production 360×1100 / padded 360×1437 / mismatched 47262px / **9.14%**
+- mockup 360×1388 / production 360×1100 / padded 360×1388 / mismatched 45008px / **9.01%**
 - mockup PNG: `tests/visual/diffs/master/08-nsm-gate-A-ok-mobile-360-mockup.png`
 - production PNG: `tests/visual/diffs/master/08-nsm-gate-A-ok-mobile-360-production.png`
 - diff PNG: `tests/visual/diffs/master/08-nsm-gate-A-ok-mobile-360-diff.png`
 
-### Mockup 08-nsm-gate-A-ok · tablet-768: 🟡 < 5%
+### Mockup 08-nsm-gate-A-ok · tablet-768: 🟠 < 15% (state diff 預期)
 
-- mockup 768×1272 / production 768×1100 / padded 768×1272 / mismatched 47759px / **4.89%**
+- mockup 768×1224 / production 768×1100 / padded 768×1224 / mismatched 47243px / **5.03%**
 - mockup PNG: `tests/visual/diffs/master/08-nsm-gate-A-ok-tablet-768-mockup.png`
 - production PNG: `tests/visual/diffs/master/08-nsm-gate-A-ok-tablet-768-production.png`
 - diff PNG: `tests/visual/diffs/master/08-nsm-gate-A-ok-tablet-768-diff.png`
 
 ### Mockup 08-nsm-gate-A-ok · desktop-1280: 🟡 < 5%
 
-- mockup 1280×1272 / production 1280×1100 / padded 1280×1272 / mismatched 37473px / **2.30%**
+- mockup 1280×1224 / production 1280×1100 / padded 1280×1224 / mismatched 42391px / **2.71%**
 - mockup PNG: `tests/visual/diffs/master/08-nsm-gate-A-ok-desktop-1280-mockup.png`
 - production PNG: `tests/visual/diffs/master/08-nsm-gate-A-ok-desktop-1280-production.png`
 - diff PNG: `tests/visual/diffs/master/08-nsm-gate-A-ok-desktop-1280-diff.png`
 
 ### Mockup 08-nsm-gate-B-warn · mobile-360: 🟠 < 15% (state diff 預期)
 
-- mockup 360×1543 / production 360×1100 / padded 360×1543 / mismatched 57187px / **10.30%**
+- mockup 360×1494 / production 360×1100 / padded 360×1494 / mismatched 55767px / **10.37%**
 - mockup PNG: `tests/visual/diffs/master/08-nsm-gate-B-warn-mobile-360-mockup.png`
 - production PNG: `tests/visual/diffs/master/08-nsm-gate-B-warn-mobile-360-production.png`
 - diff PNG: `tests/visual/diffs/master/08-nsm-gate-B-warn-mobile-360-diff.png`
 
 ### Mockup 08-nsm-gate-B-warn · tablet-768: 🟠 < 15% (state diff 預期)
 
-- mockup 768×1263 / production 768×1100 / padded 768×1263 / mismatched 59323px / **6.12%**
+- mockup 768×1214 / production 768×1100 / padded 768×1214 / mismatched 58379px / **6.26%**
 - mockup PNG: `tests/visual/diffs/master/08-nsm-gate-B-warn-tablet-768-mockup.png`
 - production PNG: `tests/visual/diffs/master/08-nsm-gate-B-warn-tablet-768-production.png`
 - diff PNG: `tests/visual/diffs/master/08-nsm-gate-B-warn-tablet-768-diff.png`
 
 ### Mockup 08-nsm-gate-B-warn · desktop-1280: 🟡 < 5%
 
-- mockup 1280×1239 / production 1280×1100 / padded 1280×1239 / mismatched 49937px / **3.15%**
+- mockup 1280×1190 / production 1280×1100 / padded 1280×1190 / mismatched 54079px / **3.55%**
 - mockup PNG: `tests/visual/diffs/master/08-nsm-gate-B-warn-desktop-1280-mockup.png`
 - production PNG: `tests/visual/diffs/master/08-nsm-gate-B-warn-desktop-1280-production.png`
 - diff PNG: `tests/visual/diffs/master/08-nsm-gate-B-warn-desktop-1280-diff.png`
 
 ### Mockup 08-nsm-gate-C-error · mobile-360: 🟠 < 15% (state diff 預期)
 
-- mockup 360×1654 / production 360×1175 / padded 360×1654 / mismatched 64886px / **10.90%**
+- mockup 360×1605 / production 360×1126 / padded 360×1605 / mismatched 65395px / **11.32%**
 - mockup PNG: `tests/visual/diffs/master/08-nsm-gate-C-error-mobile-360-mockup.png`
 - production PNG: `tests/visual/diffs/master/08-nsm-gate-C-error-mobile-360-production.png`
 - diff PNG: `tests/visual/diffs/master/08-nsm-gate-C-error-mobile-360-diff.png`
 
 ### Mockup 08-nsm-gate-C-error · tablet-768: 🟠 < 15% (state diff 預期)
 
-- mockup 768×1372 / production 768×1100 / padded 768×1372 / mismatched 72671px / **6.90%**
+- mockup 768×1323 / production 768×1100 / padded 768×1323 / mismatched 72410px / **7.13%**
 - mockup PNG: `tests/visual/diffs/master/08-nsm-gate-C-error-tablet-768-mockup.png`
 - production PNG: `tests/visual/diffs/master/08-nsm-gate-C-error-tablet-768-production.png`
 - diff PNG: `tests/visual/diffs/master/08-nsm-gate-C-error-tablet-768-diff.png`
 
 ### Mockup 08-nsm-gate-C-error · desktop-1280: 🟡 < 5%
 
-- mockup 1280×1348 / production 1280×1100 / padded 1280×1348 / mismatched 63239px / **3.67%**
+- mockup 1280×1300 / production 1280×1100 / padded 1280×1300 / mismatched 61984px / **3.72%**
 - mockup PNG: `tests/visual/diffs/master/08-nsm-gate-C-error-desktop-1280-mockup.png`
 - production PNG: `tests/visual/diffs/master/08-nsm-gate-C-error-desktop-1280-production.png`
 - diff PNG: `tests/visual/diffs/master/08-nsm-gate-C-error-desktop-1280-diff.png`
 
 ### Mockup 08-nsm-gate-D-loading · mobile-360: 🟡 < 5%
 
-- mockup 360×1100 / production 360×1100 / padded 360×1100 / mismatched 7275px / **1.84%**
+- mockup 360×1100 / production 360×1100 / padded 360×1100 / mismatched 4944px / **1.25%**
 - mockup PNG: `tests/visual/diffs/master/08-nsm-gate-D-loading-mobile-360-mockup.png`
 - production PNG: `tests/visual/diffs/master/08-nsm-gate-D-loading-mobile-360-production.png`
 - diff PNG: `tests/visual/diffs/master/08-nsm-gate-D-loading-mobile-360-diff.png`
 
 ### Mockup 08-nsm-gate-D-loading · tablet-768: 🟡 < 5%
 
-- mockup 768×1100 / production 768×1100 / padded 768×1100 / mismatched 7187px / **0.85%**
+- mockup 768×1100 / production 768×1100 / padded 768×1100 / mismatched 5898px / **0.70%**
 - mockup PNG: `tests/visual/diffs/master/08-nsm-gate-D-loading-tablet-768-mockup.png`
 - production PNG: `tests/visual/diffs/master/08-nsm-gate-D-loading-tablet-768-production.png`
 - diff PNG: `tests/visual/diffs/master/08-nsm-gate-D-loading-tablet-768-diff.png`
 
-### Mockup 08-nsm-gate-D-loading · desktop-1280: 🟡 < 5%
+### Mockup 08-nsm-gate-D-loading · desktop-1280: ✅ < 0.5%
 
-- mockup 1280×1100 / production 1280×1100 / padded 1280×1100 / mismatched 7621px / **0.54%**
+- mockup 1280×1100 / production 1280×1100 / padded 1280×1100 / mismatched 6341px / **0.45%**
 - mockup PNG: `tests/visual/diffs/master/08-nsm-gate-D-loading-desktop-1280-mockup.png`
 - production PNG: `tests/visual/diffs/master/08-nsm-gate-D-loading-desktop-1280-production.png`
 - diff PNG: `tests/visual/diffs/master/08-nsm-gate-D-loading-desktop-1280-diff.png`
 
 ### Mockup 12-phase3-A-loading-slow · mobile-360: 🟡 < 5%
 
-- mockup 360×880 / production 360×880 / padded 360×880 / mismatched 6814px / **2.15%**
+- mockup 360×880 / production 360×880 / padded 360×880 / mismatched 6813px / **2.15%**
 - mockup PNG: `tests/visual/diffs/master/12-phase3-A-loading-slow-mobile-360-mockup.png`
 - production PNG: `tests/visual/diffs/master/12-phase3-A-loading-slow-mobile-360-production.png`
 - diff PNG: `tests/visual/diffs/master/12-phase3-A-loading-slow-mobile-360-diff.png`
 
 ### Mockup 12-phase3-A-loading-slow · tablet-768: 🟡 < 5%
 
-- mockup 768×880 / production 768×880 / padded 768×880 / mismatched 6961px / **1.03%**
+- mockup 768×880 / production 768×880 / padded 768×880 / mismatched 6966px / **1.03%**
 - mockup PNG: `tests/visual/diffs/master/12-phase3-A-loading-slow-tablet-768-mockup.png`
 - production PNG: `tests/visual/diffs/master/12-phase3-A-loading-slow-tablet-768-production.png`
 - diff PNG: `tests/visual/diffs/master/12-phase3-A-loading-slow-tablet-768-diff.png`
 
 ### Mockup 12-phase3-A-loading-slow · desktop-1280: 🟡 < 5%
 
-- mockup 1280×880 / production 1280×880 / padded 1280×880 / mismatched 7273px / **0.65%**
+- mockup 1280×880 / production 1280×880 / padded 1280×880 / mismatched 7274px / **0.65%**
 - mockup PNG: `tests/visual/diffs/master/12-phase3-A-loading-slow-desktop-1280-mockup.png`
 - production PNG: `tests/visual/diffs/master/12-phase3-A-loading-slow-desktop-1280-production.png`
 - diff PNG: `tests/visual/diffs/master/12-phase3-A-loading-slow-desktop-1280-diff.png`
@@ -531,168 +531,168 @@ _Generated: 2026-05-09T13:25:29.838Z_
 
 ### Mockup 14-nsm-step4-A-overview · mobile-360: 🟠 < 15% (state diff 預期)
 
-- mockup 360×1348 / production 360×1329 / padded 360×1348 / mismatched 51581px / **10.63%**
+- mockup 360×1388 / production 360×1295 / padded 360×1388 / mismatched 47210px / **9.45%**
 - mockup PNG: `tests/visual/diffs/master/14-nsm-step4-A-overview-mobile-360-mockup.png`
 - production PNG: `tests/visual/diffs/master/14-nsm-step4-A-overview-mobile-360-production.png`
 - diff PNG: `tests/visual/diffs/master/14-nsm-step4-A-overview-mobile-360-diff.png`
 
 ### Mockup 14-nsm-step4-A-overview · tablet-768: 🟠 < 15% (state diff 預期)
 
-- mockup 768×1284 / production 768×1294 / padded 768×1294 / mismatched 75319px / **7.58%**
+- mockup 768×1324 / production 768×1260 / padded 768×1324 / mismatched 75067px / **7.38%**
 - mockup PNG: `tests/visual/diffs/master/14-nsm-step4-A-overview-tablet-768-mockup.png`
 - production PNG: `tests/visual/diffs/master/14-nsm-step4-A-overview-tablet-768-production.png`
 - diff PNG: `tests/visual/diffs/master/14-nsm-step4-A-overview-tablet-768-diff.png`
 
 ### Mockup 14-nsm-step4-A-overview · desktop-1280: 🟠 < 15% (state diff 預期)
 
-- mockup 1280×1100 / production 1280×1100 / padded 1280×1100 / mismatched 71437px / **5.07%**
+- mockup 1280×1100 / production 1280×1100 / padded 1280×1100 / mismatched 78692px / **5.59%**
 - mockup PNG: `tests/visual/diffs/master/14-nsm-step4-A-overview-desktop-1280-mockup.png`
 - production PNG: `tests/visual/diffs/master/14-nsm-step4-A-overview-desktop-1280-production.png`
 - diff PNG: `tests/visual/diffs/master/14-nsm-step4-A-overview-desktop-1280-diff.png`
 
 ### Mockup 14-nsm-step4-B-comparison · mobile-360: 🟠 < 15% (state diff 預期)
 
-- mockup 360×1459 / production 360×1478 / padded 360×1478 / mismatched 33163px / **6.23%**
+- mockup 360×1498 / production 360×1444 / padded 360×1498 / mismatched 30853px / **5.72%**
 - mockup PNG: `tests/visual/diffs/master/14-nsm-step4-B-comparison-mobile-360-mockup.png`
 - production PNG: `tests/visual/diffs/master/14-nsm-step4-B-comparison-mobile-360-production.png`
 - diff PNG: `tests/visual/diffs/master/14-nsm-step4-B-comparison-mobile-360-diff.png`
 
 ### Mockup 14-nsm-step4-B-comparison · tablet-768: 🟡 < 5%
 
-- mockup 768×1100 / production 768×1100 / padded 768×1100 / mismatched 33648px / **3.98%**
+- mockup 768×1100 / production 768×1100 / padded 768×1100 / mismatched 30263px / **3.58%**
 - mockup PNG: `tests/visual/diffs/master/14-nsm-step4-B-comparison-tablet-768-mockup.png`
 - production PNG: `tests/visual/diffs/master/14-nsm-step4-B-comparison-tablet-768-production.png`
 - diff PNG: `tests/visual/diffs/master/14-nsm-step4-B-comparison-tablet-768-diff.png`
 
 ### Mockup 14-nsm-step4-B-comparison · desktop-1280: 🟡 < 5%
 
-- mockup 1280×1100 / production 1280×1100 / padded 1280×1100 / mismatched 41706px / **2.96%**
+- mockup 1280×1100 / production 1280×1100 / padded 1280×1100 / mismatched 31942px / **2.27%**
 - mockup PNG: `tests/visual/diffs/master/14-nsm-step4-B-comparison-desktop-1280-mockup.png`
 - production PNG: `tests/visual/diffs/master/14-nsm-step4-B-comparison-desktop-1280-production.png`
 - diff PNG: `tests/visual/diffs/master/14-nsm-step4-B-comparison-desktop-1280-diff.png`
 
 ### Mockup 14-nsm-step4-Bprime-coach-expand · mobile-360: 🟠 < 15% (state diff 預期)
 
-- mockup 360×1143 / production 360×1749 / padded 360×1749 / mismatched 63478px / **10.08%**
+- mockup 360×1183 / production 360×1715 / padded 360×1715 / mismatched 41401px / **6.71%**
 - mockup PNG: `tests/visual/diffs/master/14-nsm-step4-Bprime-coach-expand-mobile-360-mockup.png`
 - production PNG: `tests/visual/diffs/master/14-nsm-step4-Bprime-coach-expand-mobile-360-production.png`
 - diff PNG: `tests/visual/diffs/master/14-nsm-step4-Bprime-coach-expand-mobile-360-diff.png`
 
 ### Mockup 14-nsm-step4-Bprime-coach-expand · tablet-768: 🟠 < 15% (state diff 預期)
 
-- mockup 768×1100 / production 768×1100 / padded 768×1100 / mismatched 53656px / **6.35%**
+- mockup 768×1100 / production 768×1100 / padded 768×1100 / mismatched 70635px / **8.36%**
 - mockup PNG: `tests/visual/diffs/master/14-nsm-step4-Bprime-coach-expand-tablet-768-mockup.png`
 - production PNG: `tests/visual/diffs/master/14-nsm-step4-Bprime-coach-expand-tablet-768-production.png`
 - diff PNG: `tests/visual/diffs/master/14-nsm-step4-Bprime-coach-expand-tablet-768-diff.png`
 
-### Mockup 14-nsm-step4-Bprime-coach-expand · desktop-1280: 🟡 < 5%
+### Mockup 14-nsm-step4-Bprime-coach-expand · desktop-1280: 🟠 < 15% (state diff 預期)
 
-- mockup 1280×1100 / production 1280×1100 / padded 1280×1100 / mismatched 57068px / **4.05%**
+- mockup 1280×1100 / production 1280×1100 / padded 1280×1100 / mismatched 80297px / **5.70%**
 - mockup PNG: `tests/visual/diffs/master/14-nsm-step4-Bprime-coach-expand-desktop-1280-mockup.png`
 - production PNG: `tests/visual/diffs/master/14-nsm-step4-Bprime-coach-expand-desktop-1280-production.png`
 - diff PNG: `tests/visual/diffs/master/14-nsm-step4-Bprime-coach-expand-desktop-1280-diff.png`
 
 ### Mockup 14-nsm-step4-C-highlights · mobile-360: 🟠 < 15% (state diff 預期)
 
-- mockup 360×1100 / production 360×1100 / padded 360×1100 / mismatched 30552px / **7.72%**
+- mockup 360×1100 / production 360×1100 / padded 360×1100 / mismatched 40041px / **10.11%**
 - mockup PNG: `tests/visual/diffs/master/14-nsm-step4-C-highlights-mobile-360-mockup.png`
 - production PNG: `tests/visual/diffs/master/14-nsm-step4-C-highlights-mobile-360-production.png`
 - diff PNG: `tests/visual/diffs/master/14-nsm-step4-C-highlights-mobile-360-diff.png`
 
-### Mockup 14-nsm-step4-C-highlights · tablet-768: 🟠 < 15% (state diff 預期)
+### Mockup 14-nsm-step4-C-highlights · tablet-768: 🟡 < 5%
 
-- mockup 768×1100 / production 768×1100 / padded 768×1100 / mismatched 47542px / **5.63%**
+- mockup 768×1100 / production 768×1100 / padded 768×1100 / mismatched 27126px / **3.21%**
 - mockup PNG: `tests/visual/diffs/master/14-nsm-step4-C-highlights-tablet-768-mockup.png`
 - production PNG: `tests/visual/diffs/master/14-nsm-step4-C-highlights-tablet-768-production.png`
 - diff PNG: `tests/visual/diffs/master/14-nsm-step4-C-highlights-tablet-768-diff.png`
 
 ### Mockup 14-nsm-step4-C-highlights · desktop-1280: 🟡 < 5%
 
-- mockup 1280×1100 / production 1280×1100 / padded 1280×1100 / mismatched 67255px / **4.78%**
+- mockup 1280×1100 / production 1280×1100 / padded 1280×1100 / mismatched 33445px / **2.38%**
 - mockup PNG: `tests/visual/diffs/master/14-nsm-step4-C-highlights-desktop-1280-mockup.png`
 - production PNG: `tests/visual/diffs/master/14-nsm-step4-C-highlights-desktop-1280-production.png`
 - diff PNG: `tests/visual/diffs/master/14-nsm-step4-C-highlights-desktop-1280-diff.png`
 
 ### Mockup 14-nsm-step4-D-done · mobile-360: 🟠 < 15% (state diff 預期)
 
-- mockup 360×1100 / production 360×1100 / padded 360×1100 / mismatched 33405px / **8.44%**
+- mockup 360×1100 / production 360×1100 / padded 360×1100 / mismatched 24917px / **6.29%**
 - mockup PNG: `tests/visual/diffs/master/14-nsm-step4-D-done-mobile-360-mockup.png`
 - production PNG: `tests/visual/diffs/master/14-nsm-step4-D-done-mobile-360-production.png`
 - diff PNG: `tests/visual/diffs/master/14-nsm-step4-D-done-mobile-360-diff.png`
 
 ### Mockup 14-nsm-step4-D-done · tablet-768: 🟡 < 5%
 
-- mockup 768×1100 / production 768×1100 / padded 768×1100 / mismatched 36265px / **4.29%**
+- mockup 768×1100 / production 768×1100 / padded 768×1100 / mismatched 27162px / **3.22%**
 - mockup PNG: `tests/visual/diffs/master/14-nsm-step4-D-done-tablet-768-mockup.png`
 - production PNG: `tests/visual/diffs/master/14-nsm-step4-D-done-tablet-768-production.png`
 - diff PNG: `tests/visual/diffs/master/14-nsm-step4-D-done-tablet-768-diff.png`
 
 ### Mockup 14-nsm-step4-D-done · desktop-1280: 🟡 < 5%
 
-- mockup 1280×1100 / production 1280×1100 / padded 1280×1100 / mismatched 45380px / **3.22%**
+- mockup 1280×1100 / production 1280×1100 / padded 1280×1100 / mismatched 29727px / **2.11%**
 - mockup PNG: `tests/visual/diffs/master/14-nsm-step4-D-done-desktop-1280-mockup.png`
 - production PNG: `tests/visual/diffs/master/14-nsm-step4-D-done-desktop-1280-production.png`
 - diff PNG: `tests/visual/diffs/master/14-nsm-step4-D-done-desktop-1280-diff.png`
 
 ### Mockup 16-resume-D-circles-eval · mobile-360: 🟠 < 15% (state diff 預期)
 
-- mockup 360×700 / production 360×1175 / padded 360×1175 / mismatched 46540px / **11.00%**
+- mockup 360×700 / production 360×1223 / padded 360×1223 / mismatched 48870px / **11.10%**
 - mockup PNG: `tests/visual/diffs/master/16-resume-D-circles-eval-mobile-360-mockup.png`
 - production PNG: `tests/visual/diffs/master/16-resume-D-circles-eval-mobile-360-production.png`
 - diff PNG: `tests/visual/diffs/master/16-resume-D-circles-eval-mobile-360-diff.png`
 
 ### Mockup 16-resume-D-circles-eval · tablet-768: 🟠 < 15% (state diff 預期)
 
-- mockup 768×700 / production 768×912 / padded 768×912 / mismatched 63548px / **9.07%**
+- mockup 768×700 / production 768×888 / padded 768×888 / mismatched 63391px / **9.30%**
 - mockup PNG: `tests/visual/diffs/master/16-resume-D-circles-eval-tablet-768-mockup.png`
 - production PNG: `tests/visual/diffs/master/16-resume-D-circles-eval-tablet-768-production.png`
 - diff PNG: `tests/visual/diffs/master/16-resume-D-circles-eval-tablet-768-diff.png`
 
 ### Mockup 16-resume-D-circles-eval · desktop-1280: 🟠 < 15% (state diff 預期)
 
-- mockup 1215×700 / production 1280×910 / padded 1280×910 / mismatched 65436px / **5.62%**
+- mockup 1215×700 / production 1280×934 / padded 1280×934 / mismatched 67761px / **5.67%**
 - mockup PNG: `tests/visual/diffs/master/16-resume-D-circles-eval-desktop-1280-mockup.png`
 - production PNG: `tests/visual/diffs/master/16-resume-D-circles-eval-desktop-1280-production.png`
 - diff PNG: `tests/visual/diffs/master/16-resume-D-circles-eval-desktop-1280-diff.png`
 
 ### Mockup 16-resume-D-nsm-gate · mobile-360: 🟠 < 15% (state diff 預期)
 
-- mockup 360×700 / production 360×1779 / padded 360×1779 / mismatched 94225px / **14.71%**
+- mockup 360×700 / production 360×1779 / padded 360×1779 / mismatched 93191px / **14.55%**
 - mockup PNG: `tests/visual/diffs/master/16-resume-D-nsm-gate-mobile-360-mockup.png`
 - production PNG: `tests/visual/diffs/master/16-resume-D-nsm-gate-mobile-360-production.png`
 - diff PNG: `tests/visual/diffs/master/16-resume-D-nsm-gate-mobile-360-diff.png`
 
 ### Mockup 16-resume-D-nsm-gate · tablet-768: 🟠 < 15% (state diff 預期)
 
-- mockup 768×700 / production 768×1540 / padded 768×1540 / mismatched 134321px / **11.36%**
+- mockup 768×700 / production 768×1540 / padded 768×1540 / mismatched 134027px / **11.33%**
 - mockup PNG: `tests/visual/diffs/master/16-resume-D-nsm-gate-tablet-768-mockup.png`
 - production PNG: `tests/visual/diffs/master/16-resume-D-nsm-gate-tablet-768-production.png`
 - diff PNG: `tests/visual/diffs/master/16-resume-D-nsm-gate-tablet-768-diff.png`
 
 ### Mockup 16-resume-D-nsm-gate · desktop-1280: 🟠 < 15% (state diff 預期)
 
-- mockup 1215×700 / production 1280×1560 / padded 1280×1560 / mismatched 179921px / **9.01%**
+- mockup 1215×700 / production 1280×1560 / padded 1280×1560 / mismatched 179524px / **8.99%**
 - mockup PNG: `tests/visual/diffs/master/16-resume-D-nsm-gate-desktop-1280-mockup.png`
 - production PNG: `tests/visual/diffs/master/16-resume-D-nsm-gate-desktop-1280-production.png`
 - diff PNG: `tests/visual/diffs/master/16-resume-D-nsm-gate-desktop-1280-diff.png`
 
 ### Mockup 16-resume-D-phase4-report · mobile-360: 🟠 < 15% (state diff 預期)
 
-- mockup 360×700 / production 360×1156 / padded 360×1156 / mismatched 46206px / **11.10%**
+- mockup 360×700 / production 360×1156 / padded 360×1156 / mismatched 47455px / **11.40%**
 - mockup PNG: `tests/visual/diffs/master/16-resume-D-phase4-report-mobile-360-mockup.png`
 - production PNG: `tests/visual/diffs/master/16-resume-D-phase4-report-mobile-360-production.png`
 - diff PNG: `tests/visual/diffs/master/16-resume-D-phase4-report-mobile-360-diff.png`
 
 ### Mockup 16-resume-D-phase4-report · tablet-768: 🟠 < 15% (state diff 預期)
 
-- mockup 768×700 / production 768×888 / padded 768×888 / mismatched 64364px / **9.44%**
+- mockup 768×700 / production 768×912 / padded 768×912 / mismatched 63903px / **9.12%**
 - mockup PNG: `tests/visual/diffs/master/16-resume-D-phase4-report-tablet-768-mockup.png`
 - production PNG: `tests/visual/diffs/master/16-resume-D-phase4-report-tablet-768-production.png`
 - diff PNG: `tests/visual/diffs/master/16-resume-D-phase4-report-tablet-768-diff.png`
 
 ### Mockup 16-resume-D-phase4-report · desktop-1280: 🟠 < 15% (state diff 預期)
 
-- mockup 1215×700 / production 1280×910 / padded 1280×910 / mismatched 66010px / **5.67%**
+- mockup 1215×700 / production 1280×934 / padded 1280×934 / mismatched 66395px / **5.55%**
 - mockup PNG: `tests/visual/diffs/master/16-resume-D-phase4-report-desktop-1280-mockup.png`
 - production PNG: `tests/visual/diffs/master/16-resume-D-phase4-report-desktop-1280-production.png`
 - diff PNG: `tests/visual/diffs/master/16-resume-D-phase4-report-desktop-1280-diff.png`
