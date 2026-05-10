@@ -1268,7 +1268,7 @@
     var typeCfg = getNsmDimConfig(ptype);
     var def = AppState.nsmDefinition || { nsm: '', explanation: '', businessLink: '' };
     var canSubmit = fieldMinLengthOk(def.nsm, 10) && fieldMinLengthOk(def.explanation, 30) && fieldMinLengthOk(def.businessLink, 30);
-    return '<div data-view="nsm">'
+    var html = '<div data-view="nsm">'
       + '<div class="phase-head">'
       +   '<span class="phase-head__num">2</span>'
       +   '<div class="phase-head__main">'
@@ -1288,6 +1288,7 @@
       +   '<div class="submit-bar__left"><button class="btn btn--ghost" data-nsm-action="back"><i class="ph ph-arrow-left"></i>上一步</button></div>'
       +   '<div class="submit-bar__right"><button class="btn btn--primary" data-nsm-submit ' + (canSubmit ? '' : 'disabled') + '>提交審核<i class="ph ph-arrow-right"></i></button></div>'
       + '</div></div>';
+    return applyNSMStateOverlay(html, 2);
   }
 
   // Loading checklist steps — mockup 08 §D verbatim
@@ -1579,7 +1580,7 @@
     var typeCfg = getNsmDimConfig(ptype);
     var br = AppState.nsmBreakdown || {};
     var canSubmit = typeCfg.dims.every(function (d) { return fieldMinLengthOk(br[d.id], 20); });
-    return '<div data-view="nsm">'
+    var html = '<div data-view="nsm">'
       + '<div class="phase-head">'
       +   '<span class="phase-head__num">3</span>'
       +   '<div class="phase-head__main">'
@@ -1603,6 +1604,7 @@
       +   '<div class="submit-bar__left"><button class="btn btn--ghost" data-nsm-action="back-to-step2"><i class="ph ph-arrow-left"></i>上一步</button></div>'
       +   '<div class="submit-bar__right"><button class="btn btn--primary" data-nsm-submit ' + (canSubmit ? '' : 'disabled') + '>送出，取得 AI 評分<i class="ph ph-arrow-right"></i></button></div>'
       + '</div></div>';
+    return applyNSMStateOverlay(html, 3);
   }
 
   function renderNSMDim(dim, value, ptype) {
@@ -1792,6 +1794,14 @@
       backToStep2Btn.addEventListener('click', function () {
         AppState.nsmStep = 2;
         AppState.nsmSubTab = 'nsm-step2';
+        render();
+      });
+    }
+    // ── [data-nsm-action="view-eval-result"] — locked overlay → jump to Step 4 report ──
+    var viewEvalBtn = document.querySelector('[data-nsm-action="view-eval-result"]');
+    if (viewEvalBtn) {
+      viewEvalBtn.addEventListener('click', function () {
+        AppState.nsmStep = 4;
         render();
       });
     }
@@ -3433,6 +3443,57 @@
         '<button class="btn btn--primary" data-phase1="submit" disabled>下一步（請先恢復連線）</button>'
       );
     }
+
+    return html;
+  }
+
+  // applyNSMStateOverlay — post-render transform: inject banner + rt-field--locked + submit-bar variant
+  // Per UNIVERSAL standing rule feedback_lock_state_hint_example_always_available.md:
+  //   only lock textarea inputs + submit; NEVER touch .field__hint-row / .field__hint-link / .field-example-toggle
+  // step === 2: lock nsm-input + nsm-rt-field (3 fields) + submit-bar → 「查看評分結果」
+  // step === 3: lock nsm-rt-field.nsm-rt-textarea (4 dim textareas) + submit-bar → 「查看評分結果」
+  function applyNSMStateOverlay(html, step) {
+    if (!AppState.nsmEvalResult) return html;
+
+    // 1) inject banner before <div class="nsm-body"
+    var bannerHtml = '<div class="banner banner--locked">'
+      + '<span class="banner__icon"><i class="ph ph-lock-key"></i></span>'
+      + '<div class="banner__main">'
+      + '<div class="banner__title">已評分完成</div>'
+      + '<div class="banner__sub">內容鎖定，可繼續查看提示與範例</div>'
+      + '</div>'
+      + '</div>';
+    var injectMarker = '<div class="nsm-body"';
+    var idx = html.indexOf(injectMarker);
+    if (idx !== -1) {
+      html = html.slice(0, idx) + bannerHtml + html.slice(idx);
+    }
+
+    // 2) add rt-field--locked class to NSM input fields
+    if (step === 2) {
+      // NSM single-line input (Step 2 first field: nsm-input)
+      html = html.split('class="nsm-input"').join('class="nsm-input rt-field--locked"');
+      html = html.replace(/class="nsm-input rt-field--locked"([^>]*)data-nsm-field/g,
+        'class="nsm-input rt-field--locked" readonly$1data-nsm-field');
+      // rich-text div fields (explanation + businessLink)
+      html = html.split('class="nsm-rt-field"').join('class="nsm-rt-field rt-field--locked"');
+      // contenteditable="true" → "false" for div-based rt-textarea
+      html = html.split('contenteditable="true"').join('contenteditable="false"');
+    } else if (step === 3) {
+      // dim textarea fields — nsm-rt-field wrapper
+      html = html.split('class="nsm-rt-field"').join('class="nsm-rt-field rt-field--locked"');
+      // <textarea class="nsm-rt-textarea" → add readonly
+      html = html.replace(/<textarea class="nsm-rt-textarea"/g, '<textarea class="nsm-rt-textarea" readonly');
+    }
+
+    // 3) replace primary submit button with 「查看評分結果 →」
+    // Step 2: button text is 提交審核
+    // Step 3: button text is 送出，取得 AI 評分
+    // data-nsm-submit may be followed by ' disabled' or ' ' (trailing space from ternary)
+    html = html.replace(
+      /<button class="btn btn--primary" data-nsm-submit[^>]*>[^<]*<i class="ph ph-arrow-right"><\/i><\/button>/,
+      '<button class="btn btn--primary" data-nsm-action="view-eval-result">查看評分結果<i class="ph ph-arrow-right"></i></button>'
+    );
 
     return html;
   }

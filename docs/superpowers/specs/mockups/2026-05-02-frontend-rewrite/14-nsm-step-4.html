@@ -87,6 +87,12 @@
     .nsm-nav__title { font-size: var(--t-body-sm); font-weight: 600; color: var(--c-ink); letter-spacing: -0.005em; }
     .nsm-nav__sub { font-size: var(--t-cap); color: var(--c-ink-3); margin-top: 2px; }
 
+    /* qchip (persistent question chip) — LOCKED copy from mockup 13 lines 91-94 */
+    .qchip { padding: var(--s-2) var(--s-4); background: var(--c-bg); border-bottom: 1px solid var(--c-rule); display: flex; align-items: center; gap: var(--s-2); cursor: pointer; }
+    .qchip__pill { padding: 2px var(--s-2); border-radius: var(--r-pill); font-size: var(--t-cap); background: var(--c-navy-lt); color: var(--c-navy); font-weight: 600; flex: 0 0 auto; }
+    .qchip__title { flex: 1; font-size: var(--t-meta); color: var(--c-ink-2); white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+    .qchip__caret { color: var(--c-ink-3); font-size: 14px; flex: 0 0 auto; }
+
     /* ───── 14-specific NEW components ───── */
 
     /* nsm-summary 大字 score + 公司 */
@@ -569,7 +575,7 @@
       <h1>NSM Step 4 報告 — 4 tabs × 3 viewports = 12 frames（總覽 / 對比 / 亮點 / 完成）</h1>
       <p class="ds-header__sub">
         SP4 § C 規格：4 個 tabs 全部重做；mobile/tablet/desktop 各 layout 不同。
-        共用 chrome：navbar + nsm-nav「NSM 報告 · Spotify · Spotify Podcast」+ nsm-summary（大字 80 + / 100 + 公司）+ tab-bar 4 tabs（總覽 / 對比 / 亮點 / 完成）。<br>
+        共用 chrome：navbar + nsm-nav「NSM 報告 · Spotify · Spotify Podcast」+ <strong>qchip 題目情境</strong>（pill「NSM」+ 題目標題 single-line truncated，mirror mockup 13 LOCKED）+ nsm-summary（大字 80 + / 100 + 公司）+ tab-bar 4 tabs（總覽 / 對比 / 亮點 / 完成）。<br>
         <strong>Tab 1 總覽</strong>：mobile/tablet 直式 radar 上 + 5 score rows 下；desktop 2-col（左 380px radar / 右 1fr score-rows）。
         <strong>Tab 2 對比</strong>：mobile 你的 / 教練上下堆疊每維度自成一塊；tablet/desktop 2-col side-by-side（header row「你的拆解 · 教練版本（點擊看思路）」+ 5 列 = NSM + reach/depth/frequency/impact）。
         <strong>Tab 3 亮點</strong>：mobile 1-col 3 cards；tablet 2-col（亮點+陷阱並排，總評跨 2 欄）；desktop 3-col（最大亮點 / 主要陷阱 / <strong>下一步建議</strong> NEW border-left success）+ 總評跨 3 欄。
@@ -582,7 +588,7 @@
     <!-- Section A — Tab 1 · 總覽（radar + 5 score rows）              -->
     <!-- ============================================================ -->
     <h2 class="vp-section-title">A · Tab 1 總覽 · Radar + 5 dim score rows<span class="vp-section-title__sub">mobile/tablet 直式 / desktop 2-col</span></h2>
-    <div class="anno"><strong>視覺契約：</strong>nsm-summary（Italic 80 navy 56px + / 100 + Spotify · Spotify Podcast）+ tab-bar 4 tabs（總覽 active）+ <strong>5-axis pentagon radar navy polygon（去紫）</strong>+ 5 score rows（價值關聯 4/5 high / 領先指標 4/5 high / 操作性 5/5 high / 可理解性 4/5 high / 週期敏感 3/5 mid + 教練 comment 一行 navy bar；score 字色 grade-based：≥4 success / 3 navy / ≤2 warn）。Desktop 2-col（左 380px radar 卡 / 右 1fr score-rows 卡）。</div>
+    <div class="anno"><strong>視覺契約：</strong><strong>qchip 題目情境</strong>（pill「NSM」+ 題目標題 single-line truncated，mirror mockup 13 LOCKED）+ nsm-summary（Italic 80 navy 56px + / 100 + Spotify · Spotify Podcast）+ tab-bar 4 tabs（總覽 active）+ <strong>5-axis pentagon radar navy polygon（去紫）</strong>+ 5 score rows（價值關聯 4/5 high / 領先指標 4/5 high / 操作性 5/5 high / 可理解性 4/5 high / 週期敏感 3/5 mid + 教練 comment 一行 navy bar；score 字色 grade-based：≥4 success / 3 navy / ≤2 warn）。Desktop 2-col（左 380px radar 卡 / 右 1fr score-rows 卡）。</div>
     <div class="vp-grid">
 
       <!-- A · Mobile 360 -->
@@ -600,6 +606,10 @@
               <div class="nsm-nav__title">NSM 報告</div>
               <div class="nsm-nav__sub">Spotify · Spotify Podcast</div>
             </div>
+          </div>
+          <div class="qchip">
+            <span class="qchip__pill">NSM</span>
+            <span class="qchip__title">為 Spotify Podcast 業務定義北極星指標，目標是衡量新用戶能否養成日常收聽習慣。</span>
           </div>
           <div class="nsm-summary">
             <span class="nsm-summary__score">80</span>
@@ -711,6 +721,10 @@
               <div class="nsm-nav__sub">Spotify · Spotify Podcast</div>
             </div>
           </div>
+          <div class="qchip">
+            <span class="qchip__pill">NSM</span>
+            <span class="qchip__title">為 Spotify Podcast 業務定義北極星指標，目標是衡量新用戶能否養成日常收聽習慣。</span>
+          </div>
           <div class="nsm-summary">
             <span class="nsm-summary__score">80</span>
             <span class="nsm-summary__unit">/ 100</span>
@@ -801,6 +815,10 @@
               <div class="nsm-nav__sub">Spotify · Spotify Podcast</div>
             </div>
           </div>
+          <div class="qchip">
+            <span class="qchip__pill">NSM</span>
+            <span class="qchip__title">為 Spotify Podcast 業務定義北極星指標，目標是衡量新用戶能否養成日常收聽習慣。</span>
+          </div>
           <div class="nsm-summary">
             <span class="nsm-summary__score">80</span>
             <span class="nsm-summary__unit">/ 100</span>
@@ -881,7 +899,7 @@
     <!-- Section B — Tab 2 · 對比（你的 vs 教練版 5 列）                -->
     <!-- ============================================================ -->
     <h2 class="vp-section-title">B · Tab 2 對比 · 你的 vs 教練版（NSM + 4 dim 5 列）<span class="vp-section-title__sub">mobile 上下堆疊 / tablet+desktop 2-col side-by-side</span></h2>
-    <div class="anno"><strong>視覺契約：</strong>mobile 每維度自成 block（dim title + 你的 card grey 邊 + 教練 card navy 邊 上下堆疊）；tablet+desktop 改 2-col grid（header row「你的拆解 / 教練版本（點擊看思路）」+ 5 列 = 北極星指標 + 觸及廣度 + 互動深度 + 習慣頻率 + 留存驅力，每列 label-key 14px serif italic + 你的 card + 教練 card 並列）。</div>
+    <div class="anno"><strong>視覺契約：</strong><strong>qchip 題目情境</strong>（pill「NSM」+ 題目標題 single-line truncated）持續顯示於所有 frames。mobile 每維度自成 block（dim title + 你的 card grey 邊 + 教練 card navy 邊 上下堆疊）；tablet+desktop 改 2-col grid（header row「你的拆解 / 教練版本（點擊看思路）」+ 5 列 = 北極星指標 + 觸及廣度 + 互動深度 + 習慣頻率 + 留存驅力，每列 label-key 14px serif italic + 你的 card + 教練 card 並列）。</div>
     <div class="vp-grid">
 
       <!-- B · Mobile 360 -->
@@ -896,6 +914,10 @@
           <div class="nsm-nav">
             <button class="nsm-nav__back"><i class="ph ph-arrow-left"></i></button>
             <div class="nsm-nav__main"><div class="nsm-nav__title">NSM 報告</div><div class="nsm-nav__sub">Spotify · Spotify Podcast</div></div>
+          </div>
+          <div class="qchip">
+            <span class="qchip__pill">NSM</span>
+            <span class="qchip__title">為 Spotify Podcast 業務定義北極星指標，目標是衡量新用戶能否養成日常收聽習慣。</span>
           </div>
           <div class="nsm-summary">
             <span class="nsm-summary__score">80</span><span class="nsm-summary__unit">/ 100</span>
@@ -959,6 +981,10 @@
             <button class="nsm-nav__back"><i class="ph ph-arrow-left"></i></button>
             <div class="nsm-nav__main"><div class="nsm-nav__title">NSM 報告</div><div class="nsm-nav__sub">Spotify · Spotify Podcast</div></div>
           </div>
+          <div class="qchip">
+            <span class="qchip__pill">NSM</span>
+            <span class="qchip__title">為 Spotify Podcast 業務定義北極星指標，目標是衡量新用戶能否養成日常收聽習慣。</span>
+          </div>
           <div class="nsm-summary">
             <span class="nsm-summary__score">80</span><span class="nsm-summary__unit">/ 100</span>
             <div class="nsm-summary__company"><div class="nsm-summary__company-name">Spotify</div><div class="nsm-summary__company-sub">注意力型</div></div>
@@ -1019,6 +1045,10 @@
             <button class="nsm-nav__back"><i class="ph ph-arrow-left"></i></button>
             <div class="nsm-nav__main"><div class="nsm-nav__title">NSM 報告</div><div class="nsm-nav__sub">Spotify · Spotify Podcast</div></div>
           </div>
+          <div class="qchip">
+            <span class="qchip__pill">NSM</span>
+            <span class="qchip__title">為 Spotify Podcast 業務定義北極星指標，目標是衡量新用戶能否養成日常收聽習慣。</span>
+          </div>
           <div class="nsm-summary">
             <span class="nsm-summary__score">80</span><span class="nsm-summary__unit">/ 100</span>
             <div class="nsm-summary__company"><div class="nsm-summary__company-name">Spotify · Spotify Podcast</div><div class="nsm-summary__company-sub">注意力型 · 模擬完成</div></div>
@@ -1072,7 +1102,7 @@
     <!-- Section B' — Tab 2 · 對比（教練思路展開狀態）                    -->
     <!-- ============================================================ -->
     <h2 class="vp-section-title">B' · Tab 2 對比 · 點擊教練版 → 思路展開狀態<span class="vp-section-title__sub">mobile bottom-sheet drawer / tablet+desktop inline panel · navy 配色（無黃色）</span></h2>
-    <div class="anno"><strong>視覺契約：</strong>點擊任一教練版 card → 該 card 加 `.is-active` highlight（navy 邊光 + navy-lt bg），並在下方/底部顯示思路 panel：<strong>desktop/tablet 採 inline panel</strong>（白底 + navy left border + 兩段內容：教練思路 + 為什麼這樣拆解）；<strong>mobile 採 bottom-sheet drawer</strong>（從底部上推，含 handle bar / close 鈕 / 同樣的兩段內容）。<strong>配色 navy 中性</strong>，不用 production 原本黃色 #FFF8E7（user 不喜歡）。範例展開「觸及廣度」教練版：「曝過情境式提示的 Free 用戶（月活）」+ 教練思路 + 為什麼這樣拆解。</div>
+    <div class="anno"><strong>視覺契約：</strong><strong>qchip 題目情境</strong> 持續顯示於頁頂。點擊任一教練版 card → 該 card 加 `.is-active` highlight（navy 邊光 + navy-lt bg），並在下方/底部顯示思路 panel：<strong>desktop/tablet 採 inline panel</strong>（白底 + navy left border + 兩段內容：教練思路 + 為什麼這樣拆解）；<strong>mobile 採 bottom-sheet drawer</strong>（從底部上推，含 handle bar / close 鈕 / 同樣的兩段內容）。<strong>配色 navy 中性</strong>，不用 production 原本黃色 #FFF8E7（user 不喜歡）。範例展開「觸及廣度」教練版：「曝過情境式提示的 Free 用戶（月活）」+ 教練思路 + 為什麼這樣拆解。</div>
     <div class="vp-grid">
 
       <!-- B' · Mobile 360（with bottom sheet） -->
@@ -1085,6 +1115,10 @@
             <div class="navbar__actions"><button class="navbar__icon-btn"><i class="ph ph-house"></i></button></div>
           </div>
           <div class="nsm-nav"><button class="nsm-nav__back"><i class="ph ph-arrow-left"></i></button><div class="nsm-nav__main"><div class="nsm-nav__title">NSM 報告</div><div class="nsm-nav__sub">Spotify · Spotify Podcast</div></div></div>
+          <div class="qchip">
+            <span class="qchip__pill">NSM</span>
+            <span class="qchip__title">為 Spotify Podcast 業務定義北極星指標，目標是衡量新用戶能否養成日常收聽習慣。</span>
+          </div>
           <div class="nsm-summary"><span class="nsm-summary__score">80</span><span class="nsm-summary__unit">/ 100</span><div class="nsm-summary__company"><div class="nsm-summary__company-name">Spotify</div><div class="nsm-summary__company-sub">注意力型</div></div></div>
           <div class="tab-bar"><button class="tab-bar__btn">總覽</button><button class="tab-bar__btn is-active">對比</button><button class="tab-bar__btn">亮點</button><button class="tab-bar__btn">完成</button></div>
           <div class="nsm-body">
@@ -1131,6 +1165,10 @@
             <div class="navbar__actions"><button class="navbar__icon-btn"><i class="ph ph-magnifying-glass"></i></button><button class="navbar__icon-btn"><i class="ph ph-house"></i></button></div>
           </div>
           <div class="nsm-nav"><button class="nsm-nav__back"><i class="ph ph-arrow-left"></i></button><div class="nsm-nav__main"><div class="nsm-nav__title">NSM 報告</div><div class="nsm-nav__sub">Spotify · Spotify Podcast</div></div></div>
+          <div class="qchip">
+            <span class="qchip__pill">NSM</span>
+            <span class="qchip__title">為 Spotify Podcast 業務定義北極星指標，目標是衡量新用戶能否養成日常收聽習慣。</span>
+          </div>
           <div class="nsm-summary"><span class="nsm-summary__score">80</span><span class="nsm-summary__unit">/ 100</span><div class="nsm-summary__company"><div class="nsm-summary__company-name">Spotify</div><div class="nsm-summary__company-sub">注意力型</div></div></div>
           <div class="tab-bar"><button class="tab-bar__btn">總覽</button><button class="tab-bar__btn is-active">對比</button><button class="tab-bar__btn">亮點</button><button class="tab-bar__btn">完成</button></div>
           <div class="nsm-body">
@@ -1190,6 +1228,10 @@
             <div class="navbar__actions"><span class="navbar__email">albert@example.com</span><button class="navbar__icon-btn"><i class="ph ph-house"></i></button></div>
           </div>
           <div class="nsm-nav"><button class="nsm-nav__back"><i class="ph ph-arrow-left"></i></button><div class="nsm-nav__main"><div class="nsm-nav__title">NSM 報告</div><div class="nsm-nav__sub">Spotify · Spotify Podcast</div></div></div>
+          <div class="qchip">
+            <span class="qchip__pill">NSM</span>
+            <span class="qchip__title">為 Spotify Podcast 業務定義北極星指標，目標是衡量新用戶能否養成日常收聽習慣。</span>
+          </div>
           <div class="nsm-summary"><span class="nsm-summary__score">80</span><span class="nsm-summary__unit">/ 100</span><div class="nsm-summary__company"><div class="nsm-summary__company-name">Spotify · Spotify Podcast</div><div class="nsm-summary__company-sub">注意力型 · 模擬完成</div></div></div>
           <div class="tab-bar"><button class="tab-bar__btn">總覽</button><button class="tab-bar__btn is-active">對比</button><button class="tab-bar__btn">亮點</button><button class="tab-bar__btn">完成</button></div>
           <div class="nsm-body">
@@ -1245,7 +1287,7 @@
     <!-- Section C — Tab 3 · 亮點（最大亮點 / 主要陷阱 / 下一步建議 / 總評） -->
     <!-- ============================================================ -->
     <h2 class="vp-section-title">C · Tab 3 亮點 · 4 cards 自適應排版<span class="vp-section-title__sub">mobile 1-col / tablet 2-col + 總評跨 2 / desktop 3-col + 總評跨 3</span></h2>
-    <div class="anno"><strong>視覺契約：</strong>4 cards：最大亮點（success 綠 + ph-trophy）/ 主要陷阱（warn 橘 + ph-warning-circle）/ <strong>下一步建議</strong>（NEW · navy + ph-arrow-right + border-left success 區分）/ 總評（neutral grey + ph-chat-text）。Mobile 單欄 4 cards 直堆；Tablet 2-col 前 2 卡並排，下一步建議單獨一行（或可跨 2），總評跨 2 欄；Desktop 3-col（最大亮點 / 主要陷阱 / 下一步建議）+ 總評跨 3 欄。</div>
+    <div class="anno"><strong>視覺契約：</strong><strong>qchip 題目情境</strong> 持續顯示於頁頂。4 cards：最大亮點（success 綠 + ph-trophy）/ 主要陷阱（warn 橘 + ph-warning-circle）/ <strong>下一步建議</strong>（NEW · navy + ph-arrow-right + border-left success 區分）/ 總評（neutral grey + ph-chat-text）。Mobile 單欄 4 cards 直堆；Tablet 2-col 前 2 卡並排，下一步建議單獨一行（或可跨 2），總評跨 2 欄；Desktop 3-col（最大亮點 / 主要陷阱 / 下一步建議）+ 總評跨 3 欄。</div>
     <div class="vp-grid">
 
       <!-- C · Mobile 360 -->
@@ -1258,6 +1300,10 @@
             <div class="navbar__actions"><button class="navbar__icon-btn"><i class="ph ph-house"></i></button></div>
           </div>
           <div class="nsm-nav"><button class="nsm-nav__back"><i class="ph ph-arrow-left"></i></button><div class="nsm-nav__main"><div class="nsm-nav__title">NSM 報告</div><div class="nsm-nav__sub">Spotify · Spotify Podcast</div></div></div>
+          <div class="qchip">
+            <span class="qchip__pill">NSM</span>
+            <span class="qchip__title">為 Spotify Podcast 業務定義北極星指標，目標是衡量新用戶能否養成日常收聽習慣。</span>
+          </div>
           <div class="nsm-summary"><span class="nsm-summary__score">80</span><span class="nsm-summary__unit">/ 100</span><div class="nsm-summary__company"><div class="nsm-summary__company-name">Spotify</div><div class="nsm-summary__company-sub">注意力型</div></div></div>
           <div class="tab-bar"><button class="tab-bar__btn">總覽</button><button class="tab-bar__btn">對比</button><button class="tab-bar__btn is-active">亮點</button><button class="tab-bar__btn">完成</button></div>
           <div class="nsm-body">
@@ -1294,6 +1340,10 @@
             <div class="navbar__actions"><button class="navbar__icon-btn"><i class="ph ph-magnifying-glass"></i></button><button class="navbar__icon-btn"><i class="ph ph-house"></i></button></div>
           </div>
           <div class="nsm-nav"><button class="nsm-nav__back"><i class="ph ph-arrow-left"></i></button><div class="nsm-nav__main"><div class="nsm-nav__title">NSM 報告</div><div class="nsm-nav__sub">Spotify · Spotify Podcast</div></div></div>
+          <div class="qchip">
+            <span class="qchip__pill">NSM</span>
+            <span class="qchip__title">為 Spotify Podcast 業務定義北極星指標，目標是衡量新用戶能否養成日常收聽習慣。</span>
+          </div>
           <div class="nsm-summary"><span class="nsm-summary__score">80</span><span class="nsm-summary__unit">/ 100</span><div class="nsm-summary__company"><div class="nsm-summary__company-name">Spotify</div><div class="nsm-summary__company-sub">注意力型</div></div></div>
           <div class="tab-bar"><button class="tab-bar__btn">總覽</button><button class="tab-bar__btn">對比</button><button class="tab-bar__btn is-active">亮點</button><button class="tab-bar__btn">完成</button></div>
           <div class="nsm-body">
@@ -1317,6 +1367,10 @@
             <div class="navbar__actions"><span class="navbar__email">albert@example.com</span><button class="navbar__icon-btn"><i class="ph ph-house"></i></button></div>
           </div>
           <div class="nsm-nav"><button class="nsm-nav__back"><i class="ph ph-arrow-left"></i></button><div class="nsm-nav__main"><div class="nsm-nav__title">NSM 報告</div><div class="nsm-nav__sub">Spotify · Spotify Podcast</div></div></div>
+          <div class="qchip">
+            <span class="qchip__pill">NSM</span>
+            <span class="qchip__title">為 Spotify Podcast 業務定義北極星指標，目標是衡量新用戶能否養成日常收聽習慣。</span>
+          </div>
           <div class="nsm-summary"><span class="nsm-summary__score">80</span><span class="nsm-summary__unit">/ 100</span><div class="nsm-summary__company"><div class="nsm-summary__company-name">Spotify · Spotify Podcast</div><div class="nsm-summary__company-sub">注意力型 · 模擬完成</div></div></div>
           <div class="tab-bar"><button class="tab-bar__btn">總覽</button><button class="tab-bar__btn">對比</button><button class="tab-bar__btn is-active">亮點</button><button class="tab-bar__btn">完成</button></div>
           <div class="nsm-body">
@@ -1336,7 +1390,7 @@
     <!-- Section D — Tab 4 · 完成（done-panel 取代空白頁）              -->
     <!-- ============================================================ -->
     <h2 class="vp-section-title">D · Tab 4 完成 · done-panel 取代 production 空白頁<span class="vp-section-title__sub">success-tinted check-circle + 鼓勵文 + 再練一題 + desktop ghost 回首頁 + tip card</span></h2>
-    <div class="anno"><strong>視覺契約：</strong>取代 production 「只有再練一次按鈕 + 空白」的 barebones：done-panel（icon ph-check-circle 64×64 success-lt 圓 + 標題「完成這次 NSM 訓練」+ 內文「本次得分 <strong>80 分</strong>，距離滿分還差 20 分；表現扎實，4/5 個維度達標」+ 主按鈕「再練一題 ph-shuffle navy」+ desktop 加 ghost「回首頁」）+ 下方 done-secondary tip card（「NSM 練習小技巧」+ 3 條 bullets）。</div>
+    <div class="anno"><strong>視覺契約：</strong><strong>qchip 題目情境</strong> 持續顯示於頁頂。取代 production 「只有再練一次按鈕 + 空白」的 barebones：done-panel（icon ph-check-circle 64×64 success-lt 圓 + 標題「完成這次 NSM 訓練」+ 內文「本次得分 <strong>80 分</strong>，距離滿分還差 20 分；表現扎實，4/5 個維度達標」+ 主按鈕「再練一題 ph-shuffle navy」+ desktop 加 ghost「回首頁」）+ 下方 done-secondary tip card（「NSM 練習小技巧」+ 3 條 bullets）。</div>
     <div class="vp-grid">
 
       <!-- D · Mobile 360 -->
@@ -1349,6 +1403,10 @@
             <div class="navbar__actions"><button class="navbar__icon-btn"><i class="ph ph-house"></i></button></div>
           </div>
           <div class="nsm-nav"><button class="nsm-nav__back"><i class="ph ph-arrow-left"></i></button><div class="nsm-nav__main"><div class="nsm-nav__title">NSM 報告</div><div class="nsm-nav__sub">Spotify · Spotify Podcast</div></div></div>
+          <div class="qchip">
+            <span class="qchip__pill">NSM</span>
+            <span class="qchip__title">為 Spotify Podcast 業務定義北極星指標，目標是衡量新用戶能否養成日常收聽習慣。</span>
+          </div>
           <div class="nsm-summary"><span class="nsm-summary__score">80</span><span class="nsm-summary__unit">/ 100</span><div class="nsm-summary__company"><div class="nsm-summary__company-name">Spotify</div><div class="nsm-summary__company-sub">注意力型</div></div></div>
           <div class="tab-bar"><button class="tab-bar__btn">總覽</button><button class="tab-bar__btn">對比</button><button class="tab-bar__btn">亮點</button><button class="tab-bar__btn is-active">完成</button></div>
           <div class="nsm-body">
@@ -1383,6 +1441,10 @@
             <div class="navbar__actions"><button class="navbar__icon-btn"><i class="ph ph-magnifying-glass"></i></button><button class="navbar__icon-btn"><i class="ph ph-house"></i></button></div>
           </div>
           <div class="nsm-nav"><button class="nsm-nav__back"><i class="ph ph-arrow-left"></i></button><div class="nsm-nav__main"><div class="nsm-nav__title">NSM 報告</div><div class="nsm-nav__sub">Spotify · Spotify Podcast</div></div></div>
+          <div class="qchip">
+            <span class="qchip__pill">NSM</span>
+            <span class="qchip__title">為 Spotify Podcast 業務定義北極星指標，目標是衡量新用戶能否養成日常收聽習慣。</span>
+          </div>
           <div class="nsm-summary"><span class="nsm-summary__score">80</span><span class="nsm-summary__unit">/ 100</span><div class="nsm-summary__company"><div class="nsm-summary__company-name">Spotify</div><div class="nsm-summary__company-sub">注意力型</div></div></div>
           <div class="tab-bar"><button class="tab-bar__btn">總覽</button><button class="tab-bar__btn">對比</button><button class="tab-bar__btn">亮點</button><button class="tab-bar__btn is-active">完成</button></div>
           <div class="nsm-body">
@@ -1416,6 +1478,10 @@
             <div class="navbar__actions"><span class="navbar__email">albert@example.com</span><button class="navbar__icon-btn"><i class="ph ph-house"></i></button></div>
           </div>
           <div class="nsm-nav"><button class="nsm-nav__back"><i class="ph ph-arrow-left"></i></button><div class="nsm-nav__main"><div class="nsm-nav__title">NSM 報告</div><div class="nsm-nav__sub">Spotify · Spotify Podcast</div></div></div>
+          <div class="qchip">
+            <span class="qchip__pill">NSM</span>
+            <span class="qchip__title">為 Spotify Podcast 業務定義北極星指標，目標是衡量新用戶能否養成日常收聽習慣。</span>
+          </div>
           <div class="nsm-summary"><span class="nsm-summary__score">80</span><span class="nsm-summary__unit">/ 100</span><div class="nsm-summary__company"><div class="nsm-summary__company-name">Spotify · Spotify Podcast</div><div class="nsm-summary__company-sub">注意力型 · 模擬完成</div></div></div>
           <div class="tab-bar"><button class="tab-bar__btn">總覽</button><button class="tab-bar__btn">對比</button><button class="tab-bar__btn">亮點</button><button class="tab-bar__btn is-active">完成</button></div>
           <div class="nsm-body">
