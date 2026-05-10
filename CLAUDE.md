@@ -23,8 +23,7 @@
 
 | 項目 | 狀態 |
 |---|---|
-| 14-box gate → merge main | 🟡 13/14（待 user director eyeball walk）|
-| Plan E Final Ship Readiness | ✅ READY（待 14-box gate 收尾）|
+| Phase A + B Final Ship Readiness | 🟡 跑中（jest + Playwright + pixel-diff + iOS 靜檢 + UAT SOP）|
 | P3 follow-ups（8 條） | 📋 memory `project_pending_followups_2026-05-09.md` |
 
 > 已完成的 plans（A / B SB1-10 + Phase 2-4 / C SB1-3 / D SB1-2 / Combo C / 多輪 hotfix）見 `git log`
@@ -63,7 +62,7 @@
 
 | 路徑 | branch | 狀態 |
 |---|---|---|
-| 主 repo | main | 17/17 mockup ship / jest 143/143 |
+| 主 repo | main | 17/17 mockup ship / jest 170/187 (162 baseline + 8 nsm-step3-hint) |
 | `first-principle-path2-b-circles` | feat/path-2-circles-core | Plan B 平行 worktree |
 | `first-principle-path2-c-nsm` | feat/path-2-nsm | Plan C 平行 worktree |
 | `first-principle-path2-d-cross` | feat/path-2-cross-cutting | Plan D 平行 worktree |
@@ -101,9 +100,9 @@
 
 ## Tests / Quality Gates
 
-- **jest 基線：** 143/143
-- **Playwright：** full suite × 8 viewport（iPhone-SE / iPhone-14 / iPhone-15-Pro / iPad / Mobile-360 / Desktop-1280 / 1440 / 2560）
-- **Adversarial sweep：** `npm run test:adversarial` — 5 stages × 10 cases，所有新 AI 審核/gate/評分 ship 前必跑
+- **jest 基線：** 170/187（162 baseline + 8 nsm-step3-hint，17 skipped 不算 regression）
+- **Playwright：** full suite × 8 viewport（iPhone-SE / iPhone-14 / iPhone-15-Pro / iPad / Mobile-360 / Desktop-1280 / 1440 / 2560）+ 3 Phase B specs（typewriter 4/4 / qchip 6/6 / lock state 6/6）
+- **Adversarial sweep：** `npm run test:adversarial` — 5 + 1 stages × 10 cases (新加 circles-coach 9/9 + nsm-step3-hint 8/8)，所有新 AI 審核/gate/評分 ship 前必跑
 
 ---
 
