@@ -1606,17 +1606,6 @@
   }
 
   function renderNSMDim(dim, value, ptype) {
-    var isHintOpen = !!(AppState.nsmHintExpanded && AppState.nsmHintExpanded[dim.id]);
-    var hintLabel = isHintOpen ? '收起教練提示' : '查看教練提示';
-    var hintHtml = '';
-    if (isHintOpen && dim.hint) {
-      // render hint — use markdownBulletsToHtml if available, else plain text
-      var hintContent = (typeof markdownBulletsToHtml === 'function')
-        ? markdownBulletsToHtml(dim.hint)
-        : escHtml(dim.hint);
-      hintHtml = '<div class="nsm-dim__hint-content">' + hintContent + '</div>';
-    }
-
     // Example expand from q.field_examples.step3[dim.id]
     var q = AppState.nsmSelectedQuestion || {};
     var step3Examples = (q.field_examples && q.field_examples.step3) || {};
@@ -1644,9 +1633,6 @@
       + '<div class="nsm-dim__body">'
       +   '<div class="nsm-dim__coach"><i class="ph ph-chat-dots"></i>' + escHtml(dim.coachQ) + '</div>'
       +   '<div class="field__hint-row">'
-      +     '<button class="nsm-dim__hint-btn" data-nsm-hint-toggle="' + escHtml(dim.id) + '" aria-expanded="' + (isHintOpen ? 'true' : 'false') + '">'
-      +       '<i class="ph ph-lightbulb"></i>' + escHtml(hintLabel)
-      +     '</button>'
       +     '<button class="field__hint-link" type="button" data-nsm-step3-hint="' + escHtml(dim.id) + '" data-nsm-dim-type="' + escHtml(ptype || 'attention') + '">'
       +       '<i class="ph ph-lightbulb"></i>提示'
       +     '</button>'
@@ -1654,12 +1640,11 @@
       +       '<i class="ph ph-quotes"></i>範例答案<i class="ph ph-caret-down toggle-caret"' + dimExCaretStyle + '></i>'
       +     '</button>' : '')
       +   '</div>'
-      +   hintHtml
-      +   dimExpandHtml
       +   '<div class="nsm-rt-field"><div class="nsm-rt-toolbar">'
       +     '<button class="nsm-rt-tbtn" data-rt-cmd="bold" title="粗體"><strong>B</strong></button>'
       +     '<button class="nsm-rt-tbtn" data-rt-cmd="insertUnorderedList" title="列點"><i class="ph ph-list-bullets"></i></button>'
       +   '</div><textarea class="nsm-rt-textarea" data-nsm-dim="' + escHtml(dim.id) + '">' + escHtml(value) + '</textarea></div>'
+      +   dimExpandHtml
       + '</div></div>';
   }
 
@@ -3510,7 +3495,7 @@
     // data-nsm-submit may be followed by ' disabled' or ' ' (trailing space from ternary)
     html = html.replace(
       /<button class="btn btn--primary" data-nsm-submit[^>]*>[^<]*<i class="ph ph-arrow-right"><\/i><\/button>/,
-      '<button class="btn btn--primary" data-nsm-action="view-eval-result">查看評分結果<i class="ph ph-arrow-right"></i></button>'
+      '<button class="btn btn--primary" data-nsm-action="view-eval-result">下一步<i class="ph ph-arrow-right"></i></button>'
     );
 
     return html;
@@ -4163,7 +4148,7 @@
       + '<button class="rt-tbtn" type="button" aria-label="項目符號"><i class="ph ph-list-bullets"></i></button>'
       + '</div>';
 
-    var metaSpan = minMax ? '<span>建議 ' + minMax + ' 字' + (idx === 0 && hint ? ' · ' + hint : '') + '</span>' : '';
+    var metaSpan = '';
     // char-counter (field 1 only): show current length + warn class when below floor
     var counterSpan = '';
     if (idx === 0) {
@@ -4177,8 +4162,7 @@
       var _currentLen = String(_rawVal).replace(/<[^>]*>/g, '').trim().replace(/\s/g, '').length;
       var _isBelowFloor = floorN > 0 && _currentLen < floorN;
       var counterClass = _isBelowFloor ? 'char-counter is-below-floor' : 'char-counter';
-      var floorSuffix = _isBelowFloor ? '（至少 ' + floorN + ' 字）' : '';
-      counterSpan = '<span class="' + counterClass + '">' + _currentLen + ' / ' + max + (floorSuffix ? ' ' + floorSuffix : '') + '</span>';
+      counterSpan = '<span class="' + counterClass + '">' + _currentLen + ' / ' + max + '</span>';
     }
     var metaHtml = (metaSpan || counterSpan)
       ? '<div class="field__meta">' + metaSpan + counterSpan + '</div>'
@@ -4568,7 +4552,6 @@
         +     '</div>'
         +     '<div class="rt-textarea" contenteditable="true" data-placeholder="' + escHtml(f.placeholder) + '" data-circles-e-sol-idx="' + solIdx + '" data-circles-e-field-key="' + f.key + '" data-max="' + f.max + '" style="min-height:' + (f.rows * 1.6 + 1) + 'em;"></div>'
         +   '</div>'
-        +   '<div class="field__meta" style="font-size: var(--t-cap); color: var(--c-ink-3); margin-top: 2px;">建議 ' + f.minMax + ' 字</div>'
         +   renderExampleExpand('E', f.label, dataKey)
         + '</div>';
     }).join('');
@@ -4713,13 +4696,11 @@
         + '</div>';
     });
 
-    // industry text for sub line
+    // industry text for sub line (removed per 2026-05-10 inline coaching cleanup)
     var industry = (q && q.industry) ? q.industry : '';
-    var trackingSub = '分別說明北極星指標的 reach / depth / frequency / impact。本題（' + typeLabelDisplay + (industry ? ' / ' + industry : '') + '）label 自動切換為對應產業術語。';
 
     var trackingSectionHtml = '<div class="tracking-section">'
       + '<h3 class="tracking-section__head">追蹤指標 · 4 個維度</h3>'
-      + '<p class="tracking-section__sub">' + escHtml(trackingSub) + '</p>'
       + '<div class="tracking-grid">' + trackingCardsHtml + '</div>'
       + '</div>';
 
@@ -6995,8 +6976,7 @@
               var floorN = fieldCfg ? parseFloor(fieldCfg.minMax) : 0;
               var isBelowFloor = floorN > 0 && nonWsLen < floorN;
               counter.className = isBelowFloor ? 'char-counter is-below-floor' : 'char-counter';
-              var floorSuffix = isBelowFloor ? '（至少 ' + floorN + ' 字）' : '';
-              counter.textContent = nonWsLen + ' / ' + max + (floorSuffix ? ' ' + floorSuffix : '');
+              counter.textContent = nonWsLen + ' / ' + max;
             }
           }
           // Layer 1: update submit button disabled state in-place (no full re-render)
@@ -7555,13 +7535,19 @@
   async function loadCirclesSessionFromHistory(item) {
     if (!item || !item.id) return;
 
-    // NSM path (no full restore needed — item already complete)
+    // NSM path — restore all fields needed by renderNSMStep* before render()
     var isNsm = !item.mode && !item.drill_step;
     if (isNsm) {
       AppState.offcanvasOpen = false;
-      AppState.nsmStep = 4;
       AppState.nsmSession = item;
+      AppState.nsmSelectedQuestion = item.question_json || null;
+      AppState.nsmDefinition = item.user_nsm || { nsm: '', explanation: '', businessLink: '' };
+      AppState.nsmBreakdown = item.user_breakdown || { reach: '', depth: '', frequency: '', impact: '' };
       AppState.nsmEvalResult = item.scores_json || null;
+      // Always land on Step 1 (mirror Issue 2b CIRCLES fix) — avoid auto-landing on eval
+      // result page which causes 卡死 if session data is incomplete.
+      // User navigates forward via tab nav after reviewing context.
+      AppState.nsmStep = 1;
       AppState.view = 'nsm';
       render();
       return;
