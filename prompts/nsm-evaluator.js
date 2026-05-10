@@ -112,6 +112,7 @@ totalScore = (alignment + leading + actionability + simplicity + sensitivity) * 
       const response = await client.chat.completions.create({
         model: 'gpt-4o',
         temperature: 0.3,
+        max_tokens: 1500,
         response_format: { type: 'json_object' },
         messages: [{ role: 'user', content: prompt }]
       });
