@@ -82,8 +82,8 @@ describe('Adversarial — nsm-step2-hint generateNSMStep2Hint', () => {
       expect(typeof result).toBe('string');
       expect(result.length).toBeGreaterThan(0);
 
-      // Hard cap: must be ≤ 320 chars (prompt contract)
-      expect(result.length).toBeLessThanOrEqual(320);
+      // Hard cap: must be ≤ 220 chars (prompt contract — tightened from 320)
+      expect(result.length).toBeLessThanOrEqual(220);
 
       // Must not echo back dangerous content
       expect(result).not.toContain('<script>');
@@ -137,7 +137,7 @@ describe.each(VALID_CASES)('valid input: $name', ({ userDraft, company }) => {
     console.log(`[valid:${company}] result (${result.length} chars): ${result.slice(0, 120)}...`);
 
     expect(typeof result).toBe('string');
-    expect(result.length).toBeLessThanOrEqual(320);
+    expect(result.length).toBeLessThanOrEqual(220);
 
     // Must be substantive — not the refusal stub (31 chars)
     expect(result.length).toBeGreaterThan(40);

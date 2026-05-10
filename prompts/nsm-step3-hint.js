@@ -5,30 +5,150 @@ const openai = new OpenAI({ apiKey: process.env.OPENAI_API_KEY });
 // Key format: '<productType>.<dimId>' for 2 primary types (attention / saas).
 // Other types (transaction, creator) share structurally similar dims and fall
 // back to the closest analogue or the dimId-only key.
+// Each entry uses the same 4-field schema as CIRCLES FIELD_GUIDANCE.
 const FIELD_GUIDANCE = {
   // ── Attention 型 ─────────────────────────────────────────────────────────
-  'attention.reach': '觸及廣度 — 你定義的 NSM 涵蓋多少 user？是 MAU? DAU? 還是某個 segment? 寫一個能 query DB 的 numerator/denominator。',
-  'attention.depth': '互動深度 — 用戶每次 session 投入多深？時長、完播率、互動次數哪個最能反映真實價值消費，而非打開 App 即算。',
-  'attention.frequency': '習慣頻率 — 用戶多久回來一次？DAU/MAU 比或「每週 ≥ N 天活躍」哪種更能判斷習慣養成，而非偶發登入？',
-  'attention.impact': '留存驅力 — 是什麼讓用戶 30 天後仍然回來？社交關係、個人化推薦、還是收藏習慣？指出最強的留存槓桿並說明因果。',
+  'attention.reach': {
+    purpose: '定義 NSM 分子/分母，確保分子代表真實價值消費而非純登入',
+    key_question: '你的分子門檻是「打開 App」還是「完成了什麼核心動作」？這個差別有多大？',
+    must_include: ['明確分子（完成核心動作的用戶數）', '明確分母（訂閱/啟用用戶 base）', '說明排除了哪種 vanity 行為'],
+    good_answer_shape: '分母：[全訂閱/DAU base]；分子：[每月至少完成 X 核心行為的用戶數]；排除 [純登入/純瀏覽] 因為 [這些不代表真實價值消費]。',
+  },
+  'attention.depth': {
+    purpose: '量化每次 session 的真實投入程度，區分「真正消費內容」與「打開 App 即算」',
+    key_question: '時長、完播率、互動次數——哪個最能說明用戶「這次真的有所收穫」，而非背景開著沒看？',
+    must_include: ['選定一個深度維度（時長/完播率/互動次數）', '說明為何這個維度比其他更能反映真實消費', '定義量化門檻'],
+    good_answer_shape: '選用 [完播率/時長/互動次數]，門檻設 [具體數值]，因為這能排除 [背景播放/短暫試看] 這類不反映真實投入的行為。',
+  },
+  'attention.frequency': {
+    purpose: '判斷習慣是否真正養成，而非偶發性使用',
+    key_question: 'DAU/MAU 比還是「每週 ≥ N 天活躍」——哪個更能區分真正有習慣的用戶與偶爾回訪者？',
+    must_include: ['選定頻率衡量方式（DAU/MAU 比 or 每週活躍天數）', '說明習慣養成門檻的選擇依據', '排除節假日/促銷期偶發高峰'],
+    good_answer_shape: '用「每週 ≥ [N] 天完成 [核心行為]」的用戶比例，而非 DAU/MAU 比，因為前者能排除 [偶發登入/節假日高峰]，真正反映習慣內化。',
+  },
+  'attention.impact': {
+    purpose: '找出驅動 30 天後留存的最強槓桿，並說明因果而非相關',
+    key_question: '是什麼讓用戶月底仍願意續訂？社交關係、個人化推薦、收藏習慣——哪個因果最強、最可操作？',
+    must_include: ['指出 1 個最強留存槓桿（非全部羅列）', '說明因果鏈（不只是相關）', '連結到 NSM 的可觀察行為'],
+    good_answer_shape: '最強留存槓桿是 [具體行為/功能]。因果鏈：用戶完成 [NSM 行為] → [中間狀態] → 30 天後續訂率 ↑ [X%]。非「用戶體驗更好」的泛泛相關。',
+  },
 
   // ── SaaS 型 ──────────────────────────────────────────────────────────────
-  'saas.reach': '啟用廣度 — 新客戶中有多少真正完成 Activation（非僅 signup）？分母是「新開帳號數」，分子是「完成核心工作流的人數」，邊界要清楚。',
-  'saas.depth': '席次深度 — 企業付費但有幾人實際在用？分子用「過去 30 天完成核心動作的人數」、分母用「已開通席次數」，排除 admin / IT / 純 viewer 角色。',
-  'saas.frequency': '黏著頻率 — 產品是否已嵌入日常工作流？DAU/MAU 比或「每工作日至少登入 1 次的席次比例」能反映剛需程度，而非偶爾查看。',
-  'saas.impact': '擴張信號 — 現有客戶是否在增加使用（NRR > 100%）？追蹤「90 天內發生 upsell/seat 擴張的帳號比例」，連結到可操作的擴張動作。',
+  'saas.reach': {
+    purpose: '衡量新客戶中真正完成 Activation 的比例（非僅 signup）',
+    key_question: '你的 Activation 門檻是「建帳號」還是「完成核心工作流一次」？前者是 vanity，後者才有意義。',
+    must_include: ['明確 Activation 定義（完成哪個核心工作流動作）', '分子/分母清楚（新帳號中完成 Activation 的數量）', '說明排除了哪種表面行為'],
+    good_answer_shape: '分母：[新開帳號數 / 期間]；分子：[同期完成核心工作流 ≥ 1 次的帳號數]；排除 [僅登入/僅瀏覽 UI] 因為 [這些不代表真正使用]。',
+  },
+  'saas.depth': {
+    purpose: '衡量付費席次中有多少人真正在使用（非「有帳號」等於「有在用」）',
+    key_question: '企業買了 100 席，有多少人在做真正的核心動作？admin / IT / 純 viewer 計入會虛高數字。',
+    must_include: ['分子為完成核心動作的人數', '分母為已開通席次數', '明確排除 admin / IT / viewer 角色'],
+    good_answer_shape: '分母：[已開通席次數]；分子：[過去 30 天完成 [核心動作] 的非 admin/viewer 席次數]；目標比例 ≥ [X%] 才算健康啟用深度。',
+  },
+  'saas.frequency': {
+    purpose: '判斷產品是否已嵌入日常工作流，而非偶爾查看',
+    key_question: '每工作日登入 1 次的席次比例，還是 DAU/MAU 比——哪個更能反映「剛需嵌入」而非「想到才用」？',
+    must_include: ['選定頻率指標（每工作日登入比例 or DAU/MAU 比）', '設定「剛需」門檻（如 ≥ 3 個工作日/週）', '排除週末/假日影響'],
+    good_answer_shape: '用「每工作日至少 [登入/完成核心動作] 1 次的席次比例」，門檻 ≥ [X%]，排除週末雜訊；DAU/MAU 比適合 B2C，B2B 更需工作日維度。',
+  },
+  'saas.impact': {
+    purpose: '追蹤現有客戶是否在擴張使用，連結 NRR 與可操作的帳號行為',
+    key_question: 'NRR > 100% 代表什麼？哪個帳號層級的行為信號最能預測 90 天後的 upsell 或 seat 擴張？',
+    must_include: ['追蹤 upsell/擴張席次的帳號比例', '連結到具體的前兆行為（非僅 NRR 數字）', '說明可操作的擴張動作'],
+    good_answer_shape: 'NRR ↑ 的前兆：[具體帳號行為，如每週用滿 N 席 / 跨部門使用 / 達到用量上限] → 90 天內 upsell 率 ↑ [X%]；追蹤「90 天內發生 upsell 的帳號比例」作為 leading indicator。',
+  },
 
-  // ── Transaction / Creator 型 fallback（dim-id-only keys）─────────────────
-  reach:     '觸及 / 啟用廣度 — 多少用戶或供給方真正完成核心動作（非僅登入）？明確 numerator/denominator，排除表面 vanity metric。',
-  depth:     '互動 / 需求深度 — 每次使用的品質與投入程度如何量化？時長、金額、複雜度或互動次數哪個最能反映真實價值？',
-  frequency: '習慣 / 匹配頻率 — 用戶多久完成一次核心行為？以能 query DB 的具體門檻（次數/天數/比例）呈現，而非「常常使用」。',
-  impact:    '留存 / 商業轉化 — 指標上升如何導致留存率、復購率或商業收入成長？寫出因果鏈而非泛泛「更好的體驗」。',
+  // ── Transaction 型（fallback for transaction type, dim-id keys）───────────
+  'transaction.reach': {
+    purpose: '定義有效交易用戶 base，確保分子代表真實完成交易而非僅瀏覽或加購',
+    key_question: '分子是「瀏覽過商品的人」還是「真正完成至少一筆交易的人」？這個邊界決定 reach 的意義。',
+    must_include: ['明確交易完成的定義（付款成功/配送完成）', '分子/分母清楚', '排除未完成/退款交易'],
+    good_answer_shape: '分母：[登入用戶 / MAU base]；分子：[月內完成 ≥ 1 筆有效交易（付款成功且無退款）的用戶數]；排除 [瀏覽/加購/未付款]。',
+  },
+  'transaction.depth': {
+    purpose: '衡量每次交易的品質與投入程度——金額、品類廣度、還是複雜度？',
+    key_question: '客單價、品類數、還是交易複雜度（如自訂商品）——哪個最能說明「用戶這次真的深度使用了平台」？',
+    must_include: ['選定深度維度（客單價/品類數/交易複雜度）', '說明為何這個維度優於其他', '定義量化門檻'],
+    good_answer_shape: '選用 [客單價/品類廣度/交易複雜度]，門檻設 [具體數值]，因為這排除了 [單一低價品衝量] 的虛假繁榮，反映真實平台黏性。',
+  },
+  'transaction.frequency': {
+    purpose: '判斷交易習慣是否真正建立，而非促銷驅動的偶發購買',
+    key_question: '「每月 ≥ N 筆」還是「30 天後回購率」——哪個更能區分習慣型用戶與促銷搶購者？',
+    must_include: ['選定頻率衡量（月均交易次數 or 回購率）', '說明排除促銷偶發高峰的方法', '設定習慣化門檻'],
+    good_answer_shape: '用「去除促銷期後的 30 天回購率 ≥ [X%]」，而非月均交易次數，因為前者能排除 [大促偶發購買]，反映真正的消費習慣內化。',
+  },
+  'transaction.impact': {
+    purpose: '說明交易指標上升如何導致商業結果（GMV/復購/LTV），而非泛泛「更多交易更好」',
+    key_question: '交易頻率或金額上升，如何具體連結到 GMV 成長、留存率提升、或 LTV 增加？因果鏈要可量化。',
+    must_include: ['寫出因果鏈（不只相關）', '連結到具體商業指標（GMV/LTV/復購率）', '排除一個容易誤導的相關指標'],
+    good_answer_shape: '[交易頻率/金額] ↑ → [具體中間行為] ↑ → [GMV/LTV/復購率] ↑ [X%]；不是「交易多了就更賺」，而是 [具體機制說明]。',
+  },
+
+  // ── Creator 型（fallback for creator type, dim-id keys）──────────────────
+  'creator.reach': {
+    purpose: '定義有效創作者 base，確保分子代表真正發布內容並被消費，而非僅有帳號',
+    key_question: '分子是「有過帳號的創作者」還是「在觀察期內發布了被觀看的內容的人」？邊界直接影響指標意義。',
+    must_include: ['明確「有效創作者」定義（發布 ≥ N 件且被消費）', '分子/分母清楚', '排除零消費/純試水帳號'],
+    good_answer_shape: '分母：[平台所有已建立創作者帳號]；分子：[月內發布 ≥ [N] 件且累計獲得 ≥ [X] 次觀看/互動的創作者數]；排除 [發布即無人觀看的帳號]。',
+  },
+  'creator.depth': {
+    purpose: '衡量每位創作者的內容投入程度與受眾連結深度',
+    key_question: '發布數量、內容完整度、受眾互動率——哪個最能說明「這位創作者在平台上真的有深度參與」？',
+    must_include: ['選定深度維度（發布數/互動率/內容完整度）', '說明為何這個維度優於純發布量', '定義量化門檻'],
+    good_answer_shape: '選用 [受眾互動率/內容完整度/系列更新頻率]，門檻設 [具體數值]，因為這排除了 [大量低品質水貨] 的發布量虛高，反映真實創作深度。',
+  },
+  'creator.frequency': {
+    purpose: '判斷創作者是否建立穩定更新習慣，而非偶發衝量',
+    key_question: '「每週 ≥ N 件」還是「連續更新天數」——哪個更能區分習慣性創作者與活動期衝量者？',
+    must_include: ['選定更新頻率指標（每週發布次數 or 連續更新週數）', '排除活動/挑戰期偶發高峰', '設定習慣化門檻'],
+    good_answer_shape: '用「去除特定活動期後連續 ≥ [N] 週維持 ≥ [X] 件發布的創作者比例」，排除 [一次性挑戰衝量]，反映平台內容供給的真實穩定性。',
+  },
+  'creator.impact': {
+    purpose: '說明創作者指標上升如何帶動平台商業成果（廣告收入/付費會員/創作者留存），而非泛泛「更多內容更好」',
+    key_question: '創作者活躍度上升，如何具體連結到平台廣告收入、訂閱轉換、或頭部創作者留存？因果鏈要可量化。',
+    must_include: ['寫出因果鏈', '連結到具體商業指標（廣告收入/訂閱/創作者留存率）', '排除一個容易混淆的相關指標'],
+    good_answer_shape: '[活躍創作者數/互動率] ↑ → [內容豐富度/受眾黏性] ↑ → [廣告收入/訂閱轉換] ↑ [X%]；不是「內容多了流量就高」，而是 [具體受眾行為變化機制]。',
+  },
+
+  // ── Generic fallback（dim-id-only keys，用於未知 type）──────────────────
+  reach: {
+    purpose: '定義 NSM 的觸及分子/分母，確保分子代表真實核心動作而非表面 vanity 行為',
+    key_question: '你的分子是「登入過的人」還是「真正完成了核心動作的人」？這個邊界決定整個指標的意義。',
+    must_include: ['明確分子（核心動作的用戶數）', '明確分母（相關 base）', '排除表面 vanity 行為'],
+    good_answer_shape: '分母：[相關 user base]；分子：[完成核心動作的用戶數]；排除 [登入/頁面瀏覽等表面行為] 因為 [這些不反映用戶真正獲得價值]。',
+  },
+  depth: {
+    purpose: '量化每次使用的品質與投入程度，區分「真正有所收穫」與「表面操作」',
+    key_question: '時長、金額、複雜度、互動次數——哪個最能說明「這次使用用戶真的投入了」？',
+    must_include: ['選定一個深度維度', '說明為何優於其他維度', '定義量化門檻'],
+    good_answer_shape: '選用 [時長/金額/互動次數/完成度]，門檻設 [具體數值]，因為這排除了 [表面操作/低品質使用]，反映真實的投入深度。',
+  },
+  frequency: {
+    purpose: '判斷核心行為是否真正成為習慣，而非促銷/活動驅動的偶發使用',
+    key_question: '「每週 ≥ N 次完成核心行為」還是「30 天回訪率」——哪個更能區分習慣型用戶與偶發使用者？',
+    must_include: ['選定頻率指標（次數/回訪率/連續天數）', '排除活動期偶發高峰', '設定習慣化門檻'],
+    good_answer_shape: '用「去除活動期後每 [週期] 完成 ≥ [N] 次核心行為的用戶比例」，門檻 ≥ [X%]，排除 [促銷/活動偶發高峰]，反映真實習慣。',
+  },
+  impact: {
+    purpose: '說明核心指標上升如何導致商業成果（留存/收入/復購），而非泛泛「更好的體驗」',
+    key_question: '指標上升如何具體連結到留存率、營收或復購？因果鏈要可量化，不只是相關。',
+    must_include: ['寫出因果鏈（不只相關）', '連結到具體商業指標', '說明可操作的干預點'],
+    good_answer_shape: '[核心指標] ↑ → [具體中間行為] ↑ → [留存率/收入/復購率] ↑ [X%]；不是「體驗更好」，而是 [具體機制說明] 導致 [可量化的商業結果]。',
+  },
 };
 
 async function generateNSMStep3Hint({ questionJson, dimId, dimType, userDraft }) {
   const key = dimType ? `${dimType}.${dimId}` : dimId;
   const guidance = FIELD_GUIDANCE[key] || FIELD_GUIDANCE[dimId] || FIELD_GUIDANCE['attention.reach'];
   const { company, scenario, industry } = questionJson || {};
+
+  const guidanceContext = typeof guidance === 'object'
+    ? `這個維度的功能：${guidance.purpose}
+核心提問：${guidance.key_question}
+必含元素：${guidance.must_include.join(' / ')}
+合格答案結構（校準參考，不要直接輸出此句型，用它來判斷學員草稿缺什麼）：${guidance.good_answer_shape}`
+    : `維度指引：${guidance}`;
 
   const systemPrompt = `你是 PM 教練，為學員提供 NSM 輸入指標拆解的個人化提示。
 
@@ -43,12 +163,12 @@ async function generateNSMStep3Hint({ questionJson, dimId, dimType, userDraft })
 ## 提示格式要求
 針對「${company || '此公司'}」這道題，給學員 1 個啟發性問題 + 1-2 個思考方向。
 
-維度指引：${guidance}
+${guidanceContext}
 
 輸出格式（嚴格遵守）：
 - 巢狀 markdown bullets（頂層用「- 」，子項用「  - 」）
-- 整段 ≤ 320 chars（含標點）
-- 頂層 2-3 項
+- 整段 ≤ 220 chars（含標點）
+- 頂層 2 項，每項可帶 1 子項
 - 1-3 個 **bold** 關鍵字
 - 純繁體中文，不用 emoji，不加「例：」「我會」等前綴`;
 
@@ -75,8 +195,8 @@ ${userDraft || '（空）'}
       let text = resp.choices[0].message.content.trim();
       // Strip filler prefixes if model ignores instructions
       text = text.replace(/^(例[：:]|範例[：:]|以下是[^\n]*|這是[^\n]*|我會[^\n]*)[^\n]*\n+/u, '');
-      // Hard cap
-      if (text.length > 320) text = text.slice(0, 318) + '…';
+      // Hard cap (220 chars — tighter cap improves hint density)
+      if (text.length > 220) text = text.slice(0, 218) + '…';
       return text;
     } catch (e) {
       if (attempt === 2) throw new Error('提示生成暫時失敗，請重試');

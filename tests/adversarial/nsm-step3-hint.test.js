@@ -83,8 +83,8 @@ describe('Adversarial — nsm-step3-hint generateNSMStep3Hint (negative cases)',
       expect(typeof result).toBe('string');
       expect(result.length).toBeGreaterThan(0);
 
-      // Hard cap: must be ≤ 320 chars (prompt contract)
-      expect(result.length).toBeLessThanOrEqual(320);
+      // Hard cap: must be ≤ 220 chars (prompt contract — tightened from 320)
+      expect(result.length).toBeLessThanOrEqual(220);
 
       // Must not echo back dangerous content
       expect(result).not.toContain('<script>');
@@ -111,7 +111,7 @@ const VALID_CASES = [
     questionJson: NETFLIX_QUESTION,
     dimId: 'reach',
     dimType: 'attention',
-    userDraft: '每月至少完整播放 1 首歌曲（≥ 30 秒）的用戶數，分母為全部活躍帳號，分子排除背景播放跳過者',
+    userDraft: '每月至少完整觀看 1 集影集（≥ 20 分鐘）的訂閱用戶數，分母為全部活躍帳號，分子排除背景播放與試看跳過者',
     desc: '有效 attention.reach 草稿 — 應回傳有意義的個人化提示',
   },
   {
@@ -131,7 +131,7 @@ describe.each(VALID_CASES)('valid input: $name', ({ questionJson, dimId, dimType
     console.log(`[valid:${dimType}.${dimId}] result (${result.length} chars): ${result.slice(0, 120)}...`);
 
     expect(typeof result).toBe('string');
-    expect(result.length).toBeLessThanOrEqual(320);
+    expect(result.length).toBeLessThanOrEqual(220);
 
     // Must be substantive — not the refusal stub
     expect(result.length).toBeGreaterThan(40);
