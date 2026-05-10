@@ -1,7 +1,6 @@
 // tests/visual/min-length-frontend.spec.js
 // Layer 1 of Combo C — frontend minLength gate.
-// Verifies submit-bar primary disabled when any required field below minMax floor
-// and char-counter shows warn class when below floor.
+// Verifies submit-bar primary disabled when any required field below minMax floor.
 
 const { test, expect } = require('@playwright/test');
 
@@ -116,30 +115,6 @@ test.describe('Frontend minLength validation (Layer 1 Combo C)', () => {
     });
     const submit = page.locator('[data-phase1="submit"]').first();
     await expect(submit).toBeEnabled();
-  });
-
-  // ── char-counter warn class ──────────────────────────────────────────────
-
-  test('char-counter shows is-below-floor class when field 1 below floor', async ({ page }) => {
-    await gotoSimC1(page);
-    // Default state: empty draft → field 1 is below floor=50
-    const counter = page.locator('.char-counter').first();
-    await expect(counter).toHaveClass(/is-below-floor/);
-  });
-
-  test('char-counter does NOT show is-below-floor when field 1 meets floor', async ({ page }) => {
-    await gotoSimC1(page);
-    await page.evaluate(() => {
-      // 問題範圍 floor=50 non-whitespace chars — need >=50 non-ws chars
-      window.AppState.circlesFrameworkDraft = {
-        C1: {
-          '問題範圍': '聚焦免費版廣告體驗排除付費方案重點在通勤族每日通勤聽podcast場景與廣告打斷影響及用戶收聽沉浸感', // exactly 50
-        }
-      };
-      window.render();
-    });
-    const counter = page.locator('.char-counter').first();
-    await expect(counter).not.toHaveClass(/is-below-floor/);
   });
 
   // ── NSM Step 2 minLength ─────────────────────────────────────────────────

@@ -1529,7 +1529,11 @@
   }
 
   function renderNSMContextCard(q, typeCfg) {
-    var ctx = q.context || {};
+    // Bug A fix: fall back to AppState.nsmContext when q.context lacks pregenerated data
+    var ctxSrc = getNsmContextSource(q, AppState.nsmContext, _nsmContextQid);
+    var ctx = ctxSrc === 'pregenerated' ? (q.context || {})
+            : ctxSrc === 'cached'      ? (AppState.nsmContext || {})
+            : {};
     var expanded = !!AppState.nsmContextExpanded;
     var caret = expanded ? 'ph-caret-up' : 'ph-caret-down';
     var toggleLabel = expanded ? '收合' : '深入了解問題';
@@ -2118,8 +2122,9 @@
       impact:    { label: typeCfg.dims[3].label, key: '4' },
     };
     var dimInfo = DIM_MAP[dimKey] || { label: dimKey, key: '' };
-    var thinking = escHtml(rationale[dimKey] || '');
-    var reason = escHtml(coachTree[dimKey] || '');
+    // Bug D fix: "教練思路" = coach's actual answer (coachTree); "為什麼這樣拆解" = explanation (coachRationale)
+    var thinking = escHtml(coachTree[dimKey] || '');
+    var reason = escHtml(rationale[dimKey] || '');
 
     return '<div class="nsm-coach-detail__head">'
       +   '<span class="nsm-coach-detail__icon"><i class="ph ph-graduation-cap"></i></span>'
@@ -2321,9 +2326,14 @@
       + '<span class="qchip__title">' + escHtml(q.scenario || '') + '</span>'
       + '</div>';
 
+    // Bug C fix: on 完成 tab, 「上一步」back button is hidden — celebration page has no back flow
+    var backBtnHtml = tab !== 'done'
+      ? '<button class="nsm-nav__back" data-nsm4-action="back"><i class="ph ph-arrow-left"></i></button>'
+      : '';
+
     return '<div data-view="nsm" data-nsm-step4>'
       + '<div class="nsm-nav">'
-      +   '<button class="nsm-nav__back" data-nsm4-action="back"><i class="ph ph-arrow-left"></i></button>'
+      +   backBtnHtml
       +   '<div class="nsm-nav__main">'
       +     '<div class="nsm-nav__title">NSM 報告</div>'
       +     '<div class="nsm-nav__sub">' + companyDisplayName + '</div>'
@@ -2402,14 +2412,23 @@
       });
     });
 
-    // 回首頁
+    // 回首頁 — Bug E fix: reset both NSM + CIRCLES state so home renders correctly
     document.querySelectorAll('[data-nsm4-action="home"]').forEach(function (btn) {
       btn.addEventListener('click', function () {
-        AppState.view = 'circles';
+        // Reset NSM state
         AppState.nsmStep = 1;
+        AppState.nsmSubTab = null;
         AppState.nsmReportTab = 'overview';
         AppState.nsmEvalResult = null;
+        AppState.nsmGateResult = null;
         AppState.nsmActiveCompareNode = null;
+        AppState.nsmSession = null;
+        AppState.nsmSelectedQuestion = null;
+        AppState.nsmDefinition = { nsm: '', explanation: '', businessLink: '' };
+        AppState.nsmBreakdown = { reach: '', depth: '', frequency: '', impact: '' };
+        // Reset CIRCLES state so renderView() lands on home grid, not Phase 1 form
+        resetCirclesToHome();
+        AppState.view = 'circles';
         render();
       });
     });
@@ -4129,7 +4148,6 @@
 
   function renderPhase1Field(fieldCfg, idx, isDrill) {
     // mockup 03 Section A field structure (line 832-873 for field 1 open; 876-898 fields 2-4)
-    // field 1 (idx===0) only: char-counter, field__meta hint suffix for drill desktop
     var key = fieldCfg.key;
     var minMax = fieldCfg.minMax || '';
     var max = fieldCfg.max || 200;
@@ -4148,25 +4166,7 @@
       + '<button class="rt-tbtn" type="button" aria-label="項目符號"><i class="ph ph-list-bullets"></i></button>'
       + '</div>';
 
-    var metaSpan = '';
-    // char-counter (field 1 only): show current length + warn class when below floor
-    var counterSpan = '';
-    if (idx === 0) {
-      var floorN = parseFloor(minMax);
-      // fetch current draft value to compute length at render time
-      var _stepKey = AppState.circlesMode === 'drill'
-        ? (AppState.circlesDrillStep || 'C1')
-        : (['C1', 'I', 'R', 'C2', 'L', 'E', 'S'][AppState.circlesSimStep || 0] || 'C1');
-      var _draft = (AppState.circlesFrameworkDraft && AppState.circlesFrameworkDraft[_stepKey]) || {};
-      var _rawVal = _draft[key] || '';
-      var _currentLen = String(_rawVal).replace(/<[^>]*>/g, '').trim().replace(/\s/g, '').length;
-      var _isBelowFloor = floorN > 0 && _currentLen < floorN;
-      var counterClass = _isBelowFloor ? 'char-counter is-below-floor' : 'char-counter';
-      counterSpan = '<span class="' + counterClass + '">' + _currentLen + ' / ' + max + '</span>';
-    }
-    var metaHtml = (metaSpan || counterSpan)
-      ? '<div class="field__meta">' + metaSpan + counterSpan + '</div>'
-      : '';
+    var metaHtml = '';
 
     return '<div class="field" data-field-key="' + escHtml(key) + '" data-field-idx="' + idx + '">'
       + '<div class="field__label-row">'
@@ -5667,10 +5667,10 @@
       typeIcon: 'ph-buildings',
       typeClass: 'nsm-context-card__type--saas',
       dims: [
-        { id: 'reach',     label: '啟用廣度', desc: '新客戶中有多少真正完成啟用（Activation）',     coachQ: '注意是 activation，不是 signup——誰真正跑完了核心工作流？', hint: '' },
+        { id: 'reach',     label: '啟用廣度', desc: '新客戶中有多少真正完成啟用',                   coachQ: '注意是 activation，不是 signup——誰真正跑完了核心工作流？', hint: '' },
         { id: 'depth',     label: '席次深度', desc: '每個帳號內有多少人在真正使用核心功能',           coachQ: '企業付費，但有幾個人實際在用？席次利用率多高？',             hint: '席次利用率拆法：分母用「已開通席次數」、分子用「過去 30 天有登入並完成核心動作的人數」。注意排除 admin、IT、純 viewer 角色 — 那些是「被動觀察」非「主動使用」。例如：100 席的客戶若 60 人活躍，席次利用率 = 60%；低於 40% 通常代表續約風險。' },
         { id: 'frequency', label: '黏著頻率', desc: '使用頻率是否顯示產品已嵌入日常工作流',           coachQ: '每天都用 vs 偶爾用——是剛需工具嗎？DAU/MAU 比多高？',         hint: '' },
-        { id: 'impact', label: '擴張信號', desc: '現有客戶是否在增加使用（NRR 指標）',             coachQ: 'NRR > 100% 代表客戶在擴張——多少比例帳號在 90 天內擴展？',   hint: '' },
+        { id: 'impact', label: '擴張信號', desc: '現有客戶是否在增加使用',                         coachQ: 'NRR > 100% 代表客戶在擴張——多少比例帳號在 90 天內擴展？',   hint: '' },
       ],
     },
   };
@@ -6750,18 +6750,6 @@
     // When a session is loaded from history, AppState.circlesFrameworkDraft is populated
     // but the textareas are blank contenteditable divs. Populate them now.
     (function populateTextareasFromDraft() {
-      // helper: after writing textarea content, update char-counter in-place (R2)
-      // avoids dispatching 'input' event to prevent triggering saveCycle
-      function syncCharCounter(ta) {
-        var field = ta.closest('.field');
-        if (!field) return;
-        var counter = field.querySelector('.char-counter');
-        if (!counter) return;
-        var max = parseInt(ta.dataset.max, 10) || 200;
-        var len = (ta.textContent || '').length;
-        counter.textContent = len + ' / ' + max;
-      }
-
       // ── C/I/R/C2 step: [data-phase1="textarea"] from circlesFrameworkDraft ──
       // Canonical lookup uses Chinese keys from CIRCLES_STEP_CONFIG.fields[i].key.
       // ENGLISH_ALIAS provides read-only compatibility for sessions saved before
@@ -6798,7 +6786,6 @@
             }
             if (value) {
               ta.innerHTML = value;
-              syncCharCounter(ta);
             }
           });
         }
@@ -6946,7 +6933,7 @@
       });
     });
 
-    // ── contenteditable input: debounce 200ms → update char-counter + draft ──
+    // ── contenteditable input: debounce 200ms → update draft ──
     // 改 textarea → contenteditable 後改用 input event + textContent / innerHTML
     document.querySelectorAll('[data-phase1="textarea"]').forEach(function (el) {
       el.addEventListener('input', function () {
@@ -6954,9 +6941,6 @@
         if (_phase1CharDebounce) clearTimeout(_phase1CharDebounce);
         _phase1CharDebounce = setTimeout(function () {
           var idx = parseInt(el.dataset.fieldIdx, 10);
-          var max = parseInt(el.dataset.max, 10) || 200;
-          var plainText = (el.textContent || '');
-          var nonWsLen = plainText.replace(/\s/g, '').length;
           var stepKey = AppState.circlesMode === 'drill'
             ? (AppState.circlesDrillStep || 'C1')
             : (['C1', 'I', 'R', 'C2', 'L', 'E', 'S'][AppState.circlesSimStep || 0] || 'C1');
@@ -6967,17 +6951,6 @@
             if (!AppState.circlesFrameworkDraft[stepKey]) AppState.circlesFrameworkDraft[stepKey] = {};
             // 存 innerHTML 保留 <strong>/<ul>/<li> 等格式
             AppState.circlesFrameworkDraft[stepKey][fieldKey] = el.innerHTML;
-          }
-          // Update char-counter (field 1 only) — also update warn class + floor suffix
-          if (idx === 0) {
-            var counter = el.closest('.field') && el.closest('.field').querySelector('.char-counter');
-            if (counter) {
-              var fieldCfg = cfg && cfg.fields && cfg.fields[0];
-              var floorN = fieldCfg ? parseFloor(fieldCfg.minMax) : 0;
-              var isBelowFloor = floorN > 0 && nonWsLen < floorN;
-              counter.className = isBelowFloor ? 'char-counter is-below-floor' : 'char-counter';
-              counter.textContent = nonWsLen + ' / ' + max;
-            }
           }
           // Layer 1: update submit button disabled state in-place (no full re-render)
           var submitBtn = document.querySelector('[data-phase1="submit"]');
@@ -7539,6 +7512,8 @@
     var isNsm = !item.mode && !item.drill_step;
     if (isNsm) {
       AppState.offcanvasOpen = false;
+      // Bug B fix: list endpoint omits user_nsm/user_breakdown/scores_json/coach_tree_json.
+      // Seed with partial list data first so UI renders immediately, then fetch full session.
       AppState.nsmSession = item;
       AppState.nsmSelectedQuestion = item.question_json || null;
       AppState.nsmDefinition = item.user_nsm || { nsm: '', explanation: '', businessLink: '' };
@@ -7550,6 +7525,23 @@
       AppState.nsmStep = 1;
       AppState.view = 'nsm';
       render();
+
+      // Async: fetch full session to populate user_nsm + user_breakdown + coach_tree_json
+      var nsmFullPath = (AppState.accessToken ? '/api/nsm-sessions/' : '/api/guest/nsm-sessions/') + item.id;
+      window.apiFetch(nsmFullPath).then(function (res) {
+        if (!res.ok) return;
+        return res.json();
+      }).then(function (full) {
+        if (!full || !full.id) return;
+        AppState.nsmSession = full;
+        AppState.nsmSelectedQuestion = full.question_json || AppState.nsmSelectedQuestion;
+        AppState.nsmDefinition = full.user_nsm || { nsm: '', explanation: '', businessLink: '' };
+        AppState.nsmBreakdown = full.user_breakdown || { reach: '', depth: '', frequency: '', impact: '' };
+        AppState.nsmEvalResult = full.scores_json || null;
+        render();
+      }).catch(function () {
+        // fallback: partial list data already rendered — silent fail
+      });
       return;
     }
 

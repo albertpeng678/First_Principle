@@ -78,8 +78,6 @@ test.describe('B SB3 Phase 1 Form — mockup 03 Section A', () => {
       await expect(fields.nth(i).locator('.rt-field__toolbar')).toBeVisible();
       await expect(fields.nth(i).locator('.rt-textarea')).toBeVisible();
     }
-    // field 1 has char-counter
-    await expect(fields.nth(0).locator('.char-counter')).toBeVisible();
   });
 
   test('submit-bar sim: 上一步 ghost visible on mobile/tablet/desktop (user 親要求)', async ({ page }) => {

@@ -219,10 +219,10 @@ test.describe('NSM Step 2 + Step 3 (mockup 07)', () => {
     await page.waitForSelector('.nsm-dim__desc');
     var descs = await page.locator('.nsm-dim__desc').allTextContents();
     expect(descs).toEqual([
-      '新客戶中有多少真正完成啟用（Activation）',
+      '新客戶中有多少真正完成啟用',
       '每個帳號內有多少人在真正使用核心功能',
       '使用頻率是否顯示產品已嵌入日常工作流',
-      '現有客戶是否在增加使用（NRR 指標）',
+      '現有客戶是否在增加使用',
     ]);
   });
 });

@@ -109,23 +109,6 @@ test.describe('Offcanvas item click — load session + restore drafts (mockup 09
 
   // ── B3 Round-2 additional specs ───────────────────────────────────────────
 
-  test('char-counter shows actual length not 0 after textarea restore', async ({ page }) => {
-    await page.setViewportSize({ width: 1280, height: 900 });
-    await gotoOffcanvasWithItem(page, sampleActiveSession());
-    await page.locator('.offcanvas-item').first().click();
-    await page.waitForSelector('.rt-textarea', { timeout: 5000 });
-    // char-counter only on field idx=0; content is '針對 Spotify Podcast' (14 chars)
-    const counter = page.locator('.char-counter').first();
-    await expect(counter).toBeVisible();
-    const text = await counter.textContent();
-    // must NOT be '0 / 120' — should reflect actual content length
-    expect(text).not.toMatch(/^0\s*\/\s*\d+/);
-    // should be non-zero
-    const match = text.match(/^(\d+)\s*\//);
-    expect(match).toBeTruthy();
-    expect(parseInt(match[1], 10)).toBeGreaterThan(0);
-  });
-
   test('NSM session click → nsmStep=4 + view=nsm', async ({ page }) => {
     await page.setViewportSize({ width: 1280, height: 900 });
     const nsmSession = {

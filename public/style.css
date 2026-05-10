@@ -760,10 +760,11 @@ body:has(.submit-bar) { padding-bottom: calc(var(--touch-min) + var(--s-7)); }
 .field__label-row { display: flex; align-items: flex-start; justify-content: space-between; gap: var(--s-3); margin-bottom: var(--s-2); }
 .field__label { font-size: var(--t-body-sm); font-weight: 600; color: var(--c-ink); }
 .field__hint-row { display: flex; align-items: center; gap: var(--s-2); flex-shrink: 0; }
+/* nsm-dim standalone hint-row: right-align + spacing before textarea (Regression B+C UAT 2026-05-10) */
+.nsm-dim__body .field__hint-row { justify-content: flex-end; margin-bottom: var(--s-2); }
 .field__hint-link { display: inline-flex; align-items: center; gap: 4px; font-size: var(--t-cap); color: var(--c-navy); cursor: pointer; }
 .field__hint-link:hover { color: var(--c-navy); }
 .field__hint-link i { font-size: 13px; }
-.field__meta { display: flex; justify-content: space-between; align-items: center; font-size: var(--t-cap); color: var(--c-ink-3); margin-top: var(--s-1); }
 
 /* ── field-example-toggle (line 840 / 883) ── */
 .field-example-toggle { display: inline-flex; align-items: center; gap: 4px; font-size: var(--t-cap); color: var(--c-navy); cursor: pointer; }
@@ -794,11 +795,6 @@ div.rt-textarea[contenteditable="true"]:empty::before {
 div.rt-textarea[contenteditable="true"] strong { font-weight: 600; color: var(--c-ink); }
 div.rt-textarea[contenteditable="true"] ul { margin: var(--s-1) 0; padding-left: var(--s-5); }
 div.rt-textarea[contenteditable="true"] ul li { list-style: disc; }
-
-/* ── char-counter ── */
-.char-counter { font-size: var(--t-cap); color: var(--c-ink-4); font-variant-numeric: tabular-nums; }
-/* Layer 1 Combo C: warn variant when below minMax floor */
-.char-counter.is-below-floor { color: var(--c-warn); font-weight: 600; }
 
 /* Layer 1 Combo C: inline tip shown on disabled submit click */
 .submit-block-tip { position: fixed; right: 16px; bottom: calc(var(--touch-min) + var(--s-7) + 8px); background: var(--c-warn); color: #fff; padding: 6px 14px; border-radius: 6px; font-size: 13px; white-space: nowrap; pointer-events: none; z-index: 200; }
