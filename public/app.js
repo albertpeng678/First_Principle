@@ -941,13 +941,30 @@
         return renderChatBubble(turn, idx);
       }).join('');
 
-      // Section C: append streaming bubble at end
+      // Section C: append streaming bubble at end (B2 typewriter — mockup 05 §G LOCKED)
       if (streaming && streamTurn) {
         var userStreamBubble = '<div class="bubble bubble--user">' + escHtml(streamTurn.userMessage || '') + '</div>';
-        var streamingBubble = '<div class="bubble bubble--interviewee">'
-          + '<div class="bubble__section">被訪談者</div>'
-          + '<span class="bubble__streaming"><span></span><span></span><span></span></span>'
-          + '</div>';
+        // Show interviewee 3-dot while no chars received yet; switch to coach typewriter once chars flow
+        var displayedChars = streamTurn.displayedChars || 0;
+        var streamingBubble;
+        if (displayedChars === 0) {
+          // Pre-text: interviewee 3-dot waiting indicator
+          streamingBubble = '<div class="bubble bubble--interviewee">'
+            + '<div class="bubble__section">被訪談者</div>'
+            + '<span class="bubble__streaming"><span></span><span></span><span></span></span>'
+            + '</div>';
+        } else {
+          // Typewriter coach bubble: partial deltaText + cursor
+          var visibleText = escHtml((streamTurn.deltaText || '').slice(0, displayedChars));
+          var cursorClass = streamTurn.isDone ? ' is-done' : '';
+          streamingBubble = '<div class="bubble bubble--coach">'
+            + '<div class="bubble__section"><i class="ph ph-graduation-cap"></i>教練點評</div>'
+            + '<div class="bubble__body">'
+            + visibleText
+            + '<span class="bubble-coach__cursor' + cursorClass + '"></span>'
+            + '</div>'
+            + '</div>';
+        }
         bubblesHtml += userStreamBubble + streamingBubble;
       }
 
@@ -1102,6 +1119,27 @@
   }
   window.renderChatBubble = renderChatBubble;
 
+  // ── B2 typewriter char-queue (mockup 05 §G LOCKED contract) ─────────────
+  // 30-40 chars/sec throttle: ~28ms per char using plain setTimeout.
+  // Simple queue: advance displayedChars one step, re-render, schedule next tick.
+  var _b2QueueTimer = null;
+
+  function _b2TickCharQueue() {
+    if (!AppState.circlesPhase2StreamingTurn || !AppState.circlesPhase2Streaming) { _b2QueueTimer = null; return; }
+    var turn = AppState.circlesPhase2StreamingTurn;
+    var fullLen = (turn.deltaText || '').length;
+    var displayed = turn.displayedChars || 0;
+    if (displayed >= fullLen) { _b2QueueTimer = null; return; } // wait for more deltas
+    turn.displayedChars = displayed + 1;
+    render();
+    _b2QueueTimer = setTimeout(_b2TickCharQueue, 28);
+  }
+
+  // Exposed for tests: allow external code to kick-start the queue
+  window._b2StartCharQueue = function () {
+    if (!_b2QueueTimer) _b2QueueTimer = setTimeout(_b2TickCharQueue, 28);
+  };
+
   // ── streamCirclesMessage (SSE wire-up — Task B1) ──────────────────────────
   // Uses fetch + ReadableStream (not EventSource) to allow POST body + auth headers.
   window._phase2AbortController = null;
@@ -1164,22 +1202,32 @@
           if (parsed.delta !== undefined) {
             // accumulate delta text
             if (!AppState.circlesPhase2StreamingTurn) {
-              AppState.circlesPhase2StreamingTurn = { userMessage: userMessage, deltaText: '' };
+              AppState.circlesPhase2StreamingTurn = { userMessage: userMessage, deltaText: '', displayedChars: 0 };
             }
             AppState.circlesPhase2StreamingTurn.deltaText = (AppState.circlesPhase2StreamingTurn.deltaText || '') + parsed.delta;
-            // no re-render on each delta for performance — wait for done
+            // B2: kick off per-char throttle queue (28ms/char ≈ 35 chars/sec)
+            if (!_b2QueueTimer) _b2QueueTimer = setTimeout(_b2TickCharQueue, 28);
           } else if (parsed.done && parsed.turn) {
-            // SSE complete — push turn to conversation
-            AppState.circlesConversation = (AppState.circlesConversation || []).concat([parsed.turn]);
-            AppState.circlesPhase2Streaming = false;
-            AppState.circlesPhase2StreamingTurn = null;
-            AppState.circlesPhase2StreamError = false;
-            render();
-            // Scroll chat body to bottom
+            // SSE complete — flush remaining chars instantly, then commit turn
+            if (_b2QueueTimer) { clearTimeout(_b2QueueTimer); _b2QueueTimer = null; }
+            if (AppState.circlesPhase2StreamingTurn) {
+              AppState.circlesPhase2StreamingTurn.displayedChars = (AppState.circlesPhase2StreamingTurn.deltaText || '').length;
+              AppState.circlesPhase2StreamingTurn.isDone = true;
+              render(); // show full text + cursor.is-done briefly
+            }
+            // Small delay so user sees cursor.is-done before bubble transitions
             setTimeout(function () {
-              var chatBody = document.querySelector('.chat-body');
-              if (chatBody) chatBody.lastElementChild && chatBody.lastElementChild.scrollIntoView({ block: 'end' });
-            }, 50);
+              AppState.circlesConversation = (AppState.circlesConversation || []).concat([parsed.turn]);
+              AppState.circlesPhase2Streaming = false;
+              AppState.circlesPhase2StreamingTurn = null;
+              AppState.circlesPhase2StreamError = false;
+              render();
+              // Scroll chat body to bottom
+              setTimeout(function () {
+                var chatBody = document.querySelector('.chat-body');
+                if (chatBody) chatBody.lastElementChild && chatBody.lastElementChild.scrollIntoView({ block: 'end' });
+              }, 50);
+            }, 300);
             return;
           } else if (parsed.error !== undefined) {
             AppState.circlesPhase2Streaming = false;
@@ -1190,7 +1238,11 @@
         }
       }
     } catch (e) {
-      if (e.name === 'AbortError') return; // user navigated away
+      if (e.name === 'AbortError') {
+        // Clean up typewriter timer on abort (iOS Safari: prevent stale timer firing after navigation)
+        if (_b2QueueTimer) { clearTimeout(_b2QueueTimer); _b2QueueTimer = null; }
+        return;
+      }
       AppState.circlesPhase2Streaming = false;
       AppState.circlesPhase2StreamError = true;
       render();
@@ -1545,7 +1597,7 @@
       +     '</div>'
       +     '<p>輸入指標是驅動 NSM 的<strong>領先訊號</strong>——這些指標翻倍，NSM 應該跟著成長。以下 4 個維度依 <strong>' + escHtml(typeCfg.label) + '</strong> 產品特性設計。</p>'
       +   '</div>'
-      +   typeCfg.dims.map(function (d) { return renderNSMDim(d, br[d.id] || ''); }).join('')
+      +   typeCfg.dims.map(function (d) { return renderNSMDim(d, br[d.id] || '', ptype); }).join('')
       + '</div>'
       + '<div class="submit-bar">'
       +   '<div class="submit-bar__left"><button class="btn btn--ghost" data-nsm-action="back-to-step2"><i class="ph ph-arrow-left"></i>上一步</button></div>'
@@ -1553,7 +1605,7 @@
       + '</div></div>';
   }
 
-  function renderNSMDim(dim, value) {
+  function renderNSMDim(dim, value, ptype) {
     var isHintOpen = !!(AppState.nsmHintExpanded && AppState.nsmHintExpanded[dim.id]);
     var hintLabel = isHintOpen ? '收起教練提示' : '查看教練提示';
     var hintHtml = '';
@@ -1594,6 +1646,9 @@
       +   '<div class="field__hint-row">'
       +     '<button class="nsm-dim__hint-btn" data-nsm-hint-toggle="' + escHtml(dim.id) + '" aria-expanded="' + (isHintOpen ? 'true' : 'false') + '">'
       +       '<i class="ph ph-lightbulb"></i>' + escHtml(hintLabel)
+      +     '</button>'
+      +     '<button class="field__hint-link" type="button" data-nsm-step3-hint="' + escHtml(dim.id) + '" data-nsm-dim-type="' + escHtml(ptype || 'attention') + '">'
+      +       '<i class="ph ph-lightbulb"></i>提示'
       +     '</button>'
       +     (exampleText ? '<button class="field-example-toggle" type="button" data-nsm-dim-example-toggle="' + escHtml(dim.id) + '" aria-expanded="' + dimExAriaExpanded + '">'
       +       '<i class="ph ph-quotes"></i>範例答案<i class="ph ph-caret-down toggle-caret"' + dimExCaretStyle + '></i>'
@@ -1672,6 +1727,13 @@
     document.querySelectorAll('[data-nsm-hint]').forEach(function (btn) {
       btn.addEventListener('click', function () {
         openNSMStep2HintModal(btn.dataset.nsmHint);
+      });
+    });
+
+    // ── NSM Step 3 AI hint modal open — [data-nsm-step3-hint] ────────────────
+    document.querySelectorAll('[data-nsm-step3-hint]').forEach(function (btn) {
+      btn.addEventListener('click', function () {
+        openNSMStep3HintModal(btn.dataset.nsmStep3Hint, btn.dataset.nsmDimType);
       });
     });
 
@@ -2240,6 +2302,12 @@
       bodyHtml = renderNSMStep4DoneTab(evalResult);
     }
 
+    // qchip 題目情境 — mockup 14 §A LOCKED (pill NSM + scenario truncated)
+    var qchipHtml = '<div class="qchip">'
+      + '<span class="qchip__pill">NSM</span>'
+      + '<span class="qchip__title">' + escHtml(q.scenario || '') + '</span>'
+      + '</div>';
+
     return '<div data-view="nsm" data-nsm-step4>'
       + '<div class="nsm-nav">'
       +   '<button class="nsm-nav__back" data-nsm4-action="back"><i class="ph ph-arrow-left"></i></button>'
@@ -2248,6 +2316,7 @@
       +     '<div class="nsm-nav__sub">' + companyDisplayName + '</div>'
       +   '</div>'
       + '</div>'
+      + qchipHtml
       + '<div class="nsm-summary">'
       +   '<span class="nsm-summary__score">' + totalScore + '</span>'
       +   '<span class="nsm-summary__unit">/ 100</span>'
@@ -3821,8 +3890,113 @@
     if (host) host.innerHTML = '';
   }
 
+  // ── NSM Step 3 Hint Modal — mirrors openNSMStep2HintModal ──────────────────
+  // Params: dimId (reach/depth/frequency/impact), dimType (attention/saas/…)
+  var _nsmStep3HintCache = {};
+  var _nsmStep3HintAbortController = null;
+
+  function _renderNSMStep3HintModalShell(dimId, dimType, bodyHtml, isLoading, isError) {
+    var q = AppState.nsmSelectedQuestion || {};
+    var ptype = dimType || nsmGuessProductType(q);
+    var dimCfg = getNsmDimConfig(ptype);
+    var dimEntry = (dimCfg.dims || []).filter(function (d) { return d.id === dimId; })[0] || {};
+    var label = dimEntry.label || dimId;
+    var footHtml;
+    if (isLoading) {
+      footHtml = '<button class="btn btn--ghost" type="button" data-nsm-modal-close="ok">關閉</button>';
+    } else if (isError) {
+      footHtml = '<button class="btn btn--ghost" type="button" data-nsm-modal-close="ok">關閉</button>'
+        + '<button class="btn btn--primary" type="button" data-nsm-step3-modal-retry="' + escHtml(dimId) + '" data-nsm-dim-type="' + escHtml(ptype) + '">重試</button>';
+    } else {
+      footHtml = '<button class="btn btn--primary" type="button" data-nsm-modal-close="ok">了解了</button>';
+    }
+    var headIcon = isError
+      ? '<i class="ph-fill ph-warning-circle" style="color:var(--c-danger);"></i>'
+      : '<i class="ph ph-sparkle"></i>';
+    return '<div class="hint-overlay" aria-hidden="false">'
+      + '<div class="hint-overlay__backdrop" data-nsm-modal-close="backdrop"></div>'
+      + '<div class="modal-card" role="dialog" aria-modal="true">'
+      +   '<div class="modal__head">'
+      +     '<span class="modal__head-icon">' + headIcon + '</span>'
+      +     '<div style="flex:1;">'
+      +       '<div class="modal__sub">提示 · 個人化</div>'
+      +       '<h3 class="modal__title">' + escHtml(label) + '</h3>'
+      +     '</div>'
+      +     '<button class="modal__close" type="button" data-nsm-modal-close="x" aria-label="關閉"><i class="ph ph-x"></i></button>'
+      +   '</div>'
+      +   '<div class="modal__body">' + bodyHtml + '</div>'
+      +   '<div class="modal__foot">' + footHtml + '</div>'
+      + '</div>'
+      + '</div>';
+  }
+
+  function openNSMStep3HintModal(dimId, dimType) {
+    var q = AppState.nsmSelectedQuestion || {};
+    var qid = q.id;
+    if (!qid) return;
+    var ptype = dimType || nsmGuessProductType(q);
+    var cacheKey = qid + ':' + ptype + ':' + dimId;
+
+    // Ensure host element exists (create once, reuse across openings)
+    var host = document.getElementById('nsm-hint-modal-host');
+    if (!host) {
+      host = document.createElement('div');
+      host.id = 'nsm-hint-modal-host';
+      document.body.appendChild(host);
+    }
+
+    // Cache hit — immediate content state
+    if (_nsmStep3HintCache[cacheKey]) {
+      var cachedHtml = markdownBulletsToHtml(_nsmStep3HintCache[cacheKey]);
+      host.innerHTML = _renderNSMStep3HintModalShell(dimId, ptype, '<ul class="example-list">' + cachedHtml + '</ul>', false, false);
+      return;
+    }
+
+    // Loading state
+    var qName = escHtml(q.company || '本題');
+    var loadingBody = '<div style="padding:var(--s-5) 0;display:flex;flex-direction:column;align-items:center;gap:var(--s-3);color:var(--c-ink-3);">'
+      + '<div class="hint-spinner" style="width:32px;height:32px;border:2px solid var(--c-rule-bold);border-top-color:var(--c-navy);border-radius:50%;animation:spin 0.8s linear infinite;"></div>'
+      + '<div style="font-size:var(--t-body-sm);color:var(--c-ink);">教練思考中…</div>'
+      + '<div style="font-size:var(--t-cap);text-align:center;">針對 ' + qName + ' 題目產生個人化提示</div>'
+      + '</div>';
+    host.innerHTML = _renderNSMStep3HintModalShell(dimId, ptype, loadingBody, true, false);
+
+    // Cancel previous in-flight + start new fetch
+    if (_nsmStep3HintAbortController) { try { _nsmStep3HintAbortController.abort(); } catch (e) {} }
+    _nsmStep3HintAbortController = new AbortController();
+    var draft = ((AppState.nsmBreakdown || {})[dimId]) || '';
+
+    fetch('/api/nsm-public/step3-hint', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ questionId: qid, dimId: dimId, dimType: ptype, userDraft: draft }),
+      signal: _nsmStep3HintAbortController.signal,
+    }).then(function (res) {
+      if (!res.ok) throw new Error('hint_fetch_failed_' + res.status);
+      return res.json();
+    }).then(function (data) {
+      _nsmStep3HintCache[cacheKey] = data.hint || '';
+      var current = document.getElementById('nsm-hint-modal-host');
+      if (current && current.innerHTML) {
+        var contentHtml = '<ul class="example-list">' + markdownBulletsToHtml(data.hint || '') + '</ul>';
+        current.innerHTML = _renderNSMStep3HintModalShell(dimId, ptype, contentHtml, false, false);
+      }
+    }).catch(function (e) {
+      if (e && e.name === 'AbortError') return;
+      var current = document.getElementById('nsm-hint-modal-host');
+      if (current && current.innerHTML) {
+        var errBody = '<div style="text-align:center;padding:var(--s-4) 0;">'
+          + '<i class="ph ph-cloud-warning" style="font-size:32px;color:var(--c-danger);"></i>'
+          + '<div style="margin-top:var(--s-2);font-size:var(--t-body-sm);color:var(--c-ink);">提示生成失敗</div>'
+          + '<div style="font-size:var(--t-cap);margin-top:var(--s-2);">教練回應暫時不可用，請稍後再試。</div>'
+          + '</div>';
+        current.innerHTML = _renderNSMStep3HintModalShell(dimId, ptype, errBody, false, true);
+      }
+    });
+  }
+
   // Document-level delegation for NSM hint modal close paths (registered once).
-  // 4 close paths: backdrop / X / 「了解了」 → data-nsm-modal-close=* ; retry → data-nsm-modal-retry
+  // 4 close paths: backdrop / X / 「了解了」 → data-nsm-modal-close=* ; retry → data-nsm-modal-retry / data-nsm-step3-modal-retry
   if (!window._nsmHintModalDelegateRegistered) {
     window._nsmHintModalDelegateRegistered = true;
     document.addEventListener('click', function (e) {
@@ -3835,6 +4009,14 @@
         var f = retry.dataset.nsmModalRetry;
         closeNSMStep2HintModal();
         setTimeout(function () { openNSMStep2HintModal(f); }, 100);
+        return;
+      }
+      var retry3 = e.target.closest('[data-nsm-step3-modal-retry]');
+      if (retry3) {
+        var did = retry3.dataset.nsmStep3ModalRetry;
+        var dt = retry3.dataset.nsmDimType;
+        closeNSMStep2HintModal();
+        setTimeout(function () { openNSMStep3HintModal(did, dt); }, 100);
       }
     });
     document.addEventListener('keydown', function (e) {

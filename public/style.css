@@ -1969,6 +1969,20 @@ div.rt-textarea[contenteditable="true"] ul li { list-style: disc; }
   40% { opacity: 1; transform: scale(1); }
 }
 
+/* §G typewriter cursor — LOCKED component (mirror mockup 05 §G verbatim) */
+.bubble-coach__cursor {
+  display: inline-block;
+  width: 2px;
+  height: 1.2em;
+  background: var(--c-navy);
+  margin-left: 2px;
+  vertical-align: text-bottom;
+  animation: cursor-blink 1s step-end infinite;
+  border-radius: 1px;
+}
+.bubble-coach__cursor.is-done { display: none; }
+@keyframes cursor-blink { 50% { opacity: 0; } }
+
 /* turn count badge in nav */
 .turn-badge {
   font-size: var(--t-meta);
