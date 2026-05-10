@@ -646,6 +646,20 @@
       flex-direction: column;
     }
     .vp-frame__inner > .chat-content > .chat-body { flex: 1; }
+
+    /* §G typewriter cursor — LOCKED component for production wire */
+    .bubble-coach__cursor {
+      display: inline-block;
+      width: 2px;
+      height: 1.2em;
+      background: var(--c-navy);
+      margin-left: 2px;
+      vertical-align: text-bottom;
+      animation: cursor-blink 1s step-end infinite;
+      border-radius: 1px;
+    }
+    .bubble-coach__cursor.is-done { display: none; }
+    @keyframes cursor-blink { 50% { opacity: 0; } }
   </style>
 </head>
 <body>
@@ -1943,6 +1957,278 @@
       </div>
 
     </div>
+
+    <!-- ═════════════════════════════════ §G · Typewriter speed contract ═════════════════════════════════ -->
+    <h2 class="vp-section-title">G · Typewriter speed contract <span class="vp-section-title__sub">3 states × 3 viewports — per-delta DOM render at 30-40 chars/sec for zh-TW</span></h2>
+    <div class="anno"><strong>視覺契約：</strong>
+      production 必須移除 <code>public/app.js:1170</code> 的「no re-render on each delta」short-circuit，改為 <strong>per-delta throttled DOM update</strong>（rAF batch + setInterval pacing 控制至 30-40 chars/sec for zh-TW comfortable reading）。
+      3-dot 等待動畫：100-500ms（從 user submit POST 到第一個 SSE delta 到達）。
+      Cursor <code>▍</code> navy 2px width 1Hz blink，streaming 中始終顯示在文字尾，<code>done</code> arrived 後 cursor 加 <code>.is-done</code> class hide。
+      <strong>禁止 user skip / interrupt</strong> — 保留專注節奏。
+      3 狀態各 3 viewport = 9 frames，分別是：(A) streaming start 顯前 5 字 + cursor / (B) streaming mid 顯一半字 + cursor / (C) streaming done 顯全文 + cursor.is-done。
+    </div>
+
+    <div class="vp-grid">
+
+      <!-- ── State A · streaming 剛開始（~5 字 + cursor blink）── -->
+
+      <div class="vp-frame" style="width:360px">
+        <div class="vp-frame__label"><span>State A · streaming 剛開始（5 字 + cursor）</span><span>360 px</span></div>
+        <div class="vp-frame__body">
+          <div class="vp-frame__inner">
+            <div class="navbar">
+              <button class="navbar__icon-btn"><i class="ph ph-list"></i></button>
+              <div class="navbar__brand"><span class="navbar__brand-icon"><i class="ph ph-circles-three"></i></span><span class="navbar__brand-name">PM Drill</span></div>
+            </div>
+            <div class="phase-head">
+              <span class="phase-head__num">02</span>
+              <div class="phase-head__main">
+                <div class="phase-head__eyebrow">Phase 2 · 對話練習</div>
+                <div class="phase-head__title">C · 澄清情境</div>
+              </div>
+            </div>
+            <div class="chat-content">
+              <div class="chat-body">
+                <div class="bubble bubble--user">業務影響範圍如何？</div>
+                <div class="bubble bubble--coach">
+                  <div class="bubble__section"><i class="ph ph-graduation-cap"></i>教練點評</div>
+                  這個問題涉及<span class="bubble-coach__cursor"></span>
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <div class="vp-frame" style="width:768px">
+        <div class="vp-frame__label"><span>State A · streaming 剛開始（5 字 + cursor）</span><span>768 px</span></div>
+        <div class="vp-frame__body">
+          <div class="vp-frame__inner">
+            <div class="navbar">
+              <button class="navbar__icon-btn"><i class="ph ph-list"></i></button>
+              <div class="navbar__brand"><span class="navbar__brand-icon"><i class="ph ph-circles-three"></i></span><span class="navbar__brand-name">PM Drill</span></div>
+            </div>
+            <div class="phase-head">
+              <span class="phase-head__num">02</span>
+              <div class="phase-head__main">
+                <div class="phase-head__eyebrow">Phase 2 · 對話練習</div>
+                <div class="phase-head__title">C · 澄清情境</div>
+              </div>
+            </div>
+            <div class="chat-content">
+              <div class="chat-body">
+                <div class="bubble bubble--user">業務影響範圍如何？</div>
+                <div class="bubble bubble--coach">
+                  <div class="bubble__section"><i class="ph ph-graduation-cap"></i>教練點評</div>
+                  這個問題涉及<span class="bubble-coach__cursor"></span>
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <div class="vp-frame" style="width:1280px">
+        <div class="vp-frame__label"><span>State A · streaming 剛開始（5 字 + cursor）</span><span>1280 px</span></div>
+        <div class="vp-frame__body">
+          <div class="vp-frame__inner">
+            <div class="navbar">
+              <button class="navbar__icon-btn"><i class="ph ph-list"></i></button>
+              <div class="navbar__brand"><span class="navbar__brand-icon"><i class="ph ph-circles-three"></i></span><span class="navbar__brand-name">PM Drill</span></div>
+            </div>
+            <div class="phase-head">
+              <span class="phase-head__num">02</span>
+              <div class="phase-head__main">
+                <div class="phase-head__eyebrow">Phase 2 · 對話練習</div>
+                <div class="phase-head__title">C · 澄清情境</div>
+              </div>
+            </div>
+            <div class="chat-content">
+              <div class="chat-body">
+                <div class="bubble bubble--user">業務影響範圍如何？</div>
+                <div class="bubble bubble--coach">
+                  <div class="bubble__section"><i class="ph ph-graduation-cap"></i>教練點評</div>
+                  這個問題涉及<span class="bubble-coach__cursor"></span>
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- ── State B · streaming mid（~50 字 + cursor blink）── -->
+
+      <div class="vp-frame" style="width:360px">
+        <div class="vp-frame__label"><span>State B · streaming mid（半字 + cursor）</span><span>360 px</span></div>
+        <div class="vp-frame__body">
+          <div class="vp-frame__inner">
+            <div class="navbar">
+              <button class="navbar__icon-btn"><i class="ph ph-list"></i></button>
+              <div class="navbar__brand"><span class="navbar__brand-icon"><i class="ph ph-circles-three"></i></span><span class="navbar__brand-name">PM Drill</span></div>
+            </div>
+            <div class="phase-head">
+              <span class="phase-head__num">02</span>
+              <div class="phase-head__main">
+                <div class="phase-head__eyebrow">Phase 2 · 對話練習</div>
+                <div class="phase-head__title">C · 澄清情境</div>
+              </div>
+            </div>
+            <div class="chat-content">
+              <div class="chat-body">
+                <div class="bubble bubble--user">業務影響範圍如何？</div>
+                <div class="bubble bubble--coach">
+                  <div class="bubble__section"><i class="ph ph-graduation-cap"></i>教練點評</div>
+                  這個問題涉及廣告主出價競爭、用戶留存節奏、以及團隊資源配置三個維度。需要先<span class="bubble-coach__cursor"></span>
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <div class="vp-frame" style="width:768px">
+        <div class="vp-frame__label"><span>State B · streaming mid（半字 + cursor）</span><span>768 px</span></div>
+        <div class="vp-frame__body">
+          <div class="vp-frame__inner">
+            <div class="navbar">
+              <button class="navbar__icon-btn"><i class="ph ph-list"></i></button>
+              <div class="navbar__brand"><span class="navbar__brand-icon"><i class="ph ph-circles-three"></i></span><span class="navbar__brand-name">PM Drill</span></div>
+            </div>
+            <div class="phase-head">
+              <span class="phase-head__num">02</span>
+              <div class="phase-head__main">
+                <div class="phase-head__eyebrow">Phase 2 · 對話練習</div>
+                <div class="phase-head__title">C · 澄清情境</div>
+              </div>
+            </div>
+            <div class="chat-content">
+              <div class="chat-body">
+                <div class="bubble bubble--user">業務影響範圍如何？</div>
+                <div class="bubble bubble--coach">
+                  <div class="bubble__section"><i class="ph ph-graduation-cap"></i>教練點評</div>
+                  這個問題涉及廣告主出價競爭、用戶留存節奏、以及團隊資源配置三個維度。需要先<span class="bubble-coach__cursor"></span>
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <div class="vp-frame" style="width:1280px">
+        <div class="vp-frame__label"><span>State B · streaming mid（半字 + cursor）</span><span>1280 px</span></div>
+        <div class="vp-frame__body">
+          <div class="vp-frame__inner">
+            <div class="navbar">
+              <button class="navbar__icon-btn"><i class="ph ph-list"></i></button>
+              <div class="navbar__brand"><span class="navbar__brand-icon"><i class="ph ph-circles-three"></i></span><span class="navbar__brand-name">PM Drill</span></div>
+            </div>
+            <div class="phase-head">
+              <span class="phase-head__num">02</span>
+              <div class="phase-head__main">
+                <div class="phase-head__eyebrow">Phase 2 · 對話練習</div>
+                <div class="phase-head__title">C · 澄清情境</div>
+              </div>
+            </div>
+            <div class="chat-content">
+              <div class="chat-body">
+                <div class="bubble bubble--user">業務影響範圍如何？</div>
+                <div class="bubble bubble--coach">
+                  <div class="bubble__section"><i class="ph ph-graduation-cap"></i>教練點評</div>
+                  這個問題涉及廣告主出價競爭、用戶留存節奏、以及團隊資源配置三個維度。需要先<span class="bubble-coach__cursor"></span>
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- ── State C · streaming done（全文 + cursor.is-done → display:none）── -->
+
+      <div class="vp-frame" style="width:360px">
+        <div class="vp-frame__label"><span>State C · streaming done（全文 + cursor.is-done）</span><span>360 px</span></div>
+        <div class="vp-frame__body">
+          <div class="vp-frame__inner">
+            <div class="navbar">
+              <button class="navbar__icon-btn"><i class="ph ph-list"></i></button>
+              <div class="navbar__brand"><span class="navbar__brand-icon"><i class="ph ph-circles-three"></i></span><span class="navbar__brand-name">PM Drill</span></div>
+            </div>
+            <div class="phase-head">
+              <span class="phase-head__num">02</span>
+              <div class="phase-head__main">
+                <div class="phase-head__eyebrow">Phase 2 · 對話練習</div>
+                <div class="phase-head__title">C · 澄清情境</div>
+              </div>
+            </div>
+            <div class="chat-content">
+              <div class="chat-body">
+                <div class="bubble bubble--user">業務影響範圍如何？</div>
+                <div class="bubble bubble--coach">
+                  <div class="bubble__section"><i class="ph ph-graduation-cap"></i>教練點評</div>
+                  這個問題涉及廣告主出價競爭、用戶留存節奏、以及團隊資源配置三個維度。需要先聚焦哪一個維度的優化才能驅動其他兩個？<span class="bubble-coach__cursor is-done"></span>
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <div class="vp-frame" style="width:768px">
+        <div class="vp-frame__label"><span>State C · streaming done（全文 + cursor.is-done）</span><span>768 px</span></div>
+        <div class="vp-frame__body">
+          <div class="vp-frame__inner">
+            <div class="navbar">
+              <button class="navbar__icon-btn"><i class="ph ph-list"></i></button>
+              <div class="navbar__brand"><span class="navbar__brand-icon"><i class="ph ph-circles-three"></i></span><span class="navbar__brand-name">PM Drill</span></div>
+            </div>
+            <div class="phase-head">
+              <span class="phase-head__num">02</span>
+              <div class="phase-head__main">
+                <div class="phase-head__eyebrow">Phase 2 · 對話練習</div>
+                <div class="phase-head__title">C · 澄清情境</div>
+              </div>
+            </div>
+            <div class="chat-content">
+              <div class="chat-body">
+                <div class="bubble bubble--user">業務影響範圍如何？</div>
+                <div class="bubble bubble--coach">
+                  <div class="bubble__section"><i class="ph ph-graduation-cap"></i>教練點評</div>
+                  這個問題涉及廣告主出價競爭、用戶留存節奏、以及團隊資源配置三個維度。需要先聚焦哪一個維度的優化才能驅動其他兩個？<span class="bubble-coach__cursor is-done"></span>
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <div class="vp-frame" style="width:1280px">
+        <div class="vp-frame__label"><span>State C · streaming done（全文 + cursor.is-done）</span><span>1280 px</span></div>
+        <div class="vp-frame__body">
+          <div class="vp-frame__inner">
+            <div class="navbar">
+              <button class="navbar__icon-btn"><i class="ph ph-list"></i></button>
+              <div class="navbar__brand"><span class="navbar__brand-icon"><i class="ph ph-circles-three"></i></span><span class="navbar__brand-name">PM Drill</span></div>
+            </div>
+            <div class="phase-head">
+              <span class="phase-head__num">02</span>
+              <div class="phase-head__main">
+                <div class="phase-head__eyebrow">Phase 2 · 對話練習</div>
+                <div class="phase-head__title">C · 澄清情境</div>
+              </div>
+            </div>
+            <div class="chat-content">
+              <div class="chat-body">
+                <div class="bubble bubble--user">業務影響範圍如何？</div>
+                <div class="bubble bubble--coach">
+                  <div class="bubble__section"><i class="ph ph-graduation-cap"></i>教練點評</div>
+                  這個問題涉及廣告主出價競爭、用戶留存節奏、以及團隊資源配置三個維度。需要先聚焦哪一個維度的優化才能驅動其他兩個？<span class="bubble-coach__cursor is-done"></span>
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+
+    </div><!-- end §G vp-grid -->
 
     <!-- closing footer -->
     <div class="anno" style="margin-top:var(--s-9)">
