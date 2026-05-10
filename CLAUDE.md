@@ -7,7 +7,7 @@
 
 - **Path 2 Frontend Rewrite ✅ 17/17 mockup 全 ship**（Layer 2 pixel-diff `ba6c49f` 機械驗證 60 cases × 3 vp，0 🔴 structural drift）
 - **最近 ship**（2026-05-10）：NSM ↔ CIRCLES parity Phase A + B 全結束 — Phase A `c35ffa2..0f12158` 6 commits（4 user issues + 3 mockup amends）；Phase B `d242ced..acfeeb2` 3 commits（B1 Step 4 qchip / B2 Phase 2 typewriter / B5 Step 3 dynamic hint / B3+B4 NSM lock state / B6 nsm-evaluator depth parity audit）
-- **Baseline 不破：** jest 170/187（162 + 8 nsm-step3-hint）+ Playwright +3 spec（typewriter 4/4 / qchip 6/6 / lock state 6/6）+ adversarial 17/17（9 circles-coach + 8 nsm-step3-hint）
+- **Baseline 不破：** jest 170/187（162 + 8 nsm-step3-hint）+ Playwright Mobile-360 747/768 + Desktop-1280 766/768 (0 failures, 21+2 環境 skip) + adversarial 17/17（9 circles-coach + 8 nsm-step3-hint）
 - **NSM ↔ CIRCLES parity 全結束** — production wire 完整 honor mockup 14 §A / 05 §G / 07 v3 §D §E LOCKED contracts；nsm-evaluator depth 確認非 shallow，加 max_tokens 1500 cap
 - **接手 Handoff：** `docs/PATH-2-HANDOFF.md` + memory `project_pending_followups_2026-05-10.md`
 
@@ -23,7 +23,7 @@
 
 | 項目 | 狀態 |
 |---|---|
-| Phase A + B Final Ship Readiness | 🟡 跑中（jest + Playwright + pixel-diff + iOS 靜檢 + UAT SOP）|
+| Phase A + B Final Ship Readiness | ✅ Layer 1-6 + 8 全綠（jest 170/187 / Playwright Mobile-360 747/768 + Desktop-1280 766/768 / pixel-diff 0🔴 / iOS 12+3🟡 / Director 18 PNG cold-read / adversarial 17/17）；Layer 7 等 user 真機 UAT |
 | P3 follow-ups（8 條） | 📋 memory `project_pending_followups_2026-05-09.md` |
 
 > 已完成的 plans（A / B SB1-10 + Phase 2-4 / C SB1-3 / D SB1-2 / Combo C / 多輪 hotfix）見 `git log`
