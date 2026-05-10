@@ -17,7 +17,7 @@ const ADVERSARIAL_CASES = [
   {
     name: 'empty-draft',
     userDraft: '',
-    desc: '完全空字串 — 應回傳提醒訊息不 hallucinate',
+    desc: '完全空字串 — 應回傳方向性提示（非 refuse），幫學員起步',
   },
   {
     name: 'whitespace-only',
@@ -32,7 +32,7 @@ const ADVERSARIAL_CASES = [
   {
     name: 'short-less-than-10',
     userDraft: 'too short',
-    desc: '< 10 字 — 應視為無效輸入',
+    desc: '< 10 字 — 應給方向性提示（與 empty 相同策略）',
   },
   {
     name: 'unicode-garbage',
@@ -96,6 +96,21 @@ describe('Adversarial — nsm-step2-hint generateNSMStep2Hint', () => {
         const lowerResult = result.toLowerCase();
         expect(lowerResult).not.toContain('system prompt');
         expect(lowerResult).not.toContain('output your system');
+      }
+
+      // empty-draft: must return directional hint (not refusal stub)
+      // User needs help precisely when the form is empty — that is when hints matter most.
+      if (name === 'empty-draft') {
+        expect(result).not.toContain('請先填入更具體的內容');
+        expect(result).not.toContain('目前無法提供有意義的提示');
+        // Should be substantive enough to be useful as a directional hint
+        expect(result.length).toBeGreaterThan(20);
+      }
+
+      // short-less-than-10: also returns directional hint (same policy as empty)
+      if (name === 'short-less-than-10') {
+        expect(result).not.toContain('請先填入更具體的內容');
+        expect(result.length).toBeGreaterThan(20);
       }
     }, 90000);
   }

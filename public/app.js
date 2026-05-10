@@ -7500,7 +7500,12 @@
     AppState.circlesMode = item.mode === 'simulation' ? 'sim' : 'drill';
     AppState.circlesDrillStep = item.drill_step || 'C1';
     // Phase + sim step pointer
-    AppState.circlesPhase = item.current_phase || 1;
+    // Issue 2b fix: always land on Phase 1 (safe landing for offcanvas restore).
+    // If session was completed (current_phase 3/4), user can still navigate forward via
+    // existing navigation buttons after landing — but we never auto-jump to eval result
+    // on history click. This prevents incomplete sessions from landing on an empty eval
+    // page (卡死). Completed sessions are still visible in offcanvas (not hidden).
+    AppState.circlesPhase = 1;
     AppState.circlesSimStep = item.sim_step_index || 0;
     // Step drafts reverse-transform — match triggerSaveCycle payload shape
     var sd = item.step_drafts || {};
@@ -7513,12 +7518,6 @@
     // R3: restore Phase 2/3/4 sub-state (conversation + step_scores)
     AppState.circlesConversation = item.conversation || [];
     AppState.circlesStepScores = item.step_scores || {};
-    // R3: safety fallback — if phase > 1 but conversation is empty, snap back to phase 1
-    // so user sees their Phase 1 draft instead of an empty Phase 2/3/4 shell
-    if (AppState.circlesPhase > 1 && AppState.circlesConversation.length === 0) {
-      console.log('[restore] phase > 1 but conversation empty — snapping back to Phase 1 draft');
-      AppState.circlesPhase = 1;
-    }
     // localStorage cache merge — prefer newer ts OR fall back to local when the
     // backend session row carries no draft content (e.g. very first PATCH lost
     // to a race / transient network failure). Without this fallback the user's
@@ -7728,6 +7727,54 @@
     if (!t) return;
     var el = document.querySelector(t.selector);
     if (el) el.classList.add('onb-targeted');
+    positionOnboardingTooltip();
+  }
+
+  // Positions the .onb-tooltip near its spotlight target using getBoundingClientRect.
+  // Mobile (<=480px): place tooltip below the target with a 16px gap, clamped to viewport.
+  // Desktop/tablet: place tooltip to the right of the target; fall back to left if it would overflow.
+  function positionOnboardingTooltip() {
+    var tooltip = document.querySelector('.onb-tooltip');
+    if (!tooltip) return;
+    var t = ONBOARDING_TARGETS[AppState.onboardingStep];
+    if (!t) return;
+    var target = document.querySelector(t.selector);
+    if (!target) return;
+
+    var rect = target.getBoundingClientRect();
+    var vw = window.innerWidth;
+    var vh = window.innerHeight;
+    var tooltipW = 300;
+    var tooltipH = tooltip.offsetHeight || 180;
+    var gap = 16;
+    var edgePad = 12;
+
+    var top, left;
+
+    if (vw <= 480) {
+      // Mobile: position below target, arrow pointing up, left-aligned with target
+      top = rect.bottom + gap;
+      left = Math.max(edgePad, Math.min(rect.left, vw - tooltipW - edgePad));
+      // If tooltip would overflow bottom, place above target
+      if (top + tooltipH > vh - edgePad) {
+        top = Math.max(edgePad, rect.top - tooltipH - gap);
+      }
+    } else {
+      // Desktop/tablet: prefer right of target; fall back to left if overflow
+      var rightStart = rect.right + gap;
+      if (rightStart + tooltipW <= vw - edgePad) {
+        left = rightStart;
+      } else {
+        left = Math.max(edgePad, rect.left - tooltipW - gap);
+      }
+      // Vertically align top of tooltip with top of target, clamped to viewport
+      top = Math.max(edgePad, Math.min(rect.top, vh - tooltipH - edgePad));
+    }
+
+    tooltip.style.top = top + 'px';
+    tooltip.style.left = left + 'px';
+    tooltip.style.right = 'auto';
+    tooltip.style.bottom = 'auto';
   }
 
   function bindOnboarding() {
