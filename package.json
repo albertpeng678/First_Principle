@@ -4,8 +4,8 @@
   "description": "",
   "main": "index.js",
   "scripts": {
-    "start": "node server.js",
-    "dev": "node --watch server.js",
+    "start": "node -r dotenv/config server.js",
+    "dev": "node -r dotenv/config --watch server.js",
     "test": "jest",
     "test:e2e": "npx playwright test --config=tests/playwright/playwright.config.js",
     "cleanup:empty-sessions": "node scripts/cleanup-empty-sessions.js",
