@@ -7599,9 +7599,17 @@
           loadHistory();
         } else if (action === 'delete') {
           const id = el.dataset.id;
+          // route to correct endpoint based on session kind (mirror loadCirclesSessionFromHistory heuristic)
+          const item = (AppState.historyList || []).find(function (i) { return String(i.id) === String(id); });
+          const isNsm = item && !item.mode && !item.drill_step;
           AppState.historyList = AppState.historyList.filter(function (i) { return i.id !== id; });
           render();
-          const path = AppState.accessToken ? '/api/circles-sessions/' + id : '/api/guest-circles-sessions/' + id;
+          var path;
+          if (isNsm) {
+            path = AppState.accessToken ? '/api/nsm-sessions/' + id : '/api/guest/nsm-sessions/' + id;
+          } else {
+            path = AppState.accessToken ? '/api/circles-sessions/' + id : '/api/guest-circles-sessions/' + id;
+          }
           window.apiFetch(path, { method: 'DELETE' }).catch(function () {});
         } else if (action === 'item') {
           // Guard: don't trigger if delete button was clicked (delete is nested inside item div)
