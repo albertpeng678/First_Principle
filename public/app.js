@@ -1489,8 +1489,6 @@
       : '<div class="nsm-rt-field"><div class="nsm-rt-toolbar">'
         + '<button class="nsm-rt-tbtn" data-rt-cmd="bold" title="粗體"><strong>B</strong></button>'
         + '<button class="nsm-rt-tbtn" data-rt-cmd="insertUnorderedList" title="列點"><i class="ph ph-list-bullets"></i></button>'
-        + '<button class="nsm-rt-tbtn" data-rt-cmd="indent" title="縮排"><i class="ph ph-text-indent"></i></button>'
-        + '<button class="nsm-rt-tbtn" data-rt-cmd="outdent" title="退縮"><i class="ph ph-text-outdent"></i></button>'
         + '</div><div class="nsm-rt-textarea" contenteditable="true" data-nsm-field="' + fieldId + '">' + (value || '') + '</div></div>';
 
     var expandHtml = '';
@@ -1661,8 +1659,6 @@
       +   '<div class="nsm-rt-field"><div class="nsm-rt-toolbar">'
       +     '<button class="nsm-rt-tbtn" data-rt-cmd="bold" title="粗體"><strong>B</strong></button>'
       +     '<button class="nsm-rt-tbtn" data-rt-cmd="insertUnorderedList" title="列點"><i class="ph ph-list-bullets"></i></button>'
-      +     '<button class="nsm-rt-tbtn" data-rt-cmd="indent" title="縮排"><i class="ph ph-text-indent"></i></button>'
-      +     '<button class="nsm-rt-tbtn" data-rt-cmd="outdent" title="退縮"><i class="ph ph-text-outdent"></i></button>'
       +   '</div><textarea class="nsm-rt-textarea" data-nsm-dim="' + escHtml(dim.id) + '">' + escHtml(value) + '</textarea></div>'
       + '</div></div>';
   }
@@ -1772,6 +1768,15 @@
         if (!AppState.nsmDefinition) AppState.nsmDefinition = { nsm: '', explanation: '', businessLink: '' };
         AppState.nsmDefinition[fid] = v;
         triggerNsmSaveCycle();
+        // In-place submit update — mirror CIRCLES Phase 1 line 6956+
+        if (_nsmSubmitDebounce) clearTimeout(_nsmSubmitDebounce);
+        _nsmSubmitDebounce = setTimeout(function () {
+          var submitBtn = document.querySelector('[data-nsm-submit]');
+          if (!submitBtn || AppState.nsmEvalResult) return;
+          var def = AppState.nsmDefinition || {};
+          var canSubmit = fieldMinLengthOk(def.nsm, 10) && fieldMinLengthOk(def.explanation, 30) && fieldMinLengthOk(def.businessLink, 30);
+          submitBtn.disabled = !canSubmit;
+        }, 200);
       });
     });
     document.querySelectorAll('[data-nsm-dim]').forEach(function (el) {
@@ -1780,6 +1785,18 @@
         if (!AppState.nsmBreakdown) AppState.nsmBreakdown = {};
         AppState.nsmBreakdown[did] = el.value;
         triggerNsmSaveCycle();
+        // In-place submit update — mirror CIRCLES Phase 1 line 6956+
+        if (_nsmSubmitDebounce) clearTimeout(_nsmSubmitDebounce);
+        _nsmSubmitDebounce = setTimeout(function () {
+          var submitBtn = document.querySelector('[data-nsm-submit]');
+          if (!submitBtn || AppState.nsmEvalResult) return;
+          var q = AppState.nsmSelectedQuestion || {};
+          var ptype = nsmGuessProductType(q);
+          var typeCfg = getNsmDimConfig(ptype);
+          var br = AppState.nsmBreakdown || {};
+          var canSubmit = typeCfg.dims.every(function (d) { return fieldMinLengthOk(br[d.id], 20); });
+          submitBtn.disabled = !canSubmit;
+        }, 200);
       });
     });
     var backBtn = document.querySelector('[data-nsm-action="back"]');
@@ -1946,6 +1963,7 @@
   }
 
   var _nsmSaveTimer = null;
+  var _nsmSubmitDebounce = null;
   function triggerNsmSaveCycle() {
     if (_nsmSaveTimer) clearTimeout(_nsmSaveTimer);
     _nsmSaveTimer = setTimeout(function () {
