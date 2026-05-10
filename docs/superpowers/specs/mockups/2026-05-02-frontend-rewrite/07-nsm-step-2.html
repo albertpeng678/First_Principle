@@ -796,6 +796,33 @@
     .modal__close { width: 32px; height: 32px; flex: 0 0 auto; border-radius: var(--r-pill); color: var(--c-ink-3); display: inline-flex; align-items: center; justify-content: center; }
     .modal__body { padding: var(--s-4) var(--s-5); font-size: var(--t-body-sm); line-height: 1.75; color: var(--c-ink); max-height: 280px; overflow-y: auto; }
     .modal__foot { padding: var(--s-3) var(--s-5); border-top: 1px solid var(--c-rule); display: flex; justify-content: flex-end; gap: var(--s-2); background: var(--c-bg-soft); }
+
+    /* banners — LOCKED verbatim from mockup 03 §E */
+    .banner {
+      margin: 0;
+      padding: var(--s-3) var(--s-5);
+      border-radius: 0;
+      font-size: var(--t-meta);
+      display: flex;
+      gap: var(--s-3);
+      align-items: flex-start;
+      border-bottom: 1px solid var(--c-rule);
+    }
+    .banner i { font-size: 18px; flex: 0 0 auto; margin-top: 1px; }
+    .banner strong { display: block; margin-bottom: 2px; }
+    .banner--locked { background: var(--c-bg-soft); color: var(--c-ink-2); border-left: 2px solid var(--c-ink-3); }
+
+    /* rt-field--locked — LOCKED verbatim from mockup 03 §E */
+    .rt-field--locked {
+      background: var(--c-bg-soft);
+      opacity: 0.85;
+      cursor: not-allowed;
+    }
+    .rt-field--locked .rt-field__toolbar { opacity: 0.5; pointer-events: none; }
+    .rt-field--locked .rt-textarea,
+    .rt-field--locked [contenteditable] { color: var(--c-ink-3); cursor: not-allowed; }
+    .nsm-input.rt-field--locked,
+    .nsm-textarea.rt-field--locked { background: var(--c-bg-soft); color: var(--c-ink-3); cursor: not-allowed; opacity: 0.85; }
   </style>
 </head>
 <body>
@@ -2237,8 +2264,700 @@
 
   </div>
 
+  <!-- ═════════════════════════════════════════════════════════════════ -->
+  <!-- §D · 步驟 2 已評分 locked                                         -->
+  <!-- ═════════════════════════════════════════════════════════════════ -->
+  <h2 class="vp-section-title">D · 步驟 2 已評分 locked <span class="vp-section-title__sub">3 viewport — banner--locked + rt-field--locked + submit-bar 變體</span></h2>
+  <div class="anno"><strong>視覺契約：</strong>
+    觸發：<code>AppState.nsmEvalResult</code> 存在 → <code>applyNSMStateOverlay</code> post-render transform 套用 lock。
+    Layout: nsm-nav + nsm-progress（4 dots 全 done）+ nsm-context-card 4-block expand（read-only）+ <strong>「深入了解問題」toggle 仍可用</strong> + <strong>banner--locked</strong>「⊕ 已評分完成 — 內容鎖定，可繼續查看提示與範例」+ 3 nsm-field：保留完整 <code>.field__label-row</code> + <code>.field__hint-row</code>，<strong>「提示」「範例答案」buttons 仍可點</strong> + <strong>rt-field--locked</strong> grey bg + readonly + cursor:not-allowed + submit-bar 變體（左「← 上一步」ghost / 右「查看評分結果 →」navy primary 跳 Step 4，移除原「提交審核」）。
+    參照 standing rule feedback_lock_state_hint_example_always_available.md。
+    LOCKED component reuse from mockup 03 §E + mockup 05 §F（feedback_locked_components_reuse.md）。
+  </div>
+  <div class="vp-grid">
+
+    <!-- §D · Mobile 360 -->
+    <div class="vp-frame">
+      <div class="vp-frame__label"><span>Mobile · 步驟 2 locked</span><span>360 px</span></div>
+      <div class="vp-frame__body">
+        <div class="navbar">
+          <button class="navbar__icon-btn" aria-label="menu"><i class="ph ph-list"></i></button>
+          <div class="navbar__brand"><span class="navbar__brand-icon"><i class="ph ph-circles-three"></i></span><span class="navbar__brand-name">PM Drill</span></div>
+          <div class="navbar__actions"><button class="navbar__icon-btn" aria-label="home"><i class="ph ph-house"></i></button></div>
+        </div>
+        <div class="phase-head">
+          <span class="phase-head__num">2</span>
+          <div class="phase-head__main">
+            <div class="phase-head__eyebrow">NSM · 北極星訓練 · 已評分</div>
+            <div class="phase-head__title">定義 NSM</div>
+          </div>
+        </div>
+        <div class="nsm-progress">
+          <div class="nsm-progress__step is-done"><div class="nsm-progress__dot"><i class="ph ph-check" style="font-size:12px;"></i></div><div class="nsm-progress__label">情境</div></div>
+          <div class="nsm-progress__line is-done"></div>
+          <div class="nsm-progress__step is-done"><div class="nsm-progress__dot"><i class="ph ph-check" style="font-size:12px;"></i></div><div class="nsm-progress__label">指標</div></div>
+          <div class="nsm-progress__line is-done"></div>
+          <div class="nsm-progress__step is-done"><div class="nsm-progress__dot"><i class="ph ph-check" style="font-size:12px;"></i></div><div class="nsm-progress__label">拆解</div></div>
+          <div class="nsm-progress__line is-done"></div>
+          <div class="nsm-progress__step is-done"><div class="nsm-progress__dot"><i class="ph ph-check" style="font-size:12px;"></i></div><div class="nsm-progress__label">總結</div></div>
+        </div>
+        <!-- locked banner -->
+        <div class="banner banner--locked">
+          <i class="ph ph-lock"></i>
+          <div class="banner__body">
+            <strong>已評分完成</strong>
+            <span> — 內容鎖定，可繼續查看提示與範例</span>
+          </div>
+        </div>
+        <div class="nsm-body">
+          <!-- context card — read-only with 4-block expand visible -->
+          <div class="nsm-context-card">
+            <div class="nsm-context-card__top">
+              <span class="nsm-context-card__company">Spotify</span>
+              <span class="nsm-context-card__industry">音樂串流</span>
+              <span class="nsm-context-card__type nsm-context-card__type--attention"><i class="ph ph-play-circle"></i>注意力型</span>
+            </div>
+            <p class="nsm-context-card__scenario">為 Spotify Podcast 業務定義北極星指標，目標是衡量新用戶能否養成日常收聽習慣。</p>
+            <span class="nsm-context-card__hint"><i class="ph ph-info"></i>核心價值在於讓用戶在產品上花有意義的時間（社交、媒體、遊戲）。</span>
+          </div>
+          <!-- 3 fields all rt-field--locked; hint + example buttons remain clickable -->
+          <div class="nsm-field">
+            <div class="field__label-row">
+              <label class="field__label">北極星指標 (NSM)</label>
+              <div class="field__hint-row">
+                <div class="field__hint-row">
+                  <button class="field__hint-link" type="button"><i class="ph ph-lightbulb"></i>提示</button>
+                  <button class="field-example-toggle" type="button" aria-expanded="false"><i class="ph ph-quotes"></i>範例答案<i class="ph ph-caret-down toggle-caret"></i></button>
+                </div>
+              </div>
+            </div>
+            <input class="nsm-input rt-field--locked" readonly value="月活躍用戶完成 ≥ 3 集 Podcast 收聽">
+          </div>
+          <div class="nsm-field">
+            <div class="field__label-row">
+              <label class="field__label">定義說明</label>
+              <div class="field__hint-row">
+                <div class="field__hint-row">
+                  <button class="field__hint-link" type="button"><i class="ph ph-lightbulb"></i>提示</button>
+                  <button class="field-example-toggle" type="button" aria-expanded="false"><i class="ph ph-quotes"></i>範例答案<i class="ph ph-caret-down toggle-caret"></i></button>
+                </div>
+              </div>
+            </div>
+            <div class="rt-field rt-field--locked">
+              <div class="rt-field__toolbar"><button class="rt-tbtn" disabled><i class="ph ph-text-b"></i></button><button class="rt-tbtn" disabled><i class="ph ph-list-bullets"></i></button></div>
+              <div class="rt-textarea" contenteditable="false" style="cursor:not-allowed;">月內至少 3 次完整收聽 Podcast 內容（每次 ≥ 5 分鐘），代表用戶已從 Spotify 內容生態中取得實質價值。</div>
+            </div>
+          </div>
+          <div class="nsm-field">
+            <div class="field__label-row">
+              <label class="field__label">與業務目標的連結</label>
+              <div class="field__hint-row">
+                <div class="field__hint-row">
+                  <button class="field__hint-link" type="button"><i class="ph ph-lightbulb"></i>提示</button>
+                  <button class="field-example-toggle" type="button" aria-expanded="false"><i class="ph ph-quotes"></i>範例答案<i class="ph ph-caret-down toggle-caret"></i></button>
+                </div>
+              </div>
+            </div>
+            <div class="rt-field rt-field--locked">
+              <div class="rt-field__toolbar"><button class="rt-tbtn" disabled><i class="ph ph-text-b"></i></button><button class="rt-tbtn" disabled><i class="ph ph-list-bullets"></i></button></div>
+              <div class="rt-textarea" contenteditable="false" style="cursor:not-allowed;">收聽行為直接 → 內容多元 → 廣告填充率上升 → 訂閱轉換 + 留存提升。</div>
+            </div>
+          </div>
+        </div>
+        <!-- submit-bar 變體 -->
+        <div class="submit-bar">
+          <div class="submit-bar__left"><button class="btn btn--ghost"><i class="ph ph-arrow-left"></i>上一步</button></div>
+          <div class="submit-bar__right"><button class="btn btn--primary">查看評分結果<i class="ph ph-arrow-right"></i></button></div>
+        </div>
+      </div>
+    </div>
+
+    <!-- §D · Tablet 768 -->
+    <div class="vp-frame">
+      <div class="vp-frame__label"><span>Tablet · 步驟 2 locked</span><span>768 px</span></div>
+      <div class="vp-frame__body">
+        <div class="navbar">
+          <button class="navbar__icon-btn" aria-label="menu"><i class="ph ph-list"></i></button>
+          <div class="navbar__brand"><span class="navbar__brand-icon"><i class="ph ph-circles-three"></i></span><span class="navbar__brand-name">PM Drill</span></div>
+          <nav class="navbar__tabs"><span class="navbar__tab">CIRCLES</span><span class="navbar__tab is-active">北極星指標</span></nav>
+          <div class="navbar__actions"><button class="navbar__icon-btn" aria-label="home"><i class="ph ph-house"></i></button></div>
+        </div>
+        <div class="phase-head">
+          <span class="phase-head__num">2</span>
+          <div class="phase-head__main">
+            <div class="phase-head__eyebrow">NSM · 北極星訓練 · 已評分</div>
+            <div class="phase-head__title">定義 NSM</div>
+          </div>
+        </div>
+        <div class="nsm-progress">
+          <div class="nsm-progress__step is-done"><div class="nsm-progress__dot"><i class="ph ph-check" style="font-size:12px;"></i></div><div class="nsm-progress__label">情境</div></div>
+          <div class="nsm-progress__line is-done"></div>
+          <div class="nsm-progress__step is-done"><div class="nsm-progress__dot"><i class="ph ph-check" style="font-size:12px;"></i></div><div class="nsm-progress__label">指標</div></div>
+          <div class="nsm-progress__line is-done"></div>
+          <div class="nsm-progress__step is-done"><div class="nsm-progress__dot"><i class="ph ph-check" style="font-size:12px;"></i></div><div class="nsm-progress__label">拆解</div></div>
+          <div class="nsm-progress__line is-done"></div>
+          <div class="nsm-progress__step is-done"><div class="nsm-progress__dot"><i class="ph ph-check" style="font-size:12px;"></i></div><div class="nsm-progress__label">總結</div></div>
+        </div>
+        <!-- locked banner -->
+        <div class="banner banner--locked">
+          <i class="ph ph-lock"></i>
+          <div class="banner__body">
+            <strong>已評分完成</strong>
+            <span> — 內容鎖定，可繼續查看提示與範例</span>
+          </div>
+        </div>
+        <div class="nsm-body">
+          <div class="nsm-context-card">
+            <div class="nsm-context-card__top">
+              <span class="nsm-context-card__company">Spotify</span>
+              <span class="nsm-context-card__industry">音樂串流</span>
+              <span class="nsm-context-card__type nsm-context-card__type--attention"><i class="ph ph-play-circle"></i>注意力型</span>
+            </div>
+            <p class="nsm-context-card__scenario">為 Spotify Podcast 業務定義北極星指標，目標是衡量新用戶能否養成日常收聽習慣。</p>
+            <span class="nsm-context-card__hint"><i class="ph ph-info"></i>核心價值在於讓用戶在產品上花有意義的時間（社交、媒體、遊戲）。</span>
+          </div>
+          <div class="nsm-field">
+            <div class="field__label-row">
+              <label class="field__label">北極星指標 (NSM)</label>
+              <div class="field__hint-row">
+                <div class="field__hint-row">
+                  <button class="field__hint-link" type="button"><i class="ph ph-lightbulb"></i>提示</button>
+                  <button class="field-example-toggle" type="button" aria-expanded="false"><i class="ph ph-quotes"></i>範例答案<i class="ph ph-caret-down toggle-caret"></i></button>
+                </div>
+              </div>
+            </div>
+            <input class="nsm-input rt-field--locked" readonly value="月活躍用戶完成 ≥ 3 集 Podcast 收聽">
+          </div>
+          <div class="nsm-field">
+            <div class="field__label-row">
+              <label class="field__label">定義說明</label>
+              <div class="field__hint-row">
+                <div class="field__hint-row">
+                  <button class="field__hint-link" type="button"><i class="ph ph-lightbulb"></i>提示</button>
+                  <button class="field-example-toggle" type="button" aria-expanded="false"><i class="ph ph-quotes"></i>範例答案<i class="ph ph-caret-down toggle-caret"></i></button>
+                </div>
+              </div>
+            </div>
+            <div class="rt-field rt-field--locked">
+              <div class="rt-field__toolbar"><button class="rt-tbtn" disabled><i class="ph ph-text-b"></i></button><button class="rt-tbtn" disabled><i class="ph ph-list-bullets"></i></button></div>
+              <div class="rt-textarea" contenteditable="false" style="cursor:not-allowed;">月內至少 3 次完整收聽 Podcast 內容（每次 ≥ 5 分鐘），代表用戶已從 Spotify 內容生態中取得實質價值。</div>
+            </div>
+          </div>
+          <div class="nsm-field">
+            <div class="field__label-row">
+              <label class="field__label">與業務目標的連結</label>
+              <div class="field__hint-row">
+                <div class="field__hint-row">
+                  <button class="field__hint-link" type="button"><i class="ph ph-lightbulb"></i>提示</button>
+                  <button class="field-example-toggle" type="button" aria-expanded="false"><i class="ph ph-quotes"></i>範例答案<i class="ph ph-caret-down toggle-caret"></i></button>
+                </div>
+              </div>
+            </div>
+            <div class="rt-field rt-field--locked">
+              <div class="rt-field__toolbar"><button class="rt-tbtn" disabled><i class="ph ph-text-b"></i></button><button class="rt-tbtn" disabled><i class="ph ph-list-bullets"></i></button></div>
+              <div class="rt-textarea" contenteditable="false" style="cursor:not-allowed;">收聽行為直接 → 內容多元 → 廣告填充率上升 → 訂閱轉換 + 留存提升。</div>
+            </div>
+          </div>
+        </div>
+        <div class="submit-bar">
+          <div class="submit-bar__left"><button class="btn btn--ghost"><i class="ph ph-arrow-left"></i>上一步</button></div>
+          <div class="submit-bar__right"><button class="btn btn--primary">查看評分結果<i class="ph ph-arrow-right"></i></button></div>
+        </div>
+      </div>
+    </div>
+
+    <!-- §D · Desktop 1280 -->
+    <div class="vp-frame">
+      <div class="vp-frame__label"><span>Desktop · 步驟 2 locked</span><span>1280 px</span></div>
+      <div class="vp-frame__body">
+        <div class="navbar">
+          <button class="navbar__icon-btn" aria-label="menu"><i class="ph ph-list"></i></button>
+          <div class="navbar__brand"><span class="navbar__brand-icon"><i class="ph ph-circles-three"></i></span><span class="navbar__brand-name">PM Drill</span></div>
+          <nav class="navbar__tabs"><span class="navbar__tab">CIRCLES</span><span class="navbar__tab is-active">北極星指標</span></nav>
+          <div class="navbar__actions"><button class="navbar__icon-btn" aria-label="home"><i class="ph ph-house"></i></button></div>
+        </div>
+        <div class="phase-head">
+          <span class="phase-head__num">2</span>
+          <div class="phase-head__main">
+            <div class="phase-head__eyebrow">NSM · 北極星訓練 · 已評分</div>
+            <div class="phase-head__title">定義 NSM</div>
+          </div>
+        </div>
+        <div class="nsm-progress">
+          <div class="nsm-progress__step is-done"><div class="nsm-progress__dot"><i class="ph ph-check" style="font-size:12px;"></i></div><div class="nsm-progress__label">情境</div></div>
+          <div class="nsm-progress__line is-done"></div>
+          <div class="nsm-progress__step is-done"><div class="nsm-progress__dot"><i class="ph ph-check" style="font-size:12px;"></i></div><div class="nsm-progress__label">指標</div></div>
+          <div class="nsm-progress__line is-done"></div>
+          <div class="nsm-progress__step is-done"><div class="nsm-progress__dot"><i class="ph ph-check" style="font-size:12px;"></i></div><div class="nsm-progress__label">拆解</div></div>
+          <div class="nsm-progress__line is-done"></div>
+          <div class="nsm-progress__step is-done"><div class="nsm-progress__dot"><i class="ph ph-check" style="font-size:12px;"></i></div><div class="nsm-progress__label">總結</div></div>
+        </div>
+        <!-- locked banner -->
+        <div class="banner banner--locked">
+          <i class="ph ph-lock"></i>
+          <div class="banner__body">
+            <strong>已評分完成</strong>
+            <span> — 內容鎖定，可繼續查看提示與範例</span>
+          </div>
+        </div>
+        <div class="nsm-body">
+          <div class="nsm-context-card">
+            <div class="nsm-context-card__top">
+              <span class="nsm-context-card__company">Spotify</span>
+              <span class="nsm-context-card__industry">音樂串流</span>
+              <span class="nsm-context-card__type nsm-context-card__type--attention"><i class="ph ph-play-circle"></i>注意力型</span>
+            </div>
+            <p class="nsm-context-card__scenario">為 Spotify Podcast 業務定義北極星指標，目標是衡量新用戶能否養成日常收聽習慣。</p>
+            <span class="nsm-context-card__hint"><i class="ph ph-info"></i>核心價值在於讓用戶在產品上花有意義的時間（社交、媒體、遊戲）。</span>
+          </div>
+          <div class="nsm-field">
+            <div class="field__label-row">
+              <label class="field__label">北極星指標 (NSM)</label>
+              <div class="field__hint-row">
+                <div class="field__hint-row">
+                  <button class="field__hint-link" type="button"><i class="ph ph-lightbulb"></i>提示</button>
+                  <button class="field-example-toggle" type="button" aria-expanded="false"><i class="ph ph-quotes"></i>範例答案<i class="ph ph-caret-down toggle-caret"></i></button>
+                </div>
+              </div>
+            </div>
+            <input class="nsm-input rt-field--locked" readonly value="月活躍用戶完成 ≥ 3 集 Podcast 收聽">
+          </div>
+          <div class="nsm-field">
+            <div class="field__label-row">
+              <label class="field__label">定義說明</label>
+              <div class="field__hint-row">
+                <div class="field__hint-row">
+                  <button class="field__hint-link" type="button"><i class="ph ph-lightbulb"></i>提示</button>
+                  <button class="field-example-toggle" type="button" aria-expanded="false"><i class="ph ph-quotes"></i>範例答案<i class="ph ph-caret-down toggle-caret"></i></button>
+                </div>
+              </div>
+            </div>
+            <div class="rt-field rt-field--locked">
+              <div class="rt-field__toolbar"><button class="rt-tbtn" disabled><i class="ph ph-text-b"></i></button><button class="rt-tbtn" disabled><i class="ph ph-list-bullets"></i></button></div>
+              <div class="rt-textarea" contenteditable="false" style="cursor:not-allowed;">月內至少 3 次完整收聽 Podcast 內容（每次 ≥ 5 分鐘），代表用戶已從 Spotify 內容生態中取得實質價值。</div>
+            </div>
+          </div>
+          <div class="nsm-field">
+            <div class="field__label-row">
+              <label class="field__label">與業務目標的連結</label>
+              <div class="field__hint-row">
+                <div class="field__hint-row">
+                  <button class="field__hint-link" type="button"><i class="ph ph-lightbulb"></i>提示</button>
+                  <button class="field-example-toggle" type="button" aria-expanded="false"><i class="ph ph-quotes"></i>範例答案<i class="ph ph-caret-down toggle-caret"></i></button>
+                </div>
+              </div>
+            </div>
+            <div class="rt-field rt-field--locked">
+              <div class="rt-field__toolbar"><button class="rt-tbtn" disabled><i class="ph ph-text-b"></i></button><button class="rt-tbtn" disabled><i class="ph ph-list-bullets"></i></button></div>
+              <div class="rt-textarea" contenteditable="false" style="cursor:not-allowed;">收聽行為直接 → 內容多元 → 廣告填充率上升 → 訂閱轉換 + 留存提升。</div>
+            </div>
+          </div>
+        </div>
+        <div class="submit-bar">
+          <div class="submit-bar__left"><button class="btn btn--ghost"><i class="ph ph-arrow-left"></i>上一步</button></div>
+          <div class="submit-bar__right"><button class="btn btn--primary">查看評分結果<i class="ph ph-arrow-right"></i></button></div>
+        </div>
+      </div>
+    </div>
+
+  </div><!-- /.vp-grid §D -->
+
+  <!-- ═════════════════════════════════════════════════════════════════ -->
+  <!-- §E · 步驟 3 已評分 locked                                         -->
+  <!-- ═════════════════════════════════════════════════════════════════ -->
+  <h2 class="vp-section-title">E · 步驟 3 已評分 locked <span class="vp-section-title__sub">3 viewport — 4 dim cards 全 rt-field--locked</span></h2>
+  <div class="anno"><strong>視覺契約：</strong>
+    同 §D pattern：nsm-nav + nsm-progress（4 done）+ nsm-context-card 4-block expand + <strong>banner--locked</strong>「⊕ 已評分完成 — 內容鎖定，可繼續查看提示與範例」+ 4 nsm-dim cards 全 <strong>rt-field--locked</strong> + submit-bar 變體。Step 3 attention type 4 dims：觸及廣度 / 互動深度 / 習慣頻率 / 留存驅力。每 dim 完整顯示 user 答的內容 grey readonly + 教練提示 coach-Q 保留可看 + <strong>「提示」「範例答案」buttons 仍可點</strong>（同 §D，只鎖 form 編輯 + submit）。
+    參照 standing rule feedback_lock_state_hint_example_always_available.md。
+    LOCKED reuse from mockup 03 §E + mockup 05 §F。
+  </div>
+  <div class="vp-grid">
+
+    <!-- §E · Mobile 360 -->
+    <div class="vp-frame">
+      <div class="vp-frame__label"><span>Mobile · 步驟 3 locked</span><span>360 px</span></div>
+      <div class="vp-frame__body">
+        <div class="navbar">
+          <button class="navbar__icon-btn" aria-label="menu"><i class="ph ph-list"></i></button>
+          <div class="navbar__brand"><span class="navbar__brand-icon"><i class="ph ph-circles-three"></i></span><span class="navbar__brand-name">PM Drill</span></div>
+          <div class="navbar__actions"><button class="navbar__icon-btn" aria-label="home"><i class="ph ph-house"></i></button></div>
+        </div>
+        <div class="phase-head">
+          <span class="phase-head__num">3</span>
+          <div class="phase-head__main">
+            <div class="phase-head__eyebrow">NSM · 北極星訓練 · 已評分</div>
+            <div class="phase-head__title">拆解輸入指標</div>
+          </div>
+        </div>
+        <div class="nsm-progress">
+          <div class="nsm-progress__step is-done"><div class="nsm-progress__dot"><i class="ph ph-check" style="font-size:12px;"></i></div><div class="nsm-progress__label">情境</div></div>
+          <div class="nsm-progress__line is-done"></div>
+          <div class="nsm-progress__step is-done"><div class="nsm-progress__dot"><i class="ph ph-check" style="font-size:12px;"></i></div><div class="nsm-progress__label">指標</div></div>
+          <div class="nsm-progress__line is-done"></div>
+          <div class="nsm-progress__step is-done"><div class="nsm-progress__dot"><i class="ph ph-check" style="font-size:12px;"></i></div><div class="nsm-progress__label">拆解</div></div>
+          <div class="nsm-progress__line is-done"></div>
+          <div class="nsm-progress__step is-done"><div class="nsm-progress__dot"><i class="ph ph-check" style="font-size:12px;"></i></div><div class="nsm-progress__label">總結</div></div>
+        </div>
+        <!-- locked banner -->
+        <div class="banner banner--locked">
+          <i class="ph ph-lock"></i>
+          <div class="banner__body">
+            <strong>已評分完成</strong>
+            <span> — 內容鎖定，可繼續查看提示與範例</span>
+          </div>
+        </div>
+        <div class="nsm-body">
+          <div class="nsm-context-card">
+            <div class="nsm-context-card__top">
+              <span class="nsm-context-card__company">Spotify</span>
+              <span class="nsm-context-card__industry">音樂串流</span>
+              <span class="nsm-context-card__type nsm-context-card__type--attention"><i class="ph ph-play-circle"></i>注意力型</span>
+            </div>
+            <p class="nsm-context-card__scenario">為 Spotify Podcast 業務定義北極星指標，目標是衡量新用戶能否養成日常收聽習慣。</p>
+          </div>
+          <!-- 4 nsm-dim cards each rt-field--locked; hint + example buttons remain clickable -->
+          <div class="nsm-dim">
+            <div class="field__label-row">
+              <label class="field__label">觸及廣度</label>
+              <div class="field__hint-row">
+                <div class="field__hint-row">
+                  <button class="field__hint-link" type="button"><i class="ph ph-lightbulb"></i>提示</button>
+                  <button class="field-example-toggle" type="button" aria-expanded="false"><i class="ph ph-quotes"></i>範例答案<i class="ph ph-caret-down toggle-caret"></i></button>
+                </div>
+              </div>
+            </div>
+            <div class="nsm-dim__desc">有多少用戶真正觸碰到核心功能（非僅登入）</div>
+            <div class="nsm-dim__body">
+              <div class="nsm-dim__coach"><i class="ph ph-chalkboard-teacher"></i>教練問：你如何定義「真正使用」？能量化的門檻在哪？</div>
+              <div class="rt-field rt-field--locked">
+                <div class="rt-field__toolbar"><button class="rt-tbtn" disabled><i class="ph ph-text-b"></i></button><button class="rt-tbtn" disabled><i class="ph ph-list-bullets"></i></button></div>
+                <div class="rt-textarea" contenteditable="false" style="cursor:not-allowed;">每月活躍 Podcast 收聽者佔總 MAU 比率達 30%。</div>
+              </div>
+            </div>
+          </div>
+          <div class="nsm-dim">
+            <div class="field__label-row">
+              <label class="field__label">互動深度</label>
+              <div class="field__hint-row">
+                <div class="field__hint-row">
+                  <button class="field__hint-link" type="button"><i class="ph ph-lightbulb"></i>提示</button>
+                  <button class="field-example-toggle" type="button" aria-expanded="false"><i class="ph ph-quotes"></i>範例答案<i class="ph ph-caret-down toggle-caret"></i></button>
+                </div>
+              </div>
+            </div>
+            <div class="nsm-dim__desc">用戶使用核心功能的品質與強度</div>
+            <div class="nsm-dim__body">
+              <div class="nsm-dim__coach"><i class="ph ph-chalkboard-teacher"></i>教練問：淺度互動與深度互動如何區分？完播率還是時長？</div>
+              <div class="rt-field rt-field--locked">
+                <div class="rt-field__toolbar"><button class="rt-tbtn" disabled><i class="ph ph-text-b"></i></button><button class="rt-tbtn" disabled><i class="ph ph-list-bullets"></i></button></div>
+                <div class="rt-textarea" contenteditable="false" style="cursor:not-allowed;">單次完整收聽（≥ 80% 單集播放完成率）的用戶比率。</div>
+              </div>
+            </div>
+          </div>
+          <div class="nsm-dim">
+            <div class="field__label-row">
+              <label class="field__label">習慣頻率</label>
+              <div class="field__hint-row">
+                <div class="field__hint-row">
+                  <button class="field__hint-link" type="button"><i class="ph ph-lightbulb"></i>提示</button>
+                  <button class="field-example-toggle" type="button" aria-expanded="false"><i class="ph ph-quotes"></i>範例答案<i class="ph ph-caret-down toggle-caret"></i></button>
+                </div>
+              </div>
+            </div>
+            <div class="nsm-dim__desc">用戶回訪的規律性與節奏</div>
+            <div class="nsm-dim__body">
+              <div class="nsm-dim__coach"><i class="ph ph-chalkboard-teacher"></i>教練問：多久算「習慣」？每週 vs 每月有何不同意義？</div>
+              <div class="rt-field rt-field--locked">
+                <div class="rt-field__toolbar"><button class="rt-tbtn" disabled><i class="ph ph-text-b"></i></button><button class="rt-tbtn" disabled><i class="ph ph-list-bullets"></i></button></div>
+                <div class="rt-textarea" contenteditable="false" style="cursor:not-allowed;">每週至少 2 次開啟 Podcast 頻道的月活躍用戶比率。</div>
+              </div>
+            </div>
+          </div>
+          <div class="nsm-dim">
+            <div class="field__label-row">
+              <label class="field__label">留存驅力</label>
+              <div class="field__hint-row">
+                <div class="field__hint-row">
+                  <button class="field__hint-link" type="button"><i class="ph ph-lightbulb"></i>提示</button>
+                  <button class="field-example-toggle" type="button" aria-expanded="false"><i class="ph ph-quotes"></i>範例答案<i class="ph ph-caret-down toggle-caret"></i></button>
+                </div>
+              </div>
+            </div>
+            <div class="nsm-dim__desc">什麼驅使用戶持續回來</div>
+            <div class="nsm-dim__body">
+              <div class="nsm-dim__coach"><i class="ph ph-chalkboard-teacher"></i>教練問：留存的核心動力是內容推薦、社交還是習慣本身？</div>
+              <div class="rt-field rt-field--locked">
+                <div class="rt-field__toolbar"><button class="rt-tbtn" disabled><i class="ph ph-text-b"></i></button><button class="rt-tbtn" disabled><i class="ph ph-list-bullets"></i></button></div>
+                <div class="rt-textarea" contenteditable="false" style="cursor:not-allowed;">連續 3 週以上回訪並完成至少一集收聽的用戶比率。</div>
+              </div>
+            </div>
+          </div>
+        </div>
+        <div class="submit-bar">
+          <div class="submit-bar__left"><button class="btn btn--ghost"><i class="ph ph-arrow-left"></i>上一步</button></div>
+          <div class="submit-bar__right"><button class="btn btn--primary">查看評分結果<i class="ph ph-arrow-right"></i></button></div>
+        </div>
+      </div>
+    </div>
+
+    <!-- §E · Tablet 768 -->
+    <div class="vp-frame">
+      <div class="vp-frame__label"><span>Tablet · 步驟 3 locked</span><span>768 px</span></div>
+      <div class="vp-frame__body">
+        <div class="navbar">
+          <button class="navbar__icon-btn" aria-label="menu"><i class="ph ph-list"></i></button>
+          <div class="navbar__brand"><span class="navbar__brand-icon"><i class="ph ph-circles-three"></i></span><span class="navbar__brand-name">PM Drill</span></div>
+          <nav class="navbar__tabs"><span class="navbar__tab">CIRCLES</span><span class="navbar__tab is-active">北極星指標</span></nav>
+          <div class="navbar__actions"><button class="navbar__icon-btn" aria-label="home"><i class="ph ph-house"></i></button></div>
+        </div>
+        <div class="phase-head">
+          <span class="phase-head__num">3</span>
+          <div class="phase-head__main">
+            <div class="phase-head__eyebrow">NSM · 北極星訓練 · 已評分</div>
+            <div class="phase-head__title">拆解輸入指標</div>
+          </div>
+        </div>
+        <div class="nsm-progress">
+          <div class="nsm-progress__step is-done"><div class="nsm-progress__dot"><i class="ph ph-check" style="font-size:12px;"></i></div><div class="nsm-progress__label">情境</div></div>
+          <div class="nsm-progress__line is-done"></div>
+          <div class="nsm-progress__step is-done"><div class="nsm-progress__dot"><i class="ph ph-check" style="font-size:12px;"></i></div><div class="nsm-progress__label">指標</div></div>
+          <div class="nsm-progress__line is-done"></div>
+          <div class="nsm-progress__step is-done"><div class="nsm-progress__dot"><i class="ph ph-check" style="font-size:12px;"></i></div><div class="nsm-progress__label">拆解</div></div>
+          <div class="nsm-progress__line is-done"></div>
+          <div class="nsm-progress__step is-done"><div class="nsm-progress__dot"><i class="ph ph-check" style="font-size:12px;"></i></div><div class="nsm-progress__label">總結</div></div>
+        </div>
+        <!-- locked banner -->
+        <div class="banner banner--locked">
+          <i class="ph ph-lock"></i>
+          <div class="banner__body">
+            <strong>已評分完成</strong>
+            <span> — 內容鎖定，可繼續查看提示與範例</span>
+          </div>
+        </div>
+        <div class="nsm-body">
+          <div class="nsm-context-card">
+            <div class="nsm-context-card__top">
+              <span class="nsm-context-card__company">Spotify</span>
+              <span class="nsm-context-card__industry">音樂串流</span>
+              <span class="nsm-context-card__type nsm-context-card__type--attention"><i class="ph ph-play-circle"></i>注意力型</span>
+            </div>
+            <p class="nsm-context-card__scenario">為 Spotify Podcast 業務定義北極星指標，目標是衡量新用戶能否養成日常收聽習慣。</p>
+          </div>
+          <div class="nsm-dim">
+            <div class="field__label-row">
+              <label class="field__label">觸及廣度</label>
+              <div class="field__hint-row">
+                <div class="field__hint-row">
+                  <button class="field__hint-link" type="button"><i class="ph ph-lightbulb"></i>提示</button>
+                  <button class="field-example-toggle" type="button" aria-expanded="false"><i class="ph ph-quotes"></i>範例答案<i class="ph ph-caret-down toggle-caret"></i></button>
+                </div>
+              </div>
+            </div>
+            <div class="nsm-dim__desc">有多少用戶真正觸碰到核心功能（非僅登入）</div>
+            <div class="nsm-dim__body">
+              <div class="nsm-dim__coach"><i class="ph ph-chalkboard-teacher"></i>教練問：你如何定義「真正使用」？能量化的門檻在哪？</div>
+              <div class="rt-field rt-field--locked">
+                <div class="rt-field__toolbar"><button class="rt-tbtn" disabled><i class="ph ph-text-b"></i></button><button class="rt-tbtn" disabled><i class="ph ph-list-bullets"></i></button></div>
+                <div class="rt-textarea" contenteditable="false" style="cursor:not-allowed;">每月活躍 Podcast 收聽者佔總 MAU 比率達 30%。</div>
+              </div>
+            </div>
+          </div>
+          <div class="nsm-dim">
+            <div class="field__label-row">
+              <label class="field__label">互動深度</label>
+              <div class="field__hint-row">
+                <div class="field__hint-row">
+                  <button class="field__hint-link" type="button"><i class="ph ph-lightbulb"></i>提示</button>
+                  <button class="field-example-toggle" type="button" aria-expanded="false"><i class="ph ph-quotes"></i>範例答案<i class="ph ph-caret-down toggle-caret"></i></button>
+                </div>
+              </div>
+            </div>
+            <div class="nsm-dim__desc">用戶使用核心功能的品質與強度</div>
+            <div class="nsm-dim__body">
+              <div class="nsm-dim__coach"><i class="ph ph-chalkboard-teacher"></i>教練問：淺度互動與深度互動如何區分？完播率還是時長？</div>
+              <div class="rt-field rt-field--locked">
+                <div class="rt-field__toolbar"><button class="rt-tbtn" disabled><i class="ph ph-text-b"></i></button><button class="rt-tbtn" disabled><i class="ph ph-list-bullets"></i></button></div>
+                <div class="rt-textarea" contenteditable="false" style="cursor:not-allowed;">單次完整收聽（≥ 80% 單集播放完成率）的用戶比率。</div>
+              </div>
+            </div>
+          </div>
+          <div class="nsm-dim">
+            <div class="field__label-row">
+              <label class="field__label">習慣頻率</label>
+              <div class="field__hint-row">
+                <div class="field__hint-row">
+                  <button class="field__hint-link" type="button"><i class="ph ph-lightbulb"></i>提示</button>
+                  <button class="field-example-toggle" type="button" aria-expanded="false"><i class="ph ph-quotes"></i>範例答案<i class="ph ph-caret-down toggle-caret"></i></button>
+                </div>
+              </div>
+            </div>
+            <div class="nsm-dim__desc">用戶回訪的規律性與節奏</div>
+            <div class="nsm-dim__body">
+              <div class="nsm-dim__coach"><i class="ph ph-chalkboard-teacher"></i>教練問：多久算「習慣」？每週 vs 每月有何不同意義？</div>
+              <div class="rt-field rt-field--locked">
+                <div class="rt-field__toolbar"><button class="rt-tbtn" disabled><i class="ph ph-text-b"></i></button><button class="rt-tbtn" disabled><i class="ph ph-list-bullets"></i></button></div>
+                <div class="rt-textarea" contenteditable="false" style="cursor:not-allowed;">每週至少 2 次開啟 Podcast 頻道的月活躍用戶比率。</div>
+              </div>
+            </div>
+          </div>
+          <div class="nsm-dim">
+            <div class="field__label-row">
+              <label class="field__label">留存驅力</label>
+              <div class="field__hint-row">
+                <div class="field__hint-row">
+                  <button class="field__hint-link" type="button"><i class="ph ph-lightbulb"></i>提示</button>
+                  <button class="field-example-toggle" type="button" aria-expanded="false"><i class="ph ph-quotes"></i>範例答案<i class="ph ph-caret-down toggle-caret"></i></button>
+                </div>
+              </div>
+            </div>
+            <div class="nsm-dim__desc">什麼驅使用戶持續回來</div>
+            <div class="nsm-dim__body">
+              <div class="nsm-dim__coach"><i class="ph ph-chalkboard-teacher"></i>教練問：留存的核心動力是內容推薦、社交還是習慣本身？</div>
+              <div class="rt-field rt-field--locked">
+                <div class="rt-field__toolbar"><button class="rt-tbtn" disabled><i class="ph ph-text-b"></i></button><button class="rt-tbtn" disabled><i class="ph ph-list-bullets"></i></button></div>
+                <div class="rt-textarea" contenteditable="false" style="cursor:not-allowed;">連續 3 週以上回訪並完成至少一集收聽的用戶比率。</div>
+              </div>
+            </div>
+          </div>
+        </div>
+        <div class="submit-bar">
+          <div class="submit-bar__left"><button class="btn btn--ghost"><i class="ph ph-arrow-left"></i>上一步</button></div>
+          <div class="submit-bar__right"><button class="btn btn--primary">查看評分結果<i class="ph ph-arrow-right"></i></button></div>
+        </div>
+      </div>
+    </div>
+
+    <!-- §E · Desktop 1280 -->
+    <div class="vp-frame">
+      <div class="vp-frame__label"><span>Desktop · 步驟 3 locked</span><span>1280 px</span></div>
+      <div class="vp-frame__body">
+        <div class="navbar">
+          <button class="navbar__icon-btn" aria-label="menu"><i class="ph ph-list"></i></button>
+          <div class="navbar__brand"><span class="navbar__brand-icon"><i class="ph ph-circles-three"></i></span><span class="navbar__brand-name">PM Drill</span></div>
+          <nav class="navbar__tabs"><span class="navbar__tab">CIRCLES</span><span class="navbar__tab is-active">北極星指標</span></nav>
+          <div class="navbar__actions"><button class="navbar__icon-btn" aria-label="home"><i class="ph ph-house"></i></button></div>
+        </div>
+        <div class="phase-head">
+          <span class="phase-head__num">3</span>
+          <div class="phase-head__main">
+            <div class="phase-head__eyebrow">NSM · 北極星訓練 · 已評分</div>
+            <div class="phase-head__title">拆解輸入指標</div>
+          </div>
+        </div>
+        <div class="nsm-progress">
+          <div class="nsm-progress__step is-done"><div class="nsm-progress__dot"><i class="ph ph-check" style="font-size:12px;"></i></div><div class="nsm-progress__label">情境</div></div>
+          <div class="nsm-progress__line is-done"></div>
+          <div class="nsm-progress__step is-done"><div class="nsm-progress__dot"><i class="ph ph-check" style="font-size:12px;"></i></div><div class="nsm-progress__label">指標</div></div>
+          <div class="nsm-progress__line is-done"></div>
+          <div class="nsm-progress__step is-done"><div class="nsm-progress__dot"><i class="ph ph-check" style="font-size:12px;"></i></div><div class="nsm-progress__label">拆解</div></div>
+          <div class="nsm-progress__line is-done"></div>
+          <div class="nsm-progress__step is-done"><div class="nsm-progress__dot"><i class="ph ph-check" style="font-size:12px;"></i></div><div class="nsm-progress__label">總結</div></div>
+        </div>
+        <!-- locked banner -->
+        <div class="banner banner--locked">
+          <i class="ph ph-lock"></i>
+          <div class="banner__body">
+            <strong>已評分完成</strong>
+            <span> — 內容鎖定，可繼續查看提示與範例</span>
+          </div>
+        </div>
+        <div class="nsm-body">
+          <div class="nsm-context-card">
+            <div class="nsm-context-card__top">
+              <span class="nsm-context-card__company">Spotify</span>
+              <span class="nsm-context-card__industry">音樂串流</span>
+              <span class="nsm-context-card__type nsm-context-card__type--attention"><i class="ph ph-play-circle"></i>注意力型</span>
+            </div>
+            <p class="nsm-context-card__scenario">為 Spotify Podcast 業務定義北極星指標，目標是衡量新用戶能否養成日常收聽習慣。</p>
+          </div>
+          <div class="nsm-dim">
+            <div class="field__label-row">
+              <label class="field__label">觸及廣度</label>
+              <div class="field__hint-row">
+                <div class="field__hint-row">
+                  <button class="field__hint-link" type="button"><i class="ph ph-lightbulb"></i>提示</button>
+                  <button class="field-example-toggle" type="button" aria-expanded="false"><i class="ph ph-quotes"></i>範例答案<i class="ph ph-caret-down toggle-caret"></i></button>
+                </div>
+              </div>
+            </div>
+            <div class="nsm-dim__desc">有多少用戶真正觸碰到核心功能（非僅登入）</div>
+            <div class="nsm-dim__body">
+              <div class="nsm-dim__coach"><i class="ph ph-chalkboard-teacher"></i>教練問：你如何定義「真正使用」？能量化的門檻在哪？</div>
+              <div class="rt-field rt-field--locked">
+                <div class="rt-field__toolbar"><button class="rt-tbtn" disabled><i class="ph ph-text-b"></i></button><button class="rt-tbtn" disabled><i class="ph ph-list-bullets"></i></button></div>
+                <div class="rt-textarea" contenteditable="false" style="cursor:not-allowed;">每月活躍 Podcast 收聽者佔總 MAU 比率達 30%。</div>
+              </div>
+            </div>
+          </div>
+          <div class="nsm-dim">
+            <div class="field__label-row">
+              <label class="field__label">互動深度</label>
+              <div class="field__hint-row">
+                <div class="field__hint-row">
+                  <button class="field__hint-link" type="button"><i class="ph ph-lightbulb"></i>提示</button>
+                  <button class="field-example-toggle" type="button" aria-expanded="false"><i class="ph ph-quotes"></i>範例答案<i class="ph ph-caret-down toggle-caret"></i></button>
+                </div>
+              </div>
+            </div>
+            <div class="nsm-dim__desc">用戶使用核心功能的品質與強度</div>
+            <div class="nsm-dim__body">
+              <div class="nsm-dim__coach"><i class="ph ph-chalkboard-teacher"></i>教練問：淺度互動與深度互動如何區分？完播率還是時長？</div>
+              <div class="rt-field rt-field--locked">
+                <div class="rt-field__toolbar"><button class="rt-tbtn" disabled><i class="ph ph-text-b"></i></button><button class="rt-tbtn" disabled><i class="ph ph-list-bullets"></i></button></div>
+                <div class="rt-textarea" contenteditable="false" style="cursor:not-allowed;">單次完整收聽（≥ 80% 單集播放完成率）的用戶比率。</div>
+              </div>
+            </div>
+          </div>
+          <div class="nsm-dim">
+            <div class="field__label-row">
+              <label class="field__label">習慣頻率</label>
+              <div class="field__hint-row">
+                <div class="field__hint-row">
+                  <button class="field__hint-link" type="button"><i class="ph ph-lightbulb"></i>提示</button>
+                  <button class="field-example-toggle" type="button" aria-expanded="false"><i class="ph ph-quotes"></i>範例答案<i class="ph ph-caret-down toggle-caret"></i></button>
+                </div>
+              </div>
+            </div>
+            <div class="nsm-dim__desc">用戶回訪的規律性與節奏</div>
+            <div class="nsm-dim__body">
+              <div class="nsm-dim__coach"><i class="ph ph-chalkboard-teacher"></i>教練問：多久算「習慣」？每週 vs 每月有何不同意義？</div>
+              <div class="rt-field rt-field--locked">
+                <div class="rt-field__toolbar"><button class="rt-tbtn" disabled><i class="ph ph-text-b"></i></button><button class="rt-tbtn" disabled><i class="ph ph-list-bullets"></i></button></div>
+                <div class="rt-textarea" contenteditable="false" style="cursor:not-allowed;">每週至少 2 次開啟 Podcast 頻道的月活躍用戶比率。</div>
+              </div>
+            </div>
+          </div>
+          <div class="nsm-dim">
+            <div class="field__label-row">
+              <label class="field__label">留存驅力</label>
+              <div class="field__hint-row">
+                <div class="field__hint-row">
+                  <button class="field__hint-link" type="button"><i class="ph ph-lightbulb"></i>提示</button>
+                  <button class="field-example-toggle" type="button" aria-expanded="false"><i class="ph ph-quotes"></i>範例答案<i class="ph ph-caret-down toggle-caret"></i></button>
+                </div>
+              </div>
+            </div>
+            <div class="nsm-dim__desc">什麼驅使用戶持續回來</div>
+            <div class="nsm-dim__body">
+              <div class="nsm-dim__coach"><i class="ph ph-chalkboard-teacher"></i>教練問：留存的核心動力是內容推薦、社交還是習慣本身？</div>
+              <div class="rt-field rt-field--locked">
+                <div class="rt-field__toolbar"><button class="rt-tbtn" disabled><i class="ph ph-text-b"></i></button><button class="rt-tbtn" disabled><i class="ph ph-list-bullets"></i></button></div>
+                <div class="rt-textarea" contenteditable="false" style="cursor:not-allowed;">連續 3 週以上回訪並完成至少一集收聽的用戶比率。</div>
+              </div>
+            </div>
+          </div>
+        </div>
+        <div class="submit-bar">
+          <div class="submit-bar__left"><button class="btn btn--ghost"><i class="ph ph-arrow-left"></i>上一步</button></div>
+          <div class="submit-bar__right"><button class="btn btn--primary">查看評分結果<i class="ph ph-arrow-right"></i></button></div>
+        </div>
+      </div>
+    </div>
+
+  </div><!-- /.vp-grid §E -->
+
   <p class="anno">
-    <strong>D · 提示 modal 規格（mirror CIRCLES mockup 03 Section D）：</strong>
+    <strong>F · 提示 modal 規格（mirror CIRCLES mockup 03 Section D）：</strong>
     <ul style="margin:var(--s-2) 0 0 var(--s-5); padding-left:var(--s-3); line-height:1.7;">
       <li>Modal 觸發：點 nsm-field 或 nsm-dim head row 的「提示」button (<code>ph-lightbulb</code>)</li>
       <li>Modal head icon: <code>ph-sparkle</code>（AI 個人化專用，與 trigger lightbulb 區分）</li>
