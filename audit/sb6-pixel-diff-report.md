@@ -1,24 +1,24 @@
 # SB6 Section G pixel-diff report
 
-_Generated: 2026-05-10T05:23:19.370Z_
+_Generated: 2026-05-11T03:46:12.999Z_
 
 ## SB6 Section G · mobile-360: 🟠 < 15% (state diff 預期)
 
-- mockup 358×997 / production 360×2248 / padded 360×2248 / mismatched 56241px / **6.95%**
+- mockup 358×997 / production 360×2067 / padded 360×2067 / mismatched 53894px / **7.24%**
 - mockup PNG: `tests/visual/diffs/sb6/mobile-360-mockup.png`
 - production PNG: `tests/visual/diffs/sb6/mobile-360-production.png`
 - diff PNG: `tests/visual/diffs/sb6/mobile-360-diff.png`
 
 ## SB6 Section G · tablet-768: 🟠 < 15% (state diff 預期)
 
-- mockup 766×920 / production 768×1854 / padded 768×1854 / mismatched 73685px / **5.17%**
+- mockup 766×920 / production 768×1764 / padded 768×1764 / mismatched 72288px / **5.34%**
 - mockup PNG: `tests/visual/diffs/sb6/tablet-768-mockup.png`
 - production PNG: `tests/visual/diffs/sb6/tablet-768-production.png`
 - diff PNG: `tests/visual/diffs/sb6/tablet-768-diff.png`
 
 ## SB6 Section G · desktop-1280: 🟡 < 5%
 
-- mockup 1278×873 / production 1280×1854 / padded 1280×1854 / mismatched 88306px / **3.72%**
+- mockup 1278×873 / production 1280×1700 / padded 1280×1700 / mismatched 89034px / **4.09%**
 - mockup PNG: `tests/visual/diffs/sb6/desktop-1280-mockup.png`
 - production PNG: `tests/visual/diffs/sb6/desktop-1280-production.png`
 - diff PNG: `tests/visual/diffs/sb6/desktop-1280-diff.png`

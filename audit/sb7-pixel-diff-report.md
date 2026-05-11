@@ -1,12 +1,26 @@
 # SB7 E step pixel-diff report
 
-_Generated: 2026-05-10T05:24:45.351Z_
+_Generated: 2026-05-11T03:46:13.791Z_
 
 > Baseline = mockup 03 Section B (L step sol-multi). Plan §3.5「E 沿用 L 結構」(mockup 03 line 1466) — E step 視覺契約 inherit L 結構。
 
+## SB7 E step · mobile-360: 🟠 < 15% (state diff 預期)
+
+- mockup 358×1160 / production 360×2206 / padded 360×2206 / mismatched 46935px / **5.91%**
+- mockup PNG (L step baseline): `tests/visual/diffs/sb7/mobile-360-mockup.png`
+- production PNG (E step): `tests/visual/diffs/sb7/mobile-360-production.png`
+- diff PNG: `tests/visual/diffs/sb7/mobile-360-diff.png`
+
+## SB7 E step · tablet-768: 🟡 < 5%
+
+- mockup 766×1411 / production 768×2119 / padded 768×2119 / mismatched 63079px / **3.88%**
+- mockup PNG (L step baseline): `tests/visual/diffs/sb7/tablet-768-mockup.png`
+- production PNG (E step): `tests/visual/diffs/sb7/tablet-768-production.png`
+- diff PNG: `tests/visual/diffs/sb7/tablet-768-diff.png`
+
 ## SB7 E step · desktop-1280: 🟡 < 5%
 
-- mockup 1278×1411 / production 1280×2284 / padded 1280×2284 / mismatched 86837px / **2.97%**
+- mockup 1278×1411 / production 1280×2119 / padded 1280×2119 / mismatched 84058px / **3.10%**
 - mockup PNG (L step baseline): `tests/visual/diffs/sb7/desktop-1280-mockup.png`
 - production PNG (E step): `tests/visual/diffs/sb7/desktop-1280-production.png`
 - diff PNG: `tests/visual/diffs/sb7/desktop-1280-diff.png`

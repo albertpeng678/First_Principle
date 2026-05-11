@@ -1,24 +1,45 @@
 # SB4 + SB5 Section pixel-diff report
 
-_Generated: 2026-05-10T05:25:20.100Z_
+_Generated: 2026-05-11T03:46:07.067Z_
+
+## SB4 L step · mobile-360: 🟠 < 15% (state diff 預期)
+
+- mockup 358×1160 / production 360×1500 / padded 360×1500 / mismatched 30602px / **5.67%**
+- mockup PNG: `tests/visual/diffs/sb4-sb5/SB4-mobile-360-mockup.png`
+- production PNG: `tests/visual/diffs/sb4-sb5/SB4-mobile-360-production.png`
+- diff PNG: `tests/visual/diffs/sb4-sb5/SB4-mobile-360-diff.png`
+
+## SB4 L step · tablet-768: 🟡 < 5%
+
+- mockup 766×1411 / production 768×1500 / padded 768×1500 / mismatched 43321px / **3.76%**
+- mockup PNG: `tests/visual/diffs/sb4-sb5/SB4-tablet-768-mockup.png`
+- production PNG: `tests/visual/diffs/sb4-sb5/SB4-tablet-768-production.png`
+- diff PNG: `tests/visual/diffs/sb4-sb5/SB4-tablet-768-diff.png`
+
+## SB4 L step · desktop-1280: 🟡 < 5%
+
+- mockup 1278×1411 / production 1280×1500 / padded 1280×1500 / mismatched 59354px / **3.09%**
+- mockup PNG: `tests/visual/diffs/sb4-sb5/SB4-desktop-1280-mockup.png`
+- production PNG: `tests/visual/diffs/sb4-sb5/SB4-desktop-1280-production.png`
+- diff PNG: `tests/visual/diffs/sb4-sb5/SB4-desktop-1280-diff.png`
 
 ## SB5 S step · mobile-360: 🟠 < 15% (state diff 預期)
 
-- mockup 358×1949 / production 360×1919 / padded 360×1949 / mismatched 49782px / **7.10%**
+- mockup 358×1868 / production 360×1838 / padded 360×1868 / mismatched 47013px / **6.99%**
 - mockup PNG: `tests/visual/diffs/sb4-sb5/SB5-mobile-360-mockup.png`
 - production PNG: `tests/visual/diffs/sb4-sb5/SB5-mobile-360-production.png`
 - diff PNG: `tests/visual/diffs/sb4-sb5/SB5-mobile-360-diff.png`
 
 ## SB5 S step · tablet-768: 🟡 < 5%
 
-- mockup 766×1825 / production 768×1774 / padded 768×1825 / mismatched 67690px / **4.83%**
+- mockup 766×1785 / production 768×1734 / padded 768×1785 / mismatched 64784px / **4.73%**
 - mockup PNG: `tests/visual/diffs/sb4-sb5/SB5-tablet-768-mockup.png`
 - production PNG: `tests/visual/diffs/sb4-sb5/SB5-tablet-768-production.png`
 - diff PNG: `tests/visual/diffs/sb4-sb5/SB5-tablet-768-diff.png`
 
 ## SB5 S step · desktop-1280: 🟡 < 5%
 
-- mockup 1278×1884 / production 1280×1774 / padded 1280×1884 / mismatched 90965px / **3.77%**
+- mockup 1278×1823 / production 1280×1734 / padded 1280×1823 / mismatched 86906px / **3.72%**
 - mockup PNG: `tests/visual/diffs/sb4-sb5/SB5-desktop-1280-mockup.png`
 - production PNG: `tests/visual/diffs/sb4-sb5/SB5-desktop-1280-production.png`
 - diff PNG: `tests/visual/diffs/sb4-sb5/SB5-desktop-1280-diff.png`
