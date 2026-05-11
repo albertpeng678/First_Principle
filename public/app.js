@@ -3247,7 +3247,7 @@
       // Plan B SB7 — E step (mockup 03 line 1466 規則 — 沿用 L 結構，per-solution × 4 nested fields)
       eyebrow: { sim: 'Phase 1 · 寫框架', drill: 'Phase 1 · 個別步驟練習' },
       title: 'E · 評估取捨',
-      titleSimDesktopSuffix: '（每個方案的優缺點 / 風險 / 成功指標）',
+      titleSimDesktopSuffix: '',
       progressLabel: '取捨',
       stepLetter: 'E',
       stepNum: '06',
@@ -3269,7 +3269,7 @@
       // Plan B SB5 — S step (mockup 03 Section C line 1469-1758)
       eyebrow: { sim: 'Phase 1 · 寫框架（最後一步）', drill: 'Phase 1 · 個別步驟練習' },
       title: 'S · 總結推薦',
-      titleSimDesktopSuffix: '（含 NSM 與 4 追蹤維度）',
+      titleSimDesktopSuffix: '',
       progressLabel: '總結',
       stepLetter: 'S',
       stepNum: '07',
@@ -4605,7 +4605,7 @@
     var eyebrow = isDrill ? stepCfg.eyebrow.drill : stepCfg.eyebrow.sim;
     // desktop sim: append suffix
     var titleHtml = escHtml(stepCfg.title);
-    if (!isDrill && isDesktop) {
+    if (!isDrill && isDesktop && stepCfg.titleSimDesktopSuffix) {
       titleHtml += '<span class="phase-head__title-s-suffix">' + escHtml(stepCfg.titleSimDesktopSuffix) + '</span>';
     }
     var metaHtml;
