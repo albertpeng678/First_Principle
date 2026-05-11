@@ -1,13 +1,13 @@
 # PM Drill — 專案狀態看板
 
 > 即時狀態 single source of truth。**不放歷史（git log 有）**。重大事件即時 Edit。
-> **Last updated:** 2026-05-11（Session cleanup ship — 4 audit PNG dir 16.8M committed + baseline reverted + task list 113→20）
+> **Last updated:** 2026-05-11（Mockup 12 prod capture 24 PNG ship `cb131ff` + DRIFT-12-A-1 ph-clock-countdown icon TDD fix `c23af6a` + Plan E 14-box re-confirmation 14/14 hold `ad20188`）
 
 ## 當前狀態（30 秒讀完）
 
 - **Path 2 Frontend Rewrite ✅ 17/17 mockup 全 ship**（Layer 2 pixel-diff `ba6c49f` 機械驗證 60 cases × 3 vp，0 🔴 structural drift）
-- **最近 ship**（2026-05-11）：Session cleanup `b2d1b1d` (audit archive 484 files) + `ae62716` (.gitignore *.db) — 走完 brainstorming → writing-plans → subagent-driven-development → 2-stage review 全鏈條；NSM 4-bug fix `9d0eac2` 餘下 user UAT pending（SOP `audit/uat-sop-nsm-4bug-fix-2026-05-11.md`）
-- **Baseline 不破：** jest 197/214（17 skipped）+ Playwright 704/704 focused 8 vp regression（focused suite `bh0bean1w`，10.6 min）
+- **最近 ship**（2026-05-11）：mockup 12 prod 8-vp capture spec `cb131ff` (24 PNG cold-Read 全 8 vp) + DRIFT-12-A-1 fix `c23af6a` (ph-clock-countdown icon, TDD 紅綠 walked) + Plan E 14-box re-confirmation `ad20188` (14/14 hold + 4 carry-forward unchanged + 1 new design-constraint carry-forward field-example-toggle:disabled). Session cleanup `b2d1b1d` 前置 + NSM 4-bug fix `9d0eac2` 仍 pending user UAT
+- **Baseline 不破：** jest 197/214（17 skipped）+ Playwright 704/704 focused 8 vp regression + phase3-error-loading 128/128 × 8 vp + master-pixel-diff Mobile-360 93/93 PASS
 - **NSM ↔ CIRCLES parity 全結束** — production wire 完整 honor mockup 14 §A / 05 §G / 07 v3 §D §E LOCKED contracts；nsm-evaluator depth 確認非 shallow，加 max_tokens 1500 cap
 - **接手 Handoff：** `docs/PATH-2-HANDOFF.md` + memory `project_pending_followups_2026-05-10.md`
 
