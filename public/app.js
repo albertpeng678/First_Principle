@@ -5199,7 +5199,13 @@
              : diff < 86400000 ? Math.floor(diff / 3600000) + ' 小時前'
              : diff < 7 * 86400000 ? Math.floor(diff / 86400000) + ' 天前'
              : new Date(ts).toLocaleDateString('zh-TW', { month: 'numeric', day: 'numeric' });
-    var q = item.currentQuestion || item.question_json || {};
+    // Prefer the historical question_json snapshot (what the user actually
+    // practiced with) over currentQuestion (current bank — may have been
+    // renamed). Matches the offcanvas item title priority (renderOffcanvasItem
+    // line 7461-7467) so the same session shows the same name in both places.
+    var q = (item.question_json && item.question_json.company) ? item.question_json
+          : (item.currentQuestion && item.currentQuestion.company) ? item.currentQuestion
+          : {};
     var titleStr = (q.company || '') + (q.product ? ' · ' + q.product : '') || '練習題目';
     var phaseStr = isNsm
       ? ('NSM · ' + (item.status === 'completed' ? '已完成' : '進行中'))
