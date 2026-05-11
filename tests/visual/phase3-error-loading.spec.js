@@ -80,6 +80,8 @@ test.describe('Phase 3 Loading — Section A: slow variant', () => {
     await expect(slowEl).toContainText('比預期慢一些');
     await expect(slowEl).toContainText('AI 深度分析中');
     await expect(slowEl).toContainText('請再等等');
+    // Mockup 12 §A LOCKED: ph-clock-countdown icon prefix (DRIFT-12-A-1 fix)
+    await expect(slowEl.locator('i.ph.ph-clock-countdown')).toHaveCount(1);
     // Spinner still visible
     await expect(page.locator('.loading-spinner')).toBeVisible();
     // Checklist still visible

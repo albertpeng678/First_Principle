@@ -6041,7 +6041,7 @@
 
     // mockup 12 Section A: 60s+ → loading-sub switches to warn slow variant (inline, no toast)
     var loadingSubHtml = AppState.circlesPhase3LoadingSlow
-      ? '<div class="loading-sub loading-sub--slow">比預期慢一些…AI 深度分析中，偶而會需要比較久時間，請再等等。</div>'
+      ? '<div class="loading-sub loading-sub--slow"><i class="ph ph-clock-countdown"></i>比預期慢一些…AI 深度分析中，偶而會需要比較久時間，請再等等。</div>'
       : '<div class="loading-sub">AI 正在評估你的回答，請勿關閉本頁。</div>';
 
     return '<div data-view="circles" data-phase="3">'
