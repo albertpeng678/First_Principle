@@ -11,16 +11,29 @@
 //   AppState.nsmDefinition       ← item.user_nsm || { nsm:'', explanation:'', businessLink:'' }
 //   AppState.nsmBreakdown        ← item.user_breakdown || { reach:'', depth:'', frequency:'', impact:'' }
 //   AppState.nsmEvalResult       ← item.scores_json || null
-//   AppState.nsmStep             ← 1  (always Step 1, mirror Issue 2b CIRCLES fix)
+//   AppState.nsmStep             ← smart routing (Bug 1 fix 2026-05-11):
+//     scored (scores_json non-empty) → 4
+//     has breakdown (any field filled) → 3
+//     has nsm (user_nsm.nsm filled)   → 2
+//     else                            → 1
 
 // ── Pure logic extraction — mirrors the patched NSM branch ──────────────────
+function smartNsmStep(item) {
+  var scored = item.scores_json && typeof item.scores_json === 'object'
+    && Object.keys(item.scores_json).length > 0;
+  var hasBreakdown = item.user_breakdown
+    && Object.values(item.user_breakdown).some(function (v) { return v && String(v).trim(); });
+  var hasNsm = item.user_nsm && item.user_nsm.nsm && String(item.user_nsm.nsm).trim();
+  return scored ? 4 : (hasBreakdown ? 3 : (hasNsm ? 2 : 1));
+}
+
 function applyNsmRestore(AppState, item) {
   AppState.nsmSession = item;
   AppState.nsmSelectedQuestion = item.question_json || null;
   AppState.nsmDefinition = item.user_nsm || { nsm: '', explanation: '', businessLink: '' };
   AppState.nsmBreakdown = item.user_breakdown || { reach: '', depth: '', frequency: '', impact: '' };
   AppState.nsmEvalResult = item.scores_json || null;
-  AppState.nsmStep = 1;
+  AppState.nsmStep = smartNsmStep(item);
   AppState.view = 'nsm';
 }
 
@@ -126,19 +139,42 @@ describe('Bug 1 — NSM session restore: all fields populated from history item'
     expect(AppState.nsmEvalResult).toBeNull();
   });
 
-  it('always lands on nsmStep = 1 regardless of session completeness (Option A — mirror Issue 2b)', () => {
-    const cases = [
-      { label: 'active session (no scores)', item: { id: 'a', question_json: { company: 'A' } } },
-      { label: 'completed session with scores', item: { id: 'b', question_json: { company: 'B' }, scores_json: { totalScore: 80 } } },
-      { label: 'session with user_nsm present', item: { id: 'c', question_json: { company: 'C' }, user_nsm: { nsm: 'foo' } } },
-    ];
-    for (const { label, item } of cases) {
-      const AppState = freshAppState();
-      applyNsmRestore(AppState, item);
-      expect(AppState.nsmStep).toBe(1);
-      // Must NOT auto-jump to Step 4 (the 卡死 regression)
-      expect(AppState.nsmStep).not.toBe(4);
-    }
+  it('smart routing: scored session → Step 4', () => {
+    const AppState = freshAppState();
+    const item = { id: 'b', question_json: { company: 'B' }, scores_json: { totalScore: 80 } };
+    applyNsmRestore(AppState, item);
+    expect(AppState.nsmStep).toBe(4);
+  });
+
+  it('smart routing: breakdown filled (no scores) → Step 3', () => {
+    const AppState = freshAppState();
+    const item = {
+      id: 'c', question_json: { company: 'C' },
+      user_nsm: { nsm: 'foo', explanation: '', businessLink: '' },
+      user_breakdown: { reach: 'r', depth: '', frequency: '', impact: '' },
+      scores_json: null,
+    };
+    applyNsmRestore(AppState, item);
+    expect(AppState.nsmStep).toBe(3);
+  });
+
+  it('smart routing: nsm filled only → Step 2', () => {
+    const AppState = freshAppState();
+    const item = {
+      id: 'd', question_json: { company: 'D' },
+      user_nsm: { nsm: 'something', explanation: '', businessLink: '' },
+      user_breakdown: { reach: '', depth: '', frequency: '', impact: '' },
+      scores_json: null,
+    };
+    applyNsmRestore(AppState, item);
+    expect(AppState.nsmStep).toBe(2);
+  });
+
+  it('smart routing: empty session (no data) → Step 1', () => {
+    const AppState = freshAppState();
+    const item = { id: 'a', question_json: { company: 'A' }, user_nsm: null, user_breakdown: null, scores_json: null };
+    applyNsmRestore(AppState, item);
+    expect(AppState.nsmStep).toBe(1);
   });
 
   it('sets view to nsm and clears stale AppState from previous session', () => {
@@ -180,10 +216,16 @@ describe('Bug 1 — source contract: app.js NSM branch sets correct fields', () 
     expect(branchBody).toContain('AppState.nsmEvalResult = item.scores_json');
   });
 
-  it('hardcodes nsmStep = 1 (NOT 4 — the regression)', () => {
-    // After fix: AppState.nsmStep = 1;
-    // Regression would be: AppState.nsmStep = 4;
-    expect(branchBody).toContain('AppState.nsmStep = 1;');
+  it('uses smart routing for nsmStep (Bug 1 fix — not hardcoded to 1 or 4)', () => {
+    // After Bug 1 fix: smart routing based on scores_json / user_breakdown / user_nsm
+    expect(branchBody).toContain('AppState.nsmStep =');
+    // Must NOT hardcode Step 4 (old regression)
     expect(branchBody).not.toContain('AppState.nsmStep = 4;');
+    // Must NOT hardcode Step 1 (old workaround that lost checkpoint)
+    expect(branchBody).not.toContain('AppState.nsmStep = 1;');
+    // Must reference smart routing logic
+    expect(branchBody).toContain('scores_json');
+    expect(branchBody).toContain('user_breakdown');
+    expect(branchBody).toContain('user_nsm');
   });
 });

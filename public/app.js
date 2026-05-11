@@ -7536,10 +7536,14 @@
       AppState.nsmDefinition = item.user_nsm || { nsm: '', explanation: '', businessLink: '' };
       AppState.nsmBreakdown = item.user_breakdown || { reach: '', depth: '', frequency: '', impact: '' };
       AppState.nsmEvalResult = item.scores_json || null;
-      // Always land on Step 1 (mirror Issue 2b CIRCLES fix) — avoid auto-landing on eval
-      // result page which causes 卡死 if session data is incomplete.
-      // User navigates forward via tab nav after reviewing context.
-      AppState.nsmStep = 1;
+      // Bug 1 fix (2026-05-11): smart routing per spec — restore lands at
+      // the saved checkpoint inferred from session data presence.
+      var _scored = item.scores_json && typeof item.scores_json === 'object'
+        && Object.keys(item.scores_json).length > 0;
+      var _hasBreakdown = item.user_breakdown
+        && Object.values(item.user_breakdown).some(function (v) { return v && String(v).trim(); });
+      var _hasNsm = item.user_nsm && item.user_nsm.nsm && String(item.user_nsm.nsm).trim();
+      AppState.nsmStep = _scored ? 4 : (_hasBreakdown ? 3 : (_hasNsm ? 2 : 1));
       AppState.view = 'nsm';
       render();
 
@@ -7606,6 +7610,8 @@
     restoreCirclesPhase1FromSession(fullItem);
     render();
   }
+  // Expose for Playwright test access (Bug 1 TDD)
+  window._loadCirclesSessionItem = loadCirclesSessionFromHistory;
 
   function bindOffcanvas() {
     if (!AppState.offcanvasOpen) return;
