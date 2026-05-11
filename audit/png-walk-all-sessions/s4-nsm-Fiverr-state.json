@@ -1,0 +1,14 @@
+{
+  "view": "nsm",
+  "circlesPhase": null,
+  "circlesDrillStep": null,
+  "nsmStep": 4,
+  "sessionId": "28bd4cd0-c3eb-41c8-a22f-156a0e852e62",
+  "nsmDefinition": "高價值交易完成件數",
+  "nsmBreakdown": {
+    "depth": "高價值活躍用戶佔比",
+    "reach": "單日活躍賣家佔比",
+    "impact": "新客 30 日內回購率 / 舊客 90 日內回購率",
+    "frequency": "推薦賣家媒合率"
+  }
+}

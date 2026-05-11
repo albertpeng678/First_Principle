@@ -1,0 +1,46 @@
+{
+  "phase": 1,
+  "drillStep": "C1",
+  "mode": "drill",
+  "textareas": [],
+  "exampleButtons": [
+    {
+      "key": "問題範圍",
+      "disabled": false,
+      "title": ""
+    },
+    {
+      "key": "時間範圍",
+      "disabled": false,
+      "title": ""
+    },
+    {
+      "key": "業務影響",
+      "disabled": false,
+      "title": ""
+    },
+    {
+      "key": "假設確認",
+      "disabled": false,
+      "title": ""
+    }
+  ],
+  "hintButtons": [
+    {
+      "key": "問題範圍",
+      "disabled": false
+    },
+    {
+      "key": "時間範圍",
+      "disabled": false
+    },
+    {
+      "key": "業務影響",
+      "disabled": false
+    },
+    {
+      "key": "假設確認",
+      "disabled": false
+    }
+  ]
+}
