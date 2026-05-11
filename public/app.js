@@ -1808,7 +1808,12 @@
     var backBtn = document.querySelector('[data-nsm-action="back"]');
     if (backBtn) {
       backBtn.addEventListener('click', function () {
-        AppState.nsmStep = 1;
+        // Bug 3 fix (2026-05-11): Step 2 back must NOT route to Step 1 question
+        // selection — that visually orphans the user's already-selected question.
+        // Route to home (CIRCLES default landing). nsmSelectedQuestion preserved
+        // so user can resume via offcanvas (Task 2 smart routing lands at Step 2).
+        AppState.view = 'circles';
+        AppState.nsmStep = 1; // reset for next NSM session entry
         render();
       });
     }
