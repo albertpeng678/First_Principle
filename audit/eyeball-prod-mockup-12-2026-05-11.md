@@ -20,11 +20,10 @@
 
 ✅ **顏色 token：** `.loading-sub--slow { color: var(--c-warn) }` `--c-warn: #B85C00`（mockup 00 與 production 同 token）— PNG render 為 warn 橘-brown 色調 cross-vp consistent。
 
-⚠️ **DRIFT-12-A-1（minor / P3）：** Production missing `<i class="ph ph-clock-countdown"></i>` icon prefix。
-- Mockup spec：`12-phase-3-error-loading.html:147` 明說「`loading-sub--slow` 變體（warn 橘色 inline 文字 **+ ph-clock-countdown icon**）」
-- Production code：`public/app.js:6044` 純文字，無 icon
-- CSS 已備：`public/style.css:186 .loading-sub--slow { display: inline-flex; align-items: center; gap: 6px; ... }`（inline-flex + gap 等 icon child，但目前無 child）
-- 影響：純視覺微差。功能正常（slow 文字依舊顯示）。可後續單檔 patch。
+✅ **DRIFT-12-A-1 修復 commit `c23af6a`：** Production 已加 `<i class="ph ph-clock-countdown"></i>` icon prefix
+- TDD 走完整紅綠：RED test added at `tests/visual/phase3-error-loading.spec.js:84` 確認失敗 → 1-line patch `public/app.js:6044` → GREEN 4/4 PASS
+- 8 vp re-capture confirmed icon visible cross-vp
+- jest 197/214 + phase3-error-loading × 8 vp 128/128 PASS
 
 ## §B EVAL_API_ERROR — 8 vp 全綠
 
