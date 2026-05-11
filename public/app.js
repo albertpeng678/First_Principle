@@ -1266,8 +1266,32 @@
     var q = AppState.nsmSelectedQuestion || {};
     var ptype = nsmGuessProductType(q);
     var typeCfg = getNsmDimConfig(ptype);
-    var def = AppState.nsmDefinition || { nsm: '', explanation: '', businessLink: '' };
+    // Bug X-Compare coerce — nsmDefinition may be legacy string; guarantee object form
+    var rawDef = AppState.nsmDefinition;
+    var def = (typeof rawDef === 'string')
+      ? { nsm: rawDef, explanation: '', businessLink: '' }
+      : (rawDef && typeof rawDef === 'object')
+        ? { nsm: rawDef.nsm || '', explanation: rawDef.explanation || '', businessLink: rawDef.businessLink || '' }
+        : { nsm: '', explanation: '', businessLink: '' };
+
+    // Bug X-LockedStep2 (2026-05-12): scored session → show read-only locked view
+    var isScored = !!(AppState.nsmEvalResult && AppState.nsmEvalResult.totalScore);
     var canSubmit = fieldMinLengthOk(def.nsm, 10) && fieldMinLengthOk(def.explanation, 30) && fieldMinLengthOk(def.businessLink, 30);
+
+    var submitBarHtml;
+    if (isScored) {
+      // Mockup 01-step2-locked.html contract: meta left + single primary button right, NO 回首頁
+      submitBarHtml = '<div class="submit-bar submit-bar--locked">'
+        + '<div class="submit-bar--locked__meta"><i class="ph ph-lock"></i> 已評分完成</div>'
+        + '<button class="btn btn--primary submit-bar--locked__primary" data-nsm-action="view-eval-result">查看評分結果 <i class="ph ph-arrow-right"></i></button>'
+        + '</div>';
+    } else {
+      submitBarHtml = '<div class="submit-bar">'
+        + '<div class="submit-bar__left"><button class="btn btn--ghost" data-nsm-action="back"><i class="ph ph-arrow-left"></i>上一步</button></div>'
+        + '<div class="submit-bar__right"><button class="btn btn--primary" data-nsm-submit ' + (canSubmit ? '' : 'disabled') + '>提交審核<i class="ph ph-arrow-right"></i></button></div>'
+        + '</div>';
+    }
+
     var html = '<div data-view="nsm">'
       + '<div class="phase-head">'
       +   '<span class="phase-head__num">2</span>'
@@ -1280,14 +1304,12 @@
       + '<div class="nsm-body">'
       +   renderNSMContextCard(q, typeCfg)
       +   renderNSMGuide()
-      +   renderNSMField('nsm', '北極星指標 (NSM)', def.nsm, /*isSingle*/ true)
-      +   renderNSMField('explanation', '定義說明', def.explanation, false)
-      +   renderNSMField('businessLink', '與業務目標連結', def.businessLink, false)
+      +   renderNSMField('nsm', '北極星指標 (NSM)', def.nsm, /*isSingle*/ true, /*isLocked*/ isScored)
+      +   renderNSMField('explanation', '定義說明', def.explanation, false, isScored)
+      +   renderNSMField('businessLink', '與業務目標連結', def.businessLink, false, isScored)
       + '</div>'
-      + '<div class="submit-bar">'
-      +   '<div class="submit-bar__left"><button class="btn btn--ghost" data-nsm-action="back"><i class="ph ph-arrow-left"></i>上一步</button></div>'
-      +   '<div class="submit-bar__right"><button class="btn btn--primary" data-nsm-submit ' + (canSubmit ? '' : 'disabled') + '>提交審核<i class="ph ph-arrow-right"></i></button></div>'
-      + '</div></div>';
+      + submitBarHtml
+      + '</div>';
     return applyNSMStateOverlay(html, 2);
   }
 
@@ -1476,7 +1498,7 @@
     return html;
   }
 
-  function renderNSMField(fieldId, label, value, isSingle) {
+  function renderNSMField(fieldId, label, value, isSingle, isLocked) {
     var q = AppState.nsmSelectedQuestion || {};
     var examples = (q.field_examples && q.field_examples.step2) || {};
     var exampleText = examples[fieldId] || '';
@@ -1484,12 +1506,19 @@
     var ariaExpanded = isOpen ? 'true' : 'false';
     var caretStyle = isOpen ? ' style="transform:rotate(180deg)"' : '';
 
-    var inputHtml = isSingle
-      ? '<input class="nsm-input" data-nsm-field="' + fieldId + '" placeholder="..." value="' + escHtml(value || '') + '">'
-      : '<div class="nsm-rt-field"><div class="nsm-rt-toolbar">'
+    // Bug X-LockedStep2: locked state — disabled textarea with 「（未填寫）」 for empty
+    var inputHtml;
+    if (isLocked) {
+      var displayValue = (value && String(value).trim()) ? value : '（未填寫）';
+      inputHtml = '<textarea class="nsm-input" data-nsm-input="' + escHtml(fieldId) + '" disabled>' + escHtml(displayValue) + '</textarea>';
+    } else if (isSingle) {
+      inputHtml = '<input class="nsm-input" data-nsm-field="' + fieldId + '" placeholder="..." value="' + escHtml(value || '') + '">';
+    } else {
+      inputHtml = '<div class="nsm-rt-field"><div class="nsm-rt-toolbar">'
         + '<button class="nsm-rt-tbtn" data-rt-cmd="bold" title="粗體"><strong>B</strong></button>'
         + '<button class="nsm-rt-tbtn" data-rt-cmd="insertUnorderedList" title="列點"><i class="ph ph-list-bullets"></i></button>'
-        + '</div><div class="nsm-rt-textarea" contenteditable="true" data-nsm-field="' + fieldId + '">' + (value || '') + '</div></div>';
+        + '</div><div class="nsm-rt-textarea" contenteditable="true" data-nsm-field="' + escHtml(fieldId) + '">' + (value || '') + '</div></div>';
+    }
 
     var expandHtml = '';
     if (isOpen && exampleText) {
@@ -1510,7 +1539,7 @@
         + '<i class="ph ph-quotes"></i>範例答案'
         + '</button>';
 
-    return '<div class="nsm-field">'
+    return '<div class="nsm-field' + (isLocked ? ' rt-field--locked' : '') + '">'
       + '<div class="field__label-row">'
       +   '<label class="field__label">' + escHtml(label) + '</label>'
       +   '<div class="field__hint-row">'
