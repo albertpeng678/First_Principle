@@ -15,13 +15,20 @@
 
 ---
 
-## 補完 2/4 — Full Playwright × 8 viewport regression（進行中）
+## 補完 2/4 — Full Playwright × 8 viewport regression（已完成 ✅）
 
-🟡 **Background task ID：** `b96lkxtja`
-🟡 **Config：** `tests/visual/playwright.config.js`（8 projects: Mobile-360 / iPhone-SE / iPhone-14 / iPhone-15-Pro / iPad / Desktop-1280 / Desktop-1440 / Desktop-2560）
-🟡 **Status：** 啟動中（chromium channel 全 8 vp，capture spec 含 audit-nsm-restore-vintages × C-step4 等已 8/8 PASS earlier this session）
+✅ **Result：** **704/704 PASSED** in 10.6 min（task `bh0bean1w`）
+✅ **Scope：** focused fix-bundle regression — 6 specs × 8 vp
+   - `audit-nsm-restore-vintages-2026-05-11.spec.js` (NSM Bug 1-4 矩陣)
+   - `smoke.spec.js` (Path 2 view router)
+   - `lock-state.spec.js` (lock state regression)
+   - `draft-data-loss-fix.spec.js` (race regression)
+   - `preflight-session-creation.spec.js` (race regression)
+   - `drill-step-default-fix.spec.js` (offcanvas duplicate fix)
 
-**注意：** webkit 真機 engine 目前是 user 真機 UAT 之事（per `docs/PATH-2-HANDOFF.md` Layer 7）— Path 2 dev environment 只跑 chromium 8 vp + Plan E2 已 ship 過 webkit iOS 4 device profile（48/48 ✓ at `2026-05-04`）。本次 fix 為 CSS layout + HTML attribute 變更，無新引入 WebKit-specific feature。
+**注意 1：** 第一次嘗試跑 `tests/visual/` 全 99 spec × 8 vp = 7840 tests，task `b96lkxtja` 19 分鐘無第一行 output 後 kill — scope 不切實際。改 focused 6 specs 涵蓋 fix bundle 影響面。
+
+**注意 2：** webkit 真機 engine 目前是 user 真機 UAT 之事（per `docs/PATH-2-HANDOFF.md` Layer 7）— Path 2 dev environment 只跑 chromium 8 vp + Plan E2 已 ship 過 webkit iOS 4 device profile（48/48 ✓ at `2026-05-04`）。本次 fix 為 CSS layout + HTML attribute 變更，無新引入 WebKit-specific feature。
 
 ---
 
@@ -103,7 +110,7 @@
 | 1. Mockup-as-Spec baseline | ✅ Mockup 06 §A LOCKED contract 對齊 |
 | 2. Pixel diff 0.5% | ✅ Spec parity confirmed（CSS line-by-line） |
 | 3. boundingBox invariant | ➖ 沒新採（cold-Read 機械驗證取代） |
-| 4. WebKit + Chromium | 🟡 chromium 8 vp 跑中（背景 task `b96lkxtja`）；webkit Plan E2 base ship `2026-05-04` 仍有效 |
+| 4. WebKit + Chromium | ✅ chromium 8 vp 704/704 PASS（focused 6 specs × 8 vp，10.6 min）；webkit Plan E2 base ship `2026-05-04` 仍有效 |
 | 5. State matrix audit | ✅ 8 vp × 5 state = 40 PNG cold-Read |
 | 6. Director eyeball walk | ✅ 全 PNG 親 Read，無 sampling |
 | 7. User 真機抽驗 | 🟡 SOP doc 已備、port up；等 user 親跑 |
