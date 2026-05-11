@@ -5640,14 +5640,19 @@
       nsmCta.addEventListener('click', function (e) {
         e.preventDefault();
         AppState.view = 'nsm';
-        // Bug X-Back (2026-05-12): 前往 NSM is a FRESH entry — clear any prior
-        // scored session state so user lands on a clean question-selection picker.
+        // Bug X-Back (2026-05-12) + reviewer feedback: clear ALL prior session
+        // state matching 回首頁 handler at line 2451 verbatim — partial clear
+        // left stale gate/sub-tab state leaking into fresh NSM entry.
+        AppState.nsmStep = 1;
+        AppState.nsmSubTab = null;
+        AppState.nsmReportTab = 'overview';
+        AppState.nsmEvalResult = null;
+        AppState.nsmGateResult = null;
+        AppState.nsmActiveCompareNode = null;
+        AppState.nsmSession = null;
         AppState.nsmSelectedQuestion = null;
         AppState.nsmDefinition = { nsm: '', explanation: '', businessLink: '' };
         AppState.nsmBreakdown = { reach: '', depth: '', frequency: '', impact: '' };
-        AppState.nsmEvalResult = null;
-        AppState.nsmSession = null;
-        AppState.nsmStep = 1;
         render();
       });
     }

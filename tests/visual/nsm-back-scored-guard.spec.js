@@ -81,3 +81,56 @@ test('Bug X-Back T2: CIRCLES→NSM CTA clears scored state for fresh entry', asy
   expect(state.nsmEvalResult).toBeNull();
   expect(state.nsmSelectedQuestion).toBeNull();
 });
+
+test('Bug X-Back T3: CTA from CIRCLES home clears ALL NSM state (no stale leak)', async ({ page }) => {
+  await page.route('**/api/circles-stats', r => r.fulfill({ status: 200, contentType: 'application/json', body: '{"completed":0,"active":0,"weeklyCompleted":0}' }));
+  await page.route('**/api/guest-circles-stats', r => r.fulfill({ status: 200, contentType: 'application/json', body: '{"completed":0,"active":0,"weeklyCompleted":0}' }));
+  await page.route('**/api/circles-sessions', r => r.fulfill({ status: 200, contentType: 'application/json', body: '[]' }));
+  await page.route('**/api/guest-circles-sessions', r => r.fulfill({ status: 200, contentType: 'application/json', body: '[]' }));
+  await page.route('**/api/nsm-sessions', r => r.fulfill({ status: 200, contentType: 'application/json', body: '[]' }));
+  await page.route('**/api/guest/nsm-sessions', r => r.fulfill({ status: 200, contentType: 'application/json', body: '[]' }));
+  await page.goto('/');
+  await page.waitForSelector('.navbar');
+  // Seed a "dirty" state across all NSM keys (matching canonical 回首頁 handler key set)
+  await page.evaluate(() => {
+    Object.assign(window.AppState, {
+      view: 'circles',
+      nsmSelectedQuestion: { id: 'q-old', company: 'StaleCo' },
+      nsmDefinition: { nsm: 'old', explanation: 'old', businessLink: 'old' },
+      nsmBreakdown: { reach: 'old', depth: 'old', frequency: 'old', impact: 'old' },
+      nsmEvalResult: { totalScore: 80, coachTree: {} },
+      nsmGateResult: { items: [{ status: 'error' }] },
+      nsmActiveCompareNode: 'nsm',
+      nsmSession: { id: 'old-session' },
+      nsmStep: 4,
+      nsmSubTab: 'nsm-step3',
+      nsmReportTab: 'comparison',
+    });
+    window.render();
+  });
+  await page.waitForTimeout(200);
+  // Click the NSM promo CTA
+  await page.evaluate(() => {
+    var cta = document.querySelector('[data-circles="nsm-promo"]');
+    if (cta) cta.click();
+  });
+  await page.waitForTimeout(300);
+  const state = await page.evaluate(() => ({
+    nsmSelectedQuestion: window.AppState.nsmSelectedQuestion,
+    nsmEvalResult: window.AppState.nsmEvalResult,
+    nsmGateResult: window.AppState.nsmGateResult,
+    nsmActiveCompareNode: window.AppState.nsmActiveCompareNode,
+    nsmSession: window.AppState.nsmSession,
+    nsmSubTab: window.AppState.nsmSubTab,
+    nsmReportTab: window.AppState.nsmReportTab,
+    nsmStep: window.AppState.nsmStep,
+  }));
+  expect(state.nsmSelectedQuestion).toBeNull();
+  expect(state.nsmEvalResult).toBeNull();
+  expect(state.nsmGateResult).toBeNull();
+  expect(state.nsmActiveCompareNode).toBeNull();
+  expect(state.nsmSession).toBeNull();
+  expect(state.nsmSubTab).toBeNull();
+  expect(state.nsmReportTab).toBe('overview');
+  expect(state.nsmStep).toBe(1);
+});
