@@ -5436,6 +5436,29 @@
     } catch (_) { /* stats are non-critical — abort / network errors silently swallowed */ }
   }
 
+  // loadNsmStats — Bug 4 fix 2026-05-11. Populates [data-stats-strip="nsm"] after NSM home render.
+  // Parallel to loadCirclesStats — no abstraction to avoid coupling / CIRCLES regression risk.
+  async function loadNsmStats() {
+    try {
+      var controller = new AbortController();
+      var timer = setTimeout(function () { controller.abort(); }, 5000);
+      var path = AppState.accessToken ? '/api/nsm-stats' : '/api/guest-nsm-stats';
+      var headers = {};
+      if (AppState.accessToken) headers['Authorization'] = 'Bearer ' + AppState.accessToken;
+      else if (AppState.guestId) headers['X-Guest-ID'] = AppState.guestId;
+      headers['Content-Type'] = 'application/json';
+      var res = await fetch(path, { headers: headers, signal: controller.signal });
+      clearTimeout(timer);
+      if (!res.ok) return;
+      var data = await res.json();
+      var strip = document.querySelector('[data-stats-strip="nsm"]');
+      if (!strip) return;
+      var c = strip.querySelector('[data-stat="completed"]'); if (c) c.textContent = data.completed != null ? data.completed : 0;
+      var a = strip.querySelector('[data-stat="active"]');    if (a) a.textContent = data.active != null ? data.active : 0;
+      var w = strip.querySelector('[data-stat="weekly"]');    if (w) w.textContent = data.weeklyCompleted != null ? data.weeklyCompleted : 0;
+    } catch (_) { /* stats are non-critical — abort / network errors silently swallowed */ }
+  }
+
   var _circlesSearchDebounce = null;
 
   function bindCirclesHome() {
@@ -5850,6 +5873,19 @@
       + ' data-nsm="start">開始 NSM 訓練 <i class="ph ph-arrow-right"></i></button>'
       + '</div></div>';
     var selAttr = sel ? ' data-nsm-selected' : '';
+    // NSM home stats strip (Bug 4 fix 2026-05-11) — mirror CIRCLES stats strip at line ~5274
+    // Numbers populated by async loadNsmStats() after render. data-stats-strip="nsm"
+    // distinguishes from CIRCLES strip so CIRCLES fetch logic is untouched.
+    var nsmStatsHtml = '<div class="stats-strip" data-stats-strip="nsm">'
+      + '<i class="ph ph-chart-bar stats-strip__icon"></i>'
+      + '<span class="stats-strip__item"><span class="stats-strip__num" data-stat="completed">0</span>已完成</span>'
+      + '<span class="stats-strip__sep">·</span>'
+      + '<span class="stats-strip__item"><span class="stats-strip__num" data-stat="active">0</span>進行中</span>'
+      + '<span class="stats-strip__sep">·</span>'
+      + '<span class="stats-strip__item"><span class="stats-strip__num" data-stat="weekly">0</span>本週</span>'
+      + '<span class="stats-strip__hint stats-strip__hint--tablet" data-stat="hint-short"></span>'
+      + '<span class="stats-strip__hint stats-strip__hint--desktop" data-stat="hint-long"></span>'
+      + '</div>';
     return '<div data-view="nsm" data-nsm-step="1"' + selAttr + '>'
       + '<div class="phase-head"><span class="phase-head__num">1</span>'
       + '<div class="phase-head__main">'
@@ -5859,6 +5895,7 @@
       + '<div class="phase-head__meta">' + metaContent + '</div>'
       + '</div>'
       + renderNSMProgress(1)
+      + nsmStatsHtml
       + '<div class="nsm-content">' + mobileBody + desktopShell + '</div>'
       + submitBar
       + '</div>';
@@ -5927,6 +5964,8 @@
         render();
       });
     }
+    // Load NSM stats async (non-blocking) — Bug 4 fix 2026-05-11
+    loadNsmStats();
   }
 
   async function loadNSMContext(q) {
