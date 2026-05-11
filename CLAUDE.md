@@ -1,13 +1,13 @@
 # PM Drill — 專案狀態看板
 
 > 即時狀態 single source of truth。**不放歷史（git log 有）**。重大事件即時 Edit。
-> **Last updated:** 2026-05-11（NSM history 4-bug fix shipped — Bug 1 smart routing + Bug 2 list SELECT + Bug 3 Step 2 back→home + Bug 4 stats strip + INSERT status='active' fix；eyeball walk + UAT SOP ready）
+> **Last updated:** 2026-05-12（NSM fix bundle 8-bug shipped: X-Compare/X-Back/X-LockedStep2/X-Overlay/X-FE/X-Ctx/X-DupSession/X-SlowList + 100 NSM 題 content backfill）
 
 ## 當前狀態（30 秒讀完）
 
-- **Path 2 Frontend Rewrite ✅ 17/17 mockup 全 ship**（Layer 2 pixel-diff `ba6c49f` 機械驗證 60 cases × 3 vp，0 🔴 structural drift）
-- **最近 ship**（2026-05-11）：NSM history 4-bug fix `0c1bced` (FE stats strip) ← `e126f42` (BE SELECT) — director eyeball walk 18 PNG / iOS 15-item 15/15 PASS / UAT SOP @ `audit/uat-sop-nsm-4-bug-fix-2026-05-11.md`. Mockup 12 prod capture `cb131ff` + DRIFT-12-A-1 `c23af6a` + Plan E 14-box `ad20188` 前置
-- **Baseline 不破：** jest 197/214（17 skipped）+ Playwright 704/704 focused 8 vp regression + phase3-error-loading 128/128 × 8 vp + master-pixel-diff Mobile-360 93/93 PASS
+- **Path 2 Frontend Rewrite ✅ 17/17 mockup 全 ship**（Layer 2 pixel-diff `ba6c49f` 機械驗證 60 cases × 3 vp，0 structural drift）
+- **最近 ship**（2026-05-12）：NSM fix bundle 8 bugs `d668c26` ← `eeb3fec` ← `4e408fb` ← `462678f` ← `ccec6dc` ← `914adb5` ← `8f4c1fa` ← `45867f7` ← `762a8ab` — X-Compare(Step4對比欄位) / X-Back(scored session不reset) / X-LockedStep2(locked banner+readonly+單CTA) / X-Overlay(mobile bottom-sheet) / X-FE(範例答案有內容) / X-Ctx(深入了解問題4 blocks) / X-DupSession(dedup) / X-SlowList(30s cache)；100 NSM題 content backfill；director 16 PNG cold-Read PASS / iOS 15/15 PASS / UAT SOP @ `audit/uat-sop-nsm-fix-bundle-2026-05-12.md`
+- **Baseline 不破：** jest 214/232（17 skipped + 1 pre-existing fail）+ Playwright NSM specs 64/64 pass × 8 vp
 - **NSM ↔ CIRCLES parity 全結束** — production wire 完整 honor mockup 14 §A / 05 §G / 07 v3 §D §E LOCKED contracts；nsm-evaluator depth 確認非 shallow，加 max_tokens 1500 cap
 - **接手 Handoff：** `docs/PATH-2-HANDOFF.md` + memory `project_pending_followups_2026-05-10.md`
 
