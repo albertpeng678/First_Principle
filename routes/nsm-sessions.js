@@ -15,7 +15,7 @@ router.post('/', requireAuth, async (req, res) => {
   try {
     const { data, error } = await db
       .from('nsm_sessions')
-      .insert({ user_id: req.user.id, question_id: questionId, question_json: questionJson })
+      .insert({ user_id: req.user.id, question_id: questionId, question_json: questionJson, status: 'active' })
       .select('id')
       .single();
     if (error) throw error;
