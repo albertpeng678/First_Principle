@@ -63,6 +63,7 @@ const db = require('../db/client');
 const { reviewFramework } = require('../prompts/circles-gate');
 const { streamCirclesReply } = require('../prompts/circles-coach');
 const { evaluateCirclesStep } = require('../prompts/circles-evaluator');
+const cache = require('../lib/session-cache');
 
 // Build test app — include the router under test
 const app = express();
@@ -129,6 +130,7 @@ beforeEach(() => {
   // Re-apply auth mock after clearAllMocks
   db.auth.getUser.mockResolvedValue({ data: { user: FAKE_USER }, error: null });
   resetDbChain();
+  cache._reset();
 });
 
 // ── POST / — create session ───────────────────────────────────────────────────
@@ -223,7 +225,7 @@ describe('POST /api/circles-sessions', () => {
 
 describe('GET /api/circles-sessions', () => {
   test('returns array of sessions for the user', async () => {
-    const sessions = [makeSession(), makeSession({ id: 'session-def' })];
+    const sessions = [makeSession(), makeSession({ id: 'session-def', question_id: 'q2' })];
     db.limit.mockResolvedValue({ data: sessions, error: null });
 
     const res = await request(app)

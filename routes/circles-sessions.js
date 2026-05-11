@@ -12,6 +12,10 @@ const { generateFinalReport } = require('../prompts/circles-final-report');
 const { generateCirclesHint } = require('../prompts/circles-hint');
 const { generateCirclesExample } = require('../prompts/circles-example');
 const { rehydrateMany, rehydrateQuestionJson } = require('../lib/session-rehydrate');
+const cache = require('../lib/session-cache');
+const { dedupSessions } = require('../lib/session-dedup');
+
+const CACHE_KIND = 'circles-auth';
 
 const QUESTION_BY_ID = Object.fromEntries(
   JSON.parse(fs.readFileSync(path.join(__dirname, '..', 'circles_plan', 'circles_database.json'), 'utf8'))
@@ -29,6 +33,7 @@ router.post('/', requireAuth, async (req, res) => {
       .select('id')
       .single();
     if (error) throw error;
+    cache.invalidate(CACHE_KIND, req.user.id);
     res.json({ sessionId: data.id });
   } catch (e) { res.status(500).json({ error: e.message }); }
 });
@@ -94,25 +99,38 @@ router.post('/draft', requireAuth, async (req, res) => {
       if (raced) return res.json(raced);
       throw error;
     }
+    cache.invalidate(CACHE_KIND, req.user.id);
     res.json(data);
   } catch (e) { res.status(500).json({ error: e.message }); }
 });
 
 // GET /api/circles-sessions
 router.get('/', requireAuth, async (req, res) => {
+  const owner = req.user.id;
+  // Cache only for default (no filter) requests to keep invalidation simple.
+  if (!req.query.status && !req.query.limit) {
+    const cached = cache.get(CACHE_KIND, owner);
+    if (cached) return res.json(cached);
+  }
+
   let query = db
     .from('circles_sessions')
     .select('id, question_id, question_json, mode, drill_step, current_phase, sim_step_index, status, step_scores, step_drafts, framework_draft, created_at, updated_at')
-    .eq('user_id', req.user.id)
+    .eq('user_id', owner)
     .order('updated_at', { ascending: false })
     .limit(Math.min(Math.max(parseInt(req.query.limit) || 20, 1), 50));
   if (req.query.status) query = query.eq('status', req.query.status);
   const { data, error } = await query;
   if (error) return res.status(500).json({ error: error.message });
+
+  const deduped = dedupSessions(data || []);
   const enriched = rehydrateMany(
-    (data || []).map(d => ({ ...d, currentQuestion: QUESTION_BY_ID[d.question_id] || null })),
+    deduped.map(d => ({ ...d, currentQuestion: QUESTION_BY_ID[d.question_id] || null })),
     'circles'
   );
+  if (!req.query.status && !req.query.limit) {
+    cache.set(CACHE_KIND, owner, enriched);
+  }
   res.json(enriched);
 });
 
@@ -140,6 +158,7 @@ router.delete('/:id', requireAuth, async (req, res) => {
     .single();
   if (error && error.code !== 'PGRST116') return res.status(500).json({ error: error.message });
   if (!data) return res.status(404).json({ error: 'not_found' });
+  cache.invalidate(CACHE_KIND, req.user.id);
   res.json({ ok: true });
 });
 
@@ -295,6 +314,7 @@ router.patch('/:id/progress', requireAuth, async (req, res) => {
     return res.status(500).json({ error: 'db_error' });
   }
   if (!data) return res.status(404).json({ error: 'not_found' });
+  cache.invalidate(CACHE_KIND, req.user.id);
   res.json({ ok: true });
 });
 
@@ -325,6 +345,7 @@ router.post('/:id/final-report', requireAuth, async (req, res) => {
     await db.from('circles_sessions').update({
       status: 'completed',
     }).eq('id', req.params.id).eq('user_id', req.user.id);
+    cache.invalidate(CACHE_KIND, req.user.id);
     res.json(report);
   } catch (e) {
     console.error('[circles-sessions] POST /final-report generation error:', e);

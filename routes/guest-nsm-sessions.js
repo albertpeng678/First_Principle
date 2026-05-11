@@ -8,6 +8,10 @@ const { reviewNSMGate } = require('../prompts/nsm-gate');
 const { generateNSMContext } = require('../prompts/nsm-context');
 const { guessProductType } = require('../prompts/utils/product-type');
 const { rehydrateMany, rehydrateQuestionJson } = require('../lib/session-rehydrate');
+const cache = require('../lib/session-cache');
+const { dedupSessions } = require('../lib/session-dedup');
+
+const CACHE_KIND = 'nsm-guest';
 
 // POST /api/guest/nsm-sessions
 router.post('/', requireGuestId, async (req, res) => {
@@ -20,19 +24,28 @@ router.post('/', requireGuestId, async (req, res) => {
       .select('id')
       .single();
     if (error) throw error;
+    cache.invalidate(CACHE_KIND, req.guestId);
     res.json({ sessionId: data.id });
   } catch (e) { res.status(500).json({ error: e.message }); }
 });
 
 // GET /api/guest/nsm-sessions
 router.get('/', requireGuestId, async (req, res) => {
+  const owner = req.guestId;
+  const cached = cache.get(CACHE_KIND, owner);
+  if (cached) return res.json(cached);
+
   const { data, error } = await db
     .from('nsm_sessions')
     .select('id, question_id, question_json, status, scores_json, user_nsm, user_breakdown, created_at')
-    .eq('guest_id', req.guestId)
+    .eq('guest_id', owner)
     .order('created_at', { ascending: false });
   if (error) return res.status(500).json({ error: error.message });
-  res.json(rehydrateMany(data || [], 'nsm'));
+
+  const deduped = dedupSessions(data || []);
+  const rehydrated = rehydrateMany(deduped, 'nsm');
+  cache.set(CACHE_KIND, owner, rehydrated);
+  res.json(rehydrated);
 });
 
 // GET /api/guest/nsm-sessions/:id
@@ -58,6 +71,7 @@ router.delete('/:id', requireGuestId, async (req, res) => {
     .single();
   if (error && error.code !== 'PGRST116') return res.status(500).json({ error: error.message });
   if (!data) return res.status(404).json({ error: 'not_found' });
+  cache.invalidate(CACHE_KIND, req.guestId);
   res.json({ ok: true });
 });
 
@@ -87,6 +101,7 @@ router.post('/:id/evaluate', requireGuestId, async (req, res) => {
       updated_at: new Date().toISOString()
     }).eq('id', req.params.id).eq('guest_id', req.guestId);
     if (upErr) throw upErr;
+    cache.invalidate(CACHE_KIND, req.guestId);
     res.json(result);
   } catch (e) { res.status(500).json({ error: e.message }); }
 });
@@ -159,6 +174,7 @@ router.patch('/:id/progress', requireGuestId, async (req, res) => {
     return res.status(500).json({ error: 'db_error' });
   }
   if (!data) return res.status(404).json({ error: 'not_found' });
+  cache.invalidate(CACHE_KIND, req.guestId);
   res.json({ ok: true });
 });
 
