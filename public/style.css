@@ -182,7 +182,7 @@ body:has(.submit-bar) { padding-bottom: calc(var(--touch-min) + var(--s-7)); }
 .rt-field--locked .nsm-input,
 .rt-field--locked textarea { background: var(--c-bg-deep); opacity: 0.85; cursor: not-allowed; pointer-events: none; -webkit-user-select: text; user-select: text; color: var(--c-ink); }
 .rt-field--locked .nsm-rt-toolbar { display: none; }
-.submit-bar--locked { display: flex; align-items: center; justify-content: space-between; padding: var(--s-4); border-top: 1px solid var(--c-rule); background: var(--c-bg); gap: var(--s-3); }
+.submit-bar--locked { display: flex; align-items: center; justify-content: space-between; padding: var(--s-3) var(--s-4) max(var(--s-4), env(safe-area-inset-bottom)); border-top: 1px solid var(--c-rule); background: var(--c-bg); gap: var(--s-3); }
 .submit-bar--locked__meta { display: inline-flex; align-items: center; gap: var(--s-2); color: var(--c-ink-3); font-size: var(--t-meta); }
 .submit-bar--locked__primary { white-space: nowrap; min-width: 160px; }
 @media (max-width: 480px) { .submit-bar--locked__primary { min-width: 140px; } }
