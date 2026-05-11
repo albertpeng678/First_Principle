@@ -1,13 +1,13 @@
 # PM Drill — 專案狀態看板
 
 > 即時狀態 single source of truth。**不放歷史（git log 有）**。重大事件即時 Edit。
-> **Last updated:** 2026-05-10（UAT Round 5 + Bug F 全 ship — NSM Step 3 hint+example 對齊修復 + counter/parens 清理）
+> **Last updated:** 2026-05-11（NSM 4-bug fix bundle 全 ship — silent-fail/empty-card/grid + Step 4 fixture schema）
 
 ## 當前狀態（30 秒讀完）
 
 - **Path 2 Frontend Rewrite ✅ 17/17 mockup 全 ship**（Layer 2 pixel-diff `ba6c49f` 機械驗證 60 cases × 3 vp，0 🔴 structural drift）
-- **最近 ship**（2026-05-10）：UAT Round 5 + Bug F `61f0176` — NSM Step 3 hint+example button row regression fix（mobile/iPad/desktop 提示+範例答案 right-align + margin-bottom）+ Bug F counter (0/120) 移除 + SaaS dim desc 英文 parens 清理；驗證 8 vp × 3 state matrix 24 PNGs 全 cold-Read（director 親 Read，無 sampling）
-- **Baseline 不破：** jest 191/208（17 skipped）+ pre-commit race regression smoke 13/13 ✓
+- **最近 ship**（2026-05-11）：NSM 4-bug fix `9d0eac2` — Bug 2 step2/step3 disabled button graceful degradation + Bug 3 fallback message「此題暫無深入背景資料」+ DRIFT-A 4-block grid 2x2 (≥768) per mockup 06 §A LOCKED + Bug 4 audit fixture schema rename. 146 PNG marathon `e07f780` + 40 PNG post-fix matrix director 親 Read（8 vp × 5 state，無 sampling）；audit doc `audit/eyeball-nsm-2026-05-11-full146.md`
+- **Baseline 不破：** jest 197/214（17 skipped，+6 from `tests/nsm-render-bug-fixes.test.js`）+ pre-commit race regression smoke 13/13 ✓
 - **NSM ↔ CIRCLES parity 全結束** — production wire 完整 honor mockup 14 §A / 05 §G / 07 v3 §D §E LOCKED contracts；nsm-evaluator depth 確認非 shallow，加 max_tokens 1500 cap
 - **接手 Handoff：** `docs/PATH-2-HANDOFF.md` + memory `project_pending_followups_2026-05-10.md`
 
