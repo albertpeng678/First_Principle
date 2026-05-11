@@ -1,10 +1,13 @@
 const express = require('express');
 const router = express.Router();
 const db = require('../db/client');
+const { dedupSessions } = require('../lib/session-dedup');
 
 // GET /api/nsm-stats — auth-required
 // Returns { completed, active, weeklyCompleted } for the authenticated user.
 // Mirrors routes/circles-stats.js — NSM-side equivalent for homepage stats strip.
+// Applies same per-question_id dedup as GET /api/nsm-sessions so the home
+// stats card and the offcanvas list agree.
 router.get('/', async (req, res) => {
   if (!req.user || !req.user.id) {
     return res.status(401).json({ error: 'unauthorized' });
@@ -14,24 +17,29 @@ router.get('/', async (req, res) => {
   try {
     const sevenDaysAgo = new Date(Date.now() - 7 * 24 * 60 * 60 * 1000).toISOString();
 
-    const [completedRes, activeRes, weeklyRes] = await Promise.all([
-      db.from('nsm_sessions').select('id', { count: 'exact', head: true })
-        .eq('user_id', userId).eq('status', 'completed'),
-      db.from('nsm_sessions').select('id', { count: 'exact', head: true })
-        .eq('user_id', userId).eq('status', 'active'),
-      db.from('nsm_sessions').select('id', { count: 'exact', head: true })
-        .eq('user_id', userId).eq('status', 'completed').gte('updated_at', sevenDaysAgo),
-    ]);
+    const { data, error } = await db
+      .from('nsm_sessions')
+      .select('id, question_id, status, created_at, updated_at')
+      .eq('user_id', userId);
 
-    if (completedRes.error || activeRes.error || weeklyRes.error) {
+    if (error) {
       return res.status(500).json({ error: 'db_error' });
     }
 
-    res.json({
-      completed: completedRes.count || 0,
-      active: activeRes.count || 0,
-      weeklyCompleted: weeklyRes.count || 0,
-    });
+    const deduped = dedupSessions(data || []);
+    let completed = 0;
+    let active = 0;
+    let weeklyCompleted = 0;
+    for (const row of deduped) {
+      if (row.status === 'completed') {
+        completed += 1;
+        if (row.updated_at && row.updated_at >= sevenDaysAgo) weeklyCompleted += 1;
+      } else if (row.status === 'active') {
+        active += 1;
+      }
+    }
+
+    res.json({ completed, active, weeklyCompleted });
   } catch (e) {
     res.status(500).json({ error: e.message });
   }
