@@ -2236,15 +2236,18 @@
           + '</div>'
           + '</div>';
       }).join('');
-      // Bottom-sheet overlay mirroring hint modal pattern (hint-overlay).
+      // Bug X-Overlay (2026-05-12): bottom-sheet per mockup 02-coach-bottom-sheet.html
       var overlay = '';
       if (activeNode) {
-        overlay = '<div class="hint-overlay nsm-coach-overlay" aria-hidden="false">'
-          + '<div class="hint-overlay__backdrop" data-nsm4-action="close-coach"></div>'
-          + '<div class="modal-card nsm-coach-modal" role="dialog" aria-modal="true">'
+        overlay = '<div class="nsm-coach-overlay" aria-hidden="false">'
+          + '<div class="nsm-coach-overlay__backdrop" data-nsm4-action="close-coach"></div>'
+          + '<div class="nsm-coach-bottom-sheet" role="dialog" aria-modal="true">'
+          +   '<div class="nsm-coach-bottom-sheet__handle" aria-hidden="true"></div>'
           +   renderNSMStep4CoachDetail(activeNode, evalResult)
-          + '</div>'
-          + '</div>';
+          +   '<div class="nsm-coach-bottom-sheet__foot">'
+          +     '<button class="btn btn--primary nsm-coach-bottom-sheet__close-btn" data-nsm4-action="close-coach">了解了</button>'
+          +   '</div>'
+          + '</div></div>';
       }
       return '<div class="nsm-compare nsm-compare--stack">' + mobileBlocks + '</div>' + overlay;
     } else {

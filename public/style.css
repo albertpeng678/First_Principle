@@ -3594,3 +3594,59 @@ div.rt-textarea[contenteditable="true"] ul li { list-style: disc; }
   pointer-events: none;
 }
 /* ───── NSM context-card 4-block expand END ───── */
+
+/* Bug X-Overlay (2026-05-12): NSM 教練思路 mobile bottom-sheet per mockup 02-coach-bottom-sheet.html */
+
+.nsm-coach-overlay {
+  position: fixed;
+  inset: 0;
+  z-index: 100;
+  display: flex;
+  align-items: flex-end;
+  justify-content: stretch;
+}
+
+.nsm-coach-overlay__backdrop {
+  position: absolute;
+  inset: 0;
+  background: rgba(0, 0, 0, 0.5);
+  cursor: pointer;
+}
+
+.nsm-coach-bottom-sheet {
+  position: relative;
+  width: 100%;
+  max-height: 85vh;
+  background: var(--c-bg);
+  border-radius: 16px 16px 0 0;
+  box-shadow: 0 -4px 20px rgba(0, 0, 0, 0.15);
+  padding: 0 var(--s-4) max(var(--s-4), env(safe-area-inset-bottom));
+  overflow-y: auto;
+  -webkit-overflow-scrolling: touch;
+  display: flex;
+  flex-direction: column;
+}
+
+.nsm-coach-bottom-sheet__handle {
+  width: 36px;
+  height: 4px;
+  background: var(--c-rule);
+  border-radius: 2px;
+  margin: 8px auto 12px;
+  flex-shrink: 0;
+}
+
+.nsm-coach-bottom-sheet__foot {
+  padding-top: var(--s-4);
+  border-top: 1px solid var(--c-rule);
+  margin-top: var(--s-3);
+}
+
+.nsm-coach-bottom-sheet__close-btn {
+  width: 100%;
+  min-height: 44px;
+}
+
+@media (min-width: 768px) {
+  .nsm-coach-overlay { display: none; }
+}
