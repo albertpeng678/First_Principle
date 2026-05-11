@@ -1502,6 +1502,14 @@
         + '</div>';
     }
 
+    var exampleBtnHtml = exampleText
+      ? '<button class="field-example-toggle" type="button" data-nsm-example-toggle="' + escHtml(fieldId) + '" aria-expanded="' + ariaExpanded + '">'
+        + '<i class="ph ph-quotes"></i>範例答案<i class="ph ph-caret-down toggle-caret"' + caretStyle + '></i>'
+        + '</button>'
+      : '<button class="field-example-toggle" type="button" data-nsm-example-toggle="' + escHtml(fieldId) + '" aria-expanded="false" disabled title="此題暫無範例答案">'
+        + '<i class="ph ph-quotes"></i>範例答案'
+        + '</button>';
+
     return '<div class="nsm-field">'
       + '<div class="field__label-row">'
       +   '<label class="field__label">' + escHtml(label) + '</label>'
@@ -1509,9 +1517,7 @@
       +     '<button class="field__hint-link" type="button" data-nsm-hint="' + escHtml(fieldId) + '">'
       +       '<i class="ph ph-lightbulb"></i>提示'
       +     '</button>'
-      +     '<button class="field-example-toggle" type="button" data-nsm-example-toggle="' + escHtml(fieldId) + '" aria-expanded="' + ariaExpanded + '">'
-      +       '<i class="ph ph-quotes"></i>範例答案<i class="ph ph-caret-down toggle-caret"' + caretStyle + '></i>'
-      +     '</button>'
+      +     exampleBtnHtml
       +   '</div>'
       + '</div>'
       + inputHtml
@@ -1540,26 +1546,31 @@
 
     var expandBlock = '';
     if (expanded) {
+      var hasCtxData = !!(ctx.model || ctx.users || ctx.traps || ctx.insight);
+      var anaHtml = hasCtxData
+        ? '<div class="nsm-context-card__ana">'
+          +   '<div class="nsm-context-card__ana-block">'
+          +     '<div class="nsm-context-card__ana-head"><i class="ph ph-buildings"></i>商業模式</div>'
+          +     '<div class="nsm-context-card__ana-body">' + escHtml(ctx.model || '') + '</div>'
+          +   '</div>'
+          +   '<div class="nsm-context-card__ana-block">'
+          +     '<div class="nsm-context-card__ana-head"><i class="ph ph-users"></i>使用者</div>'
+          +     '<div class="nsm-context-card__ana-body">' + escHtml(ctx.users || '') + '</div>'
+          +   '</div>'
+          +   '<div class="nsm-context-card__ana-block nsm-context-card__ana-block--trap">'
+          +     '<div class="nsm-context-card__ana-head"><i class="ph ph-warning"></i>常見陷阱</div>'
+          +     '<div class="nsm-context-card__ana-body">' + escHtml(ctx.traps || '') + '</div>'
+          +   '</div>'
+          +   '<div class="nsm-context-card__ana-block">'
+          +     '<div class="nsm-context-card__ana-head"><i class="ph ph-lightbulb"></i>破題切入</div>'
+          +     '<div class="nsm-context-card__ana-body">' + escHtml(ctx.insight || '') + '</div>'
+          +   '</div>'
+          + '</div>'
+        : '<div class="nsm-context-card__ana-empty">此題暫無深入背景資料</div>';
       expandBlock = '<div class="nsm-context-card__expand">'
         + '<div class="nsm-context-card__expand-label">深入分析</div>'
-        + '<div class="nsm-context-card__ana">'
-        +   '<div class="nsm-context-card__ana-block">'
-        +     '<div class="nsm-context-card__ana-head"><i class="ph ph-buildings"></i>商業模式</div>'
-        +     '<div class="nsm-context-card__ana-body">' + escHtml(ctx.model || '') + '</div>'
-        +   '</div>'
-        +   '<div class="nsm-context-card__ana-block">'
-        +     '<div class="nsm-context-card__ana-head"><i class="ph ph-users"></i>使用者</div>'
-        +     '<div class="nsm-context-card__ana-body">' + escHtml(ctx.users || '') + '</div>'
-        +   '</div>'
-        +   '<div class="nsm-context-card__ana-block nsm-context-card__ana-block--trap">'
-        +     '<div class="nsm-context-card__ana-head"><i class="ph ph-warning"></i>常見陷阱</div>'
-        +     '<div class="nsm-context-card__ana-body">' + escHtml(ctx.traps || '') + '</div>'
-        +   '</div>'
-        +   '<div class="nsm-context-card__ana-block">'
-        +     '<div class="nsm-context-card__ana-head"><i class="ph ph-lightbulb"></i>破題切入</div>'
-        +     '<div class="nsm-context-card__ana-body">' + escHtml(ctx.insight || '') + '</div>'
-        +   '</div>'
-        + '</div></div>';
+        + anaHtml
+        + '</div>';
     }
 
     return '<div class="nsm-context-card">'
@@ -1629,6 +1640,14 @@
         + '</div>';
     }
 
+    var dimExampleBtnHtml = exampleText
+      ? '<button class="field-example-toggle" type="button" data-nsm-dim-example-toggle="' + escHtml(dim.id) + '" aria-expanded="' + dimExAriaExpanded + '">'
+        + '<i class="ph ph-quotes"></i>範例答案<i class="ph ph-caret-down toggle-caret"' + dimExCaretStyle + '></i>'
+        + '</button>'
+      : '<button class="field-example-toggle" type="button" data-nsm-dim-example-toggle="' + escHtml(dim.id) + '" aria-expanded="false" disabled title="此題暫無範例答案">'
+        + '<i class="ph ph-quotes"></i>範例答案'
+        + '</button>';
+
     return '<div class="nsm-dim">'
       + '<div class="nsm-dim__head">'
       +   '<div class="nsm-dim__label">' + escHtml(dim.label) + '</div>'
@@ -1640,9 +1659,7 @@
       +     '<button class="field__hint-link" type="button" data-nsm-step3-hint="' + escHtml(dim.id) + '" data-nsm-dim-type="' + escHtml(ptype || 'attention') + '">'
       +       '<i class="ph ph-lightbulb"></i>提示'
       +     '</button>'
-      +     (exampleText ? '<button class="field-example-toggle" type="button" data-nsm-dim-example-toggle="' + escHtml(dim.id) + '" aria-expanded="' + dimExAriaExpanded + '">'
-      +       '<i class="ph ph-quotes"></i>範例答案<i class="ph ph-caret-down toggle-caret"' + dimExCaretStyle + '></i>'
-      +     '</button>' : '')
+      +     dimExampleBtnHtml
       +   '</div>'
       +   '<div class="nsm-rt-field"><div class="nsm-rt-toolbar">'
       +     '<button class="nsm-rt-tbtn" data-rt-cmd="bold" title="粗體"><strong>B</strong></button>'

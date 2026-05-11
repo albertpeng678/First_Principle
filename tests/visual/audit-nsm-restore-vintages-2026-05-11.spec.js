@@ -98,14 +98,32 @@ async function injectRestoredSession(page, vintage, step, opts = {}) {
       : { reach: '', depth: '', frequency: '', impact: '' };
     AS.nsmEvalResult = vintage === 'locked'
       ? {
-          dimensions: {
-            reach: { score: 4, reasoning: '聚焦活躍用戶比例，避免虛榮註冊數', strengths: ['排除僵屍'], weaknesses: ['未指定時間窗'] },
-            depth: { score: 4, reasoning: '聚焦每用戶發言量', strengths: ['量化清楚'], weaknesses: [] },
-            frequency: { score: 5, reasoning: 'DAU/MAU 是 SaaS 黏著黃金指標', strengths: ['行業共識'], weaknesses: [] },
-            impact: { score: 4, reasoning: 'NRR 連結商業留存', strengths: ['擴張信號'], weaknesses: [] },
+          scores: { alignment: 4, leading: 4, actionability: 5, simplicity: 4, sensitivity: 3 },
+          totalScore: 80,
+          coachComments: {
+            alignment: '指標與業務目標高度對齊，直接連結留存。可進一步量化短期門檻。',
+            leading: '發言量是留存的領先指標，可觀測且可操作。',
+            actionability: '團隊可直接採取行動改善，具體可執行。',
+            simplicity: '指標表達清晰易懂，是單一指標。',
+            sensitivity: '對小變化敏感度中等，穩定性高但短期波動不敏感。',
           },
-          overall_score: 4.25,
-          summary: '指標定義清楚連結業務目標',
+          coachTree: {
+            nsm: '每週發送至少 2 則訊息的活躍工作區數',
+            reach: '新註冊團隊在 7 天內有 ≥3 人發言的比例',
+            depth: '每位活躍用戶每週發送的訊息數',
+            frequency: 'WAU/MAU 比率（每週活躍 / 月活躍）',
+            impact: '次月留存率 + NRR > 100% 的工作區比例',
+          },
+          coachRationale: {
+            nsm: '從 AHA 時刻切入：團隊真正使用 = 多人發言。排除單純註冊或登入等虛榮指標，直接預測長期留存與付費。',
+            reach: '對應核心啟用行為（多人發言）。不選 DAU 因新註冊團隊往往有 1-2 人試用，無法反映團隊採用。',
+            depth: '訊息數體現互動品質。與 NSM 數學關係：高訊息數 = 高度依賴。',
+            frequency: 'WAU/MAU 體現習慣養成。長期留存的最佳預測指標之一。',
+            impact: '次月留存 + NRR 直接連結商業變現，優先反映付費客戶健康度。',
+          },
+          bestMove: '亮點：選擇「活躍發言工作區」作為 NSM，避開了單純註冊/登入的虛榮指標陷阱。',
+          mainTrap: '陷阱：未量化「活躍」的具體門檻（每週幾則訊息？多少人？），可能被高頻單人灌水拉高。',
+          summary: '整體 NSM 定義清楚連結業務目標，4 個輸入維度設計合理且可操作。建議補上活躍門檻定義，並考慮加入「跨頻道發言」維度區分廣度與深度。',
         }
       : null;
     AS.nsmGateResult = null;

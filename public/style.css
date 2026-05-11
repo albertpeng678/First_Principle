@@ -3533,9 +3533,15 @@ div.rt-textarea[contenteditable="true"] ul li { list-style: disc; }
   flex: 0 0 auto;
 }
 .nsm-context-card__ana {
-  display: flex;
-  flex-direction: column;
+  display: grid;
+  grid-template-columns: 1fr;
   gap: var(--s-3);
+}
+@media (min-width: 768px) {
+  .nsm-context-card__ana {
+    grid-template-columns: 1fr 1fr;
+    gap: var(--s-3) var(--s-4);
+  }
 }
 .nsm-context-card__ana-block {
   padding: var(--s-3) var(--s-4);
@@ -3565,4 +3571,17 @@ div.rt-textarea[contenteditable="true"] ul li { list-style: disc; }
 }
 .nsm-context-card__ana-block--trap .nsm-context-card__ana-head,
 .nsm-context-card__ana-block--trap .nsm-context-card__ana-head i { color: var(--c-warn); }
+.nsm-context-card__ana-empty {
+  padding: var(--s-4);
+  background: var(--c-card);
+  border: 1px dashed var(--c-rule);
+  border-radius: var(--r-input);
+  color: var(--c-ink-3);
+  font-size: var(--t-body-sm);
+  text-align: center;
+}
+.field-example-toggle:disabled {
+  opacity: 0.45;
+  pointer-events: none;
+}
 /* ───── NSM context-card 4-block expand END ───── */
