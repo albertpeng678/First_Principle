@@ -3142,7 +3142,7 @@
     C1: {
       eyebrow: { sim: 'Phase 1 · 寫框架', drill: 'Phase 1 · 個別步驟練習' },
       title: 'C · 澄清情境',
-      titleDrillSuffix: '（題目邊界 / 業務影響 / 假設）',
+      titleDrillSuffix: '',
       progressLabel: '澄清',
       stepLetter: 'C',
       stepNum: '01',
@@ -3161,7 +3161,7 @@
     I: {
       eyebrow: { sim: 'Phase 1 · 寫框架', drill: 'Phase 1 · 個別步驟練習' },
       title: 'I · 定義用戶',
-      titleDrillSuffix: '（分群 / 焦點 / 動機 / 排除）',
+      titleDrillSuffix: '',
       progressLabel: '用戶',
       stepLetter: 'I',
       stepNum: '02',
@@ -3180,7 +3180,7 @@
     R: {
       eyebrow: { sim: 'Phase 1 · 寫框架', drill: 'Phase 1 · 個別步驟練習' },
       title: 'R · 發掘需求',
-      titleDrillSuffix: '（功能性 / 情感性 / 社交性 / 核心痛點）',
+      titleDrillSuffix: '',
       progressLabel: '需求',
       stepLetter: 'R',
       stepNum: '03',
@@ -3199,7 +3199,7 @@
     C2: {
       eyebrow: { sim: 'Phase 1 · 寫框架', drill: 'Phase 1 · 個別步驟練習' },
       title: 'C · 優先排序',
-      titleDrillSuffix: '（取捨標準 / 優先 / 暫緩 / 理由）',
+      titleDrillSuffix: '',
       progressLabel: '排序',
       stepLetter: 'C',
       stepNum: '04',
@@ -4322,9 +4322,8 @@
 
     // phase-head
     var eyebrow = isDrill ? stepCfg.eyebrow.drill : stepCfg.eyebrow.sim;
-    // desktop sim: append suffix span (CSS hides on <1024)
-    var titleHtml = escHtml(stepCfg.title)
-      + '<span class="phase-head__title-extra">（2-3 個方案）</span>';
+    // User-requested 2026-05-11: no parenthesised subtitle on any CIRCLES step.
+    var titleHtml = escHtml(stepCfg.title);
     var metaHtml;
     if (isDrill) {
       metaHtml = '<span class="phase-head__meta">'
@@ -4948,9 +4947,9 @@
 
     // ── phase-head (drill variant: .phase-head--drill) ──
     var eyebrow = isDrill ? stepCfg.eyebrow.drill : stepCfg.eyebrow.sim;
-    var title = isDrill
-      ? (stepCfg.title + stepCfg.titleDrillSuffix)
-      : stepCfg.title;
+    // User-requested 2026-05-11: remove drill parenthesis subtitle on all 7 CIRCLES
+    // steps × all viewports — title shows clean step name only ("C · 澄清情境" etc).
+    var title = stepCfg.title;
     var stepNum = stepCfg.stepNum;
     // save-indicator
     var saveHtml = renderSaveIndicator();
