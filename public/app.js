@@ -2183,17 +2183,11 @@
     ];
 
     if (!isTabletPlus) {
-      // Mobile: vertical stack per dim
+      // Mobile: vertical stack per dim. User-requested 2026-05-11: 教練思路 detail
+      // pops up as bottom-sheet overlay (like hint modal), NOT inline expansion.
       var mobileBlocks = COMPARE_ROWS.map(function (row) {
         var coachActive = activeNode === row.key;
         var coachCardCls = 'nsm-compare-card nsm-compare-card--coach' + (coachActive ? ' is-active' : '');
-        var detailSheet = '';
-        if (coachActive) {
-          detailSheet = '<div class="nsm-detail-sheet">'
-            + '<div class="nsm-detail-sheet__handle"></div>'
-            + renderNSMStep4CoachDetail(row.key, evalResult)
-            + '</div>';
-        }
         return '<div class="nsm-compare-block">'
           + '<div class="nsm-compare-block__title">' + escHtml(row.label) + '</div>'
           + '<div class="nsm-compare-card nsm-compare-card--yours">'
@@ -2204,10 +2198,19 @@
           +   '<span class="nsm-compare-card__tag">教練版</span>'
           +   '<div class="nsm-compare-card__text">' + escHtml(row.coachText) + '</div>'
           + '</div>'
-          + detailSheet
           + '</div>';
       }).join('');
-      return '<div class="nsm-compare nsm-compare--stack">' + mobileBlocks + '</div>';
+      // Bottom-sheet overlay mirroring hint modal pattern (hint-overlay).
+      var overlay = '';
+      if (activeNode) {
+        overlay = '<div class="hint-overlay nsm-coach-overlay" aria-hidden="false">'
+          + '<div class="hint-overlay__backdrop" data-nsm4-action="close-coach"></div>'
+          + '<div class="modal-card nsm-coach-modal" role="dialog" aria-modal="true">'
+          +   renderNSMStep4CoachDetail(activeNode, evalResult)
+          + '</div>'
+          + '</div>';
+      }
+      return '<div class="nsm-compare nsm-compare--stack">' + mobileBlocks + '</div>' + overlay;
     } else {
       // Tablet/Desktop: grid layout
       var headerRow = '<div class="nsm-compare-grid__header">'
