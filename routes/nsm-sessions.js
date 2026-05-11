@@ -7,6 +7,7 @@ const { generateNSMHints } = require('../prompts/nsm-hints');
 const { reviewNSMGate } = require('../prompts/nsm-gate');
 const { generateNSMContext } = require('../prompts/nsm-context');
 const { guessProductType } = require('../prompts/utils/product-type');
+const { rehydrateMany, rehydrateQuestionJson } = require('../lib/session-rehydrate');
 
 // POST /api/nsm-sessions
 router.post('/', requireAuth, async (req, res) => {
@@ -31,7 +32,7 @@ router.get('/', requireAuth, async (req, res) => {
     .eq('user_id', req.user.id)
     .order('created_at', { ascending: false });
   if (error) return res.status(500).json({ error: error.message });
-  res.json(data || []);
+  res.json(rehydrateMany(data || [], 'nsm'));
 });
 
 // GET /api/nsm-sessions/:id
@@ -43,7 +44,7 @@ router.get('/:id', requireAuth, async (req, res) => {
     .eq('user_id', req.user.id)
     .single();
   if (error || !data) return res.status(404).json({ error: 'not_found' });
-  res.json(data);
+  res.json(rehydrateQuestionJson(data, 'nsm'));
 });
 
 // DELETE /api/nsm-sessions/:id

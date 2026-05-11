@@ -11,6 +11,7 @@ const { checkConclusion } = require('../prompts/circles-conclusion-check');
 const { generateFinalReport } = require('../prompts/circles-final-report');
 const { generateCirclesHint } = require('../prompts/circles-hint');
 const { generateCirclesExample } = require('../prompts/circles-example');
+const { rehydrateMany, rehydrateQuestionJson } = require('../lib/session-rehydrate');
 
 const QUESTION_BY_ID = Object.fromEntries(
   JSON.parse(fs.readFileSync(path.join(__dirname, '..', 'circles_plan', 'circles_database.json'), 'utf8'))
@@ -108,7 +109,10 @@ router.get('/', requireAuth, async (req, res) => {
   if (req.query.status) query = query.eq('status', req.query.status);
   const { data, error } = await query;
   if (error) return res.status(500).json({ error: error.message });
-  const enriched = (data || []).map(d => ({ ...d, currentQuestion: QUESTION_BY_ID[d.question_id] || null }));
+  const enriched = rehydrateMany(
+    (data || []).map(d => ({ ...d, currentQuestion: QUESTION_BY_ID[d.question_id] || null })),
+    'circles'
+  );
   res.json(enriched);
 });
 
@@ -122,7 +126,7 @@ router.get('/:id', requireAuth, async (req, res) => {
     .single();
   if (error || !data) return res.status(404).json({ error: 'not_found' });
   data.currentQuestion = QUESTION_BY_ID[data.question_id] || null;
-  res.json(data);
+  res.json(rehydrateQuestionJson(data, 'circles'));
 });
 
 // DELETE /api/circles-sessions/:id
