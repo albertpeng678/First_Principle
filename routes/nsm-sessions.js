@@ -27,7 +27,7 @@ router.post('/', requireAuth, async (req, res) => {
 router.get('/', requireAuth, async (req, res) => {
   const { data, error } = await db
     .from('nsm_sessions')
-    .select('id, question_id, question_json, status, scores_json, created_at')
+    .select('id, question_id, question_json, status, scores_json, user_nsm, user_breakdown, created_at')
     .eq('user_id', req.user.id)
     .order('created_at', { ascending: false });
   if (error) return res.status(500).json({ error: error.message });
