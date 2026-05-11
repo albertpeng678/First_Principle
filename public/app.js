@@ -2790,6 +2790,9 @@
         AppState.authError = null;
         AppState._authEmail = '';
         AppState._authPw = '';
+        // Force recent-rail to reload for the newly-authenticated owner — the
+        // pre-auth render may have set it to [] when no guest id was provisioned.
+        AppState.circlesRecentSessions = null;
         // Migration — if guest had sessions, migrate them
         var guestId = AppState.guestId || localStorage.getItem('guestId');
         if (guestId) {
@@ -2869,6 +2872,7 @@
         AppState.authError = null;
         AppState._authEmail = '';
         AppState._authPw = '';
+        AppState.circlesRecentSessions = null;
         // New user — no migration needed (no prior guest sessions of significance)
         resetCirclesToHome();
         AppState.view = 'circles';
@@ -3162,6 +3166,7 @@
     AppState.sessionExpired = false;
     AppState.migrationBanner = null;
     AppState.authError = null;
+    AppState.circlesRecentSessions = null;
     // Clear localStorage token entries
     try {
       const raw = localStorage.getItem('pmDrillState');
@@ -5149,7 +5154,14 @@
   }
 
   async function loadHistoryForRail() {
-    // Fetch recent CIRCLES + NSM sessions, merge + sort, keep top 5
+    // Fetch recent CIRCLES + NSM sessions, merge + sort, keep top 5.
+    // Skip when neither auth nor guest is ready — leave state as null so a
+    // later render (after login or guest-id provisioning) re-triggers the
+    // load. Without this guard the catch below would set [] permanently and
+    // the rail would never recover.
+    if (!AppState.accessToken && !AppState.guestId) {
+      return;
+    }
     try {
       var circlesPath = AppState.accessToken ? '/api/circles-sessions' : '/api/guest-circles-sessions';
       var nsmPath     = AppState.accessToken ? '/api/nsm-sessions'     : '/api/guest/nsm-sessions';
