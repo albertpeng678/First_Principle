@@ -32,3 +32,6 @@ audit/post-fix-*/
 螢幕擷取畫面*.png
 Image.jpg
 tests/visual/diffs/
+
+# plugin sqlite caches (e.g., ruvector.db)
+*.db
