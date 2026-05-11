@@ -3071,12 +3071,15 @@
           }
         } else if (target === 'nsm') {
           AppState.evalToastDismissed = false; // clear dismissed on explicit tab switch
-          // User-requested 2026-05-11: do NOT auto-reset mid-flow user back to the
-          // question-selection page (Step 1). Only reset when there's no active session.
+          // Bug X-Back (2026-05-12): scored sessions must NEVER reset to Step 1.
+          var isScored = !!(AppState.nsmEvalResult && AppState.nsmEvalResult.totalScore);
           var hasActiveSession = AppState.nsmSelectedQuestion && (AppState.nsmStep >= 2 && AppState.nsmStep <= 4);
-          if (!hasActiveSession && !(AppState.nsmGateLoading || AppState.nsmEvalLoading)) {
+          if (!hasActiveSession && !isScored && !(AppState.nsmGateLoading || AppState.nsmEvalLoading)) {
             AppState.nsmStep = 1;
             AppState.nsmSubTab = null;
+          } else if (isScored && AppState.nsmStep < 4) {
+            // Scored session tab re-entry → land on Step 4 report
+            AppState.nsmStep = 4;
           }
           AppState.view = 'nsm';
           render();
@@ -5637,6 +5640,13 @@
       nsmCta.addEventListener('click', function (e) {
         e.preventDefault();
         AppState.view = 'nsm';
+        // Bug X-Back (2026-05-12): 前往 NSM is a FRESH entry — clear any prior
+        // scored session state so user lands on a clean question-selection picker.
+        AppState.nsmSelectedQuestion = null;
+        AppState.nsmDefinition = { nsm: '', explanation: '', businessLink: '' };
+        AppState.nsmBreakdown = { reach: '', depth: '', frequency: '', impact: '' };
+        AppState.nsmEvalResult = null;
+        AppState.nsmSession = null;
         AppState.nsmStep = 1;
         render();
       });
