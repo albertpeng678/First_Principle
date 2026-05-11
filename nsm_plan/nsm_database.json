@@ -1,102 +1,3489 @@
 [
-  { "id": "q1", "company": "Netflix", "industry": "內容訂閱制", "scenario": "影音串流平台競爭激烈，必須確保用戶持續感受到內容價值以維持自動扣款。", "target_nsm_keywords": ["觀看時長", "付費", "活躍"], "anti_patterns": ["App下載數", "註冊數"] },
-  { "id": "q2", "company": "蝦皮購物", "industry": "雙邊電商平台", "scenario": "已過補貼獲客期，現需提升買賣雙方黏著度，確保平台真實交易流通。", "target_nsm_keywords": ["完成交易", "無退貨", "訂單數"], "anti_patterns": ["DAU", "總流量", "商品上架數"] },
-  { "id": "q3", "company": "Slack", "industry": "B2B SaaS", "scenario": "企業付費是為了效率，若只註冊未發言將導致高退訂率。", "target_nsm_keywords": ["發送訊息數", "活躍團隊"], "anti_patterns": ["建立頻道數", "註冊企業數"] },
-  { "id": "q4", "company": "Uber", "industry": "O2O 共享出行", "scenario": "必須同時平衡乘客叫車效率與司機賺錢效率。", "target_nsm_keywords": ["成功完成", "趟數", "無客訴"], "anti_patterns": ["司機上線時間", "App打開次數"] },
-  { "id": "q5", "company": "Tinder", "industry": "交友軟體", "scenario": "核心是建立真實連結，如果用戶一直滑卻沒有互動，很快就會流失。", "target_nsm_keywords": ["配對成功", "發送訊息", "雙向互動"], "anti_patterns": ["右滑次數", "在線時長"] },
-  { "id": "q6", "company": "ChatGPT", "industry": "AI 工具", "scenario": "運算成本極高，必須確保用戶是真的在解決問題，而非隨便玩玩。", "target_nsm_keywords": ["解決問題", "對話輪數", "留存"], "anti_patterns": ["單次提問數", "網站造訪量"] },
-  { "id": "q7", "company": "Strava", "industry": "運動社交", "scenario": "用戶需要社群認同。只記錄不互動，無法撐起平台護城河。", "target_nsm_keywords": ["上傳紀錄", "互相給讚", "完賽"], "anti_patterns": ["App開啟次數", "GPS定位次數"] },
-  { "id": "q8", "company": "GitHub", "industry": "開發者工具", "scenario": "平台真正的價值在於協助團隊交付程式碼與開源協作。", "target_nsm_keywords": ["合併 PR", "成功部署", "活躍協作者"], "anti_patterns": ["建立 Repo 數", "Star 數量"] },
-  { "id": "q9", "company": "Duolingo", "industry": "教育科技", "scenario": "語言學習最難的是堅持。需衡量用戶是否將學習變成每日習慣。", "target_nsm_keywords": ["連續打卡", "Streak", "完成單元"], "anti_patterns": ["測驗分數", "學習總時數"] },
-  { "id": "q10", "company": "Gogoro", "industry": "硬體與能源", "scenario": "車主付電池月租費，平台必須確保能源交換體驗順暢。", "target_nsm_keywords": ["成功換電", "無故障報修", "騎乘里程"], "anti_patterns": ["電池預約次數", "App首頁瀏覽量"] },
-  { "id": "q11", "company": "Binance", "industry": "加密貨幣交易所", "scenario": "交易所靠手續費盈利，必須確保用戶資金有實際交易流動。", "target_nsm_keywords": ["完成交易", "交易量"], "anti_patterns": ["錢包餘額", "登入次數", "KYC通過數"] },
-  { "id": "q12", "company": "Notion", "industry": "企業知識庫", "scenario": "團隊共同編寫的知識庫轉移成本高，個人筆記則容易被取代。", "target_nsm_keywords": ["多人協作編輯", "跨部門共用"], "anti_patterns": ["創建 Page 數", "個人登入次數"] },
-  { "id": "q13", "company": "foodpanda", "industry": "O2O 外賣平台", "scenario": "外賣平台同時服務消費者、餐廳與外送員，三方體驗必須同步優化，才能讓訂單真正送達並帶來回購。", "target_nsm_keywords": ["成功送達訂單數", "準時率", "回購率"], "anti_patterns": ["App下載量", "餐廳入駐數", "外送員註冊數"] },
-  { "id": "q14", "company": "Airbnb", "industry": "OTA 短租平台", "scenario": "平台價值在於撮合旅客完成真實住宿體驗，空有瀏覽不成交將導致房東流失。", "target_nsm_keywords": ["成功預訂並入住", "五星評價率", "房東重複上架"], "anti_patterns": ["搜尋次數", "頁面瀏覽量", "願望清單收藏數"] },
-  { "id": "q15", "company": "TikTok", "industry": "短影音平台", "scenario": "演算法驅動的短影音平台需確保創作者與觀看者雙邊生態健康，才能維持廣告收益。", "target_nsm_keywords": ["完整觀看率", "創作者發布頻率", "分享數"], "anti_patterns": ["影片上傳總數", "曝光次數", "帳號粉絲數"] },
-  { "id": "q16", "company": "Shopify", "industry": "電商 SaaS", "scenario": "Shopify 以商家成功為核心，若商家開店後沒有真實銷售，最終會停止付費。", "target_nsm_keywords": ["商家首筆成功交易", "月銷售額成長", "訂閱續約率"], "anti_patterns": ["開店數量", "主題安裝次數", "App商店瀏覽數"] },
-  { "id": "q17", "company": "Zoom", "industry": "視訊會議 SaaS", "scenario": "遠端工作普及後，Zoom 需確保企業用戶真的在平台上進行有效溝通，而非只是安裝備用。", "target_nsm_keywords": ["完成會議時長", "活躍主辦人數", "企業席位使用率"], "anti_patterns": ["下載次數", "帳號註冊數", "會議室建立數"] },
-  { "id": "q18", "company": "Spotify", "industry": "音樂串流訂閱", "scenario": "訂閱制平台靠續費維生，用戶若停止主動聆聽將在下次付款前取消。", "target_nsm_keywords": ["每週聆聽時長", "Playlist 新增歌曲", "付費轉換率"], "anti_patterns": ["歌曲收藏數", "免費帳號數", "搜尋次數"] },
-  { "id": "q19", "company": "Coursera", "industry": "線上教育平台", "scenario": "許多用戶衝動報名後就消失，平台需確保學員真正完成課程才能支撐企業與大學合作模式。", "target_nsm_keywords": ["課程完成率", "證書取得數", "付費課程回購率"], "anti_patterns": ["課程報名數", "影片播放次數", "用戶總數"] },
-  { "id": "q20", "company": "Stripe", "industry": "支付基礎設施", "scenario": "Stripe 對開發者免費提供 SDK，靠每筆成功交易抽手續費，必須確保整合者真正完成上線收款。", "target_nsm_keywords": ["Live 模式首筆收款", "月 GMV 成長", "API 成功率"], "anti_patterns": ["API Key 申請數", "Sandbox 測試次數", "文件頁瀏覽數"] },
-  { "id": "q21", "company": "Figma", "industry": "設計協作工具", "scenario": "Figma 的核心價值在跨職能即時協作，若只有設計師單人使用，轉移成本低容易被取代。", "target_nsm_keywords": ["多人同時編輯次數", "開發者標注匯出數", "團隊付費方案升級率"], "anti_patterns": ["檔案創建數", "個人帳號登入次數", "元件庫瀏覽量"] },
-  { "id": "q22", "company": "Grab", "industry": "東南亞超級 App", "scenario": "Grab 擁有叫車、外賣、支付多個垂直業務，必須確保用戶跨服務使用才能發揮超級 App 的規模效益。", "target_nsm_keywords": ["跨服務使用率", "GrabPay 活躍交易", "月訂單完成數"], "anti_patterns": ["App MAU", "單一服務下載量", "優惠券領取數"] },
-  { "id": "q23", "company": "Canva", "industry": "設計工具 SaaS", "scenario": "Canva 定位為人人可用的設計工具，商業價值在於用戶真正產出並分享或下載成品。", "target_nsm_keywords": ["設計成品下載數", "分享或發布次數", "付費功能使用率"], "anti_patterns": ["範本瀏覽數", "帳號創建數", "拖拉元素操作次數"] },
-  { "id": "q24", "company": "LinkedIn", "industry": "職業社群平台", "scenario": "LinkedIn 的核心是職業人脈連結與機會媒合，若用戶只是被動瀏覽而不建立關係，廣告與招聘產品都會失效。", "target_nsm_keywords": ["成功建立連結數", "求職申請送出數", "招聘方成功聯繫候選人"], "anti_patterns": ["個人頁瀏覽量", "文章按讚數", "關注公司頁數"] },
-  { "id": "q25", "company": "Square", "industry": "POS 支付系統", "scenario": "Square 鎖定中小型實體商家，平台收益來自每筆刷卡手續費，必須讓商家真正持續收款。", "target_nsm_keywords": ["月活躍收款天數", "每月 GMV", "首個月成功收款率"], "anti_patterns": ["讀卡機出貨量", "帳號申請數", "後台登入次數"] },
-  { "id": "q26", "company": "Booking.com", "industry": "線上旅遊 OTA", "scenario": "OTA 平台靠成功預訂抽佣，搜尋高轉換低代表演算法或定價出問題，整體健康度以成交衡量。", "target_nsm_keywords": ["確認預訂數", "入住完成率", "回頭預訂比例"], "anti_patterns": ["搜尋量", "比價點擊數", "頁面停留時間"] },
-  { "id": "q27", "company": "Calm", "industry": "心理健康訂閱", "scenario": "冥想 App 用戶在壓力高峰期付費，但若未形成習慣很快就取消，平台需確保用戶持續練習。", "target_nsm_keywords": ["每週冥想完成次數", "連續使用天數", "付費方案續約率"], "anti_patterns": ["App下載數", "通知點擊率", "課程收藏數"] },
-  { "id": "q28", "company": "Robinhood", "industry": "零佣金股票交易", "scenario": "平台靠訂單流量向做市商套利，必須確保用戶真正執行交易而非只是看行情。", "target_nsm_keywords": ["月活躍交易用戶數", "每用戶交易筆數", "Gold 會員轉換率"], "anti_patterns": ["帳號開設數", "行情頁瀏覽量", "自選股關注數"] },
-  { "id": "q29", "company": "WeWork", "industry": "共享辦公空間", "scenario": "WeWork 賺的是空間租金差價，入住率與續租率直接決定現金流，必須確保辦公桌被真正使用。", "target_nsm_keywords": ["入住率", "月租續簽率", "熱座服務到訪次數"], "anti_patterns": ["會員卡申辦數", "參觀預約數", "網站瀏覽量"] },
-  { "id": "q30", "company": "Peloton", "industry": "健身硬體+訂閱", "scenario": "高價健身器材搭配訂閱課程，若設備閒置超過兩週用戶極可能退訂，使用頻率是核心指標。", "target_nsm_keywords": ["每週騎乘次數", "訂閱課程完成率", "硬體+訂閱綁定留存率"], "anti_patterns": ["器材出貨量", "App安裝數", "課程瀏覽次數"] },
-  { "id": "q31", "company": "Miro", "industry": "白板協作 SaaS", "scenario": "Miro 主打遠端團隊視覺協作，唯有多人即時共同編輯才能體現平台價值，單人使用無法留住企業客戶。", "target_nsm_keywords": ["多人共同編輯 Board 數", "跨團隊模板共用率", "企業授權席位活躍率"], "anti_patterns": ["Board 創建總數", "貼紙使用次數", "帳號邀請發送數"] },
-  { "id": "q32", "company": "Twilio", "industry": "通訊 API 平台", "scenario": "Twilio 按使用量計費，開發者整合後若沒有真實訊息發送就不產生收益，需確保 API 真正被投入生產。", "target_nsm_keywords": ["月成功訊息發送量", "進入 Live 環境的開發者比例", "付費帳戶 API 調用成長率"], "anti_patterns": ["試用帳號數", "文件頁瀏覽量", "Sandbox 訊息測試數"] },
-  { "id": "q33", "company": "Klarna", "industry": "先買後付 BNPL", "scenario": "Klarna 靠商家手續費與用戶分期利息獲利，必須確保用戶真正完成分期消費並按時還款。", "target_nsm_keywords": ["成功分期交易數", "準時還款率", "商家接受 Klarna 結帳比例"], "anti_patterns": ["帳號申請數", "購物車加入次數", "信用額度核准數"] },
-  { "id": "q34", "company": "Wolt", "industry": "北歐外賣平台", "scenario": "Wolt 在北歐市場靠高客單價維持，必須確保每筆訂單真正配送完成且用戶滿意，以驅動自然口碑。", "target_nsm_keywords": ["訂單成功送達率", "用戶 NPS", "月回購訂單數"], "anti_patterns": ["外送員招募數", "App安裝量", "餐廳上架數"] },
-  { "id": "q35", "company": "Typeform", "industry": "問卷表單 SaaS", "scenario": "Typeform 靠企業付費方案盈利，唯有用戶真正創建並收集到有效回應，才代表平台提供了價值。", "target_nsm_keywords": ["表單有效回應數", "收集回應超過 10 份的活躍表單比例", "付費方案升級率"], "anti_patterns": ["表單創建數", "帳號登入次數", "模板瀏覽量"] },
-  { "id": "q36", "company": "Zendesk", "industry": "客服 SaaS", "scenario": "企業採用 Zendesk 是為了提升客服效率，平台需確保客服人員真正解決工單，而非只是開啟帳號。", "target_nsm_keywords": ["工單成功結案率", "首次回應時間達標率", "客服座席活躍比例"], "anti_patterns": ["帳號建立數", "工單創建數", "知識庫文章數"] },
-  { "id": "q37", "company": "Datadog", "industry": "DevOps 監控 SaaS", "scenario": "Datadog 按主機數與 Log 量計費，企業只有在真正部署監控並接收到有效警報時，才能感受到平台價值。", "target_nsm_keywords": ["活躍監控主機數", "警報觸發並處理率", "Dashboard 多人查看次數"], "anti_patterns": ["Agent 安裝次數", "API Key 生成數", "試用天數消耗量"] },
-  { "id": "q38", "company": "Intercom", "industry": "客戶溝通平台", "scenario": "Intercom 結合行銷與客服，企業付費是為了與用戶建立有效對話，若訊息發出後無人回應則轉換率為零。", "target_nsm_keywords": ["對話轉換為成交率", "訊息回覆率", "自動化流程觸發後解決問題比例"], "anti_patterns": ["訊息發送總數", "Widget 安裝次數", "聯絡人匯入數"] },
-  { "id": "q39", "company": "Brex", "industry": "新創公司企業信用卡", "scenario": "Brex 靠刷卡手續費與金融服務獲利，必須確保企業客戶真正使用企業卡進行支出，而非只是申辦備用。", "target_nsm_keywords": ["月活躍刷卡企業比例", "每張卡平均月消費額", "企業客戶留存率"], "anti_patterns": ["企業申請卡片數", "帳號登入次數", "財務報告下載量"] },
-  { "id": "q40", "company": "DocuSign", "industry": "電子簽名 SaaS", "scenario": "電子簽名的商業價值在於合約真正完成簽署，若文件發出後超時未簽，代表流程有斷點。", "target_nsm_keywords": ["合約完簽率", "平均簽署完成時間", "自動化工作流程使用比例"], "anti_patterns": ["文件上傳數", "帳號啟用數", "簽名欄位建立數"] },
-  { "id": "q41", "company": "Airtable", "industry": "低代碼資料庫工具", "scenario": "Airtable 定位企業營運核心資料庫，唯有多部門協作使用才能累積高轉移成本並支撐企業付費。", "target_nsm_keywords": ["多部門共同使用 Base 數", "自動化流程執行次數", "企業方案席位活躍率"], "anti_patterns": ["Base 創建數", "個人帳號登入次數", "模板複製數"] },
-  { "id": "q42", "company": "Monday.com", "industry": "專案管理 SaaS", "scenario": "專案管理工具需成為團隊日常工作核心，若只有 PM 使用而開發或設計未跟進，付費合理性就會被質疑。", "target_nsm_keywords": ["跨職能成員每週活躍率", "任務完成並更新狀態比例", "企業授權續約率"], "anti_patterns": ["工作板創建數", "邀請發送數", "視圖切換次數"] },
-  { "id": "q43", "company": "HubSpot", "industry": "行銷銷售 CRM", "scenario": "HubSpot 靠企業升級 Hub 方案獲利，必須確保業務真正在平台追蹤客戶，讓 Pipeline 數據真實可信。", "target_nsm_keywords": ["業務每週更新聯絡人比例", "Deal 推進至下一階段數", "成交記錄創建率"], "anti_patterns": ["聯絡人匯入總數", "Email 發送量", "帳號登入次數"] },
-  { "id": "q44", "company": "Rippling", "industry": "HR + IT SaaS", "scenario": "Rippling 整合人資、薪資與 IT 管理，企業若只用單一模組則轉移成本低，跨模組整合才是護城河。", "target_nsm_keywords": ["跨模組同時啟用比例", "自動化 Onboarding 完成率", "月薪資發放成功率"], "anti_patterns": ["員工帳號創建數", "文件上傳數", "App 登入次數"] },
-  { "id": "q45", "company": "Loom", "industry": "非同步視訊溝通", "scenario": "Loom 解決遠端團隊開太多會議的問題，平台價值在於影片真正被觀看並取代一次同步會議。", "target_nsm_keywords": ["影片完整觀看率", "觀看後留言或反應比例", "取代 Zoom 會議的替代使用次數"], "anti_patterns": ["影片錄製總數", "帳號創建數", "分享連結點擊數"] },
-  { "id": "q46", "company": "Pagerduty", "industry": "事件應變 SaaS", "scenario": "PagerDuty 在系統故障時扮演關鍵角色，企業付費是為了確保 On-call 工程師能在 SLA 內響應事件。", "target_nsm_keywords": ["平均事件響應時間", "事件確認並解決比例", "On-call 覆蓋率"], "anti_patterns": ["警報發送數", "帳號邀請數", "整合服務連接數"] },
-  { "id": "q47", "company": "Webflow", "industry": "無代碼網站建構", "scenario": "Webflow 讓非工程師也能建站，商業價值在於網站真正上線並帶來流量，而非停留在草稿。", "target_nsm_keywords": ["網站發布比例", "上線網站月訪客數", "付費主機方案訂閱率"], "anti_patterns": ["專案創建數", "元件拖拉操作次數", "範本瀏覽量"] },
-  { "id": "q48", "company": "Mixpanel", "industry": "產品分析 SaaS", "scenario": "Mixpanel 幫助 PM 和工程師做數據決策，若報表建好卻無人查看，平台就不會被視為核心工具。", "target_nsm_keywords": ["週活躍查詢報表用戶數", "Insight 分享至 Slack/Email 次數", "數據看板跨團隊訂閱率"], "anti_patterns": ["事件追蹤數", "SDK 安裝次數", "帳號邀請數"] },
-  { "id": "q49", "company": "Plaid", "industry": "金融資料 API", "scenario": "Plaid 靠金融機構 API 連結次數計費，唯有用戶真正授權並連結銀行帳戶才產生收益。", "target_nsm_keywords": ["成功銀行帳戶連結數", "連結後 7 天內實際數據調用率", "活躍應用商業夥伴數"], "anti_patterns": ["SDK 下載數", "連結嘗試次數", "Demo 環境測試數"] },
-  { "id": "q50", "company": "Amplitude", "industry": "用戶行為分析", "scenario": "Amplitude 競爭激烈，企業數據分析工具若無法讓團隊養成數據驅動習慣，很快會被替代。", "target_nsm_keywords": ["每週主動查詢漏斗/留存的用戶數", "Insight 驅動的功能迭代案例數", "企業授權活躍席位比例"], "anti_patterns": ["事件總數", "Dashboard 數量", "帳號邀請數"] },
-  { "id": "q51", "company": "Rappi", "industry": "拉美超級外賣 App", "scenario": "Rappi 在拉丁美洲競爭激烈，補貼燒錢期已過，需確保用戶養成真實點餐習慣並維持每月回購。", "target_nsm_keywords": ["月活躍下單用戶數", "無補貼自然回購率", "外送員完成率"], "anti_patterns": ["App安裝量", "優惠券使用次數", "餐廳合作數"] },
-  { "id": "q52", "company": "Garmin", "industry": "穿戴裝置+健康平台", "scenario": "Garmin 靠硬體賣出後，平台要以 Connect 生態系建立用戶黏著，確保裝置真正被日常佩戴與追蹤。", "target_nsm_keywords": ["每日步數同步率", "健康挑戰完成比例", "進階方案訂閱率"], "anti_patterns": ["裝置出貨量", "App下載數", "帳號創建數"] },
-  { "id": "q53", "company": "Revolut", "industry": "數位銀行", "scenario": "Revolut 從免費帳戶升級到 Premium/Metal 靠功能差異化，需確保用戶真正將 Revolut 作為主要帳戶使用。", "target_nsm_keywords": ["月薪資入帳比例", "海外消費刷卡筆數", "Premium 方案留存率"], "anti_patterns": ["帳號開立數", "KYC 通過數", "App打開次數"] },
-  { "id": "q54", "company": "Brainly", "industry": "學生問答社群", "scenario": "Brainly 靠 P2P 問答讓學生得到學習幫助，需確保提問者真正得到解答且回答者持續貢獻知識。", "target_nsm_keywords": ["問題獲得滿意答案率", "回答者月活躍比例", "付費移除廣告轉換率"], "anti_patterns": ["問題發文數", "用戶註冊數", "頁面瀏覽量"] },
-  { "id": "q55", "company": "ClassPass", "industry": "健身訂閱平台", "scenario": "ClassPass 讓用戶以單一訂閱跨館上課，若信用點數未消耗完就表示用戶感受不到價值，續約率會下滑。", "target_nsm_keywords": ["月信用點數使用率", "每月預約並完成課程數", "跨場館到訪多樣性"], "anti_patterns": ["用戶訂閱數", "課程瀏覽次數", "健身房合作數"] },
-  { "id": "q56", "company": "Faire", "industry": "B2B 批發電商", "scenario": "Faire 連結獨立品牌與零售商，平台靠成功批發交易抽傭，零售商下單但不轉賣等於白費。", "target_nsm_keywords": ["成功完成批發訂單數", "零售商復購率", "品牌入駐後首筆訂單率"], "anti_patterns": ["品牌申請數", "產品瀏覽次數", "零售商帳號數"] },
-  { "id": "q57", "company": "Clearbit", "industry": "B2B 數據情報", "scenario": "Clearbit 提供企業 Enrichment API，若 API 整合後沒有真正呼叫即代表未融入工作流程，付費難以維持。", "target_nsm_keywords": ["月 API 呼叫量", "Enrichment 覆蓋率達標比例", "CRM 整合後活躍使用企業數"], "anti_patterns": ["API Key 申請數", "試用帳號數", "文件頁瀏覽量"] },
-  { "id": "q58", "company": "Notion Calendar", "industry": "行事曆 SaaS", "scenario": "Notion Calendar 要整合工作文件與時間管理，唯有用戶真正在 Calendar 中調度並連結 Notion 文件，才能建立轉移障礙。", "target_nsm_keywords": ["連結 Notion Page 的事件比例", "每週主動建立活動數", "多人日曆共享使用率"], "anti_patterns": ["帳號綁定 Google 數", "App安裝數", "事件創建總數"] },
-  { "id": "q59", "company": "ElevenLabs", "industry": "AI 語音合成", "scenario": "ElevenLabs 按字元或使用量計費，若用戶只試玩未整合到產品中，短期試用後會離開。", "target_nsm_keywords": ["月生成語音字元數", "API 整合並進入生產環境比例", "付費方案升級率"], "anti_patterns": ["試用生成次數", "帳號創建數", "音色收藏數"] },
-  { "id": "q60", "company": "Midjourney", "industry": "AI 圖像生成", "scenario": "Midjourney 基本靠訂閱制，用戶若每月未消耗足夠 GPU 時數，感受不到差異化就不會續費。", "target_nsm_keywords": ["月 GPU 時數消耗率", "圖像生成後下載或分享比例", "訂閱方案升級率"], "anti_patterns": ["Discord 伺服器加入數", "Prompt 輸入次數", "帳號創建數"] },
-  { "id": "q61", "company": "Vercel", "industry": "前端部署平台", "scenario": "Vercel 靠成功部署的前端流量計費，唯有開發者真正將專案部署並獲得真實訪客，才代表平台提供了生產價值。", "target_nsm_keywords": ["生產環境部署成功次數", "月活躍部署專案數", "付費方案升級率"], "anti_patterns": ["GitHub 連結數", "Preview Deploy 次數", "帳號創建數"] },
-  { "id": "q62", "company": "Segment", "industry": "CDP 客戶數據平台", "scenario": "Segment 整合各類數據源，若數據孤島未打通，企業無法實現跨管道個人化，付費合理性就受質疑。", "target_nsm_keywords": ["成功整合並啟用的 Source 數", "跨目的地數據流量成長率", "Workspace 活躍席位比例"], "anti_patterns": ["Source 連接申請數", "事件追蹤定義數", "帳號登入次數"] },
-  { "id": "q63", "company": "Substack", "industry": "電子報訂閱平台", "scenario": "Substack 創作者的商業模式靠付費讀者，平台需確保讀者真正開信閱讀並持續訂閱，而非只是加入後沉默。", "target_nsm_keywords": ["付費訂閱者數", "電子報開信率", "讀者閱讀完成後留言率"], "anti_patterns": ["免費訂閱者總數", "電子報發布數", "創作者帳號數"] },
-  { "id": "q64", "company": "Carta", "industry": "股權管理 SaaS", "scenario": "Carta 管理新創股權帽表，企業付費是為了確保股權分配合規，唯有資本輪完成並更新帽表才體現核心價值。", "target_nsm_keywords": ["完成融資輪後帽表更新率", "電子簽署股權文件比例", "活躍投資人與創辦人使用率"], "anti_patterns": ["帽表創建數", "帳號邀請數", "股權計劃模板瀏覽量"] },
-  { "id": "q65", "company": "Honey", "industry": "瀏覽器購物外掛", "scenario": "Honey 靠聯盟行銷抽傭，需確保外掛在結帳頁面真正觸發並幫用戶省錢，才能讓商家持續付費接入。", "target_nsm_keywords": ["優惠碼成功套用率", "結帳頁觸發並省錢的交易比例", "月活躍使用外掛用戶數"], "anti_patterns": ["外掛安裝數", "商店加入清單數", "通知點擊率"] },
-  { "id": "q66", "company": "AngelList", "industry": "新創融資平台", "scenario": "AngelList 媒合天使投資人與新創，唯有雙邊真正完成投資交易，平台抽傭模式才能持續。", "target_nsm_keywords": ["成功完成投資輪數", "投資人實際出資比例", "新創方獲得 Lead Investor 率"], "anti_patterns": ["新創申請數", "投資人帳號數", "Profile 瀏覽量"] },
-  { "id": "q67", "company": "Whatnot", "industry": "直播購物平台", "scenario": "Whatnot 結合直播與收藏品拍賣，唯有觀眾真正出價並完成購買，GMV 才能支撐賣家持續直播。", "target_nsm_keywords": ["直播中成功出價成交比例", "賣家月直播完成場次", "買家月回購率"], "anti_patterns": ["直播觀看人次", "帳號關注數", "商品清單數"] },
-  { "id": "q68", "company": "Toast", "industry": "餐廳 POS SaaS", "scenario": "Toast 專攻餐廳，靠每筆刷卡手續費與月費獲利，餐廳停業或切換 POS 是最大風險。", "target_nsm_keywords": ["每日活躍收款天數", "月 GMV 成長率", "附加模組（線上點餐/外賣）啟用率"], "anti_patterns": ["硬體出貨量", "後台登入次數", "菜單上架數"] },
-  { "id": "q69", "company": "Gong", "industry": "Revenue Intelligence SaaS", "scenario": "Gong 錄製業務通話並分析，企業付費期待直接提升成交率，若業務不上傳通話或不看 Coaching，工具淪為擺設。", "target_nsm_keywords": ["業務通話錄製率", "Manager 每週 Coaching 行為率", "分析後業績提升的 Deal 比例"], "anti_patterns": ["通話錄製總數", "帳號授權數", "平台登入次數"] },
-  { "id": "q70", "company": "Fiverr", "industry": "自由工作者平台", "scenario": "Fiverr 撮合買賣雙方，靠成功交易抽傭，若買家瀏覽後不下單或賣家接單後遲遲未交付，平台口碑受損。", "target_nsm_keywords": ["成功完成交付訂單數", "買家回購率", "賣家準時交付比例"], "anti_patterns": ["Gig 上架數", "賣家帳號數", "搜尋量"] },
-  { "id": "q71", "company": "Pollen", "industry": "活動旅遊平台", "scenario": "Pollen 策劃音樂節旅遊套裝，平台需確保旅客真正出行並到達活動現場，才算完成完整體驗交付。", "target_nsm_keywords": ["成功出發率", "活動到場完成率", "購後 NPS 與再次預訂意願"], "anti_patterns": ["活動頁瀏覽量", "願望清單加入數", "社群追蹤數"] },
-  { "id": "q72", "company": "Notion AI", "industry": "AI 寫作助理 SaaS", "scenario": "Notion AI 以月費附加形式存在，用戶需真正將 AI 功能嵌入日常寫作與整理流程，才會感受到 $10/月 的價值。", "target_nsm_keywords": ["每週 AI 功能使用次數", "AI 生成後保留內容的比例", "AI 附加方案留存率"], "anti_patterns": ["AI Block 觸發次數", "帳號功能啟用數", "試用天數"] },
-  { "id": "q73", "company": "Betterment", "industry": "機器人理財平台", "scenario": "Betterment 靠 AUM 比例收費，用戶的投資組合必須持續增長且不輕易提領，才能維持平台收益。", "target_nsm_keywords": ["月資金淨流入量", "長期持有 90 天以上比例", "自動再投資執行率"], "anti_patterns": ["帳號開設數", "理財目標設定數", "App登入次數"] },
-  { "id": "q74", "company": "Superhuman", "industry": "高端電子郵件客戶端", "scenario": "Superhuman 每月收費 $30，對準高生產力用戶，需確保用戶真正透過快捷鍵與 AI 提升收件箱效率，否則溢價難以維持。", "target_nsm_keywords": ["達到 Inbox Zero 的天數", "快捷鍵熟練度提升率", "30 天付費留存率"], "anti_patterns": ["電子郵件回覆數", "帳號綁定信箱數", "平台登入次數"] },
-  { "id": "q75", "company": "Faire Wholesale", "industry": "獨立零售 B2B 平台", "scenario": "Faire 提供退貨保障吸引零售商，但平台收益來自轉賣成功，需確保零售商購入的商品真正流通到消費者手中。", "target_nsm_keywords": ["零售商再訂購率", "未退貨完成交易比例", "首次訂單後 60 天內第二筆訂單率"], "anti_patterns": ["商品收藏數", "零售商帳號數", "品牌頁瀏覽量"] },
-  { "id": "q76", "company": "Procore", "industry": "工程建設 SaaS", "scenario": "Procore 服務建設工地，靠工程團隊協作管理文件、圖紙與工程進度，若現場人員不用等於工具失效。", "target_nsm_keywords": ["現場人員每日 App 活躍比例", "圖紙版本更新後現場確認率", "工程缺失單完成閉環比例"], "anti_patterns": ["帳號邀請數", "文件上傳數", "平台登入次數"] },
-  { "id": "q77", "company": "Deel", "industry": "全球薪資 HR 平台", "scenario": "Deel 幫企業跨境僱用與發薪，每成功聘用一位員工並每月發薪即產生收益，需確保僱用完成且月薪正常運作。", "target_nsm_keywords": ["成功入職員工數", "月薪資準時發放率", "跨國合約無糾紛完成比例"], "anti_patterns": ["企業帳號數", "合約草稿數", "國家市場開設數"] },
-  { "id": "q78", "company": "Runway ML", "industry": "AI 影片生成工具", "scenario": "創作者採用 AI 影片工具是為了加速產出，平台需確保用戶真正匯出成品並在社群使用，而非只是試玩特效。", "target_nsm_keywords": ["影片成功匯出數", "匯出後公開發布比例", "訂閱方案升級率"], "anti_patterns": ["試用功能點擊數", "帳號創建數", "特效預覽次數"] },
-  { "id": "q79", "company": "Razorpay", "industry": "印度支付基礎設施", "scenario": "Razorpay 服務印度新創與 SME，靠每筆支付手續費獲利，必須確保商家整合後真正上線收款。", "target_nsm_keywords": ["商家 Live 模式首筆收款率", "月 GMV 成長率", "支付成功率"], "anti_patterns": ["商家申請數", "Sandbox 測試次數", "API Key 申請數"] },
-  { "id": "q80", "company": "Teachable", "industry": "線上課程建站平台", "scenario": "Teachable 讓知識創業者開課，平台靠課程銷售分潤，若創作者發布課程卻沒有學員購買，雙方都沒有收益。", "target_nsm_keywords": ["課程發布後首週銷售數", "學員完課率", "創作者月活躍上架比例"], "anti_patterns": ["課程草稿數", "帳號創建數", "課程頁瀏覽量"] },
-  { "id": "q81", "company": "Pipe", "industry": "ARR 融資平台", "scenario": "Pipe 讓 SaaS 公司以年費收入提前融資，唯有企業真正完成融資並使用資金，平台才能確認交易健康度。", "target_nsm_keywords": ["成功融資交易完成數", "企業月收入增長後再融資率", "融資後 90 天留存率"], "anti_patterns": ["企業申請數", "帳號連結會計工具數", "資產評估完成數"] },
-  { "id": "q82", "company": "Ironclad", "industry": "合約管理 SaaS", "scenario": "Ironclad 幫法律團隊自動化合約流程，若合約不能在平台完成協商並簽署，工具就沒有取代人工的價值。", "target_nsm_keywords": ["合約在平台內完全完成比例", "平均合約從草稿到簽署時間縮短率", "法務團隊月活躍使用比例"], "anti_patterns": ["合約模板數", "合約上傳數", "帳號邀請數"] },
-  { "id": "q83", "company": "Brex Empower", "industry": "企業支出管理", "scenario": "企業支出管理平台要深入公司財務流程，唯有財務與員工都在平台審批並報帳，才算真正替代舊流程。", "target_nsm_keywords": ["月費用報告提交率", "經理審批完成率", "平台覆蓋支出佔總支出比例"], "anti_patterns": ["帳號創建數", "政策設定數", "App安裝數"] },
-  { "id": "q84", "company": "Gusto", "industry": "美國 SMB 薪資平台", "scenario": "Gusto 服務美國小企業，月薪資發放是核心功能，若企業跳過平台用手工或其他工具發薪，留存率急跌。", "target_nsm_keywords": ["月薪資準時跑完比例", "福利方案加購率", "企業主月登入並操作比例"], "anti_patterns": ["員工帳號數", "薪資計算器使用次數", "文件下載量"] },
-  { "id": "q85", "company": "Gem", "industry": "招聘 CRM SaaS", "scenario": "Gem 讓招聘人員系統化追蹤候選人管道，若獵頭不在平台更新進度，數據就失去預測效力，付費難以維持。", "target_nsm_keywords": ["候選人管道每週更新率", "從 Gem 發出並獲回覆的外寄訊息比例", "成功聘用並在 Gem 記錄的比例"], "anti_patterns": ["候選人資料匯入數", "帳號登入次數", "郵件模板創建數"] },
-  { "id": "q86", "company": "Lattice", "industry": "績效管理 SaaS", "scenario": "Lattice 協助企業做 OKR 與績效評估，若員工與主管不真正完成評估週期，平台只是行政負擔。", "target_nsm_keywords": ["績效評估週期完成率", "OKR 定期更新比例", "員工與主管 1-on-1 記錄率"], "anti_patterns": ["帳號創建數", "目標設定數", "文件上傳數"] },
-  { "id": "q87", "company": "Retool", "industry": "低代碼內部工具", "scenario": "Retool 讓工程師快速建構內部操作後台，唯有業務人員真正日常使用這些工具，平台才能被視為核心基礎設施。", "target_nsm_keywords": ["內部工具月活躍使用者數", "業務流程自動化節省時間比例", "企業方案席位活躍率"], "anti_patterns": ["App創建數", "元件拖拉次數", "工程師帳號數"] },
-  { "id": "q88", "company": "Pave", "industry": "薪酬基準 SaaS", "scenario": "Pave 提供薪酬市場數據，HR 在調薪季時才會高度使用，需確保平台數據真正被採納進入薪酬決策，而非只是查閱備用。", "target_nsm_keywords": ["薪酬審核周期中活躍使用次數", "數據匯出後對應提薪決策比例", "人資團隊多人同時使用率"], "anti_patterns": ["帳號登入次數", "職位薪資搜尋數", "報告下載量"] },
-  { "id": "q89", "company": "Contentful", "industry": "Headless CMS", "scenario": "Contentful 服務企業跨管道內容發布，若內容編輯不在平台維護並發布，工程師整合就沒有意義。", "target_nsm_keywords": ["月內容發布次數", "編輯人員週活躍比例", "跨渠道發布啟用比例"], "anti_patterns": ["Content Type 定義數", "API Key 申請數", "媒體庫上傳數"] },
-  { "id": "q90", "company": "Descript", "industry": "AI 影音剪輯工具", "scenario": "Descript 讓 Podcast 與影片創作者以文字剪輯音視頻，唯有成品真正匯出發布才代表工具真正被採用。", "target_nsm_keywords": ["成品成功匯出並發布比例", "每月完成剪輯的專案數", "付費方案升級率"], "anti_patterns": ["專案創建數", "文字紀錄生成次數", "帳號創建數"] },
-  { "id": "q91", "company": "Doordash", "industry": "美國外賣平台", "scenario": "DoorDash 已從補貼期進入盈利優化期，必須確保每筆訂單真正配送完成且消費者體驗好，才能維持高口碑與 DashPass 訂閱。", "target_nsm_keywords": ["訂單成功送達率", "DashPass 訂閱月留存率", "消費者無客訴完成比例"], "anti_patterns": ["外送員數量", "餐廳合作家數", "App安裝數"] },
-  { "id": "q92", "company": "Benchling", "industry": "生命科學研發 SaaS", "scenario": "Benchling 管理生技實驗數據，若實驗員不在平台記錄與分析結果，就無法建立數據護城河讓企業續費。", "target_nsm_keywords": ["實驗記錄週活躍創建率", "數據與分析模組使用比例", "跨部門數據共享次數"], "anti_patterns": ["帳號邀請數", "實驗專案創建數", "App登入次數"] },
-  { "id": "q93", "company": "Wix", "industry": "雲端建站平台", "scenario": "Wix 免費吸引用戶建站，靠升級付費域名與電商方案獲利，若網站沒有真實訪客用戶就不會感受到升級必要性。", "target_nsm_keywords": ["發布網站的月訪客數", "付費方案升級率", "電商模組開啟後首筆銷售率"], "anti_patterns": ["網站草稿創建數", "範本瀏覽量", "免費帳號數"] },
-  { "id": "q94", "company": "Postmates", "industry": "本地即時配送", "scenario": "Postmates 覆蓋餐廳以外的本地商品配送，平台需確保非餐廳類別的訂單也能真正成功配送，才能多元化 GMV 來源。", "target_nsm_keywords": ["非餐廳訂單成功配送率", "新類別用戶月回購率", "配送員接單完成比例"], "anti_patterns": ["商家上架數", "商品瀏覽次數", "App安裝數"] },
-  { "id": "q95", "company": "Klaviyo", "industry": "電商行銷自動化", "scenario": "Klaviyo 幫電商品牌自動發 Email 與 SMS，平台靠聯絡人數量計費，需確保行銷活動真正帶動銷售轉換。", "target_nsm_keywords": ["行銷流程觸發後的訂單轉換率", "Email 點擊後完成購買比例", "月活躍自動化流程數"], "anti_patterns": ["郵件發送總數", "聯絡人匯入數", "模板瀏覽次數"] },
-  { "id": "q96", "company": "Attentive", "industry": "SMS 行銷 SaaS", "scenario": "Attentive 讓品牌透過 SMS 行銷推動購買，靠訊息量計費，唯有簡訊真正帶來點擊與購買，品牌才會加量採購。", "target_nsm_keywords": ["SMS 點擊後購買轉換率", "訂閱者留存率（未退訂比例）", "月行銷活動 ROI 達標比例"], "anti_patterns": ["訂閱者收集數", "簡訊發送量", "品牌帳號申請數"] },
-  { "id": "q97", "company": "Pendo", "industry": "產品體驗分析 SaaS", "scenario": "Pendo 幫 SaaS 公司追蹤功能使用並引導新用戶，若 In-App Guide 觸發後沒有提升功能採用率，平台價值就難以說服。", "target_nsm_keywords": ["功能採用率提升比例", "In-App Guide 完成率", "平台 NPS 問卷回覆後採取行動率"], "anti_patterns": ["Guide 創建數", "追蹤事件定義數", "帳號邀請數"] },
-  { "id": "q98", "company": "Samsara", "industry": "車隊 IoT 管理 SaaS", "scenario": "Samsara 靠 GPS 感測器與 SaaS 費用獲利，車隊需真正安裝並日常使用數據來優化派車與安全，才能續簽年費。", "target_nsm_keywords": ["裝置每日活躍傳輸率", "安全警報處理完成比例", "派車調度數位化覆蓋率"], "anti_patterns": ["裝置出貨量", "帳號登入次數", "地圖頁瀏覽量"] },
-  { "id": "q99", "company": "Brainware（虛構）", "industry": "企業合規訓練 SaaS", "scenario": "企業必須定期讓員工完成法規合規訓練，若員工只開啟影片卻不真正完成測驗，企業面臨罰款風險。", "target_nsm_keywords": ["員工測驗通過率", "訓練課程完成率", "合規週期準時完成比例"], "anti_patterns": ["影片播放次數", "課程章節開啟數", "帳號登入次數"] },
-  { "id": "q100", "company": "Fieldwire", "industry": "工地管理 SaaS", "scenario": "Fieldwire 讓工地現場人員以手機閱覽圖紙並回報工程問題，若現場只有 PM 用而施工員不用，數位化沒有真正落地。", "target_nsm_keywords": ["現場人員每日 App 活躍比例", "工程問題回報後閉環完成率", "圖紙版本更新後現場確認率"], "anti_patterns": ["帳號邀請數", "圖紙上傳數", "後台登入次數"] }
+  {
+    "id": "q1",
+    "company": "Netflix",
+    "industry": "內容訂閱制",
+    "scenario": "影音串流平台競爭激烈，必須確保用戶持續感受到內容價值以維持自動扣款。",
+    "target_nsm_keywords": [
+      "觀看時長",
+      "付費",
+      "活躍"
+    ],
+    "anti_patterns": [
+      "App下載數",
+      "註冊數"
+    ],
+    "field_examples": {
+      "step2": {
+        "nsm": "每月至少觀看 10 小時內容且完整看完至少一部劇集的付費訂閱者數",
+        "explanation": "Netflix 的留存靠「沉浸感」維持，用戶月觀看時數達門檻代表平台內容真正進入其娛樂習慣，非被動訂閱。",
+        "businessLink": "活躍觀看用戶的取消率遠低於低觀看用戶，月觀看 10 小時以上群體的 12 個月留存率對 ARR 貢獻最高。"
+      },
+      "step3": {
+        "reach": "每月至少觀看一次的付費活躍用戶佔總訂閱人數比例，剔除「付了費但沒開啟」的殭屍帳號。",
+        "depth": "單次觀看平均時長與每月觀看集數，連續追劇 3 集以上代表深度沉浸，是留存強訊號。",
+        "frequency": "每週啟動 Netflix 並實際播放的天數，低於 2 天的用戶在下個扣款周期取消率顯著上升。",
+        "impact": "付費訂閱月續費率與方案升級率（標準→Premium），內容觀看深度直接預測每用戶平均收益。"
+      }
+    },
+    "context": {
+      "model": "Netflix 採內容訂閱制，月費自動扣款，依畫質與同時裝置數分層定價；收益核心是高留存率而非新用戶獲取。",
+      "users": "核心 NSM 用戶是付費訂閱者中的「主動觀看者」，非偶發或被家人拖著開的被動帳號共享用戶。",
+      "traps": "把「新劇集上映首週播放量」當 NSM 是虛榮指標，爆紅首週後用戶若不回訪代表無法建立習慣，取消率仍高。",
+      "insight": "從「用戶是否在 48 小時內回來繼續看同一劇集」的行為切入，這個回流信號比總觀看時長更能預測 30 天留存。"
+    }
+  },
+  {
+    "id": "q2",
+    "company": "蝦皮購物",
+    "industry": "雙邊電商平台",
+    "scenario": "已過補貼獲客期，現需提升買賣雙方黏著度，確保平台真實交易流通。",
+    "target_nsm_keywords": [
+      "完成交易",
+      "無退貨",
+      "訂單數"
+    ],
+    "anti_patterns": [
+      "DAU",
+      "總流量",
+      "商品上架數"
+    ],
+    "field_examples": {
+      "step2": {
+        "nsm": "每月完成至少一筆無退貨糾紛的成功交易買家數，且同月有回購行為",
+        "explanation": "蝦皮已過補貼期，需確保交易是「真實需求驅動」而非優惠券套利，無退貨回購才代表平台黏著度健康。",
+        "businessLink": "回購買家貢獻的 GMV 邊際成本遠低於新用戶獲取，每提升 1% 回購率對整體 take rate 的貢獻超過相同比例的新用戶。"
+      },
+      "step3": {
+        "reach": "每月完成至少一筆成功訂單的活躍買家數，排除僅靠優惠券首購且未回購的一次性用戶。",
+        "depth": "每筆訂單平均金額與單一買家月累計消費額，高客單價代表買家信任平台品質與物流。",
+        "frequency": "每位活躍買家的月訂單筆數，回購頻率 2 次以上代表形成購物習慣而非偶發性消費。",
+        "impact": "平台月 GMV 成長率與賣家留存率，買家回購帶動賣家持續上架，形成雙邊飛輪正循環。"
+      }
+    },
+    "context": {
+      "model": "蝦皮採雙邊撮合模式，對買賣雙方收取交易手續費與廣告費；補貼期結束後盈利核心轉向提高每用戶交易頻率。",
+      "users": "NSM 焦點是「有回購行為的活躍買家」，而非剛用優惠券首購後消失的新用戶或只瀏覽不購物的訪客。",
+      "traps": "DAU 或頁面瀏覽量在促銷期間會虛高，但若成交轉化率同步下降代表流量品質差，不能作為平台健康度依據。",
+      "insight": "從買家「首購後 14 天內是否再次下單」的早期訊號切入，這個行為強預測 90 天長期留存，遠優於觀察 GMV 總量。"
+    }
+  },
+  {
+    "id": "q3",
+    "company": "Slack",
+    "industry": "B2B SaaS",
+    "scenario": "企業付費是為了效率，若只註冊未發言將導致高退訂率。",
+    "target_nsm_keywords": [
+      "發送訊息數",
+      "活躍團隊"
+    ],
+    "anti_patterns": [
+      "建立頻道數",
+      "註冊企業數"
+    ],
+    "field_examples": {
+      "step2": {
+        "nsm": "每週在工作日至少發送 10 則訊息的活躍工作空間成員數",
+        "explanation": "Slack 的企業價值來自團隊真正用頻道溝通取代 Email，發訊門檻代表用戶已將平台嵌入工作流程。",
+        "businessLink": "活躍發言成員數直接預測工作空間續約：當活躍率低於 40% 時，IT 採購者在年度審查時通常會砍掉席位。"
+      },
+      "step3": {
+        "reach": "在付費工作空間中每週至少發送一則訊息的活躍席位比例，用於判斷購買的席次是否真正被使用。",
+        "depth": "每位活躍用戶平均發送訊息數與參與頻道數，深度用戶會同時跨多個專案頻道活躍而非只在 general 頻道。",
+        "frequency": "每週工作日連續活躍天數，5 天全活躍代表 Slack 已成為工作日常工具，少於 3 天有離平台風險。",
+        "impact": "企業付費方案續約率與席位數成長率，活躍成員數高的工作空間往往在擴編時第一個增購席位。"
+      }
+    },
+    "context": {
+      "model": "Slack 按月活躍用戶收費，企業版按席次年費；核心商業邏輯是工作空間活躍度越高，IT 採購者越難裁掉這筆預算。",
+      "users": "NSM 聚焦「付費工作空間中的活躍發言成員」，不包含只受邀卻從不發言的幽靈帳號或 Guest 外部協作者。",
+      "traps": "把「建立頻道數」當健康度指標很危險，企業常在試用期衝動建立大量頻道，但實際溝通仍發生在 Email 或會議中。",
+      "insight": "從「新員工入職後 7 天內是否在 Slack 完成第一次跨部門溝通」切入，這個行為預測 90 天留存效果顯著優於整體 MAU 指標。"
+    }
+  },
+  {
+    "id": "q4",
+    "company": "Uber",
+    "industry": "O2O 共享出行",
+    "scenario": "必須同時平衡乘客叫車效率與司機賺錢效率。",
+    "target_nsm_keywords": [
+      "成功完成",
+      "趟數",
+      "無客訴"
+    ],
+    "anti_patterns": [
+      "司機上線時間",
+      "App打開次數"
+    ],
+    "field_examples": {
+      "step2": {
+        "nsm": "每週完成至少一趟無取消、無客訴的成功配對乘車數",
+        "explanation": "Uber 雙邊平台的核心價值是「叫得到、準時到、安全到」，單純司機上線不代表乘客需求真正被滿足。",
+        "businessLink": "成功完成的趟次直接產生手續費收益，低取消率代表乘客體驗好，反映到評分後帶動新乘客口碑轉化。"
+      },
+      "step3": {
+        "reach": "每週完成至少一趟乘車的活躍乘客數，以及在高需求時段有完成配對的在線司機數（雙邊覆蓋率）。",
+        "depth": "每趟平均車資金額與完成率，高客單價路線（機場接送）代表乘客對平台溢價服務有信任感。",
+        "frequency": "每位活躍乘客的週均搭車次數，每週超過 3 次代表 Uber 已取代個人交通工具或計程車成為日常出行首選。",
+        "impact": "月 GMV 與每趟抽傭收益，司機收入健康度（時薪達標率）直接影響供給側黏著，進而確保服務質量。"
+      }
+    },
+    "context": {
+      "model": "Uber 按趟次抽傭，同時向乘客收費並向司機分潤；動態定價在高需求時段提升收益，核心是雙邊供需平衡。",
+      "users": "NSM 聚焦「有回程需求的通勤型活躍乘客」，這類用戶的搭車頻率高、取消率低，對平台貢獻最穩定。",
+      "traps": "把「司機上線總時數」當供給健康度指標會誤判，大量司機空跑不接單代表需求不足，而非平台健康。",
+      "insight": "從「乘客在等候超過 5 分鐘後是否仍完成乘車」的耐受行為切入，這個忍耐閾值代表真實依賴度，是高留存用戶的最強訊號。"
+    }
+  },
+  {
+    "id": "q5",
+    "company": "Tinder",
+    "industry": "交友軟體",
+    "scenario": "核心是建立真實連結，如果用戶一直滑卻沒有互動，很快就會流失。",
+    "target_nsm_keywords": [
+      "配對成功",
+      "發送訊息",
+      "雙向互動"
+    ],
+    "anti_patterns": [
+      "右滑次數",
+      "在線時長"
+    ],
+    "field_examples": {
+      "step2": {
+        "nsm": "每週在平台發起雙向訊息對話並在 24 小時內獲得回應的配對用戶對數",
+        "explanation": "Tinder 的核心是「建立真實連結」而非累積右滑次數，雙向對話代表配對從虛假進展到真實互動意圖。",
+        "businessLink": "成功對話用戶的 Gold/Platinum 付費轉換率是普通用戶的 3 倍以上，真實互動是付費意願的最強預測指標。"
+      },
+      "step3": {
+        "reach": "每週至少完成一次雙向配對並發起對話的活躍用戶數，剔除只滑不發訊的瀏覽型用戶。",
+        "depth": "每對成功配對的平均對話輪數，達到 5 輪以上的配對進入約會的概率顯著提升，代表深度連結。",
+        "frequency": "每位用戶每週開啟 App 並主動發訊的天數，高頻用戶對平台社群認同感高，付費訂閱傾向強。",
+        "impact": "Gold/Platinum 訂閱轉換率與超級喜歡購買率，真實互動帶動付費意願，直接影響 ARPU。"
+      }
+    },
+    "context": {
+      "model": "Tinder 採 Freemium 模式，基本功能免費，靠 Gold/Platinum 月訂閱與 Boost/Super Like 單次購買獲利。",
+      "users": "NSM 聚焦「有真實交友意圖的活躍配對用戶」，不包含只是無聊瀏覽的被動型用戶或用來練英文的海外假帳號。",
+      "traps": "把「右滑次數」當用戶活躍度指標是陷阱，大量右滑但零對話代表用戶只是在消遣，而非真正想建立連結。",
+      "insight": "從「用戶在配對後 1 小時內是否發起對話」的即時性切入，這個快速行動信號比總配對數更能預測付費意願與長期留存。"
+    }
+  },
+  {
+    "id": "q6",
+    "company": "ChatGPT",
+    "industry": "AI 工具",
+    "scenario": "運算成本極高，必須確保用戶是真的在解決問題，而非隨便玩玩。",
+    "target_nsm_keywords": [
+      "解決問題",
+      "對話輪數",
+      "留存"
+    ],
+    "anti_patterns": [
+      "單次提問數",
+      "網站造訪量"
+    ],
+    "field_examples": {
+      "step2": {
+        "nsm": "每週完成至少 3 輪對話並明確解決一個具體問題的活躍用戶數",
+        "explanation": "ChatGPT 運算成本極高，只有用戶將 AI 用於真實問題解決（而非玩玩輸入亂碼）才代表平台資源有效配置。",
+        "businessLink": "真正解決問題的用戶付費轉換率顯著高於隨意試用者，Plus 訂閱的核心用戶都有穩定的每週高頻使用模式。"
+      },
+      "step3": {
+        "reach": "每週至少啟動一次完整對話會話（超過 3 輪）的月活躍用戶數，剔除只輸入一句話即離開的試用型流量。",
+        "depth": "每次對話的平均輪數與用戶複製或引用 AI 輸出的行為，複製代表輸出有實際使用價值。",
+        "frequency": "每週使用 ChatGPT 解決問題的天數，工作日連續 5 天活躍代表 AI 已嵌入工作流程而非偶發使用。",
+        "impact": "Plus/Team/Enterprise 訂閱轉換率，真正依賴 ChatGPT 解決問題的用戶付費意願最強，是 ARPU 提升的核心群體。"
+      }
+    },
+    "context": {
+      "model": "ChatGPT 採 Freemium 模式，免費版有使用次數限制，Plus 月付 $20 解鎖 GPT-4；企業版按席次收費，靠高頻用戶轉付費維持高運算成本。",
+      "users": "NSM 聚焦「以 ChatGPT 解決工作或學習具體問題的高頻用戶」，不包含只是試玩特效或社群分享的一次性流量。",
+      "traps": "把「單次提問數」或「造訪量」當指標會被節假日、新聞熱點帶偏，爆紅話題吸引大量低品質流量後指標短期虛高。",
+      "insight": "從「用戶是否在 72 小時內回來繼續同一類型的問題解決」的回流行為切入，這個 recency 信號強預測長期留存與付費轉換。"
+    }
+  },
+  {
+    "id": "q7",
+    "company": "Strava",
+    "industry": "運動社交",
+    "scenario": "用戶需要社群認同。只記錄不互動，無法撐起平台護城河。",
+    "target_nsm_keywords": [
+      "上傳紀錄",
+      "互相給讚",
+      "完賽"
+    ],
+    "anti_patterns": [
+      "App開啟次數",
+      "GPS定位次數"
+    ],
+    "field_examples": {
+      "step2": {
+        "nsm": "每週上傳至少一筆運動紀錄並獲得 3 個以上互動（kudos 或留言）的活躍用戶數",
+        "explanation": "Strava 的護城河是運動社群認同感，單純記錄 GPS 沒有社群互動的用戶流失率高，互動才是留存引擎。",
+        "businessLink": "有穩定社群互動的用戶訂閱 Summit 付費方案的比例是純記錄用戶的 2.5 倍，社群黏著直接驅動付費轉換。"
+      },
+      "step3": {
+        "reach": "每週至少上傳一筆運動紀錄的活躍運動者數，以及在社群中至少給予一次 kudos 的互動用戶數（雙邊活躍）。",
+        "depth": "每筆運動紀錄的平均距離、配速記錄完整度，以及用戶是否參與挑戰活動（代表深度社群嵌入）。",
+        "frequency": "每週運動上傳天數與連續運動紀錄 Streak，連續 4 週以上活躍代表 Strava 已成為運動日誌核心工具。",
+        "impact": "Summit 訂閱付費轉換率與年費留存率，有社群互動的用戶付費後流失率顯著低於只用免費版記錄的用戶。"
+      }
+    },
+    "context": {
+      "model": "Strava 採 Freemium 模式，免費版提供基本記錄，Summit 付費訂閱解鎖進階分析與訓練計劃；商業核心是社群黏著驅動付費。",
+      "users": "NSM 聚焦「有社群互動行為的活躍運動者」，不包含只是偶爾用 GPS 記錄散步但從不與他人互動的孤立型用戶。",
+      "traps": "把「GPS 定位次數」或「App 開啟次數」當活躍度會誤判，用戶可能只是隨手開啟後背景記錄，並非有意識地在 Strava 社群活動。",
+      "insight": "從「用戶首次獲得 5 個 kudos 的時機點」切入，這個社群認同里程碑發生越早，30 天留存率越高，是最關鍵的 aha moment 指標。"
+    }
+  },
+  {
+    "id": "q8",
+    "company": "GitHub",
+    "industry": "開發者工具",
+    "scenario": "平台真正的價值在於協助團隊交付程式碼與開源協作。",
+    "target_nsm_keywords": [
+      "合併 PR",
+      "成功部署",
+      "活躍協作者"
+    ],
+    "anti_patterns": [
+      "建立 Repo 數",
+      "Star 數量"
+    ],
+    "field_examples": {
+      "step2": {
+        "nsm": "每月至少完成一次 Pull Request 合併並觸發 CI 部署的活躍開發者數",
+        "explanation": "GitHub 的核心價值是程式碼協作交付，建立 Repo 不代表真正在用，合併 PR 代表開發流程真正運轉。",
+        "businessLink": "活躍 PR 合併的團隊付費 GitHub Team/Enterprise 方案留存率遠高於只建 Repo 的帳號，且往往伴隨席位增購。"
+      },
+      "step3": {
+        "reach": "每月至少完成一次 commit 並推送到遠端 repo 的活躍開發者數，反映平台真正被納入開發工作流程。",
+        "depth": "每個 PR 的平均 code review 參與人數與留言輪數，多人 review 代表協作深度，不是單人開發後自合併。",
+        "frequency": "每週推送 commit 的工作日天數，5 天連續活躍代表 GitHub 是工程團隊每日核心工具而非偶發使用。",
+        "impact": "GitHub Actions 使用率與 Advanced Security 採購率，深度使用自動化和安全功能的團隊是最高 LTV 的企業客戶。"
+      }
+    },
+    "context": {
+      "model": "GitHub 個人免費、Team/Enterprise 按席次月費；核心收益來自工程團隊規模擴大後的席位增購與 Actions CI 用量計費。",
+      "users": "NSM 聚焦「在付費組織內有真實 PR 合併行為的工程師」，不包含只是 Star 開源專案的個人帳號或只讀不寫的旁觀者。",
+      "traps": "Star 數與 Repo 創建數是典型虛榮指標，開源熱門專案 Star 量高但背後大多數 Star-er 從未 Clone 或貢獻過程式碼。",
+      "insight": "從「工程師入職後 30 天內是否完成第一個 PR 合併」切入，這個 onboarding 里程碑預測 1 年留存率，且直接反映組織是否真正採用 GitHub 作為開發核心。"
+    }
+  },
+  {
+    "id": "q9",
+    "company": "Duolingo",
+    "industry": "教育科技",
+    "scenario": "語言學習最難的是堅持。需衡量用戶是否將學習變成每日習慣。",
+    "target_nsm_keywords": [
+      "連續打卡",
+      "Streak",
+      "完成單元"
+    ],
+    "anti_patterns": [
+      "測驗分數",
+      "學習總時數"
+    ],
+    "field_examples": {
+      "step2": {
+        "nsm": "每日連續打卡學習 7 天以上的活躍學習者數（Streak 達標人數）",
+        "explanation": "Duolingo 的商業護城河是習慣養成，Streak 機制讓用戶把語言學習嵌入日常，連續打卡是留存最強預測因子。",
+        "businessLink": "Streak 超過 7 天的用戶訂閱 Duolingo Plus 去除廣告的比例顯著高於新用戶，習慣形成後付費轉換幾乎是自然發生的。"
+      },
+      "step3": {
+        "reach": "每週至少完成 5 天學習打卡的月活躍學習者數，代表平台在日曆時間內有真實的習慣建立進展。",
+        "depth": "每次學習的平均單元完成數與錯誤重練率，深度學習者會主動重練難點而非只是掃過容易關卡衝高 XP。",
+        "frequency": "每天學習的連續天數（Streak），這是 Duolingo 產品設計的核心護城河，也是留存的最強單一指標。",
+        "impact": "Duolingo Plus 訂閱付費轉換率與年費留存率，長期保持 Streak 的用戶比短期衝刺後停用的用戶貢獻更高 LTV。"
+      }
+    },
+    "context": {
+      "model": "Duolingo 採 Freemium 模式，免費版有廣告與心心制限制，Plus 月費去廣告並加速學習；核心收益來自習慣養成後的付費轉換。",
+      "users": "NSM 聚焦「有語言學習長期目標並形成日常打卡習慣的用戶」，不包含因好奇心一次性玩幾關後沉默的試用型流量。",
+      "traps": "把「測驗分數提升」當 NSM 是方向錯誤，分數提升是學習結果而非行為習慣，無法預測用戶明天是否還會回來打卡。",
+      "insight": "從「用戶的 Streak 是否在第 3 天斷裂後主動回來重啟」切入，這個「復活行為」代表學習動機強度，是付費轉換與長期留存的最早期訊號。"
+    }
+  },
+  {
+    "id": "q10",
+    "company": "Gogoro",
+    "industry": "硬體與能源",
+    "scenario": "車主付電池月租費，平台必須確保能源交換體驗順暢。",
+    "target_nsm_keywords": [
+      "成功換電",
+      "無故障報修",
+      "騎乘里程"
+    ],
+    "anti_patterns": [
+      "電池預約次數",
+      "App首頁瀏覽量"
+    ],
+    "field_examples": {
+      "step2": {
+        "nsm": "每月完成至少 8 次無故障換電且騎乘里程超過 100 公里的活躍 Gogoro 車主數",
+        "explanation": "Gogoro 能源服務的價值在於「無縫換電取代加油」，里程與換電次數並列才能確認車主真的在日常騎乘。",
+        "businessLink": "高騎乘量車主的月租費留存率最高，且往往會在親友換車時推薦 Gogoro，帶動口碑轉化降低獲客成本。"
+      },
+      "step3": {
+        "reach": "每月至少換電一次且騎乘里程超過基本門檻的活躍車主數，剔除買了車但幾乎不騎的低使用率用戶。",
+        "depth": "每次換電的完成成功率（有無等待超時或機台故障）與單月最大騎乘里程，反映能源服務品質。",
+        "frequency": "每週換電次數，通勤型車主通常 2-3 天換電一次，頻率過低代表車主未將 Gogoro 作為日常交通工具。",
+        "impact": "月租費方案留存率與車主向親友推薦的 NPS，高騎乘頻率車主是 Gogoro 能源網絡擴張的核心營收來源。"
+      }
+    },
+    "context": {
+      "model": "Gogoro 採硬體一次性銷售加上電池月租費的雙層模式；能源網路的規模效益取決於活躍車主密度，換電站覆蓋率與車主活躍率互為正循環。",
+      "users": "NSM 聚焦「以 Gogoro 作為通勤日常工具的高頻騎乘車主」，不包含只偶爾週末騎的低里程休閒用戶。",
+      "traps": "把「電池預約次數」當活躍度指標會被放長假前的搶先預約行為扭曲，反映的是短期行為而非日常使用習慣。",
+      "insight": "從「車主首次換電後 14 天內是否再次換電」切入，這個早期行為直接預測月租費 3 個月留存率，是最關鍵的 aha moment 確認點。"
+    }
+  },
+  {
+    "id": "q11",
+    "company": "Binance",
+    "industry": "加密貨幣交易所",
+    "scenario": "交易所靠手續費盈利，必須確保用戶資金有實際交易流動。",
+    "target_nsm_keywords": [
+      "完成交易",
+      "交易量"
+    ],
+    "anti_patterns": [
+      "錢包餘額",
+      "登入次數",
+      "KYC通過數"
+    ],
+    "field_examples": {
+      "step2": {
+        "nsm": "每月完成至少 5 筆買賣交易且交易量超過 $500 美金等值的活躍交易用戶數",
+        "explanation": "Binance 靠每筆交易手續費獲利，用戶只存錢不動不產生收益，活躍交易量才是平台商業健康度的真實指標。",
+        "businessLink": "月交易量超過門檻的用戶貢獻了平台超過 80% 的手續費收益，且往往升級 VIP 等級享受費率折扣換取更高頻率的交易。"
+      },
+      "step3": {
+        "reach": "每月完成至少一筆現貨或合約交易的活躍交易者數，剔除只是持有資產但從不操作的靜態儲值帳號。",
+        "depth": "每筆交易的平均金額與交易對多樣性，深度用戶會跨越多個幣種交易而非只持有 BTC 靜態觀望。",
+        "frequency": "每週主動下單的次數，高頻交易者是平台手續費的核心貢獻者，也是市場流動性的關鍵提供者。",
+        "impact": "月手續費收益與 VIP 等級升級率，高頻交易者的手續費貢獻是平台核心收益，VIP 升級代表用戶對平台長期信任。"
+      }
+    },
+    "context": {
+      "model": "Binance 按每筆交易量抽取 0.1% 手續費，BNB 持有者享有費率折扣；核心收益高度依賴市場交易量，與加密貨幣市場週期強相關。",
+      "users": "NSM 聚焦「有定期主動交易行為的活躍交易者」，不包含只是存入資產等待升值的長期持有者或空帳號。",
+      "traps": "把「錢包餘額」當平台健康度指標會被市場牛市假象欺騙，幣價上漲時帳面餘額增加，但若交易量同步下滑代表流動性惡化。",
+      "insight": "從「用戶首次入金後 7 天內是否完成第一筆交易」切入，這個首交易行為決定用戶是「投資者」還是「儲蓄者」，前者 LTV 高出數倍。"
+    }
+  },
+  {
+    "id": "q12",
+    "company": "Notion",
+    "industry": "企業知識庫",
+    "scenario": "團隊共同編寫的知識庫轉移成本高，個人筆記則容易被取代。",
+    "target_nsm_keywords": [
+      "多人協作編輯",
+      "跨部門共用"
+    ],
+    "anti_patterns": [
+      "創建 Page 數",
+      "個人登入次數"
+    ],
+    "field_examples": {
+      "step2": {
+        "nsm": "每週有超過 3 名不同部門成員共同編輯同一工作空間的活躍企業帳號數",
+        "explanation": "Notion 的護城河在跨部門知識共享，個人筆記轉移成本低，唯有多部門協作才能建立高轉移障礙。",
+        "businessLink": "跨部門共用工作空間的企業帳號續約率高出單部門用戶 40% 以上，多部門嵌入後替換 Notion 需要跨組織協調。"
+      },
+      "step3": {
+        "reach": "每週至少有一次跨部門編輯行為的付費企業工作空間數，剔除只有個人或單一小組在用的帳號。",
+        "depth": "每個協作 Page 的平均參與人數與編輯輪數，深度協作代表文件成為跨團隊的真正資訊核心。",
+        "frequency": "每週工作日的協作編輯次數，跨部門 5 天都有活躍編輯代表 Notion 已取代其他文件工具成為中央知識庫。",
+        "impact": "企業付費方案席位增購率與年費留存率，工作空間嵌入跨部門協作後席位需求自然成長，形成正向收益循環。"
+      }
+    },
+    "context": {
+      "model": "Notion 採 Freemium 模式，個人免費，Team/Enterprise 按席次月費；商業核心是從個人工具升級為企業協作平台以鎖定更高 ACV。",
+      "users": "NSM 聚焦「在企業環境中跨部門共用 Workspace 的協作型用戶」，不包含只是個人筆記使用的個人帳號持有者。",
+      "traps": "把「Page 創建數」當活躍度很危險，企業 IT 試用期間常常一次建立數百個 Page，但實際上只有少數幾個在真正被閱讀和編輯。",
+      "insight": "從「企業帳號是否在 30 天內有來自 3 個以上不同部門的成員登入並編輯」切入，這個跨部門擴散行為是最強的企業留存預測因子。"
+    }
+  },
+  {
+    "id": "q13",
+    "company": "foodpanda",
+    "industry": "O2O 外賣平台",
+    "scenario": "外賣平台同時服務消費者、餐廳與外送員，三方體驗必須同步優化，才能讓訂單真正送達並帶來回購。",
+    "target_nsm_keywords": [
+      "成功送達訂單數",
+      "準時率",
+      "回購率"
+    ],
+    "anti_patterns": [
+      "App下載量",
+      "餐廳入駐數",
+      "外送員註冊數"
+    ],
+    "field_examples": {
+      "step2": {
+        "nsm": "每月無客訴成功送達並完成回購的訂單數，且同一買家在 30 天內再次下單",
+        "explanation": "foodpanda 三方體驗必須同步健康，無客訴代表餐廳出餐與外送員配送都到位，回購代表消費者形成習慣。",
+        "businessLink": "有回購行為且無客訴的訂單貢獻了平台最高 take rate 的健康 GMV，而不是依賴補貼吸引來的一次性流量。"
+      },
+      "step3": {
+        "reach": "每月完成至少兩筆成功訂單的活躍消費者數，以及每月完成超過 30 筆配送的活躍外送員數（雙邊覆蓋）。",
+        "depth": "每筆訂單平均客單價與餐廳評分，高客單+高評分的訂單代表消費者願意付溢價換取品質，是高 LTV 用戶的特徵。",
+        "frequency": "活躍消費者每月下單次數，每月 4 次以上代表外賣已嵌入日常飲食習慣而非偶發性使用。",
+        "impact": "月 GMV 成長率與餐廳合作商留存率，消費者回購帶動餐廳持續在平台投放廣告，形成雙邊正循環。"
+      }
+    },
+    "context": {
+      "model": "foodpanda 採三方撮合模式，向消費者收外送費，向餐廳抽傭（約 30%），向外送員按趟次付費；多邊健康度決定平台規模。",
+      "users": "NSM 聚焦「有回購行為的活躍消費者」，不包含只在促銷期間單次下單後消失的優惠券獵人型用戶。",
+      "traps": "把「外送員數量」或「餐廳入駐數」當平台健康度指標會高估供給品質，大量外送員若接單完成率低會嚴重損害消費者體驗。",
+      "insight": "從「消費者第一次訂單配送後是否在 7 天內再次下單」切入，這個早期回購窗口是預測 6 個月留存最強的單一行為指標。"
+    }
+  },
+  {
+    "id": "q14",
+    "company": "Airbnb",
+    "industry": "OTA 短租平台",
+    "scenario": "平台價值在於撮合旅客完成真實住宿體驗，空有瀏覽不成交將導致房東流失。",
+    "target_nsm_keywords": [
+      "成功預訂並入住",
+      "五星評價率",
+      "房東重複上架"
+    ],
+    "anti_patterns": [
+      "搜尋次數",
+      "頁面瀏覽量",
+      "願望清單收藏數"
+    ],
+    "field_examples": {
+      "step2": {
+        "nsm": "每月成功完成入住並留下 4 星以上評價的旅客預訂數",
+        "explanation": "Airbnb 撮合旅客與房東，唯有完成入住並帶來正向評價才代表雙邊體驗都滿足，是平台信任生態健康的核心指標。",
+        "businessLink": "留下高評價的旅客回訪率顯著高於未評價者，且高評分房源吸引更多預訂形成正向循環，是 GMV 持續成長的飛輪。"
+      },
+      "step3": {
+        "reach": "每月完成至少一筆入住的活躍旅客數，以及每月收到至少一筆預訂的活躍房東數（雙邊成交覆蓋率）。",
+        "depth": "每筆預訂的平均住宿天數與消費金額，長租高客單代表旅客對平台信任度高，願意付溢價選擇 Airbnb 而非飯店。",
+        "frequency": "每位活躍旅客的年均預訂次數，高頻旅行者（年 3 次以上）是平台 GMV 的核心貢獻者。",
+        "impact": "平台抽傭收益（約 3% 旅客 + 3% 房東）與房東重複上架率，房東持續活躍是供給側長期健康的核心指標。"
+      }
+    },
+    "context": {
+      "model": "Airbnb 採雙邊撮合並抽傭，旅客支付約 3% 服務費，房東支付約 3% 清潔費；核心收益來自旅客與房東雙邊活躍的 GMV。",
+      "users": "NSM 聚焦「有真實旅行需求並完成入住的旅客」，以及「定期活躍上架房源的職業型房東」，不包含衝動收藏但未預訂的瀏覽型用戶。",
+      "traps": "把「搜尋次數」或「願望清單收藏數」當轉換意向很危險，高搜尋低預訂代表定價或信任問題，不是用戶真實需求。",
+      "insight": "從「旅客首次成功入住後 6 個月內是否再次預訂」切入，這個二次預訂行為代表品牌信任建立，是 LTV 最強預測因子，優先優化此指標。"
+    }
+  },
+  {
+    "id": "q15",
+    "company": "TikTok",
+    "industry": "短影音平台",
+    "scenario": "演算法驅動的短影音平台需確保創作者與觀看者雙邊生態健康，才能維持廣告收益。",
+    "target_nsm_keywords": [
+      "完整觀看率",
+      "創作者發布頻率",
+      "分享數"
+    ],
+    "anti_patterns": [
+      "影片上傳總數",
+      "曝光次數",
+      "帳號粉絲數"
+    ],
+    "field_examples": {
+      "step2": {
+        "nsm": "每週完整看完至少 10 支影片並分享至少一支的活躍觀看用戶數",
+        "explanation": "TikTok 廣告收益靠完整觀看率，用戶停留並轉發代表演算法推薦成功且內容質量健康，是廣告主付費的信心基礎。",
+        "businessLink": "完整觀看率高的平台對廣告主溢價能力強，分享率高代表有機傳播降低廣告獲客成本，雙重驅動廣告收益成長。"
+      },
+      "step3": {
+        "reach": "每週至少觀看 30 支影片的活躍用戶數，以及每週至少發布一支影片的活躍創作者數（雙邊生態健康指標）。",
+        "depth": "影片完整觀看率（看到最後一幀的比例）與用戶停留在平台的平均時長，高完看率是廣告嵌入品質的核心前提。",
+        "frequency": "每週使用 TikTok 的天數，日均開啟次數超過 3 次代表平台已嵌入用戶日常碎片時間習慣。",
+        "impact": "廣告收益（CPM 與 CTR）與創作者基金或直播打賞收益，觀看用戶越活躍、創作者發布頻率越高，廣告庫存越豐富。"
+      }
+    },
+    "context": {
+      "model": "TikTok 主要靠廣告收益，創作者生態靠平台流量分成與直播打賞維持；演算法是核心護城河，決定內容分發效率。",
+      "users": "NSM 聚焦「高完看率的活躍觀看用戶」與「定期發布優質內容的創作者」，雙邊同時健康才能維持廣告生態。",
+      "traps": "把「影片上傳總數」當內容生態健康指標會被大量低質量內容稀釋，曝光次數更是受演算法推送影響而非用戶真實需求。",
+      "insight": "從「用戶是否在首次觀看後 3 天內主動搜尋某個創作者的其他影片」切入，這個主動搜尋行為代表從被動消費進入主動追蹤，是留存飛輪的起點。"
+    }
+  },
+  {
+    "id": "q16",
+    "company": "Shopify",
+    "industry": "電商 SaaS",
+    "scenario": "Shopify 以商家成功為核心，若商家開店後沒有真實銷售，最終會停止付費。",
+    "target_nsm_keywords": [
+      "商家首筆成功交易",
+      "月銷售額成長",
+      "訂閱續約率"
+    ],
+    "anti_patterns": [
+      "開店數量",
+      "主題安裝次數",
+      "App商店瀏覽數"
+    ],
+    "field_examples": {
+      "step2": {
+        "nsm": "每月完成至少一筆銷售且 GMV 成長超過上月 10% 的活躍商家數",
+        "explanation": "Shopify 以商家成功為核心，首筆銷售是 aha moment，持續成長代表商家將平台視為真正業務核心而非試用。",
+        "businessLink": "有穩定銷售成長的商家續訂率最高，且往往加購 Shopify Payments、物流、行銷 App，貢獻平台最高 ARPU。"
+      },
+      "step3": {
+        "reach": "每月完成至少一筆銷售的活躍商家數，剔除只開店設置但從未有訂單的殭屍店家。",
+        "depth": "每家商家的月均 GMV 與訂單數，高 GMV 商家往往是中小企業轉型電商，是平台 Payments 手續費的最大貢獻者。",
+        "frequency": "商家每週登入後台管理並處理訂單的天數，5 天活躍代表 Shopify 後台已成為商家日常運營核心工具。",
+        "impact": "月訂閱費收益加上 Payments 手續費，商家 GMV 越高，Shopify 的交易分潤收益越高，形成商家成功即平台成功的對齊激勵。"
+      }
+    },
+    "context": {
+      "model": "Shopify 採月訂閱費加 Payments 手續費雙軌獲利，App 生態分潤提供額外收益；商業邏輯是商家電商成功 = Shopify GMV 成長 = 平台收益成長。",
+      "users": "NSM 聚焦「有真實銷售成長的活躍商家」，不包含只是試玩開店但從未行銷或推廣的個人帳號或殭屍店家。",
+      "traps": "把「開店數量」或「App 安裝數」當平台健康度很危險，大量商家開店後 30 天無單即流失，這些帳號不貢獻任何 Payments 收益。",
+      "insight": "從「商家開店後首週是否完成第一筆銷售」切入，首週成交是留存的最強預測指標，未在首週成交的商家 30 天流失率超過 60%。"
+    }
+  },
+  {
+    "id": "q17",
+    "company": "Zoom",
+    "industry": "視訊會議 SaaS",
+    "scenario": "遠端工作普及後，Zoom 需確保企業用戶真的在平台上進行有效溝通，而非只是安裝備用。",
+    "target_nsm_keywords": [
+      "完成會議時長",
+      "活躍主辦人數",
+      "企業席位使用率"
+    ],
+    "anti_patterns": [
+      "下載次數",
+      "帳號註冊數",
+      "會議室建立數"
+    ],
+    "field_examples": {
+      "step2": {
+        "nsm": "每週使用 Zoom 完成一場「1 小時 3 人以上會議」的付費企業主辦人數",
+        "explanation": "Zoom 的企業價值在有效溝通而非安裝備用，付費企業主辦人定期主持多人會議代表平台真正替代了實體或其他溝通工具。",
+        "businessLink": "主辦人活躍直接決定企業續訂率，一個企業若活躍主辦人比例低於 40%，下次年度審查時 IT 採購者極可能削減席位。"
+      },
+      "step3": {
+        "reach": "付費企業席位中每週至少主辦過一場會議的活躍主辦人數，剔除只是被邀請參加的與會者帳號。",
+        "depth": "每場會議的平均時長與參與人數，超過 30 分鐘且 3 人以上的會議代表真實的企業溝通，而非只是 1-on-1 的快速確認。",
+        "frequency": "主辦人每週主辦會議的天數，工作日 3 天以上活躍代表 Zoom 已成為企業溝通的預設平台而非備用選項。",
+        "impact": "企業席位年費續訂率與席位增購率，活躍主辦人比例高的企業在人員擴編時自然增購席位，形成正向 ARR 成長飛輪。"
+      }
+    },
+    "context": {
+      "model": "Zoom 採 SaaS 訂閱制，企業按席次月費或年費付費；個人版免費 40 分鐘限制誘導升級，主要競爭來自 Teams（綁定 Office 365）與 Meet（綁定 Workspace）。",
+      "users": "三類角色：IT 採購決策者、會議主辦人（建立會議的主動用戶）、與會者（被動加入）。NSM 聚焦付費企業內的活躍主辦人，因為他們是續訂決定的關鍵行為驅動者。",
+      "traps": "把「會議總數」當 NSM 是虛榮指標，一人開 10 場短會與 10 人各開一場長會差異巨大；被 DAU 誤導則會掩蓋「大量安裝但不用」的問題。",
+      "insight": "從「會議結束後 3 個工作日內是否有後續再次發起會議」的回流行為切入，主辦人若能持續回來代表 Zoom 真正解決了 recurring 企業溝通需求。"
+    }
+  },
+  {
+    "id": "q18",
+    "company": "Spotify",
+    "industry": "音樂串流訂閱",
+    "scenario": "訂閱制平台靠續費維生，用戶若停止主動聆聽將在下次付款前取消。",
+    "target_nsm_keywords": [
+      "每週聆聽時長",
+      "Playlist 新增歌曲",
+      "付費轉換率"
+    ],
+    "anti_patterns": [
+      "歌曲收藏數",
+      "免費帳號數",
+      "搜尋次數"
+    ],
+    "field_examples": {
+      "step2": {
+        "nsm": "每週主動聆聽超過 3 小時且建立或更新至少一個 Playlist 的付費訂閱者數",
+        "explanation": "Spotify 靠續費維生，主動聆聽加上 Playlist 管理代表用戶已將平台嵌入日常音樂習慣，形成個人化資料護城河。",
+        "businessLink": "有活躍 Playlist 管理行為的付費用戶年費留存率比只被動播放的用戶高出 35%，個人化數據是防止用戶跳槽的最強鎖定機制。"
+      },
+      "step3": {
+        "reach": "每週至少聆聽一次音樂或 Podcast 的月活躍付費訂閱者數，剔除付費後沉默超過 14 天的殭屍訂閱帳號。",
+        "depth": "每週聆聽時長與 Playlist 中的歌曲數，深度用戶會主動策展音樂品味而非只靠演算法推薦被動接受。",
+        "frequency": "每週主動開啟 Spotify 並播放音樂的天數，7 天全活躍代表音樂已成為日常生活伴隨工具而非偶爾使用。",
+        "impact": "付費訂閱月留存率與方案升級率（個人→家庭方案），主動聆聽的用戶在下個扣款周期取消的可能性顯著低於低活躍用戶。"
+      }
+    },
+    "context": {
+      "model": "Spotify 採 Freemium 模式，免費版有廣告限制，付費版解鎖離線播放與音質；核心收益靠付費用戶月費，廣告收益是補充。",
+      "users": "NSM 聚焦「有主動音樂策展行為的付費訂閱者」，不包含只是被動接受推薦播放的免費帳號或極低頻率的偶爾聆聽者。",
+      "traps": "把「歌曲收藏數」當用戶活躍度誤導性極強，用戶可能在試用期大量收藏後就沉默，收藏行為與每日聆聽習慣相關性低。",
+      "insight": "從「用戶是否在首週內建立自己的第一個 Playlist 並加入超過 10 首歌」切入，這個個人化行為代表用戶開始投資自己的音樂品味，是 90 天留存最強早期訊號。"
+    }
+  },
+  {
+    "id": "q19",
+    "company": "Coursera",
+    "industry": "線上教育平台",
+    "scenario": "許多用戶衝動報名後就消失，平台需確保學員真正完成課程才能支撐企業與大學合作模式。",
+    "target_nsm_keywords": [
+      "課程完成率",
+      "證書取得數",
+      "付費課程回購率"
+    ],
+    "anti_patterns": [
+      "課程報名數",
+      "影片播放次數",
+      "用戶總數"
+    ],
+    "field_examples": {
+      "step2": {
+        "nsm": "每季完成至少一門課程並取得認證的付費學員數",
+        "explanation": "Coursera 的商業模式靠企業與大學合作，學員完課率與證書核發量是合作機構評估平台效益的核心指標。",
+        "businessLink": "完成課程並取得認證的學員往往在求職後回購進階課程，且推薦率顯著高於未完課學員，形成口碑驅動的低成本增長。"
+      },
+      "step3": {
+        "reach": "每月至少完成一個課程模組的活躍付費學員數，剔除只報名但從未觀看任何影片的沉默帳號。",
+        "depth": "每門課程的平均完成率與學員在課程內的互動次數（測驗、討論），深度學習者比淺嘗即止者獲得更高的學習成果。",
+        "frequency": "學員每週學習的天數，每週至少 3 天以上代表學習已形成規律習慣，而非衝動報名後放置不管。",
+        "impact": "課程完成後的認證核發率與學員 6 個月內再購課程率，認證代表學習投資有回報，驅動學員持續付費升級課程。"
+      }
+    },
+    "context": {
+      "model": "Coursera 採單課付費加訂閱制（Coursera Plus），與頂尖大學合作提供學分認證；核心收益來自企業客戶批量採購學習授權。",
+      "users": "NSM 聚焦「有明確職涯目標並積極完課的付費學員」，不包含只是衝動報名免費課程試水溫後再不開啟的沉默帳號。",
+      "traps": "把「課程報名數」或「影片播放次數」當平台健康度完全錯誤，大量報名後取消訂閱是 Coursera 的核心挑戰，衝動報名與真實學習強相關性不存在。",
+      "insight": "從「學員報名後 3 天內是否完成第一個模組」切入，這個早期完成行為預測最終完課率超過 80%，是最重要的 onboarding 里程碑指標。"
+    }
+  },
+  {
+    "id": "q20",
+    "company": "Stripe",
+    "industry": "支付基礎設施",
+    "scenario": "Stripe 對開發者免費提供 SDK，靠每筆成功交易抽手續費，必須確保整合者真正完成上線收款。",
+    "target_nsm_keywords": [
+      "Live 模式首筆收款",
+      "月 GMV 成長",
+      "API 成功率"
+    ],
+    "anti_patterns": [
+      "API Key 申請數",
+      "Sandbox 測試次數",
+      "文件頁瀏覽數"
+    ],
+    "field_examples": {
+      "step2": {
+        "nsm": "每月在 Live 模式成功處理超過 100 筆收款且 API 成功率超過 99% 的活躍商家數",
+        "explanation": "Stripe 免費提供 SDK 靠成功交易抽傭，商家 Live 環境高成功率代表整合穩定，直接等同平台的持續抽傭收益。",
+        "businessLink": "高 API 成功率的商家幾乎不會換支付服務商，因為技術整合成本極高，且 Stripe 的手續費在規模成長後往往下調吸引留存。"
+      },
+      "step3": {
+        "reach": "已完成 Sandbox 測試並切換至 Live 模式開始實際收款的活躍商家數，代表整合從試驗到生產的關鍵轉換。",
+        "depth": "每家商家的月均收款交易筆數與平均交易金額，高頻高額商家是 Stripe 手續費收益的核心貢獻者。",
+        "frequency": "商家每週產生收款的活躍天數，每天都有交易代表 Stripe 已是商家電商或訂閱業務的支付核心基礎設施。",
+        "impact": "月 GMV 成長率與手續費收益，商家業務成長帶動 Stripe 收益同步成長，是最對齊的商業指標關係。"
+      }
+    },
+    "context": {
+      "model": "Stripe 按每筆成功交易收取 2.9% + $0.30 手續費；核心商業邏輯是商家業務規模成長直接帶動 Stripe 收益，雙方激勵完全對齊。",
+      "users": "NSM 聚焦「已上線 Live 模式並有穩定交易量的商家或開發者」，不包含只在 Sandbox 環境測試卻未正式上線的試用帳號。",
+      "traps": "把「API Key 申請數」或「Sandbox 測試次數」當成長指標完全無效，大量開發者試用後從未正式上線，不產生任何交易收益。",
+      "insight": "從「商家是否在整合後 14 天內完成首筆 Live 收款」切入，這個 time-to-first-value 指標強預測 6 個月留存，是 Stripe 開發者成功團隊的核心追蹤指標。"
+    }
+  },
+  {
+    "id": "q21",
+    "company": "Figma",
+    "industry": "設計協作工具",
+    "scenario": "Figma 的核心價值在跨職能即時協作，若只有設計師單人使用，轉移成本低容易被取代。",
+    "target_nsm_keywords": [
+      "多人同時編輯次數",
+      "開發者標注匯出數",
+      "團隊付費方案升級率"
+    ],
+    "anti_patterns": [
+      "檔案創建數",
+      "個人帳號登入次數",
+      "元件庫瀏覽量"
+    ],
+    "field_examples": {
+      "step2": {
+        "nsm": "每週有超過 3 名不同角色（設計師、工程師、PM）同時編輯同一 Figma 專案的活躍團隊數",
+        "explanation": "Figma 的護城河是跨職能即時協作，單人設計師使用轉移成本低，多職能協作代表平台已成為產品開發流程核心。",
+        "businessLink": "有工程師使用開發標注功能的團隊付費方案升級率最高，跨職能協作是 Figma 最難被替代的差異化，直接驅動企業授權採購。"
+      },
+      "step3": {
+        "reach": "每週至少開啟並編輯 Figma 檔案的活躍付費席位數，剔除只是被加入 Viewer 但從未操作的觀察者帳號。",
+        "depth": "每個設計檔案的平均協作人數與 Comment 輪數，跨職能討論代表 Figma 已成為設計決策的溝通中心而非孤立的設計工具。",
+        "frequency": "每週主動編輯 Figma 的工作日天數，設計師 5 天連續活躍代表平台已是其核心設計工具，工程師 3 天以上使用標注功能代表開發流程整合。",
+        "impact": "企業 Organization 方案席位數成長率與工程師標注 Inspect 功能使用率，跨職能採用是 Figma 進入高 ACV 企業合約的核心驅動因子。"
+      }
+    },
+    "context": {
+      "model": "Figma 採 Freemium 模式，個人免費，Team/Organization 按席次月費；核心商業邏輯是從設計師採用擴散到工程師和 PM，形成全產品團隊採用。",
+      "users": "NSM 聚焦「在跨職能產品團隊中真正協作的設計師、工程師和 PM」，不包含只是個人練習設計卻無真實協作場景的個人帳號。",
+      "traps": "把「檔案創建數」當活躍度誤判，設計師常常創建大量草稿檔案探索方向，但真正產生企業價值的是交付給工程師實作的已完成設計稿。",
+      "insight": "從「工程師是否在設計師完稿後 48 小時內使用 Inspect 功能查看標注」切入，這個工程師行為代表設計與開發流程真正打通，是 Figma 企業採用的最強訊號。"
+    }
+  },
+  {
+    "id": "q22",
+    "company": "Grab",
+    "industry": "東南亞超級 App",
+    "scenario": "Grab 擁有叫車、外賣、支付多個垂直業務，必須確保用戶跨服務使用才能發揮超級 App 的規模效益。",
+    "target_nsm_keywords": [
+      "跨服務使用率",
+      "GrabPay 活躍交易",
+      "月訂單完成數"
+    ],
+    "anti_patterns": [
+      "App MAU",
+      "單一服務下載量",
+      "優惠券領取數"
+    ],
+    "field_examples": {
+      "step2": {
+        "nsm": "每月跨越至少 2 個服務（叫車、外賣、支付）並完成交易的活躍用戶數",
+        "explanation": "Grab 作為超級 App 的核心價值是跨服務整合，單一服務使用與競爭對手無差異，跨服務才能發揮規模效益。",
+        "businessLink": "跨服務用戶的月消費金額是單一服務用戶的 2.8 倍，且取消 Grab 的成本遠高（需同時換叫車、外賣、支付三個 App）。"
+      },
+      "step3": {
+        "reach": "每月在 Grab 平台至少完成一筆交易的活躍用戶數，以及 GrabPay 已啟用並使用的活躍錢包數。",
+        "depth": "每位用戶使用的服務類別數，超過 2 類代表開始形成超級 App 依賴，3 類以上代表 Grab 成為日常生活核心工具。",
+        "frequency": "每週使用任一 Grab 服務的天數，高頻用戶（每週 4 天以上）是平台 GMV 的核心貢獻者，也是訂閱 GrabUnlimited 的主要群體。",
+        "impact": "GrabPay 月活躍交易量與 GrabUnlimited 訂閱留存率，支付生態整合代表 Grab 掌握了用戶的金融行為數據，是廣告與金融服務收益的基礎。"
+      }
+    },
+    "context": {
+      "model": "Grab 採多垂直業務抽傭模式，叫車、外賣、超市、支付各自收費；超級 App 策略核心是跨服務整合提升用戶黏著，降低競爭對手切入的空間。",
+      "users": "NSM 聚焦「跨服務使用的高頻活躍用戶」，不包含只用單一服務（如只叫車）且不使用 GrabPay 的低整合度用戶。",
+      "traps": "把「App MAU」當超級 App 健康度指標忽略了跨服務深度，高 MAU 但低跨服務率代表用戶仍把 Grab 當單一功能 App 而非生活平台。",
+      "insight": "從「用戶在首次叫車後是否在 30 天內嘗試外賣或 GrabPay」切入，這個跨服務首次嘗試行為是超級 App 黏著形成的關鍵時間窗口。"
+    }
+  },
+  {
+    "id": "q23",
+    "company": "Canva",
+    "industry": "設計工具 SaaS",
+    "scenario": "Canva 定位為人人可用的設計工具，商業價值在於用戶真正產出並分享或下載成品。",
+    "target_nsm_keywords": [
+      "設計成品下載數",
+      "分享或發布次數",
+      "付費功能使用率"
+    ],
+    "anti_patterns": [
+      "範本瀏覽數",
+      "帳號創建數",
+      "拖拉元素操作次數"
+    ],
+    "field_examples": {
+      "step2": {
+        "nsm": "每月至少下載或公開分享一件設計成品的活躍用戶數",
+        "explanation": "Canva 的價值在讓任何人都能產出設計成品，下載或分享代表用戶真正完成了一件視覺作品而非只是探索工具。",
+        "businessLink": "有下載或分享行為的用戶付費 Canva Pro 的比例是未下載用戶的 4 倍，成品產出是付費轉換最強的前置行為指標。"
+      },
+      "step3": {
+        "reach": "每月至少創建並下載一件設計作品的活躍用戶數，剔除只是開啟範本預覽但從未實際編輯或下載的瀏覽型用戶。",
+        "depth": "每件設計作品的編輯複雜度（自定義元素比例）與分享次數，深度用戶會超越模板限制進行大幅客製化。",
+        "frequency": "每週使用 Canva 創建新設計的次數，每週超過 3 次代表 Canva 已成為用戶視覺創作的主要工具而非偶爾使用的備用工具。",
+        "impact": "Canva Pro 月訂閱轉換率與品牌套件使用率，付費功能（移除背景、品牌字體）代表設計需求升級，直接驅動訂閱收益。"
+      }
+    },
+    "context": {
+      "model": "Canva 採 Freemium 模式，免費版功能豐富，Pro 加購進階素材與品牌套件；Enterprise 版服務大型企業，核心收益來自付費轉換而非廣告。",
+      "users": "NSM 聚焦「有真實設計輸出需求的活躍創作者」，不包含只是偶爾搜尋靈感但不實際創建的瀏覽型用戶。",
+      "traps": "把「範本瀏覽數」或「拖拉元素操作次數」當用戶活躍度完全無法代表真實設計產出，用戶可能在範本探索後根本未輸出任何成品。",
+      "insight": "從「用戶首次設計並下載作品後是否在 7 天內回來創建第二件」切入，這個二創行為代表工具已嵌入創作流程，是付費轉換最強的早期訊號。"
+    }
+  },
+  {
+    "id": "q24",
+    "company": "LinkedIn",
+    "industry": "職業社群平台",
+    "scenario": "LinkedIn 的核心是職業人脈連結與機會媒合，若用戶只是被動瀏覽而不建立關係，廣告與招聘產品都會失效。",
+    "target_nsm_keywords": [
+      "成功建立連結數",
+      "求職申請送出數",
+      "招聘方成功聯繫候選人"
+    ],
+    "anti_patterns": [
+      "個人頁瀏覽量",
+      "文章按讚數",
+      "關注公司頁數"
+    ],
+    "field_examples": {
+      "step2": {
+        "nsm": "每月成功建立至少 5 個新連結並發出至少一個求職申請或招聘訊息的活躍用戶數",
+        "explanation": "LinkedIn 的核心是職業機會媒合，建立連結加上實際求職或招聘行為代表用戶在平台上真正在經營職業人脈網絡。",
+        "businessLink": "有活躍招聘行為的用戶是 LinkedIn Recruiter 付費方案的核心客群，求職者的積極申請行為提升媒合率讓招聘方更願意加碼採購。"
+      },
+      "step3": {
+        "reach": "每月至少更新個人 Profile 或完成一個連結請求的活躍用戶數，剔除只是被動瀏覽 Feed 從不與他人互動的觀察者。",
+        "depth": "每位用戶的月均連結數量與互動訊息往來深度（不只是接受連結，還包含訊息回覆），代表真實的人脈建立意圖。",
+        "frequency": "每週主動登入並執行至少一個有意義行動（發訊、申請、建立連結）的天數，每週 3 天以上代表職業人脈管理已成習慣。",
+        "impact": "LinkedIn Premium 與 Recruiter 訂閱轉換率，活躍求職或招聘的用戶付費意願最高，是 LinkedIn 最高 ARPU 的核心用戶群。"
+      }
+    },
+    "context": {
+      "model": "LinkedIn 主要靠 Recruiter、LinkedIn Premium 和 Job Ads 獲利，廣告是重要收益；核心商業邏輯是職業連結越活躍，招聘廣告效益越高，企業願意付更多。",
+      "users": "NSM 聚焦「有主動職業機會媒合行為的求職者與招聘方」，不包含只是偶爾刷 Feed 閱讀職場文章但從不建立連結的被動瀏覽用戶。",
+      "traps": "把「個人頁瀏覽量」或「文章按讚數」當活躍度誤判，這些行為成本極低且不代表用戶真實在管理自己的職業發展機會。",
+      "insight": "從「用戶是否在 Profile 完整度達到 80% 以上後開始主動連結和申請」切入，Profile 完整度是主動行為的前提，是提升求職成功率的關鍵 aha moment 指標。"
+    }
+  },
+  {
+    "id": "q25",
+    "company": "Square",
+    "industry": "POS 支付系統",
+    "scenario": "Square 鎖定中小型實體商家，平台收益來自每筆刷卡手續費，必須讓商家真正持續收款。",
+    "target_nsm_keywords": [
+      "月活躍收款天數",
+      "每月 GMV",
+      "首個月成功收款率"
+    ],
+    "anti_patterns": [
+      "讀卡機出貨量",
+      "帳號申請數",
+      "後台登入次數"
+    ],
+    "field_examples": {
+      "step2": {
+        "nsm": "每月至少有 20 個工作日使用 Square 刷卡機收款且月 GMV 超過 $5,000 的活躍商家數",
+        "explanation": "Square 的收益來自每筆刷卡手續費，商家持續每日收款代表平台已成為其收銀台核心，而非偶爾備用的輔助工具。",
+        "businessLink": "月 GMV 穩定超過 $5,000 的商家幾乎不會換 POS 系統，因為換機的培訓成本和數據遷移成本對小商家而言遠高於手續費差異。"
+      },
+      "step3": {
+        "reach": "每月至少有收款記錄的活躍商家數，以及首次安裝 Square 後成功完成第一筆刷卡的新商家比例（onboarding 成功率）。",
+        "depth": "每家商家月均收款金額與交易筆數，高 GMV 商家是 Square 手續費收益的核心，往往也加購庫存管理或員工排班模組。",
+        "frequency": "商家每月使用 Square 的活躍收款天數，每月 20 天以上代表 Square 是日常核心收銀工具而非只在特定場合使用。",
+        "impact": "月手續費收益與附加模組（Square Payroll、Square Online）訂閱率，商家業務多元化後加購附加服務是 Square 高 ARPU 的關鍵驅動。"
+      }
+    },
+    "context": {
+      "model": "Square 按每筆刷卡交易收取 2.6% + $0.10 手續費，讀卡機硬體低價或免費提供；核心收益靠高頻刷卡的小商家 GMV 累積。",
+      "users": "NSM 聚焦「有穩定每日實體收款需求的中小型商家」，如咖啡廳、美髮沙龍、市集攤販，不包含只是偶爾舉辦活動臨時用一次的非常規用戶。",
+      "traps": "把「讀卡機出貨量」當商家活躍度誤判，Square 讀卡機早期幾乎免費，商家申請後可能從未真正使用，出貨量嚴重高估活躍度。",
+      "insight": "從「商家首次使用 Square 完成 3 筆以上收款的時間點」切入，達到這個門檻的商家留存率顯著高於只試用一次的商家，是最關鍵的早期 adoption 確認指標。"
+    }
+  },
+  {
+    "id": "q26",
+    "company": "Booking.com",
+    "industry": "線上旅遊 OTA",
+    "scenario": "OTA 平台靠成功預訂抽佣，搜尋高轉換低代表演算法或定價出問題，整體健康度以成交衡量。",
+    "target_nsm_keywords": [
+      "確認預訂數",
+      "入住完成率",
+      "回頭預訂比例"
+    ],
+    "anti_patterns": [
+      "搜尋量",
+      "比價點擊數",
+      "頁面停留時間"
+    ],
+    "field_examples": {
+      "step2": {
+        "nsm": "每月確認預訂且實際完成入住的訂單數，且同一用戶在 6 個月內有再次預訂行為",
+        "explanation": "Booking.com 靠成功抽傭，搜尋高而成交低代表定價或信任問題，回訪預訂代表平台建立了旅客信任。",
+        "businessLink": "回訪預訂用戶的獲客成本為零，且往往選擇高客單價的住宿，是平台抽傭收益最高效率的用戶群體。"
+      },
+      "step3": {
+        "reach": "每月完成至少一筆入住的活躍預訂用戶數，以及在平台上線且月均完成 5 筆以上預訂的活躍房源數。",
+        "depth": "每筆預訂的平均住宿天數與客單價，長途旅行高客單代表平台已成為旅客跨城市出行的首選預訂工具。",
+        "frequency": "每位活躍用戶的年均預訂次數，年預訂 3 次以上代表 Booking.com 已成為旅行者的預設搜尋起點。",
+        "impact": "每筆成功入住的平台抽傭收益與用戶 Genius 會員忠誠度升級率，高等級 Genius 會員有更高的平均客單與回訪頻率。"
+      }
+    },
+    "context": {
+      "model": "Booking.com 按成功預訂向房源方抽傭（約 15-25%），對旅客免費；核心競爭壁壘是全球最大的房源庫存與 Genius 忠誠計劃。",
+      "users": "NSM 聚焦「有回訪預訂行為的高頻旅行者」，不包含只是比較價格後最終在其他平台或直訂的比價型流量。",
+      "traps": "把「搜尋量」或「比價點擊數」當轉換意圖誤判，高搜尋低成交代表用戶把平台當比價工具，最終轉去競爭對手成交。",
+      "insight": "從「旅客首次成功入住後是否在 Booking.com 應用程式上留下評價」切入，留評行為代表對平台的主動投入，是二次預訂的最強早期訊號。"
+    }
+  },
+  {
+    "id": "q27",
+    "company": "Calm",
+    "industry": "心理健康訂閱",
+    "scenario": "冥想 App 用戶在壓力高峰期付費，但若未形成習慣很快就取消，平台需確保用戶持續練習。",
+    "target_nsm_keywords": [
+      "每週冥想完成次數",
+      "連續使用天數",
+      "付費方案續約率"
+    ],
+    "anti_patterns": [
+      "App下載數",
+      "通知點擊率",
+      "課程收藏數"
+    ],
+    "field_examples": {
+      "step2": {
+        "nsm": "每週完成至少 4 次冥想課程且連續使用超過 14 天的付費訂閱者數",
+        "explanation": "Calm 的核心價值是習慣養成，高壓力期付費但若未形成每週練習習慣，下次扣款前取消率極高。",
+        "businessLink": "連續使用超過 14 天的用戶年費續約率是短期衝動訂閱者的 3 倍以上，習慣強度直接決定平台 ARR 的穩定性。"
+      },
+      "step3": {
+        "reach": "每週至少開啟 Calm 並完成一次冥想的活躍付費訂閱者數，剔除付費後從未真正使用的沉默帳號。",
+        "depth": "每次冥想的平均完成時長（是否聽到最後）與課程類型多樣性，深度用戶探索多種冥想主題代表習慣多元化嵌入。",
+        "frequency": "每週使用 Calm 的天數，每週 5 天以上代表冥想已成為日常例行習慣，流失風險顯著降低。",
+        "impact": "年費訂閱留存率與家庭方案升級率，長期習慣用戶往往在建立個人習慣後推薦家人一起訂閱，形成有機增長。"
+      }
+    },
+    "context": {
+      "model": "Calm 採年費訂閱制（約 $69.99/年），企業 B2B 健康福利方案是成長引擎；核心商業邏輯是焦慮與壓力高峰期吸引訂閱，習慣養成防止取消。",
+      "users": "NSM 聚焦「有長期心理健康管理意識並形成週練習習慣的付費用戶」，不包含只在高壓力期衝動訂閱後幾週就遺忘的試用型用戶。",
+      "traps": "把「課程收藏數」或「通知點擊率」當活躍度很危險，用戶可能收藏了大量課程計劃之後再聽，卻從未真正執行，收藏不等於使用。",
+      "insight": "從「用戶首次訂閱後是否在第 7 天前完成 3 次冥想」切入，早期使用密度強預測 30 天習慣形成，是 Calm 最關鍵的 onboarding 里程碑。"
+    }
+  },
+  {
+    "id": "q28",
+    "company": "Robinhood",
+    "industry": "零佣金股票交易",
+    "scenario": "平台靠訂單流量向做市商套利，必須確保用戶真正執行交易而非只是看行情。",
+    "target_nsm_keywords": [
+      "月活躍交易用戶數",
+      "每用戶交易筆數",
+      "Gold 會員轉換率"
+    ],
+    "anti_patterns": [
+      "帳號開設數",
+      "行情頁瀏覽量",
+      "自選股關注數"
+    ],
+    "field_examples": {
+      "step2": {
+        "nsm": "每月至少完成 3 筆股票或 ETF 買賣交易的活躍交易用戶數",
+        "explanation": "Robinhood 靠訂單流量向做市商套利（PFOF），只看行情不交易的用戶對平台不產生任何直接收益。",
+        "businessLink": "每月至少有 3 筆交易的用戶是 Robinhood Gold 付費方案的核心轉換群體，活躍交易者對進階保證金功能有明確需求。"
+      },
+      "step3": {
+        "reach": "每月完成至少一筆股票、ETF 或期權交易的活躍交易用戶數，剔除只是持有但不動的靜態投資帳號。",
+        "depth": "每位交易者的月均交易筆數與投資組合多樣性，深度交易者涉及多個標的與不同交易策略，PFOF 貢獻更高。",
+        "frequency": "每週主動執行交易的天數，每週 3 天以上代表用戶有主動投資習慣而非只是偶爾調整配置。",
+        "impact": "Gold 會員月訂閱轉換率與保證金使用率，活躍交易者對進階功能的需求直接驅動付費升級，是最高 ARPU 的用戶群。"
+      }
+    },
+    "context": {
+      "model": "Robinhood 主要靠 PFOF（訂單流量付費）和 Robinhood Gold 月訂閱獲利；零傭金模式吸引大眾散戶，商業核心是高交易量用戶貢獻的 PFOF 收益。",
+      "users": "NSM 聚焦「有定期主動交易習慣的散戶投資者」，不包含只是開戶後靜態持有指數基金從不操作的被動投資者。",
+      "traps": "把「行情頁瀏覽量」或「自選股關注數」當活躍度是虛榮指標，大量用戶每天看行情但從不執行交易，這些行為不產生任何 PFOF 收益。",
+      "insight": "從「用戶開戶後是否在 7 天內完成第一筆真實交易（非模擬）」切入，首週真實交易行為強預測 90 天留存，是最關鍵的 activation 確認指標。"
+    }
+  },
+  {
+    "id": "q29",
+    "company": "WeWork",
+    "industry": "共享辦公空間",
+    "scenario": "WeWork 賺的是空間租金差價，入住率與續租率直接決定現金流，必須確保辦公桌被真正使用。",
+    "target_nsm_keywords": [
+      "入住率",
+      "月租續簽率",
+      "熱座服務到訪次數"
+    ],
+    "anti_patterns": [
+      "會員卡申辦數",
+      "參觀預約數",
+      "網站瀏覽量"
+    ],
+    "field_examples": {
+      "step2": {
+        "nsm": "每月平均入住率超過 80% 且月租合約成功續簽的辦公空間數",
+        "explanation": "WeWork 靠租金差價獲利，高入住率代表空間資產有效利用，續簽代表會員真正以 WeWork 為辦公主場。",
+        "businessLink": "入住率超過 80% 的樓層邊際成本極低，租金差價利潤最大化；月租續簽減少銷售成本，是現金流穩定性的核心指標。"
+      },
+      "step3": {
+        "reach": "每月至少到訪辦公空間 15 天以上的活躍付費會員數，剔除只是買了卡但幾乎不到辦公的殭屍會員。",
+        "depth": "每位會員平均使用的設施種類（獨立辦公桌、會議室、活動空間），深度使用代表 WeWork 已成為完整辦公生態。",
+        "frequency": "每週到辦公室的天數，每週 4 天以上代表會員真正以 WeWork 作為主要工作場所而非偶爾使用的備用空間。",
+        "impact": "月租續簽率與企業客戶大辦公室合約轉換率，從個人熱座升級到企業專屬空間的客戶 ARPU 大幅提升。"
+      }
+    },
+    "context": {
+      "model": "WeWork 採空間租賃轉售模式，長約租入後按月或按年轉租給會員；核心利潤來自高入住率下的租金差價，固定成本高導致低入住率時虧損嚴重。",
+      "users": "NSM 聚焦「以 WeWork 作為主要辦公場所並有穩定月租的活躍會員」，不包含只是購買偶爾使用的熱座訪客通票用戶。",
+      "traps": "把「會員卡申辦數」或「參觀預約數」當健康度誤判，WeWork 早期曾大幅補貼吸引試用，申辦數高但實際到訪率低，虛假繁榮最終釀成財務危機。",
+      "insight": "從「企業客戶簽約入住後前 30 天的平均日均到訪人數」切入，入住初期到訪頻率直接預測 6 個月後是否續約，低到訪等於早期流失訊號。"
+    }
+  },
+  {
+    "id": "q30",
+    "company": "Peloton",
+    "industry": "健身硬體+訂閱",
+    "scenario": "高價健身器材搭配訂閱課程，若設備閒置超過兩週用戶極可能退訂，使用頻率是核心指標。",
+    "target_nsm_keywords": [
+      "每週騎乘次數",
+      "訂閱課程完成率",
+      "硬體+訂閱綁定留存率"
+    ],
+    "anti_patterns": [
+      "器材出貨量",
+      "App安裝數",
+      "課程瀏覽次數"
+    ],
+    "field_examples": {
+      "step2": {
+        "nsm": "每週騎乘或使用設備至少 3 次且完成訂閱課程的活躍硬體用戶數",
+        "explanation": "Peloton 高價器材閒置超過兩週代表用戶已心生放棄，週活躍使用是防止退訂的最強行為防線。",
+        "businessLink": "每週騎乘 3 次以上的用戶訂閱留存率是低頻用戶的 4 倍，設備使用頻率是 Peloton 訂閱收益的最強單一預測指標。"
+      },
+      "step3": {
+        "reach": "每月至少使用 Peloton 設備或 App 一次的活躍訂閱用戶數，剔除設備買回家後從未開機的完全放棄用戶。",
+        "depth": "每次騎乘的平均時長與輸出瓦數，深度用戶追求個人紀錄突破，代表課程對其訓練目標有真實價值。",
+        "frequency": "每週騎乘的次數，每週 3 次是 Peloton 自己設定的「習慣養成門檻」，低於此的用戶是高流失風險群體。",
+        "impact": "硬體加訂閱的合併月留存率，Peloton 真正的 LTV 來自長期訂閱費（$44/月 × 3-5 年），而非單次硬體銷售的利潤。"
+      }
+    },
+    "context": {
+      "model": "Peloton 採硬體高毛利加訂閱低流失的雙層模式；自行車 $1,445 的一次性銷售帶入用戶，月訂閱課程費才是長期 LTV 核心。",
+      "users": "NSM 聚焦「有明確健身習慣目標且每週穩定騎乘的活躍用戶」，不包含把設備買回家當裝飾品或只在節假日偶爾使用的低頻用戶。",
+      "traps": "把「App 安裝數」或「課程瀏覽次數」當活躍度是虛榮指標，用戶常在設備到貨時大量瀏覽課程但實際上機頻率持續下滑。",
+      "insight": "從「設備到貨後第一週騎乘次數是否達 3 次」切入，首週高強度使用代表用戶決心與習慣起點，強預測 90 天後是否仍在活躍訂閱。"
+    }
+  },
+  {
+    "id": "q31",
+    "company": "Miro",
+    "industry": "白板協作 SaaS",
+    "scenario": "Miro 主打遠端團隊視覺協作，唯有多人即時共同編輯才能體現平台價值，單人使用無法留住企業客戶。",
+    "target_nsm_keywords": [
+      "多人共同編輯 Board 數",
+      "跨團隊模板共用率",
+      "企業授權席位活躍率"
+    ],
+    "anti_patterns": [
+      "Board 創建總數",
+      "貼紙使用次數",
+      "帳號邀請發送數"
+    ],
+    "field_examples": {
+      "step2": {
+        "nsm": "每週有超過 3 名不同角色成員共同編輯同一 Board 的活躍企業工作空間數",
+        "explanation": "Miro 的護城河是多人視覺協作，單人使用無法體現白板價值，跨角色即時共編代表平台已嵌入團隊工作流程核心。",
+        "businessLink": "有多人共編行為的企業工作空間升級 Business 方案的比例遠高於單人用戶，跨職能協作是 Miro 進入企業合約的核心差異化。"
+      },
+      "step3": {
+        "reach": "每週至少有一次多人同時編輯行為的活躍付費工作空間數，剔除只有管理員一人在使用的獨立用戶帳號。",
+        "depth": "每個 Board 的平均協作人數與使用的模板類型，使用衝刺計劃或策略地圖等複雜模板代表深度業務流程整合。",
+        "frequency": "每週工作日中有多人協作行為的天數，5 天活躍代表 Miro 已成為團隊每日視覺思考的固定工具。",
+        "impact": "企業 Business/Enterprise 方案席位增購率，跨職能深度使用是 Miro 從 Team 升級到大型 Enterprise 合約的核心驅動因子。"
+      }
+    },
+    "context": {
+      "model": "Miro 採 Freemium 模式，免費版限 3 個 Board，Team/Business/Enterprise 按席次月費；核心收益靠從設計師或 PM 試用後擴散到整個工程和業務團隊。",
+      "users": "NSM 聚焦「在遠端或混合工作環境中有多人協作需求的跨職能團隊」，不包含只是個人使用白板畫心智圖的單人輕量用戶。",
+      "traps": "把「Board 創建總數」或「貼紙使用次數」當健康度會誤判，用戶在試用期常創建大量 Board 嘗試各種模板，但實際業務整合可能從未發生。",
+      "insight": "從「是否在首次多人協作 Board 後 14 天內邀請新成員加入第二個 Board」切入，擴散邀請行為代表 Miro 正在從個人工具變成團隊標準，是企業合約的前兆。"
+    }
+  },
+  {
+    "id": "q32",
+    "company": "Twilio",
+    "industry": "通訊 API 平台",
+    "scenario": "Twilio 按使用量計費，開發者整合後若沒有真實訊息發送就不產生收益，需確保 API 真正被投入生產。",
+    "target_nsm_keywords": [
+      "月成功訊息發送量",
+      "進入 Live 環境的開發者比例",
+      "付費帳戶 API 調用成長率"
+    ],
+    "anti_patterns": [
+      "試用帳號數",
+      "文件頁瀏覽量",
+      "Sandbox 訊息測試數"
+    ],
+    "field_examples": {
+      "step2": {
+        "nsm": "每月在 Live 環境成功發送超過 1,000 則訊息且 API 成功率超過 99% 的活躍付費帳號數",
+        "explanation": "Twilio 按訊息量計費，開發者測試環境的訊息不產生收益，只有 Live 環境的真實訊息代表業務真正上線。",
+        "businessLink": "每月 Live 訊息量超過 1,000 的帳號平均 ARPU 是試用帳號的 20 倍，且幾乎不會在短期內更換通訊 API 供應商。"
+      },
+      "step3": {
+        "reach": "已從 Sandbox 切換至 Live 模式並開始實際業務發訊的活躍付費帳號數，代表整合從測試到生產的關鍵轉換點。",
+        "depth": "每個帳號每月發送的訊息類別多樣性（OTP、通知、行銷簡訊），多類型使用代表 Twilio 已深入多個業務流程。",
+        "frequency": "每週 API 呼叫的活躍天數，7 天全週期呼叫代表 Twilio 是核心業務基礎設施而非偶爾使用的補充工具。",
+        "impact": "月 API 呼叫量成長率與帳號升級至付費企業方案的比例，高量呼叫帳號是 Twilio 最高 ARPU 的核心客群。"
+      }
+    },
+    "context": {
+      "model": "Twilio 按每則成功發送的訊息量計費（SMS 約 $0.0079/則），採用量計費模式；商業核心是開發者整合後的業務成長自然帶動 API 使用量增加。",
+      "users": "NSM 聚焦「已在 Live 環境整合 Twilio API 並有穩定業務訊息發送量的開發者或企業技術團隊」，不包含只在 Sandbox 測試的試用帳號。",
+      "traps": "把「試用帳號數」或「文件頁瀏覽量」當成長指標完全無效，大量開發者閱讀文件後可能從未真正完成 API 整合或切換至 Live 環境。",
+      "insight": "從「開發者是否在試用後 14 天內完成 Live 環境首則真實訊息發送」切入，這個 time-to-live 指標強預測長期帳號留存，是 Twilio 開發者成功的核心追蹤點。"
+    }
+  },
+  {
+    "id": "q33",
+    "company": "Klarna",
+    "industry": "先買後付 BNPL",
+    "scenario": "Klarna 靠商家手續費與用戶分期利息獲利，必須確保用戶真正完成分期消費並按時還款。",
+    "target_nsm_keywords": [
+      "成功分期交易數",
+      "準時還款率",
+      "商家接受 Klarna 結帳比例"
+    ],
+    "anti_patterns": [
+      "帳號申請數",
+      "購物車加入次數",
+      "信用額度核准數"
+    ],
+    "field_examples": {
+      "step2": {
+        "nsm": "每月成功完成分期消費且準時還款率超過 95% 的活躍 BNPL 用戶數",
+        "explanation": "Klarna 靠商家手續費與分期利息獲利，準時還款代表用戶財務健康且平台風控有效，是可持續的商業關係。",
+        "businessLink": "準時還款用戶的信用額度提升後往往帶動更高消費，且商家看到低壞帳率更願意接受 Klarna 作為結帳選項。"
+      },
+      "step3": {
+        "reach": "每月至少完成一筆 Klarna 分期交易的活躍用戶數，以及接受 Klarna 結帳的活躍商家數（雙邊成交覆蓋）。",
+        "depth": "每位用戶的月均消費金額與使用 Klarna 的交易類別多樣性，跨類別使用代表 Klarna 已成為用戶的首選分期工具。",
+        "frequency": "每月使用 Klarna 完成分期的次數，每月 2 次以上代表用戶已將 BNPL 嵌入日常購物決策而非只偶爾大額消費時使用。",
+        "impact": "商家手續費收益與用戶分期利息收益的月成長率，準時還款用戶的信用升級促進更高消費，形成 Klarna 收益的正向飛輪。"
+      }
+    },
+    "context": {
+      "model": "Klarna 向商家收取 2-8% 的處理手續費，部分用戶選擇長期分期時支付利息；BNPL 模式的風險是壞帳率，核心在於準時還款用戶的財務健康管理。",
+      "users": "NSM 聚焦「有穩定準時還款記錄的活躍 BNPL 消費者」，不包含只是嘗試一次後未再使用或有還款違約風險的高風險帳號。",
+      "traps": "把「信用額度核准數」或「帳號申請數」當健康度是典型陷阱，大量核准後若用戶不消費或消費後違約，代表的只是潛在的壞帳風險。",
+      "insight": "從「用戶首次分期後是否在 30 天內使用 Klarna 完成第二筆消費」切入，二次消費代表 BNPL 習慣成形，準時還款率持續追蹤確保財務健康平衡。"
+    }
+  },
+  {
+    "id": "q34",
+    "company": "Wolt",
+    "industry": "北歐外賣平台",
+    "scenario": "Wolt 在北歐市場靠高客單價維持，必須確保每筆訂單真正配送完成且用戶滿意，以驅動自然口碑。",
+    "target_nsm_keywords": [
+      "訂單成功送達率",
+      "用戶 NPS",
+      "月回購訂單數"
+    ],
+    "anti_patterns": [
+      "外送員招募數",
+      "App安裝量",
+      "餐廳上架數"
+    ],
+    "field_examples": {
+      "step2": {
+        "nsm": "每月成功送達且用戶評分 4 星以上的訂單數，且同一用戶在 30 天內再次下單",
+        "explanation": "Wolt 在北歐市場靠高客單價維持，成功送達加高評分加回購三個條件並列才代表三方體驗全面健康。",
+        "businessLink": "滿意回購的訂單平均客單價比首次訂單高 15%，且滿意用戶的口碑傳播使 Wolt 在北歐市場保持較低的付費獲客成本。"
+      },
+      "step3": {
+        "reach": "每月完成至少兩筆成功送達訂單的活躍消費者數，以及每月接單完成率超過 95% 的活躍外送員數。",
+        "depth": "每筆訂單的平均客單價與餐廳評分，北歐消費者願意為品質付溢價，高客單高評分代表品質定位準確。",
+        "frequency": "每位消費者的月訂單頻率，北歐用戶每月 3-4 次訂單代表外賣已成為週末或工作繁忙時的固定用餐選擇。",
+        "impact": "平台月 GMV 成長率與消費者 NPS，北歐市場競爭相對溫和，口碑驅動增長是 Wolt 維持市場份額的最有效方式。"
+      }
+    },
+    "context": {
+      "model": "Wolt 向消費者收取外送費，向餐廳抽傭（約 25-30%）；被 DoorDash 收購後，在北歐和東歐市場維持獨立品牌運營，差異化靠品質體驗而非補貼。",
+      "users": "NSM 聚焦「重視配送品質且有回購習慣的北歐消費者」，不包含只在特殊促銷期間下單一次的優惠敏感型用戶。",
+      "traps": "把「外送員招募數」或「餐廳上架數」當平台健康度會忽略服務品質，大量低評分餐廳或低完成率外送員反而損害 Wolt 的品質定位。",
+      "insight": "從「消費者收到訂單後是否在 15 分鐘內完成評分」切入，快速評分行為代表強烈的體驗感受（無論正負），是消費者參與度和回購意願的早期訊號。"
+    }
+  },
+  {
+    "id": "q35",
+    "company": "Typeform",
+    "industry": "問卷表單 SaaS",
+    "scenario": "Typeform 靠企業付費方案盈利，唯有用戶真正創建並收集到有效回應，才代表平台提供了價值。",
+    "target_nsm_keywords": [
+      "表單有效回應數",
+      "收集回應超過 10 份的活躍表單比例",
+      "付費方案升級率"
+    ],
+    "anti_patterns": [
+      "表單創建數",
+      "帳號登入次數",
+      "模板瀏覽量"
+    ],
+    "field_examples": {
+      "step2": {
+        "nsm": "每月創建的表單中有超過 50% 收集到 10 份以上有效回應的活躍付費帳號數",
+        "explanation": "Typeform 的核心價值是收集高品質問卷回應，創建表單但無人填答代表用戶沒有實際部署，平台價值未實現。",
+        "businessLink": "表單收到超過 10 份回應的帳號續訂率遠高於無回應帳號，這代表用戶真正在業務流程中使用 Typeform 而非只是試用。"
+      },
+      "step3": {
+        "reach": "每月至少有一個表單收集到 5 份以上回應的活躍付費帳號數，剔除只建表單從未分享或回應量為零的帳號。",
+        "depth": "每份表單的平均完成率（填到最後一題的比例），高完成率代表表單設計體驗優秀，反映平台核心價值主張。",
+        "frequency": "每月創建新表單的次數，每月 3 個以上代表 Typeform 已嵌入用戶的問卷調查工作流程而非一次性使用工具。",
+        "impact": "付費方案升級率（基礎→專業→企業），收集回應量超過免費版限制時自然驅動升級，是 Typeform ARPU 提升的核心機制。"
+      }
+    },
+    "context": {
+      "model": "Typeform 採 Freemium 模式，免費版限制月回應數，付費版解鎖無限回應與進階邏輯功能；核心收益來自回應量超出限制後的自然升級。",
+      "users": "NSM 聚焦「有真實問卷調查或客戶回饋收集需求的活躍付費用戶」，不包含只是試著做一個問卷看看介面的好奇型一次性用戶。",
+      "traps": "把「表單創建數」當健康度誤判，用戶常在試用期大量建表單實驗，但若從未分享出去讓人填答，等同平台未提供任何真實業務價值。",
+      "insight": "從「用戶創建表單後是否在 48 小時內分享並收到至少 5 份回應」切入，這個快速部署使用行為代表用戶有真實需求，是付費升級意願的最強早期訊號。"
+    }
+  },
+  {
+    "id": "q36",
+    "company": "Zendesk",
+    "industry": "客服 SaaS",
+    "scenario": "企業採用 Zendesk 是為了提升客服效率，平台需確保客服人員真正解決工單，而非只是開啟帳號。",
+    "target_nsm_keywords": [
+      "工單成功結案率",
+      "首次回應時間達標率",
+      "客服座席活躍比例"
+    ],
+    "anti_patterns": [
+      "帳號建立數",
+      "工單創建數",
+      "知識庫文章數"
+    ],
+    "field_examples": {
+      "step2": {
+        "nsm": "每週工單成功結案率超過 90% 且平均首次回應時間在 2 小時內的活躍客服座席數",
+        "explanation": "Zendesk 的企業價值是提升客服效率，工單結案率加首次回應時間並列才能衡量客服績效真正改善，而非只是開了帳號。",
+        "businessLink": "高結案率帳號的客服 SLA 達標讓企業主管在年度審查時更願意維持訂閱，且往往加購 AI 回應模組提升效率。"
+      },
+      "step3": {
+        "reach": "每週至少處理 10 張工單的活躍客服座席數，剔除已建帳號但從未登入或處理工單的幽靈席位。",
+        "depth": "每張工單的解決步驟數與客戶滿意度評分，深度解決複雜工單代表客服真正在利用平台知識庫功能而非只是手動回覆。",
+        "frequency": "每週工作日的工單處理活躍天數，5 天全活躍代表 Zendesk 是客服部門的日常工作核心工具而非偶爾登入查看狀態。",
+        "impact": "企業付費方案席位數成長率與 AI 功能附加模組採購率，高結案率帶來客戶滿意度提升，反過來驅動企業擴大客服規模。"
+      }
+    },
+    "context": {
+      "model": "Zendesk 按客服座席數月費收費，企業版包含 AI 功能；核心商業邏輯是客服效率提升讓企業 IT 採購者在年度審查時難以削減預算。",
+      "users": "NSM 聚焦「每日積極處理工單的一線客服人員」，不包含只是設置系統設定的管理員帳號或只偶爾查看報告的主管帳號。",
+      "traps": "把「工單創建數」當健康度是陷阱，工單數增加可能代表客戶問題增加（負面訊號）而非平台被更廣泛使用，需搭配結案率才能判斷。",
+      "insight": "從「新導入 Zendesk 的企業，客服團隊是否在 30 天內讓所有座席完成第一百張工單結案」切入，這個批量上手門檻是企業採用深度的最強訊號。"
+    }
+  },
+  {
+    "id": "q37",
+    "company": "Datadog",
+    "industry": "DevOps 監控 SaaS",
+    "scenario": "Datadog 按主機數與 Log 量計費，企業只有在真正部署監控並接收到有效警報時，才能感受到平台價值。",
+    "target_nsm_keywords": [
+      "活躍監控主機數",
+      "警報觸發並處理率",
+      "Dashboard 多人查看次數"
+    ],
+    "anti_patterns": [
+      "Agent 安裝次數",
+      "API Key 生成數",
+      "試用天數消耗量"
+    ],
+    "field_examples": {
+      "step2": {
+        "nsm": "每月有超過 80% 監控主機持續傳送指標且至少觸發過一次有效警報並完成處理的活躍企業帳號數",
+        "explanation": "Datadog 的價值在於讓工程師實際看到並處理系統異常，安裝 Agent 但無人查看 Dashboard 代表整合未真正帶來可觀測性。",
+        "businessLink": "有效警報處理行為代表工程團隊依賴 Datadog 作為事件應變核心，這類帳號在主機數或 Log 量成長時自然帶動 Datadog 費用增長。"
+      },
+      "step3": {
+        "reach": "每月至少有一半監控主機持續傳送指標（非只安裝後靜默）的活躍付費帳號數，代表監控真正上線運作。",
+        "depth": "每個帳號的 Dashboard 共享次數與多人查看頻率，跨團隊查看代表 Datadog 已成為工程組織共享的可觀測性平台。",
+        "frequency": "每週工程師主動進入 Datadog 查看 Dashboard 或處理警報的天數，5 天活躍代表可觀測性已嵌入工程日常。",
+        "impact": "監控主機數月成長率與 APM/Log 附加模組採購率，工程師依賴越深，Datadog 的使用量計費收益自然隨業務規模成長。"
+      }
+    },
+    "context": {
+      "model": "Datadog 採用量計費，按監控主機數與 Log 攝入量收費；核心商業邏輯是工程師一旦依賴可觀測性平台，隨著系統擴張費用自然增長。",
+      "users": "NSM 聚焦「負責系統穩定性的 SRE 或後端工程師」，不包含只是試裝 Agent 看看效果但從未設置警報或持續監控的試用帳號。",
+      "traps": "把「Agent 安裝次數」或「API Key 生成數」當採用度嚴重高估，大量企業在試用期安裝後從未設置警報或查看 Dashboard，不代表真實採用。",
+      "insight": "從「企業帳號是否在 14 天內完成第一個有效警報設置並觸發過一次通知」切入，這個警報首觸發行為代表監控真正上線，是 Datadog 留存的最強早期確認指標。"
+    }
+  },
+  {
+    "id": "q38",
+    "company": "Intercom",
+    "industry": "客戶溝通平台",
+    "scenario": "Intercom 結合行銷與客服，企業付費是為了與用戶建立有效對話，若訊息發出後無人回應則轉換率為零。",
+    "target_nsm_keywords": [
+      "對話轉換為成交率",
+      "訊息回覆率",
+      "自動化流程觸發後解決問題比例"
+    ],
+    "anti_patterns": [
+      "訊息發送總數",
+      "Widget 安裝次數",
+      "聯絡人匯入數"
+    ],
+    "field_examples": {
+      "step2": {
+        "nsm": "每月透過 Intercom 發起的對話中有超過 30% 轉換為成交或問題解決的活躍企業帳號數",
+        "explanation": "Intercom 整合行銷與客服，若訊息發出後無人回應或回應後無成交，企業難以感受到工具投資回報而取消。",
+        "businessLink": "對話轉換率達標的帳號不僅續訂率高，更傾向採購 Intercom Fin AI 自動化功能，代表平台在其業務流程中不可替代。"
+      },
+      "step3": {
+        "reach": "每月至少發起 100 則客戶對話並獲得回應的活躍企業帳號數，剔除只設置 Widget 但幾乎無訪客互動的低流量帳號。",
+        "depth": "每次對話的平均輪數與解決問題的比例，深度對話代表業務或客服真正透過 Intercom 建立了有效的客戶關係。",
+        "frequency": "每週業務或客服人員使用 Intercom 收發訊息的工作日天數，5 天活躍代表平台已成為與客戶溝通的主要渠道。",
+        "impact": "付費方案席位升級率與 Fin AI 採購率，高對話轉換帳號的客戶成功案例讓其他部門也想採用，形成帳號內擴張。"
+      }
+    },
+    "context": {
+      "model": "Intercom 按活躍聯絡人數計費，AI 功能附加收費；核心商業邏輯是客戶訊息量成長帶動聯絡人數增加，自然推動 Intercom 計費成長。",
+      "users": "NSM 聚焦「負責客戶成功或銷售的業務與客服人員」，不包含只是 IT 設置 Widget 後從未真正使用對話功能的技術管理帳號。",
+      "traps": "把「訊息發送總數」或「Widget 安裝次數」當健康度誤判，企業可能設置自動化訊息轟炸用戶，但若回應率為零代表完全沒有建立真實溝通關係。",
+      "insight": "從「企業帳號是否在首週內完成第一個有人工回應的客戶對話並達到解決」切入，這個首次成功對話是 Intercom 採用深度的最強 aha moment 訊號。"
+    }
+  },
+  {
+    "id": "q39",
+    "company": "Brex",
+    "industry": "新創公司企業信用卡",
+    "scenario": "Brex 靠刷卡手續費與金融服務獲利，必須確保企業客戶真正使用企業卡進行支出，而非只是申辦備用。",
+    "target_nsm_keywords": [
+      "月活躍刷卡企業比例",
+      "每張卡平均月消費額",
+      "企業客戶留存率"
+    ],
+    "anti_patterns": [
+      "企業申請卡片數",
+      "帳號登入次數",
+      "財務報告下載量"
+    ],
+    "field_examples": {
+      "step2": {
+        "nsm": "每月平均刷卡金額超過 $10,000 且月留存率超過 95% 的活躍企業客戶數",
+        "explanation": "Brex 靠刷卡手續費獲利，申辦卡後若企業不真正用於日常支出，代表 Brex 未成為企業財務的核心工具。",
+        "businessLink": "月消費超過 $10,000 的企業客戶貢獻了 Brex 手續費收益的核心，且對 Brex 的財務管理功能依賴度高，幾乎不會主動更換。"
+      },
+      "step3": {
+        "reach": "每月至少有一筆企業刷卡支出的活躍帳號數，剔除申辦後從未使用或只做了一次測試交易的殭屍企業帳號。",
+        "depth": "每張 Brex 卡的月均消費金額與支出類別多樣性，涵蓋薪資、差旅、軟體等多類別代表企業財務全面數位化。",
+        "frequency": "每週有企業刷卡記錄的工作日天數，5 天全週活躍代表 Brex 已成為企業日常運營支出的核心支付工具。",
+        "impact": "月刷卡手續費收益與企業信用額度使用率，高額度使用代表企業財務依賴深度，形成 Brex 難以被替換的護城河。"
+      }
+    },
+    "context": {
+      "model": "Brex 靠刷卡返點計劃吸引新創企業，主要收益來自交換手續費；定位新創企業財務工具，透過快速審批和高額度與傳統銀行差異化競爭。",
+      "users": "NSM 聚焦「以 Brex 作為主要企業支出工具的活躍新創企業財務團隊」，不包含只是備用卡申辦後從未實際使用的低活躍帳號。",
+      "traps": "把「企業申請卡片數」當成長指標嚴重誤判，新創企業常申辦多家企業卡備用，若 Brex 未能成為首要支出工具，申辦只是虛榮指標。",
+      "insight": "從「企業申辦後首個月是否達成月消費 $5,000 以上」切入，首月消費額強預測 6 個月後 Brex 是否成為該企業的主要支付工具。"
+    }
+  },
+  {
+    "id": "q40",
+    "company": "DocuSign",
+    "industry": "電子簽名 SaaS",
+    "scenario": "電子簽名的商業價值在於合約真正完成簽署，若文件發出後超時未簽，代表流程有斷點。",
+    "target_nsm_keywords": [
+      "合約完簽率",
+      "平均簽署完成時間",
+      "自動化工作流程使用比例"
+    ],
+    "anti_patterns": [
+      "文件上傳數",
+      "帳號啟用數",
+      "簽名欄位建立數"
+    ],
+    "field_examples": {
+      "step2": {
+        "nsm": "每月發出的合約中有超過 85% 在 48 小時內完成所有簽署方簽字的活躍企業帳號數",
+        "explanation": "DocuSign 的核心價值是加速合約流程，48 小時內完簽代表電子簽名真正消除了傳統紙本簽署的延遲瓶頸。",
+        "businessLink": "快速完簽帳號的合約量往往逐季成長，且容易採購 Workflow 自動化功能，代表 DocuSign 已嵌入核心業務決策流程。"
+      },
+      "step3": {
+        "reach": "每月至少發送 5 份需要簽署文件的活躍企業帳號數，剔除只是試用上傳文件但從未實際發起簽署流程的帳號。",
+        "depth": "每份合約的平均簽署完成時間與簽署方數量，涉及多方簽署的複雜合約代表 DocuSign 已整合進高價值業務流程。",
+        "frequency": "每週發起新合約簽署的次數，每週超過 3 份代表 DocuSign 已成為業務或法務的日常工具而非只在特殊場合使用。",
+        "impact": "企業付費方案席位數成長率與 Workflow 自動化採購率，合約量成長自然推動套裝升級，形成 DocuSign 的正向 ARPU 成長。"
+      }
+    },
+    "context": {
+      "model": "DocuSign 採年費訂閱制，按文件發送量與席位數計費；核心商業邏輯是一旦企業合約流程數位化，替換成本極高，每年自動續約。",
+      "users": "NSM 聚焦「需要定期發起多方合約簽署的法務、業務或採購人員」，不包含只是偶爾需要簽個人同意書的個人用戶。",
+      "traps": "把「文件上傳數」當活躍度誤判，企業可能上傳大量文件後選擇線下列印簽署，若不真正發起電子簽署流程，平台核心價值完全未被使用。",
+      "insight": "從「企業帳號第一份合約的平均簽署完成時間相比基準縮短多少」切入，時間節省的體感驅動法務與業務主動推廣至更多合約場景，是 viral 採用的起點。"
+    }
+  },
+  {
+    "id": "q41",
+    "company": "Airtable",
+    "industry": "低代碼資料庫工具",
+    "scenario": "Airtable 定位企業營運核心資料庫，唯有多部門協作使用才能累積高轉移成本並支撐企業付費。",
+    "target_nsm_keywords": [
+      "多部門共同使用 Base 數",
+      "自動化流程執行次數",
+      "企業方案席位活躍率"
+    ],
+    "anti_patterns": [
+      "Base 創建數",
+      "個人帳號登入次數",
+      "模板複製數"
+    ],
+    "field_examples": {
+      "step2": {
+        "nsm": "每月有超過 3 個不同部門使用同一 Airtable Base 且包含自動化流程的活躍企業帳號數",
+        "explanation": "Airtable 從個人試算表工具升級為企業資料庫，需要跨部門協作加上自動化流程才能建立真正高轉移成本的護城河。",
+        "businessLink": "跨部門使用且有自動化的 Base 其企業帳號年費續約率接近 95%，業務流程深度整合後替換 Airtable 需要跨組織重組數據架構。"
+      },
+      "step3": {
+        "reach": "每月至少有 3 名不同部門用戶登入並編輯的活躍企業 Base 數，剔除只有單一部門或只有管理員在維護的孤立 Base。",
+        "depth": "每個 Base 的自動化觸發次數與視圖類型數量，使用多種視圖（看板、甘特、日曆）代表跨職能角色都找到了最適合自己的工作介面。",
+        "frequency": "每週各部門成員登入並更新 Base 記錄的天數，跨部門 5 天全活躍代表 Airtable 是各部門每日工作流程的真正核心。",
+        "impact": "企業方案席位增購率與 Airtable Apps 附加採購率，深度整合帶動席位自然成長，是 Airtable 進入大型 Enterprise 合約的核心路徑。"
+      }
+    },
+    "context": {
+      "model": "Airtable 採 Freemium 模式，免費版功能有限，Team/Business/Enterprise 按席次月費；核心策略是從個人工具擴散到整個部門再到跨部門，提升 ACV。",
+      "users": "NSM 聚焦「跨部門協作並依賴 Airtable Base 管理核心業務數據的企業用戶」，不包含只是個人用來管理任務清單的個人帳號。",
+      "traps": "把「Base 創建數」或「個人登入次數」當健康度忽略協作深度，個人用戶可能在試用期建立大量 Base 實驗，但若無跨部門共用，Airtable 的護城河不存在。",
+      "insight": "從「企業帳號是否在 30 天內有來自銷售、行銷、營運三個不同部門的成員同時編輯過同一 Base」切入，這個跨部門首次協作是企業 adoption 最強的里程碑指標。"
+    }
+  },
+  {
+    "id": "q42",
+    "company": "Monday.com",
+    "industry": "專案管理 SaaS",
+    "scenario": "專案管理工具需成為團隊日常工作核心，若只有 PM 使用而開發或設計未跟進，付費合理性就會被質疑。",
+    "target_nsm_keywords": [
+      "跨職能成員每週活躍率",
+      "任務完成並更新狀態比例",
+      "企業授權續約率"
+    ],
+    "anti_patterns": [
+      "工作板創建數",
+      "邀請發送數",
+      "視圖切換次數"
+    ],
+    "field_examples": {
+      "step2": {
+        "nsm": "每週有超過 60% 的跨職能成員（PM、工程師、設計師）登入並更新任務狀態的活躍企業工作空間數",
+        "explanation": "Monday.com 的企業價值在全團隊透明度，若只有 PM 在維護看板而工程師和設計師不登入，工具淪為單人記事本。",
+        "businessLink": "跨職能全員活躍的工作空間其年費續約率遠高於單一部門使用，且企業擴編時自然增購席位，形成正向 ARR 成長。"
+      },
+      "step3": {
+        "reach": "每週至少登入並更新一個任務狀態的活躍跨職能成員數，不只是 PM 而是包含工程師和設計師。",
+        "depth": "每個項目的任務完成並更新至「完成」狀態的比例，深度使用代表 Monday.com 是真實項目追蹤工具而非只是計劃展示板。",
+        "frequency": "每週工作日的全員活躍天數，跨職能 5 天活躍代表平台已成為整個項目團隊的日常溝通透明化工具。",
+        "impact": "企業授權席位年費續約率與 CRM/Dev 附加工作坊採購率，全員深度使用是 Monday.com 進入大型 Enterprise 合約的最強訊號。"
+      }
+    },
+    "context": {
+      "model": "Monday.com 按席次月費收費，Enterprise 版支援自定義工作流程；商業核心是從 PM 試用擴散到全團隊採用，提升每個企業帳號的 ACV。",
+      "users": "NSM 聚焦「有跨職能成員主動使用並更新任務狀態習慣的整個項目團隊」，不包含只有 PM 在維護看板而其他成員從不登入的孤立使用模式。",
+      "traps": "把「工作板創建數」或「邀請發送數」當健康度忽略真實參與度，企業 IT 常在試用期邀請所有人加入，但若後續無人登入代表採用完全失敗。",
+      "insight": "從「新工作空間啟用後 2 週內，是否有 3 個以上職能角色各自完成過任務更新」切入，這個早期多角色參與代表跨職能 adoption，是留存的最強早期預測指標。"
+    }
+  },
+  {
+    "id": "q43",
+    "company": "HubSpot",
+    "industry": "行銷銷售 CRM",
+    "scenario": "HubSpot 靠企業升級 Hub 方案獲利，必須確保業務真正在平台追蹤客戶，讓 Pipeline 數據真實可信。",
+    "target_nsm_keywords": [
+      "業務每週更新聯絡人比例",
+      "Deal 推進至下一階段數",
+      "成交記錄創建率"
+    ],
+    "anti_patterns": [
+      "聯絡人匯入總數",
+      "Email 發送量",
+      "帳號登入次數"
+    ],
+    "field_examples": {
+      "step2": {
+        "nsm": "每週至少更新 5 個聯絡人狀態且推進至少 2 個 Deal 到下一階段的活躍業務人員數",
+        "explanation": "HubSpot 的核心是業務 Pipeline 數據可信度，業務若不在平台更新進度，CRM 就變成一個假數據倉庫，主管看不到真實情況。",
+        "businessLink": "Pipeline 數據真實的帳號其業務主管更依賴 HubSpot 做決策，從而升級更高 Hub 方案加購進階報表與 AI 功能。"
+      },
+      "step3": {
+        "reach": "每週至少登入並執行一個 CRM 操作（更新聯絡人、記錄通話、推進 Deal）的活躍業務席位數。",
+        "depth": "每個 Deal 的平均推進階段數與聯繫記錄完整度，深度用戶會詳細記錄每次通話和 Email 往來，讓 Pipeline 預測更準確。",
+        "frequency": "每週工作日業務人員登入 HubSpot 的天數，5 天全活躍代表 CRM 已成為業務的日常工作核心而非只是週報時才登入的工具。",
+        "impact": "HubSpot Hub 方案升級率與 Sales Hub + Marketing Hub 合購率，Pipeline 數據真實帶動主管信任，進而採購更多 Hub 擴大使用。"
+      }
+    },
+    "context": {
+      "model": "HubSpot 採 Freemium + Hub 組合訂閱模式，Marketing/Sales/Service Hub 分開計費；商業核心是從免費 CRM 切入，隨企業成長逐步採購更多 Hub。",
+      "users": "NSM 聚焦「每天主動在 HubSpot 更新 Pipeline 數據的一線業務人員」，不包含只是 IT 設置整合或主管偶爾查看報告的輕量用戶。",
+      "traps": "把「聯絡人匯入總數」或「Email 發送量」當 CRM 採用度誤判，大量匯入後若業務不在平台跟進，數據立刻過時，CRM 的核心預測價值消失。",
+      "insight": "從「業務人員是否在開始使用 HubSpot 後第一個月內在平台記錄了一筆成交的 Deal」切入，首筆成交記錄代表業務開始信任 CRM 數據，是長期採用的起點。"
+    }
+  },
+  {
+    "id": "q44",
+    "company": "Rippling",
+    "industry": "HR + IT SaaS",
+    "scenario": "Rippling 整合人資、薪資與 IT 管理，企業若只用單一模組則轉移成本低，跨模組整合才是護城河。",
+    "target_nsm_keywords": [
+      "跨模組同時啟用比例",
+      "自動化 Onboarding 完成率",
+      "月薪資發放成功率"
+    ],
+    "anti_patterns": [
+      "員工帳號創建數",
+      "文件上傳數",
+      "App 登入次數"
+    ],
+    "field_examples": {
+      "step2": {
+        "nsm": "每月同時使用 HR 模組和 IT 模組且完成自動化 Onboarding 的企業帳號數",
+        "explanation": "Rippling 的護城河是跨模組整合，只用 HR 或只用 IT 轉移成本低，同時使用才能讓替換成本達到驚人高度。",
+        "businessLink": "同時啟用 HR 和 IT 模組的企業帳號 ARPU 是單模組用戶的 3 倍，且幾乎從不主動取消，因為替換需要拆除跨部門整合架構。"
+      },
+      "step3": {
+        "reach": "每月至少有一名新員工完成 Rippling 自動化 Onboarding（帳號開通＋設備部署＋薪資設置）的活躍企業帳號數。",
+        "depth": "每個企業帳號啟用的模組數量，超過 3 個模組（HR＋Payroll＋IT）代表深度整合，替換成本接近「不可能任務」。",
+        "frequency": "每月 Rippling 自動化工作流程觸發次數，高頻觸發代表企業 HR/IT 流程已全面數位化，依賴度極高。",
+        "impact": "企業帳號年費 ACV 成長率與模組增購率，每增加一個模組都顯著提升留存率，是 Rippling 高 NRR 的核心機制。"
+      }
+    },
+    "context": {
+      "model": "Rippling 採模組化訂閱制，HR/IT/Finance 各自計費；商業核心是模組整合帶來的跨部門數據一體化，形成越用越難替換的複合護城河。",
+      "users": "NSM 聚焦「同時管理人力資源和 IT 資產的企業 HR/IT 管理員」，不包含只是試用單一薪資模組的小企業輕量用戶。",
+      "traps": "把「員工帳號創建數」或「文件上傳數」當採用度是典型陷阱，企業 IT 可能批量建帳號，但若自動化工作流程從未觸發，整合完全沒有落地。",
+      "insight": "從「新入職員工是否在 24 小時內通過 Rippling 自動完成設備部署和帳號開通」切入，這個 Onboarding 自動化完成代表 HR＋IT 模組真正打通，是最強護城河指標。"
+    }
+  },
+  {
+    "id": "q45",
+    "company": "Loom",
+    "industry": "非同步視訊溝通",
+    "scenario": "Loom 解決遠端團隊開太多會議的問題，平台價值在於影片真正被觀看並取代一次同步會議。",
+    "target_nsm_keywords": [
+      "影片完整觀看率",
+      "觀看後留言或反應比例",
+      "取代 Zoom 會議的替代使用次數"
+    ],
+    "anti_patterns": [
+      "影片錄製總數",
+      "帳號創建數",
+      "分享連結點擊數"
+    ],
+    "field_examples": {
+      "step2": {
+        "nsm": "每月錄製的影片中有超過 70% 被觀看者完整看完且留下留言或反應的活躍帳號數",
+        "explanation": "Loom 的核心是影片真正取代會議，若觀看者沒有反應代表非同步溝通沒有建立雙向理解，無法取代同步會議。",
+        "businessLink": "有高觀看完成率的帳號其業務或客服轉換率顯著高於低完成率帳號，代表 Loom 真正提升了非同步溝通的有效性。"
+      },
+      "step3": {
+        "reach": "每月至少錄製 3 支 Loom 影片的活躍用戶數，以及每月至少完整觀看 5 支 Loom 的活躍觀看者數（雙邊活躍）。",
+        "depth": "每支影片的平均完整觀看率與觀看後的互動率（留言、表情反應），高完看率加高互動代表非同步溝通達成共識。",
+        "frequency": "每週使用 Loom 錄製新影片的次數，每週 3 次以上代表非同步影片溝通已替代了部分固定會議。",
+        "impact": "Business 方案付費席位率與 Loom AI 功能採購率，有效非同步溝通文化的企業更願意為每個成員購買 Loom 席位。"
+      }
+    },
+    "context": {
+      "model": "Loom 採 Freemium 模式，免費版限制錄製時長，Business 版無限制並加入 AI 功能；被 Atlassian 收購後整合 Jira/Confluence 生態。",
+      "users": "NSM 聚焦「有真實非同步溝通需求且定期錄製影片更新給團隊的遠端工作者」，不包含只是試著錄一次影片玩看看的個人試用帳號。",
+      "traps": "把「影片錄製總數」當平台健康度誤判，用戶可能錄製大量影片後從未分享，或分享後觀看者只點開前 10 秒就關掉，代表非同步溝通完全失敗。",
+      "insight": "從「影片錄製後是否在 24 小時內有觀看者留下留言或表情反應」切入，即時互動代表非同步溝通建立了雙向理解，是 Loom 核心價值主張的最直接驗證。"
+    }
+  },
+  {
+    "id": "q46",
+    "company": "Pagerduty",
+    "industry": "事件應變 SaaS",
+    "scenario": "PagerDuty 在系統故障時扮演關鍵角色，企業付費是為了確保 On-call 工程師能在 SLA 內響應事件。",
+    "target_nsm_keywords": [
+      "平均事件響應時間",
+      "事件確認並解決比例",
+      "On-call 覆蓋率"
+    ],
+    "anti_patterns": [
+      "警報發送數",
+      "帳號邀請數",
+      "整合服務連接數"
+    ],
+    "field_examples": {
+      "step2": {
+        "nsm": "每月在 SLA 規定時間內完成確認與解決的事件比例超過 90% 的活躍工程團隊帳號數",
+        "explanation": "PagerDuty 的企業價值是在系統故障時確保 SLA 達標，若 On-call 工程師沒有按時響應，企業面臨違約風險。",
+        "businessLink": "SLA 達標率高的帳號在年度審查時能向業務方展示平台投資回報，進而擴大 On-call 覆蓋範圍並增購席位。"
+      },
+      "step3": {
+        "reach": "每月至少觸發一次真實生產事件並完成處理的活躍工程師帳號數，剔除只是設置了 On-call 排班但從未實際響應的帳號。",
+        "depth": "每次事件的平均解決時間（MTTR）與事件根本原因分析（Post-mortem）完成率，深度使用代表工程文化真正內化了事件管理流程。",
+        "frequency": "每週至少有一次 On-call 班表生效且有工程師實際在線的天數，7 天全覆蓋代表 PagerDuty 真正保護了生產系統的可靠性。",
+        "impact": "企業座席數年費留存率與 AIOps 功能採購率，SLA 達標帶動業務信任，進而採購智能事件關聯功能降低噪音警報。"
+      }
+    },
+    "context": {
+      "model": "PagerDuty 按 On-call 工程師席位數月費收費，企業版加入 AIOps 與事件分析功能；核心商業邏輯是生產系統故障代價遠高於 PagerDuty 費用，留存率極高。",
+      "users": "NSM 聚焦「負責系統可靠性的 On-call SRE 或後端工程師」，不包含只是被加入告警通知群組但從未實際處理過事件的外圍觀察者帳號。",
+      "traps": "把「警報發送數」當活躍度是陷阱，大量警報可能代表過多的假陽性（Alert Fatigue），工程師開始忽視通知，這是平台失效而非成功的訊號。",
+      "insight": "從「企業帳號第一個月的平均 MTTR 相比基準改善了多少」切入，響應時間的可量化改善是工程主管向 CTO 展示採購合理性的最有力論據。"
+    }
+  },
+  {
+    "id": "q47",
+    "company": "Webflow",
+    "industry": "無代碼網站建構",
+    "scenario": "Webflow 讓非工程師也能建站，商業價值在於網站真正上線並帶來流量，而非停留在草稿。",
+    "target_nsm_keywords": [
+      "網站發布比例",
+      "上線網站月訪客數",
+      "付費主機方案訂閱率"
+    ],
+    "anti_patterns": [
+      "專案創建數",
+      "元件拖拉操作次數",
+      "範本瀏覽量"
+    ],
+    "field_examples": {
+      "step2": {
+        "nsm": "每月至少一個網站成功發布且月訪客數超過 100 的付費帳號數",
+        "explanation": "Webflow 讓非工程師建站，只有網站真正上線且有真實訪客，才代表平台幫助用戶實現了「無需工程師發布網站」的核心承諾。",
+        "businessLink": "有真實訪客流量的網站用戶感受到 Webflow 的商業價值，從而升級付費主機方案並加購 CMS 或電商功能。"
+      },
+      "step3": {
+        "reach": "每月至少有一個發布至自訂域名的上線網站的活躍付費帳號數，剔除只在 Webflow 草稿或預覽環境中設計但從未正式發布的帳號。",
+        "depth": "已發布網站的月均訪客數與訪客來自 SEO 或外部連結的比例，有機流量代表用戶真正在業務上使用網站而非只是個人作品集。",
+        "frequency": "每月更新網站內容（修改文字、更新圖片、新增頁面）的次數，定期維護代表網站是活躍業務工具而非靜態展示品。",
+        "impact": "付費主機方案訂閱率與 CMS/電商附加功能採購率，有流量的網站用戶對進階功能的需求顯著，推動 ARPU 自然成長。"
+      }
+    },
+    "context": {
+      "model": "Webflow 採 Freemium 建站加付費主機雙層模式，免費版可設計但需付費才能使用自訂域名；核心差異化是設計自由度加上無需工程師的建站能力。",
+      "users": "NSM 聚焦「有真實網站發布需求的行銷人員、設計師或創業者」，不包含只是用 Webflow 練習設計技巧但無意發布上線的學習型帳號。",
+      "traps": "把「專案創建數」或「元件操作次數」當活躍度誤判，設計師常在 Webflow 中大量實驗各種設計方案，但若從未發布任何一個，代表平台從未創造真實業務價值。",
+      "insight": "從「用戶建立帳號後是否在 30 天內發布第一個真實網站到自訂域名」切入，這個首次發布是 Webflow 最關鍵的 activation 指標，未發布的帳號 60 天後流失率超過 75%。"
+    }
+  },
+  {
+    "id": "q48",
+    "company": "Mixpanel",
+    "industry": "產品分析 SaaS",
+    "scenario": "Mixpanel 幫助 PM 和工程師做數據決策，若報表建好卻無人查看，平台就不會被視為核心工具。",
+    "target_nsm_keywords": [
+      "週活躍查詢報表用戶數",
+      "Insight 分享至 Slack/Email 次數",
+      "數據看板跨團隊訂閱率"
+    ],
+    "anti_patterns": [
+      "事件追蹤數",
+      "SDK 安裝次數",
+      "帳號邀請數"
+    ],
+    "field_examples": {
+      "step2": {
+        "nsm": "每週至少查詢一次漏斗分析或留存報表且將洞察分享給至少一位同事的活躍 PM/工程師用戶數",
+        "explanation": "Mixpanel 的核心是讓數據驅動決策，若報表建好無人查看或查看後沒有影響任何決策，工具對企業的投資回報為零。",
+        "businessLink": "有跨團隊分享洞察行為的帳號其年費留存率最高，且往往在帳號內擴大採購，讓更多 PM 和工程師也使用 Mixpanel。"
+      },
+      "step3": {
+        "reach": "每週至少登入並查詢一次 Insight 或漏斗報表的活躍付費帳號數，剔除只是技術人員設置追蹤後無人查看的工程型帳號。",
+        "depth": "每個帳號每月建立的 Dashboard 數量與 Insight 的共享次數，跨團隊分享代表數據洞察正在影響實際業務決策。",
+        "frequency": "每週使用 Mixpanel 查詢數據的工作日天數，5 天全活躍代表 PM 和工程師已將數據查詢嵌入日常工作流程。",
+        "impact": "企業授權席位成長率與 Data Pipeline 附加採購率，數據驅動文化成熟後企業自然增購席位讓更多部門使用分析工具。"
+      }
+    },
+    "context": {
+      "model": "Mixpanel 採月活躍用戶計費模式，付費版解鎖進階分析功能；核心商業邏輯是產品數據追蹤量越大、分析越深，企業付費意願越高。",
+      "users": "NSM 聚焦「定期主動查詢數據並分享洞察給團隊的 PM 和工程師」，不包含只是技術端設置 SDK 後從未真正查看報表的工程型管理員。",
+      "traps": "把「事件追蹤數」或「SDK 安裝次數」當採用度，完全忽略了是否有人在查看分析結果，工程師設好追蹤後若 PM 從不登入，平台毫無業務價值。",
+      "insight": "從「PM 是否在功能上線後 7 天內用 Mixpanel 查詢新功能的使用率」切入，這個「功能發布後的即時數據驗證」行為代表數據驅動文化真正落地。"
+    }
+  },
+  {
+    "id": "q49",
+    "company": "Plaid",
+    "industry": "金融資料 API",
+    "scenario": "Plaid 靠金融機構 API 連結次數計費，唯有用戶真正授權並連結銀行帳戶才產生收益。",
+    "target_nsm_keywords": [
+      "成功銀行帳戶連結數",
+      "連結後 7 天內實際數據調用率",
+      "活躍應用商業夥伴數"
+    ],
+    "anti_patterns": [
+      "SDK 下載數",
+      "連結嘗試次數",
+      "Demo 環境測試數"
+    ],
+    "field_examples": {
+      "step2": {
+        "nsm": "每月成功連結並在 7 天內真實調用銀行數據的活躍應用合作夥伴數",
+        "explanation": "Plaid 靠 API 連結次數計費，用戶授權連結銀行後若合作夥伴 App 從未調用數據，代表整合功能未真正上線使用。",
+        "businessLink": "連結後 7 天內有真實數據調用的合作夥伴其 API 調用量持續成長，代表 Plaid 已成為其核心金融功能基礎設施。"
+      },
+      "step3": {
+        "reach": "每月完成至少一次成功銀行帳戶連結（非測試模式）的活躍合作夥伴應用數，剔除只在沙盒環境測試的試用帳號。",
+        "depth": "每個連結帳戶的平均數據調用次數與調用的數據類型多樣性，調用多種端點（餘額、交易、身份）代表深度整合。",
+        "frequency": "每週 API 調用的活躍天數，7 天全週期調用代表 Plaid 已是合作夥伴 App 的實時金融數據核心基礎設施。",
+        "impact": "月 API 調用量成長率與活躍合作夥伴帳號數，合作夥伴業務成長帶動 Plaid API 調用量同步成長，形成最佳化的激勵對齊。"
+      }
+    },
+    "context": {
+      "model": "Plaid 按 API 連結次數與數據調用量計費，主要向金融科技合作夥伴收費；核心商業邏輯是合作夥伴 App 用戶越多，Plaid 的連結需求越大。",
+      "users": "NSM 聚焦「已在 Live 環境整合 Plaid API 並有真實用戶連結銀行帳戶的金融科技合作夥伴開發者」，不包含只在沙盒測試的學習型帳號。",
+      "traps": "把「SDK 下載數」或「連結嘗試次數」當成長指標忽略了真實成功率，大量連結嘗試若成功率低代表 UX 流程或銀行支援問題，而非真實採用。",
+      "insight": "從「新合作夥伴在整合後 30 天內的首個 100 次成功用戶銀行連結」切入，這個早期連結量代表合作夥伴 App 正在成長，Plaid 的收益自然隨之增加。"
+    }
+  },
+  {
+    "id": "q50",
+    "company": "Amplitude",
+    "industry": "用戶行為分析",
+    "scenario": "Amplitude 競爭激烈，企業數據分析工具若無法讓團隊養成數據驅動習慣，很快會被替代。",
+    "target_nsm_keywords": [
+      "每週主動查詢漏斗/留存的用戶數",
+      "Insight 驅動的功能迭代案例數",
+      "企業授權活躍席位比例"
+    ],
+    "anti_patterns": [
+      "事件總數",
+      "Dashboard 數量",
+      "帳號邀請數"
+    ],
+    "field_examples": {
+      "step2": {
+        "nsm": "每週至少執行一次漏斗或留存查詢且將結果用於功能迭代決策的活躍企業帳號數",
+        "explanation": "Amplitude 競爭 Mixpanel 激烈，核心差異是讓更多角色（不只工程師）養成數據驅動習慣，帶動整個組織的分析採用。",
+        "businessLink": "有功能迭代決策記錄與 Amplitude 分析關聯的帳號其年費留存率超過 90%，數據驅動文化落地後替換分析工具的成本極高。"
+      },
+      "step3": {
+        "reach": "每週至少有 3 個以上不同職能成員（PM、工程師、設計師）登入並查詢 Amplitude 的活躍企業帳號數。",
+        "depth": "每個帳號每月建立的 Cohort 分析數與 Insight 分享次數，跨職能分享代表數據洞察影響了多個層面的決策。",
+        "frequency": "每週使用 Amplitude 的工作日天數，跨職能 5 天活躍代表 Amplitude 已成為組織的共享數據語言，不只是工程師的工具。",
+        "impact": "企業授權活躍席位比例與 Amplitude CDP 附加採購率，全組織採用分析工具後數據基礎建設投資自然增加，ARPU 顯著提升。"
+      }
+    },
+    "context": {
+      "model": "Amplitude 採月活躍用戶計費，Enterprise 版加入 Data Management 和 Experiment 功能；核心差異化是比 Mixpanel 更直觀的 UI 讓非工程師也能獨立分析。",
+      "users": "NSM 聚焦「定期主動分析產品數據並用洞察驅動決策的 PM 和設計師」，不包含只是 IT 工程師設置數據追蹤後無人真正分析的技術型帳號。",
+      "traps": "把「事件總數」或「Dashboard 數量」當採用度完全忽略查詢行為，企業可能追蹤數千個事件和建立上百個 Dashboard，但若從未被查看則等同無用。",
+      "insight": "從「PM 是否在 Amplitude 中建立並持續追蹤至少一個自訂 KPI Dashboard」切入，這個個人化追蹤行為代表 PM 開始將 Amplitude 視為自己的數據工作台，是深度採用的起點。"
+    }
+  },
+  {
+    "id": "q51",
+    "company": "Rappi",
+    "industry": "拉美超級外賣 App",
+    "scenario": "Rappi 在拉丁美洲競爭激烈，補貼燒錢期已過，需確保用戶養成真實點餐習慣並維持每月回購。",
+    "target_nsm_keywords": [
+      "月活躍下單用戶數",
+      "無補貼自然回購率",
+      "外送員完成率"
+    ],
+    "anti_patterns": [
+      "App安裝量",
+      "優惠券使用次數",
+      "餐廳合作數"
+    ],
+    "field_examples": {
+      "step2": {
+        "nsm": "每月在無補貼狀態下主動下單且完成至少 2 筆訂單的活躍用戶數",
+        "explanation": "Rappi 補貼期已過，無補貼自然回購是判斷用戶是否真正形成外賣習慣的核心指標，代表平台真實的留存健康度。",
+        "businessLink": "無補貼回購用戶的獲客成本為零，且平均客單價通常高於補貼用戶，是 Rappi 在拉美轉向盈利的核心用戶群。"
+      },
+      "step3": {
+        "reach": "每月至少完成一筆自然下單（非優惠碼驅動）的活躍消費者數，剔除只在促銷時下單且促銷結束後消失的套利用戶。",
+        "depth": "每筆訂單的平均金額與訂購類別多樣性（餐廳、超市、藥局），跨類別使用代表 Rappi 超級 App 策略正在落地。",
+        "frequency": "每月主動下單的次數，每月 4 次以上代表外賣已嵌入用戶日常而非只在懶得做飯時偶爾使用的工具。",
+        "impact": "月 GMV 成長率與 Rappi Prime 訂閱留存率，形成習慣的用戶訂閱 Prime 免外送費，進一步降低每次下單摩擦形成正循環。"
+      }
+    },
+    "context": {
+      "model": "Rappi 採多垂直外賣撮合模式，向消費者收外送費，向商家抽傭；拉美市場早期靠補貼獲客，現在核心挑戰是如何讓用戶在補貼結束後仍願意付費使用。",
+      "users": "NSM 聚焦「有真實外賣需求並在無補貼狀態下仍主動下單的拉美城市中產消費者」，不包含只是被折扣吸引的一次性薅羊毛用戶。",
+      "traps": "把「App 安裝量」或「優惠券使用次數」當健康度是補貼期特有的誤判，補貼結束後這些指標急跌，唯有自然回購率才能反映真實留存。",
+      "insight": "從「用戶在首次折扣訂單後是否在 14 天內完成第一筆全價訂單」切入，這個從折扣到全價的轉換行為是用戶從促銷客轉化為習慣用戶的關鍵里程碑。"
+    }
+  },
+  {
+    "id": "q52",
+    "company": "Garmin",
+    "industry": "穿戴裝置+健康平台",
+    "scenario": "Garmin 靠硬體賣出後，平台要以 Connect 生態系建立用戶黏著，確保裝置真正被日常佩戴與追蹤。",
+    "target_nsm_keywords": [
+      "每日步數同步率",
+      "健康挑戰完成比例",
+      "進階方案訂閱率"
+    ],
+    "anti_patterns": [
+      "裝置出貨量",
+      "App下載數",
+      "帳號創建數"
+    ],
+    "field_examples": {
+      "step2": {
+        "nsm": "每日至少同步一次步數或健康數據且每月完成至少一個健康挑戰的活躍 Connect 用戶數",
+        "explanation": "Garmin 硬體賣出後，Connect 生態系需確保裝置被日常佩戴，挑戰完成代表用戶主動使用健康功能而非只是計步器。",
+        "businessLink": "Connect 高活躍用戶是 Garmin 進階訓練功能訂閱的核心客群，且在換新裝置時高度傾向繼續選 Garmin 維持歷史數據連續性。"
+      },
+      "step3": {
+        "reach": "每日至少同步一次健康數據到 Garmin Connect 的活躍佩戴用戶數，剔除購買後裝置放在抽屜不配戴的低使用率用戶。",
+        "depth": "每位用戶追蹤的健康指標類別數（步數、睡眠、心率、訓練），多維度追蹤代表用戶深度依賴 Garmin 作為全方位健康助理。",
+        "frequency": "每週佩戴並同步的天數，7 天全週期佩戴代表裝置已成為日常必戴品而非只在運動時才戴的運動配件。",
+        "impact": "進階訓練訂閱轉換率（Garmin Connect Premium）與換機購買新款 Garmin 的比例，歷史數據積累是用戶留在 Garmin 生態系的最強理由。"
+      }
+    },
+    "context": {
+      "model": "Garmin 採硬體一次性銷售加上 Connect 免費生態系的模式，Premium 功能訂閱為輔；核心商業策略是生態系黏著讓用戶持續升級 Garmin 新款裝置。",
+      "users": "NSM 聚焦「有日常健康追蹤習慣且以 Garmin 作為主要健康助理的活躍佩戴者」，不包含只是偶爾在路跑比賽時佩戴的低頻運動用戶。",
+      "traps": "把「裝置出貨量」當平台健康度是硬體公司常見陷阱，出貨後若裝置使用率低代表用戶不滿意或沒有形成習慣，下次換機時可能選擇 Apple Watch。",
+      "insight": "從「裝置購入後第一個月的平均每日步數同步率是否超過 85%」切入，高頻同步的早期習慣強預測用戶 2 年後仍在 Garmin 生態系的概率。"
+    }
+  },
+  {
+    "id": "q53",
+    "company": "Revolut",
+    "industry": "數位銀行",
+    "scenario": "Revolut 從免費帳戶升級到 Premium/Metal 靠功能差異化，需確保用戶真正將 Revolut 作為主要帳戶使用。",
+    "target_nsm_keywords": [
+      "月薪資入帳比例",
+      "海外消費刷卡筆數",
+      "Premium 方案留存率"
+    ],
+    "anti_patterns": [
+      "帳號開立數",
+      "KYC 通過數",
+      "App打開次數"
+    ],
+    "field_examples": {
+      "step2": {
+        "nsm": "每月薪資入帳至 Revolut 帳戶且每月有超過 5 筆主動消費的用戶數",
+        "explanation": "Revolut 從備用卡升級為主帳戶的核心指標是薪資入帳，代表用戶開始將 Revolut 視為主要財務管理工具而非旅遊備用。",
+        "businessLink": "薪資入帳用戶的 Premium 升級率是非薪資帳戶的 4 倍，主帳戶定位讓 Revolut 可以交叉銷售投資、保險、貸款等高毛利金融服務。"
+      },
+      "step3": {
+        "reach": "每月在 Revolut 進行至少一筆主動消費（非只接收轉入的被動帳戶）的活躍用戶數。",
+        "depth": "每位用戶使用的 Revolut 功能類別數（匯款、換匯、投資、消費），多功能使用代表 Revolut 已成為全方位金融工具。",
+        "frequency": "每週主動使用 Revolut 消費或匯款的次數，每週 3 次以上代表 Revolut 已嵌入日常財務生活而非只在出國時才用的匯率工具。",
+        "impact": "Premium/Metal 方案月留存率與投資功能使用率，主帳戶用戶採購高費率方案的意願顯著高於偶發使用的免費帳號。"
+      }
+    },
+    "context": {
+      "model": "Revolut 採 Freemium 模式，基本帳戶免費，Premium/Metal 月費解鎖進階功能；核心商業邏輯是成為用戶的主帳戶後交叉銷售更多金融服務。",
+      "users": "NSM 聚焦「以 Revolut 作為主要日常帳戶進行薪資入帳和日常消費的深度用戶」，不包含只是旅遊換匯或偶爾海外消費的備用型用戶。",
+      "traps": "把「帳號開立數」或「KYC 通過數」當成長完全忽略激活，Revolut 早期快速增長大量帳號但活躍率偏低，帳號數嚴重高估真實用戶規模。",
+      "insight": "從「用戶是否在開戶後 30 天內完成第一筆薪資入帳」切入，這個主帳戶化的信號是 Revolut 成長策略的核心里程碑，也是 Premium 付費轉換的前提條件。"
+    }
+  },
+  {
+    "id": "q54",
+    "company": "Brainly",
+    "industry": "學生問答社群",
+    "scenario": "Brainly 靠 P2P 問答讓學生得到學習幫助，需確保提問者真正得到解答且回答者持續貢獻知識。",
+    "target_nsm_keywords": [
+      "問題獲得滿意答案率",
+      "回答者月活躍比例",
+      "付費移除廣告轉換率"
+    ],
+    "anti_patterns": [
+      "問題發文數",
+      "用戶註冊數",
+      "頁面瀏覽量"
+    ],
+    "field_examples": {
+      "step2": {
+        "nsm": "每月發問且獲得至少一個有效答案並標記為「最佳答案」的活躍提問者數",
+        "explanation": "Brainly 的核心是 P2P 問答幫助學生，提問者標記最佳答案代表真正得到學習幫助，而非只是發問後沉默消失。",
+        "businessLink": "獲得滿意答案的學生留存率是未獲答案學生的 3 倍，且往往成為貢獻回答的活躍成員，驅動社群正向自我增強。"
+      },
+      "step3": {
+        "reach": "每月至少提問一次的活躍學生用戶數，以及每月回答至少 5 個問題的活躍貢獻者數（雙邊社群健康指標）。",
+        "depth": "每個回答的詳細程度（字數、解題步驟完整性）與提問者評分，深度回答代表社群知識品質而非敷衍了事的答案。",
+        "frequency": "每週訪問 Brainly 並發生互動（提問或回答）的天數，每週 3 天以上代表平台已成為學生學習循環的常規資源。",
+        "impact": "付費移除廣告的轉換率與 Brainly Plus 訂閱率，有效的學習幫助體驗讓願意付費擁有更好體驗的學生比例提升。"
+      }
+    },
+    "context": {
+      "model": "Brainly 採免費 P2P 問答加廣告模式，Brainly Plus 訂閱移除廣告並加速答案；核心商業邏輯是大規模社群提問回答形成知識庫，廣告收益與用戶規模正相關。",
+      "users": "NSM 聚焦「有真實學習問題需要解答的中學生和大學生」，以及「有教學成就感的活躍回答貢獻者」，兩者都需要健康才能維持社群品質。",
+      "traps": "把「問題發文數」或「用戶註冊數」當健康度誤判，大量問題若無人回答代表社群供給不足，問題發文數高但答覆率低是平台負面訊號。",
+      "insight": "從「新用戶在首次提問後是否在 24 小時內得到回答並評分」切入，快速獲得有效答案的體驗決定學生是否形成在 Brainly 求助的習慣。"
+    }
+  },
+  {
+    "id": "q55",
+    "company": "ClassPass",
+    "industry": "健身訂閱平台",
+    "scenario": "ClassPass 讓用戶以單一訂閱跨館上課，若信用點數未消耗完就表示用戶感受不到價值，續約率會下滑。",
+    "target_nsm_keywords": [
+      "月信用點數使用率",
+      "每月預約並完成課程數",
+      "跨場館到訪多樣性"
+    ],
+    "anti_patterns": [
+      "用戶訂閱數",
+      "課程瀏覽次數",
+      "健身房合作數"
+    ],
+    "field_examples": {
+      "step2": {
+        "nsm": "每月信用點數使用率超過 80% 且跨越至少 3 個不同健身房的訂閱用戶數",
+        "explanation": "ClassPass 讓用戶以一個訂閱探索多場館，點數使用率代表用戶感受到訂閱價值，跨場館代表多樣性體驗真正被使用。",
+        "businessLink": "點數使用率超過 80% 的用戶月續訂率接近 92%，因為他們已感受到 ClassPass 的多元場館價值而非單一健身房會員卡的替代品。"
+      },
+      "step3": {
+        "reach": "每月至少預約並完成 2 堂課的活躍訂閱用戶數，剔除訂閱後從未預約或只預約但臨時缺席的低使用率帳號。",
+        "depth": "每位用戶訪問的健身房類型多樣性（瑜珈、重訓、拳擊、游泳），多類型體驗代表 ClassPass 的核心價值主張被充分使用。",
+        "frequency": "每月預約並完成的課程次數，每月 8 次以上代表健身已形成穩定習慣，訂閱續費是用戶的自然選擇。",
+        "impact": "月訂閱留存率與點數加購率，點數使用完但仍想繼續使用的用戶會加購點數，代表 ClassPass 已成為其健身生活的核心工具。"
+      }
+    },
+    "context": {
+      "model": "ClassPass 採月點數訂閱制，用戶以點數預約各合作場館的課程；平台向場館收取費用並保留差價，核心商業邏輯是高訂閱留存加上場館端的廣告與曝光費。",
+      "users": "NSM 聚焦「有探索多樣健身方式需求的活躍訂閱者」，不包含只是想要比單一場館會員便宜而訂閱但最終去同一家健身房的低多樣性用戶。",
+      "traps": "把「用戶訂閱數」當健康度只看供給端，若大量訂閱者每月點數使用率不到 20%，代表他們感受不到價值，下個月取消率會大幅上升。",
+      "insight": "從「用戶在首月是否訪問超過 3 個不同類型的場館」切入，多場館探索行為代表用戶在充分體驗 ClassPass 的差異化，是月留存的最強早期訊號。"
+    }
+  },
+  {
+    "id": "q56",
+    "company": "Faire",
+    "industry": "B2B 批發電商",
+    "scenario": "Faire 連結獨立品牌與零售商，平台靠成功批發交易抽傭，零售商下單但不轉賣等於白費。",
+    "target_nsm_keywords": [
+      "成功完成批發訂單數",
+      "零售商復購率",
+      "品牌入駐後首筆訂單率"
+    ],
+    "anti_patterns": [
+      "品牌申請數",
+      "產品瀏覽次數",
+      "零售商帳號數"
+    ],
+    "field_examples": {
+      "step2": {
+        "nsm": "每月完成至少一筆無退貨批發訂單且在 60 天內下第二筆的活躍零售商數",
+        "explanation": "Faire 提供退貨保障吸引零售商，但平台收益來自成功批發，60 天內復購代表零售商確認商品有銷路，形成穩定採購關係。",
+        "businessLink": "60 天內有第二筆訂單的零售商其年均採購金額是只下單一次的 5 倍以上，是 Faire 平台 GMV 成長的核心驅動群體。"
+      },
+      "step3": {
+        "reach": "每月至少完成一筆批發訂單（非只是加入購物車）的活躍零售商數，以及每月有新訂單進來的活躍品牌數。",
+        "depth": "每筆訂單的平均金額與採購品牌多樣性，高客單且跨品牌採購代表零售商真正以 Faire 為主要批發採購平台。",
+        "frequency": "每季採購的次數，季均 2-3 次代表零售商按照銷售週期定期在 Faire 補貨，形成穩定的 B2B 採購習慣。",
+        "impact": "平台月 GMV 成長率與品牌入駐後的首筆訂單轉換率，品牌首筆成交代表 Faire 的撮合功能有效，帶動更多品牌願意入駐。"
+      }
+    },
+    "context": {
+      "model": "Faire 採雙邊批發撮合模式，向品牌收取佣金（約 25% 對新零售商，15% 對已有關係的零售商）；退貨保障降低零售商採購風險是核心差異化。",
+      "users": "NSM 聚焦「有穩定採購需求並定期在 Faire 進貨的獨立零售商」，不包含只是試著下一筆單看退貨保障是否好用的機會型採購者。",
+      "traps": "把「品牌申請數」或「產品頁瀏覽次數」當健康度是雙邊電商常見誤判，高瀏覽低成交代表搜尋體驗或定價問題，不代表平台健康。",
+      "insight": "從「零售商首次收到 Faire 商品後是否在 14 天內回到平台瀏覽同品牌更多產品」切入，這個探索延伸行為代表零售商開始建立與品牌的長期採購關係。"
+    }
+  },
+  {
+    "id": "q57",
+    "company": "Clearbit",
+    "industry": "B2B 數據情報",
+    "scenario": "Clearbit 提供企業 Enrichment API，若 API 整合後沒有真正呼叫即代表未融入工作流程，付費難以維持。",
+    "target_nsm_keywords": [
+      "月 API 呼叫量",
+      "Enrichment 覆蓋率達標比例",
+      "CRM 整合後活躍使用企業數"
+    ],
+    "anti_patterns": [
+      "API Key 申請數",
+      "試用帳號數",
+      "文件頁瀏覽量"
+    ],
+    "field_examples": {
+      "step2": {
+        "nsm": "每月 API 呼叫超過 500 次且 CRM 整合後 Enrichment 覆蓋率超過 80% 的活躍企業帳號數",
+        "explanation": "Clearbit 的核心價值是讓業務精準觸達目標客戶，API 高呼叫量加高覆蓋率代表數據真正嵌入業務自動化工作流程。",
+        "businessLink": "高 API 使用量帳號幾乎不會更換數據供應商，因為更換需要重新評估所有數據欄位的覆蓋率，轉換成本遠高於年費。"
+      },
+      "step3": {
+        "reach": "每月至少呼叫 Clearbit API 50 次的活躍付費帳號數，剔除只是申請 Key 後很少調用的低使用率試用型帳號。",
+        "depth": "每個帳號使用的 API 端點類別數（Enrichment、Reveal、Autocomplete），多端點使用代表數據深度嵌入多個業務流程。",
+        "frequency": "每週有 API 呼叫的工作日天數，5 天全週期呼叫代表 Clearbit 數據已整合進企業的日常行銷或銷售自動化流程。",
+        "impact": "年費合約留存率與 API 呼叫量月成長率，帳號業務成長自然帶動更多數據 Enrichment 需求，形成 Clearbit 收益的自然成長。"
+      }
+    },
+    "context": {
+      "model": "Clearbit 採 API 調用量計費，按月收取基礎費加上超量費；核心商業邏輯是企業一旦將 Clearbit 整合進 CRM 工作流程，替換數據供應商的成本極高。",
+      "users": "NSM 聚焦「已將 Clearbit 整合進 CRM 自動化且有穩定每日數據 Enrichment 需求的行銷或銷售運營團隊」，不包含只是試用 API 查幾家公司的個人探索帳號。",
+      "traps": "把「API Key 申請數」或「試用帳號數」當採用度嚴重高估，大量開發者申請後評估但最終決定不整合，只有真實 Live 環境呼叫量才代表有效採用。",
+      "insight": "從「企業帳號是否在首月 Clearbit 整合後的潛客 Enrichment 覆蓋率超過 70%」切入，高覆蓋率代表 Clearbit 數據與企業目標市場高度匹配，是長期採用的前提。"
+    }
+  },
+  {
+    "id": "q58",
+    "company": "Notion Calendar",
+    "industry": "行事曆 SaaS",
+    "scenario": "Notion Calendar 要整合工作文件與時間管理，唯有用戶真正在 Calendar 中調度並連結 Notion 文件，才能建立轉移障礙。",
+    "target_nsm_keywords": [
+      "連結 Notion Page 的事件比例",
+      "每週主動建立活動數",
+      "多人日曆共享使用率"
+    ],
+    "anti_patterns": [
+      "帳號綁定 Google 數",
+      "App安裝數",
+      "事件創建總數"
+    ],
+    "field_examples": {
+      "step2": {
+        "nsm": "每週建立超過 5 個事件且至少 30% 連結 Notion Page 的活躍 Calendar 用戶數",
+        "explanation": "Notion Calendar 的護城河是打通時間管理與文件，若行事曆事件不連結 Notion 文件，用戶體驗與 Google Calendar 無差異。",
+        "businessLink": "有 Notion Page 連結行為的用戶在換工具時需同時移轉行事曆和文件兩套系統，轉移成本顯著高於只用行事曆的用戶。"
+      },
+      "step3": {
+        "reach": "每週至少建立 3 個行事曆事件的活躍 Notion Calendar 用戶數，剔除只是綁定 Google 帳戶後從未主動使用的帳號。",
+        "depth": "每個事件中連結 Notion Page 的比例，高連結率代表用戶真正在時間管理和文件之間建立了工作流程橋樑。",
+        "frequency": "每週開啟 Notion Calendar 並主動調整事件的工作日天數，5 天活躍代表日曆已成為用戶每日計劃工具而非偶爾查看的附加功能。",
+        "impact": "Notion 付費方案留存率（Calendar 提升整體 Notion 黏著度）與多人日曆共享啟用率，共享日曆代表工作坊的時間協調功能真正落地。"
+      }
+    },
+    "context": {
+      "model": "Notion Calendar 是 Notion 的免費附加產品，目的是加強 Notion 整體生態系的黏著度；商業核心是降低用戶離開 Notion 的可能性而非獨立創造收益。",
+      "users": "NSM 聚焦「已是 Notion 活躍用戶且希望將時間管理與文件系統整合的知識工作者」，不包含只是嘗試 Calendar 功能的非 Notion 用戶。",
+      "traps": "把「Google Calendar 帳號綁定數」當採用度誤判，大量用戶綁定後只是當成另一個 Google Calendar 的鏡像，完全不使用 Notion Page 連結功能。",
+      "insight": "從「用戶是否在 7 天內完成第一個連結 Notion 文件的行事曆事件」切入，這個首次跨工具連結行為代表用戶開始體驗 Notion 生態系整合的核心價值。"
+    }
+  },
+  {
+    "id": "q59",
+    "company": "ElevenLabs",
+    "industry": "AI 語音合成",
+    "scenario": "ElevenLabs 按字元或使用量計費，若用戶只試玩未整合到產品中，短期試用後會離開。",
+    "target_nsm_keywords": [
+      "月生成語音字元數",
+      "API 整合並進入生產環境比例",
+      "付費方案升級率"
+    ],
+    "anti_patterns": [
+      "試用生成次數",
+      "帳號創建數",
+      "音色收藏數"
+    ],
+    "field_examples": {
+      "step2": {
+        "nsm": "每月 API 生成語音超過 50 萬字元且已整合至生產產品的活躍付費帳號數",
+        "explanation": "ElevenLabs 按字元計費，試玩生成幾句話不代表真實需求，50 萬字元代表用戶已在實際產品中大規模應用語音合成。",
+        "businessLink": "月生成量超過 50 萬字元的帳號幾乎不會更換語音合成供應商，因為語音整合深入產品後替換需要重新評估所有聲音角色。"
+      },
+      "step3": {
+        "reach": "每月至少生成 1 萬字元語音的活躍付費帳號數，剔除只是試用「克隆我的聲音」功能的個人好奇型帳號。",
+        "depth": "每個帳號使用的語音角色數與生成的語言多樣性，多語言多聲音代表深度整合多個產品功能場景。",
+        "frequency": "每週有 API 呼叫的工作日天數，5-7 天活躍代表語音生成已嵌入用戶的內容生產或應用開發日常工作流程。",
+        "impact": "付費方案升級率與企業自定義聲音採購率，高生成量帳號往往需要專屬自定義聲音，形成高 ARPU 的企業合約。"
+      }
+    },
+    "context": {
+      "model": "ElevenLabs 採字元量計費，免費版限制月生成量，付費版解鎖無限生成與 API 存取；核心商業邏輯是 AI 語音合成的應用場景（有聲書、遊戲、客服）帶動大量生成需求。",
+      "users": "NSM 聚焦「有大規模語音內容生成需求的應用開發者或內容創作者」，不包含只是試玩文字轉語音功能的個人用戶或只是把玩聲音克隆的技術愛好者。",
+      "traps": "把「試用生成次數」或「帳號創建數」當採用度是典型誤判，ElevenLabs 早期有大量好奇型用戶試用後就離開，只有規模化的 API 整合代表真實商業需求。",
+      "insight": "從「開發者帳號在首月 API 調用量是否超過 10 萬字元」切入，首月規模化使用強預測帳號是否會長期留存並升級至高付費方案。"
+    }
+  },
+  {
+    "id": "q60",
+    "company": "Midjourney",
+    "industry": "AI 圖像生成",
+    "scenario": "Midjourney 基本靠訂閱制，用戶若每月未消耗足夠 GPU 時數，感受不到差異化就不會續費。",
+    "target_nsm_keywords": [
+      "月 GPU 時數消耗率",
+      "圖像生成後下載或分享比例",
+      "訂閱方案升級率"
+    ],
+    "anti_patterns": [
+      "Discord 伺服器加入數",
+      "Prompt 輸入次數",
+      "帳號創建數"
+    ],
+    "field_examples": {
+      "step2": {
+        "nsm": "每月 GPU 時數消耗超過 50% 訂閱額度且至少下載或公開分享 10 張圖像的活躍訂閱者數",
+        "explanation": "Midjourney 靠訂閱制，若用戶每月 GPU 時數使用率低，代表感受不到訂閱價值，下個月取消率顯著上升。",
+        "businessLink": "高 GPU 使用率的訂閱者幾乎不取消，且往往升級到更高方案獲取更多月度 GPU 時數，是 Midjourney 最高 ARPU 的群體。"
+      },
+      "step3": {
+        "reach": "每月至少生成 50 張圖像的活躍訂閱用戶數，剔除訂閱後只試了幾張然後沉默的低使用率帳號。",
+        "depth": "每張生成圖像的 Prompt 複雜度與修改迭代次數，深度用戶會反覆調整 Prompt 追求精確結果，代表真正的創作需求。",
+        "frequency": "每週使用 Midjourney 生成圖像的天數，每週 4 天以上代表平台已嵌入用戶的創作或工作流程而非偶爾玩玩的興趣型使用。",
+        "impact": "訂閱方案升級率（Basic→Standard→Pro）與企業 Team 方案採購率，高頻創作者會因月度 GPU 時數不夠用而主動升級。"
+      }
+    },
+    "context": {
+      "model": "Midjourney 採純訂閱制，無免費版（已取消免費試用）；月費從 $10 到 $60 依 GPU 時數分層，核心商業邏輯是創作者生產力依賴帶動持續訂閱。",
+      "users": "NSM 聚焦「有持續 AI 圖像創作需求的設計師、藝術家或內容創作者」，不包含只是好奇 AI 圖像能力而試了幾張後就離開的一時興起型用戶。",
+      "traps": "把「Discord 伺服器加入數」或「Prompt 輸入次數」當活躍度有誤，大量用戶加入 Discord 社群觀看他人作品但從未自己生成，不代表訂閱意願。",
+      "insight": "從「用戶訂閱後首週內是否消耗超過 20% 月度 GPU 時數」切入，首週高強度使用代表有真實創作動能，是 30 天後訂閱續費的最強早期訊號。"
+    }
+  },
+  {
+    "id": "q61",
+    "company": "Vercel",
+    "industry": "前端部署平台",
+    "scenario": "Vercel 靠成功部署的前端流量計費，唯有開發者真正將專案部署並獲得真實訪客，才代表平台提供了生產價值。",
+    "target_nsm_keywords": [
+      "生產環境部署成功次數",
+      "月活躍部署專案數",
+      "付費方案升級率"
+    ],
+    "anti_patterns": [
+      "GitHub 連結數",
+      "Preview Deploy 次數",
+      "帳號創建數"
+    ],
+    "field_examples": {
+      "step2": {
+        "nsm": "每月至少完成 3 次成功生產部署且部署後無 Error Rate 異常的活躍付費專案數",
+        "explanation": "Vercel 靠生產流量計費，只有部署到真實生產環境且有穩定用戶流量才代表開發者真正以 Vercel 為基礎設施。",
+        "businessLink": "有穩定生產流量的專案其帳號幾乎不會遷移，因為 Vercel 的 CDN 和 Edge Functions 深度整合後遷移成本遠高於費用本身。"
+      },
+      "step3": {
+        "reach": "每月至少有一個專案成功部署至生產域名並獲得真實流量的活躍付費帳號數，剔除只是 Fork 範例但從未正式上線的帳號。",
+        "depth": "每個部署專案的月均流量請求數與地理分布，廣泛地理分布代表真實全球用戶而非只有開發者自己測試。",
+        "frequency": "每月生產環境部署次數，每月 5 次以上代表開發者有活躍的 CI/CD 流程，Vercel 已嵌入開發到發布的完整工作流程。",
+        "impact": "付費 Pro/Enterprise 方案升級率與 Edge Functions 使用率，流量和邏輯的成長自然帶動 Vercel 的計費量成長。"
+      }
+    },
+    "context": {
+      "model": "Vercel 採 Freemium 加用量計費模式，個人免費，Team/Enterprise 月費加頻寬超量費；商業核心是開發者生產流量帶動的用量計費自然隨業務成長。",
+      "users": "NSM 聚焦「有真實生產應用並有穩定 CI/CD 部署需求的前端開發者或工程團隊」，不包含只是部署靜態作品集或 Side Project 但無實際用戶的個人帳號。",
+      "traps": "把「GitHub 連結數」或「Preview Deploy 次數」當採用度誤判，Preview 是測試部署不是生產，大量 Preview 後若從未部署生產環境代表未真正上線。",
+      "insight": "從「專案首次生產部署後是否在 7 天內收到超過 100 個真實用戶的訪問請求」切入，真實流量是開發者長期留在 Vercel 的關鍵動機。"
+    }
+  },
+  {
+    "id": "q62",
+    "company": "Segment",
+    "industry": "CDP 客戶數據平台",
+    "scenario": "Segment 整合各類數據源，若數據孤島未打通，企業無法實現跨管道個人化，付費合理性就受質疑。",
+    "target_nsm_keywords": [
+      "成功整合並啟用的 Source 數",
+      "跨目的地數據流量成長率",
+      "Workspace 活躍席位比例"
+    ],
+    "anti_patterns": [
+      "Source 連接申請數",
+      "事件追蹤定義數",
+      "帳號登入次數"
+    ],
+    "field_examples": {
+      "step2": {
+        "nsm": "每月至少有 3 個 Source 和 3 個 Destination 同時活躍且數據流量持續成長的企業帳號數",
+        "explanation": "Segment 的核心價值是打通數據孤島，只連接單一來源或目的地無法體現 CDP 的規模效益，多端點活躍才代表真正的數據整合。",
+        "businessLink": "多 Source 多 Destination 活躍的帳號年費留存率接近 95%，數據管道越複雜替換成本越高，且 Segment 的費用隨業務成長自然增加。"
+      },
+      "step3": {
+        "reach": "每月至少有一個 Source 持續發送事件數據且一個 Destination 持續接收的活躍企業帳號數。",
+        "depth": "每個帳號啟用的 Source 和 Destination 數量以及連接的數據流複雜度，跨 10 個以上端點代表 Segment 是企業數據架構的核心。",
+        "frequency": "每週數據流量的持續性，7 天全週期數據流動代表 Segment 已是企業實時數據基礎設施的關鍵組件。",
+        "impact": "月數據事件量成長率與 Twilio Engage（行銷自動化）採購率，數據整合成熟後自然延伸至行銷活化，形成 Twilio 生態系增購。"
+      }
+    },
+    "context": {
+      "model": "Segment 按月活躍用戶（MTU）計費，Enterprise 版有 Data Governance 功能；被 Twilio 收購後，整合 Twilio 通訊能力形成「收集+啟用」的全棧數據平台。",
+      "users": "NSM 聚焦「負責企業跨管道數據整合的數據工程師或行銷技術團隊」，不包含只是 IT 申請帳號試連一個 Source 的評估型帳號。",
+      "traps": "把「Source 連接申請數」或「事件追蹤定義數」當採用度，完全忽略數據是否真正在流動，企業可能定義了 200 個追蹤事件但實際傳送量接近於零。",
+      "insight": "從「企業帳號在 30 天內是否同時啟用了 2 個以上 Destination 接收同一批 Source 數據」切入，多 Destination 並發代表數據開始驅動多個業務流程，是留存的強訊號。"
+    }
+  },
+  {
+    "id": "q63",
+    "company": "Substack",
+    "industry": "電子報訂閱平台",
+    "scenario": "Substack 創作者的商業模式靠付費讀者，平台需確保讀者真正開信閱讀並持續訂閱，而非只是加入後沉默。",
+    "target_nsm_keywords": [
+      "付費訂閱者數",
+      "電子報開信率",
+      "讀者閱讀完成後留言率"
+    ],
+    "anti_patterns": [
+      "免費訂閱者總數",
+      "電子報發布數",
+      "創作者帳號數"
+    ],
+    "field_examples": {
+      "step2": {
+        "nsm": "每月付費訂閱者數超過 10 人且電子報開信率超過 40% 的活躍創作者帳號數",
+        "explanation": "Substack 以創作者商業成功為核心，付費訂閱者數加高開信率代表創作者能持續維持讀者關係，是平台收益的基礎。",
+        "businessLink": "有穩定付費訂閱者的創作者幾乎不離開 Substack，因為遷移需要說服所有付費讀者重新訂閱，轉移成本極高。"
+      },
+      "step3": {
+        "reach": "每月至少發布一封電子報的活躍創作者數，以及每月至少開信 2 次的活躍付費讀者數（雙邊活躍）。",
+        "depth": "每封電子報的平均開信率與讀者閱讀完成後留言率，深度讀者會留言回應代表建立了真實的創作者讀者關係。",
+        "frequency": "每月電子報發布次數，每月 2 次以上代表創作者有穩定的內容生產節奏，讀者能形成定期閱讀習慣。",
+        "impact": "Substack 抽傭收益（10% 付費訂閱費）與活躍創作者帳號數成長，創作者商業成功帶動更多創作者入駐，形成平台正向飛輪。"
+      }
+    },
+    "context": {
+      "model": "Substack 對創作者免費，靠抽取付費訂閱費的 10% 獲利；商業核心是創作者越多付費讀者，Substack 收益越多，雙方激勵完全對齊。",
+      "users": "NSM 聚焦「有付費讀者且定期發布高品質內容的活躍創作者」，不包含只是建了帳號但從未發布或只靠免費讀者維持的非商業型帳號。",
+      "traps": "把「免費訂閱者總數」或「創作者帳號數」當健康度，完全忽略商業轉換，大量免費讀者若無人升級付費，代表內容價值未達讀者付費門檻。",
+      "insight": "從「創作者是否在前 3 封電子報內轉換出至少 1 個付費訂閱者」切入，首個付費讀者是創作者商業化起點，是創作者長期留在 Substack 的最強激勵指標。"
+    }
+  },
+  {
+    "id": "q64",
+    "company": "Carta",
+    "industry": "股權管理 SaaS",
+    "scenario": "Carta 管理新創股權帽表，企業付費是為了確保股權分配合規，唯有資本輪完成並更新帽表才體現核心價值。",
+    "target_nsm_keywords": [
+      "完成融資輪後帽表更新率",
+      "電子簽署股權文件比例",
+      "活躍投資人與創辦人使用率"
+    ],
+    "anti_patterns": [
+      "帽表創建數",
+      "帳號邀請數",
+      "股權計劃模板瀏覽量"
+    ],
+    "field_examples": {
+      "step2": {
+        "nsm": "每季完成至少一次融資輪帽表更新且所有股權文件都在平台電子簽署的活躍企業帳號數",
+        "explanation": "Carta 管理股權的核心價值是融資後合規更新，若每次融資後帽表不在平台更新，企業和投資人都無法信任股權數據準確性。",
+        "businessLink": "每次融資後在 Carta 更新帽表的企業，未來輪次和 IPO 準備的數據一致性需求讓其幾乎不可能更換股權管理工具。"
+      },
+      "step3": {
+        "reach": "每季至少登入並更新一次股權或帽表的活躍企業帳號數，剔除建立帳號後從未使用的試用型帳號。",
+        "depth": "每個帳號管理的股東人數與股權類型多樣性（普通股、優先股、期權），複雜度越高代表 Carta 作為股權管理核心的地位越難替代。",
+        "frequency": "每季更新帽表的次數，每次融資輪和員工期權授予都應更新，高頻更新代表 Carta 真正嵌入企業的資本管理週期。",
+        "impact": "年費合約留存率與 Carta Fund Administration 服務採購率，帽表複雜度成長帶動企業採購更高 ACV 的方案，是 Carta ARR 增長的核心。"
+      }
+    },
+    "context": {
+      "model": "Carta 採年費訂閱制，按公司規模和股東數計費；核心商業邏輯是股權數據越複雜，替換 Carta 的成本越高，每次融資輪都加深企業依賴。",
+      "users": "NSM 聚焦「有融資輪需求並定期更新帽表的新創公司創辦人和 CFO」，以及「需要查看和管理投資組合的 VC/Angel 投資人」。",
+      "traps": "把「帳號邀請數」或「模板瀏覽量」當採用度，Carta 早期常被創辦人在試用後發現太複雜而放棄，實際使用率遠低於帳號數。",
+      "insight": "從「企業完成 Seed 融資後是否在 30 天內在 Carta 完成全部期權授予的電子簽署」切入，這個首次核心股權事件的完整處理代表企業真正將 Carta 視為股權系統的 SOR。"
+    }
+  },
+  {
+    "id": "q65",
+    "company": "Honey",
+    "industry": "瀏覽器購物外掛",
+    "scenario": "Honey 靠聯盟行銷抽傭，需確保外掛在結帳頁面真正觸發並幫用戶省錢，才能讓商家持續付費接入。",
+    "target_nsm_keywords": [
+      "優惠碼成功套用率",
+      "結帳頁觸發並省錢的交易比例",
+      "月活躍使用外掛用戶數"
+    ],
+    "anti_patterns": [
+      "外掛安裝數",
+      "商店加入清單數",
+      "通知點擊率"
+    ],
+    "field_examples": {
+      "step2": {
+        "nsm": "每月至少在 3 個不同商家結帳時成功套用優惠碼並節省金額超過 $5 的活躍用戶數",
+        "explanation": "Honey 靠聯盟行銷抽傭，只安裝外掛不代表它在幫用戶省錢，成功套用代表外掛真正在關鍵結帳時刻交付了價值。",
+        "businessLink": "成功省錢體驗的用戶繼續安裝 Honey 的比例超過 95%，每次成功套用都強化用戶在結帳時先等 Honey 搜尋優惠碼的習慣。"
+      },
+      "step3": {
+        "reach": "每月至少觸發過一次 Honey 優惠碼搜尋的活躍外掛安裝用戶數，剔除安裝後從未在任何商家結帳的沉默型安裝。",
+        "depth": "每月成功套用優惠碼的次數與節省的總金額，深度用戶在每次購物前都主動等待 Honey 搜尋，習慣深度嵌入購物流程。",
+        "frequency": "每月觸發 Honey 的購物次數，高頻購物者（每月 5 次以上）是 Honey 聯盟行銷收益的核心貢獻者。",
+        "impact": "月優惠碼成功套用率與聯盟行銷佣金收益，商家看到 Honey 帶來的轉換提升後持續支付聯盟費率，形成平台收益的穩定來源。"
+      }
+    },
+    "context": {
+      "model": "Honey 靠聯盟行銷抽傭，商家為獲得 Honey 帶來的轉換訂單支付傭金；被 PayPal 收購後，整合 PayPal 結帳流程進一步提升觸達率。",
+      "users": "NSM 聚焦「在各大電商平台定期購物並習慣性使用 Honey 搜尋優惠碼的活躍購物者」，不包含只是試安裝一次後忘記的沉默型安裝帳號。",
+      "traps": "把「外掛安裝數」當活躍度是最大陷阱，Honey 早期靠病毒式推薦積累大量安裝，但實際每月活躍觸發的比例遠低於安裝基礎，安裝數嚴重高估健康度。",
+      "insight": "從「用戶安裝後首次成功省錢的體驗發生速度」切入，安裝後越快體驗到省錢，習慣養成越快，是 Honey 用戶 LTV 的最強預測因子。"
+    }
+  },
+  {
+    "id": "q66",
+    "company": "AngelList",
+    "industry": "新創融資平台",
+    "scenario": "AngelList 媒合天使投資人與新創，唯有雙邊真正完成投資交易，平台抽傭模式才能持續。",
+    "target_nsm_keywords": [
+      "成功完成投資輪數",
+      "投資人實際出資比例",
+      "新創方獲得 Lead Investor 率"
+    ],
+    "anti_patterns": [
+      "新創申請數",
+      "投資人帳號數",
+      "Profile 瀏覽量"
+    ],
+    "field_examples": {
+      "step2": {
+        "nsm": "每季完成至少一筆投資人實際出資且新創方在 90 天內成功完成 SAFE/股權交割的交易數",
+        "explanation": "AngelList 的核心價值是促成早期融資成交，撮合頁面的瀏覽和投資意向書不是成交，真正出資交割才算完成。",
+        "businessLink": "完成交割的交易帶動 AngelList 的抽傭收益，且成功融資的新創往往在下一輪再回來使用 AngelList 或介紹同儕，形成口碑飛輪。"
+      },
+      "step3": {
+        "reach": "每季完成至少一筆投資流程（從盡調到出資）的活躍投資人帳號數，以及成功完成融資輪的新創帳號數。",
+        "depth": "每筆投資的平均金額與投資輪次多樣性（Pre-seed、Seed、Series A），深度投資人跨輪次參與代表平台已成為其核心投資流程。",
+        "frequency": "每季活躍投資筆數，每季 2 筆以上的投資人是 AngelList 最高價值的供給側用戶，維持平台流動性的關鍵。",
+        "impact": "平台抽傭收益（約 5-15% 融資成功費）與 Roll Up Vehicle 基金產品採購率，成功融資案例帶動更多投資人和新創信任平台。"
+      }
+    },
+    "context": {
+      "model": "AngelList 採成功融資抽傭模式，並提供 SPV 和 Roll Up Vehicle 服務收管理費；核心商業邏輯是雙邊信任越高，融資成交率越高，平台收益自然成長。",
+      "users": "NSM 聚焦「有真實早期投資意圖並完成出資的天使投資人」以及「在平台完成融資輪的早期新創創辦人」，不包含只是建帳號瀏覽新創但從未出資的觀察者。",
+      "traps": "把「新創申請數」或「投資人帳號數」當健康度是平台類的典型誤判，大量雙邊用戶若無交易發生，平台只是聚會場所而非真正的融資撮合工具。",
+      "insight": "從「新創上架 AngelList 後是否在 30 天內收到至少 3 個投資人的盡調請求」切入，早期投資人興趣密度強預測融資輪最終成功完成的概率。"
+    }
+  },
+  {
+    "id": "q67",
+    "company": "Whatnot",
+    "industry": "直播購物平台",
+    "scenario": "Whatnot 結合直播與收藏品拍賣，唯有觀眾真正出價並完成購買，GMV 才能支撐賣家持續直播。",
+    "target_nsm_keywords": [
+      "直播中成功出價成交比例",
+      "賣家月直播完成場次",
+      "買家月回購率"
+    ],
+    "anti_patterns": [
+      "直播觀看人次",
+      "帳號關注數",
+      "商品清單數"
+    ],
+    "field_examples": {
+      "step2": {
+        "nsm": "每月至少完成 2 筆直播購買且買家評分 4 星以上的活躍買家數",
+        "explanation": "Whatnot 結合直播與拍賣，唯有買家在直播中競拍並成功付款才產生收益，觀看不購買的流量對平台零貢獻。",
+        "businessLink": "有回購行為的買家是 Whatnot GMV 的核心，活躍買家的出現帶動賣家願意持續直播，形成雙邊正向飛輪。"
+      },
+      "step3": {
+        "reach": "每月至少完成一筆直播購買的活躍買家數，以及每月至少直播 4 場的活躍賣家數（雙邊活躍指標）。",
+        "depth": "每位買家的月均購買金額與收藏品類別多樣性，跨品類購買代表 Whatnot 已成為買家核心的收藏品市場而非只是單一賣家的粉絲。",
+        "frequency": "每週參與直播的次數，每週 3 次以上代表 Whatnot 直播已成為買家的娛樂和購物習慣，而非偶爾衝動消費。",
+        "impact": "平台 GMV 月成長率與賣家月直播收益，買家活躍帶動賣家收益，賣家高頻直播吸引更多買家，雙邊螺旋式成長。"
+      }
+    },
+    "context": {
+      "model": "Whatnot 採直播購物撮合模式，向賣家抽傭（約 8%），對買家免費；核心商業邏輯是直播娛樂性帶動衝動購買，NMW 收藏品社群形成高黏著度。",
+      "users": "NSM 聚焦「有收藏習慣且定期在直播中出價購買的活躍買家」，不包含只是觀看直播享受娛樂但從不出價的純觀眾型用戶。",
+      "traps": "把「直播觀看人次」當健康度是直播購物平台的常見誤判，高觀看人次若轉換率低代表直播娛樂性高但購買意願低，GMV 無法支撐平台。",
+      "insight": "從「買家首次直播購買後是否在 7 天內參加另一位不同賣家的直播」切入，跨賣家探索代表買家對平台本身有黏著而非只是追特定賣家。"
+    }
+  },
+  {
+    "id": "q68",
+    "company": "Toast",
+    "industry": "餐廳 POS SaaS",
+    "scenario": "Toast 專攻餐廳，靠每筆刷卡手續費與月費獲利，餐廳停業或切換 POS 是最大風險。",
+    "target_nsm_keywords": [
+      "每日活躍收款天數",
+      "月 GMV 成長率",
+      "附加模組（線上點餐/外賣）啟用率"
+    ],
+    "anti_patterns": [
+      "硬體出貨量",
+      "後台登入次數",
+      "菜單上架數"
+    ],
+    "field_examples": {
+      "step2": {
+        "nsm": "每月至少有 25 個工作日收款且月 GMV 持續成長的活躍餐廳帳號數",
+        "explanation": "Toast 靠每筆刷卡手續費獲利，餐廳停業或轉用其他 POS 是最大風險，每月高頻收款天數代表 Toast 是正常營業中的核心基礎設施。",
+        "businessLink": "月收款天數超過 25 天的餐廳幾乎不會換 POS，因為更換需要員工重新培訓和數據遷移，成本在餐廳旺季尤其不可承受。"
+      },
+      "step3": {
+        "reach": "每月至少有 15 天使用 Toast 完成收款的活躍餐廳帳號數，剔除季節性或臨時關門超過 2 週的非常規低活躍帳號。",
+        "depth": "每家餐廳的月均 GMV 與菜單更新頻率，高 GMV 加頻繁菜單更新代表餐廳業務在成長且 Toast 後台已嵌入日常運營。",
+        "frequency": "每週使用 Toast POS 收款的天數，7 天全週期代表 Toast 是餐廳 7 天正常營業的核心工具而非只在特定日子使用。",
+        "impact": "月手續費收益與線上點餐、外賣模組的加購率，餐廳業務成長後自然加購附加模組，形成 Toast ARPU 的自然提升。"
+      }
+    },
+    "context": {
+      "model": "Toast 按月費加刷卡手續費收費，硬體設備通常通過融資或租賃提供；核心商業邏輯是餐廳一旦安裝 Toast 並培訓員工，替換成本極高，黏著度遠高於普通 SaaS。",
+      "users": "NSM 聚焦「有穩定客流量且每日使用 Toast POS 正常收款的中小型餐廳」，不包含只是採購設備後從未真正啟用或已關門的殭屍帳號。",
+      "traps": "把「硬體出貨量」或「後台登入次數」當健康度誤判，後台登入可能只是老闆月底查帳，不代表 Toast 在日常收款流程中正常工作。",
+      "insight": "從「新裝 Toast 的餐廳在首週是否完成超過 50 筆刷卡收款」切入，高首週收款量代表 Toast 已成功替換舊 POS 並進入員工日常操作流程。"
+    }
+  },
+  {
+    "id": "q69",
+    "company": "Gong",
+    "industry": "Revenue Intelligence SaaS",
+    "scenario": "Gong 錄製業務通話並分析，企業付費期待直接提升成交率，若業務不上傳通話或不看 Coaching，工具淪為擺設。",
+    "target_nsm_keywords": [
+      "業務通話錄製率",
+      "Manager 每週 Coaching 行為率",
+      "分析後業績提升的 Deal 比例"
+    ],
+    "anti_patterns": [
+      "通話錄製總數",
+      "帳號授權數",
+      "平台登入次數"
+    ],
+    "field_examples": {
+      "step2": {
+        "nsm": "每週業務通話錄製率超過 80% 且 Manager 至少查看 3 次 Coaching 建議的活躍企業帳號數",
+        "explanation": "Gong 分析業務通話提升成交率，若業務不錄製或 Manager 不看 Coaching，工具淪為擺設，企業無法感受到投資回報。",
+        "businessLink": "Coaching 行為率高的帳號在年度審查時能展示成交率提升數據，這讓 CRO 和 VP Sales 幾乎必然續訂並擴大席位。"
+      },
+      "step3": {
+        "reach": "每週至少有 80% 業務通話被錄製的活躍銷售團隊帳號數，剔除只有管理員開帳號但業務從未錄製任何通話的帳號。",
+        "depth": "每次通話分析的 Manager Coaching 留言數與業務跟進行動完成率，深度 Coaching 代表 Gong 真正改變了銷售團隊的行為。",
+        "frequency": "每週 Manager 查看 Gong 通話錄製和 AI 建議的天數，5 天活躍代表 Gong 已成為銷售管理的日常工具而非只是月底 Review 時才用。",
+        "impact": "企業帳號席位增購率與 Gong Engage 序列功能採購率，成交率提升帶動業務主管擴大 Gong 在銷售團隊的覆蓋範圍。"
+      }
+    },
+    "context": {
+      "model": "Gong 按業務席位數月費收費，Enterprise 版加入 Pipeline Analytics；核心商業邏輯是業務通話數據帶動可量化的成交率提升，ROI 易於向 CFO 說明。",
+      "users": "NSM 聚焦「定期錄製客戶通話並依賴 Gong AI 改進銷售話術的業務人員和 Sales Manager」，不包含只是 IT 開設帳號後從未實際使用錄製功能的工程型帳號。",
+      "traps": "把「通話錄製總數」或「帳號授權數」當活躍度誤判，若 Manager 不主動查看 Coaching 建議並給予反饋，大量錄製只是數據倉庫而非改變銷售行為的工具。",
+      "insight": "從「新加入的業務是否在首月內有至少 2 次被 Manager 透過 Gong 給予 Coaching 留言」切入，早期 Coaching 互動代表銷售文化正在改變，是 Gong 長期採用的最強訊號。"
+    }
+  },
+  {
+    "id": "q70",
+    "company": "Fiverr",
+    "industry": "自由工作者平台",
+    "scenario": "Fiverr 撮合買賣雙方，靠成功交易抽傭，若買家瀏覽後不下單或賣家接單後遲遲未交付，平台口碑受損。",
+    "target_nsm_keywords": [
+      "成功完成交付訂單數",
+      "買家回購率",
+      "賣家準時交付比例"
+    ],
+    "anti_patterns": [
+      "Gig 上架數",
+      "賣家帳號數",
+      "搜尋量"
+    ],
+    "field_examples": {
+      "step2": {
+        "nsm": "每月成功完成交付且獲得 4 星以上評價的訂單數，且同一買家在 60 天內再次下單",
+        "explanation": "Fiverr 靠成功交易抽傭，準時交付加高評價加買家回購代表雙邊關係健康，是平台聲譽和 GMV 持續成長的三位一體指標。",
+        "businessLink": "有回購行為的買家平均每次訂單金額更高（熟悉賣家後傾向下更大的項目），是 Fiverr GMV 增長的核心驅動來源。"
+      },
+      "step3": {
+        "reach": "每月至少完成一筆交付訂單的活躍買家數，以及每月接單完成率超過 90% 的活躍賣家數（雙邊活躍）。",
+        "depth": "每筆訂單的平均金額與訂單複雜度（Gig 層次），深度訂單（$500 以上）代表買賣雙方已建立信任，超越初始低門檻試單。",
+        "frequency": "每月活躍買家下單次數，每月 2 次以上代表 Fiverr 已成為買家外包工作的慣用渠道而非只在緊急需要時才使用。",
+        "impact": "平台月 GMV 成長率與 Fiverr Business 企業方案採購率，高頻買家往往升級企業帳號獲得更好的帳號管理和優先服務。"
+      }
+    },
+    "context": {
+      "model": "Fiverr 採雙邊撮合並抽傭，向買家收取服務費（約 5.5%），向賣家抽取 20% 傭金；核心商業邏輯是豐富的服務選項和信任評分系統帶動成交。",
+      "users": "NSM 聚焦「有持續外包需求的企業採購者或創業者買家」以及「有穩定接單記錄的職業型賣家」，不包含只是偶爾試一次小 Gig 的個人體驗型用戶。",
+      "traps": "把「Gig 上架數」或「賣家帳號數」當供給健康度誤判，大量賣家上架但無人下單只是造成供給過剩，不代表平台買賣雙方的真實需求匹配。",
+      "insight": "從「買家完成首筆訂單後是否在 30 天內返回同一賣家下第二筆更大額的訂單」切入，這個信任加深行為代表 Fiverr 建立了長期工作關係，是平台 GMV 成長的核心飛輪。"
+    }
+  },
+  {
+    "id": "q71",
+    "company": "Pollen",
+    "industry": "活動旅遊平台",
+    "scenario": "Pollen 策劃音樂節旅遊套裝，平台需確保旅客真正出行並到達活動現場，才算完成完整體驗交付。",
+    "target_nsm_keywords": [
+      "成功出發率",
+      "活動到場完成率",
+      "購後 NPS 與再次預訂意願"
+    ],
+    "anti_patterns": [
+      "活動頁瀏覽量",
+      "願望清單加入數",
+      "社群追蹤數"
+    ],
+    "field_examples": {
+      "step2": {
+        "nsm": "每季完成成功出發且到達活動現場的旅客數，且活動後 NPS 超過 8 的訂單比例",
+        "explanation": "Pollen 的完整價值交付是旅客到達現場體驗活動，預訂但不出發等於體驗未交付，高 NPS 代表體驗達到預期且有再購意願。",
+        "businessLink": "NPS 超過 8 的旅客再購率是普通用戶的 2.5 倍，口碑傳播是活動旅遊套裝的最有效獲客方式，滿意旅客是最好的行銷人員。"
+      },
+      "step3": {
+        "reach": "每季至少完成一個旅遊套裝出發的活躍旅客數，剔除預訂後因故取消或只付訂金但最終退款的未出發用戶。",
+        "depth": "每趟旅程的活動參與次數（音樂節場次、夜生活、特別體驗），深度參與代表旅客真正沉浸於 Pollen 策劃的完整體驗而非只是搭個便車到場地。",
+        "frequency": "每年使用 Pollen 的旅遊次數，每年 2 次以上代表旅客已將 Pollen 作為其音樂節旅遊的首選規劃平台。",
+        "impact": "季度 GMV 成長率與旅客 NPS 驅動的口碑新客轉化率，高 NPS 旅客的社群分享吸引同樣興趣的朋友加入，是最低成本的增長渠道。"
+      }
+    },
+    "context": {
+      "model": "Pollen 採活動旅遊套裝銷售模式，從訂房、機票、票務到特別體驗一站包辦；核心差異化是策展品味與社群氛圍，不只是旅遊代理。",
+      "users": "NSM 聚焦「有強烈音樂節文化認同並願意付溢價體驗策劃旅遊的 20-35 歲年輕旅客」，不包含只是查看活動頁面或加入願望清單但從未預訂的觀望型用戶。",
+      "traps": "把「活動頁瀏覽量」或「願望清單加入數」當轉換意向是音樂節旅遊的常見誤判，高瀏覽量在活動公告期間自然虛高，真實轉換要看付款和出發率。",
+      "insight": "從「旅客預訂後是否在 48 小時內邀請朋友一起加入同一個旅遊套裝」切入，社群購買行為代表旅客計劃的認真度，且多人同行顯著降低取消率。"
+    }
+  },
+  {
+    "id": "q72",
+    "company": "Notion AI",
+    "industry": "AI 寫作助理 SaaS",
+    "scenario": "Notion AI 以月費附加形式存在，用戶需真正將 AI 功能嵌入日常寫作與整理流程，才會感受到 $10/月 的價值。",
+    "target_nsm_keywords": [
+      "每週 AI 功能使用次數",
+      "AI 生成後保留內容的比例",
+      "AI 附加方案留存率"
+    ],
+    "anti_patterns": [
+      "AI Block 觸發次數",
+      "帳號功能啟用數",
+      "試用天數"
+    ],
+    "field_examples": {
+      "step2": {
+        "nsm": "每週使用 AI 功能至少 10 次且保留 AI 生成內容超過 50% 的付費 AI 附加方案用戶數",
+        "explanation": "Notion AI 月費 $10 額外收費，用戶只有真正將 AI 生成的內容保留進自己的工作文件才代表感受到價值，而非只是試玩功能。",
+        "businessLink": "AI 生成內容保留率高的用戶幾乎不會取消 AI 附加方案，且往往在 Notion 的整體使用量也顯著增加，形成雙重留存效果。"
+      },
+      "step3": {
+        "reach": "每週至少使用一次 Notion AI 功能（撰寫、總結、翻譯、問答）的付費 AI 方案用戶數。",
+        "depth": "AI 生成後用戶保留或編輯的內容比例，高保留率代表 AI 輸出品質高且符合用戶需求，而非只是生成後立即刪除的無用輸出。",
+        "frequency": "每週使用 AI 功能的次數，每週 10 次以上代表 AI 已嵌入用戶的日常寫作和整理工作流程而非偶爾嘗試的新功能。",
+        "impact": "AI 附加方案月留存率，保留的 AI 內容直接提升 Notion 文件的實用性，讓用戶更依賴 Notion 作為知識管理核心。"
+      }
+    },
+    "context": {
+      "model": "Notion AI 是以 $10/月 附加在 Notion 訂閱上的獨立 AI 功能；商業核心是強化 Notion 整體黏著度而非獨立產品，AI 功能的留存帶動整體 Notion 訂閱不取消。",
+      "users": "NSM 聚焦「需要頻繁整理文件和進行內容創作的 Notion 活躍用戶」，不包含只是好奇 AI 功能的偶發性試用者。",
+      "traps": "把「AI Block 觸發次數」當活躍度誤判，用戶可能頻繁觸發 AI 但每次生成後立即刪除，觸發量高但內容保留率低代表 AI 輸出品質未達用戶標準。",
+      "insight": "從「用戶首次使用 AI 生成的內容是否在 24 小時後仍存在於 Page 中」切入，48 小時後仍保留代表 AI 輸出有真實使用價值，是付費方案留存的最強早期訊號。"
+    }
+  },
+  {
+    "id": "q73",
+    "company": "Betterment",
+    "industry": "機器人理財平台",
+    "scenario": "Betterment 靠 AUM 比例收費，用戶的投資組合必須持續增長且不輕易提領，才能維持平台收益。",
+    "target_nsm_keywords": [
+      "月資金淨流入量",
+      "長期持有 90 天以上比例",
+      "自動再投資執行率"
+    ],
+    "anti_patterns": [
+      "帳號開設數",
+      "理財目標設定數",
+      "App登入次數"
+    ],
+    "field_examples": {
+      "step2": {
+        "nsm": "每季資金淨流入且持有時間超過 90 天的活躍投資帳號數",
+        "explanation": "Betterment 靠 AUM 比例收費，持續流入加長期持有才能維持費用基礎，短期衝進衝出的帳號對平台 AUM 貢獻不穩定。",
+        "businessLink": "持有超過 90 天的用戶平均 AUM 成長率高，且幾乎不輕易提領，是 Betterment 最穩定的 AUM 貢獻群體。"
+      },
+      "step3": {
+        "reach": "每月至少有一次資金入帳（定期投資或手動入金）的活躍投資帳號數，剔除開戶後從未入金的空帳號。",
+        "depth": "每位用戶的平均 AUM 與投資組合多樣性（股票、債券、退休目標），多元化投資代表用戶在 Betterment 有長期財務規劃意圖。",
+        "frequency": "每月定期自動投資的執行次數，每月自動扣款代表用戶已將 Betterment 整合進財務計劃而非手動一次性投資。",
+        "impact": "AUM 月成長率與 Premium 方案（財務顧問諮詢）升級率，高 AUM 用戶對個人化理財建議的需求驅動 Premium 採購，提升 ARPU。"
+      }
+    },
+    "context": {
+      "model": "Betterment 採 AUM 費率收費（約 0.25% 年費），Premium 版提供人工顧問諮詢；核心商業邏輯是自動化投資降低門檻，用戶 AUM 成長直接帶動 Betterment 收益。",
+      "users": "NSM 聚焦「有長期財務目標並採用定期自動投資策略的中產階級用戶」，不包含只是試試看「機器人理財」概念後小額入金就不再管的好奇型用戶。",
+      "traps": "把「帳號開設數」或「理財目標設定數」當健康度，完全忽略資金是否真正入帳，用戶常常設置目標後因各種理由遲遲不入金，設定不等於使用。",
+      "insight": "從「用戶開戶後是否在 14 天內完成第一筆入金並設置自動定期投資」切入，自動投資設置代表用戶將長期財務計劃真正委託給 Betterment，是 AUM 持續成長的起點。"
+    }
+  },
+  {
+    "id": "q74",
+    "company": "Superhuman",
+    "industry": "高端電子郵件客戶端",
+    "scenario": "Superhuman 每月收費 $30，對準高生產力用戶，需確保用戶真正透過快捷鍵與 AI 提升收件箱效率，否則溢價難以維持。",
+    "target_nsm_keywords": [
+      "達到 Inbox Zero 的天數",
+      "快捷鍵熟練度提升率",
+      "30 天付費留存率"
+    ],
+    "anti_patterns": [
+      "電子郵件回覆數",
+      "帳號綁定信箱數",
+      "平台登入次數"
+    ],
+    "field_examples": {
+      "step2": {
+        "nsm": "每週至少有 3 天達到 Inbox Zero 且利用快捷鍵處理郵件效率提升超過 30% 的活躍付費用戶數",
+        "explanation": "Superhuman 溢價在高生產力，Inbox Zero 加快捷鍵熟練代表用戶真正實現了「最快的電子郵件體驗」的核心承諾。",
+        "businessLink": "達到 Inbox Zero 習慣的用戶幾乎不取消 $30/月 訂閱，因為一旦體驗過快速清空收件箱，再也無法回到普通 Gmail 介面。"
+      },
+      "step3": {
+        "reach": "每週至少登入 Superhuman 並處理郵件超過 20 封的活躍付費用戶數，剔除訂閱後很少使用的沉默帳號。",
+        "depth": "每封郵件的平均處理時間縮短率與快捷鍵使用頻率，深度用戶完全靠鍵盤操作而不碰滑鼠，代表效率提升真正落地。",
+        "frequency": "每週達到 Inbox Zero 的天數，3 天以上代表 Superhuman 已改變了用戶的郵件管理習慣而非只是美化版的 Gmail。",
+        "impact": "30 天後的付費留存率，Superhuman 的 $30/月 訂閱只有在用戶真正感受到生產力提升時才能維持，高 Inbox Zero 頻率是最強的留存預測指標。"
+      }
+    },
+    "context": {
+      "model": "Superhuman 採純訂閱制，$30/月 定價精準對準高生產力知識工作者；核心差異化是速度（界面快）加習慣（快捷鍵），入門需人工 Onboarding 確保習慣形成。",
+      "users": "NSM 聚焦「每日收發大量郵件且對收件箱管理效率有強烈需求的高端知識工作者（創投、創辦人、頂級顧問）」，不包含郵件量偏低的普通用戶。",
+      "traps": "把「電子郵件回覆數」或「平台登入次數」當效率指標無法反映真正的生產力提升，用戶可能每天登入但仍以傳統方式慢速處理郵件。",
+      "insight": "從「用戶在 Onboarding 過程中是否在第一週內完成 5 個以上快捷鍵場景的練習」切入，早期快捷鍵熟練度決定用戶能否真正體驗 Superhuman 的速度優勢。"
+    }
+  },
+  {
+    "id": "q75",
+    "company": "Faire Wholesale",
+    "industry": "獨立零售 B2B 平台",
+    "scenario": "Faire 提供退貨保障吸引零售商，但平台收益來自轉賣成功，需確保零售商購入的商品真正流通到消費者手中。",
+    "target_nsm_keywords": [
+      "零售商再訂購率",
+      "未退貨完成交易比例",
+      "首次訂單後 60 天內第二筆訂單率"
+    ],
+    "anti_patterns": [
+      "商品收藏數",
+      "零售商帳號數",
+      "品牌頁瀏覽量"
+    ],
+    "field_examples": {
+      "step2": {
+        "nsm": "每季完成第二筆以上批發訂單且 60 天無退貨的活躍零售商數",
+        "explanation": "Faire Wholesale 提供退貨保障降低零售商首單風險，但平台收益來自成功批發，第二筆訂單代表商品有銷路才是真正的留存指標。",
+        "businessLink": "完成第二筆訂單的零售商年均採購金額顯著高於只下一筆的嘗試型零售商，是 Faire GMV 持續成長的核心驅動群體。"
+      },
+      "step3": {
+        "reach": "每季至少完成一筆批發訂單的活躍零售商數，以及有新訂單進來的品牌數（雙邊活躍健康指標）。",
+        "depth": "每家零售商採購的品牌多樣性與訂單平均金額，跨多品牌高金額採購代表零售商真正以 Faire 作為主要批發採購渠道。",
+        "frequency": "每季採購次數，每季 2 次以上代表零售商按照銷售週期定期補貨，形成穩定的 B2B 採購關係。",
+        "impact": "平台季 GMV 成長率與品牌入駐後 90 天首單轉換率，品牌快速成交代表撮合效率高，吸引更多品牌願意在 Faire 獨家或優先上架。"
+      }
+    },
+    "context": {
+      "model": "Faire Wholesale 採批發撮合抽傭模式（約 15-25%），退貨保障是核心吸引力；Faire 擴大批發電商規模後靠廣告和 Net Terms（延遲付款）等金融服務增加收益。",
+      "users": "NSM 聚焦「定期需要批發補貨的獨立零售商（精品店、咖啡廳周邊、工藝品店）」，不包含只是試退貨政策一次後不再回購的機會型採購者。",
+      "traps": "把「商品收藏數」或「零售商帳號數」當健康度是雙邊電商的常見誤判，高收藏低下單代表平台吸引力足夠但最終決策時仍選擇其他批發渠道。",
+      "insight": "從「零售商首次收到 Faire 商品後是否在 30 天內向同行推薦 Faire 或在社群分享採購品牌」切入，這個口碑行為代表體驗達到預期，是零售商社群傳播的最強訊號。"
+    }
+  },
+  {
+    "id": "q76",
+    "company": "Procore",
+    "industry": "工程建設 SaaS",
+    "scenario": "Procore 服務建設工地，靠工程團隊協作管理文件、圖紙與工程進度，若現場人員不用等於工具失效。",
+    "target_nsm_keywords": [
+      "現場人員每日 App 活躍比例",
+      "圖紙版本更新後現場確認率",
+      "工程缺失單完成閉環比例"
+    ],
+    "anti_patterns": [
+      "帳號邀請數",
+      "文件上傳數",
+      "平台登入次數"
+    ],
+    "field_examples": {
+      "step2": {
+        "nsm": "每週現場人員 App 活躍比例超過 70% 且工程缺失單閉環率超過 85% 的活躍企業帳號數",
+        "explanation": "Procore 的核心價值是讓全體工地人員都在平台協作，只有 PM 在辦公室用但現場施工員不用代表數位化完全沒有落地。",
+        "businessLink": "現場人員高活躍率的工程帳號幾乎不會換工程管理軟體，因為替換需要在工程進行中重新培訓所有現場人員，風險不可承受。"
+      },
+      "step3": {
+        "reach": "每週至少登入 Procore 並查看或更新工程進度的現場人員比例，包含施工員、領班、品管人員（不只 PM）。",
+        "depth": "每個工程問題從回報到閉環的平均時間，快速閉環代表 Procore 的移動端工作流程真正嵌入現場問題解決流程。",
+        "frequency": "每週現場人員更新缺失單或確認圖紙的次數，高頻更新代表工程資訊流通在平台上真正發生而非仍靠微信或紙本。",
+        "impact": "企業帳號年費留存率與工地數量成長，建設公司開拓新工地時自然在 Procore 上開新專案，帶動 ACV 自然成長。"
+      }
+    },
+    "context": {
+      "model": "Procore 採年費訂閱制，按工程量和用戶數計費；核心商業邏輯是一個工程顧問公司管理多個工地，Procore 的費用隨工程規模成長。",
+      "users": "NSM 聚焦「全體工地人員（PM、工地主任、施工員）而非只有辦公室端的管理者」，只有現場人員真正使用才代表工程數位化落地。",
+      "traps": "把「帳號邀請數」或「文件上傳數」當健康度誤判，大量文件上傳後若現場人員不查看確認，代表工程資訊仍靠電話或口頭傳遞而非平台。",
+      "insight": "從「新工程啟動後 2 週內是否有超過 70% 的現場人員完成第一次 App 登入並確認圖紙」切入，現場全員上手速度決定工程數位化成功與否。"
+    }
+  },
+  {
+    "id": "q77",
+    "company": "Deel",
+    "industry": "全球薪資 HR 平台",
+    "scenario": "Deel 幫企業跨境僱用與發薪，每成功聘用一位員工並每月發薪即產生收益，需確保僱用完成且月薪正常運作。",
+    "target_nsm_keywords": [
+      "成功入職員工數",
+      "月薪資準時發放率",
+      "跨國合約無糾紛完成比例"
+    ],
+    "anti_patterns": [
+      "企業帳號數",
+      "合約草稿數",
+      "國家市場開設數"
+    ],
+    "field_examples": {
+      "step2": {
+        "nsm": "每月至少成功僱用一位跨境員工且薪資準時發放率超過 99% 的活躍企業帳號數",
+        "explanation": "Deel 的核心價值是讓企業無摩擦地全球僱用，薪資準時代表本地合規和跨境支付流程都正常運作，是平台核心承諾的直接驗證。",
+        "businessLink": "有穩定每月薪資發放的企業帳號幾乎不會更換 Deel，因為更換需要重新整理跨境合規文件，且員工薪資不能中斷。"
+      },
+      "step3": {
+        "reach": "每月至少完成一位新員工入職流程（合約生成、身份驗證、帳戶設置）的活躍企業帳號數。",
+        "depth": "每個帳號管理的跨境員工國籍多樣性，覆蓋越多國家代表 Deel 在該企業的全球擴張計劃中扮演核心角色。",
+        "frequency": "每月薪資發放週期的準時完成率，99% 以上代表 Deel 的跨境合規和支付系統穩定可靠，是企業最不想換供應商的理由。",
+        "impact": "企業帳號員工數月成長率與附加服務（設備採購、福利方案）採購率，員工數增加帶動 Deel 收益自然成長，形成最佳激勵對齊。"
+      }
+    },
+    "context": {
+      "model": "Deel 按每位成功僱用的跨境員工月費計費（約 $49-599/月），靠規模效益降低跨境合規成本；核心商業邏輯是企業全球化加速帶動 Deel 的市場需求自然成長。",
+      "users": "NSM 聚焦「有持續跨境僱用需求的科技新創或遠端工作企業的 HR 和財務團隊」，不包含只是試用一次後未完成正式僱用的評估型帳號。",
+      "traps": "把「企業帳號數」或「合約草稿數」當採用度嚴重誤判，大量企業可能開始建立合約草稿評估 Deel，但最終決定不使用或改用其他平台。",
+      "insight": "從「企業帳號在 Deel 完成第一位員工入職後是否在 30 天內開始僱用第二位」切入，快速第二次僱用代表企業 HR 流程已信任 Deel，形成規模化使用。"
+    }
+  },
+  {
+    "id": "q78",
+    "company": "Runway ML",
+    "industry": "AI 影片生成工具",
+    "scenario": "創作者採用 AI 影片工具是為了加速產出，平台需確保用戶真正匯出成品並在社群使用，而非只是試玩特效。",
+    "target_nsm_keywords": [
+      "影片成功匯出數",
+      "匯出後公開發布比例",
+      "訂閱方案升級率"
+    ],
+    "anti_patterns": [
+      "試用功能點擊數",
+      "帳號創建數",
+      "特效預覽次數"
+    ],
+    "field_examples": {
+      "step2": {
+        "nsm": "每月至少匯出 3 個完成影片且其中 50% 有公開發布在社群的活躍付費帳號數",
+        "explanation": "Runway ML 的核心是加速創作者影片產出，匯出完成品加公開發布才代表 AI 工具真正嵌入創作工作流程並有實際影響力。",
+        "businessLink": "有公開發布行為的創作者往往在社群展示 Runway 製作的效果，帶動有機的工具傳播，同時自己也有動機持續訂閱創作更多內容。"
+      },
+      "step3": {
+        "reach": "每月至少使用 Runway 生成或剪輯一段影片的活躍付費帳號數，剔除只是試玩特效預覽但從未匯出成品的試用型帳號。",
+        "depth": "每個影片的平均 AI 特效使用層次（Gen-2 生成、Motion Brush、Inpainting），深度使用複合特效代表創作者已熟練運用 Runway 的核心 AI 能力。",
+        "frequency": "每月使用 Runway 創作新影片的次數，每月 4 次以上代表 AI 影片工具已成為創作者定期內容產出流程的一部分。",
+        "impact": "付費方案升級率（Standard→Pro→Unlimited）與年費轉換率，高頻創作者因月度 GPU 秒數不足而自然升級，是 Runway 最高 ARPU 的用戶群。"
+      }
+    },
+    "context": {
+      "model": "Runway ML 採訂閱制，按 GPU 秒數分層定價；核心商業邏輯是 AI 影片生成的創作需求持續成長，創作者依賴 Runway 的 Gen-2 模型帶動訂閱不取消。",
+      "users": "NSM 聚焦「有持續影片創作需求的導演、YouTuber 或行銷影片製作者」，不包含只是好奇 AI 視覺效果偶爾試用的技術愛好者。",
+      "traps": "把「試用功能點擊數」或「特效預覽次數」當採用度誤判，Runway 的特效預覽很吸引眼球，但若用戶試玩後從未匯出可用的影片，代表 AI 品質未達創作標準。",
+      "insight": "從「創作者在首月是否完成至少一個 Gen-2 生成並匯出達到發布標準的影片」切入，首個可用成品代表 Runway AI 品質通過創作者的實際驗收，是留存的關鍵確認點。"
+    }
+  },
+  {
+    "id": "q79",
+    "company": "Razorpay",
+    "industry": "印度支付基礎設施",
+    "scenario": "Razorpay 服務印度新創與 SME，靠每筆支付手續費獲利，必須確保商家整合後真正上線收款。",
+    "target_nsm_keywords": [
+      "商家 Live 模式首筆收款率",
+      "月 GMV 成長率",
+      "支付成功率"
+    ],
+    "anti_patterns": [
+      "商家申請數",
+      "Sandbox 測試次數",
+      "API Key 申請數"
+    ],
+    "field_examples": {
+      "step2": {
+        "nsm": "每月 Live 模式成功收款超過 50 筆且支付成功率超過 99% 的活躍商家數",
+        "explanation": "Razorpay 靠手續費獲利，商家 Live 環境高頻收款加高成功率代表整合穩定，是 Razorpay 在印度市場真正的收益來源。",
+        "businessLink": "成功率超過 99% 的商家幾乎不會換支付服務商，因為任何支付系統更換都需要重新測試整合並可能影響訂單流失率。"
+      },
+      "step3": {
+        "reach": "每月至少完成 10 筆 Live 收款的活躍商家帳號數，剔除只在測試環境反覆測試但未正式上線的開發者帳號。",
+        "depth": "每家商家月均收款金額與支付管道多樣性（信用卡、UPI、網銀、錢包），多管道接受代表商家真正服務各類型印度消費者。",
+        "frequency": "每週有收款記錄的工作日天數，6-7 天全週期收款代表商家業務穩定且 Razorpay 是其核心支付基礎設施。",
+        "impact": "月 GMV 成長率與 Razorpay 手續費收益，商家業務成長帶動 Razorpay 收益同步成長，形成最佳激勵對齊商業模式。"
+      }
+    },
+    "context": {
+      "model": "Razorpay 按每筆成功交易收取 2% 手續費，Enterprise 版費率可協商；核心商業邏輯是印度數字支付市場高速成長，Razorpay 的市場份額乘以 GMV 成長。",
+      "users": "NSM 聚焦「已在 Live 環境完成整合並有穩定業務收款的印度電商或 SaaS 商家」，不包含只在 Sandbox 測試的開發者或啟動前的試用帳號。",
+      "traps": "把「商家申請數」或「API Key 申請數」當採用度完全誤判，印度有大量開發者申請 Razorpay API Key 測試但從未正式上線，申請數嚴重高估真實活躍商家數。",
+      "insight": "從「商家完成整合後是否在 7 天內收到首筆真實 Live 付款」切入，time-to-first-real-payment 指標直接預測商家 6 個月後仍使用 Razorpay 的概率。"
+    }
+  },
+  {
+    "id": "q80",
+    "company": "Teachable",
+    "industry": "線上課程建站平台",
+    "scenario": "Teachable 讓知識創業者開課，平台靠課程銷售分潤，若創作者發布課程卻沒有學員購買，雙方都沒有收益。",
+    "target_nsm_keywords": [
+      "課程發布後首週銷售數",
+      "學員完課率",
+      "創作者月活躍上架比例"
+    ],
+    "anti_patterns": [
+      "課程草稿數",
+      "帳號創建數",
+      "課程頁瀏覽量"
+    ],
+    "field_examples": {
+      "step2": {
+        "nsm": "每月至少有一門課程完成銷售且學員完課率超過 50% 的活躍創作者帳號數",
+        "explanation": "Teachable 靠課程銷售分潤，創作者發布且有學員購買代表有真實市場需求，高完課率代表課程品質讓學員有動力學完。",
+        "businessLink": "有銷售記錄且學員完課率高的創作者幾乎不會離開 Teachable，高完課率帶動學員口碑傳播吸引更多人購買，形成正向增長飛輪。"
+      },
+      "step3": {
+        "reach": "每月至少發布一門課程且有至少一筆銷售記錄的活躍創作者帳號數，剔除只是上傳草稿但從未上架的沉默帳號。",
+        "depth": "每門課程的學員平均完課率與評分，完課率高加正面評分代表課程設計好，帶動更多有機口碑和搜尋排名。",
+        "frequency": "每月有新銷售記錄的天數，每月 10 天以上有銷售代表創作者的行銷活動持續有效，課程有穩定收入流。",
+        "impact": "平台分潤收益（Teachable 抽 5% 或按月費免手續費）與創作者月活躍上架比例，有穩定收益的創作者往往升級 Pro 方案免除分潤。"
+      }
+    },
+    "context": {
+      "model": "Teachable 採課程銷售分潤模式，免費版每筆收 $1 + 10%，付費版降低或免除手續費；商業核心是創作者課程銷售越多，Teachable 收益越多，雙方激勵對齊。",
+      "users": "NSM 聚焦「有課程內容且積極行銷並持續有銷售記錄的知識創業者」，不包含只是試著上傳課程材料但從未推廣的興趣型帳號。",
+      "traps": "把「課程草稿數」或「帳號創建數」當平台健康度，Teachable 的最大挑戰是大量創作者開帳號後沒有持續行銷導致銷售為零，草稿不代表任何收益。",
+      "insight": "從「創作者上架課程後首週是否完成至少 3 筆銷售」切入，首週銷售代表創作者有基礎受眾或行銷渠道，強預測 3 個月後課程是否仍有持續收入。"
+    }
+  },
+  {
+    "id": "q81",
+    "company": "Pipe",
+    "industry": "ARR 融資平台",
+    "scenario": "Pipe 讓 SaaS 公司以年費收入提前融資，唯有企業真正完成融資並使用資金，平台才能確認交易健康度。",
+    "target_nsm_keywords": [
+      "成功融資交易完成數",
+      "企業月收入增長後再融資率",
+      "融資後 90 天留存率"
+    ],
+    "anti_patterns": [
+      "企業申請數",
+      "帳號連結會計工具數",
+      "資產評估完成數"
+    ],
+    "field_examples": {
+      "step2": {
+        "nsm": "每季完成至少一筆融資交易且 90 天後企業月收入持續成長的活躍 SaaS 帳號數",
+        "explanation": "Pipe 讓 SaaS 公司以 ARR 提前融資，唯有企業月收入持續成長代表融資資金有效投入，降低違約風險同時驗證 Pipe 的商業模式。",
+        "businessLink": "收入持續成長的企業往往在下一季再次使用 Pipe 融資，形成「成長→融資→再成長」的正向循環，是 Pipe 最高 LTV 的企業客戶群。"
+      },
+      "step3": {
+        "reach": "每季至少連結會計工具且月 ARR 數據持續更新的活躍企業帳號數，剔除只是連結帳戶評估後未正式融資的試用型帳號。",
+        "depth": "每筆融資的金額與對應的 ARR 倍數，高 ARR 倍數融資代表 Pipe 對企業收入預測的信心，也代表更高的融資費用收益。",
+        "frequency": "每季使用 Pipe 的融資次數，每季使用代表企業將 Pipe 整合進定期財務規劃而非只是偶爾資金緊張時的臨時融資選項。",
+        "impact": "季度融資交易量成長率與融資後 90 天企業 MRR 成長率，企業成長帶動 Pipe 平台的融資需求成長，形成收益自然擴張。"
+      }
+    },
+    "context": {
+      "model": "Pipe 按融資金額收取 1-3% 的平台費；核心商業邏輯是 SaaS 公司有穩定年費收入但面臨現金流缺口，Pipe 提供快速流動性而不稀釋股權。",
+      "users": "NSM 聚焦「有穩定 ARR 且需要定期融資加速成長的中型 SaaS 企業 CFO 或 CEO」，不包含只是好奇 ARR 融資概念但未真正需要流動資金的小型起步帳號。",
+      "traps": "把「企業申請數」或「帳號連結會計工具數」當採用度是 FinTech 平台的常見陷阱，企業常評估多家融資選項後選擇傳統 VC 或銀行貸款，連結帳戶不等於融資意圖。",
+      "insight": "從「企業完成融資後 30 天內是否將資金投入在成長活動（招募或行銷）而非只是現金存放」切入，資金活化代表融資有真實業務目的，降低 Pipe 未來回收風險。"
+    }
+  },
+  {
+    "id": "q82",
+    "company": "Ironclad",
+    "industry": "合約管理 SaaS",
+    "scenario": "Ironclad 幫法律團隊自動化合約流程，若合約不能在平台完成協商並簽署，工具就沒有取代人工的價值。",
+    "target_nsm_keywords": [
+      "合約在平台內完全完成比例",
+      "平均合約從草稿到簽署時間縮短率",
+      "法務團隊月活躍使用比例"
+    ],
+    "anti_patterns": [
+      "合約模板數",
+      "合約上傳數",
+      "帳號邀請數"
+    ],
+    "field_examples": {
+      "step2": {
+        "nsm": "每月在平台內完成從草稿到協商到簽署全流程的合約比例超過 70% 的活躍法務帳號數",
+        "explanation": "Ironclad 的核心價值是讓合約流程在平台內完整發生，若只有起草在平台但協商跑回 Email，代表工具未真正替代舊流程。",
+        "businessLink": "全流程在平台完成的合約比例高的帳號年費留存率超過 90%，法務流程數位化後替換 Ironclad 需要重新設計整個合約管理體系。"
+      },
+      "step3": {
+        "reach": "每月至少發起 5 份合約協商流程的活躍法務席位數，剔除只是上傳靜態合約範本但從未啟動協商的低活躍帳號。",
+        "depth": "每份合約的平均協商輪次與版本更新次數，多輪協商全在 Ironclad 完成代表平台已完整取代 Email 來回的舊工作方式。",
+        "frequency": "每週有合約流程推進的工作日天數，5 天活躍代表 Ironclad 是法務團隊的每日工作核心而非只是合約歸檔工具。",
+        "impact": "法務團隊席位增購率與 AI 合約審查功能採購率，高效率的合約流程讓法務主管有動機擴大 Ironclad 的使用範圍至其他部門。"
+      }
+    },
+    "context": {
+      "model": "Ironclad 採年費訂閱制，按法務席位和合約量計費；核心商業邏輯是法律合約流程數位化後，替換平台的風險極高，留存率接近傳統 ERP 系統。",
+      "users": "NSM 聚焦「負責大量商業合約審核與協商的企業法務或法律長」，不包含只是使用模板生成合約但從未在平台協商的輕量型帳號。",
+      "traps": "把「合約上傳數」當平台採用度，企業可能上傳大量歷史合約用於存檔，但若新合約協商仍在 Email 中進行，代表 Ironclad 只是被當成文件管理系統而非工作流程工具。",
+      "insight": "從「法務團隊第一份合約是否從起草到對方簽署全程在 Ironclad 完成」切入，這個首次全流程完整體驗代表平台採用成功，法務人員從此有了主動擴展使用的信心。"
+    }
+  },
+  {
+    "id": "q83",
+    "company": "Brex Empower",
+    "industry": "企業支出管理",
+    "scenario": "企業支出管理平台要深入公司財務流程，唯有財務與員工都在平台審批並報帳，才算真正替代舊流程。",
+    "target_nsm_keywords": [
+      "月費用報告提交率",
+      "經理審批完成率",
+      "平台覆蓋支出佔總支出比例"
+    ],
+    "anti_patterns": [
+      "帳號創建數",
+      "政策設定數",
+      "App安裝數"
+    ],
+    "field_examples": {
+      "step2": {
+        "nsm": "每月員工費用報告提交率超過 85% 且經理在 48 小時內審批完成的活躍企業帳號數",
+        "explanation": "Brex Empower 替代舊支出報帳流程，若員工不提交或主管不及時審批，代表舊的紙本或 Email 流程仍在並行，平台未真正取代舊習慣。",
+        "businessLink": "報帳流程完全在 Brex Empower 完成的企業帳號，財務數據實時可見性讓 CFO 依賴平台做支出決策，幾乎不會更換。"
+      },
+      "step3": {
+        "reach": "每月至少有一筆費用報告在 Brex Empower 提交並審批完成的活躍員工帳號數，以及每週至少審批一次的經理帳號數。",
+        "depth": "每份費用報告的費用類別完整度與收據附件上傳率，完整記錄代表員工真正使用平台的合規功能而非只是流程上走個形式。",
+        "frequency": "每週有費用提交或審批行為的工作日天數，5 天全週期代表支出管理流程已完全在 Brex Empower 上運作。",
+        "impact": "平台覆蓋的企業支出佔總支出比例，覆蓋率越高代表財務數據越完整，CFO 對 Brex Empower 的依賴度越高。"
+      }
+    },
+    "context": {
+      "model": "Brex Empower 採按席位月費收費模式，與 Brex 企業信用卡高度整合；核心商業邏輯是支出管理和企業信用卡整合帶來完整財務可視性，形成難以替換的財務基礎設施。",
+      "users": "NSM 聚焦「需要日常管理員工報帳和費用審批的財務控制器或 CFO」，以及「需要定期提交費用報告的業務和銷售員工」，雙方都需要活躍才能讓流程真正數位化。",
+      "traps": "把「帳號創建數」或「政策設定數」當採用度忽略使用行為，企業 IT 可能設置了完整的費用政策，但若員工繼續用紙本或 Email 報帳，平台等同空殼。",
+      "insight": "從「企業導入後第一個月的費用報告數字化提交率是否達到 70% 以上」切入，首月高提交率代表員工習慣改變成功，是長期財務流程數位化的關鍵里程碑。"
+    }
+  },
+  {
+    "id": "q84",
+    "company": "Gusto",
+    "industry": "美國 SMB 薪資平台",
+    "scenario": "Gusto 服務美國小企業，月薪資發放是核心功能，若企業跳過平台用手工或其他工具發薪，留存率急跌。",
+    "target_nsm_keywords": [
+      "月薪資準時跑完比例",
+      "福利方案加購率",
+      "企業主月登入並操作比例"
+    ],
+    "anti_patterns": [
+      "員工帳號數",
+      "薪資計算器使用次數",
+      "文件下載量"
+    ],
+    "field_examples": {
+      "step2": {
+        "nsm": "每月薪資準時跑完（無錯誤、無延遲）且同時使用健康福利模組的活躍小企業帳號數",
+        "explanation": "Gusto 的核心是讓小企業老闆不再焦慮薪資合規，準時準確發薪加福利採購代表 Gusto 已成為企業核心 HR 基礎設施。",
+        "businessLink": "同時使用薪資和福利模組的帳號 ARPU 是只用薪資的 2 倍，且幾乎不會更換，因為福利整合涉及員工健保，替換風險極高。"
+      },
+      "step3": {
+        "reach": "每月至少完成一次薪資發放的活躍小企業帳號數，剔除設置了薪資結構但從未實際跑薪資的試用型帳號。",
+        "depth": "每家企業使用的 Gusto 功能模組數（薪資、福利、HR 文件、績效），多模組使用代表 Gusto 已成為企業的全方位 HR 平台。",
+        "frequency": "每月按時薪資發放的次數，每兩週一次（美國標準）代表 Gusto 是真正的薪資系統，而非只是偶爾用一次的計算工具。",
+        "impact": "月費收益加附加功能收益，健康保險整合後帶動的附加費用是 Gusto 最高毛利的收益來源，也是最強的留存護城河。"
+      }
+    },
+    "context": {
+      "model": "Gusto 採月費制，按員工數計費（約 $6/人/月加基礎費）；核心商業邏輯是美國小企業的薪資合規痛點驅動採用，福利整合則形成高轉移成本的護城河。",
+      "users": "NSM 聚焦「5-100 人規模的美國小企業主或 HR 負責人」，他們需要合規薪資和福利管理但沒有資源自行處理複雜的稅務申報。",
+      "traps": "把「薪資計算器使用次數」或「文件下載量」當活躍度是誤判，企業可能只是用免費工具計算薪資但實際發薪仍靠其他方式，計算行為不等於使用 Gusto 核心功能。",
+      "insight": "從「新企業帳號是否在 14 天內完成第一次薪資發放並設置自動週期」切入，首次準時發薪加自動週期設置代表企業已將 Gusto 整合進財務日曆，是高留存的起點。"
+    }
+  },
+  {
+    "id": "q85",
+    "company": "Gem",
+    "industry": "招聘 CRM SaaS",
+    "scenario": "Gem 讓招聘人員系統化追蹤候選人管道，若獵頭不在平台更新進度，數據就失去預測效力，付費難以維持。",
+    "target_nsm_keywords": [
+      "候選人管道每週更新率",
+      "從 Gem 發出並獲回覆的外寄訊息比例",
+      "成功聘用並在 Gem 記錄的比例"
+    ],
+    "anti_patterns": [
+      "候選人資料匯入數",
+      "帳號登入次數",
+      "郵件模板創建數"
+    ],
+    "field_examples": {
+      "step2": {
+        "nsm": "每週候選人管道更新率超過 80% 且每週至少有一個外寄訊息獲得回覆的活躍招聘人員帳號數",
+        "explanation": "Gem 讓招聘人員系統化追蹤候選人，管道更新率代表數據真實，外寄訊息有回覆代表平台真正在幫助主動觸達目標候選人。",
+        "businessLink": "管道數據真實的招聘帳號其 TA 主管在審計時能清楚看到招聘效率，這讓採購 Gem 的決策在年度預算審查時幾乎不被砍掉。"
+      },
+      "step3": {
+        "reach": "每週至少登入並更新一筆候選人狀態的活躍招聘人員帳號數，剔除只是帳號開通但從未真正使用 Gem 管理候選人的幽靈帳號。",
+        "depth": "每個候選人紀錄的互動記錄完整度（外寄訊息、面試記錄、結果更新），完整記錄代表 Gem 真正成為招聘人員的管理核心而非只是補充備忘工具。",
+        "frequency": "每週使用 Gem 的工作日天數，5 天全活躍代表招聘人員已將 Gem 整合進每日候選人追蹤工作流程而非只是週末整理數據。",
+        "impact": "企業帳號席位增購率與 Analytics 功能採購率，招聘數據真實後 TA 主管開始用 Gem 做預測分析，帶動更高 ACV 的合約升級。"
+      }
+    },
+    "context": {
+      "model": "Gem 採年費訂閱制，按招聘人員席位數計費；核心商業邏輯是科技公司快速擴編對高效招聘工具的強需求，Gem 的 ROI 容易以「每次成功聘用的 Cost Per Hire」量化。",
+      "users": "NSM 聚焦「負責主動外寄觸達目標候選人的技術招聘人員」，不包含只是被動收簡歷審核的 HR 廣告投放型帳號。",
+      "traps": "把「候選人資料匯入數」或「郵件模板創建數」當採用度是招聘 CRM 常見誤判，批量匯入候選人資料後若招聘人員從不更新追蹤狀態，數據立刻過時失去預測價值。",
+      "insight": "從「招聘人員是否在首週內透過 Gem 成功發出至少 10 封外寄訊息且有 2 封獲得回覆」切入，早期觸達成功率讓招聘人員建立對平台的信任和使用習慣。"
+    }
+  },
+  {
+    "id": "q86",
+    "company": "Lattice",
+    "industry": "績效管理 SaaS",
+    "scenario": "Lattice 協助企業做 OKR 與績效評估，若員工與主管不真正完成評估週期，平台只是行政負擔。",
+    "target_nsm_keywords": [
+      "績效評估週期完成率",
+      "OKR 定期更新比例",
+      "員工與主管 1-on-1 記錄率"
+    ],
+    "anti_patterns": [
+      "帳號創建數",
+      "目標設定數",
+      "文件上傳數"
+    ],
+    "field_examples": {
+      "step2": {
+        "nsm": "每季績效評估週期按時完成且員工與主管 1-on-1 有記錄的活躍企業帳號比例超過 80%",
+        "explanation": "Lattice 的核心價值是讓績效管理真正發生而非流於形式，按時完成率加 1-on-1 記錄代表雙向對話真實存在，不是填表敷衍。",
+        "businessLink": "績效週期完成率高的帳號其員工留存率通常也更高，企業 CHRO 看到 Lattice 與留存率的相關性後幾乎不會在預算審查中砍掉此工具。"
+      },
+      "step3": {
+        "reach": "每季至少完成一次正式績效評估的活躍員工和主管帳號比例，超過 80% 代表評估文化真正建立而非少數人在用。",
+        "depth": "每次 1-on-1 的平均筆記字數與行動項目設置率，深度記錄代表主管真正在準備和跟進，而非只是點擊完成的表格行為。",
+        "frequency": "每季評估週期按時啟動和完成的比例，100% 按時代表 Lattice 真正成為企業人力資源管理週期的核心日曆事件。",
+        "impact": "企業帳號年費留存率與 Engagement 問卷功能採購率，績效管理深度整合後 CHRO 自然採購員工敬業度調查功能擴大平台使用。"
+      }
+    },
+    "context": {
+      "model": "Lattice 採年費訂閱制，按員工數計費並按模組（績效、OKR、敬業度）分別收費；核心商業邏輯是績效管理是企業每年都必須做的法規性流程，Lattice 讓流程更有效率。",
+      "users": "NSM 聚焦「需要管理員工績效週期和 OKR 的 HR 主管、CHRO 和一線主管」，不包含只是員工被動填表的最終使用者（員工是受眾不是核心用戶）。",
+      "traps": "把「帳號創建數」或「目標設定數」當採用度，Lattice 早期企業常在年初熱情設定大量 OKR，但若無後續更新記錄，等同工具只用了一次後棄置。",
+      "insight": "從「企業帳號在首季度評估週期中，是否有超過 75% 的員工主動完成自評而非被 HR 催促」切入，主動參與率代表員工感受到評估的公正性和成長意義。"
+    }
+  },
+  {
+    "id": "q87",
+    "company": "Retool",
+    "industry": "低代碼內部工具",
+    "scenario": "Retool 讓工程師快速建構內部操作後台，唯有業務人員真正日常使用這些工具，平台才能被視為核心基礎設施。",
+    "target_nsm_keywords": [
+      "內部工具月活躍使用者數",
+      "業務流程自動化節省時間比例",
+      "企業方案席位活躍率"
+    ],
+    "anti_patterns": [
+      "App創建數",
+      "元件拖拉次數",
+      "工程師帳號數"
+    ],
+    "field_examples": {
+      "step2": {
+        "nsm": "每月至少有 5 名非工程師業務人員每週主動使用 Retool 構建的內部工具的活躍企業帳號數",
+        "explanation": "Retool 的核心價值是讓工程師建立的工具被業務人員日常使用，若只有工程師在用，Retool 只是另一個開發工具而非業務效率平台。",
+        "businessLink": "業務人員高頻使用代表工程師投資在 Retool 建設的工具有真實回報，形成工程師有動機持續建更多工具的良性循環。"
+      },
+      "step3": {
+        "reach": "每月至少有一名業務人員主動使用 Retool App 完成工作任務的活躍企業帳號數，剔除只有工程師使用開發功能的純技術型帳號。",
+        "depth": "每個 Retool App 的月活躍業務用戶數，超過 10 人使用的 App 代表工具真正解決了業務痛點並已嵌入部門日常工作流程。",
+        "frequency": "每週業務人員使用 Retool App 的天數，5 天全週期代表 Retool 構建的工具已成為業務日常操作核心而非偶爾用一次的輔助工具。",
+        "impact": "企業方案席位增購率與 Retool 自建 App 數量成長，業務採用成功帶動工程師有動機構建更多 App，形成平台内生的使用量成長。"
+      }
+    },
+    "context": {
+      "model": "Retool 採按席位月費模式，提供低代碼內部工具建設平台；核心商業邏輯是工程師時間成本極高，Retool 讓工程師用 1/10 的時間建立業務需要的後台工具。",
+      "users": "NSM 聚焦「使用工程師用 Retool 構建的內部後台工具完成日常業務操作的業務人員」，工程師是建造者，業務人員才是代表平台真實 ROI 的最終使用者。",
+      "traps": "把「App 創建數」或「工程師帳號數」當採用度誤判，工程師可能構建了大量 Retool App，但若業務人員從不使用，代表工具未解決業務真實痛點，企業採購無法持續。",
+      "insight": "從「工程師構建的第一個 Retool App 是否在發布後 7 天內有 3 名以上業務人員主動使用」切入，業務早期採用代表工具設計命中需求，是繼續投資構建更多 App 的信心基礎。"
+    }
+  },
+  {
+    "id": "q88",
+    "company": "Pave",
+    "industry": "薪酬基準 SaaS",
+    "scenario": "Pave 提供薪酬市場數據，HR 在調薪季時才會高度使用，需確保平台數據真正被採納進入薪酬決策，而非只是查閱備用。",
+    "target_nsm_keywords": [
+      "薪酬審核周期中活躍使用次數",
+      "數據匯出後對應提薪決策比例",
+      "人資團隊多人同時使用率"
+    ],
+    "anti_patterns": [
+      "帳號登入次數",
+      "職位薪資搜尋數",
+      "報告下載量"
+    ],
+    "field_examples": {
+      "step2": {
+        "nsm": "每次薪酬審核週期中，HR 團隊使用 Pave 數據提出薪資調整建議且被管理層採納的活躍企業帳號比例",
+        "explanation": "Pave 的價值在於薪酬決策以市場數據為依據，HR 使用平台數據且管理層採納才代表 Pave 真正影響了薪資決策，而非只是備查資料。",
+        "businessLink": "薪酬決策被採納的帳號年費留存率極高，因為 HR 主管在向 CEO 匯報薪酬策略時需要市場數據支撐，替換薪酬基準工具會影響決策可信度。"
+      },
+      "step3": {
+        "reach": "每個薪酬審核週期（通常半年或年度）至少登入並查詢市場薪酬基準的活躍 HR 帳號數。",
+        "depth": "每次薪酬審核中使用 Pave 查詢的職位數量與薪資範圍設置完整度，深度使用代表 Pave 數據被系統化應用於整個薪酬架構而非只查個別職位。",
+        "frequency": "每個薪酬週期中 HR 人員使用 Pave 的次數，高頻查詢代表 HR 在整個審核流程中持續參考 Pave 數據而非只在最後環節備查一次。",
+        "impact": "年費合約留存率與 Pave 薪酬規劃工具採購率，薪酬數據整合後企業自然加購薪酬提議和規劃模組，形成完整薪酬管理平台採用。"
+      }
+    },
+    "context": {
+      "model": "Pave 採年費訂閱制，按企業規模計費；核心商業邏輯是薪酬數據的網絡效應（越多企業貢獻數據，基準越精準），形成競爭對手難以複製的數據護城河。",
+      "users": "NSM 聚焦「在薪酬審核季高度依賴市場數據的 HR 主管和薪酬分析師」，不包含只是 IT 設置帳號但 HR 實際上繼續用 LinkedIn Salary 或 Glassdoor 的帳號。",
+      "traps": "把「職位薪資搜尋數」或「帳號登入次數」當採用度誤判，HR 可能隨意搜尋幾個職位看看，但若這些查詢結果從未被用於任何薪資決策，代表 Pave 未真正嵌入流程。",
+      "insight": "從「HR 是否在薪酬審核後將 Pave 市場數據引用在向 CEO 的薪酬策略匯報中」切入，被管理層引用代表 Pave 的數據公信力已達到決策採納門檻。"
+    }
+  },
+  {
+    "id": "q89",
+    "company": "Contentful",
+    "industry": "Headless CMS",
+    "scenario": "Contentful 服務企業跨管道內容發布，若內容編輯不在平台維護並發布，工程師整合就沒有意義。",
+    "target_nsm_keywords": [
+      "月內容發布次數",
+      "編輯人員週活躍比例",
+      "跨渠道發布啟用比例"
+    ],
+    "anti_patterns": [
+      "Content Type 定義數",
+      "API Key 申請數",
+      "媒體庫上傳數"
+    ],
+    "field_examples": {
+      "step2": {
+        "nsm": "每月至少完成 10 次跨渠道（Web、App、Email）內容同步發布且編輯人員週活躍比例超過 70% 的企業帳號數",
+        "explanation": "Contentful 的 Headless CMS 核心價值是跨渠道一次發布，若內容只在一個渠道更新，代表跨渠道架構優勢未被使用。",
+        "businessLink": "跨渠道發布活躍的帳號幾乎不會遷移 CMS，因為更換 Headless CMS 需要工程師重寫所有渠道的 API 整合，替換成本遠高於年費。"
+      },
+      "step3": {
+        "reach": "每月至少有一次內容更新並通過 API 推送至前端的活躍企業帳號數，剔除只是 IT 設置環境但從未有內容編輯真正使用的空帳號。",
+        "depth": "每個帳號的跨渠道發布數量與 Content Type 多樣性，發布至 3 個以上渠道代表 Contentful 真正作為跨平台內容中樞在運作。",
+        "frequency": "每週有內容更新發布的工作日天數，5 天全週期代表 Contentful 是內容團隊的日常工作基礎設施而非只有上線時才用的工具。",
+        "impact": "企業帳號 API 調用量成長率與 Contentful 高階功能（Orchestration、AI Actions）採購率，業務成長帶動內容量增加自然推動升級。"
+      }
+    },
+    "context": {
+      "model": "Contentful 採 API 調用量計費，Enterprise 版有 Advanced Features；核心商業邏輯是內容量和渠道數成長帶動 API 調用量增加，形成隨業務成長的計費模型。",
+      "users": "NSM 聚焦「負責跨多渠道維護和發布內容的行銷或內容編輯團隊」，不包含只是工程師設置 CMS 架構但內容編輯實際上仍用 Word 文件交付內容的失敗整合帳號。",
+      "traps": "把「Content Type 定義數」或「API Key 申請數」當採用度，工程師常在設置階段大量定義 Content Type，但若編輯人員從未實際使用介面發布，平台等同空架構。",
+      "insight": "從「編輯人員是否在系統上線後第一週內獨立完成至少 5 次內容更新發布（無需工程師協助）」切入，編輯自主性代表 CMS 介面設計成功降低技術門檻。"
+    }
+  },
+  {
+    "id": "q90",
+    "company": "Descript",
+    "industry": "AI 影音剪輯工具",
+    "scenario": "Descript 讓 Podcast 與影片創作者以文字剪輯音視頻，唯有成品真正匯出發布才代表工具真正被採用。",
+    "target_nsm_keywords": [
+      "成品成功匯出並發布比例",
+      "每月完成剪輯的專案數",
+      "付費方案升級率"
+    ],
+    "anti_patterns": [
+      "專案創建數",
+      "文字紀錄生成次數",
+      "帳號創建數"
+    ],
+    "field_examples": {
+      "step2": {
+        "nsm": "每月至少完成 2 個 Podcast 集或影片剪輯並成功發布的活躍創作者帳號數",
+        "explanation": "Descript 讓創作者用文字剪輯音視頻，唯有成品發布才代表 AI 剪輯工具真正嵌入創作工作流程並替代傳統剪輯方式。",
+        "businessLink": "有定期發布成品的創作者幾乎不會回到傳統剪輯工具，因為 Descript 的文字剪輯速度優勢在習慣形成後無法放棄。"
+      },
+      "step3": {
+        "reach": "每月至少創建一個新的 Descript 專案並進行剪輯操作的活躍付費用戶數，剔除只是匯入一個音檔但從未真正剪輯的試用型帳號。",
+        "depth": "每個剪輯專案的平均操作次數（刪詞、填詞、場景切割）與最終匯出品質，深度剪輯代表創作者正在充分使用 Descript 的 AI 能力。",
+        "frequency": "每月使用 Descript 完成剪輯並發布的次數，每月 4 次以上代表創作節奏穩定，Descript 是週期性內容生產的核心工具。",
+        "impact": "付費方案升級率（Creator→Pro→Enterprise）與 Descript 共同工作空間採購率，高頻創作者因時數限制而升級，或與團隊協作需求驅動企業版採購。"
+      }
+    },
+    "context": {
+      "model": "Descript 採訂閱制，免費版有功能限制，付費版解鎖 AI 配音、去除填充詞等進階功能；核心商業邏輯是 Podcast 和視頻內容創作者的高成長需求驅動訂閱持續增加。",
+      "users": "NSM 聚焦「有定期內容發布節奏的 Podcast 製作者和 YouTube 創作者」，不包含只是偶爾錄一段演講或會議記錄轉文字的非創作者型用戶。",
+      "traps": "把「文字紀錄生成次數」當活躍度誤判，Descript 常被用於單純音頻轉文字，若用戶只需要字幕功能而從未真正做剪輯，代表 AI 剪輯的核心功能未被採用。",
+      "insight": "從「用戶首次完成剪輯並匯出的時間點是否在試用或訂閱後 7 天內」切入，首次成品代表創作工作流程遷移成功，是 Descript 付費留存的最強早期確認指標。"
+    }
+  },
+  {
+    "id": "q91",
+    "company": "Doordash",
+    "industry": "美國外賣平台",
+    "scenario": "DoorDash 已從補貼期進入盈利優化期，必須確保每筆訂單真正配送完成且消費者體驗好，才能維持高口碑與 DashPass 訂閱。",
+    "target_nsm_keywords": [
+      "訂單成功送達率",
+      "DashPass 訂閱月留存率",
+      "消費者無客訴完成比例"
+    ],
+    "anti_patterns": [
+      "外送員數量",
+      "餐廳合作家數",
+      "App安裝數"
+    ],
+    "field_examples": {
+      "step2": {
+        "nsm": "每月 DashPass 訂閱用戶中無客訴成功送達且 30 天內再次訂購的比例超過 70%",
+        "explanation": "DoorDash 已從補貼期進入盈利優化，DashPass 訂閱用戶是核心留存群體，無客訴回購代表服務品質真正支撐了訂閱價值。",
+        "businessLink": "DashPass 訂閱用戶的月均訂單數是非訂閱用戶的 3 倍，且平均客單價更高，是 DoorDash GMV 增長的最高效率的用戶群。"
+      },
+      "step3": {
+        "reach": "每月至少完成 2 筆成功送達訂單的活躍 DashPass 訂閱用戶數，以及每月完成 80 筆以上配送的活躍 Dasher 數。",
+        "depth": "每筆訂單的平均客單價與餐廳評分，高客單高評分代表 DashPass 訂閱用戶願意為品質付溢價，是平台最有價值的用戶群。",
+        "frequency": "DashPass 用戶每月下單次數，每月 5 次以上代表外賣已嵌入飲食習慣，DashPass 的月費相比使用頻率完全合理。",
+        "impact": "DashPass 訂閱月留存率與企業餐飲服務（DoorDash for Work）採購率，高頻 DashPass 用戶是企業餐飲服務最自然的轉化群體。"
+      }
+    },
+    "context": {
+      "model": "DoorDash 採三方撮合抽傭模式，DashPass 訂閱費 $9.99/月提供免外送費優惠；核心商業邏輯是 DashPass 訂閱提升下單頻率，提高 LTV 降低邊際成本。",
+      "users": "NSM 聚焦「每月有穩定外賣習慣的 DashPass 訂閱用戶」，以及「接單完成率高且評分高的優質 Dasher」，雙邊品質都需要健康才能維持 DashPass 的留存價值。",
+      "traps": "把「外送員數量」或「餐廳合作家數」當供給健康度時，大量外送員若接單完成率低或大量餐廳若品質差，反而損害 DashPass 訂閱的留存動機。",
+      "insight": "從「DashPass 用戶在訂閱後首週是否完成至少 2 筆訂單」切入，首週高密度使用代表用戶開始感受到 DashPass 免外送費的實際節省，是訂閱留存的最強早期訊號。"
+    }
+  },
+  {
+    "id": "q92",
+    "company": "Benchling",
+    "industry": "生命科學研發 SaaS",
+    "scenario": "Benchling 管理生技實驗數據，若實驗員不在平台記錄與分析結果，就無法建立數據護城河讓企業續費。",
+    "target_nsm_keywords": [
+      "實驗記錄週活躍創建率",
+      "數據與分析模組使用比例",
+      "跨部門數據共享次數"
+    ],
+    "anti_patterns": [
+      "帳號邀請數",
+      "實驗專案創建數",
+      "App登入次數"
+    ],
+    "field_examples": {
+      "step2": {
+        "nsm": "每週實驗記錄活躍創建率超過 80% 且數據與分析模組同時使用的實驗室帳號數",
+        "explanation": "Benchling 的核心是讓生技實驗數據在平台流通分析，只記錄不分析代表 Benchling 只是換了個電子記錄本，而非真正的研發加速平台。",
+        "businessLink": "數據分析模組高使用率的帳號年費留存率超過 95%，生物科技數據的護城河讓企業幾乎不可能更換 ELN（電子實驗記錄）系統。"
+      },
+      "step3": {
+        "reach": "每週至少創建 3 條實驗記錄的活躍實驗員帳號數，以及每月至少使用數據分析模組一次的科學家帳號數（雙維活躍）。",
+        "depth": "每個實驗記錄的數據完整度（方法、試劑、結果、分析），高完整度代表 Benchling 真正取代了紙本實驗記錄，而非只是形式上的電子存檔。",
+        "frequency": "每週工作日的實驗記錄更新天數，5 天全週期代表 Benchling 是實驗員每日研究工作的核心工具而非只在提交報告時才整理的備忘錄。",
+        "impact": "企業帳號年費留存率與分子設計模組採購率，研發數據深度積累後研究主管開始採購 Benchling 的更高階分析功能，形成 ACV 自然升級。"
+      }
+    },
+    "context": {
+      "model": "Benchling 採年費訂閱制，按用戶數和功能模組計費；核心商業邏輯是生命科學研發數據的合規記錄要求（FDA/EMA）讓替換 ELN 系統的監管風險極高，留存率接近 100%。",
+      "users": "NSM 聚焦「日常在實驗室進行研究並記錄實驗數據的研究科學家和技術人員」，不包含只是 IT 設置帳號的管理員或只偶爾查看報告的研究主管。",
+      "traps": "把「實驗專案創建數」或「帳號邀請數」當採用度，生技公司常在系統上線時一次建立大量「空」專案，但若實驗員從不在平台記錄實際實驗數據，代表 Benchling 採用失敗。",
+      "insight": "從「新上線帳號在前 30 天內是否有超過 60% 的實驗員完成第一筆完整實驗記錄」切入，早期全員上手率決定 Benchling 是否真正替代了舊的紙本或 Excel 記錄習慣。"
+    }
+  },
+  {
+    "id": "q93",
+    "company": "Wix",
+    "industry": "雲端建站平台",
+    "scenario": "Wix 免費吸引用戶建站，靠升級付費域名與電商方案獲利，若網站沒有真實訪客用戶就不會感受到升級必要性。",
+    "target_nsm_keywords": [
+      "發布網站的月訪客數",
+      "付費方案升級率",
+      "電商模組開啟後首筆銷售率"
+    ],
+    "anti_patterns": [
+      "網站草稿創建數",
+      "範本瀏覽量",
+      "免費帳號數"
+    ],
+    "field_examples": {
+      "step2": {
+        "nsm": "每月已發布網站有超過 500 次訪客且升級付費方案的活躍帳號數",
+        "explanation": "Wix 靠免費建站吸引，付費升級需要用戶感受到網站流量的商業潛力，真實訪客加付費升級代表平台的商業轉化模式真正啟動。",
+        "businessLink": "有穩定月訪客量的網站用戶對自訂域名和電商功能的需求自然產生，付費升級代表 Wix 的商業轉化飛輪開始轉動。"
+      },
+      "step3": {
+        "reach": "每月至少有一個正式發布並有真實訪客的活躍網站帳號數，剔除只有草稿從未發布或只有帳號擁有者自己訪問的沉默帳號。",
+        "depth": "已發布網站的月均真實訪客數與訪客來源多樣性，有機搜尋流量代表用戶真正在業務上使用網站而非只是個人展示頁。",
+        "frequency": "每月更新網站內容（頁面、部落格、產品）的次數，定期維護代表網站是活躍業務工具而非靜態一次性展示品。",
+        "impact": "付費域名+主機升級率與電商模組開通後首週銷售率，電商首週成交代表 Wix 已成為用戶的電商基礎設施，是最高 ARPU 的轉化里程碑。"
+      }
+    },
+    "context": {
+      "model": "Wix 採 Freemium 模式，免費版帶 Wix 子域名和廣告，付費版自訂域名去廣告；核心商業邏輯是用免費工具降低建站門檻，靠訪客流量增加的業務需求驅動付費升級。",
+      "users": "NSM 聚焦「有真實業務需求（小企業、服務業、餐廳）並希望通過網站獲客的中小企業主」，不包含只是學生作品集或個人部落格的低商業需求用戶。",
+      "traps": "把「網站草稿創建數」或「免費帳號數」當健康度是 Freemium 平台常見誤判，大量免費帳號若從未發布網站或發布後無真實訪客，代表免費轉付費的商業邏輯未啟動。",
+      "insight": "從「用戶在建站後是否在 24 小時內發布網站並分享連結」切入，快速發布行為代表有真實展示需求，是未來 3 個月內付費升級的最強早期訊號。"
+    }
+  },
+  {
+    "id": "q94",
+    "company": "Postmates",
+    "industry": "本地即時配送",
+    "scenario": "Postmates 覆蓋餐廳以外的本地商品配送，平台需確保非餐廳類別的訂單也能真正成功配送，才能多元化 GMV 來源。",
+    "target_nsm_keywords": [
+      "非餐廳訂單成功配送率",
+      "新類別用戶月回購率",
+      "配送員接單完成比例"
+    ],
+    "anti_patterns": [
+      "商家上架數",
+      "商品瀏覽次數",
+      "App安裝數"
+    ],
+    "field_examples": {
+      "step2": {
+        "nsm": "每月非餐廳類別訂單成功送達且回購率超過 30% 的活躍消費者數",
+        "explanation": "Postmates 的差異化在非餐廳品類（藥局、超市、便利店），若只有餐廳訂單，與 Uber Eats 無差異，非餐廳回購才代表多元化 GMV 成功。",
+        "businessLink": "非餐廳品類的回購用戶平均訂購金額通常高於純餐廳用戶，且忠誠度高，是 Postmates 維持 GMV 多樣化的核心來源。"
+      },
+      "step3": {
+        "reach": "每月至少完成一筆非餐廳類別訂單（如藥局、超市、花店）的活躍消費者數，以及服務這些商家的活躍配送員數。",
+        "depth": "每筆非餐廳訂單的平均金額與品項多樣性，高客單多品項代表消費者真正以 Postmates 作為即時採購工具而非只偶爾補充物品。",
+        "frequency": "每月使用 Postmates 配送非餐廳商品的次數，每月 2 次以上代表即時配送習慣正在形成，而非只在特殊急需時才用。",
+        "impact": "非餐廳 GMV 佔總 GMV 比例成長率與商家類別多樣性，非餐廳品類多元化成功後 Postmates 的 GMV 來源更分散，抗風險能力更強。"
+      }
+    },
+    "context": {
+      "model": "Postmates 採即時配送撮合模式，向消費者收外送費和服務費，向商家抽傭；被 Uber Eats 收購後聚焦差異化品類（非餐廳）以避免與 Uber Eats 正面競爭。",
+      "users": "NSM 聚焦「有非計劃性急需（如藥品、生活用品補貨）且習慣使用即時配送解決的消費者」，不包含只是偶爾用 Postmates 訂餐的純餐飲外賣用戶。",
+      "traps": "把「商家上架數」當供給健康度誤判，大量商家上架但消費者不知道或不信任非餐廳品類的配送品質，代表供需媒合失敗而非平台健康。",
+      "insight": "從「消費者首次非餐廳品類訂單送達後是否在 7 天內再下一筆同類別訂單」切入，這個跨類別二次購買行為代表消費者開始信任即時配送的非餐廳品類體驗。"
+    }
+  },
+  {
+    "id": "q95",
+    "company": "Klaviyo",
+    "industry": "電商行銷自動化",
+    "scenario": "Klaviyo 幫電商品牌自動發 Email 與 SMS，平台靠聯絡人數量計費，需確保行銷活動真正帶動銷售轉換。",
+    "target_nsm_keywords": [
+      "行銷流程觸發後的訂單轉換率",
+      "Email 點擊後完成購買比例",
+      "月活躍自動化流程數"
+    ],
+    "anti_patterns": [
+      "郵件發送總數",
+      "聯絡人匯入數",
+      "模板瀏覽次數"
+    ],
+    "field_examples": {
+      "step2": {
+        "nsm": "每月行銷流程觸發後帶動至少一筆訂單轉換的活躍電商品牌帳號數",
+        "explanation": "Klaviyo 的核心是讓行銷自動化真正帶動銷售，若流程觸發了大量 Email 但轉換率為零，代表平台只是在製造行銷噪音而非創造收益。",
+        "businessLink": "行銷流程有轉換的帳號對 Klaviyo 的依賴度極高，因為直接看到 Email 帶動訂單的品牌主根本不想換掉這套歸因清晰的行銷工具。"
+      },
+      "step3": {
+        "reach": "每月至少有一個行銷自動化流程正在運行並發送 Email 的活躍電商帳號數，剔除只是設置流程但從未觸發的空帳號。",
+        "depth": "每個流程的平均 Email 開信率與點擊後購買轉換率，深度優化的帳號持續 A/B 測試主題列和內容，代表真正在追求行銷效益最大化。",
+        "frequency": "每月行銷流程觸發的次數（廢棄購物車、新客歡迎、回購提醒），高頻觸發代表品牌的電商業務活躍，Klaviyo 的角色也隨之重要。",
+        "impact": "月訂閱費收益加聯絡人超量費，品牌業務成長帶動聯絡人名單成長，自然推動 Klaviyo 的計費成長，形成最理想的激勵對齊模型。"
+      }
+    },
+    "context": {
+      "model": "Klaviyo 按聯絡人數量月費計費，並按 Email 和 SMS 發送量收費；核心商業邏輯是電商品牌的聯絡人名單成長直接帶動 Klaviyo 計費，雙方完全激勵對齊。",
+      "users": "NSM 聚焦「有積極行銷需求並持續優化自動化流程的電商 DTC 品牌行銷人員」，不包含只是匯入聯絡人清單但從未設置任何自動化流程的被動型帳號。",
+      "traps": "把「郵件發送總數」或「聯絡人匯入數」當效果指標，大量發送若轉換率極低代表行銷內容品質或目標分群問題，發送量高不等於 ROI 高。",
+      "insight": "從「品牌啟用廢棄購物車提醒流程後首週是否至少有一筆成功挽回訂單」切入，首次可見的挽回成功讓品牌主立即感受到 Klaviyo 的 ROI，是最快的付費留存確認。"
+    }
+  },
+  {
+    "id": "q96",
+    "company": "Attentive",
+    "industry": "SMS 行銷 SaaS",
+    "scenario": "Attentive 讓品牌透過 SMS 行銷推動購買，靠訊息量計費，唯有簡訊真正帶來點擊與購買，品牌才會加量採購。",
+    "target_nsm_keywords": [
+      "SMS 點擊後購買轉換率",
+      "訂閱者留存率（未退訂比例）",
+      "月行銷活動 ROI 達標比例"
+    ],
+    "anti_patterns": [
+      "訂閱者收集數",
+      "簡訊發送量",
+      "品牌帳號申請數"
+    ],
+    "field_examples": {
+      "step2": {
+        "nsm": "每月 SMS 行銷活動點擊後購買轉換率超過 5% 且 ROI 達標的活躍電商品牌帳號數",
+        "explanation": "Attentive 的核心是讓 SMS 帶來真實購買而非只是品牌曝光，5% 轉換率代表訊息精準且時機對，品牌主才願意持續加量採購。",
+        "businessLink": "轉換率達標的品牌帳號往往逐季增加 SMS 預算，因為 ROI 清晰可見，行銷主管對 Attentive 的投入幾乎不會在預算季被砍掉。"
+      },
+      "step3": {
+        "reach": "每月至少發送一個 SMS 行銷活動且訂閱者開啟率超過 20% 的活躍品牌帳號數，剔除只是設置帳號但從未發送任何 SMS 的空帳號。",
+        "depth": "每個 SMS 活動的點擊率與購買轉換率，深度優化的帳號會針對不同分群設計差異化 SMS 內容以提高相關性和轉換。",
+        "frequency": "每月 SMS 活動發送次數，每月 4-6 次代表品牌有成熟的 SMS 行銷節奏而非只在重大促銷時才用一次。",
+        "impact": "月訂閱費收益與 SMS 發送量成長率，品牌業務成長和節假日活動帶動 SMS 發送量增加，是 Attentive 最自然的收益成長驅動力。"
+      }
+    },
+    "context": {
+      "model": "Attentive 按訊息量計費，Enterprise 版有專屬客戶成功團隊；核心商業邏輯是 SMS 的高開信率（98%）讓品牌比 Email 更快看到 ROI，吸引加碼投入。",
+      "users": "NSM 聚焦「有成熟電商業務且積極追求 SMS ROI 的直播品牌或 DTC 電商行銷負責人」，不包含只是試試看 SMS 行銷效果的小品牌一次性試用帳號。",
+      "traps": "把「訂閱者收集數」或「簡訊發送量」當健康度誤判，大量訂閱者若分群不精準導致 SMS 高退訂率，代表 Attentive 的配置品質問題而非平台健康成長。",
+      "insight": "從「品牌第一個 SMS 廢棄購物車提醒活動的首日轉換數字」切入，即時可見的轉換讓行銷主管立刻看到 SMS 的 ROI，形成快速加量採購的動機。"
+    }
+  },
+  {
+    "id": "q97",
+    "company": "Pendo",
+    "industry": "產品體驗分析 SaaS",
+    "scenario": "Pendo 幫 SaaS 公司追蹤功能使用並引導新用戶，若 In-App Guide 觸發後沒有提升功能採用率，平台價值就難以說服。",
+    "target_nsm_keywords": [
+      "功能採用率提升比例",
+      "In-App Guide 完成率",
+      "平台 NPS 問卷回覆後採取行動率"
+    ],
+    "anti_patterns": [
+      "Guide 創建數",
+      "追蹤事件定義數",
+      "帳號邀請數"
+    ],
+    "field_examples": {
+      "step2": {
+        "nsm": "每季功能採用率提升超過 15% 且 In-App Guide 完成率超過 70% 的活躍 SaaS 帳號數",
+        "explanation": "Pendo 的核心是讓 SaaS 產品的功能採用率提升，Guide 完成率加功能採用率並列才能確認工具真正改變了用戶行為而非只是彈出視窗被關掉。",
+        "businessLink": "能展示功能採用率提升的帳號在年度審查時有清晰的 ROI 數據，Pendo 的投資回報直接反映在客戶留存率改善上，幾乎不被砍預算。"
+      },
+      "step3": {
+        "reach": "每月至少有一個 In-App Guide 觸發並有用戶互動的活躍 SaaS 帳號數，剔除只是技術設置好 Guide 但沒有用戶真正觸發的空帳號。",
+        "depth": "每個 Guide 的用戶完成率與完成後對應功能的使用率，高完成率加高後續使用代表 Pendo 的引導真正改變了用戶行為而非只是彈窗打擾。",
+        "frequency": "每週 PM 或產品分析師查詢 Pendo 報告的次數，高頻查詢代表 Pendo 已成為產品決策的數據依據而非偶爾查一次的報表工具。",
+        "impact": "企業帳號年費留存率與 Feedback 功能採購率，功能採用率改善讓客戶成功用數據說話，Pendo 的擴展採購幾乎是自然結果。"
+      }
+    },
+    "context": {
+      "model": "Pendo 採按月活躍用戶計費模式，Enterprise 版加入路線圖和 Feedback 模組；核心商業邏輯是 SaaS 公司的用戶體驗改善帶動客戶留存，Pendo 幫助量化這個改善。",
+      "users": "NSM 聚焦「負責提升功能採用率和用戶 Onboarding 的產品主管和客戶成功團隊」，不包含只是技術端設置追蹤事件的工程師帳號。",
+      "traps": "把「Guide 創建數」或「追蹤事件定義數」當採用度誤判，PM 可能設計了大量 Guide 但沒有正確的觸發條件，導致用戶從未看到，等同沒有部署。",
+      "insight": "從「SaaS 公司是否在 Pendo 引導後 30 天內記錄到目標功能採用率提升 10% 以上」切入，可量化的採用率改善是 Pendo 最具說服力的 ROI 證明。"
+    }
+  },
+  {
+    "id": "q98",
+    "company": "Samsara",
+    "industry": "車隊 IoT 管理 SaaS",
+    "scenario": "Samsara 靠 GPS 感測器與 SaaS 費用獲利，車隊需真正安裝並日常使用數據來優化派車與安全，才能續簽年費。",
+    "target_nsm_keywords": [
+      "裝置每日活躍傳輸率",
+      "安全警報處理完成比例",
+      "派車調度數位化覆蓋率"
+    ],
+    "anti_patterns": [
+      "裝置出貨量",
+      "帳號登入次數",
+      "地圖頁瀏覽量"
+    ],
+    "field_examples": {
+      "step2": {
+        "nsm": "每日裝置傳輸率超過 95% 且安全警報在 4 小時內完成處理的活躍車隊帳號數",
+        "explanation": "Samsara 的核心是讓車隊管理數位化，裝置持續傳輸加快速處理安全警報代表車隊真正依賴平台做即時決策而非只是事後查報告。",
+        "businessLink": "安全警報處理完成率高的帳號其事故率下降可量化，保險費率降低讓 Samsara 的投資回報對 Fleet Manager 清晰易算，幾乎不取消年費。"
+      },
+      "step3": {
+        "reach": "每日至少 90% 車輛裝置正常傳輸位置數據的活躍車隊帳號數，剔除只安裝了部分車輛或大量裝置離線的低覆蓋率帳號。",
+        "depth": "每個安全警報的平均處理完成時間與根本原因記錄率，深度使用代表 Fleet Manager 真正依賴 Samsara 做安全管理而非只是被動接受數據。",
+        "frequency": "每週 Fleet Manager 登入並查看車隊數據的工作日天數，5 天全週期代表 Samsara 是車隊日常運營管理的核心工具而非月底才看的報表。",
+        "impact": "年費留存率與 Samsara 附加解決方案（攝影機、環境感測器）採購率，車隊安全改善後管理者自然加購更多感測器提升覆蓋範圍，形成 ARPU 成長。"
+      }
+    },
+    "context": {
+      "model": "Samsara 採按車輛數和功能模組年費計費，IoT 硬體成本通常包含在服務費中；核心商業邏輯是車隊 GPS 和安全數據的價值隨車輛數和歷史數據積累成長。",
+      "users": "NSM 聚焦「需要即時追蹤車隊位置和安全數據的 Fleet Manager 和物流主管」，不包含只是安裝硬體後從不登入查看數據的被動型帳號。",
+      "traps": "把「裝置出貨量」當採用度是硬體+SaaS 公司的常見陷阱，大量裝置安裝後若管理者從不主動使用數據做決策，代表 SaaS 平台的價值完全未被實現。",
+      "insight": "從「車隊帳號是否在上線後 30 天內使用 Samsara 的安全警報功能識別並處理至少一個真實駕駛安全問題」切入，首次真實問題解決代表平台投資回報可量化。"
+    }
+  },
+  {
+    "id": "q99",
+    "company": "Brainware（虛構）",
+    "industry": "企業合規訓練 SaaS",
+    "scenario": "企業必須定期讓員工完成法規合規訓練，若員工只開啟影片卻不真正完成測驗，企業面臨罰款風險。",
+    "target_nsm_keywords": [
+      "員工測驗通過率",
+      "訓練課程完成率",
+      "合規週期準時完成比例"
+    ],
+    "anti_patterns": [
+      "影片播放次數",
+      "課程章節開啟數",
+      "帳號登入次數"
+    ],
+    "field_examples": {
+      "step2": {
+        "nsm": "每個合規週期員工測驗通過率超過 90% 且準時完成率達 100% 的活躍企業帳號數",
+        "explanation": "Brainware 的核心價值是讓企業通過合規稽核，測驗通過率加準時完成率並列才代表訓練有效，不是員工只開影片卻未完成測驗。",
+        "businessLink": "合規週期全員通過的帳號幾乎不取消年費，因為換供應商需要重新認證所有訓練課程符合最新法規，監管風險不可承受。"
+      },
+      "step3": {
+        "reach": "每個合規週期至少完成一次訓練模組且通過測驗的活躍員工比例，超過 90% 代表平台通知系統有效，員工能按時完成訓練。",
+        "depth": "每個訓練模組的平均測驗分數與重考次數，高分低重考代表課程設計讓員工真正學到合規知識而非只是死記答案通過測驗。",
+        "frequency": "每年合規週期的訓練完成情況，按時全員完成代表 Brainware 的排程和提醒功能有效運作，不需 HR 手動追蹤每位員工進度。",
+        "impact": "企業年費留存率與合規課程庫採購率，合規要求每年更新帶動企業持續採購最新課程，是 Brainware 穩定 ARR 成長的核心機制。"
+      }
+    },
+    "context": {
+      "model": "Brainware（虛構）採年費訂閱制，按員工數和課程庫存取計費；核心商業邏輯是企業合規訓練的法規強制要求提供穩定需求，稽核週期每年更新帶動課程更新採購。",
+      "users": "NSM 聚焦「負責確保企業員工完成法規合規訓練的 HR 合規主管」，以及「需要按時完成訓練避免企業罰款的全體員工」，雙方都是核心用戶。",
+      "traps": "把「影片播放次數」或「課程章節開啟數」當採用度完全錯誤，員工可能開啟影片後切到另一個視窗做其他事，播放次數不代表真正的學習完成。",
+      "insight": "從「員工收到訓練通知後是否在 3 天內完成所有必修模組的測驗」切入，快速完成代表員工認真對待合規要求，也代表平台的課程設計符合繁忙員工的時間管理。"
+    }
+  },
+  {
+    "id": "q100",
+    "company": "Fieldwire",
+    "industry": "工地管理 SaaS",
+    "scenario": "Fieldwire 讓工地現場人員以手機閱覽圖紙並回報工程問題，若現場只有 PM 用而施工員不用，數位化沒有真正落地。",
+    "target_nsm_keywords": [
+      "現場人員每日 App 活躍比例",
+      "工程問題回報後閉環完成率",
+      "圖紙版本更新後現場確認率"
+    ],
+    "anti_patterns": [
+      "帳號邀請數",
+      "圖紙上傳數",
+      "後台登入次數"
+    ],
+    "field_examples": {
+      "step2": {
+        "nsm": "每週現場人員 App 活躍比例超過 75% 且工程問題從回報到閉環平均不超過 48 小時的工地帳號數",
+        "explanation": "Fieldwire 的核心是讓工地現場人員數位化，若只有 PM 用而施工員不用，回報問題的數位化完全未發生，平台核心價值未實現。",
+        "businessLink": "現場全員活躍且問題快速閉環的工地帳號其工程延誤率顯著降低，施工公司能用數據向業主展示效率提升，推動 Fieldwire 在新工地的採購。"
+      },
+      "step3": {
+        "reach": "每週至少登入 Fieldwire 並查看圖紙或更新工程問題的活躍現場人員數，以及 PM 帳號的圖紙版本更新頻率。",
+        "depth": "每個工程問題從回報到標記解決的平均處理時間，快速閉環代表 Fieldwire 的移動端工作流程已真正嵌入現場問題解決流程。",
+        "frequency": "每週工作日現場人員使用 Fieldwire 的天數，5-6 天全週期代表 Fieldwire 是工地每日操作的核心數位工具而非只在圖紙更新時才用。",
+        "impact": "工地專案數成長率與施工公司加購 Fieldwire 高階功能（BIM 整合、報告模組）的比例，工地效率提升後施工公司在新項目中自然繼續採用。"
+      }
+    },
+    "context": {
+      "model": "Fieldwire 採按工地和用戶數計費的年費訂閱制；核心商業邏輯是施工公司一旦在一個工地成功使用，往往在所有後續工地自動採用，形成天然的用戶成長。",
+      "users": "NSM 聚焦「現場施工員、領班和工地主任等實際在工地執行作業的人員」，而非只有在辦公室遠端管理的 PM，現場人員才是決定數位化成敗的關鍵用戶群。",
+      "traps": "把「帳號邀請數」或「圖紙上傳數」當採用度誤判，PM 可能上傳大量圖紙，但若現場人員仍習慣列印紙本帶到工地，代表數位化只在辦公端發生而非工地現場。",
+      "insight": "從「新工地啟動後第一週是否有超過 80% 的現場人員完成至少一次 App 登入並確認最新版圖紙」切入，首週現場全員上手是 Fieldwire 工地數位化成功的最關鍵指標。"
+    }
+  }
 ]

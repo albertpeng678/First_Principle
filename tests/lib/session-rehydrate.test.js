@@ -22,7 +22,7 @@ describe('session rehydrate', () => {
   // T6 dependency: nsm_database.json has no `context` yet (Task 6 backfill pending).
   // This test is skipped until T6 authors the NSM bank content.
   // Re-enable by changing test.skip to test after T6 commit.
-  test.skip('NSM: merges context from bank (blocked on T6 nsm_database.json backfill)', () => {
+  test('NSM: merges context from bank (T6 nsm_database.json backfill complete)', () => {
     const session = {
       id: 's3', question_id: 'q17',
       question_json: { id: 'q17', company: 'Zoom' },  // no context
