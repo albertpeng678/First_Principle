@@ -2170,7 +2170,14 @@
     var ptype = nsmGuessProductType(q || {});
     var typeCfg = getNsmDimConfig(ptype);
     var coachTree = (evalResult && evalResult.coachTree) || {};
-    var userDef = AppState.nsmDefinition || {};
+    // Bug X-Compare fix (2026-05-12): nsmDefinition may be a string (legacy schema)
+    // or an object {nsm, explanation, businessLink}. Coerce defensively here.
+    var rawDef = AppState.nsmDefinition;
+    var userDef = (typeof rawDef === 'string')
+      ? { nsm: rawDef, explanation: '', businessLink: '' }
+      : (rawDef && typeof rawDef === 'object')
+        ? { nsm: rawDef.nsm || '', explanation: rawDef.explanation || '', businessLink: rawDef.businessLink || '' }
+        : { nsm: '', explanation: '', businessLink: '' };
     var userBreakdown = AppState.nsmBreakdown || {};
 
     // 5 rows: NSM + 4 dims
