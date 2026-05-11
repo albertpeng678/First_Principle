@@ -1,12 +1,13 @@
 # PM Drill — 專案狀態看板
 
 > 即時狀態 single source of truth。**不放歷史（git log 有）**。重大事件即時 Edit。
-> **Last updated:** 2026-05-12（NSM fix bundle 8-bug shipped: X-Compare/X-Back/X-LockedStep2/X-Overlay/X-FE/X-Ctx/X-DupSession/X-SlowList + 100 NSM 題 content backfill）
+> **Last updated:** 2026-05-12（NSM fix bundle 8-bug + 總驗收 3 補修 X-StatsDedup/X-RailEmpty/X-RailTitle 全 ship × 8 vp）
 
 ## 當前狀態（30 秒讀完）
 
 - **Path 2 Frontend Rewrite ✅ 17/17 mockup 全 ship**（Layer 2 pixel-diff `ba6c49f` 機械驗證 60 cases × 3 vp，0 structural drift）
-- **最近 ship**（2026-05-12）：NSM fix bundle 8 bugs `d668c26` ← `eeb3fec` ← `4e408fb` ← `462678f` ← `ccec6dc` ← `914adb5` ← `8f4c1fa` ← `45867f7` ← `762a8ab` — X-Compare(Step4對比欄位) / X-Back(scored session不reset) / X-LockedStep2(locked banner+readonly+單CTA) / X-Overlay(mobile bottom-sheet) / X-FE(範例答案有內容) / X-Ctx(深入了解問題4 blocks) / X-DupSession(dedup) / X-SlowList(30s cache)；100 NSM題 content backfill；director 16 PNG cold-Read PASS / iOS 15/15 PASS / UAT SOP @ `audit/uat-sop-nsm-fix-bundle-2026-05-12.md`
+- **最近 ship**（2026-05-12 總驗收）：總驗收 8 vp UAT 找到 3 bug 全修 → `3344a95` (X-RailTitle: rail 改用 question_json 對齊 offcanvas) ← `b15eee6` (X-RailEmpty: load 失敗不污染 state + login 強制 reset) ← `e1f53be` (X-StatsDedup: 4 stats endpoint 套 lib/session-dedup); 同日早 ship NSM bundle 8 bugs `762a8ab` → `a44f67d` (X-Compare/X-Back/X-LockedStep2/X-Overlay/X-FE/X-Ctx/X-DupSession/X-SlowList) + 100 NSM 題 content backfill
+- **總驗收 8 vp 驗證**：stats=`{1,1,0}` ↔ offcanvas 4 items ↔ rail 4 items + 標題 byte-for-byte 一致（Mobile-360/iPhone-SE/iPhone-14/iPad/Desktop-1280/1440/2560 全 PASS；iPhone-15-Pro/14 偶發 login timeout = 網路 transient，不擋 ship）
 - **Baseline 不破：** jest 214/232（17 skipped + 1 pre-existing fail）+ Playwright NSM specs 64/64 pass × 8 vp
 - **NSM ↔ CIRCLES parity 全結束** — production wire 完整 honor mockup 14 §A / 05 §G / 07 v3 §D §E LOCKED contracts；nsm-evaluator depth 確認非 shallow，加 max_tokens 1500 cap
 - **接手 Handoff：** `docs/PATH-2-HANDOFF.md` + memory `project_pending_followups_2026-05-10.md`
