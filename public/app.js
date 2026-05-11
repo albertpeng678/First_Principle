@@ -3061,8 +3061,10 @@
           }
         } else if (target === 'nsm') {
           AppState.evalToastDismissed = false; // clear dismissed on explicit tab switch
-          // Mirror CIRCLES tab: reset to Step 1 home unless mid-eval/loading (Karpathy §2 — minimum diff).
-          if (!(AppState.nsmGateLoading || AppState.nsmEvalLoading)) {
+          // User-requested 2026-05-11: do NOT auto-reset mid-flow user back to the
+          // question-selection page (Step 1). Only reset when there's no active session.
+          var hasActiveSession = AppState.nsmSelectedQuestion && (AppState.nsmStep >= 2 && AppState.nsmStep <= 4);
+          if (!hasActiveSession && !(AppState.nsmGateLoading || AppState.nsmEvalLoading)) {
             AppState.nsmStep = 1;
             AppState.nsmSubTab = null;
           }
@@ -7576,7 +7578,20 @@
       // Seed with partial list data first so UI renders immediately, then fetch full session.
       AppState.nsmSession = item;
       AppState.nsmSelectedQuestion = item.question_json || null;
-      AppState.nsmDefinition = item.user_nsm || { nsm: '', explanation: '', businessLink: '' };
+      // User-reported 2026-05-11: legacy sessions may have user_nsm stored as a string
+      // (not the {nsm, explanation, businessLink} object). Coerce so form fields can populate.
+      var rawNsm = item.user_nsm;
+      if (typeof rawNsm === 'string') {
+        AppState.nsmDefinition = { nsm: rawNsm, explanation: '', businessLink: '' };
+      } else if (rawNsm && typeof rawNsm === 'object') {
+        AppState.nsmDefinition = {
+          nsm: rawNsm.nsm || '',
+          explanation: rawNsm.explanation || '',
+          businessLink: rawNsm.businessLink || '',
+        };
+      } else {
+        AppState.nsmDefinition = { nsm: '', explanation: '', businessLink: '' };
+      }
       AppState.nsmBreakdown = item.user_breakdown || { reach: '', depth: '', frequency: '', impact: '' };
       AppState.nsmEvalResult = item.scores_json || null;
       // Bug 1 fix (2026-05-11): smart routing per spec — restore lands at
