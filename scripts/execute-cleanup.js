@@ -132,9 +132,15 @@ function buildClearPatch(kind, field_path) {
 
   const dryRun = process.argv.includes('--dry-run');
 
-  console.log(`\nConfirmed rows: ${rows.length}`);
-  console.log(`  DELETE_ROW:   ${rows.filter((r) => r.action === 'DELETE_ROW').length}`);
-  console.log(`  CLEAR_FIELDS: ${rows.filter((r) => r.action === 'CLEAR_FIELDS').length}`);
+  // Soft visibility guard: show operator the target email before any action.
+  // (Hard env-guard above only checks USER_REAL_EMAIL is set, not its value —
+  // self-referential check is degenerate; visual confirmation is the real gate.)
+  const targetEmail = process.env.USER_REAL_EMAIL;
+  console.log(`\nTarget account:  ${targetEmail}`);
+  console.log(`Endpoint:        ${BASE_URL}`);
+  console.log(`Confirmed rows:  ${rows.length}`);
+  console.log(`  DELETE_ROW:    ${rows.filter((r) => r.action === 'DELETE_ROW').length}`);
+  console.log(`  CLEAR_FIELDS:  ${rows.filter((r) => r.action === 'CLEAR_FIELDS').length}`);
 
   if (dryRun) {
     console.log('\n--- DRY RUN (no execution) ---');
@@ -158,9 +164,9 @@ function buildClearPatch(kind, field_path) {
     process.exit(0);
   }
 
-  // Confirmation prompt
+  // Confirmation prompt — includes target email so operator visually verifies before destruction.
   const rl = readline.createInterface({ input: process.stdin, output: process.stdout });
-  const expected = `yes I confirm ${rows.length} deletions`;
+  const expected = `yes I confirm ${rows.length} deletions on ${targetEmail}`;
   const answer   = await new Promise((resolve) => rl.question(`\nType exactly:  ${expected}\n> `, resolve));
   rl.close();
   if (answer.trim() !== expected) {
