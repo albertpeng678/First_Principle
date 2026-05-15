@@ -6,7 +6,7 @@
 // Sections:
 //   A — guest home with sign-in icon visible in navbar (home view, guest state)
 //   B — guest deep view (Phase 1 form entry) with sign-in icon + home icon visible
-//   C — session-expired banner + sign-in prompt (banner--session displayed)
+//   C — removed: session-expired banner removed; 401 now silently redirects to auth
 
 const { test } = require('@playwright/test');
 const path = require('path');
@@ -74,7 +74,6 @@ test.describe('capture-prod-mockup-02 — 24 production PNGs', () => {
           circlesSession: null,
           accessToken: null,
           guestId: 'guest-test-001',
-          sessionExpired: false,
           onboardingComplete: true,
           onboardingActive: false,
         });
@@ -110,7 +109,6 @@ test.describe('capture-prod-mockup-02 — 24 production PNGs', () => {
           circlesSession: { id: 'test-session-01' },
           accessToken: null,
           guestId: 'guest-test-001',
-          sessionExpired: false,
           circlesFrameworkDraft: {},
           onboardingComplete: true,
           onboardingActive: false,
@@ -127,39 +125,6 @@ test.describe('capture-prod-mockup-02 — 24 production PNGs', () => {
     }
   });
 
-  test('Section C — session-expired banner displayed × 8 viewports', async ({ page }) => {
-    if (!fs.existsSync(OUT_DIR)) fs.mkdirSync(OUT_DIR, { recursive: true });
-    await mockApis(page);
-
-    for (const vp of VIEWPORTS) {
-      await page.setViewportSize({ width: vp.width, height: vp.height });
-      await page.goto('/');
-      await page.waitForSelector('.navbar');
-
-      // Session expired state: banner--session shown with 重新登入 CTA
-      await page.evaluate(() => {
-        Object.assign(window.AppState, {
-          view: 'circles',
-          circlesPhase: 1,
-          circlesMode: 'simulation',
-          circlesDrillStep: null,
-          circlesSelectedQuestion: null,
-          circlesSession: null,
-          accessToken: null,
-          guestId: null,
-          sessionExpired: true,
-          onboardingComplete: true,
-          onboardingActive: false,
-        });
-        window.renderApp();
-      });
-
-      await page.waitForSelector('.banner--session', { timeout: 5000 });
-      await page.waitForTimeout(300);
-      await page.screenshot({
-        path: path.join(OUT_DIR, 'section-C-' + vp.name + '.png'),
-        fullPage: false,
-      });
-    }
-  });
+  // Section C — removed: session-expired banner removed; 401 now silently redirects to auth view
+  test.skip('Section C — session-expired banner displayed × 8 viewports', async ({ page }) => {});
 });

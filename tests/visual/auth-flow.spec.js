@@ -31,7 +31,6 @@ async function setupAuthView(page, tab) {
     window.AppState.authTab = t || 'login';
     window.AppState.authLoading = false;
     window.AppState.authError = null;
-    window.AppState.sessionExpired = false;
     window.render();
   }, tab || 'login');
   await page.waitForSelector('.auth-card', { timeout: 3000 });
@@ -200,7 +199,7 @@ test.describe('Auth Flow — Mockup 02', () => {
     await expect(page.locator('[data-nav="logout"]')).toBeVisible();
   });
 
-  test('E. Token expiry — session expired banner shown in non-auth view', async ({ page }) => {
+  test.skip('E. Token expiry — removed: 401 now silently redirects to auth without session-expired UI', async ({ page }) => {
     await page.setViewportSize({ width: 1280, height: 900 });
     await page.route('**/api/(guest-)?circles-stats**', r =>
       r.fulfill({ status: 200, contentType: 'application/json', body: '{}' })

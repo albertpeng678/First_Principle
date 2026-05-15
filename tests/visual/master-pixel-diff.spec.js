@@ -931,8 +931,9 @@ M13_CASES.forEach(c => {
 });
 
 // ═══════════════════════════════════════════════════════════════════════════
-// MOCKUP 02 — Auth Flow (5 states × 3 viewports = 15 cases)
-// States: login-default / login-filled / login-error / register / token-expiry
+// MOCKUP 02 — Auth Flow (4 states × 3 viewports = 12 cases)
+// States: login-default / login-filled / login-error / register
+// §E token-expiry removed: 401 now silently redirects to auth view
 // Production state: view='auth' with matching AppState fields
 // ═══════════════════════════════════════════════════════════════════════════
 
@@ -953,20 +954,15 @@ const M02_EXT_CASES = [
   { vp: 'mobile-360', w: 360, h: 900, frameLabel: 'Mobile · default', labelIndex: 0, state: 'register', suffix: 'D-register' },
   { vp: 'tablet-768', w: 768, h: 900, frameLabel: 'Tablet · email 已註冊', labelIndex: 0, state: 'register', suffix: 'D-register' },
   { vp: 'desktop-1280', w: 1280, h: 900, frameLabel: 'Desktop · 弱密碼', labelIndex: 0, state: 'register', suffix: 'D-register' },
-  // §E — Token expiry (unique labels)
-  { vp: 'mobile-360', w: 360, h: 900, frameLabel: 'Mobile · 已登入', labelIndex: 0, state: 'token-expiry', suffix: 'E-token-expiry' },
-  { vp: 'tablet-768', w: 768, h: 900, frameLabel: 'Tablet · 登入後 migration 提示', labelIndex: 0, state: 'token-expiry', suffix: 'E-token-expiry' },
-  { vp: 'desktop-1280', w: 1280, h: 900, frameLabel: 'Desktop · token 逾期', labelIndex: 0, state: 'token-expiry', suffix: 'E-token-expiry' },
 ];
 
 // Production state builders for mockup 02
 async function setupM02State(page, state) {
   const overrides = {
-    'login-default':  { authTab: 'login',    authError: null, sessionExpired: false, authLoading: false },
-    'login-filled':   { authTab: 'login',    authError: null, sessionExpired: false, authLoading: false },
-    'login-error':    { authTab: 'login',    authError: { code: 'INVALID_CREDENTIALS', message: '帳號或密碼錯誤' }, sessionExpired: false, authLoading: false },
-    'register':       { authTab: 'register', authError: null, sessionExpired: false, authLoading: false },
-    'token-expiry':   { authTab: 'login',    authError: null, sessionExpired: true,  authLoading: false },
+    'login-default':  { authTab: 'login',    authError: null, authLoading: false },
+    'login-filled':   { authTab: 'login',    authError: null, authLoading: false },
+    'login-error':    { authTab: 'login',    authError: { code: 'INVALID_CREDENTIALS', message: '帳號或密碼錯誤' }, authLoading: false },
+    'register':       { authTab: 'register', authError: null, authLoading: false },
   }[state];
 
   await page.evaluate((ov) => {
@@ -974,7 +970,6 @@ async function setupM02State(page, state) {
     window.AppState.authTab = ov.authTab;
     window.AppState.authLoading = ov.authLoading;
     window.AppState.authError = ov.authError;
-    window.AppState.sessionExpired = ov.sessionExpired;
     window.render();
   }, overrides);
   await page.waitForSelector('.auth-card', { timeout: 5000 });
@@ -1420,7 +1415,6 @@ test.afterAll(async () => {
     ['02-auth-ext-B-login-filled',   '02 auth §B login-filled'],
     ['02-auth-ext-C-login-error',    '02 auth §C login-error'],
     ['02-auth-ext-D-register',       '02 auth §D register'],
-    ['02-auth-ext-E-token-expiry',   '02 auth §E token-expiry'],
     ['08-nsm-gate-A-ok',             '08 nsm-gate §A ok'],
     ['08-nsm-gate-B-warn',           '08 nsm-gate §B warn'],
     ['08-nsm-gate-C-error',          '08 nsm-gate §C error'],

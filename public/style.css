@@ -138,12 +138,6 @@ body:has(.submit-bar) { padding-bottom: calc(var(--touch-min) + var(--s-7)); }
 .banner--offline .banner__action { color: var(--c-navy); }
 .banner--offline .banner__action:hover { background: var(--c-navy-lt); }
 
-.banner--session { background: var(--c-warn-lt); border-bottom-color: rgba(184,92,0,0.25); }
-.banner--session .banner__icon { background: rgba(184,92,0,0.15); color: var(--c-warn); }
-.banner--session .banner__title { color: var(--c-warn); }
-.banner--session .banner__action { background: var(--c-navy); color: #fff; }
-.banner--session .banner__action:hover { background: var(--c-navy-2); }
-
 .banner--locked { background: var(--c-navy-lt); border-bottom-color: rgba(27,45,92,0.18); }
 .banner--locked .banner__icon { background: rgba(27,45,92,0.15); color: var(--c-navy); }
 .banner--locked .banner__title { color: var(--c-navy); }
@@ -3414,43 +3408,6 @@ div.rt-textarea[contenteditable="true"] ul li { list-style: disc; }
 }
 .migration-banner i { font-size: 16px; flex: 0 0 auto; margin-top: 1px; }
 .migration-banner strong { display: block; margin-bottom: 2px; }
-/* token expiry card (inside page, non-blocking) */
-.token-expiry {
-  background: var(--c-warn-lt);
-  border: 1px solid rgba(184,92,0,0.18);
-  padding: var(--s-4) var(--s-5);
-  border-radius: var(--r-card);
-  display: flex;
-  gap: var(--s-3);
-  align-items: flex-start;
-  max-width: 480px;
-  margin: var(--s-5) auto 0;
-}
-.token-expiry__icon {
-  flex: 0 0 auto;
-  width: 36px; height: 36px;
-  border-radius: var(--r-input);
-  background: rgba(184,92,0,0.12);
-  color: var(--c-warn);
-  display: inline-flex; align-items: center; justify-content: center;
-  font-size: 18px;
-}
-.token-expiry__main { flex: 1; min-width: 0; }
-.token-expiry__title { font-size: var(--t-body-sm); font-weight: 600; color: var(--c-ink); margin-bottom: var(--s-1); }
-.token-expiry__body { font-size: var(--t-meta); color: var(--c-ink-2); margin-bottom: var(--s-3); line-height: 1.55; }
-.token-expiry__btn {
-  display: inline-flex;
-  align-items: center;
-  gap: var(--s-1);
-  padding: 6px var(--s-3);
-  background: var(--c-navy);
-  color: #fff;
-  border-radius: var(--r-input);
-  font-size: var(--t-meta);
-  font-weight: 500;
-  cursor: pointer;
-}
-.token-expiry__btn:hover { background: var(--c-navy-2); }
 /* ───── Mockup 02 Auth END ───── */
 
 /* ───── Mockup 16 §D — Resume-toast (cross-tab in-flight notification) ───── */

@@ -39,7 +39,6 @@ async function gotoAuthView(page, overrides) {
     window.AppState.authTab = ov.authTab || 'login';
     window.AppState.authLoading = ov.authLoading || false;
     window.AppState.authError = ov.authError || null;
-    window.AppState.sessionExpired = ov.sessionExpired || false;
     window.AppState._authEmail = ov.email || '';
     window.AppState._authPw = ov.pw || '';
     window.render();
@@ -89,10 +88,10 @@ test.describe('Capture mockup 02 PNGs', () => {
     await page.screenshot({ path: `audit/png-mockup-02/auth-register-default-${testInfo.project.name}.png`, fullPage: true });
   });
 
-  // §E Token expiry — sessionExpired shown on auth view
-  test('auth-token-expiry', async ({ page }, testInfo) => {
+  // §E Token expiry — removed: 401 now silently redirects to auth view
+  test.skip('auth-token-expiry', async ({ page }, testInfo) => {
     await setupRoutes(page);
-    await gotoAuthView(page, { authTab: 'login', sessionExpired: true });
+    await gotoAuthView(page, { authTab: 'login' });
     await page.screenshot({ path: `audit/png-mockup-02/auth-token-expiry-${testInfo.project.name}.png`, fullPage: true });
   });
 
