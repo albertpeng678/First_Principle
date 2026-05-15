@@ -76,3 +76,10 @@ describe('extractStrings (jsonb traversal)', () => {
     expect(extractStrings(null, 'nsm')).toEqual([]);
   });
 });
+
+describe('module exports (smoke)', () => {
+  test('exports fetchSessionDetail', () => {
+    const mod = require('./scan-pollution');
+    expect(typeof mod.fetchSessionDetail).toBe('function');
+  });
+});

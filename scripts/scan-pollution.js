@@ -88,6 +88,14 @@ async function fetchSessions(baseUrl, token, kind) {
   return res.json();
 }
 
+async function fetchSessionDetail(baseUrl, token, kind, id) {
+  const res = await fetch(`${baseUrl}/api/${kind}-sessions/${id}`, {
+    headers: { Authorization: `Bearer ${token}` },
+  });
+  if (!res.ok) throw new Error(`GET /api/${kind}-sessions/${id} failed: ${res.status}`);
+  return res.json();
+}
+
 function classifySession(session, kind) {
   const fields = extractStrings(session, kind);
   const polluted = fields.filter((f) => isPolluted(f.value));
@@ -151,7 +159,7 @@ function renderReport(circles, nsm) {
   ].join('\n');
 }
 
-module.exports = { isPolluted, extractStrings, classifySession, renderReport };
+module.exports = { isPolluted, extractStrings, classifySession, renderReport, fetchSessionDetail };
 
 if (require.main === module) {
   (async () => {
@@ -162,17 +170,48 @@ if (require.main === module) {
       process.exit(1);
     }
     try {
-      const circlesRaw = await fetchSessions(BASE_URL, TOKEN, 'circles');
-      const nsmRaw     = await fetchSessions(BASE_URL, TOKEN, 'nsm');
-      const circles    = circlesRaw.map((s) => classifySession(s, 'circles')).filter(Boolean);
-      const nsm        = nsmRaw.map((s) => classifySession(s, 'nsm')).filter(Boolean);
+      console.log(`Scanning ${BASE_URL} for pollution...`);
+
+      console.log('  fetching circles session list...');
+      const circlesList = await fetchSessions(BASE_URL, TOKEN, 'circles');
+      console.log(`    ${circlesList.length} circles sessions`);
+
+      console.log('  fetching circles session details (full fields)...');
+      const circlesDetails = [];
+      for (let i = 0; i < circlesList.length; i++) {
+        const s = circlesList[i];
+        const detail = await fetchSessionDetail(BASE_URL, TOKEN, 'circles', s.id);
+        circlesDetails.push(detail);
+        if ((i + 1) % 5 === 0 || i === circlesList.length - 1) {
+          console.log(`    [${i + 1}/${circlesList.length}]`);
+        }
+      }
+
+      console.log('  fetching nsm session list...');
+      const nsmList = await fetchSessions(BASE_URL, TOKEN, 'nsm');
+      console.log(`    ${nsmList.length} nsm sessions`);
+
+      console.log('  fetching nsm session details (full fields)...');
+      const nsmDetails = [];
+      for (let i = 0; i < nsmList.length; i++) {
+        const s = nsmList[i];
+        const detail = await fetchSessionDetail(BASE_URL, TOKEN, 'nsm', s.id);
+        nsmDetails.push(detail);
+        if ((i + 1) % 5 === 0 || i === nsmList.length - 1) {
+          console.log(`    [${i + 1}/${nsmList.length}]`);
+        }
+      }
+
+      const circles = circlesDetails.map((s) => classifySession(s, 'circles')).filter(Boolean);
+      const nsm     = nsmDetails.map((s) => classifySession(s, 'nsm')).filter(Boolean);
 
       const out = renderReport(circles, nsm);
       const outPath = path.join(__dirname, '..', 'audit', 'data-pollution-report-2026-05-16.md');
       fs.mkdirSync(path.dirname(outPath), { recursive: true });
       fs.writeFileSync(outPath, out);
-      console.log(`Report: ${outPath}`);
+      console.log(`\nReport: ${outPath}`);
       console.log(`Polluted: ${circles.length + nsm.length} (${nsm.length} nsm, ${circles.length} circles)`);
+      console.log(`Total scanned: ${circlesDetails.length + nsmDetails.length} sessions`);
     } catch (e) {
       console.error(`SCAN FAILED: ${e.message}`);
       process.exit(1);
