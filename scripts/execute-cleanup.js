@@ -7,9 +7,10 @@
  *   --dry-run            : print curl commands without executing
  *   (no flag, default)   : prompt stdin "yes I confirm <N> deletions" then run
  *
- * Env: BASE_URL, REAL_ACCESS_TOKEN, USER_REAL_EMAIL (from .env.test)
+ * Env: BASE_URL + TEST_EMAIL/TEST_PASSWORD (from .env.test); USER_REAL_EMAIL (from .env); REAL_ACCESS_TOKEN (shell).
  */
-require('dotenv').config({ path: '.env.test' });
+require('dotenv').config(); // load .env (USER_REAL_EMAIL, app secrets)
+require('dotenv').config({ path: '.env.test', override: false }); // fill in BASE_URL/TEST_EMAIL/TEST_PASSWORD
 const fs       = require('fs');
 const path     = require('path');
 const readline = require('readline');

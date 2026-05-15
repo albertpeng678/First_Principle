@@ -16,7 +16,8 @@
  *   For a deeper scan that includes phase2/explanation fields, use the /:id endpoint
  *   per-session — that is left for Step 6 coordination with the director.
  */
-require('dotenv').config({ path: '.env.test' });
+require('dotenv').config(); // load .env (USER_REAL_EMAIL, app secrets)
+require('dotenv').config({ path: '.env.test', override: false }); // fill in BASE_URL etc.
 const fs   = require('fs');
 const path = require('path');
 
