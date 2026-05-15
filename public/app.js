@@ -7746,12 +7746,17 @@
 
   // ── Plan D SB2 — Onboarding (mockup 10) ─────────────────────────────────
 
-  // Step targets — selector / title / body / arrow direction
+  // Step targets — selector / title / body
+  // arrow direction is computed viewport-aware in positionOnboardingTooltip():
+  //   Step 1: desktop/tablet → left-arrow (tooltip right of target); mobile → top-arrow (below)
+  //   Step 2: desktop        → left-arrow (tooltip right); mobile/tablet → top-arrow (below)
+  //   Step 3: all viewports  → top-arrow (below q-list)
+  //   Step 4: all viewports  → top-arrow (below q-card)
   var ONBOARDING_TARGETS = {
-    1: { selector: '.mode-section', title: '選擇練習模式', body: '建議首次選「完整模擬」走完整流程，熟悉後再用「步驟加練」針對弱點刻意練習。', arrow: 'top' },
-    2: { selector: '.type-tabs',    title: '選擇題型',     body: '三類題型各有特色：產品設計重發散、產品改進重診斷、產品策略重格局。', arrow: 'top' },
-    3: { selector: '.qcard',        title: '看題目卡',     body: '每張卡片附帶業界場景，點開可預覽題目背景與分析框架。', arrow: 'top' },
-    4: { selector: '.qcard.is-expanded, .qcard:first-child', title: '開始練習', body: '先讀題目說明再決定：合適就點「確認，開始練習」進入 Phase 1，不合適可上一步換題。', arrow: 'top' },
+    1: { selector: '.mode-section', title: '選擇練習模式', body: '建議首次選「完整模擬」走完整流程，熟悉後再用「步驟加練」針對弱點刻意練習。' },
+    2: { selector: '.type-tabs',    title: '選擇題型',     body: '三類題型各有特色：產品設計重發散、產品改進重診斷、產品策略重格局。' },
+    3: { selector: '.q-list',       title: '挑一道題目',   body: '點任一題會展開完整描述。展開後可看到難度、產品背景與「確認，開始練習」按鈕。' },
+    4: { selector: '.qcard.is-expanded, .qcard:first-child', title: '開始練習', body: '先讀題目說明再決定：合適就點「確認，開始練習」進入 Phase 1，不合適可上一步換題。' },
   };
 
   // Trigger: show onboarding only when historyList is loaded AND empty, no flag, home view
@@ -7788,10 +7793,11 @@
     if (!t) return '';
     var nextOrFinish = step < 4
       ? '<button class="onb-tooltip__next" data-onb-action="next">下一步<i class="ph ph-arrow-right"></i></button>'
-      : '<button class="onb-tooltip__next" data-onb-action="finish">開始練習<i class="ph ph-check"></i></button>';
+      : '<button class="onb-tooltip__next" data-onb-action="finish">完成<i class="ph ph-check"></i></button>';
+    // Arrow class is set to 'top' initially; positionOnboardingTooltip() updates it after layout.
     return '<div class="onb-overlay">'
-      +    '<div class="onb-tooltip onb-tooltip--' + t.arrow + '" data-onb-step="' + step + '">'
-      +      '<div class="onb-tooltip__arrow onb-tooltip__arrow--' + t.arrow + '"></div>'
+      +    '<div class="onb-tooltip onb-tooltip--top" data-onb-step="' + step + '">'
+      +      '<div class="onb-tooltip__arrow onb-tooltip__arrow--top"></div>'
       +      '<div class="onb-tooltip__step">第 ' + step + ' 步 / 共 4 步</div>'
       +      '<div class="onb-tooltip__title">' + escHtml(t.title) + '</div>'
       +      '<p class="onb-tooltip__body">' + escHtml(t.body) + '</p>'
@@ -7814,12 +7820,17 @@
   }
 
   // Positions the .onb-tooltip near its spotlight target using getBoundingClientRect.
-  // Mobile (<=480px): place tooltip below the target with a 16px gap, clamped to viewport.
-  // Desktop/tablet: place tooltip to the right of the target; fall back to left if it would overflow.
+  // Viewport-aware placement per mockup 10 §B-E contracts:
+  //   Step 1: desktop (>1024) → right of target (arrow-left); tablet (640-1024) → right; mobile (<640) → below (arrow-top)
+  //   Step 2: desktop (>1024) → right of target (arrow-left); tablet+mobile → below (arrow-top)
+  //   Step 3: all → below q-list (arrow-top)
+  //   Step 4: all → below q-card (arrow-top)
+  // Also accounts for sticky navbar height so tooltip is never hidden behind it.
   function positionOnboardingTooltip() {
     var tooltip = document.querySelector('.onb-tooltip');
     if (!tooltip) return;
-    var t = ONBOARDING_TARGETS[AppState.onboardingStep];
+    var step = AppState.onboardingStep;
+    var t = ONBOARDING_TARGETS[step];
     if (!t) return;
     var target = document.querySelector(t.selector);
     if (!target) return;
@@ -7829,35 +7840,69 @@
     var vh = window.innerHeight;
     var tooltipW = 300;
     var tooltipH = tooltip.offsetHeight || 180;
-    var gap = 16;
+    var gap = 12;
     var edgePad = 12;
 
-    var top, left;
+    // Navbar safe-area: avoid placing tooltip under sticky header
+    var navbarEl = document.querySelector('.navbar');
+    var navH = navbarEl ? navbarEl.getBoundingClientRect().height : 56;
+    var safeTop = navH + 4; // minimum top position for tooltip
 
-    if (vw <= 480) {
-      // Mobile: position below target, arrow pointing up, left-aligned with target
+    // Determine if this step prefers right-side placement
+    // Step 1: desktop+tablet → right; mobile → below
+    // Step 2: desktop only   → right; tablet+mobile → below
+    // Steps 3,4: always below
+    var preferRight = false;
+    if (step === 1 && vw >= 640) preferRight = true;
+    if (step === 2 && vw > 1024) preferRight = true;
+
+    var top, left, arrowClass;
+
+    if (preferRight) {
+      // Right-side placement per mockup: anchor tooltip to viewport right edge (not element-right).
+      // On desktop layout the content fills most of the viewport width, so element-right + gap
+      // overflows; mockup uses position: absolute; right: 60px which is viewport-relative.
+      left = vw - tooltipW - edgePad;
+      // Vertically: align tooltip top with target top, clamped to safe zone
+      top = Math.max(safeTop, Math.min(rect.top, vh - tooltipH - edgePad));
+      arrowClass = 'left';
+    } else {
+      // Below placement: tooltip below the target, arrow points up
       top = rect.bottom + gap;
       left = Math.max(edgePad, Math.min(rect.left, vw - tooltipW - edgePad));
-      // If tooltip would overflow bottom, place above target
+      // Ensure tooltip doesn't start above the navbar
+      if (top < safeTop) top = safeTop;
+      // Collision: if tooltip overflows bottom, flip above target
       if (top + tooltipH > vh - edgePad) {
-        top = Math.max(edgePad, rect.top - tooltipH - gap);
-      }
-    } else {
-      // Desktop/tablet: prefer right of target; fall back to left if overflow
-      var rightStart = rect.right + gap;
-      if (rightStart + tooltipW <= vw - edgePad) {
-        left = rightStart;
+        var aboveTop = rect.top - tooltipH - gap;
+        if (aboveTop >= safeTop) {
+          top = aboveTop;
+          arrowClass = 'bottom'; // arrow at bottom of tooltip, pointing down toward target
+        } else {
+          // Not enough room either side — clamp within safe zone
+          top = Math.max(safeTop, vh - tooltipH - edgePad);
+          arrowClass = 'top';
+        }
       } else {
-        left = Math.max(edgePad, rect.left - tooltipW - gap);
+        arrowClass = 'top';
       }
-      // Vertically align top of tooltip with top of target, clamped to viewport
-      top = Math.max(edgePad, Math.min(rect.top, vh - tooltipH - edgePad));
     }
 
+    // Apply position
     tooltip.style.top = top + 'px';
     tooltip.style.left = left + 'px';
     tooltip.style.right = 'auto';
     tooltip.style.bottom = 'auto';
+
+    // Update arrow class on tooltip wrapper and arrow element
+    var arrowClasses = ['top', 'bottom', 'left', 'right'];
+    tooltip.classList.remove.apply(tooltip.classList, arrowClasses.map(function (c) { return 'onb-tooltip--' + c; }));
+    tooltip.classList.add('onb-tooltip--' + arrowClass);
+    var arrowEl = tooltip.querySelector('.onb-tooltip__arrow');
+    if (arrowEl) {
+      arrowEl.classList.remove.apply(arrowEl.classList, arrowClasses.map(function (c) { return 'onb-tooltip__arrow--' + c; }));
+      arrowEl.classList.add('onb-tooltip__arrow--' + arrowClass);
+    }
   }
 
   function bindOnboarding() {

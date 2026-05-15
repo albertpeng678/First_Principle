@@ -1662,7 +1662,7 @@ div.rt-textarea[contenteditable="true"] ul li { list-style: disc; }
    full-page dim + floating tooltip near target, no sticky-bottom. */
 .onb-targeted {
   position: relative;
-  z-index: 5;
+  z-index: 65;
   box-shadow:
     0 0 0 2px #fff,
     0 0 0 6px var(--c-navy),
@@ -1674,7 +1674,7 @@ div.rt-textarea[contenteditable="true"] ul li { list-style: disc; }
 .onb-overlay {
   position: fixed;
   inset: 0;
-  z-index: 55;
+  z-index: 65;
   pointer-events: none;
 }
 .onb-overlay > * { pointer-events: auto; }
@@ -1688,7 +1688,7 @@ div.rt-textarea[contenteditable="true"] ul li { list-style: disc; }
   border-radius: var(--r-input);
   width: 300px;
   box-shadow: var(--shadow-tooltip);
-  z-index: 60;
+  z-index: 70;
   /* Position set via inline style by positionOnboardingTooltip() — no static default */
 }
 .onb-tooltip__step {
