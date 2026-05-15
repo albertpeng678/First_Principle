@@ -121,7 +121,7 @@ test.describe('NSM submit reactive + toolbar trim (Issue 1 + Issue 3)', () => {
     await expect(submitBtn).toBeDisabled();
   });
 
-  test('Step 2 submit enables after all 3 fields reach min length (debounced)', async ({ page }) => {
+  test('Step 2 submit enables after all 3 fields are non-empty (debounced)', async ({ page }) => {
     await page.setViewportSize({ width: 1280, height: 900 });
     await setupNSMStep2(page);
 
@@ -156,7 +156,7 @@ test.describe('NSM submit reactive + toolbar trim (Issue 1 + Issue 3)', () => {
     await expect(submitBtn).toBeDisabled();
   });
 
-  test('Step 3 submit enables after all dims reach 20 chars (debounced)', async ({ page }) => {
+  test('Step 3 submit enables after all dims are non-empty (debounced)', async ({ page }) => {
     await page.setViewportSize({ width: 1280, height: 900 });
     await setupNSMStep3(page);
 

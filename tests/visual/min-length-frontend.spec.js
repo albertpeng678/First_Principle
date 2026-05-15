@@ -144,7 +144,7 @@ test.describe('Frontend minLength validation (Layer 1 Combo C)', () => {
     await expect(page.locator('[data-nsm-submit]')).toBeDisabled();
   });
 
-  test('NSM Step 2: submit disabled when nsm too short (below 10 char floor)', async ({ page }) => {
+  test('NSM Step 2: submit ENABLED when nsm is short but non-empty (floors removed)', async ({ page }) => {
     await mockApis(page);
     await page.goto('/');
     await page.waitForSelector('.qcard');
@@ -154,17 +154,17 @@ test.describe('Frontend minLength validation (Layer 1 Combo C)', () => {
       window.AppState.nsmSubTab = 'nsm-step2';
       window.AppState.nsmSelectedQuestion = q;
       window.AppState.nsmDefinition = {
-        nsm: '短',  // 1 char — below floor=10
-        explanation: '定義說明需要足夠字數才能通過最低長度驗證，請填寫完整說明',
-        businessLink: '業務連結說明需要足夠字數才能通過最低長度驗證，請填寫完整說明'
+        nsm: '短',  // 1 char — previously blocked by floor=10, now non-empty so passes
+        explanation: '說明',
+        businessLink: '業務連結'
       };
       window.render();
     }, { q: Q_ATTENTION });
     await page.waitForSelector('[data-nsm-submit]');
-    await expect(page.locator('[data-nsm-submit]')).toBeDisabled();
+    await expect(page.locator('[data-nsm-submit]')).toBeEnabled();
   });
 
-  test('NSM Step 2: submit ENABLED when all 3 fields meet their floors', async ({ page }) => {
+  test('NSM Step 2: submit ENABLED when all 3 fields are non-empty (floors removed)', async ({ page }) => {
     await mockApis(page);
     await page.goto('/');
     await page.waitForSelector('.qcard');
@@ -186,7 +186,7 @@ test.describe('Frontend minLength validation (Layer 1 Combo C)', () => {
 
   // ── NSM Step 3 minLength ─────────────────────────────────────────────────
 
-  test('NSM Step 3: submit disabled when dim fields below 20-char floor', async ({ page }) => {
+  test('NSM Step 3: submit disabled when any dim field is entirely empty', async ({ page }) => {
     await mockApis(page);
     await page.goto('/');
     await page.waitForSelector('.qcard');
@@ -197,6 +197,7 @@ test.describe('Frontend minLength validation (Layer 1 Combo C)', () => {
       window.AppState.nsmSelectedQuestion = q;
       window.AppState.nsmDefinition = { nsm: '每月活躍聆聽用戶數', explanation: 'Y', businessLink: 'Z' };
       window.AppState.nsmGateResult = { overall_status: 'ok' };
+      // depth / frequency / retention are empty — must remain disabled
       window.AppState.nsmBreakdown = { reach: '短', depth: '', frequency: '', retention: '' };
       window.render();
     }, { q: Q_ATTENTION });
@@ -204,7 +205,7 @@ test.describe('Frontend minLength validation (Layer 1 Combo C)', () => {
     await expect(page.locator('[data-nsm-submit]')).toBeDisabled();
   });
 
-  test('NSM Step 3: submit ENABLED when all 4 dims meet 20-char floor', async ({ page }) => {
+  test('NSM Step 3: submit ENABLED when all 4 dims are non-empty (floors removed)', async ({ page }) => {
     await mockApis(page);
     await page.goto('/');
     await page.waitForSelector('.qcard');

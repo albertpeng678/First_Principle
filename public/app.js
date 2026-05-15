@@ -1274,7 +1274,8 @@
 
     // Bug X-LockedStep2 (2026-05-12): scored session → show read-only locked view
     var isScored = !!(AppState.nsmEvalResult && AppState.nsmEvalResult.totalScore);
-    var canSubmit = fieldMinLengthOk(def.nsm, 10) && fieldMinLengthOk(def.explanation, 30) && fieldMinLengthOk(def.businessLink, 30);
+    // Bug 5 (2026-05-15): floors removed — submit only blocked when any field is entirely empty
+    var canSubmit = fieldNonEmpty(def.nsm) && fieldNonEmpty(def.explanation) && fieldNonEmpty(def.businessLink);
 
     var submitBarHtml;
     if (isScored) {
@@ -1619,7 +1620,8 @@
     var ptype = nsmGuessProductType(q);
     var typeCfg = getNsmDimConfig(ptype);
     var br = AppState.nsmBreakdown || {};
-    var canSubmit = typeCfg.dims.every(function (d) { return fieldMinLengthOk(br[d.id], 20); });
+    // Bug 5 (2026-05-15): floors removed — submit only blocked when any dim field is entirely empty
+    var canSubmit = typeCfg.dims.every(function (d) { return fieldNonEmpty(br[d.id]); });
     var html = '<div data-view="nsm">'
       + '<div class="phase-head">'
       +   '<span class="phase-head__num">3</span>'
@@ -1807,7 +1809,8 @@
           var submitBtn = document.querySelector('[data-nsm-submit]');
           if (!submitBtn || AppState.nsmEvalResult) return;
           var def = AppState.nsmDefinition || {};
-          var canSubmit = fieldMinLengthOk(def.nsm, 10) && fieldMinLengthOk(def.explanation, 30) && fieldMinLengthOk(def.businessLink, 30);
+          // Bug 5 (2026-05-15): floors removed — submit only blocked when any field is entirely empty
+          var canSubmit = fieldNonEmpty(def.nsm) && fieldNonEmpty(def.explanation) && fieldNonEmpty(def.businessLink);
           submitBtn.disabled = !canSubmit;
         }, 200);
       });
@@ -1827,7 +1830,8 @@
           var ptype = nsmGuessProductType(q);
           var typeCfg = getNsmDimConfig(ptype);
           var br = AppState.nsmBreakdown || {};
-          var canSubmit = typeCfg.dims.every(function (d) { return fieldMinLengthOk(br[d.id], 20); });
+          // Bug 5 (2026-05-15): floors removed — submit only blocked when any dim field is entirely empty
+          var canSubmit = typeCfg.dims.every(function (d) { return fieldNonEmpty(br[d.id]); });
           submitBtn.disabled = !canSubmit;
         }, 200);
       });
@@ -7955,6 +7959,14 @@
   }
 
   // ── Layer 1 Combo C: frontend minLength gate ──────────────────────────────
+  // Non-empty check for NSM Step 2/3 — submit blocked only when field is entirely empty.
+  // Does NOT use a character floor; any non-whitespace, non-tag content passes.
+  function fieldNonEmpty(v) {
+    if (v == null) return false;
+    var s = String(v).replace(/<[^>]*>/g, '').trim();
+    return s.length > 0;
+  }
+
   // Prevents obvious garbage from reaching AI gate / evaluator.
   // Called at render time to compute disabled state + warn class.
   function fieldMinLengthOk(value, floor) {
