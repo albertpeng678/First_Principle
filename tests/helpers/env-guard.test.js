@@ -48,6 +48,36 @@ describe('assertNotProdWithRealAccount', () => {
       })
     ).toThrow(/email is required/);
   });
+
+  // Defense-in-depth: substring-unanchored prod check vulnerability
+  test('passes when URL contains "railway.app" as a sub-domain of an attacker host', () => {
+    expect(() =>
+      assertNotProdWithRealAccount({
+        baseUrl: 'http://attacker-railway.app.evil.com/',
+        email: 'albertpeng678@gmail.com',
+      })
+    ).not.toThrow();
+  });
+
+  // Defense-in-depth: undefined / null / empty baseUrl treated as non-prod
+  test.each([undefined, null, ''])('passes when baseUrl is %p (treated as local)', (baseUrl) => {
+    expect(() =>
+      assertNotProdWithRealAccount({
+        baseUrl,
+        email: 'albertpeng678@gmail.com',
+      })
+    ).not.toThrow();
+  });
+
+  // Defense-in-depth: empty / null email blocks alongside undefined
+  test.each([null, ''])('throws when email is %p', (email) => {
+    expect(() =>
+      assertNotProdWithRealAccount({
+        baseUrl: 'https://first-principle.up.railway.app/',
+        email,
+      })
+    ).toThrow(/email is required/);
+  });
 });
 
 describe('assertActingOnBehalfOfPollutionTarget', () => {

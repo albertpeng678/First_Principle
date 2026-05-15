@@ -1,13 +1,26 @@
+const PROD_HOSTS = ['first-principle.up.railway.app'];
+
+function isProdBaseUrl(baseUrl) {
+  if (!baseUrl) return false;
+  const raw = String(baseUrl);
+  const withProto = /:\/\//.test(raw) ? raw : `http://${raw}`;
+  try {
+    const u = new URL(withProto);
+    return PROD_HOSTS.includes(u.hostname);
+  } catch {
+    return false;
+  }
+}
+
 function assertNotProdWithRealAccount({ baseUrl, email }) {
   if (!email) {
     throw new Error('env-guard: email is required');
   }
-  const isProd = String(baseUrl || '').includes('railway.app');
   const isTestEmail = email.endsWith('@first-principle.test');
-  if (isProd && !isTestEmail) {
+  if (isProdBaseUrl(baseUrl) && !isTestEmail) {
     throw new Error(
       `BLOCKED: e2e spec hitting prod with real account "${email}". ` +
-      `Either set BASE_URL to local OR use TEST_EMAIL ending in @first-principle.test`
+      `Either set BASE_URL=http://localhost:3000 OR set TEST_EMAIL=e2e@first-principle.test`
     );
   }
 }
