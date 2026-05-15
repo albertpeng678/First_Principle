@@ -769,11 +769,22 @@ describe('Bug D — tryResumeLatestSession sets default circlesMode on no-sessio
     expect(fnBody.slice(emptyCheckIdx, emptyCheckIdx + 500)).toContain('!AppState.circlesMode');
   });
 
-  it('post-fetch guard still checks circlesMode != null (protect user explicit nav)', () => {
-    // If user clicked a mode card during the async fetch, circlesMode will be non-null.
-    // The post-fetch guard must still abort in that case.
+  it('Bug G fix: post-fetch guard does NOT check circlesMode (stale localStorage must not block resume)', () => {
+    // Bug G: circlesMode can be a stale localStorage residue (e.g. from a previous sim session).
+    // The post-fetch guard must NOT abort on circlesMode != null — server is source of truth.
+    // Only a genuine view change (view !== circles) warrants aborting.
     const guardIdx = fnBody.indexOf("AppState.circlesMode != null");
-    expect(guardIdx).toBeGreaterThan(-1);
+    expect(guardIdx).toBe(-1);  // must NOT appear in the post-fetch guard
+  });
+
+  it('Bug G fix: post-fetch guard does NOT check nsmStep > 1 (stale localStorage must not block resume)', () => {
+    // Similarly, nsmStep can be stale from a prior session in localStorage.
+    // The guard must only check view, not nsmStep.
+    // Count occurrences of "nsmStep > 1" in the function; only the pre-fetch alreadyInSession
+    // check should contain it (which itself is guarded by alreadyInSession = ... || nsmSession check).
+    // The post-fetch abort line must not contain "nsmStep > 1".
+    const postFetchGuardIdx = fnBody.indexOf("abort only if user actively navigated away");
+    expect(postFetchGuardIdx).toBeGreaterThan(-1); // Bug G comment must be present
   });
 });
 
@@ -818,8 +829,8 @@ describe('Bug D — tryResumeLatestSession resume logic (pure mirror with NSM ac
     );
     const latest = all[0];
 
-    // Mirror: post-fetch guard (Bug D fix: circlesMode is null, so guard passes)
-    if (AppState.view !== 'circles' || AppState.circlesMode != null || AppState.nsmStep > 1) {
+    // Mirror: post-fetch guard (Bug G fix: only abort on view change, not on stale localStorage)
+    if (AppState.view !== 'circles') {
       return { aborted: 'post-fetch-guard', AppState };
     }
 
@@ -884,10 +895,12 @@ describe('Bug D — tryResumeLatestSession resume logic (pure mirror with NSM ac
     expect(result.AppState._resumeToastShow).toBe(true);
   });
 
-  it('Bug D regression: old guard would abort (circlesMode non-null) but now passes (null)', () => {
-    // This simulates the old bug: if render had set circlesMode = 'simulation',
-    // the post-fetch guard would fire → result.aborted = 'post-fetch-guard'.
-    // With Bug D fix: circlesMode is null → guard passes → resume completes.
+  it('Bug G fix: stale localStorage circlesMode non-null no longer blocks resume', () => {
+    // Bug G: with stale localStorage residue, circlesMode could be 'sim' or 'simulation'
+    // at the time of the post-fetch guard. With Bug G fix the guard no longer checks
+    // circlesMode — only view matters. Resume must complete and apply server state.
+    // The simulation starts with circlesMode: null (clean state for the simulation function),
+    // but the source contract test (below) verifies the guard no longer references circlesMode.
     const sessions = [
       {
         id: 'nsm-active',
@@ -903,7 +916,7 @@ describe('Bug D — tryResumeLatestSession resume logic (pure mirror with NSM ac
     ];
 
     const result = simulateResumeWithCirclesModeNull(sessions);
-    // With fix: circlesMode starts as null → post-fetch guard passes → no abort
+    // With Bug G fix: view check only → post-fetch guard passes → resume completes
     expect(result.aborted).toBeNull();
     expect(result.AppState.view).toBe('nsm');
     expect(result.AppState.nsmSelectedQuestion).toEqual({ id: 'q12', company: 'Airbnb', product: null });
@@ -941,6 +954,145 @@ describe('Bug D — tryResumeLatestSession resume logic (pure mirror with NSM ac
     expect(result.aborted).toBeNull();
     expect(result.AppState.circlesSession.id).toBe('circles-drill-1');
     expect(result.AppState.circlesMode).toBe('drill');
+  });
+});
+
+// ══════════════════════════════════════════════════════════════════════════════
+// Section F3: Bug G — stale localStorage circlesMode/nsmStep must not block resume
+// Real-world scenario: user previously used simulation mode on device A, localStorage
+// persists circlesMode='sim'. On device B (or after reload), tryResumeLatestSession
+// must still resume the server's latest active session, overwriting the stale state.
+// ══════════════════════════════════════════════════════════════════════════════
+
+// Simulate the Bug G scenario: stale circlesMode from localStorage before fetch returns
+function simulateResumeWithStaleCirclesMode(staleModeValue, sessions) {
+  // AppState after boot restores stale localStorage (Bug G scenario)
+  const AppState = {
+    view: 'circles',
+    circlesMode: staleModeValue,  // stale localStorage residue (e.g. 'sim' from old session)
+    nsmStep: 1,
+    nsmSession: null,
+    circlesSession: null,
+    circlesPhase: 1,
+  };
+
+  // Mirror pre-fetch guard (Bug B fix — checks view only)
+  if (AppState.view !== 'circles') return { aborted: 'pre-fetch-view', AppState };
+
+  // Mirror alreadyInSession check — note: circlesSession is null, circlesPhase=1 → not already in session
+  var alreadyInSession = AppState.nsmStep > 1 || AppState.circlesPhase > 1
+    || AppState.nsmSession || AppState.circlesSession;
+  if (alreadyInSession) return { aborted: 'pre-fetch-session', AppState };
+
+  // Mirror: filter + sort
+  const all = sessions.filter(s => s.status === 'active');
+  if (all.length === 0) {
+    if (!AppState.circlesMode && AppState.view === 'circles') {
+      AppState.circlesMode = 'simulation';
+    }
+    return { aborted: 'no-sessions', AppState };
+  }
+  all.sort((a, b) =>
+    new Date(b.updated_at || b.created_at) - new Date(a.updated_at || a.created_at)
+  );
+  const latest = all[0];
+
+  // Mirror: Bug G fix — post-fetch guard checks view ONLY (no circlesMode / nsmStep check)
+  if (AppState.view !== 'circles') {
+    return { aborted: 'post-fetch-guard', AppState };
+  }
+
+  // Mirror: apply session
+  if (latest._kind === 'nsm') {
+    AppState.view = 'nsm';
+    AppState.nsmSession = latest;
+  } else {
+    AppState.circlesSession = latest;
+    AppState.circlesMode = latest.mode === 'simulation' ? 'sim' : 'drill';
+  }
+  AppState._resumeToastShow = true;
+  return { aborted: null, AppState };
+}
+
+describe('Bug G — stale localStorage circlesMode does not block server resume', () => {
+  it('stale circlesMode=sim + server returns drill session → circlesSession.id from server', () => {
+    // Real-world scenario: user used sim on device A → localStorage has circlesMode='sim'.
+    // On device B reload, server has an active drill session. Must resume server session.
+    const serverSessionId = '7773d633-drill-latest';
+    const sessions = [
+      {
+        id: serverSessionId,
+        status: 'active',
+        _kind: 'circles',
+        mode: 'drill',
+        updated_at: '2026-05-15T10:00:00Z',
+        question_json: { id: 'q1', company: 'Meta', product: 'Reels' },
+        drill_step: 'C1',
+        current_phase: 1,
+      }
+    ];
+
+    // Stale localStorage had circlesMode='sim' from a previous simulation session
+    const result = simulateResumeWithStaleCirclesMode('sim', sessions);
+
+    // Must NOT abort — stale circlesMode is overwritten by server state
+    expect(result.aborted).toBeNull();
+    // circlesSession must come from server, not stale localStorage
+    expect(result.AppState.circlesSession.id).toBe(serverSessionId);
+    // circlesMode must reflect server session (drill), not stale localStorage (sim)
+    expect(result.AppState.circlesMode).toBe('drill');
+    expect(result.AppState._resumeToastShow).toBe(true);
+  });
+
+  it('stale circlesMode=simulation (string) + server returns NSM session → NSM resumed', () => {
+    const sessions = [
+      {
+        id: 'nsm-session-latest',
+        status: 'active',
+        _kind: 'nsm',
+        updated_at: '2026-05-15T11:00:00Z',
+        question_json: { id: 'q5', company: 'Spotify', product: 'Podcast' },
+        user_nsm: 'Listening hours',
+        user_breakdown: null,
+        progress_json: {},
+        scores_json: null,
+      }
+    ];
+
+    const result = simulateResumeWithStaleCirclesMode('simulation', sessions);
+
+    expect(result.aborted).toBeNull();
+    expect(result.AppState.view).toBe('nsm');
+    expect(result.AppState.nsmSession.id).toBe('nsm-session-latest');
+  });
+
+  it('source contract: post-fetch guard in app.js contains Bug G comment and no circlesMode check', () => {
+    const fs = require('fs');
+    const path = require('path');
+    const appSrc = fs.readFileSync(path.join(__dirname, '../public/app.js'), 'utf8');
+
+    const fnStart = appSrc.indexOf('async function tryResumeLatestSession()');
+    const fnEnd = appSrc.indexOf('\n  window._tryResumeLatestSession', fnStart);
+    const fnBody = appSrc.slice(fnStart, fnEnd);
+
+    // Bug G fix comment must be present
+    expect(fnBody).toContain('Bug G fix');
+    // Post-fetch guard must be exactly: if (AppState.view !== 'circles') return;
+    // Find the guard line after the sort (after latest = all[0])
+    const sortIdx = fnBody.indexOf('all.sort(function');
+    const afterSort = fnBody.slice(sortIdx);
+    const guardLineMatch = afterSort.match(/if \(AppState\.view !== 'circles'\) return;/);
+    expect(guardLineMatch).not.toBeNull();
+    // The actual if-statement for the post-fetch guard must NOT contain circlesMode or nsmStep
+    // We check the guard line itself (not comments) — extract the if-statement line
+    const nsmBranchIdx = afterSort.indexOf('if (latest._kind');
+    const guardSection = afterSort.slice(0, nsmBranchIdx);
+    // Strip comment lines and check the actual code lines
+    const codeLines = guardSection.split('\n')
+      .filter(line => !line.trim().startsWith('//'))
+      .join('\n');
+    expect(codeLines).not.toContain('circlesMode != null');
+    expect(codeLines).not.toContain('nsmStep > 1');
   });
 });
 

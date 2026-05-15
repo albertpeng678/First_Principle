@@ -7649,8 +7649,12 @@
       });
       var latest = all[0];
 
-      // Re-check: abort if user navigated away during the async fetch
-      if (AppState.view !== 'circles' || AppState.circlesMode != null || AppState.nsmStep > 1) return;
+      // Re-check: abort only if user actively navigated away from circles during the async fetch.
+      // Bug G fix: do NOT abort on circlesMode != null or nsmStep > 1 — these can be stale
+      // localStorage residue from a previous session and must NOT block server-side resume.
+      // Server is the source of truth; stale localStorage state is overwritten by applying
+      // the session below. Only a genuine view change (user clicked nav) warrants aborting.
+      if (AppState.view !== 'circles') return;
 
       if (latest._kind === 'nsm') {
         AppState.view = 'nsm';
