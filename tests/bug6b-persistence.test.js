@@ -1452,3 +1452,47 @@ describe('Bug F — tryResumeLatestSession dedupe logic (pure simulation)', () =
     expect(ctx.getFetchCount()).toBe(1); // only one fetch, not two
   });
 });
+
+// ══════════════════════════════════════════════════════════════════════════════
+// Section G: Bug H — submitFrameworkToGate must PATCH gateResult to server
+// Root cause: FE set AppState.circlesGateResult but never called PATCH
+// /api/circles-sessions/:id/progress → gate_result never written to DB →
+// cross-device reload restored null (Bug H fix: fire-and-forget PATCH added).
+// ══════════════════════════════════════════════════════════════════════════════
+
+describe('Bug H — submitFrameworkToGate PATCHes gateResult to server', () => {
+  const fs = require('fs');
+  const path = require('path');
+  const appSrc = fs.readFileSync(path.join(__dirname, '../public/app.js'), 'utf8');
+
+  it('submitFrameworkToGate fires PATCH /progress with gateResult after setting AppState.circlesGateResult', () => {
+    const fnStart = appSrc.indexOf('async function submitFrameworkToGate()');
+    const fnEnd = appSrc.indexOf('\n  window.submitFrameworkToGate', fnStart);
+    const fnBody = appSrc.slice(fnStart, fnEnd);
+    // Must set AppState.circlesGateResult
+    expect(fnBody).toContain('AppState.circlesGateResult = result');
+    // Must subsequently call PATCH /progress
+    const gateResultIdx = fnBody.indexOf('AppState.circlesGateResult = result');
+    const patchIdx = fnBody.indexOf("method: 'PATCH'", gateResultIdx);
+    expect(patchIdx).toBeGreaterThan(gateResultIdx);
+    expect(fnBody.slice(gateResultIdx, patchIdx)).toContain('/progress');
+  });
+
+  it('submitFrameworkToGate PATCH includes gateResult in request body', () => {
+    const fnStart = appSrc.indexOf('async function submitFrameworkToGate()');
+    const fnEnd = appSrc.indexOf('\n  window.submitFrameworkToGate', fnStart);
+    const fnBody = appSrc.slice(fnStart, fnEnd);
+    const gateResultIdx = fnBody.indexOf('AppState.circlesGateResult = result');
+    const afterSet = fnBody.slice(gateResultIdx);
+    expect(afterSet).toContain('gateResult: result');
+  });
+
+  it('submitFrameworkToGate PATCH uses circles-sessions progress endpoint (not nsm)', () => {
+    const fnStart = appSrc.indexOf('async function submitFrameworkToGate()');
+    const fnEnd = appSrc.indexOf('\n  window.submitFrameworkToGate', fnStart);
+    const fnBody = appSrc.slice(fnStart, fnEnd);
+    const gateResultIdx = fnBody.indexOf('AppState.circlesGateResult = result');
+    const afterSet = fnBody.slice(gateResultIdx);
+    expect(afterSet).toContain('/api/circles-sessions/');
+  });
+});

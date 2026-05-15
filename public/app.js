@@ -7423,6 +7423,13 @@
         return;
       }
       AppState.circlesGateResult = result;
+      // Persist gateResult so it survives cross-device reload (Bug H fix)
+      (function () {
+        var _sid = AppState.circlesSession && AppState.circlesSession.id;
+        if (!_sid || !AppState.accessToken) return;
+        var _p = '/api/circles-sessions/' + _sid + '/progress';
+        window.apiFetch(_p, { method: 'PATCH', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ gateResult: result }) }).catch(function (err) { console.error('[circles-gate] PATCH failed:', err); });
+      })();
       AppState.circlesGateLoading = false;
       render();
     } catch (e) {
