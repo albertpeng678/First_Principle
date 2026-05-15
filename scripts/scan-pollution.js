@@ -34,6 +34,25 @@ function isPolluted(s) {
   return POLLUTION_PATTERNS.some((re) => re.test(s));
 }
 
+// Recursive jsonb walker — emits {path, value} for every string leaf at any depth.
+function walkStrings(value, prefix, out) {
+  if (value === null || value === undefined) return;
+  if (typeof value === 'string') {
+    out.push({ path: prefix, value });
+    return;
+  }
+  if (Array.isArray(value)) {
+    value.forEach((v, i) => walkStrings(v, `${prefix}[${i}]`, out));
+    return;
+  }
+  if (typeof value === 'object') {
+    for (const k of Object.keys(value)) {
+      walkStrings(value[k], `${prefix}.${k}`, out);
+    }
+  }
+  // numbers/booleans/etc: skip
+}
+
 function extractStrings(session, kind) {
   if (!session || typeof session !== 'object') return [];
   const out = [];
@@ -51,16 +70,8 @@ function extractStrings(session, kind) {
       }
     }
     if (session.step_drafts && typeof session.step_drafts === 'object') {
-      for (const stepKey of Object.keys(session.step_drafts)) {
-        const stepObj = session.step_drafts[stepKey];
-        if (!stepObj || typeof stepObj !== 'object') continue;
-        for (const fieldKey of Object.keys(stepObj)) {
-          const v = stepObj[fieldKey];
-          if (typeof v === 'string') {
-            out.push({ path: `step_drafts.${stepKey}.${fieldKey}`, value: v });
-          }
-        }
-      }
+      // step_drafts may be nested deeper than 2 levels (e.g. step_drafts.framework.I.排除對象)
+      walkStrings(session.step_drafts, 'step_drafts', out);
     }
     if (Array.isArray(session.phase2_chat_history)) {
       session.phase2_chat_history.forEach((m, i) => {
@@ -113,13 +124,16 @@ function classifySession(session, kind) {
   const fields = extractStrings(session, kind);
   const polluted = fields.filter((f) => isPolluted(f.value));
   if (polluted.length === 0) return null;
-  const allFieldsPolluted = polluted.length === fields.length;
+  // "Real content" = non-empty + non-polluted. Empty strings are skeleton defaults
+  // (BE inits user_nsm/etc to ''), so they don't count as user-typed answers.
+  const realContent = fields.filter((f) => f.value && f.value.trim().length > 0 && !isPolluted(f.value));
+  const noRealContent = realContent.length === 0;
   return {
     sessionId: session.id,
     kind,
     created_at: session.created_at,
     polluted,
-    suggested_action: allFieldsPolluted ? 'DELETE_ROW' : 'CLEAR_FIELDS',
+    suggested_action: noRealContent ? 'DELETE_ROW' : 'CLEAR_FIELDS',
   };
 }
 
