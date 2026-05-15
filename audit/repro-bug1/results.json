@@ -1,0 +1,52 @@
+[
+  {
+    "round": 1,
+    "payload": "repro-bug1-r1-1778816867972",
+    "A_patch_ok": true,
+    "A_patch_status": 200,
+    "B_get_ok": true,
+    "B_nsm_read": "repro-bug1-r1-1778816867972",
+    "B_updated_at": "2026-05-15T03:47:48.748+00:00",
+    "match": true
+  },
+  {
+    "round": 2,
+    "payload": "repro-bug1-r2-1778816876959",
+    "A_patch_ok": true,
+    "A_patch_status": 200,
+    "B_get_ok": true,
+    "B_nsm_read": "repro-bug1-r2-1778816876959",
+    "B_updated_at": "2026-05-15T03:47:57.906+00:00",
+    "match": true
+  },
+  {
+    "round": 3,
+    "payload": "repro-bug1-r3-1778816886075",
+    "A_patch_ok": true,
+    "A_patch_status": 200,
+    "B_get_ok": true,
+    "B_nsm_read": "repro-bug1-r3-1778816886075",
+    "B_updated_at": "2026-05-15T03:48:07.019+00:00",
+    "match": true
+  },
+  {
+    "round": 4,
+    "payload": "repro-bug1-r4-1778816895590",
+    "A_patch_ok": true,
+    "A_patch_status": 200,
+    "B_get_ok": true,
+    "B_nsm_read": "repro-bug1-r4-1778816895590",
+    "B_updated_at": "2026-05-15T03:48:16.535+00:00",
+    "match": true
+  },
+  {
+    "round": 5,
+    "payload": "repro-bug1-r5-1778816904609",
+    "A_patch_ok": true,
+    "A_patch_status": 200,
+    "B_get_ok": true,
+    "B_nsm_read": "repro-bug1-r5-1778816904609",
+    "B_updated_at": "2026-05-15T03:48:25.555+00:00",
+    "match": true
+  }
+]
