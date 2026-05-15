@@ -13,12 +13,27 @@ set -u
 # --- BEGIN: Stage 0 B7 prevention — block hardcoded prod URL / real email in test specs ---
 STAGED_SPECS=$(git diff --cached --name-only --diff-filter=ACM | grep -E '^tests/.*\.(spec|test)\.js$' || true)
 if [ -n "$STAGED_SPECS" ]; then
-  if echo "$STAGED_SPECS" | xargs grep -l 'railway\.app' 2>/dev/null; then
-    echo "ERROR: hardcoded prod URL (railway.app) found in spec file(s) above. Use process.env.BASE_URL instead."
+  PROD_URL_HITS=""
+  EMAIL_HITS=""
+  while IFS= read -r f; do
+    if [ -n "$f" ] && grep -q 'railway\.app' "$f" 2>/dev/null; then
+      PROD_URL_HITS="${PROD_URL_HITS}${f}\n"
+    fi
+    if [ -n "$f" ] && grep -qE '[a-zA-Z0-9._%+-]+@gmail\.com' "$f" 2>/dev/null; then
+      EMAIL_HITS="${EMAIL_HITS}${f}\n"
+    fi
+  done <<< "$STAGED_SPECS"
+
+  if [ -n "$PROD_URL_HITS" ]; then
+    echo "ERROR: hardcoded prod URL (railway.app) found in spec file(s):"
+    printf "$PROD_URL_HITS" | sed 's/^/  - /'
+    echo "Use process.env.BASE_URL instead."
     exit 1
   fi
-  if echo "$STAGED_SPECS" | xargs grep -l 'albertpeng678@gmail\.com' 2>/dev/null; then
-    echo "ERROR: hardcoded real account email found in spec file(s) above. Use process.env.TEST_EMAIL instead."
+  if [ -n "$EMAIL_HITS" ]; then
+    echo "ERROR: hardcoded real-looking email (@gmail.com) found in spec file(s):"
+    printf "$EMAIL_HITS" | sed 's/^/  - /'
+    echo "Use process.env.TEST_EMAIL (which points to e2e@first-principle.test)."
     exit 1
   fi
 fi
