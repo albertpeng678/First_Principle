@@ -2011,8 +2011,10 @@
     _nsmSaveTimer = setTimeout(function () {
       try {
         var qid = (AppState.nsmSelectedQuestion || {}).id || 'unknown';
+        // Bug 6 fix: send full nsmDefinition object so explanation + businessLink are persisted.
+        // user_nsm is JSONB — stores {nsm, explanation, businessLink} as-is.
         var payload = {
-          user_nsm: (AppState.nsmDefinition || {}).nsm || '',
+          user_nsm: AppState.nsmDefinition || { nsm: '', explanation: '', businessLink: '' },
           user_breakdown: AppState.nsmBreakdown || {},
         };
         localStorage.setItem('pmdrill:nsm:draft:' + qid, JSON.stringify(Object.assign({}, payload, { ts: Date.now() })));
@@ -5946,6 +5948,12 @@
         var q = NSM_QUESTIONS.find(function (x) { return x.id === qid; });
         if (!q) return;
         AppState.nsmSelectedQuestion = q;
+        // Bug 6 fix: create/obtain session immediately on card select so question_id
+        // is persisted server-side. If user leaves and comes back the session list
+        // will contain this question, enabling Step 1 restore via loadHistory.
+        // Non-blocking — failure is silent (user can still proceed to Step 2 which
+        // also calls ensureNsmDraftSession via preflight on bindNSMStep2And3).
+        ensureNsmDraftSession().catch(function () {});
         var src = getNsmContextSource(q, AppState.nsmContext, _nsmContextQid);
         if (src === 'fetch') {
           AppState.nsmContextLoading = true;
@@ -7523,6 +7531,35 @@
         return new Date(b.updated_at || b.created_at) - new Date(a.updated_at || a.created_at);
       });
       AppState.historyLoading = false;
+      // Bug 6 fix: landing restore — if user cold-starts on default circles home with
+      // no active session, auto-restore the latest in-progress NSM session so Step 1
+      // question selection (and Step 2/3 drafts) survive logout→login round-trips.
+      // Conservative: only fires when view='circles' AND no NSM session is active
+      // AND there's a non-completed NSM session at the top of the list.
+      var _onDefaultHome = AppState.view === 'circles' && !AppState.nsmSelectedQuestion;
+      if (_onDefaultHome && nsm && nsm.length > 0) {
+        var _latestNsm = nsm[0]; // already sorted newest-first from server
+        if (_latestNsm && _latestNsm.status !== 'completed' && _latestNsm.question_json) {
+          // Restore Step 1 question + session pointer silently; do NOT change view —
+          // user stays on circles home but nsmSelectedQuestion is primed so that
+          // when they click NSM they land at the right step instead of Step 1 blank.
+          AppState.nsmSession = { id: _latestNsm.id };
+          AppState.nsmSelectedQuestion = _latestNsm.question_json || null;
+          var _rawNsm6 = _latestNsm.user_nsm;
+          if (typeof _rawNsm6 === 'string') {
+            AppState.nsmDefinition = { nsm: _rawNsm6, explanation: '', businessLink: '' };
+          } else if (_rawNsm6 && typeof _rawNsm6 === 'object') {
+            AppState.nsmDefinition = { nsm: _rawNsm6.nsm || '', explanation: _rawNsm6.explanation || '', businessLink: _rawNsm6.businessLink || '' };
+          }
+          AppState.nsmBreakdown = _latestNsm.user_breakdown || { reach: '', depth: '', frequency: '', impact: '' };
+          AppState.nsmEvalResult = _latestNsm.scores_json || null;
+          // Smart step routing — mirrors loadCirclesSessionFromHistory NSM branch
+          var _ns6scored = _latestNsm.scores_json && Object.keys(_latestNsm.scores_json).length > 0;
+          var _ns6breakdown = _latestNsm.user_breakdown && Object.values(_latestNsm.user_breakdown).some(function (v) { return v && String(v).trim(); });
+          var _ns6nsm = _latestNsm.user_nsm && (_latestNsm.user_nsm.nsm || (typeof _latestNsm.user_nsm === 'string' && _latestNsm.user_nsm)) && String(_latestNsm.user_nsm.nsm || _latestNsm.user_nsm).trim();
+          AppState.nsmStep = _ns6scored ? 4 : (_ns6breakdown ? 3 : (_ns6nsm ? 2 : 1));
+        }
+      }
       maybeStartOnboarding();
       render();
     } catch (e) {
@@ -7642,7 +7679,20 @@
         if (!full || !full.id) return;
         AppState.nsmSession = full;
         AppState.nsmSelectedQuestion = full.question_json || AppState.nsmSelectedQuestion;
-        AppState.nsmDefinition = full.user_nsm || { nsm: '', explanation: '', businessLink: '' };
+        // Bug 6 fix: coerce user_nsm — may be full object {nsm,explanation,businessLink}
+        // (new format) or plain string (legacy). Guarantee all three fields present.
+        var fullRawNsm = full.user_nsm;
+        if (typeof fullRawNsm === 'string') {
+          AppState.nsmDefinition = { nsm: fullRawNsm, explanation: '', businessLink: '' };
+        } else if (fullRawNsm && typeof fullRawNsm === 'object') {
+          AppState.nsmDefinition = {
+            nsm: fullRawNsm.nsm || '',
+            explanation: fullRawNsm.explanation || '',
+            businessLink: fullRawNsm.businessLink || '',
+          };
+        } else {
+          AppState.nsmDefinition = { nsm: '', explanation: '', businessLink: '' };
+        }
         AppState.nsmBreakdown = full.user_breakdown || { reach: '', depth: '', frequency: '', impact: '' };
         AppState.nsmEvalResult = full.scores_json || null;
         render();

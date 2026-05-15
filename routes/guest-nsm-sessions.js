@@ -149,11 +149,14 @@ router.post('/:id/context', requireGuestId, async (req, res) => {
 // Mirror of CIRCLES /progress: persist partial state (currentStep, userNsm,
 // userBreakdown, gateResult, etc.) into progress_json so the user can resume.
 // Requires migrations/2026-04-29-nsm-progress-json.sql to be applied.
+// Bug 6 fix: also accepts userExplanation + userBusinessLink (mirrors auth sibling).
 router.patch('/:id/progress', requireGuestId, async (req, res) => {
-  const { currentStep, userNsm, userBreakdown, gateResult, progress } = req.body || {};
+  const { currentStep, userNsm, userBreakdown, gateResult, progress, userExplanation, userBusinessLink } = req.body || {};
   const patch = {};
   if (userNsm       !== undefined) patch.user_nsm       = userNsm;
   if (userBreakdown !== undefined) patch.user_breakdown = userBreakdown;
+  if (userExplanation  !== undefined) patch.user_explanation  = userExplanation;
+  if (userBusinessLink !== undefined) patch.user_business_link = userBusinessLink;
   // Coalesce step + gate + free-form progress into progress_json
   const merged = { ...(progress && typeof progress === 'object' ? progress : {}) };
   if (currentStep !== undefined) merged.currentStep = currentStep;
