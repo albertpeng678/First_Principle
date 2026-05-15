@@ -1,18 +1,34 @@
 const { test: base } = require('@playwright/test');
 
+function validateTrackArgs(kind, id) {
+  if (!['nsm', 'circles'].includes(kind)) {
+    throw new Error(`auto-cleanup: invalid kind "${kind}" — must be 'nsm' or 'circles'`);
+  }
+  if (id == null || id === '') {
+    throw new Error(`auto-cleanup: id is required (got ${JSON.stringify(id)})`);
+  }
+}
+
 async function runAfterEachCleanup(tracked, request) {
+  const failures = [];
   for (const { kind, id } of tracked) {
     const path = `/api/${kind}-sessions/${id}`;
     try {
       const res = await request.delete(path);
-      if (!res.ok() && res.status() !== 404) {
-        console.warn(`auto-cleanup: DELETE ${path} returned ${res.status()}`);
-      } else if (res.status() === 404) {
+      if (res.status() === 404) {
         console.warn(`auto-cleanup: DELETE ${path} returned 404 (already gone)`);
+      } else if (!res.ok()) {
+        failures.push(`DELETE ${path} returned ${res.status()}`);
       }
     } catch (e) {
-      console.warn(`auto-cleanup: DELETE ${path} threw: ${e.message}`);
+      failures.push(`DELETE ${path} threw: ${e.message}`);
     }
+  }
+  if (failures.length > 0) {
+    throw new Error(
+      `auto-cleanup: ${failures.length} non-404 cleanup failure(s):\n  - ` +
+      failures.join('\n  - ')
+    );
   }
 }
 
@@ -22,9 +38,7 @@ const test = base.extend({
       const tracked = [];
       await use({
         track: (kind, id) => {
-          if (!['nsm', 'circles'].includes(kind)) {
-            throw new Error(`auto-cleanup: invalid kind "${kind}" — must be 'nsm' or 'circles'`);
-          }
+          validateTrackArgs(kind, id);
           tracked.push({ kind, id });
         },
       });
@@ -34,4 +48,4 @@ const test = base.extend({
   ],
 });
 
-module.exports = { test, runAfterEachCleanup };
+module.exports = { test, runAfterEachCleanup, validateTrackArgs };
