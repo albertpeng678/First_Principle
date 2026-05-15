@@ -44,46 +44,53 @@ test.describe('Frontend minLength validation (Layer 1 Combo C)', () => {
     await expect(submit).toBeDisabled();
   });
 
-  test('Phase 1 C1 sim: submit disabled when field 1 has single-repeated char (AAAAA...)', async ({ page }) => {
+  test('Phase 1 C1 sim: submit ENABLED when field 1 has single-repeated char (floors removed)', async ({ page }) => {
     await gotoSimC1(page);
-    // Fill field 1 with repeated single chars — should not pass single-char check
+    // Min-length floors removed — single-char-repeat is non-empty so no longer blocked
+    // Only fully blank fields block submit now
     await page.evaluate(() => {
-      window.AppState.circlesFrameworkDraft = { C1: { '問題範圍': 'AAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA' } };
-      window.render();
-    });
-    const submit = page.locator('[data-phase1="submit"]').first();
-    await expect(submit).toBeDisabled();
-  });
-
-  test('Phase 1 C1 sim: submit disabled when one field below floor (others ok)', async ({ page }) => {
-    await gotoSimC1(page);
-    await page.evaluate(() => {
-      // C1 floors: 問題範圍=50, 時間範圍=30, 業務影響=40, 假設確認=30
       window.AppState.circlesFrameworkDraft = {
         C1: {
-          '問題範圍': 'ok',  // below 50 floor → blocked
-          '時間範圍': '60 天，因為廣告活動以月為週期，需要足夠觀察時間才能看出效果',
-          '業務影響': '廣告收入和免費到付費轉換率不能下降超過 3% 這是業務紅線需要嚴格守護',
-          '假設確認': '用戶廣告負感主要來自時段選擇而非廣告本身的內容品質',
+          '問題範圍': 'AAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA',
+          '時間範圍': '時間',
+          '業務影響': '影響',
+          '假設確認': '假設',
         }
       };
       window.render();
     });
     const submit = page.locator('[data-phase1="submit"]').first();
-    await expect(submit).toBeDisabled();
+    await expect(submit).toBeEnabled();
   });
 
-  test('Phase 1 C1 sim: submit ENABLED when all 4 fields meet their floors', async ({ page }) => {
+  test('Phase 1 C1 sim: submit ENABLED when one field is short (only empty blocked now)', async ({ page }) => {
     await gotoSimC1(page);
     await page.evaluate(() => {
-      // Floors: 問題範圍=50, 時間範圍=30, 業務影響=40, 假設確認=30 (non-whitespace chars)
-      // Values below are chosen to clearly exceed each floor
+      // Min-length floors removed — any non-empty content is enough to unblock
       window.AppState.circlesFrameworkDraft = {
         C1: {
-          '問題範圍': '聚焦免費版廣告體驗排除付費方案重點在通勤族每日通勤聽podcast場景與廣告打斷影響及用戶收聽沉浸感', // >=50
-          '時間範圍': '60天因廣告活動以月為週期需足夠觀察時間才能看出效果效果效果效果', // >=30
-          '業務影響': '廣告收入和免費到付費轉換率不能下降超過3%這是業務紅線需要嚴格守護不可突破否則整體商業目標無法達成', // >=40
-          '假設確認': '用戶廣告負感主要來自時段選擇而非廣告本身的內容品質品質品質品質', // >=30
+          '問題範圍': 'ok',  // short but non-empty → no longer blocked
+          '時間範圍': '60 天',
+          '業務影響': '廣告收入',
+          '假設確認': '假設',
+        }
+      };
+      window.render();
+    });
+    const submit = page.locator('[data-phase1="submit"]').first();
+    await expect(submit).toBeEnabled();
+  });
+
+  test('Phase 1 C1 sim: submit ENABLED when all 4 fields have any content', async ({ page }) => {
+    await gotoSimC1(page);
+    await page.evaluate(() => {
+      // Floors removed — any non-empty content unblocks submit
+      window.AppState.circlesFrameworkDraft = {
+        C1: {
+          '問題範圍': '聚焦免費版廣告體驗排除付費方案重點在通勤族每日通勤聽podcast場景與廣告打斷影響及用戶收聽沉浸感',
+          '時間範圍': '60天因廣告活動以月為週期需足夠觀察時間才能看出效果',
+          '業務影響': '廣告收入和免費到付費轉換率不能下降超過3%這是業務紅線',
+          '假設確認': '用戶廣告負感主要來自時段選擇而非廣告本身的內容品質',
         }
       };
       window.render();

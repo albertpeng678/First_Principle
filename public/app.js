@@ -12,7 +12,6 @@
     accessToken: null,                  // supabase JWT
     guestId: null,                      // UUIDv4
     isOnline: navigator.onLine,
-    sessionExpired: false,
     onboardingComplete: localStorage.getItem('circles_onboarding_done') === '1',
     onboardingActive: false,    // Plan D SB2 — true while tour running
     onboardingStep: 0,          // Plan D SB2 — 0 = welcome, 1-4 = tour steps
@@ -262,13 +261,13 @@
       headers['Content-Type'] = headers['Content-Type'] || 'application/json';
       const res = await fetch(input, Object.assign({}, init, { headers }));
       if (res.status === 401) {
-        AppState.sessionExpired = true;
         AppState.accessToken = null;
+        AppState.userEmail = null;
         try { localStorage.setItem('pmDrillReturnPath', JSON.stringify({ view: AppState.view, ts: Date.now() })); } catch (_) {}
+        AppState.view = 'auth';
+        AppState.authTab = 'login';
         render();
-        const err = new Error('SESSION_EXPIRED');
-        err.code = 'SESSION_EXPIRED';
-        throw err;
+        return res;
       }
       return res;
     };
@@ -684,7 +683,6 @@
         render();
       }
     } catch (e) {
-      if (e && e.code === 'SESSION_EXPIRED') return;
       clearPhase4Timers();
       AppState.circlesPhase4Error = { code: 'REPORT_API_ERROR', message: e.message || 'network error' };
       render();
@@ -2507,10 +2505,6 @@
     var tab = AppState.authTab || 'login';
     var isLogin = tab === 'login';
     var html = '<div data-view="auth">';
-    // Token expiry card (non-blocking, floats at top of auth view)
-    if (AppState.sessionExpired) {
-      html += renderTokenExpiryCard();
-    }
     html += '<div class="auth-page"><div class="auth-card">';
     // Brand mark
     html += '<div class="auth-card__brand">'
@@ -2653,17 +2647,6 @@
       + '</div>';
   }
 
-  function renderTokenExpiryCard() {
-    return '<div class="token-expiry">'
-      + '<span class="token-expiry__icon"><i class="ph ph-clock-countdown"></i></span>'
-      + '<div class="token-expiry__main">'
-      +   '<div class="token-expiry__title">登入逾期，請重新登入</div>'
-      +   '<div class="token-expiry__body">為保護帳號安全，登入狀態定期失效。你的草稿已存於本機，重新登入後會接續到剛才的位置。</div>'
-      +   '<button class="token-expiry__btn" data-auth-action="relogin"><i class="ph ph-arrow-right" style="font-size:14px;"></i>重新登入</button>'
-      + '</div>'
-      + '</div>';
-  }
-
   // ── bindAuth — wires auth view interactions ───────────────────────────────
   function bindAuth() {
     // Tab switches (login ↔ register) — delegated via data-auth-tab
@@ -2683,7 +2666,6 @@
     // Guest bypass link
     document.querySelectorAll('[data-auth-action="guest-bypass"]').forEach(function (el) {
       el.addEventListener('click', function () {
-        AppState.sessionExpired = false;
         AppState.authError = null;
         resetCirclesToHome();
         AppState.view = 'circles';
@@ -2696,16 +2678,6 @@
       el.addEventListener('click', function (e) {
         e.preventDefault();
         alert('密碼重設功能尚未開放，請聯繫客服。');
-      });
-    });
-
-    // Re-login link (from token expiry card)
-    document.querySelectorAll('[data-auth-action="relogin"]').forEach(function (el) {
-      el.addEventListener('click', function () {
-        AppState.sessionExpired = false;
-        AppState.authError = null;
-        AppState.view = 'auth';
-        render();
       });
     });
 
@@ -2786,7 +2758,6 @@
         // Login success
         AppState.accessToken = session.access_token;
         AppState.userEmail = (session.user && session.user.email) || email;
-        AppState.sessionExpired = false;
         AppState.authError = null;
         AppState._authEmail = '';
         AppState._authPw = '';
@@ -2868,7 +2839,6 @@
       if (session) {
         AppState.accessToken = session.access_token;
         AppState.userEmail = (session.user && session.user.email) || email;
-        AppState.sessionExpired = false;
         AppState.authError = null;
         AppState._authEmail = '';
         AppState._authPw = '';
@@ -3020,14 +2990,6 @@
           <div class="banner__sub">草稿已存本機，連線恢復後自動同步</div></div>
       </div>`);
     }
-    if (AppState.sessionExpired && AppState.view !== 'auth') {
-      banners.push(`<div class="banner banner--session">
-        <span class="banner__icon"><i class="ph ph-info"></i></span>
-        <div class="banner__main"><div class="banner__title">登入逾時</div>
-          <div class="banner__sub">為了保護你的資料，已登出。</div></div>
-        <button class="banner__action" data-nav="auth">重新登入</button>
-      </div>`);
-    }
     // Migration success banner (post-login guest→authed merge)
     if (AppState.migrationBanner === 'showing') {
       banners.push('<div class="migration-banner" style="margin:0;">'
@@ -3163,7 +3125,6 @@
     // Clear AppState
     AppState.accessToken = null;
     AppState.userEmail = null;
-    AppState.sessionExpired = false;
     AppState.migrationBanner = null;
     AppState.authError = null;
     AppState.circlesRecentSessions = null;
@@ -3645,10 +3606,11 @@
       if (!stepCfg || !stepCfg.fields || !stepCfg.fields.length) return;
       var draft = (AppState.circlesFrameworkDraft && AppState.circlesFrameworkDraft[stepKey]) || {};
       var blocked = stepCfg.fields.find(function (f) {
-        return !fieldMinLengthOk(draft[f.key], parseFloor(f.minMax));
+        var v = String(draft[f.key] == null ? '' : draft[f.key]).replace(/<[^>]*>/g, '').trim();
+        return v.length === 0;
       });
       if (blocked) {
-        showSubmitBlockTip('「' + blocked.key + '」至少需要 ' + parseFloor(blocked.minMax) + ' 字');
+        showSubmitBlockTip('「' + blocked.key + '」不能為空白');
       }
     });
     document._minLengthTipBound = true;
@@ -4240,8 +4202,6 @@
       + '<button class="rt-tbtn" type="button" aria-label="項目符號"><i class="ph ph-list-bullets"></i></button>'
       + '</div>';
 
-    var metaHtml = '';
-
     return '<div class="field" data-field-key="' + escHtml(key) + '" data-field-idx="' + idx + '">'
       + '<div class="field__label-row">'
       + '<label class="field__label">' + escHtml(key) + '</label>'
@@ -4256,7 +4216,6 @@
       + toolbarHtml
       + '<div class="rt-textarea" contenteditable="true" data-rows="' + rows + '" data-placeholder="' + escHtml(placeholder) + '" data-phase1="textarea" data-field-idx="' + idx + '" data-max="' + max + '" style="min-height:' + (rows * 1.6 + 1) + 'em;"></div>'
       + '</div>'
-      + metaHtml
       + renderExampleExpand('', key, key)
       + '</div>';
   }
@@ -5179,7 +5138,6 @@
       AppState.circlesRecentSessions = merged.slice(0, 5);
       render();
     } catch (e) {
-      if (e.code === 'SESSION_EXPIRED') return;
       AppState.circlesRecentSessions = [];
       render();
     }
@@ -6057,7 +6015,6 @@
       AppState.nsmContextLoading = false;
       render();
     } catch (e) {
-      if (e.code === 'SESSION_EXPIRED') return;
       AppState.nsmContextLoading = false;
       AppState.nsmContext = null;
       _nsmContextQid = null;
@@ -6529,7 +6486,6 @@
         render();
       }
     } catch (e) {
-      if (e && e.code === 'SESSION_EXPIRED') return;
       AppState.circlesEvaluating = false;
       clearPhase3Timers();
       AppState.circlesPhase3Error = { code: 'EVAL_API_ERROR', message: e.message || 'network error' };
@@ -7375,12 +7331,6 @@
       AppState.circlesGateLoading = false;
       render();
     } catch (e) {
-      // 401 → apiFetch throws SESSION_EXPIRED; multi-tab+401 banner already rendered by apiFetch
-      if (e && e.code === 'SESSION_EXPIRED') {
-        AppState.circlesGateLoading = false;
-        render();
-        return;
-      }
       var gateErrCode = (e && (e.name === 'AbortError' || (typeof e.message === 'string' && e.message.toLowerCase().includes('timeout'))))
         ? 'GATE_TIMEOUT'
         : 'GATE_API_ERROR';
@@ -7572,7 +7522,6 @@
       maybeStartOnboarding();
       render();
     } catch (e) {
-      if (e.code === 'SESSION_EXPIRED') return;
       AppState.historyLoading = false;
       AppState.historyError = e.message || 'LOAD_ERROR';
       render();
@@ -7972,7 +7921,8 @@
     return m ? parseInt(m[1], 10) : 0;
   }
 
-  // Returns true when any required Phase 1 C1/I/R/C2 field is below its minMax floor.
+  // Returns true when any required Phase 1 C1/I/R/C2 field is completely empty.
+  // Min-length floors are removed — only block on fully blank fields.
   // L/E/S steps rely on Layer 2 (prompt guard) — documented gap.
   function computePhase1MinLengthBlocked() {
     var stepKey = AppState.circlesMode === 'drill'
@@ -7985,8 +7935,8 @@
     if (!stepCfg.fields || !stepCfg.fields.length || stepCfg.isSolMulti || stepCfg.isEstep || stepCfg.isSstep) return false;
     var draft = (AppState.circlesFrameworkDraft && AppState.circlesFrameworkDraft[stepKey]) || {};
     return stepCfg.fields.some(function (f) {
-      var floor = parseFloor(f.minMax);
-      return !fieldMinLengthOk(draft[f.key], floor);
+      var v = String(draft[f.key] == null ? '' : draft[f.key]).replace(/<[^>]*>/g, '').trim();
+      return v.length === 0;
     });
   }
 
