@@ -49,6 +49,18 @@ function extractStrings(session, kind) {
         }
       }
     }
+    if (session.step_drafts && typeof session.step_drafts === 'object') {
+      for (const stepKey of Object.keys(session.step_drafts)) {
+        const stepObj = session.step_drafts[stepKey];
+        if (!stepObj || typeof stepObj !== 'object') continue;
+        for (const fieldKey of Object.keys(stepObj)) {
+          const v = stepObj[fieldKey];
+          if (typeof v === 'string') {
+            out.push({ path: `step_drafts.${stepKey}.${fieldKey}`, value: v });
+          }
+        }
+      }
+    }
     if (Array.isArray(session.phase2_chat_history)) {
       session.phase2_chat_history.forEach((m, i) => {
         if (m && typeof m.text === 'string') {
@@ -159,7 +171,7 @@ function renderReport(circles, nsm) {
   ].join('\n');
 }
 
-module.exports = { isPolluted, extractStrings, classifySession, renderReport, fetchSessionDetail };
+module.exports = { isPolluted, extractStrings, classifySession, renderReport, fetchSessions, fetchSessionDetail };
 
 if (require.main === module) {
   (async () => {

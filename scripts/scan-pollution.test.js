@@ -71,6 +71,23 @@ describe('extractStrings (jsonb traversal)', () => {
     );
   });
 
+  test('extracts circles step_drafts jsonb leaves', () => {
+    const session = {
+      step_drafts: {
+        C1: { problem_scope: 'e2e-r9-stepdraft-test', time_scope: '正常 step draft' },
+        I:  { user_segment: 'test-stub-segment' },
+      },
+    };
+    const out = extractStrings(session, 'circles');
+    expect(out).toEqual(
+      expect.arrayContaining([
+        { path: 'step_drafts.C1.problem_scope', value: 'e2e-r9-stepdraft-test' },
+        { path: 'step_drafts.C1.time_scope', value: '正常 step draft' },
+        { path: 'step_drafts.I.user_segment', value: 'test-stub-segment' },
+      ])
+    );
+  });
+
   test('handles missing fields gracefully', () => {
     expect(extractStrings({}, 'nsm')).toEqual([]);
     expect(extractStrings(null, 'nsm')).toEqual([]);
@@ -78,8 +95,9 @@ describe('extractStrings (jsonb traversal)', () => {
 });
 
 describe('module exports (smoke)', () => {
-  test('exports fetchSessionDetail', () => {
+  test('exports fetchSessions + fetchSessionDetail', () => {
     const mod = require('./scan-pollution');
+    expect(typeof mod.fetchSessions).toBe('function');
     expect(typeof mod.fetchSessionDetail).toBe('function');
   });
 });
