@@ -1,0 +1,129 @@
+{
+  "viewport": "iPad",
+  "rounds": [
+    {
+      "round": 1,
+      "charCount": 1,
+      "nextBtnFound": true,
+      "nextBtnDisabled": false,
+      "fieldLengths": [
+        {
+          "field": "問題範圍",
+          "len": 1
+        },
+        {
+          "field": "時間範圍",
+          "len": 1
+        },
+        {
+          "field": "業務影響",
+          "len": 1
+        },
+        {
+          "field": "假設確認",
+          "len": 1
+        }
+      ]
+    },
+    {
+      "round": 2,
+      "charCount": 5,
+      "nextBtnFound": true,
+      "nextBtnDisabled": false,
+      "fieldLengths": [
+        {
+          "field": "問題範圍",
+          "len": 5
+        },
+        {
+          "field": "時間範圍",
+          "len": 5
+        },
+        {
+          "field": "業務影響",
+          "len": 5
+        },
+        {
+          "field": "假設確認",
+          "len": 5
+        }
+      ]
+    },
+    {
+      "round": 3,
+      "charCount": 10,
+      "nextBtnFound": true,
+      "nextBtnDisabled": false,
+      "fieldLengths": [
+        {
+          "field": "問題範圍",
+          "len": 10
+        },
+        {
+          "field": "時間範圍",
+          "len": 10
+        },
+        {
+          "field": "業務影響",
+          "len": 10
+        },
+        {
+          "field": "假設確認",
+          "len": 10
+        }
+      ]
+    },
+    {
+      "round": 4,
+      "charCount": 49,
+      "nextBtnFound": true,
+      "nextBtnDisabled": false,
+      "fieldLengths": [
+        {
+          "field": "問題範圍",
+          "len": 49
+        },
+        {
+          "field": "時間範圍",
+          "len": 49
+        },
+        {
+          "field": "業務影響",
+          "len": 49
+        },
+        {
+          "field": "假設確認",
+          "len": 49
+        }
+      ]
+    },
+    {
+      "round": 5,
+      "charCount": 50,
+      "nextBtnFound": true,
+      "nextBtnDisabled": false,
+      "fieldLengths": [
+        {
+          "field": "問題範圍",
+          "len": 50
+        },
+        {
+          "field": "時間範圍",
+          "len": 50
+        },
+        {
+          "field": "業務影響",
+          "len": 50
+        },
+        {
+          "field": "假設確認",
+          "len": 50
+        }
+      ]
+    }
+  ],
+  "finalEmpty": {
+    "found": true,
+    "disabled": true
+  }
+}
