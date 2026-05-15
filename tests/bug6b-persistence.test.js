@@ -943,3 +943,223 @@ describe('Bug D — tryResumeLatestSession resume logic (pure mirror with NSM ac
     expect(result.AppState.circlesMode).toBe('drill');
   });
 });
+
+// ══════════════════════════════════════════════════════════════════════════════
+// Section G: Bug E — CIRCLES drill rehydrate framework_draft + step_drafts
+// ══════════════════════════════════════════════════════════════════════════════
+
+// Pure mirror of the Bug E fix: the CIRCLES branch of tryResumeLatestSession
+// now applies step_drafts reverse-transform + localStorage merge, mirroring
+// restoreCirclesPhase1FromSession.
+function applyCirclesResumeFromDb(AppState, latest, localStorageMock) {
+  // Mirrors tryResumeLatestSession CIRCLES branch (Bug E fix)
+  AppState.circlesSession = latest;
+  AppState.circlesSelectedQuestion = latest.question_json || latest.currentQuestion || null;
+  AppState.circlesMode = latest.mode === 'simulation' ? 'sim' : 'drill';
+  AppState.circlesDrillStep = latest.drill_step || 'C1';
+  AppState.circlesPhase = latest.current_phase || 1;
+  AppState.circlesSimStep = latest.sim_step_index || 0;
+  AppState.circlesConversation = latest.conversation || [];
+  AppState.circlesStepScores = latest.step_scores || {};
+  AppState.circlesFrameworkDraft = latest.framework_draft || {};
+  AppState.circlesGateResult = latest.gate_result || null;
+  AppState.circlesPhase2ConclusionDraft = (latest.progress_json && latest.progress_json.phase2ConclusionDraft) || '';
+  // Bug E fix: step_drafts reverse-transform
+  var sd = latest.step_drafts || {};
+  AppState.circlesPhase1 = sd.P1 || null;
+  AppState.circlesPhase1S = sd.P1S || null;
+  AppState.circlesPhase1Solutions = sd.P1L || null;
+  AppState.circlesPhase1Evaluate = sd.P1E || null;
+  // Bug E fix: localStorage merge
+  try {
+    var qid = (AppState.circlesSelectedQuestion || {}).id;
+    if (qid && localStorageMock && localStorageMock[qid]) {
+      var local = localStorageMock[qid];
+      var serverTs = sd.ts || new Date(latest.updated_at || latest.created_at || 0).getTime();
+      var sdEmpty = !sd.P1 && !sd.P1S && !sd.P1L && !sd.P1E && !sd.framework;
+      var fdEmpty = !latest.framework_draft || Object.keys(latest.framework_draft || {}).length === 0;
+      var backendEmpty = sdEmpty && fdEmpty;
+      var localFresher = local && local.ts && local.ts > serverTs;
+      if (local && (localFresher || backendEmpty)) {
+        if (local.P1) AppState.circlesPhase1 = local.P1;
+        if (local.P1S) AppState.circlesPhase1S = local.P1S;
+        if (Array.isArray(local.P1L) && local.P1L.length) AppState.circlesPhase1Solutions = local.P1L;
+        if (local.P1E) AppState.circlesPhase1Evaluate = local.P1E;
+        if (local.framework) AppState.circlesFrameworkDraft = local.framework;
+      }
+    }
+  } catch (_) {}
+}
+
+function freshCirclesResumeState() {
+  return {
+    circlesSession: null, circlesSelectedQuestion: null,
+    circlesMode: null, circlesDrillStep: null, circlesPhase: 1, circlesSimStep: 0,
+    circlesConversation: [], circlesStepScores: {}, circlesFrameworkDraft: {},
+    circlesGateResult: null, circlesPhase2ConclusionDraft: '',
+    circlesPhase1: null, circlesPhase1S: null, circlesPhase1Solutions: null, circlesPhase1Evaluate: null,
+  };
+}
+
+describe('Bug E — CIRCLES drill rehydrate framework_draft + step_drafts (tryResumeLatestSession)', () => {
+  it('rehydrates circlesFrameworkDraft from framework_draft column', () => {
+    const state = freshCirclesResumeState();
+    const frameworkDraft = { C1: { '問題範圍': 'TikTok 短影音創作者工具流失', '時間範圍': 'Q1-Q2 2026' } };
+    applyCirclesResumeFromDb(state, {
+      id: 'circles-drill-c82e8e4f',
+      status: 'active',
+      _kind: 'circles',
+      mode: 'drill',
+      drill_step: 'C1',
+      question_json: { id: 'q-tiktok', company: 'TikTok', product: 'Creator Studio' },
+      framework_draft: frameworkDraft,
+      step_drafts: {},
+      current_phase: 1,
+      sim_step_index: 0,
+      conversation: [], step_scores: {}, gate_result: null, progress_json: {},
+      updated_at: '2026-05-14T10:00:00Z', created_at: '2026-05-14T09:00:00Z',
+    }, null);
+
+    expect(state.circlesFrameworkDraft).toEqual(frameworkDraft);
+    expect(state.circlesMode).toBe('drill');
+    expect(state.circlesDrillStep).toBe('C1');
+    expect(state.circlesSelectedQuestion).toEqual({ id: 'q-tiktok', company: 'TikTok', product: 'Creator Studio' });
+  });
+
+  it('rehydrates circlesPhase1 + circlesPhase1S from step_drafts (P1 + P1S keys)', () => {
+    const state = freshCirclesResumeState();
+    const p1Data = { recommendation: '優先解決創作者 onboarding 中影片格式轉換摩擦' };
+    const p1sData = { recommendation: '功能：批次格式轉換', reasoning: '降低初次上傳失敗率', nsm: '完成首次上傳率', tracking: { reach: '10M', depth: 'daily', frequency: 'weekly', impact: '+15%' } };
+    applyCirclesResumeFromDb(state, {
+      id: 'circles-drill-2',
+      status: 'active',
+      _kind: 'circles',
+      mode: 'drill',
+      drill_step: 'C1',
+      question_json: { id: 'q-meta', company: 'Meta', product: 'Reels' },
+      framework_draft: {},
+      step_drafts: { P1: p1Data, P1S: p1sData, ts: Date.now() - 5000 },
+      current_phase: 1,
+      sim_step_index: 0,
+      conversation: [], step_scores: {}, gate_result: null, progress_json: {},
+      updated_at: '2026-05-14T10:00:00Z', created_at: '2026-05-14T09:00:00Z',
+    }, null);
+
+    expect(state.circlesPhase1).toEqual(p1Data);
+    expect(state.circlesPhase1S).toEqual(p1sData);
+    expect(state.circlesPhase1Solutions).toBeNull();
+    expect(state.circlesPhase1Evaluate).toBeNull();
+  });
+
+  it('rehydrates circlesPhase1Solutions (P1L) and circlesPhase1Evaluate (P1E) from step_drafts', () => {
+    const state = freshCirclesResumeState();
+    const solutions = [{ name: 'AI 模板生成', mechanism: '降低創作門檻' }, { name: '一鍵剪輯', mechanism: '提速編輯流程' }];
+    const evaluate = [{ advantages: '快速上手', disadvantages: '內容同質化', risks: '創作者依賴度高', metrics: 'D7 留存率' }];
+    applyCirclesResumeFromDb(state, {
+      id: 'circles-drill-3',
+      status: 'active',
+      _kind: 'circles',
+      mode: 'drill',
+      drill_step: 'L',
+      question_json: { id: 'q-snap', company: 'Snap', product: 'Spotlight' },
+      framework_draft: {},
+      step_drafts: { P1L: solutions, P1E: evaluate, ts: Date.now() - 5000 },
+      current_phase: 1,
+      sim_step_index: 0,
+      conversation: [], step_scores: {}, gate_result: null, progress_json: {},
+      updated_at: '2026-05-14T10:00:00Z', created_at: '2026-05-14T09:00:00Z',
+    }, null);
+
+    expect(state.circlesPhase1Solutions).toEqual(solutions);
+    expect(state.circlesPhase1Evaluate).toEqual(evaluate);
+  });
+
+  it('localStorage merge: prefers local framework when server backend is empty', () => {
+    const state = freshCirclesResumeState();
+    const localFramework = { C1: { '問題範圍': 'local-only-content', '業務影響': 'local-impact' } };
+    const localDraft = { P1: { recommendation: 'local-p1' }, framework: localFramework, ts: Date.now() };
+
+    applyCirclesResumeFromDb(state, {
+      id: 'circles-drill-4',
+      status: 'active',
+      _kind: 'circles',
+      mode: 'drill',
+      drill_step: 'C1',
+      question_json: { id: 'q-uber', company: 'Uber', product: 'Driver' },
+      framework_draft: {},  // server has empty framework (PATCH lost to race)
+      step_drafts: {},      // server has empty step_drafts
+      current_phase: 1, sim_step_index: 0,
+      conversation: [], step_scores: {}, gate_result: null, progress_json: {},
+      updated_at: '2026-05-14T10:00:00Z', created_at: '2026-05-14T09:00:00Z',
+    }, { 'q-uber': localDraft });
+
+    // When backend is empty, local takes over
+    expect(state.circlesFrameworkDraft).toEqual(localFramework);
+    expect(state.circlesPhase1).toEqual({ recommendation: 'local-p1' });
+  });
+
+  it('localStorage merge: prefers server data when server is newer than local', () => {
+    const state = freshCirclesResumeState();
+    const serverFramework = { C1: { '問題範圍': 'server-content' } };
+    const serverUpdatedAt = new Date('2026-05-15T12:00:00Z').getTime();
+    const oldLocalTs = serverUpdatedAt - 10000; // local is older than server
+    const localDraft = { P1: { recommendation: 'old-local-p1' }, framework: { C1: { '問題範圍': 'old-local-content' } }, ts: oldLocalTs };
+
+    applyCirclesResumeFromDb(state, {
+      id: 'circles-drill-5',
+      status: 'active',
+      _kind: 'circles',
+      mode: 'drill',
+      drill_step: 'C1',
+      question_json: { id: 'q-lyft', company: 'Lyft', product: 'Rider' },
+      framework_draft: serverFramework,
+      step_drafts: { P1: { recommendation: 'server-p1' }, ts: serverUpdatedAt },
+      current_phase: 1, sim_step_index: 0,
+      conversation: [], step_scores: {}, gate_result: null, progress_json: {},
+      updated_at: '2026-05-15T12:00:00Z', created_at: '2026-05-14T09:00:00Z',
+    }, { 'q-lyft': localDraft });
+
+    // Server is newer → server data wins
+    expect(state.circlesFrameworkDraft).toEqual(serverFramework);
+    expect(state.circlesPhase1).toEqual({ recommendation: 'server-p1' });
+  });
+
+  it('source contract: tryResumeLatestSession CIRCLES branch sets circlesPhase1 from step_drafts', () => {
+    // Verify app.js contains the Bug E fix
+    const fs = require('fs');
+    const path = require('path');
+    const appSrc = fs.readFileSync(path.join(__dirname, '../public/app.js'), 'utf8');
+
+    const fnStart = appSrc.indexOf('async function tryResumeLatestSession()');
+    const fnEnd = appSrc.indexOf('\n  window._tryResumeLatestSession', fnStart);
+    const fnBody = appSrc.slice(fnStart, fnEnd);
+
+    // The CIRCLES branch (else block) must contain step_drafts reverse-transform
+    const elseBlockIdx = fnBody.lastIndexOf('} else {');
+    const elseBlock = fnBody.slice(elseBlockIdx);
+
+    expect(elseBlock).toContain('step_drafts');
+    expect(elseBlock).toContain('circlesPhase1');
+    expect(elseBlock).toContain('circlesPhase1S');
+    expect(elseBlock).toContain('circlesPhase1Solutions');
+    expect(elseBlock).toContain('circlesPhase1Evaluate');
+  });
+
+  it('source contract: tryResumeLatestSession CIRCLES branch applies localStorage merge', () => {
+    const fs = require('fs');
+    const path = require('path');
+    const appSrc = fs.readFileSync(path.join(__dirname, '../public/app.js'), 'utf8');
+
+    const fnStart = appSrc.indexOf('async function tryResumeLatestSession()');
+    const fnEnd = appSrc.indexOf('\n  window._tryResumeLatestSession', fnStart);
+    const fnBody = appSrc.slice(fnStart, fnEnd);
+
+    const elseBlockIdx = fnBody.lastIndexOf('} else {');
+    const elseBlock = fnBody.slice(elseBlockIdx);
+
+    // Must contain localStorage merge with backend-empty check
+    expect(elseBlock).toContain('localStorage.getItem');
+    expect(elseBlock).toContain('_backendEmpty');
+    expect(elseBlock).toContain('_localFresher');
+  });
+});

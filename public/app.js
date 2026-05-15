@@ -7669,6 +7669,8 @@
         var nsmTitle = (latest.question_json && (latest.question_json.company + (latest.question_json.product ? ' · ' + latest.question_json.product : ''))) || 'NSM';
         AppState._resumeToastMsg = '已載入上次未完成的「' + nsmTitle + '」— Step ' + AppState.nsmStep;
       } else {
+        // Bug E fix: tryResumeLatestSession CIRCLES branch now mirrors
+        // restoreCirclesPhase1FromSession so drill mode rehydrates fully.
         AppState.circlesSession = latest;
         AppState.circlesSelectedQuestion = latest.question_json || latest.currentQuestion || null;
         AppState.circlesMode = latest.mode === 'simulation' ? 'sim' : 'drill';
@@ -7680,6 +7682,36 @@
         AppState.circlesFrameworkDraft = latest.framework_draft || {};
         AppState.circlesGateResult = latest.gate_result || null;
         AppState.circlesPhase2ConclusionDraft = (latest.progress_json && latest.progress_json.phase2ConclusionDraft) || '';
+        // Bug E fix: step_drafts reverse-transform (mirrors restoreCirclesPhase1FromSession)
+        // The list endpoint includes step_drafts; apply the same P1/P1S/P1L/P1E decomposition.
+        var _sd = latest.step_drafts || {};
+        AppState.circlesPhase1 = _sd.P1 || null;
+        AppState.circlesPhase1S = _sd.P1S || null;
+        AppState.circlesPhase1Solutions = _sd.P1L || null;
+        AppState.circlesPhase1Evaluate = _sd.P1E || null;
+        // Bug E fix: localStorage merge — prefer local cache when server draft is empty
+        // (e.g. first PATCH lost to network race) or when local is newer.
+        try {
+          var _qid = (AppState.circlesSelectedQuestion || {}).id;
+          if (_qid) {
+            var _raw = localStorage.getItem('pmdrill:circles:draft:' + _qid);
+            if (_raw) {
+              var _local = JSON.parse(_raw);
+              var _serverTs = _sd.ts || new Date(latest.updated_at || latest.created_at || 0).getTime();
+              var _sdEmpty = !_sd.P1 && !_sd.P1S && !_sd.P1L && !_sd.P1E && !_sd.framework;
+              var _fdEmpty = !latest.framework_draft || Object.keys(latest.framework_draft || {}).length === 0;
+              var _backendEmpty = _sdEmpty && _fdEmpty;
+              var _localFresher = _local && _local.ts && _local.ts > _serverTs;
+              if (_local && (_localFresher || _backendEmpty)) {
+                if (_local.P1) AppState.circlesPhase1 = _local.P1;
+                if (_local.P1S) AppState.circlesPhase1S = _local.P1S;
+                if (Array.isArray(_local.P1L) && _local.P1L.length) AppState.circlesPhase1Solutions = _local.P1L;
+                if (_local.P1E) AppState.circlesPhase1Evaluate = _local.P1E;
+                if (_local.framework) AppState.circlesFrameworkDraft = _local.framework;
+              }
+            }
+          }
+        } catch (_) {}
         var circlesTitle = (latest.question_json && (latest.question_json.company + (latest.question_json.product ? ' · ' + latest.question_json.product : ''))) || 'CIRCLES';
         AppState._resumeToastMsg = '已載入上次未完成的「' + circlesTitle + '」— Phase ' + AppState.circlesPhase;
       }
