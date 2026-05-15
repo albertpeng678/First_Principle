@@ -7599,7 +7599,14 @@
   // Called after login success and after page boot when accessToken exists.
   // Picks the most-recent active session and auto-navigates only when the user
   // is on the default home view (no in-progress session already loaded).
+  // Bug F fix: module-level promise ref dedupes parallel invocations (boot +
+  // login + register can all call simultaneously; share one in-flight promise).
+  var _resumePromise = null;
   async function tryResumeLatestSession() {
+    // Bug F fix: if a call is already in-flight, return the same promise so
+    // parallel callers share the result rather than spawning independent fetches.
+    if (_resumePromise) return _resumePromise;
+    _resumePromise = (async function _tryResume() {
     if (!AppState.accessToken && !AppState.guestId) return;
     // Bug B fix: abort check BEFORE fetch — view may already be non-circles
     // (e.g. returnPath restore set it just before this call).
@@ -7721,7 +7728,12 @@
       setTimeout(function () { AppState._resumeToastShow = false; render(); }, 6000);
     } catch (_) {
       // silent fail — auto-resume is best-effort
+    } finally {
+      // Bug F fix: reset so next login cycle can issue a fresh fetch.
+      _resumePromise = null;
     }
+    })(); // end _tryResume IIFE
+    return _resumePromise;
   }
   window._tryResumeLatestSession = tryResumeLatestSession;
 

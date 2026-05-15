@@ -1163,3 +1163,140 @@ describe('Bug E — CIRCLES drill rehydrate framework_draft + step_drafts (tryRe
     expect(elseBlock).toContain('_localFresher');
   });
 });
+
+// ══════════════════════════════════════════════════════════════════════════════
+// Section H: Bug F — tryResumeLatestSession parallel invocation dedupe
+// Root cause: boot / login / register can all fire simultaneously; if boot
+// completes first (no-session path sets circlesMode='simulation') the later
+// login call is blocked by the circlesMode != null guard → stale state.
+// Fix: _resumePromise module-level ref collapses parallel calls to one promise.
+// ══════════════════════════════════════════════════════════════════════════════
+
+describe('Bug F — tryResumeLatestSession dedupe source contracts', () => {
+  const fs = require('fs');
+  const path = require('path');
+  const appSrc = fs.readFileSync(path.join(__dirname, '../public/app.js'), 'utf8');
+
+  const fnStart = appSrc.indexOf('async function tryResumeLatestSession()');
+  const fnEnd   = appSrc.indexOf('\n  window._tryResumeLatestSession', fnStart);
+  const fnBody  = appSrc.slice(fnStart, fnEnd);
+
+  // Also capture the var declaration which is just before the async function
+  const blockStart = appSrc.indexOf('var _resumePromise = null;');
+  const blockEnd   = fnEnd;
+  const blockBody  = blockStart > -1 ? appSrc.slice(blockStart, blockEnd) : '';
+
+  it('_resumePromise module-level variable is declared before tryResumeLatestSession', () => {
+    expect(blockStart).toBeGreaterThan(-1);
+    // Must appear before the async function definition
+    expect(blockStart).toBeLessThan(fnStart);
+  });
+
+  it('tryResumeLatestSession returns _resumePromise when already in-flight', () => {
+    // Guard pattern: if (_resumePromise) return _resumePromise;
+    expect(fnBody).toContain('if (_resumePromise) return _resumePromise');
+  });
+
+  it('tryResumeLatestSession assigns IIFE result to _resumePromise', () => {
+    // The function body stores the IIFE into _resumePromise
+    expect(fnBody).toContain('_resumePromise = (async function');
+  });
+
+  it('_resumePromise is reset to null in finally block after completion', () => {
+    expect(fnBody).toContain('finally {');
+    // finally block must reset the promise so next login cycle gets a fresh fetch
+    const finallyIdx = fnBody.indexOf('finally {');
+    const afterFinally = fnBody.slice(finallyIdx, finallyIdx + 200);
+    expect(afterFinally).toContain('_resumePromise = null');
+  });
+
+  it('tryResumeLatestSession returns _resumePromise at end of outer function', () => {
+    expect(fnBody).toContain('return _resumePromise;');
+  });
+});
+
+describe('Bug F — tryResumeLatestSession dedupe logic (pure simulation)', () => {
+  // Pure simulation of the dedupe pattern — no DOM, no fetch.
+  // Verifies that parallel calls share one promise and only one fetch is made.
+  function buildDedupedResume(fetchImpl) {
+    var _resumePromise = null;
+    var fetchCallCount = 0;
+
+    function tryResumeLatestSession() {
+      if (_resumePromise) return _resumePromise;
+      _resumePromise = (async function _tryResume() {
+        try {
+          fetchCallCount++;
+          await fetchImpl();
+        } finally {
+          _resumePromise = null;
+        }
+      })();
+      return _resumePromise;
+    }
+
+    return { tryResumeLatestSession, getFetchCount: function () { return fetchCallCount; } };
+  }
+
+  it('3 parallel calls share one promise — only 1 fetch issued', async () => {
+    var resolveFetch;
+    var fetchImpl = function () {
+      return new Promise(function (resolve) { resolveFetch = resolve; });
+    };
+
+    var ctx = buildDedupedResume(fetchImpl);
+
+    var p1 = ctx.tryResumeLatestSession();
+    var p2 = ctx.tryResumeLatestSession();
+    var p3 = ctx.tryResumeLatestSession();
+
+    // All three must be the same promise object
+    expect(p1).toBe(p2);
+    expect(p2).toBe(p3);
+
+    resolveFetch();
+    await p1;
+
+    // Only one fetch was issued
+    expect(ctx.getFetchCount()).toBe(1);
+  });
+
+  it('after first call resolves, second independent call issues a fresh fetch', async () => {
+    var fetchImpl = function () { return Promise.resolve(); };
+    var ctx = buildDedupedResume(fetchImpl);
+
+    await ctx.tryResumeLatestSession(); // first call — completes, resets _resumePromise
+    await ctx.tryResumeLatestSession(); // second call — new cycle, should fetch again
+
+    expect(ctx.getFetchCount()).toBe(2);
+  });
+
+  it('race scenario: boot sets stale state → login call joins in-flight → one fetch, correct result', async () => {
+    // Simulates: boot fires call 1 (slow fetch), login fires call 2 immediately.
+    // With dedupe: call 2 returns same promise as call 1.
+    // Final state is determined by the single fetch result, not by call 1 stale path.
+    var fetchResolved = false;
+    var resolveFetch;
+    var fetchImpl = function () {
+      return new Promise(function (resolve) {
+        resolveFetch = function () { fetchResolved = true; resolve(); };
+      });
+    };
+
+    var ctx = buildDedupedResume(fetchImpl);
+
+    // Boot call (slow)
+    var bootPromise = ctx.tryResumeLatestSession();
+    // Login call (fires immediately after)
+    var loginPromise = ctx.tryResumeLatestSession();
+
+    expect(bootPromise).toBe(loginPromise); // same promise
+    expect(fetchResolved).toBe(false);      // fetch not yet complete
+
+    resolveFetch();
+    await bootPromise;
+
+    expect(fetchResolved).toBe(true);
+    expect(ctx.getFetchCount()).toBe(1); // only one fetch, not two
+  });
+});
