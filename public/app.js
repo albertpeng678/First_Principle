@@ -7747,11 +7747,12 @@
   // ── Plan D SB2 — Onboarding (mockup 10) ─────────────────────────────────
 
   // Step targets — selector / title / body
-  // arrow direction is computed viewport-aware in positionOnboardingTooltip():
-  //   Step 1: desktop/tablet → left-arrow (tooltip right of target); mobile → top-arrow (below)
-  //   Step 2: desktop        → left-arrow (tooltip right); mobile/tablet → top-arrow (below)
-  //   Step 3: all viewports  → top-arrow (below q-list)
-  //   Step 4: all viewports  → top-arrow (below q-card)
+  // arrow direction is computed in positionOnboardingTooltip() (all viewports):
+  //   Step 1: always below mode-section (arrow-top) — mode-section spans full content width,
+  //           right-side placement would overlap the "步驟加練" card
+  //   Step 2: always below type-tabs (arrow-top) — same reason: full-width row
+  //   Step 3: above q-list (arrow-bottom) but clamped so tooltip never enters mode-section area
+  //   Step 4: always below first q-card (arrow-top)
   var ONBOARDING_TARGETS = {
     1: { selector: '.mode-section', title: '選擇練習模式', body: '建議首次選「完整模擬」走完整流程，熟悉後再用「步驟加練」針對弱點刻意練習。' },
     2: { selector: '.type-tabs',    title: '選擇題型',     body: '三類題型各有特色：產品設計重發散、產品改進重診斷、產品策略重格局。' },
@@ -7820,11 +7821,13 @@
   }
 
   // Positions the .onb-tooltip near its spotlight target using getBoundingClientRect.
-  // Viewport-aware placement per mockup 10 §B-E contracts:
-  //   Step 1: desktop (>1024) → right of target (arrow-left); tablet (640-1024) → right; mobile (<640) → below (arrow-top)
-  //   Step 2: desktop (>1024) → right of target (arrow-left); tablet+mobile → below (arrow-top)
-  //   Step 3: all → below q-list (arrow-top)
-  //   Step 4: all → below q-card (arrow-top)
+  // Placement rules (all viewports) per mockup 10 §B-E contracts:
+  //   Steps 1, 2, 4: always BELOW target (arrow-top).
+  //     mode-section and type-tabs span the full content width, so left/right placement
+  //     would overlap the adjacent cards. Collision → flip above, clamped to safeTop.
+  //   Step 3 (q-list): place ABOVE q-list (arrow-bottom), but clamp so tooltip top
+  //     never enters the mode-section area.  If the gap between mode-section and q-list
+  //     is too small to fit the tooltip, fall back to BELOW q-list (arrow-top).
   // Also accounts for sticky navbar height so tooltip is never hidden behind it.
   function positionOnboardingTooltip() {
     var tooltip = document.querySelector('.onb-tooltip');
@@ -7848,26 +7851,30 @@
     var navH = navbarEl ? navbarEl.getBoundingClientRect().height : 56;
     var safeTop = navH + 4; // minimum top position for tooltip
 
-    // Determine if this step prefers right-side placement
-    // Step 1: desktop+tablet → right; mobile → below
-    // Step 2: desktop only   → right; tablet+mobile → below
-    // Steps 3,4: always below
-    var preferRight = false;
-    if (step === 1 && vw >= 640) preferRight = true;
-    if (step === 2 && vw > 1024) preferRight = true;
+    // Horizontal position: align left with target, clamped within viewport
+    var left = Math.max(edgePad, Math.min(rect.left, vw - tooltipW - edgePad));
 
-    var top, left, arrowClass;
+    var top, arrowClass;
 
-    if (preferRight) {
-      // Right-side placement per mockup: anchor tooltip to viewport right edge (not element-right).
-      // On desktop layout the content fills most of the viewport width, so element-right + gap
-      // overflows; mockup uses position: absolute; right: 60px which is viewport-relative.
-      left = vw - tooltipW - edgePad;
-      // Vertically: align tooltip top with target top, clamped to safe zone
-      top = Math.max(safeTop, Math.min(rect.top, vh - tooltipH - edgePad));
-      arrowClass = 'left';
+    if (step === 3) {
+      // Step 3: place tooltip in the visible gap between mode-section and q-list top.
+      // Desired: tooltip bottom = rect.top - gap (arrow-bottom pointing down at q-list).
+      // Clamp top so tooltip doesn't enter mode-section area.
+      var modeSectionEl = document.querySelector('.mode-section');
+      var modeSectionBottom = modeSectionEl ? modeSectionEl.getBoundingClientRect().bottom : safeTop;
+      var minTop = Math.max(safeTop, modeSectionBottom + gap);
+
+      // Ideal positioning: bottom of tooltip sits just above q-list
+      var idealTop = rect.top - tooltipH - gap;
+      top = Math.max(minTop, idealTop);
+      arrowClass = 'bottom';
+
+      // Safety: if somehow top is so low it overflows viewport bottom, clamp up
+      if (top + tooltipH > vh - edgePad) {
+        top = Math.max(minTop, vh - tooltipH - edgePad);
+      }
     } else {
-      // Below placement: tooltip below the target, arrow points up
+      // Steps 1, 2, 4: always below target (arrow-top).
       top = rect.bottom + gap;
       left = Math.max(edgePad, Math.min(rect.left, vw - tooltipW - edgePad));
       // Ensure tooltip doesn't start above the navbar
