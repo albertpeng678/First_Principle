@@ -21,11 +21,12 @@ function makeDef(nsm, explanation, businessLink) {
   return { nsm: nsm || '', explanation: explanation || '', businessLink: businessLink || '' };
 }
 
-// Mirror of the updated triggerNsmSaveCycle payload assembly
+// Mirror of the updated triggerNsmSaveCycle payload assembly.
+// Bug A fix: keys are camelCase (userNsm, userBreakdown) to match route destructuring.
 function buildSavePayload(nsmDefinition, nsmBreakdown) {
   return {
-    user_nsm: nsmDefinition || { nsm: '', explanation: '', businessLink: '' },
-    user_breakdown: nsmBreakdown || {},
+    userNsm: nsmDefinition || { nsm: '', explanation: '', businessLink: '' },
+    userBreakdown: nsmBreakdown || {},
   };
 }
 
@@ -58,33 +59,34 @@ function smartNsmStepForRestore(session) {
 }
 
 // ── Fix A: triggerNsmSaveCycle sends full nsmDefinition object ────────────────
+// Bug A fix: payload key is camelCase userNsm (route destructures const { userNsm } = req.body)
 describe('Bug 6-A — triggerNsmSaveCycle sends full nsmDefinition object', () => {
-  it('payload.user_nsm is the full definition object, not just the nsm string', () => {
+  it('payload.userNsm is the full definition object, not just the nsm string', () => {
     const def = makeDef('DAU/MAU ratio', '衡量用戶活躍黏著度', '直接驅動訂閱續約率');
     const payload = buildSavePayload(def, { reach: '10M', depth: 'weekly', frequency: 'high', impact: 'NPS+5' });
-    expect(typeof payload.user_nsm).toBe('object');
-    expect(payload.user_nsm.nsm).toBe('DAU/MAU ratio');
-    expect(payload.user_nsm.explanation).toBe('衡量用戶活躍黏著度');
-    expect(payload.user_nsm.businessLink).toBe('直接驅動訂閱續約率');
+    expect(typeof payload.userNsm).toBe('object');
+    expect(payload.userNsm.nsm).toBe('DAU/MAU ratio');
+    expect(payload.userNsm.explanation).toBe('衡量用戶活躍黏著度');
+    expect(payload.userNsm.businessLink).toBe('直接驅動訂閱續約率');
   });
 
-  it('payload.user_nsm is not just a string (old broken format)', () => {
+  it('payload.userNsm is not just a string (old broken format)', () => {
     const def = makeDef('Engagement rate', 'Some explanation', 'Some link');
     const payload = buildSavePayload(def, {});
-    expect(typeof payload.user_nsm).not.toBe('string');
+    expect(typeof payload.userNsm).not.toBe('string');
   });
 
-  it('payload.user_nsm defaults to empty-shell object when nsmDefinition is null', () => {
+  it('payload.userNsm defaults to empty-shell object when nsmDefinition is null', () => {
     const payload = buildSavePayload(null, {});
-    expect(payload.user_nsm).toEqual({ nsm: '', explanation: '', businessLink: '' });
+    expect(payload.userNsm).toEqual({ nsm: '', explanation: '', businessLink: '' });
   });
 
   it('all three fields survive a round-trip through JSON serialization', () => {
     const def = makeDef('NSM text', '定義說明 text', '業務目標 text');
     const payload = buildSavePayload(def, {});
     const roundTripped = JSON.parse(JSON.stringify(payload));
-    expect(roundTripped.user_nsm.explanation).toBe('定義說明 text');
-    expect(roundTripped.user_nsm.businessLink).toBe('業務目標 text');
+    expect(roundTripped.userNsm.explanation).toBe('定義說明 text');
+    expect(roundTripped.userNsm.businessLink).toBe('業務目標 text');
   });
 });
 
@@ -168,13 +170,26 @@ describe('Bug 6 — source contract: app.js triggerNsmSaveCycle sends full nsmDe
   const fnBody = appSrc.slice(fnStart, fnEnd);
 
   it('payload sends AppState.nsmDefinition as the full object (not .nsm string)', () => {
-    // Must contain AppState.nsmDefinition as value (not .nsm property access)
-    expect(fnBody).toContain('user_nsm: AppState.nsmDefinition');
+    // Bug A fix: payload key must be camelCase "userNsm" to match route destructuring.
+    // The route does: const { userNsm } = req.body — snake_case "user_nsm" was silently dropped.
+    expect(fnBody).toContain('userNsm: AppState.nsmDefinition');
   });
 
   it('payload does NOT send just the nsm string field (old broken format)', () => {
     // Old code: user_nsm: (AppState.nsmDefinition || {}).nsm || ''
     expect(fnBody).not.toContain('user_nsm: (AppState.nsmDefinition || {}).nsm');
+  });
+
+  it('payload key is camelCase userNsm not snake_case user_nsm (route destructures camelCase)', () => {
+    // Verify camelCase key is used — snake_case user_nsm in body was silently undefined in route
+    expect(fnBody).toContain('userNsm:');
+    expect(fnBody).not.toMatch(/user_nsm:\s*AppState\.nsmDefinition/);
+  });
+
+  it('silent catch is replaced with error logging (Bug C fix)', () => {
+    // .catch(function () {}) → .catch(function (err) { console.error(...) })
+    expect(fnBody).toContain('console.error');
+    expect(fnBody).not.toContain('.catch(function () {})');
   });
 });
 

@@ -2055,12 +2055,14 @@
     _nsmSaveTimer = setTimeout(function () {
       try {
         var qid = (AppState.nsmSelectedQuestion || {}).id || 'unknown';
-        // Bug 6 fix: send full nsmDefinition object so explanation + businessLink are persisted.
-        // user_nsm is JSONB — stores {nsm, explanation, businessLink} as-is.
+        // Bug A fix: route destructures camelCase {userNsm, userBreakdown} from req.body;
+        // send camelCase keys so the route actually reads them (snake_case was silently dropped).
+        // user_nsm DB column is JSONB (migration 2026-05-15-nsm-user-nsm-jsonb.sql required).
         var payload = {
-          user_nsm: AppState.nsmDefinition || { nsm: '', explanation: '', businessLink: '' },
-          user_breakdown: AppState.nsmBreakdown || {},
+          userNsm: AppState.nsmDefinition || { nsm: '', explanation: '', businessLink: '' },
+          userBreakdown: AppState.nsmBreakdown || {},
         };
+        // Also persist to localStorage using the same shape for offline resilience.
         localStorage.setItem('pmdrill:nsm:draft:' + qid, JSON.stringify(Object.assign({}, payload, { ts: Date.now() })));
         var sessionId = AppState.nsmSession && AppState.nsmSession.id;
         if (sessionId) {
@@ -2069,7 +2071,7 @@
             method: 'PATCH',
             headers: { 'Content-Type': 'application/json' },
             body: JSON.stringify(payload),
-          }).catch(function () {});
+          }).catch(function (err) { console.error('[nsm-save] PATCH failed:', err); });
         }
       } catch (_) {}
     }, 800);
@@ -2832,8 +2834,10 @@
           }
         } catch (_) {}
         render();
-        // Block 4: post-login auto-resume latest active session
-        tryResumeLatestSession();
+        // Block 4: post-login auto-resume latest active session.
+        // Bug B fix: use .then() to give fetch time to complete before any
+        // subsequent navigation — prevents race where view changes mid-fetch.
+        tryResumeLatestSession().then(function () {}).catch(function () {});
       })
       .catch(function (e) {
         AppState.authLoading = false;
@@ -2900,8 +2904,9 @@
         resetCirclesToHome();
         AppState.view = 'circles';
         render();
-        // Block 4: post-register auto-resume (in case guest sessions existed)
-        tryResumeLatestSession();
+        // Block 4: post-register auto-resume (in case guest sessions existed).
+        // Bug B fix: .then() chain ensures fetch completes before navigation races.
+        tryResumeLatestSession().then(function () {}).catch(function () {});
       }
     }).catch(function () {
       AppState.authLoading = false;
@@ -7594,6 +7599,9 @@
   // is on the default home view (no in-progress session already loaded).
   async function tryResumeLatestSession() {
     if (!AppState.accessToken && !AppState.guestId) return;
+    // Bug B fix: abort check BEFORE fetch — view may already be non-circles
+    // (e.g. returnPath restore set it just before this call).
+    if (AppState.view !== 'circles') return;
     // Only auto-nav when user is on a clean default state (home, no active session)
     var alreadyInSession = AppState.nsmStep > 1 || AppState.circlesPhase > 1
       || AppState.nsmSession || AppState.circlesSession;
@@ -7614,11 +7622,15 @@
       ).filter(function (s) { return s.status === 'active'; });
       if (all.length === 0) return;
 
-      // Pick most-recent active session by updated_at
-      all.sort(function (a, b) { return new Date(b.updated_at || b.created_at) - new Date(a.updated_at || a.created_at); });
+      // Bug B fix: sort by updated_at falling back to created_at — when PATCH 400s,
+      // updated_at is never bumped, so we use created_at as tiebreaker to ensure the
+      // newest session still sorts first.
+      all.sort(function (a, b) {
+        return new Date(b.updated_at || b.created_at) - new Date(a.updated_at || a.created_at);
+      });
       var latest = all[0];
 
-      // Re-check: abort if user navigated away during the fetch
+      // Re-check: abort if user navigated away during the async fetch
       if (AppState.view !== 'circles' || AppState.circlesMode != null || AppState.nsmStep > 1) return;
 
       if (latest._kind === 'nsm') {

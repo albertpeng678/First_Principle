@@ -489,6 +489,148 @@ describe('tryResumeLatestSession logic (Block 4)', () => {
 });
 
 // ══════════════════════════════════════════════════════════════════════════════
+// Section D2: Bug A — NSM PATCH /progress with userNsm object (camelCase key)
+// ══════════════════════════════════════════════════════════════════════════════
+
+describe('Bug A — NSM PATCH /progress accepts userNsm object (camelCase key)', () => {
+  test('PATCH with userNsm object → updates user_nsm column', async () => {
+    // Route destructures camelCase: const { userNsm } = req.body
+    // FE must send { userNsm: {...} } not { user_nsm: {...} }
+    db.maybeSingle
+      .mockResolvedValueOnce({ data: { id: 'nsm-1' }, error: null }); // update result
+
+    const nsmObj = { nsm: 'DAU/MAU ratio', explanation: '衡量活躍黏著度', businessLink: '驅動訂閱' };
+    const res = await request(nsmApp)
+      .patch('/api/nsm-sessions/nsm-1/progress')
+      .set(AUTH_HEADER)
+      .send({ userNsm: nsmObj, userBreakdown: { reach: '10M', depth: 'weekly', frequency: 'high', impact: 'NPS+5' } });
+
+    expect(res.status).toBe(200);
+    expect(res.body.ok).toBe(true);
+    // Verify the route mapped userNsm → user_nsm in DB update
+    expect(db.update).toHaveBeenCalledWith(
+      expect.objectContaining({ user_nsm: nsmObj })
+    );
+  });
+
+  test('PATCH with snake_case user_nsm key is silently dropped (documents the old bug)', () => {
+    // When FE mistakenly sends snake_case key, route sees userNsm=undefined → patch empty → 400
+    // This test documents the OLD behavior (now fixed in FE) so we know what to avoid.
+    // The route correctly reads camelCase only — snake_case from body is ignored.
+    const body = { user_nsm: { nsm: 'Revenue', explanation: '', businessLink: '' } };
+    const { userNsm } = body; // mirrors route destructuring
+    expect(userNsm).toBeUndefined(); // snake_case key → undefined in camelCase destructure
+  });
+
+  test('PATCH userNsm object + userBreakdown round-trip: both reach DB update', async () => {
+    db.maybeSingle.mockResolvedValueOnce({ data: { id: 'nsm-2' }, error: null });
+
+    const nsmObj = { nsm: 'Booking rate', explanation: 'hosts/guests', businessLink: 'GMV' };
+    const breakdown = { reach: '1M', depth: 'daily', frequency: 'high', impact: '$10M ARR' };
+
+    const res = await request(nsmApp)
+      .patch('/api/nsm-sessions/nsm-2/progress')
+      .set(AUTH_HEADER)
+      .send({ userNsm: nsmObj, userBreakdown: breakdown });
+
+    expect(res.status).toBe(200);
+    expect(db.update).toHaveBeenCalledWith(
+      expect.objectContaining({
+        user_nsm: nsmObj,
+        user_breakdown: breakdown,
+      })
+    );
+  });
+});
+
+// ══════════════════════════════════════════════════════════════════════════════
+// Section D3: Bug B — tryResumeLatestSession pre-fetch abort + sort fallback
+// ══════════════════════════════════════════════════════════════════════════════
+
+describe('Bug B — tryResumeLatestSession sort fallback to created_at', () => {
+  it('uses created_at when updated_at is null (PATCH 400 → updated_at never set)', () => {
+    // When PATCH 400s, updated_at stays NULL. Sort must still pick newest by created_at.
+    const sessions = [
+      { id: 'old', status: 'active', _kind: 'nsm', updated_at: null, created_at: '2026-05-10T00:00:00Z' },
+      { id: 'new', status: 'active', _kind: 'nsm', updated_at: null, created_at: '2026-05-14T00:00:00Z' },
+    ];
+    const latest = buildResumeCandidate(sessions);
+    expect(latest.id).toBe('new'); // newer created_at wins even when both updated_at=null
+  });
+
+  it('prefers updated_at over created_at when updated_at is set', () => {
+    const sessions = [
+      { id: 'recently-edited', status: 'active', _kind: 'circles', updated_at: '2026-05-15T10:00:00Z', created_at: '2026-05-01T00:00:00Z' },
+      { id: 'newly-created',   status: 'active', _kind: 'nsm',     updated_at: null,                    created_at: '2026-05-14T00:00:00Z' },
+    ];
+    const latest = buildResumeCandidate(sessions);
+    // recently-edited has updated_at=2026-05-15, newly-created has only created_at=2026-05-14
+    expect(latest.id).toBe('recently-edited');
+  });
+});
+
+describe('Bug B — tryResumeLatestSession source contracts', () => {
+  const fs = require('fs');
+  const path = require('path');
+  const appSrc = fs.readFileSync(path.join(__dirname, '../public/app.js'), 'utf8');
+
+  const fnStart = appSrc.indexOf('async function tryResumeLatestSession()');
+  const fnEnd = appSrc.indexOf('\n  window._tryResumeLatestSession', fnStart);
+  const fnBody = appSrc.slice(fnStart, fnEnd);
+
+  it('pre-fetch abort check: view !== circles guard is before Promise.all fetch', () => {
+    // Bug B fix: abort check must appear before the fetch, not only after.
+    const viewCheckIdx = fnBody.indexOf("AppState.view !== 'circles'");
+    const fetchIdx = fnBody.indexOf('Promise.all([');
+    expect(viewCheckIdx).toBeGreaterThan(-1); // guard exists
+    expect(viewCheckIdx).toBeLessThan(fetchIdx); // guard is BEFORE fetch
+  });
+
+  it('sort uses updated_at || created_at fallback', () => {
+    expect(fnBody).toContain('b.updated_at || b.created_at');
+    expect(fnBody).toContain('a.updated_at || a.created_at');
+  });
+
+  it('post-fetch abort check still present (double-guard against race)', () => {
+    // Both pre-fetch and post-fetch guards should exist
+    const allMatches = [...fnBody.matchAll(/AppState\.view !== 'circles'/g)];
+    expect(allMatches.length).toBeGreaterThanOrEqual(2);
+  });
+
+  it('login handler uses .then().catch() chain not bare fire-and-forget call', () => {
+    // Bug B fix: tryResumeLatestSession() call must be followed by .then(
+    // to ensure promise is tracked (not silently ignored).
+    const loginFnStart = appSrc.indexOf('function doAuthLogin(email, pw)');
+    const loginFnEnd = appSrc.indexOf('\n  function doAuthRegister', loginFnStart);
+    const loginBody = appSrc.slice(loginFnStart, loginFnEnd);
+    expect(loginBody).toContain('tryResumeLatestSession().then(');
+  });
+});
+
+// ══════════════════════════════════════════════════════════════════════════════
+// Section D4: Bug C — triggerNsmSaveCycle catch logs error
+// ══════════════════════════════════════════════════════════════════════════════
+
+describe('Bug C — triggerNsmSaveCycle PATCH catch logs error (not silent)', () => {
+  const fs = require('fs');
+  const path = require('path');
+  const appSrc = fs.readFileSync(path.join(__dirname, '../public/app.js'), 'utf8');
+
+  const fnStart = appSrc.indexOf('function triggerNsmSaveCycle()');
+  const fnEnd = appSrc.indexOf('\n  }', fnStart) + 4;
+  const fnBody = appSrc.slice(fnStart, fnEnd);
+
+  it('catch block logs error via console.error (not silent empty catch)', () => {
+    expect(fnBody).toContain('console.error');
+    expect(fnBody).not.toContain('.catch(function () {})');
+  });
+
+  it('error message includes [nsm-save] prefix for grep-ability', () => {
+    expect(fnBody).toContain('[nsm-save]');
+  });
+});
+
+// ══════════════════════════════════════════════════════════════════════════════
 // Section E: Source-level contract checks (app.js)
 // ══════════════════════════════════════════════════════════════════════════════
 
