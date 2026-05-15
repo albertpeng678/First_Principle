@@ -717,3 +717,229 @@ describe('Source contract — app.js persistence (Block 1-4)', () => {
     expect(fnBody).toContain('currentStep');
   });
 });
+
+// ══════════════════════════════════════════════════════════════════════════════
+// Section F: Bug D — renderCirclesHome must NOT mutate circlesMode
+// Root cause: render side-effect set circlesMode='simulation' before
+// tryResumeLatestSession fetch returned → post-fetch guard aborted resume.
+// Fix: mutation removed from render; default set in tryResumeLatestSession
+// no-session branch instead.
+// ══════════════════════════════════════════════════════════════════════════════
+
+describe('Bug D — renderCirclesHome does not mutate circlesMode (source contract)', () => {
+  const fs = require('fs');
+  const path = require('path');
+  const appSrc = fs.readFileSync(path.join(__dirname, '../public/app.js'), 'utf8');
+
+  const fnStart = appSrc.indexOf('function renderCirclesHome()');
+  const fnEnd   = appSrc.indexOf('\n  function bindCirclesHome()', fnStart);
+  const fnBody  = appSrc.slice(fnStart, fnEnd);
+
+  it('renderCirclesHome body does not assign AppState.circlesMode', () => {
+    // Render must be side-effect-free. circlesMode default is set by
+    // tryResumeLatestSession (no-session path), not during render.
+    expect(fnBody).not.toContain('AppState.circlesMode =');
+  });
+
+  it('renderCirclesHome reads circlesMode (does not hardcode mode)', () => {
+    // Must still read circlesMode to drive mode-selector active state.
+    expect(fnBody).toContain('AppState.circlesMode');
+  });
+});
+
+describe('Bug D — tryResumeLatestSession sets default circlesMode on no-session path', () => {
+  const fs = require('fs');
+  const path = require('path');
+  const appSrc = fs.readFileSync(path.join(__dirname, '../public/app.js'), 'utf8');
+
+  const fnStart = appSrc.indexOf('async function tryResumeLatestSession()');
+  const fnEnd   = appSrc.indexOf('\n  window._tryResumeLatestSession', fnStart);
+  const fnBody  = appSrc.slice(fnStart, fnEnd);
+
+  it('no-active-session branch sets circlesMode = simulation as default', () => {
+    // When fetch returns 0 active sessions, set default here (not in render).
+    // Locate the all.length === 0 block and verify the default assignment is inside it.
+    const emptyCheckIdx = fnBody.indexOf("all.length === 0");
+    const defaultIdx    = fnBody.indexOf("circlesMode = 'simulation'");
+    expect(emptyCheckIdx).toBeGreaterThan(-1);
+    expect(defaultIdx).toBeGreaterThan(-1);
+    // Default assignment must come after the all.length === 0 check
+    expect(defaultIdx).toBeGreaterThan(emptyCheckIdx);
+    // Must be guarded: only set when circlesMode is still null
+    expect(fnBody.slice(emptyCheckIdx, emptyCheckIdx + 500)).toContain('!AppState.circlesMode');
+  });
+
+  it('post-fetch guard still checks circlesMode != null (protect user explicit nav)', () => {
+    // If user clicked a mode card during the async fetch, circlesMode will be non-null.
+    // The post-fetch guard must still abort in that case.
+    const guardIdx = fnBody.indexOf("AppState.circlesMode != null");
+    expect(guardIdx).toBeGreaterThan(-1);
+  });
+});
+
+// ══════════════════════════════════════════════════════════════════════════════
+// Section F2: Bug D — e2e-style: tryResumeLatestSession completes resume
+// even when circlesMode was previously non-null (regression guard for the
+// original bug where render mutated circlesMode before fetch returned).
+// ══════════════════════════════════════════════════════════════════════════════
+
+describe('Bug D — tryResumeLatestSession resume logic (pure mirror with NSM active session)', () => {
+  // Mirror of tryResumeLatestSession — pure function, no DOM, no fetch.
+  // Simulates: render() fires first (setting circlesMode in old code),
+  // then fetch returns with an active NSM session.
+  // With Bug D fix: circlesMode is NOT set by render, so post-fetch guard passes.
+  function simulateResumeWithCirclesModeNull(sessions) {
+    // AppState after render() fires but BEFORE fetch returns (Bug D fix: circlesMode = null)
+    const AppState = {
+      view: 'circles',
+      circlesMode: null,    // Bug D fix: render no longer sets this
+      nsmStep: 1,
+      nsmSession: null,
+      circlesSession: null,
+      circlesPhase: 1,
+    };
+
+    // Mirror: pre-fetch guard
+    if (AppState.view !== 'circles') return { aborted: 'pre-fetch-view', AppState };
+    var alreadyInSession = AppState.nsmStep > 1 || AppState.circlesPhase > 1
+      || AppState.nsmSession || AppState.circlesSession;
+    if (alreadyInSession) return { aborted: 'pre-fetch-session', AppState };
+
+    // Mirror: filter + sort
+    const all = sessions.filter(s => s.status === 'active');
+    if (all.length === 0) {
+      if (!AppState.circlesMode && AppState.view === 'circles') {
+        AppState.circlesMode = 'simulation'; // Bug D fix: default set here
+      }
+      return { aborted: 'no-sessions', AppState };
+    }
+    all.sort((a, b) =>
+      new Date(b.updated_at || b.created_at) - new Date(a.updated_at || a.created_at)
+    );
+    const latest = all[0];
+
+    // Mirror: post-fetch guard (Bug D fix: circlesMode is null, so guard passes)
+    if (AppState.view !== 'circles' || AppState.circlesMode != null || AppState.nsmStep > 1) {
+      return { aborted: 'post-fetch-guard', AppState };
+    }
+
+    // Mirror: apply session
+    if (latest._kind === 'nsm') {
+      AppState.view = 'nsm';
+      AppState.nsmSession = latest;
+      AppState.nsmSelectedQuestion = latest.question_json || null;
+      const rawNsm = latest.user_nsm;
+      if (typeof rawNsm === 'string') {
+        AppState.nsmDefinition = { nsm: rawNsm, explanation: '', businessLink: '' };
+      } else if (rawNsm && typeof rawNsm === 'object') {
+        AppState.nsmDefinition = { nsm: rawNsm.nsm || '', explanation: rawNsm.explanation || '', businessLink: rawNsm.businessLink || '' };
+      } else {
+        AppState.nsmDefinition = { nsm: '', explanation: '', businessLink: '' };
+      }
+      AppState.nsmBreakdown = latest.user_breakdown || { reach: '', depth: '', frequency: '', impact: '' };
+      const prog = latest.progress_json || {};
+      const hasScores = latest.scores_json && Object.keys(latest.scores_json).length > 0;
+      const hasBreakdown = latest.user_breakdown && Object.values(latest.user_breakdown).some(v => v && String(v).trim());
+      const hasNsm = latest.user_nsm && (
+        (typeof latest.user_nsm === 'object' && latest.user_nsm.nsm && String(latest.user_nsm.nsm).trim()) ||
+        (typeof latest.user_nsm === 'string' && latest.user_nsm.trim())
+      );
+      AppState.nsmStep = prog.currentStep || (hasScores ? 4 : (hasBreakdown ? 3 : (hasNsm ? 2 : 1)));
+    } else {
+      AppState.circlesSession = latest;
+      AppState.circlesMode = latest.mode === 'simulation' ? 'sim' : 'drill';
+    }
+    AppState._resumeToastShow = true;
+    return { aborted: null, AppState };
+  }
+
+  it('Bug D regression: NSM active session → view=nsm, nsmSelectedQuestion set', () => {
+    const sessions = [
+      {
+        id: 'nsm-session-q5',
+        status: 'active',
+        _kind: 'nsm',
+        updated_at: '2026-05-15T10:00:00Z',
+        question_json: { id: 'q5', company: 'Spotify', product: 'Podcast' },
+        user_nsm: { nsm: 'Listening hours', explanation: 'Core engagement', businessLink: 'Ad revenue' },
+        user_breakdown: { reach: '10M', depth: 'daily', frequency: 'high', impact: '$5M ARR' },
+        progress_json: { currentStep: 3 },
+        scores_json: null,
+      }
+    ];
+
+    const result = simulateResumeWithCirclesModeNull(sessions);
+
+    // Must NOT be aborted
+    expect(result.aborted).toBeNull();
+    // view must be 'nsm'
+    expect(result.AppState.view).toBe('nsm');
+    // nsmSelectedQuestion must be set from question_json
+    expect(result.AppState.nsmSelectedQuestion).toEqual({ id: 'q5', company: 'Spotify', product: 'Podcast' });
+    // nsmSession must be the session object
+    expect(result.AppState.nsmSession.id).toBe('nsm-session-q5');
+    // nsmStep must be inferred from progress_json
+    expect(result.AppState.nsmStep).toBe(3);
+    // resume toast must be queued
+    expect(result.AppState._resumeToastShow).toBe(true);
+  });
+
+  it('Bug D regression: old guard would abort (circlesMode non-null) but now passes (null)', () => {
+    // This simulates the old bug: if render had set circlesMode = 'simulation',
+    // the post-fetch guard would fire → result.aborted = 'post-fetch-guard'.
+    // With Bug D fix: circlesMode is null → guard passes → resume completes.
+    const sessions = [
+      {
+        id: 'nsm-active',
+        status: 'active',
+        _kind: 'nsm',
+        updated_at: '2026-05-14T12:00:00Z',
+        question_json: { id: 'q12', company: 'Airbnb', product: null },
+        user_nsm: 'Booking rate',
+        user_breakdown: null,
+        progress_json: {},
+        scores_json: null,
+      }
+    ];
+
+    const result = simulateResumeWithCirclesModeNull(sessions);
+    // With fix: circlesMode starts as null → post-fetch guard passes → no abort
+    expect(result.aborted).toBeNull();
+    expect(result.AppState.view).toBe('nsm');
+    expect(result.AppState.nsmSelectedQuestion).toEqual({ id: 'q12', company: 'Airbnb', product: null });
+    // nsmDefinition coerced from string
+    expect(result.AppState.nsmDefinition.nsm).toBe('Booking rate');
+    // nsmStep defaults to 2 (has NSM but no breakdown/scores)
+    expect(result.AppState.nsmStep).toBe(2);
+  });
+
+  it('No active sessions → circlesMode defaulted to simulation, view stays circles', () => {
+    const result = simulateResumeWithCirclesModeNull([
+      { id: 'old', status: 'completed', _kind: 'circles', updated_at: '2026-05-01T00:00:00Z' }
+    ]);
+    expect(result.aborted).toBe('no-sessions');
+    expect(result.AppState.view).toBe('circles');
+    // Bug D fix: default circlesMode applied in no-session branch
+    expect(result.AppState.circlesMode).toBe('simulation');
+  });
+
+  it('CIRCLES active session → circlesMode set from session mode', () => {
+    const sessions = [
+      {
+        id: 'circles-drill-1',
+        status: 'active',
+        _kind: 'circles',
+        updated_at: '2026-05-15T09:00:00Z',
+        mode: 'drill',
+        question_json: { id: 'q7', company: 'Grab', product: 'Driver app' },
+        drill_step: 'C1',
+        current_phase: 1,
+      }
+    ];
+
+    const result = simulateResumeWithCirclesModeNull(sessions);
+    expect(result.aborted).toBeNull();
+    expect(result.AppState.circlesSession.id).toBe('circles-drill-1');
+    expect(result.AppState.circlesMode).toBe('drill');
+  });
+});

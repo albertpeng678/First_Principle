@@ -5355,8 +5355,10 @@
   }
 
   function renderCirclesHome() {
-    // Default circlesMode to 'simulation' if not set (per scope note)
-    if (!AppState.circlesMode) AppState.circlesMode = 'simulation';
+    // Bug D fix: do NOT mutate circlesMode here — render must be side-effect-free.
+    // Default is set by tryResumeLatestSession after fetch completes (no active session path),
+    // or by mode-card click handler. If circlesMode is null, mode-selector renders with neither
+    // card active, which is correct (user must choose).
     circlesEnsureDisplayed();
 
     var mode = AppState.circlesMode;
@@ -7620,7 +7622,17 @@
         (circles || []).map(function (s) { return Object.assign({}, s, { _kind: 'circles' }); }),
         (nsm || []).map(function (s) { return Object.assign({}, s, { _kind: 'nsm' }); })
       ).filter(function (s) { return s.status === 'active'; });
-      if (all.length === 0) return;
+      if (all.length === 0) {
+        // Bug D fix: no active session → set default circlesMode here (not in render).
+        // render() already ran before this fetch completed; now that we know there's
+        // nothing to resume, apply the default and re-render so mode-section shows
+        // the correct highlighted state.
+        if (!AppState.circlesMode && AppState.view === 'circles') {
+          AppState.circlesMode = 'simulation';
+          render();
+        }
+        return;
+      }
 
       // Bug B fix: sort by updated_at falling back to created_at — when PATCH 400s,
       // updated_at is never bumped, so we use created_at as tiebreaker to ensure the
