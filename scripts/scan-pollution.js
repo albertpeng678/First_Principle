@@ -105,7 +105,9 @@ function extractStrings(session, kind) {
 }
 
 async function fetchSessions(baseUrl, token, kind) {
-  const res = await fetch(`${baseUrl}/api/${kind}-sessions`, {
+  // BE default limit is 20; explicitly request max-50 to reduce pagination need.
+  // (If user has >50 sessions, re-scan after each delete batch will surface the rest.)
+  const res = await fetch(`${baseUrl}/api/${kind}-sessions?limit=50`, {
     headers: { Authorization: `Bearer ${token}` },
   });
   if (!res.ok) throw new Error(`GET /api/${kind}-sessions failed: ${res.status}`);
