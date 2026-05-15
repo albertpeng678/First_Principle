@@ -35,11 +35,12 @@ router.get('/', requireAuth, async (req, res) => {
   const cached = cache.get(CACHE_KIND, owner);
   if (cached) return res.json(cached);
 
+  // Block 2: include progress_json + updated_at so FE can restore step/tab/gateResult
   const { data, error } = await db
     .from('nsm_sessions')
-    .select('id, question_id, question_json, status, scores_json, user_nsm, user_breakdown, created_at')
+    .select('id, question_id, question_json, status, scores_json, user_nsm, user_breakdown, progress_json, created_at, updated_at')
     .eq('user_id', owner)
-    .order('created_at', { ascending: false });
+    .order('updated_at', { ascending: false });
   if (error) return res.status(500).json({ error: error.message });
 
   const deduped = dedupSessions(data || []);
@@ -149,22 +150,27 @@ router.post('/:id/context', requireAuth, async (req, res) => {
 
 // PATCH /api/nsm-sessions/:id/progress — auth sibling of guest variant.
 // Requires migrations/2026-04-29-nsm-progress-json.sql.
-// Bug 6 fix: also accepts userExplanation + userBusinessLink (stored in
-// user_nsm JSONB and optionally in the dedicated TEXT columns added by
-// migrations/2026-05-15-nsm-explanation-business-link.sql).
 router.patch('/:id/progress', requireAuth, async (req, res) => {
-  const { currentStep, userNsm, userBreakdown, gateResult, progress, userExplanation, userBusinessLink } = req.body || {};
+  const { currentStep, userNsm, userBreakdown, gateResult, reportTab, progress, userExplanation, userBusinessLink } = req.body || {};
   const patch = {};
-  // userNsm may be a plain string (legacy) or a full {nsm,explanation,businessLink} object.
-  // Always write whatever the client sends; client sends the full nsmDefinition object now.
   if (userNsm       !== undefined) patch.user_nsm       = userNsm;
   if (userBreakdown !== undefined) patch.user_breakdown = userBreakdown;
-  // Denormalized columns (optional — primary store is user_nsm JSONB)
   if (userExplanation  !== undefined) patch.user_explanation  = userExplanation;
   if (userBusinessLink !== undefined) patch.user_business_link = userBusinessLink;
-  const merged = { ...(progress && typeof progress === 'object' ? progress : {}) };
+  let existingProgress = {};
+  if (currentStep !== undefined || gateResult !== undefined || reportTab !== undefined) {
+    const { data: current } = await db
+      .from('nsm_sessions')
+      .select('progress_json')
+      .eq('id', req.params.id)
+      .eq('user_id', req.user.id)
+      .maybeSingle();
+    existingProgress = (current && current.progress_json) || {};
+  }
+  const merged = { ...existingProgress, ...(progress && typeof progress === 'object' ? progress : {}) };
   if (currentStep !== undefined) merged.currentStep = currentStep;
   if (gateResult  !== undefined) merged.gateResult  = gateResult;
+  if (reportTab   !== undefined) merged.reportTab   = reportTab;
   if (Object.keys(merged).length > 0) patch.progress_json = merged;
   if (Object.keys(patch).length === 0) return res.status(400).json({ error: 'nothing_to_update' });
   patch.updated_at = new Date().toISOString();

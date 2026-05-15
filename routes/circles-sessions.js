@@ -277,13 +277,25 @@ router.post('/:id/conclusion-check', requireAuth, async (req, res) => {
 
 // PATCH /api/circles-sessions/:id/progress — save phase/step without AI call
 // Called on every phase transition so the session can be resumed after page close.
+// Block 2: also accepts phase2ConclusionDraft → stored in progress_json.
 router.patch('/:id/progress', requireAuth, async (req, res) => {
-  const { currentPhase, simStepIndex, frameworkDraft, gateResult, stepDrafts } = req.body;
+  const { currentPhase, simStepIndex, frameworkDraft, gateResult, stepDrafts, phase2ConclusionDraft } = req.body;
   const patch = {};
   if (currentPhase   !== undefined) patch.current_phase    = currentPhase;
   if (simStepIndex   !== undefined) patch.sim_step_index   = simStepIndex;
   if (frameworkDraft !== undefined) patch.framework_draft  = frameworkDraft;
   if (gateResult     !== undefined) patch.gate_result      = gateResult;
+  // Persist free-form UI state in progress_json (shallow-merge to preserve sibling keys)
+  if (phase2ConclusionDraft !== undefined) {
+    const { data: prior } = await db
+      .from('circles_sessions')
+      .select('progress_json')
+      .eq('id', req.params.id)
+      .eq('user_id', req.user.id)
+      .maybeSingle();
+    const existingPj = (prior && prior.progress_json) || {};
+    patch.progress_json = { ...existingPj, phase2ConclusionDraft };
+  }
   // B2-2 — shallow-merge step_drafts so two tabs each editing a different
   // step key don't last-write-wins each other's keys. Read-modify-write is
   // protected by the (id, user_id) ownership guard.

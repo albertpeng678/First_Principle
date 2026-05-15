@@ -139,11 +139,26 @@
 
     // Mockup 16 §D — cross-tab resume-toast (Phase 3 / Phase 4 / NSM gate in-flight)
     evalToastDismissed: false,           // user clicked X on resume-toast
+
+    // Block 4: landing auto-resume toast (post-login + boot)
+    _resumeToastShow: false,             // true while auto-resume banner is visible
+    _resumeToastMsg: '',                 // copy text
   };
   window.AppState = AppState;
 
   // ── Persistence (per spec §2.1 — localStorage keys) ───────────────────────
-  const PERSISTED_KEYS = ['view', 'accessToken', 'guestId', 'circlesMode', 'circlesPhase', 'circlesDrillStep', 'circlesSelectedQuestion', 'userEmail'];
+  const PERSISTED_KEYS = [
+    'view', 'accessToken', 'guestId', 'circlesMode', 'circlesPhase', 'circlesDrillStep', 'circlesSelectedQuestion', 'userEmail',
+    // Block 1: NSM + CIRCLES UI state persistence (Gap 1-9 closed)
+    'nsmStep',
+    'nsmReportTab',
+    'nsmGateResult',
+    'circlesGateResult',
+    'nsmHintExpanded',
+    'nsmExampleExpanded',
+    'nsmContextExpanded',
+    'circlesPhase2CoachHintExpanded',
+  ];
   function persist() {
     try {
       const snapshot = {};
@@ -213,6 +228,8 @@
             AppState.accessToken = session.access_token;
             AppState.userEmail = (session.user && session.user.email) || AppState.userEmail || null;
             render();
+            // Block 4: boot auto-resume — restore in-progress session on page reload
+            tryResumeLatestSession();
           }
         }).catch(function () {});
       } else {
@@ -1952,11 +1969,20 @@
             var os = result.overall_status || result.overallStatus || 'error';
             if (os === 'error') {
               // keep on nsm-gate subtab, gate result inline (mockup 08 rendering)
+              nsmPersistStep(undefined, undefined);
+              // Persist gateResult so it survives reload
+              (function () {
+                var sid = AppState.nsmSession && AppState.nsmSession.id;
+                if (!sid) return;
+                var p = (AppState.accessToken ? '/api/nsm-sessions/' : '/api/guest/nsm-sessions/') + sid + '/progress';
+                window.apiFetch(p, { method: 'PATCH', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ gateResult: result }) }).catch(function () {});
+              })();
               render();
             } else {
               // ok or warn → advance to Step 3
               AppState.nsmSubTab = 'nsm-step3';
               AppState.nsmStep = 3;
+              nsmPersistStep(3);
               render();
             }
           } catch (e) {
@@ -1990,6 +2016,8 @@
             }
             var result = await res.json();
             AppState.nsmEvalResult = result;
+            AppState.nsmStep = 4;
+            nsmPersistStep(4);
             // Step 4 rendering deferred to bundle 14
             console.info('NSM eval done', result);
             render();
@@ -2002,6 +2030,22 @@
         }
       });
     }
+  }
+
+  // Block 1/3: persist NSM step + report tab to server (fire-and-forget)
+  function nsmPersistStep(step, reportTab) {
+    var sessionId = AppState.nsmSession && AppState.nsmSession.id;
+    if (!sessionId) return;
+    var path = (AppState.accessToken ? '/api/nsm-sessions/' : '/api/guest/nsm-sessions/') + sessionId + '/progress';
+    var body = {};
+    if (step !== undefined) body.currentStep = step;
+    if (reportTab !== undefined) body.reportTab = reportTab;
+    if (!Object.keys(body).length) return;
+    window.apiFetch(path, {
+      method: 'PATCH',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify(body),
+    }).catch(function () {});
   }
 
   var _nsmSaveTimer = null;
@@ -2429,6 +2473,7 @@
       btn.addEventListener('click', function () {
         AppState.nsmReportTab = btn.dataset.nsm4Tab;
         AppState.nsmActiveCompareNode = null;
+        nsmPersistStep(undefined, AppState.nsmReportTab);
         render();
       });
     });
@@ -2787,6 +2832,8 @@
           }
         } catch (_) {}
         render();
+        // Block 4: post-login auto-resume latest active session
+        tryResumeLatestSession();
       })
       .catch(function (e) {
         AppState.authLoading = false;
@@ -2853,6 +2900,8 @@
         resetCirclesToHome();
         AppState.view = 'circles';
         render();
+        // Block 4: post-register auto-resume (in case guest sessions existed)
+        tryResumeLatestSession();
       }
     }).catch(function () {
       AppState.authLoading = false;
@@ -3005,6 +3054,14 @@
     }
     // Resume-toast — cross-tab in-flight notification (mockup 16 §D)
     banners.push(renderResumeToast());
+    // Block 4: auto-resume landing toast (post-login session rehydrate)
+    if (AppState._resumeToastShow && AppState._resumeToastMsg) {
+      banners.push('<div class="resume-toast" role="status" aria-live="polite" data-resume-landing-toast>'
+        + '<span class="resume-toast__icon"><i class="ph ph-arrow-counter-clockwise"></i></span>'
+        + '<div class="resume-toast__body">' + escHtml(AppState._resumeToastMsg) + '</div>'
+        + '<button class="resume-toast__close" data-resume-landing-toast-close aria-label="關閉提示"><i class="ph ph-x"></i></button>'
+        + '</div>');
+    }
     return banners.join('');
   }
 
@@ -3101,6 +3158,13 @@
 
     // ── Resume-toast event delegation ────────────────────────────────────────
     document.addEventListener('click', function (e) {
+      // Block 4: dismiss landing auto-resume toast
+      var landingClose = e.target.closest('[data-resume-landing-toast-close]');
+      if (landingClose) {
+        AppState._resumeToastShow = false;
+        render();
+        return;
+      }
       var dismissBtn = e.target.closest('[data-resume-toast="dismiss"]');
       if (dismissBtn) {
         AppState.evalToastDismissed = true;
@@ -6677,6 +6741,18 @@
           try {
             localStorage.setItem('pmdrill:phase2:conclusion:' + sessionId + ':' + stepKey, val);
           } catch (_) {}
+          // Block 2: also persist to server (debounced, fire-and-forget)
+          if (window._conclusionDraftSaveTimer) clearTimeout(window._conclusionDraftSaveTimer);
+          window._conclusionDraftSaveTimer = setTimeout(function () {
+            var patchPath = AppState.accessToken
+              ? '/api/circles-sessions/' + sessionId + '/progress'
+              : '/api/guest-circles-sessions/' + sessionId + '/progress';
+            window.apiFetch(patchPath, {
+              method: 'PATCH',
+              headers: { 'Content-Type': 'application/json' },
+              body: JSON.stringify({ phase2ConclusionDraft: val }),
+            }).catch(function () {});
+          }, 1000);
         }
       });
     }
@@ -7512,6 +7588,87 @@
     </div>`;
   }
 
+  // ── Block 4: tryResumeLatestSession — post-login auto-nav + resume-toast ───
+  // Called after login success and after page boot when accessToken exists.
+  // Picks the most-recent active session and auto-navigates only when the user
+  // is on the default home view (no in-progress session already loaded).
+  async function tryResumeLatestSession() {
+    if (!AppState.accessToken && !AppState.guestId) return;
+    // Only auto-nav when user is on a clean default state (home, no active session)
+    var alreadyInSession = AppState.nsmStep > 1 || AppState.circlesPhase > 1
+      || AppState.nsmSession || AppState.circlesSession;
+    if (alreadyInSession) return;
+    try {
+      var circlesPath = AppState.accessToken ? '/api/circles-sessions' : '/api/guest-circles-sessions';
+      var nsmPath = AppState.accessToken ? '/api/nsm-sessions' : '/api/guest/nsm-sessions';
+      var results = await Promise.all([
+        window.apiFetch(circlesPath),
+        window.apiFetch(nsmPath),
+      ]);
+      if (!results[0].ok || !results[1].ok) return;
+      var circles = await results[0].json();
+      var nsm = await results[1].json();
+      var all = [].concat(
+        (circles || []).map(function (s) { return Object.assign({}, s, { _kind: 'circles' }); }),
+        (nsm || []).map(function (s) { return Object.assign({}, s, { _kind: 'nsm' }); })
+      ).filter(function (s) { return s.status === 'active'; });
+      if (all.length === 0) return;
+
+      // Pick most-recent active session by updated_at
+      all.sort(function (a, b) { return new Date(b.updated_at || b.created_at) - new Date(a.updated_at || a.created_at); });
+      var latest = all[0];
+
+      // Re-check: abort if user navigated away during the fetch
+      if (AppState.view !== 'circles' || AppState.circlesMode != null || AppState.nsmStep > 1) return;
+
+      if (latest._kind === 'nsm') {
+        AppState.view = 'nsm';
+        AppState.nsmSession = latest;
+        AppState.nsmSelectedQuestion = latest.question_json || null;
+        var rawNsm2 = latest.user_nsm;
+        if (typeof rawNsm2 === 'string') {
+          AppState.nsmDefinition = { nsm: rawNsm2, explanation: '', businessLink: '' };
+        } else if (rawNsm2 && typeof rawNsm2 === 'object') {
+          AppState.nsmDefinition = { nsm: rawNsm2.nsm || '', explanation: rawNsm2.explanation || '', businessLink: rawNsm2.businessLink || '' };
+        } else {
+          AppState.nsmDefinition = { nsm: '', explanation: '', businessLink: '' };
+        }
+        AppState.nsmBreakdown = latest.user_breakdown || { reach: '', depth: '', frequency: '', impact: '' };
+        AppState.nsmEvalResult = latest.scores_json || null;
+        var _prog = latest.progress_json || {};
+        var _s = latest.scores_json && Object.keys(latest.scores_json).length > 0;
+        var _b = latest.user_breakdown && Object.values(latest.user_breakdown).some(function (v) { return v && String(v).trim(); });
+        var _n = latest.user_nsm && latest.user_nsm.nsm && String(latest.user_nsm.nsm).trim();
+        AppState.nsmStep = _prog.currentStep || (_s ? 4 : (_b ? 3 : (_n ? 2 : 1)));
+        AppState.nsmReportTab = _prog.reportTab || 'overview';
+        AppState.nsmGateResult = _prog.gateResult || null;
+        var nsmTitle = (latest.question_json && (latest.question_json.company + (latest.question_json.product ? ' · ' + latest.question_json.product : ''))) || 'NSM';
+        AppState._resumeToastMsg = '已載入上次未完成的「' + nsmTitle + '」— Step ' + AppState.nsmStep;
+      } else {
+        AppState.circlesSession = latest;
+        AppState.circlesSelectedQuestion = latest.question_json || latest.currentQuestion || null;
+        AppState.circlesMode = latest.mode === 'simulation' ? 'sim' : 'drill';
+        AppState.circlesDrillStep = latest.drill_step || 'C1';
+        AppState.circlesPhase = latest.current_phase || 1;
+        AppState.circlesSimStep = latest.sim_step_index || 0;
+        AppState.circlesConversation = latest.conversation || [];
+        AppState.circlesStepScores = latest.step_scores || {};
+        AppState.circlesFrameworkDraft = latest.framework_draft || {};
+        AppState.circlesGateResult = latest.gate_result || null;
+        AppState.circlesPhase2ConclusionDraft = (latest.progress_json && latest.progress_json.phase2ConclusionDraft) || '';
+        var circlesTitle = (latest.question_json && (latest.question_json.company + (latest.question_json.product ? ' · ' + latest.question_json.product : ''))) || 'CIRCLES';
+        AppState._resumeToastMsg = '已載入上次未完成的「' + circlesTitle + '」— Phase ' + AppState.circlesPhase;
+      }
+      AppState._resumeToastShow = true;
+      render();
+      // Auto-dismiss toast after 6s
+      setTimeout(function () { AppState._resumeToastShow = false; render(); }, 6000);
+    } catch (_) {
+      // silent fail — auto-resume is best-effort
+    }
+  }
+  window._tryResumeLatestSession = tryResumeLatestSession;
+
   async function loadHistory() {
     AppState.historyLoading = true;
     AppState.historyError = null;
@@ -7598,6 +7755,9 @@
     // R3: restore Phase 2/3/4 sub-state (conversation + step_scores)
     AppState.circlesConversation = item.conversation || [];
     AppState.circlesStepScores = item.step_scores || {};
+    // Block 3: rehydrate extra keys from DB (gate result + phase2 conclusion draft)
+    AppState.circlesGateResult = item.gate_result || null;
+    AppState.circlesPhase2ConclusionDraft = (item.progress_json && item.progress_json.phase2ConclusionDraft) || '';
     // localStorage cache merge — prefer newer ts OR fall back to local when the
     // backend session row carries no draft content (e.g. very first PATCH lost
     // to a race / transient network failure). Without this fallback the user's
@@ -7666,7 +7826,12 @@
       var _hasBreakdown = item.user_breakdown
         && Object.values(item.user_breakdown).some(function (v) { return v && String(v).trim(); });
       var _hasNsm = item.user_nsm && item.user_nsm.nsm && String(item.user_nsm.nsm).trim();
-      AppState.nsmStep = _scored ? 4 : (_hasBreakdown ? 3 : (_hasNsm ? 2 : 1));
+      // Block 3: prefer progress_json.currentStep when available (server-side checkpoint)
+      var _progressStep = item.progress_json && item.progress_json.currentStep;
+      AppState.nsmStep = _progressStep || (_scored ? 4 : (_hasBreakdown ? 3 : (_hasNsm ? 2 : 1)));
+      // Block 3: restore report tab + gate result from progress_json
+      AppState.nsmReportTab = (item.progress_json && item.progress_json.reportTab) || 'overview';
+      AppState.nsmGateResult = (item.progress_json && item.progress_json.gateResult) || null;
       AppState.view = 'nsm';
       render();
 
@@ -7695,6 +7860,12 @@
         }
         AppState.nsmBreakdown = full.user_breakdown || { reach: '', depth: '', frequency: '', impact: '' };
         AppState.nsmEvalResult = full.scores_json || null;
+        // Block 3: update progress_json fields from full fetch
+        if (full.progress_json) {
+          if (full.progress_json.currentStep) AppState.nsmStep = full.progress_json.currentStep;
+          if (full.progress_json.reportTab) AppState.nsmReportTab = full.progress_json.reportTab;
+          if (full.progress_json.gateResult !== undefined) AppState.nsmGateResult = full.progress_json.gateResult;
+        }
         render();
       }).catch(function () {
         // fallback: partial list data already rendered — silent fail
