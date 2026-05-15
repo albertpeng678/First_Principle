@@ -1,12 +1,13 @@
 # PM Drill — 專案狀態看板
 
 > 即時狀態 single source of truth。**不放歷史（git log 有）**。重大事件即時 Edit。
-> **Last updated:** 2026-05-12（NSM fix bundle 8-bug + 總驗收 3 補修 X-StatsDedup/X-RailEmpty/X-RailTitle 全 ship × 8 vp）
+> **Last updated:** 2026-05-16（Stage 0 B7 cleanup + prevention infra ship；4 polluted prod sessions deleted；Stage 1 brainstorm 待開）
 
 ## 當前狀態（30 秒讀完）
 
+- **Stage 0 ship (2026-05-16)**：B7 prod 污染清理完成（4 circles sessions DELETE × 200_ok）+ prevention infra（env-guard / auto-cleanup fixture / pre-commit hook / 3-env split / `e2e@first-principle.test` 帳號）+ 2 條 STANDING memory（three_iron_laws / e2e_real_data_only）+ skill 完整整合 plan ship。15 commits `4dba816..1ba062e`；jest 45/45 (env-guard 14 + auto-cleanup 15 + scan-pollution 16)；V2 security-review PASS WITH NOTES。
 - **Path 2 Frontend Rewrite ✅ 17/17 mockup 全 ship**（Layer 2 pixel-diff `ba6c49f` 機械驗證 60 cases × 3 vp，0 structural drift）
-- **最近 ship**（2026-05-12 總驗收）：總驗收 8 vp UAT 找到 3 bug 全修 → `3344a95` (X-RailTitle: rail 改用 question_json 對齊 offcanvas) ← `b15eee6` (X-RailEmpty: load 失敗不污染 state + login 強制 reset) ← `e1f53be` (X-StatsDedup: 4 stats endpoint 套 lib/session-dedup); 同日早 ship NSM bundle 8 bugs `762a8ab` → `a44f67d` (X-Compare/X-Back/X-LockedStep2/X-Overlay/X-FE/X-Ctx/X-DupSession/X-SlowList) + 100 NSM 題 content backfill
+- **NSM 2026-05-12 ship**：總驗收 8 vp UAT 找到 3 bug 全修 → `3344a95` (X-RailTitle) ← `b15eee6` (X-RailEmpty) ← `e1f53be` (X-StatsDedup); 同日早 ship NSM bundle 8 bugs `762a8ab` → `a44f67d` (X-Compare/X-Back/X-LockedStep2/X-Overlay/X-FE/X-Ctx/X-DupSession/X-SlowList) + 100 NSM 題 content backfill
 - **總驗收 8 vp 驗證**：stats=`{1,1,0}` ↔ offcanvas 4 items ↔ rail 4 items + 標題 byte-for-byte 一致（Mobile-360/iPhone-SE/iPhone-14/iPad/Desktop-1280/1440/2560 全 PASS；iPhone-15-Pro/14 偶發 login timeout = 網路 transient，不擋 ship）
 - **Baseline 不破：** jest 214/232（17 skipped + 1 pre-existing fail）+ Playwright NSM specs 64/64 pass × 8 vp
 - **NSM ↔ CIRCLES parity 全結束** — production wire 完整 honor mockup 14 §A / 05 §G / 07 v3 §D §E LOCKED contracts；nsm-evaluator depth 確認非 shallow，加 max_tokens 1500 cap
