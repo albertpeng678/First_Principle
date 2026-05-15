@@ -10,6 +10,20 @@
 
 set -u
 
+# --- BEGIN: Stage 0 B7 prevention — block hardcoded prod URL / real email in test specs ---
+STAGED_SPECS=$(git diff --cached --name-only --diff-filter=ACM | grep -E '^tests/.*\.(spec|test)\.js$' || true)
+if [ -n "$STAGED_SPECS" ]; then
+  if echo "$STAGED_SPECS" | xargs grep -l 'railway\.app' 2>/dev/null; then
+    echo "ERROR: hardcoded prod URL (railway.app) found in spec file(s) above. Use process.env.BASE_URL instead."
+    exit 1
+  fi
+  if echo "$STAGED_SPECS" | xargs grep -l 'albertpeng678@gmail\.com' 2>/dev/null; then
+    echo "ERROR: hardcoded real account email found in spec file(s) above. Use process.env.TEST_EMAIL instead."
+    exit 1
+  fi
+fi
+# --- END: Stage 0 B7 prevention ---
+
 # Skip if public/app.js not staged
 if ! git diff --cached --name-only --diff-filter=ACMR | grep -q "^public/app\.js$"; then
   exit 0
