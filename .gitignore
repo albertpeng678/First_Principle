@@ -9,7 +9,8 @@ tests/playwright/rwd-audit/
 tests/playwright/mobile-audit/
 tests/rwd-audit-output.txt
 node_modules/
-.env
+.env*
+!.env.example
 .env.local
 .env.*.local
 npm-debug.log*
