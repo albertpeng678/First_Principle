@@ -1,0 +1,102 @@
+[
+  {
+    "round": 1,
+    "view": "home",
+    "after": {
+      "hasTimeoutText": false,
+      "hasBannerSession": false,
+      "hasTokenExpiryCard": false,
+      "authCardVisible": true,
+      "currentView": "auth",
+      "tokenAfter": null,
+      "loginRelatedText": [
+        "登入後練習記錄會自動同步到雲端，可",
+        "登入",
+        "登入",
+        "— 練習記錄存於本機 7 天，登入後自動合併"
+      ],
+      "savedTokenWas": false
+    },
+    "verdict": true
+  },
+  {
+    "round": 2,
+    "view": "circles-phase1",
+    "after": {
+      "hasTimeoutText": false,
+      "hasBannerSession": false,
+      "hasTokenExpiryCard": false,
+      "authCardVisible": true,
+      "currentView": "auth",
+      "tokenAfter": null,
+      "loginRelatedText": [
+        "登入後練習記錄會自動同步到雲端，可",
+        "登入",
+        "登入",
+        "— 練習記錄存於本機 7 天，登入後自動合併"
+      ],
+      "savedTokenWas": false
+    },
+    "verdict": true
+  },
+  {
+    "round": 3,
+    "view": "nsm-step1",
+    "after": {
+      "hasTimeoutText": false,
+      "hasBannerSession": false,
+      "hasTokenExpiryCard": false,
+      "authCardVisible": true,
+      "currentView": "auth",
+      "tokenAfter": null,
+      "loginRelatedText": [
+        "登入後練習記錄會自動同步到雲端，可",
+        "登入",
+        "登入",
+        "— 練習記錄存於本機 7 天，登入後自動合併"
+      ],
+      "savedTokenWas": false
+    },
+    "verdict": true
+  },
+  {
+    "round": 4,
+    "view": "offcanvas-open",
+    "after": {
+      "hasTimeoutText": false,
+      "hasBannerSession": false,
+      "hasTokenExpiryCard": false,
+      "authCardVisible": true,
+      "currentView": "auth",
+      "tokenAfter": null,
+      "loginRelatedText": [
+        "登入後練習記錄會自動同步到雲端，可",
+        "登入",
+        "登入",
+        "— 練習記錄存於本機 7 天，登入後自動合併"
+      ],
+      "savedTokenWas": false
+    },
+    "verdict": true
+  },
+  {
+    "round": 5,
+    "view": "phase-3",
+    "after": {
+      "hasTimeoutText": false,
+      "hasBannerSession": false,
+      "hasTokenExpiryCard": false,
+      "authCardVisible": true,
+      "currentView": "auth",
+      "tokenAfter": null,
+      "loginRelatedText": [
+        "登入後練習記錄會自動同步到雲端，可",
+        "登入",
+        "登入",
+        "— 練習記錄存於本機 7 天，登入後自動合併"
+      ],
+      "savedTokenWas": false
+    },
+    "verdict": true
+  }
+]
