@@ -6794,17 +6794,19 @@
           try {
             localStorage.setItem('pmdrill:phase2:conclusion:' + sessionId + ':' + stepKey, val);
           } catch (_) {}
-          // Block 2: also persist to server (debounced, fire-and-forget)
+          // Block 2: also persist to server (debounced, wrapped with persistRetry per V-006 fix)
           if (window._conclusionDraftSaveTimer) clearTimeout(window._conclusionDraftSaveTimer);
           window._conclusionDraftSaveTimer = setTimeout(function () {
             var patchPath = AppState.accessToken
               ? '/api/circles-sessions/' + sessionId + '/progress'
               : '/api/guest-circles-sessions/' + sessionId + '/progress';
-            window.apiFetch(patchPath, {
-              method: 'PATCH',
-              headers: { 'Content-Type': 'application/json' },
-              body: JSON.stringify({ phase2ConclusionDraft: val }),
-            }).catch(function () {});
+            window.persistRetry.persistRetry(function () {
+              return window.apiFetch(patchPath, {
+                method: 'PATCH',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({ phase2ConclusionDraft: val }),
+              });
+            }).catch(function (err) { console.error('[phase2-conclusion] PATCH failed after retries:', err); });
           }, 1000);
         }
       });
