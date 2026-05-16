@@ -276,6 +276,9 @@ router.post('/:id/conclusion-check', requireGuestId, async (req, res) => {
 router.patch('/:id/progress', requireGuestId, async (req, res) => {
   // Strip FE-supplied lifecycle — server always computes it (SLC-AC10)
   delete req.body.lifecycle;
+  // NOTE: guest flow is intentionally capped at Phase 1 (no SSE chat, no phase2 conclusion).
+  // `phase2ConclusionDraft` is intentionally NOT handled here. If guest needs Phase 2,
+  // the user must register first (auth route handles it).
   const { currentPhase, simStepIndex, frameworkDraft, gateResult, stepDrafts } = req.body;
   const patch = {};
   let priorSession = { lifecycle: 'created' }; // default; overwritten by fetches below

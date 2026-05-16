@@ -135,10 +135,11 @@ describe('CIRCLES lifecycle wiring', () => {
 
   test('PATCH following gated cannot demote (SLC-AC9 monotone)', async () => {
     const id = seedSession.insert('circles_sessions', { lifecycle: 'gated', user_id: 'test-user-1' });
-    await request(app)
+    const res = await request(app)
       .patch(`/api/circles-sessions/${id}/progress`)
       .set('Authorization', 'Bearer test-user-1')
-      .send({ currentStep: 'I' });
+      .send({ currentPhase: 2 });
+    expect(res.status).toBe(200);
     const row = seedSession.fetch('circles_sessions', id);
     expect(row.lifecycle).toBe('gated');
   });
@@ -242,10 +243,11 @@ describe('GUEST CIRCLES lifecycle wiring', () => {
 
   test('PATCH following gated cannot demote (SLC-AC9 monotone guest)', async () => {
     const id = seedSession.insert('circles_sessions', { lifecycle: 'gated', guest_id: GUEST_ID });
-    await request(app)
+    const res = await request(app)
       .patch(`/api/guest-circles-sessions/${id}/progress`)
       .set('X-Guest-ID', GUEST_ID)
-      .send({ currentStep: 'I' });
+      .send({ currentPhase: 2 });
+    expect(res.status).toBe(200);
     const row = seedSession.fetch('circles_sessions', id);
     expect(row.lifecycle).toBe('gated');
   });
