@@ -91,7 +91,6 @@ router.post('/draft', requireGuestId, async (req, res) => {
         status: 'active',
         step_drafts: {},
         framework_draft: {},
-        lifecycle: 'created',
       })
       .select()
       .single();
