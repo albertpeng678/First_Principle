@@ -82,4 +82,10 @@ async function persistRetry(fn, opts = {}) {
   throw new RetryExhausted(lastError, maxAttempts);
 }
 
-module.exports = { persistRetry, defaultBackoff, RetryExhausted };
+// Dual-mode export: Node CJS (unit tests) + browser window global (app.js wiring)
+if (typeof module !== 'undefined' && module.exports) {
+  module.exports = { persistRetry, defaultBackoff, RetryExhausted };
+}
+if (typeof window !== 'undefined') {
+  window.persistRetry = { persistRetry: persistRetry, defaultBackoff: defaultBackoff, RetryExhausted: RetryExhausted };
+}

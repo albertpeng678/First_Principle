@@ -3784,16 +3784,18 @@
             var patchPath = AppState.accessToken
               ? '/api/circles-sessions/' + sid + '/progress'
               : '/api/guest-circles-sessions/' + sid + '/progress';
-            await window.apiFetch(patchPath, {
-              method: 'PATCH',
-              headers: { 'Content-Type': 'application/json' },
-              body: JSON.stringify({
-                stepDrafts: payload,
-                frameworkDraft: AppState.circlesFrameworkDraft || null
-              }),
+            await window.persistRetry.persistRetry(function () {
+              return window.apiFetch(patchPath, {
+                method: 'PATCH',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({
+                  stepDrafts: payload,
+                  frameworkDraft: AppState.circlesFrameworkDraft || null
+                }),
+              });
             });
           }
-        } catch (_) { /* network error — local cache remains source of truth */ }
+        } catch (_) { /* network error after retries exhausted — local cache remains source of truth */ }
       })();
       // 3. Visual cycle (600ms saving spinner — preserve UX, parallel to backend)
       setTimeout(function () {
@@ -7509,11 +7511,14 @@
         }
         AppState.circlesGateResult = result;
         // Persist gateResult so it survives cross-device reload (Bug H fix)
+        // Wrapped with persistRetry (V-002 fix) — retries on transient 5xx before giving up.
         (function () {
           var _sid = AppState.circlesSession && AppState.circlesSession.id;
           if (!_sid || !AppState.accessToken) return;
           var _p = '/api/circles-sessions/' + _sid + '/progress';
-          window.apiFetch(_p, { method: 'PATCH', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ gateResult: result }) }).catch(function (err) { console.error('[circles-gate] PATCH failed:', err); });
+          window.persistRetry.persistRetry(function () {
+            return window.apiFetch(_p, { method: 'PATCH', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ gateResult: result }) });
+          }).catch(function (err) { console.error('[circles-gate] PATCH failed after retries:', err); });
         })();
         AppState.circlesGateLoading = false;
         render();

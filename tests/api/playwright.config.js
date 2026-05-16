@@ -63,12 +63,13 @@ module.exports = defineConfig({
       testMatch: /lifecycle-(circles|nsm|list)\.spec\.js$/,
       // No browser — request fixture is browser-less per api-testing.md §APIRequestContext Basics
     },
-    // persistRetry integration — real POST /draft + PATCH /progress + GET round-trip.
+    // CIRCLES draft + progress route smoke — real POST /draft + PATCH /progress + GET round-trip.
+    // Renamed from persist-retry-integration-real.spec.js per Review-3 audit.
     // No browser needed (pure request fixture). No OpenAI calls (no test.slow needed).
     // Per testing-trophy-audit-2026-05-16.md Trophy Reset Roadmap §Step 3.
     {
       name: 'api-persist-retry',
-      testMatch: /persist-retry-integration-real\.spec\.js$/,
+      testMatch: /circles-draft-progress-route-real\.spec\.js$/,
       // No browser — pure API calls via request fixture
     },
     // NSM hint endpoints — real API layer tests (Trophy 60% tier).
