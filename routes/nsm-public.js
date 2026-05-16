@@ -20,11 +20,10 @@ const QUESTION_BY_ID = Object.fromEntries(QUESTIONS.map(q => [q.id, q]));
 
 // Field whitelist matches NSM Step 2's 3 input fields (mockup 07 Section A)
 const ALLOWED_FIELDS = ['nsm', 'explanation', 'businessLink'];
-const USER_DRAFT_MAX = 200;
 
 // POST /api/nsm-public/step2-hint — session-less AI hint for NSM Step 2 fields
 router.post('/step2-hint', async (req, res) => {
-  const { questionId, field, userDraft } = req.body || {};
+  const { questionId, field } = req.body || {};
 
   if (!questionId || typeof questionId !== 'string') {
     return res.status(400).json({ error: 'missing_questionId' });
@@ -38,10 +37,8 @@ router.post('/step2-hint', async (req, res) => {
     return res.status(404).json({ error: 'question_not_found' });
   }
 
-  const draft = (typeof userDraft === 'string' ? userDraft : '').slice(0, USER_DRAFT_MAX);
-
   try {
-    const hint = await generateNSMStep2Hint({ questionJson: q, field, userDraft: draft });
+    const hint = await generateNSMStep2Hint({ questionJson: q, field });
     return res.json({ hint });
   } catch (e) {
     return res.status(500).json({ error: 'hint_generation_failed', message: e.message });
@@ -51,10 +48,9 @@ router.post('/step2-hint', async (req, res) => {
 // POST /api/nsm-public/step3-hint — session-less AI hint for NSM Step 3 dim fields
 const ALLOWED_DIM_IDS = ['reach', 'depth', 'frequency', 'impact'];
 const ALLOWED_DIM_TYPES = ['attention', 'transaction', 'creator', 'saas'];
-const USER_DRAFT_MAX_S3 = 200;
 
 router.post('/step3-hint', async (req, res) => {
-  const { questionId, dimId, dimType, userDraft } = req.body || {};
+  const { questionId, dimId, dimType } = req.body || {};
 
   if (!questionId || typeof questionId !== 'string') {
     return res.status(400).json({ error: 'missing_questionId' });
@@ -71,10 +67,8 @@ router.post('/step3-hint', async (req, res) => {
     return res.status(404).json({ error: 'question_not_found' });
   }
 
-  const draft = (typeof userDraft === 'string' ? userDraft : '').slice(0, USER_DRAFT_MAX_S3);
-
   try {
-    const hint = await generateNSMStep3Hint({ questionJson: q, dimId, dimType: dimType || 'attention', userDraft: draft });
+    const hint = await generateNSMStep3Hint({ questionJson: q, dimId, dimType: dimType || 'attention' });
     return res.json({ hint });
   } catch (e) {
     return res.status(500).json({ error: 'hint_generation_failed', message: e.message });
