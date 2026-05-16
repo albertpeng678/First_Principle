@@ -36,3 +36,4 @@ tests/visual/diffs/
 
 # plugin sqlite caches (e.g., ruvector.db)
 *.db
+playwright/.auth/
