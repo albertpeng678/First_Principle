@@ -11,7 +11,9 @@
 set -u
 
 # --- BEGIN: Stage 0 B7 prevention — block hardcoded prod URL / real email in test specs ---
-STAGED_SPECS=$(git diff --cached --name-only --diff-filter=ACM | grep -E '^tests/.*\.(spec|test)\.js$' || true)
+# Exempt quarantined legacy specs — they are deliberately NOT runnable (excluded
+# from playwright config testIgnore) and exist as historical reference only.
+STAGED_SPECS=$(git diff --cached --name-only --diff-filter=ACM | grep -E '^tests/.*\.(spec|test)\.js$' | grep -v '/_quarantine_prod_legacy/' || true)
 if [ -n "$STAGED_SPECS" ]; then
   PROD_URL_HITS=""
   EMAIL_HITS=""

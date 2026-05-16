@@ -16,6 +16,12 @@ const DEVICES = [
 
 module.exports = defineConfig({
   testDir: '.',
+  // Explicit testIgnore: quarantined legacy specs hardcode prod URL + real
+  // account email → polluted user prod DB when full suite ran (B7-like incident
+  // 2026-05-16). DO NOT remove this ignore without refactoring each spec to
+  // use tests/helpers/env-guard.js + tests/fixtures/auto-cleanup.fixture.js
+  // (Stage 0 ship) + e2e@first-principle.test account.
+  testIgnore: ['**/_quarantine_prod_legacy/**'],
   timeout: 90000,
   retries: 0,
   reporter: [['list']],
