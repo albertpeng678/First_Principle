@@ -43,6 +43,33 @@ async function reviewFramework({ step, frameworkDraft, questionJson, mode }) {
 
 任一欄位觸發本檢查 → overallStatus = "error" + canProceed = false（不論 mode）。
 
+## 新增品質檢查（Layer 2 語意品質，通過上方輸入品質檢查後才執行）
+
+語意品質標準：
+- 答案需含具體名詞（人群名 / 場景名 / 產品名 / 指標名）+ 動詞 + 範圍 / 數量描述。
+- 答案若為敷衍（單字 / 純標點 / 無語意 token / 抽象詞如「重要」「需要」「感覺」）→ 該欄位 status = 'error'，overallStatus = 'error'，canProceed = false（drill 模式）。
+- 答案若含模糊詞但不到敷衍程度（有部分具體內容但缺範圍或數量）→ 該欄位 status = 'warn'。
+
+Few-shot 範例（供判斷參考）：
+
+✅ Good 1：
+  目標用戶分群: "20-35 歲都會區上班族女性，月薪 4-8 萬"
+  → status: 'ok'（具體年齡、地域、職業、收入）
+
+✅ Good 2：
+  業務影響: "提升次月留存率 ≥ 70%"
+  → status: 'ok'（具體指標 + 量化範圍）
+
+❌ Bad 1：
+  目標用戶分群: "Y"
+  業務影響: "Y"
+  → 各欄位 status: 'error'，overallStatus: 'error'（單字無語意）
+
+❌ Bad 2：
+  目標用戶分群: "上班族男"
+  業務影響: "重要的事"
+  → 各欄位 status: 'warn' or 'error'（過於抽象 / 無數量 / 無範圍）
+
 你的任務：
 1. 先跑「輸入品質檢查」（上方規則），觸發任一條件直接 mark error，不再做下方審核
 2. 通過品質檢查的欄位再用方向性審核標準評估
