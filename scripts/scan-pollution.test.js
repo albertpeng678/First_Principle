@@ -17,6 +17,38 @@ describe('isPolluted regex', () => {
   });
 });
 
+// Regression: 2026-05-16 prod scan missed `repro-bug1-r5-178NNNNN` (no `-fN`
+// suffix, no `e2e-r` / `dual-uat-` prefix) — 4 NSM rows flagged on `reach` only
+// because the inner `reach` value happened to match `*-178NNN-fN` while the
+// other 3 dims + user_nsm slipped through. Generalize via the "lowercase
+// ascii-token chain ending in a 13-digit unix-ms timestamp" shape, which Chinese
+// content cannot accidentally match (Chinese chars fall outside [a-z0-9_-]).
+describe('isPolluted — generalized timestamp-suffix predicate', () => {
+  test.each([
+    // The actual missed prod values (user_nsm of all 4 deleted NSM rows):
+    ['repro-bug1-r5-1778906193039', true],
+    ['repro-bug1-r5-1778904780067', true],
+    ['repro-bug1-r5-1778903427510', true],
+    ['repro-bug1-r5-1778901909039', true],
+    // Director-hypothesized siblings (same shape, different abbreviated dim):
+    ['e2e-r2-a6-depth-1778906193039', true],
+    ['e2e-r2-a6-reach-1778906193039', true],
+    ['e2e-r2-a6-impact-1778906193039', true],
+    ['e2e-r2-a6-freq-1778906193039', true],
+    // Any future test-stub shape with trailing 13-digit unix-ms:
+    ['foo-bar-baz-1789999999999', true],
+    ['stub_v2-1778822383000', true],
+    // Negatives — must NOT false-positive on Chinese / real content:
+    ['北極星指標是每週活躍付費用戶 1778906193039', false], // Chinese before ts
+    ['公司年營收 1789000000000', false], // Chinese + number, not a stub shape
+    ['1778906193039', false], // bare 13-digit number (could be legit ms reading)
+    ['user mentioned 1778906193039 in passing', false], // English sentence
+    ['version 1.2.3', false],
+  ])('isPolluted(%j) === %s', (s, expected) => {
+    expect(isPolluted(s)).toBe(expected);
+  });
+});
+
 describe('extractStrings (jsonb traversal)', () => {
   test('extracts framework_draft jsonb leaves', () => {
     const session = {

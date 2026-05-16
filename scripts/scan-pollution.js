@@ -21,12 +21,29 @@ require('dotenv').config({ path: '.env.test', override: false }); // fill in BAS
 const fs   = require('fs');
 const path = require('path');
 
+// Pollution detector — two complementary signals:
+//
+// 1) Known synthetic prefixes (cheap, explicit, no FP risk on user content).
+// 2) Generalized "test-stub shape": the entire string is a chain of
+//    lowercase-ascii / digit / `_` / `-` tokens that terminates in a 13-digit
+//    unix-ms timestamp (optionally followed by `-fN` field-index marker, where
+//    13 digits covers 2001-09 .. 2286-11). Examples:
+//      repro-bug1-r5-1778906193039
+//      e2e-r2-a6-depth-1778906193039
+//      dual-uat-r2-c1-1778905724006-f3
+//      stub_v2-1778822383000
+//    Anchored to `^...$` and restricted to [a-z0-9_-], so Chinese / mixed-case
+//    real content (e.g. "公司年營收 1789000000000", "User mentioned 178...")
+//    cannot match — Chinese chars + spaces + uppercase all break the shape.
 const POLLUTION_PATTERNS = [
   /^(e2e-r\d+-)/,
   /^(dual-(r-)?uat-)/,
   /^(test-stub-)/,
   /^(smoke-)/,
-  /^[a-zA-Z0-9_-]+-178\d{6,}-f\d/,
+  /^(repro-)/,
+  // Generalized shape: <lowercase-token>(-<lowercase-token>)*-<13-digit-ms>(-f\d+)?$
+  // 13-digit unix-ms covers 2001-09-09 onward — any historic ts stub will match.
+  /^[a-z0-9_]+(?:-[a-z0-9_]+)*-\d{13}(?:-f\d+)?$/,
 ];
 
 function isPolluted(s) {
