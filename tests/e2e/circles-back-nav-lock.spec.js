@@ -288,6 +288,12 @@ test.describe('CIRCLES back-nav lock + qchip 4-block — AC-5 (spec b2ca935)', (
       await test.step('hint + example buttons remain rendered (STANDING memory lock_state_hint_example_always_available)', async () => {
         await expect(page.locator(SEL.hintBtn).first()).toBeVisible();
         await expect(page.locator(SEL.exampleToggleBtn).first()).toBeVisible();
+
+        // Task 6 (spec b2ca935 §11.1) — visual regression baseline for Phase 1 locked state.
+        await expect(page.locator(SEL.phase1Root)).toHaveScreenshot(
+          `phase1-locked-from-back-${testInfo.project.name}.png`,
+          { maxDiffPixelRatio: 0.005 }
+        );
       });
     } finally {
       if (sessionId) await cleanupSession(page, sessionId);
@@ -420,6 +426,12 @@ test.describe('CIRCLES back-nav lock + qchip 4-block — AC-5 (spec b2ca935)', (
         for (const label of labels) {
           await expect(expand.locator('.qchip-ana__head', { hasText: label })).toBeVisible();
         }
+
+        // Task 6 (spec b2ca935 §11.1) — visual regression baseline for Phase 2 qchip expanded state.
+        await expect(expand).toHaveScreenshot(
+          `phase2-qchip-expanded-${testInfo.project.name}.png`,
+          { maxDiffPixelRatio: 0.005 }
+        );
       });
     } finally {
       if (sessionId) await cleanupSession(page, sessionId);
