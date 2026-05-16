@@ -7129,6 +7129,15 @@
     document.querySelectorAll('[data-phase1="textarea"]').forEach(function (el) {
       el.addEventListener('input', function () {
         triggerSaveCycle();
+        // Clear any stale Layer 1 error for this field immediately on keystroke
+        // so partial-fix UX is instant (not "fixed but still yelling") (#7 fix).
+        try {
+          var fieldEl = el.closest('.field');
+          if (fieldEl) {
+            var errEl = fieldEl.querySelector('.framework-error');
+            if (errEl) errEl.remove();
+          }
+        } catch (_) {}
         if (_phase1CharDebounce) clearTimeout(_phase1CharDebounce);
         _phase1CharDebounce = setTimeout(function () {
           var idx = parseInt(el.dataset.fieldIdx, 10);
@@ -7409,67 +7418,69 @@
     }
     clearInlineFrameworkErrors();
 
-    // Acquire mutex
-    AppState.gateInflight = true;
-    setSubmitButtonDisabled(true);
+    // Acquire mutex INSIDE try so any sync throw in render() triggers finally
+    // and never permanently jams the submit button (#3 mutex-leak fix).
+    try {
+      AppState.gateInflight = true;
+      setSubmitButtonDisabled(true);
 
-    AppState.circlesPhase = 1.5;
-    AppState.circlesGateLoading = true;
-    AppState.circlesGateResult = null;
-    AppState.circlesGateError = null;
-    render();
-    try {
-      await ensureCirclesDraftSession();
-    } catch (_) {}
-    var sid = AppState.circlesSession && AppState.circlesSession.id;
-    if (!sid) {
-      AppState.circlesGateError = '無法建立 session，請重試';
-      AppState.circlesGateLoading = false;
+      AppState.circlesPhase = 1.5;
+      AppState.circlesGateLoading = true;
+      AppState.circlesGateResult = null;
+      AppState.circlesGateError = null;
       render();
-      AppState.gateInflight = false;
-      setSubmitButtonDisabled(false);
-      return;
-    }
-    var path = (AppState.accessToken ? '/api/circles-sessions/' : '/api/guest-circles-sessions/') + sid + '/gate';
-    try {
-      var res = await window.apiFetch(path, {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ step: stepKey, frameworkDraft: draft }),
-      });
-      if (!res.ok) {
-        AppState.circlesGateError = 'GATE_API_ERROR';
+      try {
+        await ensureCirclesDraftSession();
+      } catch (_) {}
+      var sid = AppState.circlesSession && AppState.circlesSession.id;
+      if (!sid) {
+        AppState.circlesGateError = '無法建立 session，請重試';
         AppState.circlesGateLoading = false;
         render();
+        // No manual mutex release — outer finally handles it (#3 de-duplicate).
         return;
       }
-      var result;
-      try { result = await res.json(); } catch (_) { result = null; }
-      if (!result || !result.items) {
-        AppState.circlesGateError = 'GATE_PARSE_ERROR';
+      var path = (AppState.accessToken ? '/api/circles-sessions/' : '/api/guest-circles-sessions/') + sid + '/gate';
+      try {
+        var res = await window.apiFetch(path, {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ step: stepKey, frameworkDraft: draft }),
+        });
+        if (!res.ok) {
+          AppState.circlesGateError = 'GATE_API_ERROR';
+          AppState.circlesGateLoading = false;
+          render();
+          return;
+        }
+        var result;
+        try { result = await res.json(); } catch (_) { result = null; }
+        if (!result || !result.items) {
+          AppState.circlesGateError = 'GATE_PARSE_ERROR';
+          AppState.circlesGateLoading = false;
+          render();
+          return;
+        }
+        AppState.circlesGateResult = result;
+        // Persist gateResult so it survives cross-device reload (Bug H fix)
+        (function () {
+          var _sid = AppState.circlesSession && AppState.circlesSession.id;
+          if (!_sid || !AppState.accessToken) return;
+          var _p = '/api/circles-sessions/' + _sid + '/progress';
+          window.apiFetch(_p, { method: 'PATCH', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ gateResult: result }) }).catch(function (err) { console.error('[circles-gate] PATCH failed:', err); });
+        })();
         AppState.circlesGateLoading = false;
         render();
-        return;
+      } catch (e) {
+        var gateErrCode = (e && (e.name === 'AbortError' || (typeof e.message === 'string' && e.message.toLowerCase().includes('timeout'))))
+          ? 'GATE_TIMEOUT'
+          : 'GATE_API_ERROR';
+        AppState.circlesGateError = gateErrCode;
+        AppState.circlesGateLoading = false;
+        render();
       }
-      AppState.circlesGateResult = result;
-      // Persist gateResult so it survives cross-device reload (Bug H fix)
-      (function () {
-        var _sid = AppState.circlesSession && AppState.circlesSession.id;
-        if (!_sid || !AppState.accessToken) return;
-        var _p = '/api/circles-sessions/' + _sid + '/progress';
-        window.apiFetch(_p, { method: 'PATCH', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ gateResult: result }) }).catch(function (err) { console.error('[circles-gate] PATCH failed:', err); });
-      })();
-      AppState.circlesGateLoading = false;
-      render();
-    } catch (e) {
-      var gateErrCode = (e && (e.name === 'AbortError' || (typeof e.message === 'string' && e.message.toLowerCase().includes('timeout'))))
-        ? 'GATE_TIMEOUT'
-        : 'GATE_API_ERROR';
-      AppState.circlesGateError = gateErrCode;
-      AppState.circlesGateLoading = false;
-      render();
     } finally {
-      // Release mutex: always release so user can retry after error.
+      // Release mutex: always release so user can retry after error (#3 fix).
       AppState.gateInflight = false;
       setSubmitButtonDisabled(false);
     }
@@ -7506,7 +7517,9 @@
     var keys = Object.keys(byField);
     for (var j = 0; j < keys.length; j++) {
       var fk = keys[j];
-      var inputContainer = document.querySelector('[data-field-key="' + fk + '"]');
+      // Scope to div.field to avoid matching hint/example-toggle buttons
+      // which also carry data-field-key (#1 selector-brittleness fix).
+      var inputContainer = document.querySelector('div.field[data-field-key="' + fk + '"]');
       if (!inputContainer) continue;
       var errEl = document.createElement('div');
       errEl.className = 'framework-error';
@@ -7520,7 +7533,11 @@
   }
 
   function setSubmitButtonDisabled(disabled) {
-    var btn = document.querySelector('button[data-phase1="submit"]');
+    // Scope to active Phase 1 root to defend against T10 mobile+desktop
+    // co-render risk where a global querySelector would only disable one
+    // of two co-rendered submit buttons (#6 scope fix).
+    var phase1Root = document.querySelector('[data-view="circles"][data-circles-phase="1"]') || document;
+    var btn = phase1Root.querySelector('button[data-phase1="submit"]');
     if (btn) btn.disabled = !!disabled;
   }
 
