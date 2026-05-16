@@ -26,6 +26,13 @@ const QUESTION_BY_ID = Object.fromEntries(
 // GET /api/guest-circles-sessions
 router.get('/', requireGuestId, async (req, res) => {
   const owner = req.guestId;
+
+  // Guest endpoints have no authenticated user — include_empty is always rejected (SLC-AC13).
+  const wantsEmpty = req.query.include_empty === 'true';
+  if (wantsEmpty) {
+    return res.status(403).json({ error: 'forbidden' });
+  }
+
   if (!req.query.status && !req.query.limit) {
     const cached = cache.get(CACHE_KIND, owner);
     if (cached) return res.json(cached);
@@ -33,7 +40,7 @@ router.get('/', requireGuestId, async (req, res) => {
 
   let query = db
     .from('circles_sessions')
-    .select('id, question_id, question_json, mode, drill_step, current_phase, sim_step_index, status, step_scores, step_drafts, framework_draft, created_at, updated_at')
+    .select('id, question_id, question_json, mode, drill_step, current_phase, sim_step_index, status, step_scores, step_drafts, framework_draft, lifecycle, created_at, updated_at')
     .eq('guest_id', owner)
     .order('updated_at', { ascending: false })
     .limit(Math.min(Math.max(parseInt(req.query.limit) || 20, 1), 50));
@@ -41,7 +48,9 @@ router.get('/', requireGuestId, async (req, res) => {
   const { data, error } = await query;
   if (error) return res.status(500).json({ error: error.message });
 
-  const deduped = dedupSessions(data || []);
+  // Default-exclude lifecycle='created' rows (guest endpoints never allow include_empty).
+  const rows = (data || []).filter(r => r.lifecycle !== 'created');
+  const deduped = dedupSessions(rows);
   const enriched = rehydrateMany(
     deduped.map(d => ({ ...d, currentQuestion: QUESTION_BY_ID[d.question_id] || null })),
     'circles'

@@ -33,20 +33,34 @@ router.post('/', requireAuth, async (req, res) => {
 // GET /api/nsm-sessions
 router.get('/', requireAuth, async (req, res) => {
   const owner = req.user.id;
-  const cached = cache.get(CACHE_KIND, owner);
-  if (cached) return res.json(cached);
+
+  // Operator gate for include_empty flag (SLC-AC13/AC14)
+  const wantsEmpty = req.query.include_empty === 'true';
+  const isOperator = !!(req.user.email && process.env.OPERATOR_EMAIL
+    && req.user.email === process.env.OPERATOR_EMAIL);
+  if (wantsEmpty && !isOperator) {
+    return res.status(403).json({ error: 'forbidden' });
+  }
+
+  // Cache only for default (no include_empty) requests to keep invalidation simple.
+  if (!wantsEmpty) {
+    const cached = cache.get(CACHE_KIND, owner);
+    if (cached) return res.json(cached);
+  }
 
   // Block 2: include progress_json + updated_at so FE can restore step/tab/gateResult
   const { data, error } = await db
     .from('nsm_sessions')
-    .select('id, question_id, question_json, status, scores_json, user_nsm, user_breakdown, progress_json, created_at, updated_at')
+    .select('id, question_id, question_json, status, scores_json, user_nsm, user_breakdown, progress_json, lifecycle, created_at, updated_at')
     .eq('user_id', owner)
     .order('updated_at', { ascending: false });
   if (error) return res.status(500).json({ error: error.message });
 
-  const deduped = dedupSessions(data || []);
+  // Default-exclude lifecycle='created' rows; operator with include_empty=true sees all.
+  const rows = wantsEmpty ? (data || []) : (data || []).filter(r => r.lifecycle !== 'created');
+  const deduped = dedupSessions(rows);
   const rehydrated = rehydrateMany(deduped, 'nsm');
-  cache.set(CACHE_KIND, owner, rehydrated);
+  if (!wantsEmpty) cache.set(CACHE_KIND, owner, rehydrated);
   res.json(rehydrated);
 });
 

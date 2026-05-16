@@ -219,7 +219,11 @@ function createMockDb() {
     auth: {
       async getUser(token) {
         const userId = (token || '').replace(/^Bearer\s+/, '');
-        return { data: { user: { id: userId, email: `${userId}@test.com` } }, error: null };
+        // If the token itself looks like an email (contains @), use it directly
+        // as the email. This lets tests set Authorization: Bearer user@domain.com
+        // and have req.user.email === 'user@domain.com' for operator-gate checks.
+        const email = userId.includes('@') ? userId : `${userId}@test.com`;
+        return { data: { user: { id: userId, email } }, error: null };
       },
     },
   };

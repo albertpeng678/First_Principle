@@ -108,15 +108,24 @@ router.post('/draft', requireAuth, async (req, res) => {
 // GET /api/circles-sessions
 router.get('/', requireAuth, async (req, res) => {
   const owner = req.user.id;
-  // Cache only for default (no filter) requests to keep invalidation simple.
-  if (!req.query.status && !req.query.limit) {
+
+  // Operator gate for include_empty flag (SLC-AC13/AC14)
+  const wantsEmpty = req.query.include_empty === 'true';
+  const isOperator = !!(req.user.email && process.env.OPERATOR_EMAIL
+    && req.user.email === process.env.OPERATOR_EMAIL);
+  if (wantsEmpty && !isOperator) {
+    return res.status(403).json({ error: 'forbidden' });
+  }
+
+  // Cache only for default (no filter, no include_empty) requests to keep invalidation simple.
+  if (!req.query.status && !req.query.limit && !wantsEmpty) {
     const cached = cache.get(CACHE_KIND, owner);
     if (cached) return res.json(cached);
   }
 
   let query = db
     .from('circles_sessions')
-    .select('id, question_id, question_json, mode, drill_step, current_phase, sim_step_index, status, step_scores, step_drafts, framework_draft, created_at, updated_at')
+    .select('id, question_id, question_json, mode, drill_step, current_phase, sim_step_index, status, step_scores, step_drafts, framework_draft, lifecycle, created_at, updated_at')
     .eq('user_id', owner)
     .order('updated_at', { ascending: false })
     .limit(Math.min(Math.max(parseInt(req.query.limit) || 20, 1), 50));
@@ -124,12 +133,14 @@ router.get('/', requireAuth, async (req, res) => {
   const { data, error } = await query;
   if (error) return res.status(500).json({ error: error.message });
 
-  const deduped = dedupSessions(data || []);
+  // Default-exclude lifecycle='created' rows; operator with include_empty=true sees all.
+  const rows = wantsEmpty ? (data || []) : (data || []).filter(r => r.lifecycle !== 'created');
+  const deduped = dedupSessions(rows);
   const enriched = rehydrateMany(
     deduped.map(d => ({ ...d, currentQuestion: QUESTION_BY_ID[d.question_id] || null })),
     'circles'
   );
-  if (!req.query.status && !req.query.limit) {
+  if (!req.query.status && !req.query.limit && !wantsEmpty) {
     cache.set(CACHE_KIND, owner, enriched);
   }
   res.json(enriched);

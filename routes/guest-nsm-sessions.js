@@ -33,17 +33,26 @@ router.post('/', requireGuestId, async (req, res) => {
 // GET /api/guest/nsm-sessions
 router.get('/', requireGuestId, async (req, res) => {
   const owner = req.guestId;
+
+  // Guest endpoints have no authenticated user — include_empty is always rejected (SLC-AC13).
+  const wantsEmpty = req.query.include_empty === 'true';
+  if (wantsEmpty) {
+    return res.status(403).json({ error: 'forbidden' });
+  }
+
   const cached = cache.get(CACHE_KIND, owner);
   if (cached) return res.json(cached);
 
   const { data, error } = await db
     .from('nsm_sessions')
-    .select('id, question_id, question_json, status, scores_json, user_nsm, user_breakdown, created_at')
+    .select('id, question_id, question_json, status, scores_json, user_nsm, user_breakdown, lifecycle, created_at')
     .eq('guest_id', owner)
     .order('created_at', { ascending: false });
   if (error) return res.status(500).json({ error: error.message });
 
-  const deduped = dedupSessions(data || []);
+  // Default-exclude lifecycle='created' rows (guest endpoints never allow include_empty).
+  const rows = (data || []).filter(r => r.lifecycle !== 'created');
+  const deduped = dedupSessions(rows);
   const rehydrated = rehydrateMany(deduped, 'nsm');
   cache.set(CACHE_KIND, owner, rehydrated);
   res.json(rehydrated);
