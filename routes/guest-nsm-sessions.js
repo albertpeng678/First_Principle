@@ -131,7 +131,8 @@ router.post('/:id/gate', requireGuestId, async (req, res) => {
     });
     const route = result && result.ok ? 'gate_ok' : 'gate_fail';
     const nextLifecycle = computeLifecycle(session, { nsm, rationale }, 'nsm', route);
-    await db.from('nsm_sessions').update({ lifecycle: nextLifecycle }).eq('id', req.params.id).eq('guest_id', req.guestId);
+    const { error: upErr } = await db.from('nsm_sessions').update({ lifecycle: nextLifecycle }).eq('id', req.params.id).eq('guest_id', req.guestId);
+    if (upErr) throw upErr;
     res.json(result);
   } catch (e) { res.status(500).json({ error: e.message }); }
 });
