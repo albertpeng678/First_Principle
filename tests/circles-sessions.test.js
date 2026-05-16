@@ -80,6 +80,11 @@ db.auth.getUser.mockResolvedValue({ data: { user: FAKE_USER }, error: null });
 const router = require('../routes/circles-sessions');
 app.use('/api/circles-sessions', router);
 
+const guestRouter = require('../routes/guest-circles-sessions');
+app.use('/api/guest-circles-sessions', guestRouter);
+
+const GUEST_HEADER = { 'X-Guest-ID': '11111111-1111-4111-8111-111111111111' };
+
 // ── Helpers ──────────────────────────────────────────────────────────────────
 
 function resetDbChain() {
@@ -979,5 +984,69 @@ describe('PATCH /api/circles-sessions/:id/progress', () => {
       .patch('/api/circles-sessions/session-abc/progress')
       .send({ currentPhase: 1 });
     expect(res.status).toBe(401);
+  });
+});
+
+// ── Stage 1B B4 — DELETE cache invalidation (regression guard) ───────────────
+
+describe('Stage 1B B4 — DELETE cache invalidation (regression guard)', () => {
+  test('B4-A1: auth DELETE /api/circles-sessions/:id → 200 + cache.invalidate called', async () => {
+    // Arrange: session found for the authenticated user
+    db.single.mockResolvedValue({ data: { id: 'session-abc' }, error: null });
+
+    const invalidateSpy = jest.spyOn(cache, 'invalidate');
+
+    const res = await request(app)
+      .delete('/api/circles-sessions/session-abc')
+      .set(AUTH_HEADER);
+
+    // Assert: route returns 200 ok
+    expect(res.status).toBe(200);
+    expect(res.body.ok).toBe(true);
+
+    // Assert: cache.invalidate was called (proves the FE/cache race guard is in place)
+    expect(invalidateSpy).toHaveBeenCalledWith('circles-auth', FAKE_USER.id);
+
+    invalidateSpy.mockRestore();
+  });
+
+  test('B4-A2: guest DELETE /api/guest-circles-sessions/:id → 200 + cache.invalidate called', async () => {
+    // Arrange: guest session found
+    db.single.mockResolvedValue({ data: { id: 'session-guest-1' }, error: null });
+
+    const invalidateSpy = jest.spyOn(cache, 'invalidate');
+
+    const res = await request(app)
+      .delete('/api/guest-circles-sessions/session-guest-1')
+      .set(GUEST_HEADER);
+
+    // Assert: route returns 200 ok
+    expect(res.status).toBe(200);
+    expect(res.body.ok).toBe(true);
+
+    // Assert: guest cache invalidated with correct kind + guestId
+    expect(invalidateSpy).toHaveBeenCalledWith('circles-guest', '11111111-1111-4111-8111-111111111111');
+
+    invalidateSpy.mockRestore();
+  });
+
+  test('B4-A3: auth DELETE with unknown id → 404, cache.invalidate NOT called', async () => {
+    // Arrange: session not found (not_found path)
+    db.single.mockResolvedValue({ data: null, error: null });
+
+    const invalidateSpy = jest.spyOn(cache, 'invalidate');
+
+    const res = await request(app)
+      .delete('/api/circles-sessions/nonexistent-id')
+      .set(AUTH_HEADER);
+
+    // Assert: route returns 404 not_found
+    expect(res.status).toBe(404);
+    expect(res.body.error).toBe('not_found');
+
+    // Assert: cache is untouched — invalidate must not be called on 404
+    expect(invalidateSpy).not.toHaveBeenCalled();
+
+    invalidateSpy.mockRestore();
   });
 });
