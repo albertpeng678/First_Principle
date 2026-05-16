@@ -2,6 +2,12 @@
 // Stage 1B B4 — offcanvas DELETE snapshot + rollback unit specs.
 // Spec ref: 2026-05-16-stage-1b §6 B4-U1..U4.
 
+'use strict';
+
+const path = require('path');
+const fs = require('fs');
+const vm = require('vm');
+
 describe('Stage 1B B4 — offcanvas delete handler rollback semantics', () => {
   let handler;        // function (id) => Promise — exposed test hook
   let AppState;
@@ -12,7 +18,8 @@ describe('Stage 1B B4 — offcanvas delete handler rollback semantics', () => {
     // window for test (production behavior unchanged — hook is debug-only).
     ({ handler, AppState } = loadDeleteHandlerForTest());
     mockApiFetch = jest.fn();
-    window.apiFetch = mockApiFetch;
+    // Wire the mock into AppState's window reference used by the handler
+    AppState.__apiFetch = mockApiFetch;
     AppState.historyList = [
       { id: 'a', mode: 'drill', drill_step: 'C1' },
       { id: 'b', mode: 'drill', drill_step: 'C1' },
@@ -53,5 +60,65 @@ describe('Stage 1B B4 — offcanvas delete handler rollback semantics', () => {
 });
 
 function loadDeleteHandlerForTest() {
-  throw new Error('IMPLEMENTER: expose deleteOffcanvasItem on window via test-only hook, or use the same harness pattern as B3 unit specs');
+  const appSrc = fs.readFileSync(
+    path.join(__dirname, '../../public/app.js'),
+    'utf8'
+  );
+
+  // Extract _doOffcanvasDelete from app.js source text.
+  const fnMarker = 'function _doOffcanvasDelete(id)';
+  const fnStart = appSrc.indexOf(fnMarker);
+  if (fnStart === -1) throw new Error('_doOffcanvasDelete not found in app.js');
+
+  // Find the closing brace: look for the pattern "  }" at the two-space indent level
+  // that closes this function (same depth as the function declaration)
+  let braceDepth = 0;
+  let inFn = false;
+  let fnEnd = -1;
+  for (let i = fnStart; i < appSrc.length; i++) {
+    if (appSrc[i] === '{') { braceDepth++; inFn = true; }
+    else if (appSrc[i] === '}') {
+      braceDepth--;
+      if (inFn && braceDepth === 0) { fnEnd = i + 1; break; }
+    }
+  }
+  if (fnEnd === -1) throw new Error('Could not find closing brace of _doOffcanvasDelete');
+
+  const fnSrc = appSrc.slice(fnStart, fnEnd);
+
+  // Build a minimal AppState with required fields.
+  const AppState = {
+    historyList: [],
+    accessToken: null,
+    _resumeToastMsg: null,
+    _resumeToastShow: false,
+    __apiFetch: null,  // test sets this before each call
+  };
+
+  // The wrapper runs _doOffcanvasDelete in a vm context where:
+  //   - AppState is shared by reference
+  //   - window.apiFetch delegates to AppState.__apiFetch (set per-test by jest.fn())
+  //   - render() is a no-op stub
+  //   - setTimeout is a no-op (we only care about state, not the auto-clear timer)
+  const wrapperSrc = `
+    ${fnSrc}
+    __exposedHandler = _doOffcanvasDelete;
+  `;
+
+  const ctx = {
+    AppState,
+    window: {
+      apiFetch: function () {
+        return AppState.__apiFetch.apply(this, arguments);
+      },
+    },
+    render: function () {},
+    setTimeout: function () {},
+    console: { log: function(){}, warn: function(){}, error: function(){} },
+    __exposedHandler: null,
+  };
+  vm.createContext(ctx);
+  vm.runInContext(wrapperSrc, ctx);
+
+  return { handler: ctx.__exposedHandler, AppState };
 }

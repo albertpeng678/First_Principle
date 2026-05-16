@@ -8120,6 +8120,39 @@
   // Expose for Playwright test access (Bug 1 TDD)
   window._loadCirclesSessionItem = loadCirclesSessionFromHistory;
 
+  // Stage 1B B4: extracted delete logic — returns a Promise so tests can await it.
+  // Production callers fire-and-forget (the click handler does not await).
+  function _doOffcanvasDelete(id) {
+    // route to correct endpoint based on session kind (mirror loadCirclesSessionFromHistory heuristic)
+    const item = (AppState.historyList || []).find(function (i) { return String(i.id) === String(id); });
+    const isNsm = item && !item.mode && !item.drill_step;
+    // Stage 1B B4: snapshot BEFORE optimistic filter so we can rollback.
+    const __originalList = (AppState.historyList || []).slice();
+    AppState.historyList = AppState.historyList.filter(function (i) { return i.id !== id; });
+    render();
+    var path;
+    if (isNsm) {
+      path = AppState.accessToken ? '/api/nsm-sessions/' + id : '/api/guest/nsm-sessions/' + id;
+    } else {
+      path = AppState.accessToken ? '/api/circles-sessions/' + id : '/api/guest-circles-sessions/' + id;
+    }
+    // Stage 1B B4: await + rollback. 404 = already gone server-side = treat as success.
+    return (async function () {
+      try {
+        const resp = await window.apiFetch(path, { method: 'DELETE' });
+        if (!resp || (!resp.ok && resp.status !== 404)) throw new Error('delete-failed-' + (resp && resp.status));
+      } catch (_err) {
+        AppState.historyList = __originalList;
+        AppState._resumeToastMsg = '刪除失敗，請再試一次';
+        AppState._resumeToastShow = true;
+        render();
+        setTimeout(function () { AppState._resumeToastShow = false; render(); }, 6000);
+      }
+    })();
+  }
+  // Test-only hook: expose _doOffcanvasDelete for unit specs. No effect in prod.
+  if (typeof window !== 'undefined') window.__test_doOffcanvasDelete = _doOffcanvasDelete;
+
   function bindOffcanvas() {
     if (!AppState.offcanvasOpen) return;
     document.querySelectorAll('[data-offcanvas]').forEach(function (el) {
@@ -8133,19 +8166,7 @@
           AppState.historyList = null;
           loadHistory();
         } else if (action === 'delete') {
-          const id = el.dataset.id;
-          // route to correct endpoint based on session kind (mirror loadCirclesSessionFromHistory heuristic)
-          const item = (AppState.historyList || []).find(function (i) { return String(i.id) === String(id); });
-          const isNsm = item && !item.mode && !item.drill_step;
-          AppState.historyList = AppState.historyList.filter(function (i) { return i.id !== id; });
-          render();
-          var path;
-          if (isNsm) {
-            path = AppState.accessToken ? '/api/nsm-sessions/' + id : '/api/guest/nsm-sessions/' + id;
-          } else {
-            path = AppState.accessToken ? '/api/circles-sessions/' + id : '/api/guest-circles-sessions/' + id;
-          }
-          window.apiFetch(path, { method: 'DELETE' }).catch(function () {});
+          _doOffcanvasDelete(el.dataset.id);
         } else if (action === 'item') {
           // Guard: don't trigger if delete button was clicked (delete is nested inside item div)
           if (e.target.closest('[data-offcanvas="delete"]')) return;
