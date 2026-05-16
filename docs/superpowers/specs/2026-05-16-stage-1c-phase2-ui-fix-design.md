@@ -321,7 +321,7 @@ render()
 
 ### render() 呼叫時 qchip panel 狀態重置
 
-由於 `qchip-panel` 的 `is-open` 狀態**不存在 AppState**，每次 `render()` 重繪後 panel 預設收合（`display: none`）。此為預期行為：換步驟後 panel 不保留展開狀態，使用者需重新點擊展開。若未來需要跨 render 保留展開狀態，可加 `AppState.circlesPhase2QchipOpen` boolean（屬 Stage 1D 後續決策，本次 out of scope）。
+由於 `qchip-panel` 的 `is-open` 狀態**不存在 AppState**，每次 `render()` 重繪後 panel 預設收合（`display: none`）。此為預期行為：換步驟後 panel 不保留展開狀態，使用者需重新點擊展開。若未來需要跨 render 保留展開狀態，可加 `AppState.circlesPhase2QchipOpen` boolean（屬 Stage 1C 後續決策，本次 out of scope）。
 
 ---
 
@@ -405,6 +405,7 @@ Projects 匹配：`e2e-desktop`（Desktop Chrome）+ `e2e-mobile-chrome`（Pixel
 | B5-AC3 | 點擊「收合題目」或再次點擊 qchip → panel 收合，caret 還原，`aria-expanded="false"` | E2E suite 1 test 3 + 4 |
 | B5-AC4 | DOM 中無 `.phase-back-row` 元素；`上一步` button 為 `.input-bar__row` 的第一個子元素，`boundingBox Y` 與 textarea 同行（差距 ≤ 4px） | E2E suite 2 test 1 + 2 |
 | B5-AC5 | 6 viewport × 2 state snapshot（closed / open × mobile 360 / tablet 768 / desktop 1280）pixel diff ≤ 0.5%，對齊 B5 mockup commit `418900a` | Visual regression 6.1 |
+| B5-AC6 | qchip + qchip-panel **必須在全部 3 個 render 路徑** wire-up：(1) `renderCirclesPhase2` 正常分支 (app.js ~1044)、(2) `renderCirclesPhase2Locked` locked 分支 (app.js ~1053)、(3) 結論分支 (app.js ~892)。每一路徑經 E2E 進入後 qchip 按鈕 + caret-down + 展開面板皆可正常 toggle；locked 路徑 caret 不得 regression 為 caret-right | E2E `phase2-ui-fix.spec.js` Test suite 3（lock state + conclusion regression）+ grep 確認 3 site 皆呼叫 `renderQchipPanelHtml(q)` |
 
 ---
 
@@ -419,6 +420,7 @@ Projects 匹配：`e2e-desktop`（Desktop Chrome）+ `e2e-mobile-chrome`（Pixel
 | `renderCirclesPhase2Locked`（Section F）的 back button 行為 | Locked 分支使用 `go-phase1` / `go-phase3` 兩個 button，layout 獨立，不套用 input-bar__row 模式 | 不需改動 |
 | NSM Phase 2（`renderNsmStep4` 等）qchip | NSM qchip 結構不同（pill + scenario），不共用 `renderPhase2QchipHtml` | 不在 CIRCLES Phase 2 範圍 |
 | 任何後端 / API / prompt 更動 | Path 2 carve-out：backend / OpenAI prompts 鎖死 | 不適用 |
+| `.example-list` / `.hint-content` line-height 調整 | Stage 1D 將 `.example-list` line-height 由 1.7 → 1.85 並新增 `.hint-content` 規則；本 spec **嚴禁觸碰**這兩條規則以避免 1C↔1D merge 衝突 | Stage 1D |
 
 ---
 
