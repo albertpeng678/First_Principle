@@ -53,7 +53,7 @@ module.exports = defineConfig({
     // 3. E2E project — desktop chrome
     {
       name: 'e2e-desktop',
-      testMatch: /(circles-gate|circles-phase3-restore|circles-phase3-restore-real|offcanvas-delete|phase2-ui-fix|circles-delete-rollback-real|persist-retry-browser-real)\.spec\.js$/,
+      testMatch: /(circles-gate|circles-phase3-restore|circles-phase3-restore-real|offcanvas-delete|phase2-ui-fix|circles-delete-rollback-real|persist-retry-browser-real|critical-path-full-flow)\.spec\.js$/,
       use: { ...devices['Desktop Chrome'], storageState: AUTH_FILE },
       dependencies: ['setup'],
     },
@@ -61,7 +61,7 @@ module.exports = defineConfig({
     // 4. E2E project — mobile chrome (for race + reflow on small viewport)
     {
       name: 'e2e-mobile-chrome',
-      testMatch: /(circles-gate|circles-phase3-restore|circles-phase3-restore-real|offcanvas-delete|phase2-ui-fix|circles-delete-rollback-real|persist-retry-browser-real)\.spec\.js$/,
+      testMatch: /(circles-gate|circles-phase3-restore|circles-phase3-restore-real|offcanvas-delete|phase2-ui-fix|circles-delete-rollback-real|persist-retry-browser-real|critical-path-full-flow)\.spec\.js$/,
       use: { ...devices['Pixel 5'], storageState: AUTH_FILE },
       dependencies: ['setup'],
     },
@@ -69,7 +69,7 @@ module.exports = defineConfig({
     // 5. E2E project — mobile WebKit (per memory feedback_ios_review_before_ship)
     {
       name: 'e2e-mobile-safari',
-      testMatch: /(circles-gate|circles-phase3-restore|circles-phase3-restore-real|offcanvas-delete|phase2-ui-fix|circles-delete-rollback-real|persist-retry-browser-real)\.spec\.js$/,
+      testMatch: /(circles-gate|circles-phase3-restore|circles-phase3-restore-real|offcanvas-delete|phase2-ui-fix|circles-delete-rollback-real|persist-retry-browser-real|critical-path-full-flow)\.spec\.js$/,
       use: { ...devices['iPhone 14'], storageState: AUTH_FILE },
       dependencies: ['setup'],
     },
