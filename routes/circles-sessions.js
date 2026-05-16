@@ -14,6 +14,7 @@ const { generateCirclesExample } = require('../prompts/circles-example');
 const { rehydrateMany, rehydrateQuestionJson } = require('../lib/session-rehydrate');
 const cache = require('../lib/session-cache');
 const { dedupSessions } = require('../lib/session-dedup');
+const { computeLifecycle } = require('../lib/session-lifecycle');
 
 const CACHE_KIND = 'circles-auth';
 
@@ -78,6 +79,7 @@ router.post('/draft', requireAuth, async (req, res) => {
         status: 'active',
         step_drafts: {},
         framework_draft: {},
+        lifecycle: 'created',
       })
       .select()
       .single();
@@ -180,7 +182,9 @@ router.post('/:id/gate', requireAuth, async (req, res) => {
       questionJson: session.question_json,
       mode: session.mode,
     });
-    await db.from('circles_sessions').update({ framework_draft: frameworkDraft, gate_result: gateResult }).eq('id', req.params.id).eq('user_id', req.user.id);
+    const route = gateResult && gateResult.ok ? 'gate_ok' : 'gate_fail';
+    const nextLifecycle = computeLifecycle(session, { frameworkDraft }, 'circles', route);
+    await db.from('circles_sessions').update({ framework_draft: frameworkDraft, gate_result: gateResult, lifecycle: nextLifecycle }).eq('id', req.params.id).eq('user_id', req.user.id);
     res.json(gateResult);
   } catch (e) { res.status(500).json({ error: e.message }); }
 });
@@ -279,8 +283,13 @@ router.post('/:id/conclusion-check', requireAuth, async (req, res) => {
 // Called on every phase transition so the session can be resumed after page close.
 // Block 2: also accepts phase2ConclusionDraft → stored in progress_json.
 router.patch('/:id/progress', requireAuth, async (req, res) => {
+  // Strip FE-supplied lifecycle — server always computes it (SLC-AC10)
+  delete req.body.lifecycle;
   const { currentPhase, simStepIndex, frameworkDraft, gateResult, stepDrafts, phase2ConclusionDraft } = req.body;
   const patch = {};
+  let priorSession = { lifecycle: 'created' }; // default; overwritten by fetches below
+  let lifecycleFetched = false;
+
   if (currentPhase   !== undefined) patch.current_phase    = currentPhase;
   if (simStepIndex   !== undefined) patch.sim_step_index   = simStepIndex;
   if (frameworkDraft !== undefined) patch.framework_draft  = frameworkDraft;
@@ -289,12 +298,14 @@ router.patch('/:id/progress', requireAuth, async (req, res) => {
   if (phase2ConclusionDraft !== undefined) {
     const { data: prior } = await db
       .from('circles_sessions')
-      .select('progress_json')
+      .select('progress_json, lifecycle')
       .eq('id', req.params.id)
       .eq('user_id', req.user.id)
       .maybeSingle();
     const existingPj = (prior && prior.progress_json) || {};
     patch.progress_json = { ...existingPj, phase2ConclusionDraft };
+    if (prior) priorSession = prior;
+    lifecycleFetched = true;
   }
   // B2-2 — shallow-merge step_drafts so two tabs each editing a different
   // step key don't last-write-wins each other's keys. Read-modify-write is
@@ -303,15 +314,33 @@ router.patch('/:id/progress', requireAuth, async (req, res) => {
     if (stepDrafts && typeof stepDrafts === 'object' && !Array.isArray(stepDrafts)) {
       const { data: prior } = await db
         .from('circles_sessions')
-        .select('step_drafts')
+        .select('step_drafts, lifecycle')
         .eq('id', req.params.id)
         .eq('user_id', req.user.id)
         .maybeSingle();
       patch.step_drafts = { ...(prior?.step_drafts || {}), ...stepDrafts };
+      if (prior && !lifecycleFetched) priorSession = prior;
+      lifecycleFetched = true;
     } else {
       patch.step_drafts = stepDrafts;
     }
   }
+  // When frameworkDraft is present but no other DB read has captured lifecycle,
+  // do a targeted lifecycle fetch for the monotone promotion check (SLC-AC5/AC9).
+  if (frameworkDraft !== undefined && !lifecycleFetched) {
+    const { data: prior } = await db
+      .from('circles_sessions')
+      .select('lifecycle')
+      .eq('id', req.params.id)
+      .eq('user_id', req.user.id)
+      .maybeSingle();
+    if (prior) priorSession = prior;
+  }
+  // Compute next lifecycle from content in req.body (monotone — never demotes)
+  const nextLifecycle = computeLifecycle(priorSession, req.body, 'circles', 'patch');
+  const currentLc = priorSession.lifecycle || 'created';
+  if (nextLifecycle !== currentLc) patch.lifecycle = nextLifecycle;
+
   if (Object.keys(patch).length === 0) return res.status(400).json({ error: 'nothing_to_update' });
 
   const { data, error } = await db
@@ -337,7 +366,7 @@ router.post('/:id/final-report', requireAuth, async (req, res) => {
   // re-computed on every call. Mirror of guest variant.
   const { data: session, error } = await db
     .from('circles_sessions')
-    .select('question_json, step_scores')
+    .select('question_json, step_scores, lifecycle')
     .eq('id', req.params.id)
     .eq('user_id', req.user.id)
     .maybeSingle();
@@ -354,8 +383,10 @@ router.post('/:id/final-report', requireAuth, async (req, res) => {
       stepScores: session.step_scores,
       questionJson: session.question_json,
     });
+    const nextLifecycle = computeLifecycle(session, {}, 'circles', 'analysis_done');
     await db.from('circles_sessions').update({
       status: 'completed',
+      lifecycle: nextLifecycle,
     }).eq('id', req.params.id).eq('user_id', req.user.id);
     cache.invalidate(CACHE_KIND, req.user.id);
     res.json(report);

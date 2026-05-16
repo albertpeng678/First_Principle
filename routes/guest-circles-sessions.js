@@ -14,6 +14,7 @@ const { generateCirclesExample } = require('../prompts/circles-example');
 const { rehydrateMany, rehydrateQuestionJson } = require('../lib/session-rehydrate');
 const cache = require('../lib/session-cache');
 const { dedupSessions } = require('../lib/session-dedup');
+const { computeLifecycle } = require('../lib/session-lifecycle');
 
 const CACHE_KIND = 'circles-guest';
 
@@ -90,6 +91,7 @@ router.post('/draft', requireGuestId, async (req, res) => {
         status: 'active',
         step_drafts: {},
         framework_draft: {},
+        lifecycle: 'created',
       })
       .select()
       .single();
@@ -179,7 +181,9 @@ router.post('/:id/gate', requireGuestId, async (req, res) => {
       questionJson: session.question_json,
       mode: session.mode,
     });
-    await db.from('circles_sessions').update({ framework_draft: frameworkDraft, gate_result: gateResult }).eq('id', req.params.id).eq('guest_id', req.guestId);
+    const route = gateResult && gateResult.ok ? 'gate_ok' : 'gate_fail';
+    const nextLifecycle = computeLifecycle(session, { frameworkDraft }, 'circles', route);
+    await db.from('circles_sessions').update({ framework_draft: frameworkDraft, gate_result: gateResult, lifecycle: nextLifecycle }).eq('id', req.params.id).eq('guest_id', req.guestId);
     res.json(gateResult);
   } catch (e) { res.status(500).json({ error: e.message }); }
 });
@@ -270,8 +274,13 @@ router.post('/:id/conclusion-check', requireGuestId, async (req, res) => {
 
 // PATCH /api/guest-circles-sessions/:id/progress
 router.patch('/:id/progress', requireGuestId, async (req, res) => {
+  // Strip FE-supplied lifecycle — server always computes it (SLC-AC10)
+  delete req.body.lifecycle;
   const { currentPhase, simStepIndex, frameworkDraft, gateResult, stepDrafts } = req.body;
   const patch = {};
+  let priorSession = { lifecycle: 'created' }; // default; overwritten by fetches below
+  let lifecycleFetched = false;
+
   if (currentPhase   !== undefined) patch.current_phase    = currentPhase;
   if (simStepIndex   !== undefined) patch.sim_step_index   = simStepIndex;
   if (frameworkDraft !== undefined) patch.framework_draft  = frameworkDraft;
@@ -281,15 +290,33 @@ router.patch('/:id/progress', requireGuestId, async (req, res) => {
     if (stepDrafts && typeof stepDrafts === 'object' && !Array.isArray(stepDrafts)) {
       const { data: prior } = await db
         .from('circles_sessions')
-        .select('step_drafts')
+        .select('step_drafts, lifecycle')
         .eq('id', req.params.id)
         .eq('guest_id', req.guestId)
         .maybeSingle();
       patch.step_drafts = { ...(prior?.step_drafts || {}), ...stepDrafts };
+      if (prior && !lifecycleFetched) priorSession = prior;
+      lifecycleFetched = true;
     } else {
       patch.step_drafts = stepDrafts;
     }
   }
+  // When frameworkDraft is present but no other DB read has captured lifecycle,
+  // do a targeted lifecycle fetch for the monotone promotion check (SLC-AC5/AC9).
+  if (frameworkDraft !== undefined && !lifecycleFetched) {
+    const { data: prior } = await db
+      .from('circles_sessions')
+      .select('lifecycle')
+      .eq('id', req.params.id)
+      .eq('guest_id', req.guestId)
+      .maybeSingle();
+    if (prior) priorSession = prior;
+  }
+  // Compute next lifecycle from content in req.body (monotone — never demotes)
+  const nextLifecycle = computeLifecycle(priorSession, req.body, 'circles', 'patch');
+  const currentLc = priorSession.lifecycle || 'created';
+  if (nextLifecycle !== currentLc) patch.lifecycle = nextLifecycle;
+
   if (Object.keys(patch).length === 0) return res.status(400).json({ error: 'nothing_to_update' });
 
   // Chain .select() so Supabase reports the affected row. If 0 rows match
@@ -319,7 +346,7 @@ router.post('/:id/final-report', requireGuestId, async (req, res) => {
   // "row not found" (404) from a real DB error (500).
   const { data: session, error } = await db
     .from('circles_sessions')
-    .select('question_json, step_scores')
+    .select('question_json, step_scores, lifecycle')
     .eq('id', req.params.id)
     .eq('guest_id', req.guestId)
     .maybeSingle();
@@ -336,8 +363,10 @@ router.post('/:id/final-report', requireGuestId, async (req, res) => {
       stepScores: session.step_scores,
       questionJson: session.question_json,
     });
+    const nextLifecycle = computeLifecycle(session, {}, 'circles', 'analysis_done');
     await db.from('circles_sessions').update({
       status: 'completed',
+      lifecycle: nextLifecycle,
     }).eq('id', req.params.id).eq('guest_id', req.guestId);
     cache.invalidate(CACHE_KIND, req.guestId);
     res.json(report);
