@@ -10,6 +10,7 @@ const { guessProductType } = require('../prompts/utils/product-type');
 const { rehydrateMany, rehydrateQuestionJson } = require('../lib/session-rehydrate');
 const cache = require('../lib/session-cache');
 const { dedupSessions } = require('../lib/session-dedup');
+const { computeLifecycle } = require('../lib/session-lifecycle');
 
 const CACHE_KIND = 'nsm-auth';
 
@@ -95,12 +96,14 @@ router.post('/:id/evaluate', requireAuth, async (req, res) => {
     // B6-1 — defense-in-depth: scope the UPDATE to the authenticated owner
     // so a TOCTOU race or future regression in the SELECT guard above can't
     // let one user mutate another's session row.
+    const nextLifecycle = computeLifecycle(session, {}, 'nsm', 'analysis_done');
     const { error: upErr } = await db.from('nsm_sessions').update({
       user_nsm: userNsm,
       user_breakdown: userBreakdown,
       scores_json: result,
       coach_tree_json: result.coachTree,
       status: 'completed',
+      lifecycle: nextLifecycle,
       updated_at: new Date().toISOString()
     }).eq('id', req.params.id).eq('user_id', req.user.id);
     if (upErr) throw upErr;
@@ -118,7 +121,7 @@ router.post('/:id/gate', requireAuth, async (req, res) => {
   if (nsm.length > NSM_GATE_MAX || rationale.length > NSM_GATE_MAX) return res.status(400).json({ error: 'input_too_long' });
   const { data: session, error } = await db
     .from('nsm_sessions')
-    .select('question_json')
+    .select('question_json, lifecycle')
     .eq('id', req.params.id)
     .eq('user_id', req.user.id)
     .single();
@@ -129,6 +132,9 @@ router.post('/:id/gate', requireAuth, async (req, res) => {
       nsm,
       rationale,
     });
+    const route = result && result.ok ? 'gate_ok' : 'gate_fail';
+    const nextLifecycle = computeLifecycle(session, { nsm, rationale }, 'nsm', route);
+    await db.from('nsm_sessions').update({ lifecycle: nextLifecycle }).eq('id', req.params.id).eq('user_id', req.user.id);
     res.json(result);
   } catch (e) { res.status(500).json({ error: e.message }); }
 });
@@ -151,27 +157,47 @@ router.post('/:id/context', requireAuth, async (req, res) => {
 // PATCH /api/nsm-sessions/:id/progress — auth sibling of guest variant.
 // Requires migrations/2026-04-29-nsm-progress-json.sql.
 router.patch('/:id/progress', requireAuth, async (req, res) => {
+  // Strip FE-supplied lifecycle — server always computes it (SLC-AC10)
+  delete req.body.lifecycle;
   const { currentStep, userNsm, userBreakdown, gateResult, reportTab, progress, userExplanation, userBusinessLink } = req.body || {};
   const patch = {};
   if (userNsm       !== undefined) patch.user_nsm       = userNsm;
   if (userBreakdown !== undefined) patch.user_breakdown = userBreakdown;
   if (userExplanation  !== undefined) patch.user_explanation  = userExplanation;
   if (userBusinessLink !== undefined) patch.user_business_link = userBusinessLink;
+  let priorSession = { lifecycle: 'created' }; // default; overwritten by fetches below
   let existingProgress = {};
   if (currentStep !== undefined || gateResult !== undefined || reportTab !== undefined) {
     const { data: current } = await db
       .from('nsm_sessions')
-      .select('progress_json')
+      .select('progress_json, lifecycle')
       .eq('id', req.params.id)
       .eq('user_id', req.user.id)
       .maybeSingle();
     existingProgress = (current && current.progress_json) || {};
+    if (current) priorSession = current;
+  }
+  // When userNsm or userBreakdown present but no DB read has captured lifecycle yet,
+  // do a targeted lifecycle fetch for the monotone promotion check (SLC-AC5/AC9).
+  if ((userNsm !== undefined || userBreakdown !== undefined || userExplanation !== undefined || userBusinessLink !== undefined) &&
+      priorSession.lifecycle === 'created' && currentStep === undefined && gateResult === undefined && reportTab === undefined) {
+    const { data: prior } = await db
+      .from('nsm_sessions')
+      .select('lifecycle')
+      .eq('id', req.params.id)
+      .eq('user_id', req.user.id)
+      .maybeSingle();
+    if (prior) priorSession = prior;
   }
   const merged = { ...existingProgress, ...(progress && typeof progress === 'object' ? progress : {}) };
   if (currentStep !== undefined) merged.currentStep = currentStep;
   if (gateResult  !== undefined) merged.gateResult  = gateResult;
   if (reportTab   !== undefined) merged.reportTab   = reportTab;
   if (Object.keys(merged).length > 0) patch.progress_json = merged;
+  // Compute next lifecycle from content in req.body (monotone — never demotes)
+  const nextLifecycle = computeLifecycle(priorSession, req.body, 'nsm', 'patch');
+  const currentLc = priorSession.lifecycle || 'created';
+  if (nextLifecycle !== currentLc) patch.lifecycle = nextLifecycle;
   if (Object.keys(patch).length === 0) return res.status(400).json({ error: 'nothing_to_update' });
   patch.updated_at = new Date().toISOString();
 
