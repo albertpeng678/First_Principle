@@ -876,7 +876,8 @@
 
     // ── progress bar (always visible in Phase 2 — mockup 05 shows it) ──
     var progressHtml = renderProgressBar(stepKey);
-    var qchipHtml = renderPhase2QchipHtml(q) + renderQchipPanelHtml(q);
+    // AC-1 (spec b2ca935 §3.1): reuse Phase 1 qchip-expand for 4-block analysis
+    var qchipHtml = renderPhase2QchipHtml(q) + renderQchipExpand(q);
 
     // ── Section E: conclusion mode (dim chat + conclusion box) ───────────────
     if (AppState.circlesPhase2ConclusionMode) {
@@ -1061,7 +1062,8 @@
   // ── renderCirclesPhase2Locked (Section F — mockup 05 line 1740-1943) ──────
   function renderCirclesPhase2Locked(q, stepKey, phase2Cfg, conversation, scoreData) {
     var progressHtml = renderProgressBar(stepKey);
-    var qchipHtml = renderPhase2QchipHtml(q) + renderQchipPanelHtml(q);
+    // AC-1 (spec b2ca935 §3.1): same qchip-expand reuse in locked state
+    var qchipHtml = renderPhase2QchipHtml(q) + renderQchipExpand(q);
     var totalScore = scoreData && scoreData.totalScore;
 
     // phase-head with 已評分 suffix
@@ -6707,9 +6709,11 @@
       });
     });
 
-    // ── qchip 展開面板 toggle ──
+    // ── qchip 展開面板 toggle (AC-1 spec b2ca935 §3.1: target .qchip-expand) ──
     var qchipBtn = document.querySelector('[data-phase2="qchip"]');
-    var qchipPanel = document.querySelector('[data-phase2="qchip-panel"]');
+    var qchipPanel = document.querySelector('.qchip-expand');
+    // renderQchipExpand 不帶 display:none，初始化時手動隱藏
+    if (qchipPanel) { qchipPanel.style.display = 'none'; }
     function toggleQchipPanel(open) {
       if (!qchipBtn || !qchipPanel) return;
       if (open) {
@@ -6729,7 +6733,8 @@
         toggleQchipPanel(!qchipBtn.classList.contains('is-open'));
       });
     }
-    var qchipCloseBtn = document.querySelector('[data-phase2="qchip-panel-close"]');
+    // renderQchipExpand 內收合 btn 帶 data-phase1="qchip-collapse"，Phase 2 也要 wire
+    var qchipCloseBtn = document.querySelector('.qchip-expand [data-phase1="qchip-collapse"]');
     if (qchipCloseBtn) {
       qchipCloseBtn.addEventListener('click', function (e) {
         e.stopPropagation();  // 避免冒泡觸發 qchipBtn click
