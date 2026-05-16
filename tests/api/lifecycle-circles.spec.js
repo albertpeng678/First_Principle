@@ -139,14 +139,16 @@ test.describe('CIRCLES lifecycle — real API', () => {
     });
     expect(gateRes.status()).toBe(200);
     const gateBody = await gateRes.json();
-    // Real OpenAI may return ok=true or ok=false; we assert the route returns 200
+    // Real OpenAI may pass or fail; assert the route returns 200
     // and the lifecycle is consistent with the gate result
-    expect(typeof gateBody.ok).toBe('boolean');
+    expect(typeof gateBody.canProceed).toBe('boolean');
+    expect(['ok', 'warn', 'error']).toContain(gateBody.overallStatus);
+    const gateOk = gateBody.canProceed && (gateBody.overallStatus === 'ok' || gateBody.overallStatus === 'warn');
 
     // Verify lifecycle in DB reflects gate result
     const getRes = await request.get(`${BASE_URL}/api/circles-sessions/${session.id}`, { headers });
     const updated = await getRes.json();
-    if (gateBody.ok) {
+    if (gateOk) {
       expect(updated.lifecycle).toBe('gated');
     } else {
       expect(updated.lifecycle).toBe('editing');
@@ -166,8 +168,8 @@ test.describe('CIRCLES lifecycle — real API', () => {
     });
     expect(gateRes.status()).toBe(200);
     const gateBody = await gateRes.json();
-    // Garbage input reliably gets ok=false from AI
-    expect(gateBody.ok).toBe(false);
+    // Garbage input reliably gets canProceed=false from AI
+    expect(gateBody.canProceed).toBe(false);
 
     const getRes = await request.get(`${BASE_URL}/api/circles-sessions/${session.id}`, { headers });
     const updated = await getRes.json();
@@ -191,8 +193,9 @@ test.describe('CIRCLES lifecycle — real API', () => {
     expect(gateRes.status()).toBe(200);
     const gateBody = await gateRes.json();
 
-    if (!gateBody.ok) {
-      // AI returned ok=false with quality input — rare but possible; skip final-report
+    const gateOk = gateBody.canProceed && (gateBody.overallStatus === 'ok' || gateBody.overallStatus === 'warn');
+    if (!gateOk) {
+      // AI did not pass gate with quality input — rare but possible; skip final-report
       console.warn('SLC-AC8: gate returned ok=false; skipping final-report lifecycle test');
       return;
     }

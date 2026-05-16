@@ -138,7 +138,7 @@ router.post('/:id/gate', requireGuestId, async (req, res) => {
       nsm,
       rationale,
     });
-    const route = result && result.ok ? 'gate_ok' : 'gate_fail';
+    const route = result && result.canProceed && (result.overallStatus === 'ok' || result.overallStatus === 'warn') ? 'gate_ok' : 'gate_fail';
     const nextLifecycle = computeLifecycle(session, { nsm, rationale }, 'nsm', route);
     const { error: upErr } = await db.from('nsm_sessions').update({ lifecycle: nextLifecycle }).eq('id', req.params.id).eq('guest_id', req.guestId);
     if (upErr) throw upErr;

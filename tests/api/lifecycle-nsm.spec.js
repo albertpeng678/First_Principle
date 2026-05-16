@@ -189,11 +189,13 @@ test.describe('NSM lifecycle — real API', () => {
     });
     expect(gateRes.status()).toBe(200);
     const gateBody = await gateRes.json();
-    expect(typeof gateBody.ok).toBe('boolean');
+    expect(typeof gateBody.canProceed).toBe('boolean');
+    expect(['ok', 'warn', 'error']).toContain(gateBody.overallStatus);
+    const gateOk = gateBody.canProceed && (gateBody.overallStatus === 'ok' || gateBody.overallStatus === 'warn');
 
     // Lifecycle must be consistent with gate result
     const session = await getSession(request, id);
-    if (gateBody.ok) {
+    if (gateOk) {
       expect(session.lifecycle).toBe('gated');
     } else {
       expect(session.lifecycle).toBe('editing');
@@ -215,8 +217,8 @@ test.describe('NSM lifecycle — real API', () => {
     });
     expect(gateRes.status()).toBe(200);
     const gateBody = await gateRes.json();
-    // Vague input reliably gets ok=false
-    expect(gateBody.ok).toBe(false);
+    // Vague input reliably gets canProceed=false
+    expect(gateBody.canProceed).toBe(false);
 
     const session = await getSession(request, id);
     expect(session.lifecycle).not.toBe('gated');
@@ -237,7 +239,8 @@ test.describe('NSM lifecycle — real API', () => {
     expect(gateRes.status()).toBe(200);
     const gateBody = await gateRes.json();
 
-    if (!gateBody.ok) {
+    const gateOk = gateBody.canProceed && (gateBody.overallStatus === 'ok' || gateBody.overallStatus === 'warn');
+    if (!gateOk) {
       console.warn('SLC-AC8/nsm: gate returned ok=false with quality input; skipping evaluate lifecycle test');
       return;
     }

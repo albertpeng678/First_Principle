@@ -189,7 +189,7 @@ router.post('/:id/gate', requireGuestId, async (req, res) => {
       questionJson: session.question_json,
       mode: session.mode,
     });
-    const route = gateResult && gateResult.ok ? 'gate_ok' : 'gate_fail';
+    const route = gateResult && gateResult.canProceed && (gateResult.overallStatus === 'ok' || gateResult.overallStatus === 'warn') ? 'gate_ok' : 'gate_fail';
     const nextLifecycle = computeLifecycle(session, { frameworkDraft }, 'circles', route);
     await db.from('circles_sessions').update({ framework_draft: frameworkDraft, gate_result: gateResult, lifecycle: nextLifecycle }).eq('id', req.params.id).eq('guest_id', req.guestId);
     res.json(gateResult);
