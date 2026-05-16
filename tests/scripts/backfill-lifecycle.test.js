@@ -68,3 +68,23 @@ describe('backfill-lifecycle.classify (NSM)', () => {
     expect(classify({ user_explanation: 'e2e-r1-17896543210' }, 'nsm')).toBe('created');
   });
 });
+
+describe('backfill-lifecycle.classify — monotone floor (P1.1)', () => {
+  test('lifecycle=gated with no gate_result → stays gated (not demoted to created)', () => {
+    // Row already marked gated (e.g. older NSM row without gate_result column)
+    // Re-running backfill must not demote it back to created.
+    expect(classify({ lifecycle: 'gated' }, 'circles')).toBe('gated');
+  });
+
+  test('lifecycle=completed with no analysis → stays completed (not demoted)', () => {
+    // Row already completed; null analysis fields must not demote it.
+    expect(classify({ lifecycle: 'completed', analysis: null }, 'circles')).toBe('completed');
+  });
+
+  test('lifecycle=editing with stub content only → stays editing (not demoted to created)', () => {
+    // Row marked editing but only polluted content present — floor keeps it at editing.
+    expect(
+      classify({ lifecycle: 'editing', framework_draft: { C1: { 問題範圍: 'e2e-r1-17896543210' } } }, 'circles')
+    ).toBe('editing');
+  });
+});

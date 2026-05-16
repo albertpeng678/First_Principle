@@ -9,19 +9,27 @@
 //
 // Idempotent: re-run is safe (the rule reads existing lifecycle and respects 'completed').
 
-const { hasSubstantiveContent } = require('../lib/session-lifecycle');
+const { hasSubstantiveContent, PRIORITY } = require('../lib/session-lifecycle');
 
 function classify(row, kind) {
   if (!row || typeof row !== 'object') return 'created';
 
+  // Monotone floor — computed state may never demote an existing lifecycle.
+  const currentLc = row.lifecycle || 'created';
+  const floor = PRIORITY[currentLc] ?? -1;
+
+  function applyFloor(computed) {
+    return PRIORITY[computed] >= floor ? computed : currentLc;
+  }
+
   // Terminal first
   if (row.status === 'completed' || row.lifecycle === 'completed') return 'completed';
-  if (kind === 'nsm' && row.scores_json) return 'completed';
+  if (kind === 'nsm' && row.scores_json) return applyFloor('completed');
 
   // Gated
-  if (kind === 'circles' && row.gate_result && row.gate_result.ok === true) return 'gated';
+  if (kind === 'circles' && row.gate_result && row.gate_result.ok === true) return applyFloor('gated');
   if (kind === 'nsm' && row.progress_json && row.progress_json.gateResult && row.progress_json.gateResult.ok === true) {
-    return 'gated';
+    return applyFloor('gated');
   }
 
   // Editing — fold the row shape into a virtual patch body, then re-use helper
@@ -31,7 +39,7 @@ function classify(row, kind) {
       stepDrafts: row.step_drafts || {},
       phase2ConclusionDraft: (row.progress_json && row.progress_json.phase2ConclusionDraft) || '',
     };
-    if (hasSubstantiveContent(virtual, 'circles', 'patch')) return 'editing';
+    if (hasSubstantiveContent(virtual, 'circles', 'patch')) return applyFloor('editing');
   } else {
     const virtual = {
       userNsm: row.user_nsm,
@@ -39,10 +47,10 @@ function classify(row, kind) {
       userExplanation: row.user_explanation,
       userBusinessLink: row.user_business_link,
     };
-    if (hasSubstantiveContent(virtual, 'nsm', 'patch')) return 'editing';
+    if (hasSubstantiveContent(virtual, 'nsm', 'patch')) return applyFloor('editing');
   }
 
-  return 'created';
+  return applyFloor('created');
 }
 
 async function main() {
@@ -63,17 +71,27 @@ async function main() {
     nsm:     { completed: 0, gated: 0, editing: 0, created: 0 },
   };
 
+  const PAGE = 1000;
+
   for (const kind of ['circles', 'nsm']) {
     const table = kind === 'circles' ? 'circles_sessions' : 'nsm_sessions';
-    const { data, error } = await db.from(table).select('*');
-    if (error) throw error;
-    for (const row of data) {
-      const next = classify(row, kind);
-      summary[kind][next]++;
-      if (apply && row.lifecycle !== next) {
-        const { error: uErr } = await db.from(table).update({ lifecycle: next }).eq('id', row.id);
-        if (uErr) throw uErr;
+    let offset = 0;
+    while (true) {
+      const { data, error } = await db.from(table)
+        .select('*')
+        .range(offset, offset + PAGE - 1);
+      if (error) throw error;
+      if (!data || data.length === 0) break;
+      for (const row of data) {
+        const next = classify(row, kind);
+        summary[kind][next]++;
+        if (apply && row.lifecycle !== next) {
+          const { error: uErr } = await db.from(table).update({ lifecycle: next }).eq('id', row.id);
+          if (uErr) throw uErr;
+        }
       }
+      if (data.length < PAGE) break;
+      offset += PAGE;
     }
   }
 
