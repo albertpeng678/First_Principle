@@ -111,8 +111,7 @@ router.get('/', requireAuth, async (req, res) => {
 
   // Operator gate for include_empty flag (SLC-AC13/AC14)
   const wantsEmpty = req.query.include_empty === 'true';
-  const isOperator = !!(req.user.email && process.env.OPERATOR_EMAIL
-    && req.user.email === process.env.OPERATOR_EMAIL);
+  const isOperator = (req.user.email || '').toLowerCase() === (process.env.OPERATOR_EMAIL || '').toLowerCase();
   if (wantsEmpty && !isOperator) {
     return res.status(403).json({ error: 'forbidden' });
   }
