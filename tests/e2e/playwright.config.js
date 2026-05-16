@@ -16,6 +16,9 @@ module.exports = defineConfig({
   workers: process.env.CI ? 2 : undefined,
   reporter: process.env.CI ? [['blob']] : [['list'], ['html', { open: 'never' }]],
 
+  // T12: gate specs call real OpenAI (~5-25 s) + boot overhead (~5 s) → 90 s.
+  timeout: 90_000,
+
   use: {
     baseURL: process.env.BASE_URL || 'http://localhost:3000',
     trace: 'on-first-retry',
