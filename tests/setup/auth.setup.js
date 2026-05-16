@@ -30,12 +30,18 @@ setup('authenticate as e2e@first-principle.test', async ({ page, context }) => {
     throw new Error('auth.setup: TEST_EMAIL and TEST_PASSWORD required in .env.local');
   }
 
-  // Pre-flight: scrub stale storageState file so a prior bad run cannot leak
-  // a valid-looking auth state into downstream specs (per code-review #9).
-  if (fs.existsSync(AUTH_FILE)) fs.unlinkSync(AUTH_FILE);
-
-  // Ensure .auth directory exists
+  // Ensure .auth directory exists (idempotent — recursive)
   fs.mkdirSync(path.dirname(AUTH_FILE), { recursive: true });
+
+  // NOTE: stale-state scrub previously used `fs.unlinkSync(AUTH_FILE)` here,
+  // which created a race window — Playwright's project scheduler dispatches
+  // dependent e2e workers as soon as the setup project signals; if a worker
+  // read storageState between unlink + write it would hit ENOENT (~30% flake
+  // observed on e2e-mobile-safari project, see Stage 1A T5 review report).
+  // Fix: atomic write — write to temp file + fs.renameSync (atomic on same FS).
+  // rename() overwrites the destination atomically, so no unlink needed and
+  // no window where AUTH_FILE is missing. Per code-review #9 the stale-state
+  // concern is still addressed because rename replaces the file in one op.
 
   // Force guest state — clear any cookies/localStorage from prior session that
   // might already render .navbar__email and false-positive the post-login wait
@@ -63,13 +69,21 @@ setup('authenticate as e2e@first-principle.test', async ({ page, context }) => {
   // Wait for post-login signal: .navbar__email span appears with the user's email
   await expect(page.locator('.navbar__email')).toBeVisible({ timeout: 15_000 });
 
-  // Save storageState (cookies + localStorage)
-  await page.context().storageState({ path: AUTH_FILE });
+  // Save storageState atomically: write to temp file, then rename.
+  // fs.renameSync is atomic on the same filesystem (POSIX guarantee), so
+  // downstream e2e workers reading AUTH_FILE will see either the prior
+  // valid file or the new valid file — never a missing/partial file.
+  const TEMP_FILE = AUTH_FILE + '.tmp';
+  await page.context().storageState({ path: TEMP_FILE });
 
-  // IL-2 evidence: verify file written and contains meaningful data
-  const stat = fs.statSync(AUTH_FILE);
+  // IL-2 evidence: verify temp file written and contains meaningful data
+  // BEFORE the rename, so a malformed write cannot poison the live file.
+  const stat = fs.statSync(TEMP_FILE);
   expect(stat.size).toBeGreaterThan(100);
-  const parsed = JSON.parse(fs.readFileSync(AUTH_FILE, 'utf8'));
+  const parsed = JSON.parse(fs.readFileSync(TEMP_FILE, 'utf8'));
   expect(parsed).toHaveProperty('cookies');
   expect(Array.isArray(parsed.cookies)).toBe(true);
+
+  // Atomic swap — overwrites AUTH_FILE in a single FS op (no ENOENT window).
+  fs.renameSync(TEMP_FILE, AUTH_FILE);
 });

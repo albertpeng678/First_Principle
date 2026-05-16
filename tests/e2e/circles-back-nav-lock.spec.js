@@ -232,7 +232,9 @@ test.describe('CIRCLES back-nav lock + qchip 4-block — AC-5 (spec b2ca935)', (
 
   // ── TC1 — lock-on-back: Phase 2 → Phase 1 locked (AC-3, validates commit d8e4814) ──
   test('TC1: 上一步 from scored Phase 2 → Phase 1 locked (readonly + view-score btn + hint/example clickable)', async ({ page }, testInfo) => {
-    test.slow();
+    // T5 cleanup: test.slow() removed — observed runtime 2-3 s per TC, default
+    // 90 s timeout (playwright.config.js:20) is more than sufficient. Triple-
+    // ing to 270 s only masked the auth.setup.js race (fixed in same commit).
     let sessionId;
 
     try {
@@ -294,7 +296,9 @@ test.describe('CIRCLES back-nav lock + qchip 4-block — AC-5 (spec b2ca935)', (
 
   // ── TC2 — BE 422 reject re-score (AC-2, validates commit d930159) ──────────
   test('TC2: POST /evaluate-step on already-scored step → 422 step_already_scored', async ({ page }, testInfo) => {
-    test.slow();
+    // T5 cleanup: test.slow() removed — observed runtime 2-3 s per TC, default
+    // 90 s timeout (playwright.config.js:20) is more than sufficient. Triple-
+    // ing to 270 s only masked the auth.setup.js race (fixed in same commit).
     let sessionId;
 
     try {
@@ -338,7 +342,9 @@ test.describe('CIRCLES back-nav lock + qchip 4-block — AC-5 (spec b2ca935)', (
 
   // ── TC3 — Phase 3 retry button disabled (AC-4, validates commit 3a61489) ───
   test('TC3: Phase 3 retry button disabled when step scored (error variant)', async ({ page }, testInfo) => {
-    test.slow();
+    // T5 cleanup: test.slow() removed — observed runtime 2-3 s per TC, default
+    // 90 s timeout (playwright.config.js:20) is more than sufficient. Triple-
+    // ing to 270 s only masked the auth.setup.js race (fixed in same commit).
     let sessionId;
 
     try {
@@ -378,7 +384,9 @@ test.describe('CIRCLES back-nav lock + qchip 4-block — AC-5 (spec b2ca935)', (
 
   // ── TC4 — qchip 4-block content (AC-1, validates commit 49d00ba) ───────────
   test('TC4: Phase 2 qchip click → 4 .qchip-ana__block visible with all 4 labels', async ({ page }, testInfo) => {
-    test.slow();
+    // T5 cleanup: test.slow() removed — observed runtime 2-3 s per TC, default
+    // 90 s timeout (playwright.config.js:20) is more than sufficient. Triple-
+    // ing to 270 s only masked the auth.setup.js race (fixed in same commit).
     let sessionId;
 
     try {
@@ -420,7 +428,7 @@ test.describe('CIRCLES back-nav lock + qchip 4-block — AC-5 (spec b2ca935)', (
 
   // ── TC5 — Cross-step independence (AC-3 边界) ─────────────────────────────
   test(`TC5: ${STEP.TC5_SCORED} scored does NOT lock ${STEP.TC5_UNSCORED} step (separate session per drill step)`, async ({ page }, testInfo) => {
-    test.slow();
+    // T5 cleanup: see note above — default 90 s timeout sufficient.
     let sessionScored, sessionUnscored;
 
     try {
