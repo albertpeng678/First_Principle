@@ -7365,6 +7365,11 @@
       el.addEventListener('click', function () {
         var act = el.dataset.gateAction;
         if (act === 'proceed') {
+          // B6 race guard: block phase advance if gate still inflight
+          if (AppState.gateInflight) {
+            console.warn('[gate] phase transition blocked — gate inflight, target=2');
+            return;
+          }
           AppState.circlesPhase = 2;
           clearGateState();
           render();
@@ -7708,6 +7713,11 @@
   // login + register can all call simultaneously; share one in-flight promise).
   var _resumePromise = null;
   async function tryResumeLatestSession() {
+    // B6 race guard: don't overwrite phase mid-flight from server response
+    if (AppState.gateInflight) {
+      console.warn('[gate] rehydrate blocked — gate inflight; will resume on next poll/reload');
+      return;
+    }
     // Bug F fix: if a call is already in-flight, return the same promise so
     // parallel callers share the result rather than spawning independent fetches.
     if (_resumePromise) return _resumePromise;
@@ -7971,6 +7981,11 @@
 
   async function loadCirclesSessionFromHistory(item) {
     if (!item || !item.id) return;
+    // B6 race guard: don't overwrite phase mid-flight from server response
+    if (AppState.gateInflight) {
+      console.warn('[gate] rehydrate blocked — gate inflight; will resume on next poll/reload');
+      return;
+    }
 
     // NSM path — restore all fields needed by renderNSMStep* before render()
     var isNsm = !item.mode && !item.drill_step;
