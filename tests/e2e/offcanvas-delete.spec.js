@@ -66,6 +66,12 @@ async function bootApp(page) {
 // Per memory feedback_e2e_real_data_only: no mocking of session data.
 // Note: ensureCirclesDraftSession is a local function inside the app IIFE and
 // not exposed on window, so we replicate its minimal POST directly via apiFetch.
+//
+// After the draft POST (lifecycle='created'), a PATCH /progress with substantive
+// frameworkDraft content promotes lifecycle → 'editing' so the T5 list filter
+// (GET /api/circles-sessions excludes lifecycle='created' rows) returns the
+// session in offcanvas loadHistory.
+// Skill ref: test-data-management.md §API Seeding; when-to-mock.md Pitfall 11.
 async function createRealSession(page) {
   // Wait for CIRCLES_QUESTIONS to be available.
   await page.waitForFunction(() => window.CIRCLES_QUESTIONS && window.CIRCLES_QUESTIONS.length > 0, {
@@ -91,7 +97,26 @@ async function createRealSession(page) {
   });
 
   expect(id).toBeTruthy();
-  return String(id);
+  const sessionId = String(id);
+
+  // PATCH /progress — promote lifecycle 'created' → 'editing' so the T5 list
+  // filter (which excludes lifecycle='created' rows) includes this session.
+  // Must hit real BE — never mock own API (when-to-mock.md Pitfall 11 carve-out).
+  await page.evaluate(async (sid) => {
+    const A = window.AppState;
+    const progressPath = A.accessToken
+      ? `/api/circles-sessions/${sid}/progress`
+      : `/api/guest-circles-sessions/${sid}/progress`;
+    await window.apiFetch(progressPath, {
+      method: 'PATCH',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({
+        frameworkDraft: { C1: { '問題範圍': '測試用問題範圍內容' } },
+      }),
+    });
+  }, sessionId);
+
+  return sessionId;
 }
 
 // ── Offcanvas open + await item helper ────────────────────────────────────────
