@@ -91,6 +91,46 @@ a { color: inherit; text-decoration: none; }
 .qchip__pill { padding: 2px var(--s-2); border-radius: var(--r-pill); font-size: var(--t-cap); background: var(--c-navy-lt); color: var(--c-navy); font-weight: 600; flex: 0 0 auto; }
 .qchip__caret { color: var(--c-ink-3); font-size: 14px; flex: 0 0 auto; }
 
+/* qchip caret rotate on open (Stage 1C B5 fix) */
+.qchip.is-open .qchip__caret { transform: rotate(180deg); }
+
+/* qchip expand panel */
+.qchip-panel {
+  display: none;
+  background: var(--c-surface);
+  border-bottom: 1px solid var(--c-rule);
+  padding: var(--s-3) var(--s-5);
+}
+.qchip-panel.is-open { display: block; }
+.qchip-panel__type {
+  display: inline-flex;
+  align-items: center;
+  gap: var(--s-1);
+  padding: 2px var(--s-2);
+  background: var(--c-navy-lt);
+  color: var(--c-navy);
+  font-size: var(--t-cap);
+  font-weight: 600;
+  border-radius: var(--r-pill);
+  letter-spacing: 0.04em;
+  margin-bottom: var(--s-3);
+}
+.qchip-panel__body {
+  font-size: var(--t-body-sm);
+  color: var(--c-ink);
+  line-height: 1.7;
+}
+.qchip-panel__close {
+  margin-top: var(--s-3);
+  display: inline-flex;
+  align-items: center;
+  gap: var(--s-1);
+  font-size: var(--t-cap);
+  color: var(--c-ink-3);
+  cursor: pointer;
+}
+.qchip-panel__close:hover { color: var(--c-ink); }
+
 /* ───── LOCKED · submit-bar (verbatim mockup 03+) ───── */
 /* fixed at viewport bottom regardless of content height (per mockup vp-frame intent) */
 .submit-bar { position: fixed; bottom: 0; left: 0; right: 0; z-index: 50; background: rgba(255,255,255,0.92); -webkit-backdrop-filter: saturate(140%) blur(10px); backdrop-filter: saturate(140%) blur(10px); border-top: 1px solid var(--c-rule); padding: var(--s-3) var(--s-4) max(var(--s-3), env(safe-area-inset-bottom)); display: flex; gap: var(--s-3); justify-content: space-between; align-items: center; }
@@ -2001,16 +2041,6 @@ div.rt-textarea[contenteditable="true"] ul li { list-style: disc; }
   padding: 2px var(--s-2);
   border-radius: var(--r-pill);
   flex: 0 0 auto;
-}
-
-/* phase-back row (上一步) */
-.phase-back-row {
-  padding: var(--s-2) var(--s-4);
-  background: transparent;
-  max-width: 920px;
-  margin: 0 auto;
-  width: 100%;
-  display: flex;
 }
 
 /* input bar */
