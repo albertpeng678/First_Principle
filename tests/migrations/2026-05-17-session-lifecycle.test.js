@@ -25,19 +25,19 @@ describe('migration 2026-05-17-session-lifecycle.sql', () => {
 
   test('creates user index on circles_sessions', () => {
     expect(MIGRATION).toMatch(
-      /CREATE INDEX IF NOT EXISTS\s+idx_circles_sessions_lifecycle_user\s+ON\s+circles_sessions\s*\(\s*user_id\s*,\s*lifecycle\s*,\s*updated_at\s+DESC\s*\)/i
+      /CREATE INDEX (CONCURRENTLY )?IF NOT EXISTS\s+idx_circles_sessions_lifecycle_user\s+ON\s+circles_sessions\s*\(\s*user_id\s*,\s*lifecycle\s*,\s*updated_at\s+DESC\s*\)/i
     );
   });
 
   test('creates guest index on circles_sessions', () => {
     expect(MIGRATION).toMatch(
-      /CREATE INDEX IF NOT EXISTS\s+idx_circles_sessions_lifecycle_guest\s+ON\s+circles_sessions\s*\(\s*guest_id\s*,\s*lifecycle\s*,\s*updated_at\s+DESC\s*\)/i
+      /CREATE INDEX (CONCURRENTLY )?IF NOT EXISTS\s+idx_circles_sessions_lifecycle_guest\s+ON\s+circles_sessions\s*\(\s*guest_id\s*,\s*lifecycle\s*,\s*updated_at\s+DESC\s*\)/i
     );
   });
 
   test('creates user index on nsm_sessions', () => {
     expect(MIGRATION).toMatch(
-      /CREATE INDEX IF NOT EXISTS\s+idx_nsm_sessions_lifecycle_user\s+ON\s+nsm_sessions\s*\(\s*user_id\s*,\s*lifecycle\s*,\s*updated_at\s+DESC\s*\)/i
+      /CREATE INDEX (CONCURRENTLY )?IF NOT EXISTS\s+idx_nsm_sessions_lifecycle_user\s+ON\s+nsm_sessions\s*\(\s*user_id\s*,\s*lifecycle\s*,\s*updated_at\s+DESC\s*\)/i
     );
   });
 
