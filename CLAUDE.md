@@ -1,10 +1,11 @@
 # PM Drill — 專案狀態看板
 
 > 即時狀態 single source of truth。**不放歷史（git log 有）**。重大事件即時 Edit。
-> **Last updated:** 2026-05-16（Stage 0 B7 ship + Stage 1A T1-T13 ship + 1B/1C/1D specs awaiting 放行 + 13 sessions cleanup + lifecycle spec PAUSED）
+> **Last updated:** 2026-05-17（CIRCLES chat drift + lock-on-back ship + Stage 0 + Stage 1A T1-T13 + 1B/1C/1D specs awaiting 放行 + 13 sessions cleanup + lifecycle spec PAUSED）
 
 ## 當前狀態（30 秒讀完）
 
+- **CIRCLES chat drift + lock-on-back ship (2026-05-17)**：spec `b2ca935` + 7-task plan `4a01550` + commits `d8e4814`/`3a61489`/`49d00ba`/`d930159`/`24c2ac6`/`34c1361`/`c3bc286`/`313b4fd`/`32d348e`/`217c342`/`8e51b8f` + Director cold-Read 6 PNG + E2E 5 TC × 3 projects 16/16 GREEN × 10 runs no flake。AC-1/2/3/4/5/6 全綠；jest 530/552（5 pre-existing fails 全為 lifecycle wiring，未觸我 Task 1-7 範圍）；Task 5 back-nav spec 16/16 GREEN。UAT SOP `audit/sop-2026-05-17-circles-lock-and-qchip-uat.md`。
 - **Stage 0 ship (2026-05-16)**：B7 prod 污染清理 + prevention infra（env-guard / auto-cleanup fixture / pre-commit hook / 3-env split / `e2e@first-principle.test`）+ 2 條 STANDING memory（three_iron_laws / e2e_real_data_only）+ skill 整合 plan ship。15 commits `4dba816..1ba062e`；jest 45/45；V2 security-review PASS WITH NOTES。
 - **Stage 1A gate cluster (B1+B6) ship (2026-05-16)**：T1-T12 implementer 完成，T13 jest 410/428（1 pre-existing fail，無 regression）；T14 + T15 收尾待跑。
 - **Stage 1B/1C/1D specs ship (2026-05-16)**：brainstorm 完 → `2c6fa51`（1B）/ `8ca4b81`（1C）/ `93d2695`（1D）— 等 user 放行才 dispatch impl。
@@ -14,7 +15,7 @@
 - **Stage 1D B-Hint inventory**：發現 1 條 spec gap（NSM step1 hint location）；agent running 確認中。
 - **Path 2 Frontend Rewrite ✅ 17/17 mockup 全 ship**（Layer 2 pixel-diff `ba6c49f` 機械驗證 60 cases × 3 vp，0 structural drift）
 - **NSM 2026-05-12 ship**：總驗收 8 vp UAT 3 bug 全修 → `3344a95` / `b15eee6` / `e1f53be`；同日早 ship NSM bundle 8 bugs `762a8ab` → `a44f67d` + 100 NSM 題 content backfill
-- **Baseline 不破：** jest 410/428（1 pre-existing fail）+ Playwright NSM specs 64/64 pass × 8 vp
+- **Baseline 不破：** jest 530/552（5 pre-existing lifecycle fails，無新 regression）+ Playwright NSM specs 64/64 pass × 8 vp + Playwright `circles-back-nav-lock` 16/16 × 3 projects
 - **接手 Handoff：** `docs/PATH-2-HANDOFF.md` + memory `project_pending_followups_2026-05-10.md`
 
 ---
