@@ -1,7 +1,7 @@
 const OpenAI = require('openai');
 const client = new OpenAI({ apiKey: process.env.OPENAI_API_KEY });
 
-async function generateNSMHints({ question_json, user_nsm, product_type }) {
+async function generateNSMHints({ question_json, product_type }) {
   const { company, scenario } = question_json;
 
   const typeHints = {
@@ -16,19 +16,24 @@ async function generateNSMHints({ question_json, user_nsm, product_type }) {
 公司：${company}
 情境：${scenario}
 產品類型：${typeHints[product_type] || '注意力型'}
-學員定義的 NSM：${user_nsm || '（尚未定義）'}
 
-請為學員提供 4 個維度的引導提示。每個提示需要：
+請為學員提供 4 個維度的引導提示。每個維度需要：
 1. 針對「${company}」這個具體公司的情境
 2. 以一個啟發性問題開頭（讓學員主動思考）
 3. 接著給出 1 個具體的參考方向（不是答案，是思考方向）
 
-回傳 JSON（繁體中文）：
+每個維度的輸出格式（嚴格遵守）：
+- 巢狀 markdown bullets（頂層用「- 」，子項用「  - 」）
+- 頂層 2 項，每項可帶 1 子項
+- 1-3 個 **bold** 關鍵字
+- 整段 ≤ 160 chars，純繁體中文，不用 emoji
+
+回傳 JSON：
 {
-  "reach": "<針對${company}的廣度維度：啟發性問題 + 參考方向，2-3句>",
-  "depth": "<針對${company}的深度維度：啟發性問題 + 參考方向，2-3句>",
-  "frequency": "<針對${company}的頻率維度：啟發性問題 + 參考方向，2-3句>",
-  "impact": "<針對${company}的業務影響維度：啟發性問題 + 參考方向，2-3句>"
+  "reach":     "<以 markdown bullets 格式 (- 開頭) 描述針對 ${company} 的廣度維度提示>",
+  "depth":     "<以 markdown bullets 格式 (- 開頭) 描述針對 ${company} 的深度維度提示>",
+  "frequency": "<以 markdown bullets 格式 (- 開頭) 描述針對 ${company} 的頻率維度提示>",
+  "impact":    "<以 markdown bullets 格式 (- 開頭) 描述針對 ${company} 的業務影響維度提示>"
 }`;
 
   const response = await client.chat.completions.create({
