@@ -258,6 +258,16 @@ router.post('/:id/evaluate-step', requireAuth, async (req, res) => {
     .eq('user_id', req.user.id)
     .single();
   if (error || !session) return res.status(404).json({ error: 'not_found' });
+  // AC-2 (spec b2ca935 §3.2) — 422 reject re-score attempt for already-scored stepKey.
+  // stepKey is derived server-side from session.drill_step (route ignores req.body.stepKey).
+  const stepKey = session.drill_step || 'C1';
+  if (session.step_scores && session.step_scores[stepKey] != null) {
+    return res.status(422).json({
+      error: 'step_already_scored',
+      stepKey,
+      message: 'This step has already been scored; re-scoring is not allowed.',
+    });
+  }
   try {
     const { result } = await runEvaluateStep({
       session,

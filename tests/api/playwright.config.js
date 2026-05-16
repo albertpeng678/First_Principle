@@ -123,5 +123,10 @@ module.exports = defineConfig({
       name: 'api-guest-crud',
       testMatch: /guest-crud-real\.spec\.js$/,
     },
+    // AC-2 (spec b2ca935) — /evaluate-step 422 rescore guard contract test.
+    {
+      name: 'api-evaluate-step-rescore-guard',
+      testMatch: /circles-evaluate-step-rescore-guard\.spec\.js$/,
+    },
   ],
 });
