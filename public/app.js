@@ -7414,7 +7414,7 @@
     // before burning a network round-trip. Only applies to standard 4-field steps (C1/I).
     if (window.frameworkValidator && (stepKey === 'C1' || stepKey === 'I')) {
       var validationValues = buildFrameworkValuesForValidator(stepKey, draft);
-      var validation = window.frameworkValidator.validateFrameworkInput(validationValues);
+      var validation = window.frameworkValidator.validateFrameworkInput(validationValues, { onlySection: stepKey });
       if (!validation.ok) {
         renderInlineFrameworkErrors(validation.errors);
         console.warn('[gate] Layer 1 blocked', validation.errors.length, 'field(s)');

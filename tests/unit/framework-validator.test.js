@@ -150,4 +150,41 @@ describe('validateFrameworkInput', () => {
     expect(validateFrameworkInput(undefined).ok).toBe(false);
     expect(validateFrameworkInput({}).ok).toBe(false);
   });
+
+  describe('opts.onlySection', () => {
+    test('onlySection=C1 + only C1 filled with quality → ok=true', () => {
+      const r = validateFrameworkInput(
+        { I: {}, C1: goodValues.C1 },
+        { onlySection: 'C1' }
+      );
+      expect(r.ok).toBe(true);
+      expect(r.errors).toEqual([]);
+    });
+
+    test('onlySection=I + only I filled with quality → ok=true', () => {
+      const r = validateFrameworkInput(
+        { I: goodValues.I, C1: {} },
+        { onlySection: 'I' }
+      );
+      expect(r.ok).toBe(true);
+      expect(r.errors).toEqual([]);
+    });
+
+    test('onlySection=C1 + C1 has garbage Y → 4 errors all C1.*', () => {
+      const r = validateFrameworkInput(
+        { I: {}, C1: { '問題範圍': 'Y', '時間範圍': 'Y', '業務影響': 'Y', '假設確認': 'Y' } },
+        { onlySection: 'C1' }
+      );
+      expect(r.ok).toBe(false);
+      expect(r.errors).toHaveLength(4);
+      expect(r.errors.every((e) => e.field.startsWith('C1.'))).toBe(true);
+    });
+
+    test('default (no opts) still validates both sections', () => {
+      // sanity — existing behavior unchanged
+      const r = validateFrameworkInput({ I: {}, C1: goodValues.C1 });
+      expect(r.ok).toBe(false);
+      expect(r.errors.filter((e) => e.field.startsWith('I.'))).toHaveLength(4);
+    });
+  });
 });

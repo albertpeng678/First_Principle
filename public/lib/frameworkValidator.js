@@ -26,12 +26,17 @@ function notTrivialAsciiToken(value) {
   return false; // ≤ 4 ASCII chars, no Chinese, no space → trivial
 }
 
-function validateFrameworkInput(values) {
+function validateFrameworkInput(values, opts) {
+  opts = opts || {};
   const errors = [];
   if (!values || typeof values !== 'object') {
     return { ok: false, errors: [{ field: '_root', rule: 'shape', message: 'values is required' }] };
   }
-  const sections = [['I', I_FIELDS], ['C1', C1_FIELDS]];
+  // Default: validate both sections. opts.onlySection ('I' | 'C1') scopes to one section (drill mode).
+  const allSections = [['I', I_FIELDS], ['C1', C1_FIELDS]];
+  const sections = opts.onlySection
+    ? allSections.filter(function (pair) { return pair[0] === opts.onlySection; })
+    : allSections;
   for (const [section, fields] of sections) {
     const sectionVals = values[section] || {};
     for (const field of fields) {
