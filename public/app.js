@@ -6724,9 +6724,15 @@
     }
 
     // ── back button (go to Phase 1) ──
+    // AC-3 (spec b2ca935 §3.3): if THIS step was already scored, lock Phase 1 form
     var backBtn = document.querySelector('[data-phase2="back"]');
     if (backBtn) {
       backBtn.addEventListener('click', function () {
+        var stepKey = AppState.circlesDrillStep;
+        var scoredMap = AppState.circlesStepScores || {};
+        if (stepKey && scoredMap[stepKey]) {
+          AppState.circlesLocked = true;
+        }
         AppState.circlesPhase = 1;
         render();
       });
