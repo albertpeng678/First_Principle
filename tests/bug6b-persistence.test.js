@@ -1454,45 +1454,63 @@ describe('Bug F — tryResumeLatestSession dedupe logic (pure simulation)', () =
 });
 
 // ══════════════════════════════════════════════════════════════════════════════
-// Section G: Bug H — submitFrameworkToGate must PATCH gateResult to server
-// Root cause: FE set AppState.circlesGateResult but never called PATCH
-// /api/circles-sessions/:id/progress → gate_result never written to DB →
-// cross-device reload restored null (Bug H fix: fire-and-forget PATCH added).
+// Section G: Bug H + Plan #194 T3 (RES-AC4) — submitFrameworkToGate must AWAIT
+// PATCH gateResult to server BEFORE setting AppState.circlesGateResult / render.
+// Original Bug H: FE never PATCHed → cross-device reload restored null.
+// T3 follow-up: fire-and-forget PATCH had a race window where the active tab
+// rendered gate-pass + advanced phase while PATCH was still in flight; a second
+// device or rapid tab close lost the gateResult. Fix: await persistRetry(PATCH)
+// BEFORE setting circlesGateResult + render(). Loading state stays true during
+// PATCH so UI shows the gate loading view (not gate-pass) until durability is
+// confirmed.
 // ══════════════════════════════════════════════════════════════════════════════
 
-describe('Bug H — submitFrameworkToGate PATCHes gateResult to server', () => {
+describe('Bug H + T3 (RES-AC4) — submitFrameworkToGate awaits PATCH gateResult before render', () => {
   const fs = require('fs');
   const path = require('path');
   const appSrc = fs.readFileSync(path.join(__dirname, '../public/app.js'), 'utf8');
 
-  it('submitFrameworkToGate fires PATCH /progress with gateResult after setting AppState.circlesGateResult', () => {
+  function getFnBody() {
     const fnStart = appSrc.indexOf('async function submitFrameworkToGate()');
     const fnEnd = appSrc.indexOf('\n  window.submitFrameworkToGate', fnStart);
-    const fnBody = appSrc.slice(fnStart, fnEnd);
-    // Must set AppState.circlesGateResult
-    expect(fnBody).toContain('AppState.circlesGateResult = result');
-    // Must subsequently call PATCH /progress
-    const gateResultIdx = fnBody.indexOf('AppState.circlesGateResult = result');
-    const patchIdx = fnBody.indexOf("method: 'PATCH'", gateResultIdx);
-    expect(patchIdx).toBeGreaterThan(gateResultIdx);
-    expect(fnBody.slice(gateResultIdx, patchIdx)).toContain('/progress');
+    return appSrc.slice(fnStart, fnEnd);
+  }
+
+  it('PATCH /progress with gateResult is AWAITED before AppState.circlesGateResult is set (T3 RES-AC4)', () => {
+    const fnBody = getFnBody();
+    // T3 contract: PATCH precedes the gate-pass assignment.
+    const patchIdx = fnBody.indexOf("method: 'PATCH'");
+    const setResultIdx = fnBody.indexOf('AppState.circlesGateResult = result');
+    expect(patchIdx).toBeGreaterThan(-1);
+    expect(setResultIdx).toBeGreaterThan(-1);
+    expect(patchIdx).toBeLessThan(setResultIdx);
+    // Must use the progress endpoint
+    expect(fnBody.slice(patchIdx - 200, patchIdx)).toContain('/progress');
+    // Must use await + persistRetry (not fire-and-forget IIFE)
+    expect(fnBody.slice(0, patchIdx)).toMatch(/await\s+window\.persistRetry\.persistRetry/);
   });
 
-  it('submitFrameworkToGate PATCH includes gateResult in request body', () => {
-    const fnStart = appSrc.indexOf('async function submitFrameworkToGate()');
-    const fnEnd = appSrc.indexOf('\n  window.submitFrameworkToGate', fnStart);
-    const fnBody = appSrc.slice(fnStart, fnEnd);
-    const gateResultIdx = fnBody.indexOf('AppState.circlesGateResult = result');
-    const afterSet = fnBody.slice(gateResultIdx);
-    expect(afterSet).toContain('gateResult: result');
+  it('PATCH includes gateResult in request body', () => {
+    const fnBody = getFnBody();
+    const patchIdx = fnBody.indexOf("method: 'PATCH'");
+    expect(patchIdx).toBeGreaterThan(-1);
+    // The body must reference gateResult: result (the freshly parsed gate response)
+    expect(fnBody.slice(patchIdx, patchIdx + 400)).toContain('gateResult: result');
   });
 
-  it('submitFrameworkToGate PATCH uses circles-sessions progress endpoint (not nsm)', () => {
-    const fnStart = appSrc.indexOf('async function submitFrameworkToGate()');
-    const fnEnd = appSrc.indexOf('\n  window.submitFrameworkToGate', fnStart);
-    const fnBody = appSrc.slice(fnStart, fnEnd);
-    const gateResultIdx = fnBody.indexOf('AppState.circlesGateResult = result');
-    const afterSet = fnBody.slice(gateResultIdx);
-    expect(afterSet).toContain('/api/circles-sessions/');
+  it('PATCH uses circles-sessions progress endpoint (not nsm)', () => {
+    const fnBody = getFnBody();
+    const patchIdx = fnBody.indexOf("method: 'PATCH'");
+    expect(patchIdx).toBeGreaterThan(-1);
+    // Path is built immediately before the fetch — search a wider window before/after.
+    expect(fnBody.slice(Math.max(0, patchIdx - 400), patchIdx + 400)).toContain('/api/circles-sessions/');
+  });
+
+  it('on RetryExhausted, gateResult is cleared and GATE_SYNC_ERROR is set (T3 RES-AC4 sad path)', () => {
+    const fnBody = getFnBody();
+    // Sad path: catch persistRetry exhaust, clear result, surface sync error.
+    expect(fnBody).toMatch(/RetryExhausted/);
+    expect(fnBody).toMatch(/AppState\.circlesGateResult\s*=\s*null/);
+    expect(fnBody).toMatch(/GATE_SYNC_ERROR/);
   });
 });

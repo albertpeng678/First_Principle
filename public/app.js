@@ -4995,12 +4995,14 @@
   }
 
   function renderGateError(errorCode) {
-    var sub = errorCode === 'GATE_TIMEOUT'     ? '審核逾時，請稍後重試'
-            : errorCode === 'GATE_PARSE_ERROR' ? '教練回應格式異常，請重試'
-            :                                    '審核服務暫時無法使用，請重試';
+    var sub = errorCode === 'GATE_TIMEOUT'      ? '審核逾時，請稍後重試'
+            : errorCode === 'GATE_PARSE_ERROR'  ? '教練回應格式異常，請重試'
+            : errorCode === 'GATE_SYNC_ERROR'   ? '跨裝置同步失敗，請點「送出」重新提交'
+            :                                     '審核服務暫時無法使用，請重試';
+    var title = errorCode === 'GATE_SYNC_ERROR' ? '同步失敗' : '框架審核失敗';
     return '<div class="gate-content"><div class="error-wrap">'
       + '<i class="ph ph-cloud-warning error-wrap__icon"></i>'
-      + '<div class="error-wrap__title">框架審核失敗</div>'
+      + '<div class="error-wrap__title">' + escHtml(title) + '</div>'
       + '<div class="error-wrap__sub">' + escHtml(sub) + '</div>'
       + '<div class="error-wrap__code">' + escHtml(errorCode || 'GATE_API_ERROR') + '</div>'
       + '<div class="error-wrap__actions">'
@@ -7571,17 +7573,37 @@
           render();
           return;
         }
+        // T3 (RES-AC4): await gateResult PATCH BEFORE rendering gate-pass UI.
+        // Previous fire-and-forget left a race window where the active tab rendered
+        // gate-pass + advanced phase while the PATCH was still in flight; a second
+        // device (or a rapid tab close) could miss the persisted gateResult.
+        // Loading state stays true while the PATCH lands, so the UI shows the gate
+        // loading view (not gate-pass) until durability is confirmed.
+        var _sidPersist = AppState.circlesSession && AppState.circlesSession.id;
+        if (_sidPersist && AppState.accessToken) {
+          var _p = '/api/circles-sessions/' + _sidPersist + '/progress';
+          try {
+            await window.persistRetry.persistRetry(function () {
+              return window.apiFetch(_p, {
+                method: 'PATCH',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({ gateResult: result }),
+              });
+            });
+          } catch (persistErr) {
+            console.error('[circles-gate] PATCH failed after retries:', persistErr);
+            if (persistErr && persistErr.name === 'RetryExhausted') {
+              AppState.circlesGateResult = null;
+              AppState.circlesGateError = 'GATE_SYNC_ERROR';
+              AppState.circlesGateLoading = false;
+              render();
+              return;
+            }
+            throw persistErr;
+          }
+        }
+        // PATCH landed (or skipped because guest) — safe to render gate-pass.
         AppState.circlesGateResult = result;
-        // Persist gateResult so it survives cross-device reload (Bug H fix)
-        // Wrapped with persistRetry (V-002 fix) — retries on transient 5xx before giving up.
-        (function () {
-          var _sid = AppState.circlesSession && AppState.circlesSession.id;
-          if (!_sid || !AppState.accessToken) return;
-          var _p = '/api/circles-sessions/' + _sid + '/progress';
-          window.persistRetry.persistRetry(function () {
-            return window.apiFetch(_p, { method: 'PATCH', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ gateResult: result }) });
-          }).catch(function (err) { console.error('[circles-gate] PATCH failed after retries:', err); });
-        })();
         AppState.circlesGateLoading = false;
         render();
       } catch (e) {
