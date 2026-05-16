@@ -7942,6 +7942,14 @@
     // R3: restore Phase 2/3/4 sub-state (conversation + step_scores)
     AppState.circlesConversation = item.conversation || [];
     AppState.circlesStepScores = item.step_scores || {};
+    // Stage 1B B3 fix: derive circlesScoreResult from restored step_scores so
+    // a later click of "回評分" renders Phase 3 score UI instead of spinning.
+    // Mirrors the normal eval-completion path at app.js:6556–6561.
+    var __stepKey = AppState.circlesMode === 'drill'
+      ? (AppState.circlesDrillStep || 'C1')
+      : (['C1','I','R','C2','L','E','S'][AppState.circlesSimStep || 0] || 'C1');
+    var __scoreRow = (AppState.circlesStepScores && AppState.circlesStepScores[__stepKey]) || null;
+    AppState.circlesScoreResult = (__scoreRow && __scoreRow.totalScore != null) ? __scoreRow : null;
     // Block 3: rehydrate extra keys from DB (gate result + phase2 conclusion draft)
     AppState.circlesGateResult = item.gate_result || null;
     AppState.circlesPhase2ConclusionDraft = (item.progress_json && item.progress_json.phase2ConclusionDraft) || '';
