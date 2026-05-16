@@ -8123,12 +8123,16 @@
   // Stage 1B B4: extracted delete logic — returns a Promise so tests can await it.
   // Production callers fire-and-forget (the click handler does not await).
   function _doOffcanvasDelete(id) {
+    // Inflight guard: prevent double-click firing two concurrent DELETEs.
+    if (!AppState._deleteInflight) AppState._deleteInflight = new Set();
+    if (AppState._deleteInflight.has(id)) return;
+    AppState._deleteInflight.add(id);
     // route to correct endpoint based on session kind (mirror loadCirclesSessionFromHistory heuristic)
     const item = (AppState.historyList || []).find(function (i) { return String(i.id) === String(id); });
     const isNsm = item && !item.mode && !item.drill_step;
     // Stage 1B B4: snapshot BEFORE optimistic filter so we can rollback.
     const __originalList = (AppState.historyList || []).slice();
-    AppState.historyList = AppState.historyList.filter(function (i) { return i.id !== id; });
+    AppState.historyList = AppState.historyList.filter(function (i) { return String(i.id) !== String(id); });
     render();
     var path;
     if (isNsm) {
@@ -8147,12 +8151,11 @@
         AppState._resumeToastShow = true;
         render();
         setTimeout(function () { AppState._resumeToastShow = false; render(); }, 6000);
+      } finally {
+        AppState._deleteInflight.delete(id);
       }
     })();
   }
-  // Test-only hook: expose _doOffcanvasDelete for unit specs. No effect in prod.
-  if (typeof window !== 'undefined') window.__test_doOffcanvasDelete = _doOffcanvasDelete;
-
   function bindOffcanvas() {
     if (!AppState.offcanvasOpen) return;
     document.querySelectorAll('[data-offcanvas]').forEach(function (el) {
