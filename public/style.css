@@ -3607,3 +3607,11 @@ div.rt-textarea[contenteditable="true"] ul li { list-style: disc; }
 @media (min-width: 768px) {
   .nsm-coach-overlay { display: none; }
 }
+
+/* Stage 1A T6 — Layer 1 inline error renderer */
+.framework-error {
+  color: #c00;
+  font-size: 12px;
+  margin-top: 4px;
+  line-height: 1.4;
+}

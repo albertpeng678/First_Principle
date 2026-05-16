@@ -137,6 +137,9 @@
     userEmail: null,                     // authed user email (null = guest)
     migrationBanner: null,               // null | 'showing' | 'dismissed' — post-login success
 
+    // B6 mutex — in-memory only, never persisted
+    gateInflight: false,
+
     // Mockup 16 §D — cross-tab resume-toast (Phase 3 / Phase 4 / NSM gate in-flight)
     evalToastDismissed: false,           // user clicked X on resume-toast
 
@@ -7373,6 +7376,12 @@
   }
 
   async function submitFrameworkToGate() {
+    // B6 race guard: refuse duplicate submit while gate inflight.
+    if (AppState.gateInflight) {
+      console.warn('[gate] submit blocked — gate inflight');
+      return;
+    }
+
     var stepKey = AppState.circlesMode === 'drill'
       ? (AppState.circlesDrillStep || 'C1')
       : (['C1','I','R','C2','L','E','S'][AppState.circlesSimStep || 0] || 'C1');
@@ -7386,6 +7395,24 @@
       emptyHintTimerId = setTimeout(function () { AppState.circlesPhase1EmptyHint = false; render(); }, EMPTY_HINT_VISIBLE_MS);
       return;
     }
+
+    // Layer 1 pre-guard (B1): validateFrameworkInput catches Y/aaaa/asdf
+    // before burning a network round-trip. Only applies to standard 4-field steps (C1/I).
+    if (window.frameworkValidator && (stepKey === 'C1' || stepKey === 'I')) {
+      var validationValues = buildFrameworkValuesForValidator(stepKey, draft);
+      var validation = window.frameworkValidator.validateFrameworkInput(validationValues);
+      if (!validation.ok) {
+        renderInlineFrameworkErrors(validation.errors);
+        console.warn('[gate] Layer 1 blocked', validation.errors.length, 'field(s)');
+        return;
+      }
+    }
+    clearInlineFrameworkErrors();
+
+    // Acquire mutex
+    AppState.gateInflight = true;
+    setSubmitButtonDisabled(true);
+
     AppState.circlesPhase = 1.5;
     AppState.circlesGateLoading = true;
     AppState.circlesGateResult = null;
@@ -7399,6 +7426,8 @@
       AppState.circlesGateError = '無法建立 session，請重試';
       AppState.circlesGateLoading = false;
       render();
+      AppState.gateInflight = false;
+      setSubmitButtonDisabled(false);
       return;
     }
     var path = (AppState.accessToken ? '/api/circles-sessions/' : '/api/guest-circles-sessions/') + sid + '/gate';
@@ -7439,9 +7468,61 @@
       AppState.circlesGateError = gateErrCode;
       AppState.circlesGateLoading = false;
       render();
+    } finally {
+      // Release mutex: always release so user can retry after error.
+      AppState.gateInflight = false;
+      setSubmitButtonDisabled(false);
     }
   }
   window.submitFrameworkToGate = submitFrameworkToGate;
+
+  // ── Layer 1 pre-guard helpers (T6 — B1 / B6) ─────────────────────────────
+
+  // Build {I: {...}, C1: {...}} for frameworkValidator from the current step's draft.
+  // draft values are stored as innerHTML — strip tags before validation.
+  function buildFrameworkValuesForValidator(stepKey, draft) {
+    var stripped = {};
+    for (var k in draft) {
+      if (Object.prototype.hasOwnProperty.call(draft, k)) {
+        stripped[k] = String(draft[k] == null ? '' : draft[k]).replace(/<[^>]*>/g, '').trim();
+      }
+    }
+    var values = { I: {}, C1: {} };
+    values[stepKey] = stripped;
+    return values;
+  }
+
+  // Render error messages next to each failing field.
+  // errors: [{field: 'I.排除對象', rule: 'minLength', message: '需 ≥ 4 字'}]
+  function renderInlineFrameworkErrors(errors) {
+    clearInlineFrameworkErrors();
+    var byField = {};
+    for (var i = 0; i < errors.length; i++) {
+      var e = errors[i];
+      var fieldKey = e.field.split('.').slice(1).join('.'); // 'I.排除對象' → '排除對象'
+      if (!byField[fieldKey]) byField[fieldKey] = [];
+      byField[fieldKey].push(e.message);
+    }
+    var keys = Object.keys(byField);
+    for (var j = 0; j < keys.length; j++) {
+      var fk = keys[j];
+      var inputContainer = document.querySelector('[data-field-key="' + fk + '"]');
+      if (!inputContainer) continue;
+      var errEl = document.createElement('div');
+      errEl.className = 'framework-error';
+      errEl.textContent = byField[fk].join(' / ');
+      inputContainer.appendChild(errEl);
+    }
+  }
+
+  function clearInlineFrameworkErrors() {
+    document.querySelectorAll('.framework-error').forEach(function (el) { el.remove(); });
+  }
+
+  function setSubmitButtonDisabled(disabled) {
+    var btn = document.querySelector('button[data-phase1="submit"]');
+    if (btn) btn.disabled = !!disabled;
+  }
 
   // ── Offcanvas History (Plan D SB1 — mockup 09) ───────────────────────────
 
