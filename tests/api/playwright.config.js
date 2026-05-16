@@ -63,5 +63,23 @@ module.exports = defineConfig({
       testMatch: /lifecycle-(circles|nsm|list)\.spec\.js$/,
       // No browser — request fixture is browser-less per api-testing.md §APIRequestContext Basics
     },
+    // persistRetry integration — real POST /draft + PATCH /progress + GET round-trip.
+    // No browser needed (pure request fixture). No OpenAI calls (no test.slow needed).
+    // Per testing-trophy-audit-2026-05-16.md Trophy Reset Roadmap §Step 3.
+    {
+      name: 'api-persist-retry',
+      testMatch: /persist-retry-integration-real\.spec\.js$/,
+      // No browser — pure API calls via request fixture
+    },
+    // NSM hint endpoints — real API layer tests (Trophy 60% tier).
+    // Covers /api/nsm-public/step2-hint, step3-hint, /api/nsm-sessions/:id/hints.
+    // Validation + permission tests are instant (never reach OpenAI).
+    // Happy-path tests call real OpenAI (server-to-server; page.route cannot intercept).
+    // Per when-to-mock.md §Real Service Strategies: accept real OpenAI for server-side calls.
+    {
+      name: 'api-nsm-hints',
+      testMatch: /nsm-hints-real\.spec\.js$/,
+      // No browser — pure API calls via request fixture
+    },
   ],
 });
