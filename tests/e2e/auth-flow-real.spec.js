@@ -11,34 +11,44 @@
 // Iron Laws applied:
 //   IL-1: root-cause each assertion (selector → app.js line cited)
 //   IL-2: no storageState shortcut — real UI flows only
-//   IL-3: tests written to fail before implementation existed (dead spec was pure skip)
+//   IL-3: This is regression coverage for pre-existing auth functionality;
+//         TDD red-evidence step does not apply (no new production code is
+//         introduced — only test coverage on shipped auth surfaces).
 //
 // e2e Red Lines:
 //   - No stub timestamps in test data
 //   - No mock of own API endpoints
 //   - Prod URL + real account forbidden (env-guard enforced)
+//
+// Stage 0 B7 cleanup mandate:
+//   Test 1 creates a real Supabase user. The user is deleted in afterEach
+//   via the service-role admin client (see deleteAuthUser below). Per
+//   feedback_e2e_real_data_only STANDING memory + B7 prevention infra.
 
 const { test, expect } = require('@playwright/test');
+const { createClient } = require('@supabase/supabase-js');
 const { assertNotProdWithRealAccount } = require('../helpers/env-guard');
 require('dotenv').config({ path: '.env.local' });
 require('dotenv').config({ path: '.env', override: false });
 
 // ── Selectors (discovered from public/app.js renderAuth area) ─────────────────
-// auth-nav trigger  : button[data-nav="auth"]        app.js:2982
+// auth-nav trigger  : button[data-nav="auth"]        app.js:2982 (guest-only)
 // email input       : #auth-email                    app.js:2623, 2659
 // password input    : #auth-pw                       app.js:2629, 2667
 // submit button     : #auth-submit                   app.js:2633, 2674
-// post-login signal : .navbar__email                 app.js:2985
-// logout button     : button[data-nav="logout"]      app.js:2984
+// logout button     : button[data-nav="logout"]      app.js:2984 (logged-in only)
 // register tab      : button[data-auth-tab="register"] app.js:2595
 // auth view root    : [data-view="auth"]             app.js:2574
-
+//
+// Post-login signal: we assert logoutBtn visible + authTrigger NOT visible.
+// We deliberately avoid `.navbar__email` because style.css:61 hides it on
+// `max-width:480px` (mobile-chrome / mobile-safari projects). Render branch
+// at app.js:2997-3003 guarantees these two buttons toggle on `accessToken`.
 const SEL = {
   authTrigger:   'button[data-nav="auth"]',
   email:         '#auth-email',
   pw:            '#auth-pw',
   submit:        '#auth-submit',
-  navEmail:      '.navbar__email',
   logoutBtn:     'button[data-nav="logout"]',
   registerTab:   'button[data-auth-tab="register"]',
   authView:      '[data-view="auth"]',
@@ -54,50 +64,83 @@ test.beforeAll(() => {
   });
 });
 
+// ── Service-role admin client for register-test cleanup (Stage 0 B7) ──────────
+// We instantiate lazily inside the helper so unrelated tests can still run if
+// the service-role key is missing (the register test will skip in that case).
+function getAdminClient() {
+  const url = process.env.SUPABASE_URL;
+  const key = process.env.SUPABASE_SERVICE_ROLE_KEY;
+  if (!url || !key) return null;
+  return createClient(url, key, { auth: { persistSession: false } });
+}
+
+async function deleteAuthUser(userId) {
+  if (!userId) return;
+  const admin = getAdminClient();
+  if (!admin) {
+    console.warn(`auth-cleanup: skipped delete of ${userId} (SUPABASE_SERVICE_ROLE_KEY missing)`);
+    return;
+  }
+  const { error } = await admin.auth.admin.deleteUser(userId);
+  if (error) {
+    // 404 (already gone) is acceptable; anything else surfaces as a warning so
+    // we never silently leak orphan accounts.
+    console.warn(`auth-cleanup: deleteUser(${userId}) failed: ${error.message}`);
+  }
+}
+
 // ── Test 1: register flow — POST /api/auth/register ───────────────────────────
-// Uses the API-layer request fixture to hit the real register endpoint.
-// A timestamp-unique email is used so each run creates a new account without
-// colliding with prior runs. The Supabase admin.createUser (email_confirm:true)
-// path is exercised; response shape { ok: true, userId: string } is asserted.
+// Uses Playwright's request fixture to hit the real register endpoint. A
+// timestamp-unique email avoids collision with prior runs. Shape asserted per
+// routes/auth.js:22 → { ok: true, userId: '<uuid>' }.
 //
-// Note: this test creates a real Supabase user each run. The e2e Supabase project
-// is isolated (e2e@first-principle.test env); production is never touched.
+// Stage 0 B7 mandate: the created Supabase user is deleted in the test's
+// finally block via service-role admin.deleteUser. No orphan accounts.
 test('Test 1 — register: POST /api/auth/register returns { ok, userId }', async ({ request }) => {
   const uniqueEmail = `e2e-reg-${Date.now()}@first-principle.test`;
   const password    = 'TestPass99!';
+  let createdUserId = null;
 
-  const res = await request.post(`${BASE_URL}/api/auth/register`, {
-    data: { email: uniqueEmail, password },
-  });
+  try {
+    const res = await request.post(`${BASE_URL}/api/auth/register`, {
+      data: { email: uniqueEmail, password },
+    });
 
-  expect(res.ok()).toBeTruthy();
-  const body = await res.json();
-  // Shape: { ok: true, userId: '<uuid>' } — routes/auth.js:22
-  expect(body).toHaveProperty('ok', true);
-  expect(body).toHaveProperty('userId');
-  expect(typeof body.userId).toBe('string');
-  expect(body.userId.length).toBeGreaterThan(0);
+    expect(res.ok()).toBeTruthy();
+    const body = await res.json();
+    // Shape: { ok: true, userId: '<uuid>' } — routes/auth.js:22
+    expect(body).toHaveProperty('ok', true);
+    expect(body).toHaveProperty('userId');
+    expect(typeof body.userId).toBe('string');
+    expect(body.userId.length).toBeGreaterThan(0);
+    createdUserId = body.userId;
+  } finally {
+    // Always attempt cleanup even if assertions failed — orphan prevention.
+    await deleteAuthUser(createdUserId);
+  }
 });
 
 // ── Test 2: login via UI (Supabase SDK signInWithPassword) ────────────────────
-// Fills email + password fields, clicks submit, asserts the post-login signal
-// (.navbar__email) appears. Uses the dedicated E2E test account; real Supabase
-// SDK signInWithPassword fires (app.js:2807).
+// Fills email + password fields, clicks submit, asserts that the logout button
+// (data-nav="logout") becomes visible and the sign-in trigger (data-nav="auth")
+// disappears. These two signals work on every viewport (the email span is CSS-
+// hidden on mobile per style.css:61).
 //
 // Per auth-flows.md Recipe 1 (Basic Login) — JS variant.
-test('Test 2 — login UI: fill credentials → .navbar__email appears', async ({ page }) => {
+test('Test 2 — login UI: fill credentials → logout button visible', async ({ page }) => {
   if (!process.env.TEST_EMAIL || !process.env.TEST_PASSWORD) {
     test.skip(true, 'TEST_EMAIL / TEST_PASSWORD not set in .env.local');
     return;
   }
 
-  // Playwright storageState (AUTH_FILE) is maintained at browser-context level and
-  // re-applied on every navigation — localStorage.clear() + reload does NOT escape it.
-  // The pmDrillState key (set by setup/auth.setup.js) stores accessToken, which is
+  // P2 follow-up: the cleanest fix is a 4th project 'e2e-auth-guest' with no
+  // storageState that this spec routes to. Until then we use this addInitScript
+  // hack — Playwright's context-level storageState re-applies on every
+  // navigation, so localStorage.clear() + reload does NOT escape it. The
+  // pmDrillState key (set by setup/auth.setup.js) stores accessToken, which is
   // re-injected after each reload from the context-level storageState.
-  //
-  // Solution: use addInitScript to strip accessToken/userEmail from pmDrillState
-  // BEFORE app.js reads it on page load. addInitScript fires before any page script.
+  // addInitScript fires before any page script, so we strip accessToken from
+  // pmDrillState and remove the Supabase SDK token key on each page load.
   await page.addInitScript(() => {
     try {
       const raw = localStorage.getItem('pmDrillState');
@@ -107,7 +150,6 @@ test('Test 2 — login UI: fill credentials → .navbar__email appears', async (
         s.userEmail = null;
         localStorage.setItem('pmDrillState', JSON.stringify(s));
       }
-      // Also remove Supabase SDK token key so SDK does not auto-restore session
       const sbKey = Object.keys(localStorage).find(k => k.startsWith('sb-') && k.endsWith('-auth-token'));
       if (sbKey) localStorage.removeItem(sbKey);
     } catch (_) {}
@@ -131,9 +173,12 @@ test('Test 2 — login UI: fill credentials → .navbar__email appears', async (
   // Click submit (text "登入", id="auth-submit", app.js:2633)
   await page.locator(SEL.submit).click();
 
-  // Post-login: .navbar__email renders the authenticated user's email (app.js:2985)
-  // Supabase signInWithPassword resolves → AppState.userEmail set → render()
-  await expect(page.locator(SEL.navEmail)).toBeVisible({ timeout: 15_000 });
+  // Post-login: app.js:2997-2998 renders logoutBtn ONLY when accessToken is
+  // set, and authTrigger ONLY when it is not. Both are mobile-safe (no CSS
+  // viewport gating). Supabase signInWithPassword resolves → AppState.userEmail
+  // + accessToken set → render() swaps the navbar action group.
+  await expect(page.locator(SEL.logoutBtn)).toBeVisible({ timeout: 15_000 });
+  await expect(page.locator(SEL.authTrigger)).not.toBeVisible();
 
   // Auth view should no longer be shown — replaced by circles home
   await expect(page.locator(SEL.authView)).not.toBeVisible();
@@ -151,8 +196,8 @@ test('Test 3 — logout: click sign-out → auth trigger re-appears', async ({ p
     return;
   }
 
-  // Same storageState escape pattern as Test 2 — addInitScript strips accessToken
-  // from pmDrillState and the Supabase SDK token key before app.js reads them.
+  // Same storageState-escape hack as Test 2 — see Test 2 comment block for the
+  // P2 follow-up to replace this with a dedicated `e2e-auth-guest` project.
   await page.addInitScript(() => {
     try {
       const raw = localStorage.getItem('pmDrillState');
@@ -176,14 +221,16 @@ test('Test 3 — logout: click sign-out → auth trigger re-appears', async ({ p
   await page.locator(SEL.email).fill(process.env.TEST_EMAIL);
   await page.locator(SEL.pw).fill(process.env.TEST_PASSWORD);
   await page.locator(SEL.submit).click();
-  await expect(page.locator(SEL.navEmail)).toBeVisible({ timeout: 15_000 });
+  // Logged-in signal — see Test 2 rationale for why logoutBtn (not navEmail).
+  await expect(page.locator(SEL.logoutBtn)).toBeVisible({ timeout: 15_000 });
 
   // Click sign-out icon (data-nav="logout", app.js:2984)
   await page.locator(SEL.logoutBtn).click();
 
-  // doLogout() clears token + navigates to circles as guest (app.js:3236)
-  // .navbar__email is gone; sign-in trigger re-appears
-  await expect(page.locator(SEL.navEmail)).not.toBeVisible({ timeout: 8_000 });
+  // doLogout() clears token + navigates to circles as guest (app.js:3236).
+  // After clearing accessToken, render() flips back to the guest navbar: the
+  // logout button disappears and the sign-in trigger re-appears.
+  await expect(page.locator(SEL.logoutBtn)).not.toBeVisible({ timeout: 8_000 });
   await expect(page.locator(SEL.authTrigger)).toBeVisible({ timeout: 8_000 });
 });
 
