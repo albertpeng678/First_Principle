@@ -1,16 +1,20 @@
 # PM Drill — 專案狀態看板
 
 > 即時狀態 single source of truth。**不放歷史（git log 有）**。重大事件即時 Edit。
-> **Last updated:** 2026-05-16（Stage 0 B7 cleanup + prevention infra ship；4 polluted prod sessions deleted；Stage 1 brainstorm 待開）
+> **Last updated:** 2026-05-16（Stage 0 B7 ship + Stage 1A T1-T13 ship + 1B/1C/1D specs awaiting 放行 + 13 sessions cleanup + lifecycle spec PAUSED）
 
 ## 當前狀態（30 秒讀完）
 
-- **Stage 0 ship (2026-05-16)**：B7 prod 污染清理完成（4 circles sessions DELETE × 200_ok）+ prevention infra（env-guard / auto-cleanup fixture / pre-commit hook / 3-env split / `e2e@first-principle.test` 帳號）+ 2 條 STANDING memory（three_iron_laws / e2e_real_data_only）+ skill 完整整合 plan ship。15 commits `4dba816..1ba062e`；jest 45/45 (env-guard 14 + auto-cleanup 15 + scan-pollution 16)；V2 security-review PASS WITH NOTES。
+- **Stage 0 ship (2026-05-16)**：B7 prod 污染清理 + prevention infra（env-guard / auto-cleanup fixture / pre-commit hook / 3-env split / `e2e@first-principle.test`）+ 2 條 STANDING memory（three_iron_laws / e2e_real_data_only）+ skill 整合 plan ship。15 commits `4dba816..1ba062e`；jest 45/45；V2 security-review PASS WITH NOTES。
+- **Stage 1A gate cluster (B1+B6) ship (2026-05-16)**：T1-T12 implementer 完成，T13 jest 410/428（1 pre-existing fail，無 regression）；T14 + T15 收尾待跑。
+- **Stage 1B/1C/1D specs ship (2026-05-16)**：brainstorm 完 → `2c6fa51`（1B）/ `8ca4b81`（1C）/ `93d2695`（1D）— 等 user 放行才 dispatch impl。
+- **Production data cleanup (2026-05-16)**：13 sessions DELETE（7 circles 污染 + 4 nsm 污染 + 2 nsm empty-stub）via `scripts/execute-cleanup.js`；receipt `audit/data-pollution-executed-2026-05-16.md`。
+- **scan-pollution.js patch (2026-05-16)** `e34d825`：修 `repro-bug1-*` + 廣義化 timestamp-suffix shape，jest 15→31 specs。
+- **Lifecycle state-machine spec (2026-05-16)** `33d5bf9`：`docs/superpowers/specs/2026-05-16-session-lifecycle-state-machine-design.md` — **PAUSED** 等 holistic persistence audit 結果。
+- **Stage 1D B-Hint inventory**：發現 1 條 spec gap（NSM step1 hint location）；agent running 確認中。
 - **Path 2 Frontend Rewrite ✅ 17/17 mockup 全 ship**（Layer 2 pixel-diff `ba6c49f` 機械驗證 60 cases × 3 vp，0 structural drift）
-- **NSM 2026-05-12 ship**：總驗收 8 vp UAT 找到 3 bug 全修 → `3344a95` (X-RailTitle) ← `b15eee6` (X-RailEmpty) ← `e1f53be` (X-StatsDedup); 同日早 ship NSM bundle 8 bugs `762a8ab` → `a44f67d` (X-Compare/X-Back/X-LockedStep2/X-Overlay/X-FE/X-Ctx/X-DupSession/X-SlowList) + 100 NSM 題 content backfill
-- **總驗收 8 vp 驗證**：stats=`{1,1,0}` ↔ offcanvas 4 items ↔ rail 4 items + 標題 byte-for-byte 一致（Mobile-360/iPhone-SE/iPhone-14/iPad/Desktop-1280/1440/2560 全 PASS；iPhone-15-Pro/14 偶發 login timeout = 網路 transient，不擋 ship）
-- **Baseline 不破：** jest 214/232（17 skipped + 1 pre-existing fail）+ Playwright NSM specs 64/64 pass × 8 vp
-- **NSM ↔ CIRCLES parity 全結束** — production wire 完整 honor mockup 14 §A / 05 §G / 07 v3 §D §E LOCKED contracts；nsm-evaluator depth 確認非 shallow，加 max_tokens 1500 cap
+- **NSM 2026-05-12 ship**：總驗收 8 vp UAT 3 bug 全修 → `3344a95` / `b15eee6` / `e1f53be`；同日早 ship NSM bundle 8 bugs `762a8ab` → `a44f67d` + 100 NSM 題 content backfill
+- **Baseline 不破：** jest 410/428（1 pre-existing fail）+ Playwright NSM specs 64/64 pass × 8 vp
 - **接手 Handoff：** `docs/PATH-2-HANDOFF.md` + memory `project_pending_followups_2026-05-10.md`
 
 ---
@@ -25,7 +29,12 @@
 
 | 項目 | 狀態 |
 |---|---|
-| Phase A + B Final Ship Readiness | ✅ Layer 1-6 + 8 全綠（jest 170/187 / Playwright Mobile-360 747/768 + Desktop-1280 766/768 / pixel-diff 0🔴 / iOS 12+3🟡 / Director 18 PNG cold-read / adversarial 17/17）；Layer 7 等 user 真機 UAT |
+| Stage 1A T14 + T15 收尾 | 🔧 T1-T13 已 ship；T14（Playwright e2e）+ T15（director sign-off）等跑 |
+| Stage 1B/1C/1D impl | 📋 specs `2c6fa51` / `8ca4b81` / `93d2695` — 等 user 放行 dispatch |
+| Lifecycle state-machine impl | ⏸ spec `33d5bf9` PAUSED；holistic persistence audit running → `audit/persistence-comprehensive-audit-2026-05-16.md` |
+| Holistic persistence audit | 🏃 background；audit 結果出來再決定 lifecycle spec 是否補 |
+| Stage 1D B-Hint cluster | 🔍 inventory agent running（NSM step1 hint location 1 條 spec gap 待確認）|
+| Phase A + B Final Ship Readiness | ✅ Layer 1-6 + 8 全綠；Layer 7 等 user 真機 UAT |
 | P3 follow-ups（8 條） | 📋 memory `project_pending_followups_2026-05-09.md` |
 
 > 已完成的 plans（A / B SB1-10 + Phase 2-4 / C SB1-3 / D SB1-2 / Combo C / 多輪 hotfix）見 `git log`
@@ -64,7 +73,7 @@
 
 | 路徑 | branch | 狀態 |
 |---|---|---|
-| 主 repo | main | 17/17 mockup ship / jest 170/187 (162 baseline + 8 nsm-step3-hint) |
+| 主 repo | main | Stage 0 + Stage 1A T1-T13 ship / jest 410/428 (1 pre-existing fail) |
 | `first-principle-path2-b-circles` | feat/path-2-circles-core | Plan B 平行 worktree |
 | `first-principle-path2-c-nsm` | feat/path-2-nsm | Plan C 平行 worktree |
 | `first-principle-path2-d-cross` | feat/path-2-cross-cutting | Plan D 平行 worktree |
@@ -102,7 +111,7 @@
 
 ## Tests / Quality Gates
 
-- **jest 基線：** 170/187（162 baseline + 8 nsm-step3-hint，17 skipped 不算 regression）
+- **jest 基線：** 410/428（17 skipped + 1 pre-existing fail；含 env-guard 14 + auto-cleanup 15 + scan-pollution 31 + Stage 1A T13 batch）
 - **Playwright：** full suite × 8 viewport（iPhone-SE / iPhone-14 / iPhone-15-Pro / iPad / Mobile-360 / Desktop-1280 / 1440 / 2560）+ 3 Phase B specs（typewriter 4/4 / qchip 6/6 / lock state 6/6）
 - **Adversarial sweep：** `npm run test:adversarial` — 5 + 1 stages × 10 cases (新加 circles-coach 9/9 + nsm-step3-hint 8/8)，所有新 AI 審核/gate/評分 ship 前必跑
 
