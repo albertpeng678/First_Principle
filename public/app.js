@@ -6265,7 +6265,14 @@
       + '<code class="error-wrap__code">' + escHtml(code) + '</code>'
       + '<div class="error-wrap__actions">'
       + '<button class="btn btn--ghost" data-phase3="back-to-phase1"><i class="ph ph-arrow-left"></i>返回修改答案</button>'
-      + '<button class="btn btn--primary" data-phase3="retry"><i class="ph ph-arrow-clockwise"></i>重新評分</button>'
+      + (function () {
+          // AC-4 (spec b2ca935 §3.4): disable retry when step already scored
+          var alreadyScored = AppState.circlesStepScores && AppState.circlesStepScores[stepKey];
+          var attrs = alreadyScored
+            ? ' disabled aria-disabled="true" title="此步已評分，不可重新評分"'
+            : '';
+          return '<button class="btn btn--primary" data-phase3="retry"' + attrs + '><i class="ph ph-arrow-clockwise"></i>重新評分</button>';
+        })()
       + '</div>'
       + '</div>'
       + '</div>';
@@ -6510,6 +6517,13 @@
     var retryBtn = document.querySelector('[data-phase3="retry"]');
     if (retryBtn) {
       retryBtn.addEventListener('click', function () {
+        // AC-4 (spec b2ca935 §3.4): no-op when step already scored (defense-in-depth)
+        var stepKey = AppState.circlesMode === 'drill'
+          ? (AppState.circlesDrillStep || 'C1')
+          : (['C1', 'I', 'R', 'C2', 'L', 'E', 'S'][AppState.circlesSimStep || 0] || 'C1');
+        if (AppState.circlesStepScores && AppState.circlesStepScores[stepKey]) {
+          return;
+        }
         clearPhase3Timers();
         AppState.circlesPhase3Error = null;
         AppState.circlesPhase3LoadingStep = 1;
