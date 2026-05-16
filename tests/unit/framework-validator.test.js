@@ -106,7 +106,7 @@ describe('validateFrameworkInput', () => {
     ]));
   });
 
-  test('all 8 fields with "Y" → 8 errors all minLength', () => {
+  test('all 8 fields with "Y" → 8 errors all minLength, ordered I.* then C1.*', () => {
     const allY = {
       I: { '目標用戶分群': 'Y', '選定焦點對象': 'Y', '用戶動機假設(JTBD)': 'Y', '排除對象': 'Y' },
       C1: { '問題範圍': 'Y', '時間範圍': 'Y', '業務影響': 'Y', '假設確認': 'Y' },
@@ -115,6 +115,27 @@ describe('validateFrameworkInput', () => {
     expect(r.ok).toBe(false);
     expect(r.errors).toHaveLength(8);
     expect(r.errors.every((e) => e.rule === 'minLength')).toBe(true);
+    // Locked contract for T6 renderInlineFrameworkErrors top-down highlight order
+    expect(r.errors.map((e) => e.field)).toEqual([
+      'I.目標用戶分群', 'I.選定焦點對象', 'I.用戶動機假設(JTBD)', 'I.排除對象',
+      'C1.問題範圍',   'C1.時間範圍',   'C1.業務影響',         'C1.假設確認',
+    ]);
+  });
+
+  test.each([
+    [42],
+    [true],
+    [['a', 'b']],
+    [null],
+  ])('non-string inner value (%j) → rejected as minLength (no crash)', (badValue) => {
+    const v = JSON.parse(JSON.stringify(goodValues));
+    v.I['排除對象'] = badValue;
+    expect(() => validateFrameworkInput(v)).not.toThrow();
+    const r = validateFrameworkInput(v);
+    expect(r.ok).toBe(false);
+    expect(r.errors).toEqual(expect.arrayContaining([
+      expect.objectContaining({ field: 'I.排除對象', rule: 'minLength' }),
+    ]));
   });
 
   test('values with extra unrecognized field → ignored, no error', () => {
