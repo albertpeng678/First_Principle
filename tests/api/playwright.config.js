@@ -63,6 +63,17 @@ module.exports = defineConfig({
       testMatch: /lifecycle-(circles|nsm|list)\.spec\.js$/,
       // No browser — request fixture is browser-less per api-testing.md §APIRequestContext Basics
     },
+    // F-N-004 remediation — real SSE /message endpoint tests.
+    // 3 tests: first SSE chunk read + Content-Type header guard + 401 permission guard.
+    // Tests 1 + 2 call real OpenAI (server-to-server; page.route cannot intercept).
+    // Test 3 (401) is instant — no OpenAI call, no session creation.
+    // Per when-to-mock.md decision matrix: OpenAI is third-party paid-per-call;
+    // cannot be mocked via page.route at server-side boundary. test.slow() applied.
+    {
+      name: 'api-circles-message-sse',
+      testMatch: /circles-message-sse-real\.spec\.js$/,
+      // No browser — SSE read via Node native http in test.step
+    },
     // CIRCLES draft + progress route smoke — real POST /draft + PATCH /progress + GET round-trip.
     // Renamed from persist-retry-integration-real.spec.js per Review-3 audit.
     // No browser needed (pure request fixture). No OpenAI calls (no test.slow needed).
@@ -81,6 +92,36 @@ module.exports = defineConfig({
       name: 'api-nsm-hints',
       testMatch: /nsm-hints-real\.spec\.js$/,
       // No browser — pure API calls via request fixture
+    },
+    // F-N-003 remediation — Phase 4 final-report 422 guard contract test (Group A V1).
+    {
+      name: 'api-final-report',
+      testMatch: /circles-final-report-contract\.spec\.js$/,
+    },
+    // F-N-005 remediation — sessions list GET response schema contract (Group A V3).
+    {
+      name: 'api-sessions-list',
+      testMatch: /circles-sessions-list-contract\.spec\.js$/,
+    },
+    // F-N-009 remediation — evaluate-step contract (Group A V4, commit 206b6ed).
+    {
+      name: 'api-evaluate-step',
+      testMatch: /circles-evaluate-step-contract\.spec\.js$/,
+    },
+    // F-N-010 remediation — 7× evaluate-step sequence → score aggregate (Group A V5).
+    {
+      name: 'api-score-sequence',
+      testMatch: /circles-score-sequence\.spec\.js$/,
+    },
+    // N-01 remediation — NSM /gate contract (Group A V6, mirror CIRCLES).
+    {
+      name: 'api-nsm-gate',
+      testMatch: /nsm-gate-contract\.spec\.js$/,
+    },
+    // F-P04 remediation — guest CRUD 19 routes real API tests (Group A V8).
+    {
+      name: 'api-guest-crud',
+      testMatch: /guest-crud-real\.spec\.js$/,
     },
   ],
 });
