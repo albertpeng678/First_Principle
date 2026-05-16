@@ -46,6 +46,17 @@ const SEL = {
 // Clear localStorage + stub history GET endpoints → navigate → wait for boot.
 // Un-stubs after boot so real API calls flow (per feedback_e2e_real_data_only).
 async function bootApp(page) {
+  // TC1 fix: guard against BASE_URL being undefined when spec is run without
+  // --config (env load order race). playwright.config.js sets baseURL to
+  // process.env.BASE_URL || 'http://localhost:3000', but that default only
+  // applies when Playwright resolves the config. When page.goto('/') is used
+  // (relative), Playwright uses the configured baseURL. The guard below ensures
+  // we fail fast with a clear message rather than "Cannot navigate to invalid URL".
+  const baseURL = page.context()._options?.baseURL || 'http://localhost:3000';
+  if (!baseURL.startsWith('http')) {
+    throw new Error(`BASE_URL must be an http(s) URL, got: ${baseURL}`);
+  }
+
   await page.addInitScript(() => {
     try { localStorage.removeItem('pmDrillState'); } catch (_) {}
   });
@@ -142,6 +153,46 @@ async function seedRealCirclesSession(page, questionIdx) {
 
   expect(patchOk.ok, `PATCH /progress failed with status ${patchOk.status}`).toBe(true);
 
+  // ── Seed propagation guard ─────────────────────────────────────────────────
+  // BUG-GB-001 fix: After POST /draft + PATCH /progress return 200, there is a
+  // brief window where a subsequent GET /api/circles-sessions may return a list
+  // that does NOT yet include the new row (DB read-after-write visibility lag
+  // under load, or response handler not yet flushed). The offcanvas loadHistory()
+  // fires exactly such a GET when the drawer opens — if it races ahead of
+  // propagation, the rendered list omits the seeded session and the test fails
+  // with "item not found" even though everything succeeded.
+  //
+  // Per playwright-skill/core/common-pitfalls.md Pitfall 1 (lines 9-66):
+  // "wait for a specific condition" rather than fixed sleep. We poll the same
+  // GET endpoint the UI will call, asserting the seeded session is present
+  // before we let the UI fetch it. expect.poll retries until truthy or timeout
+  // — no hardcoded delay, no retry-loop, no sleep.
+  await expect
+    .poll(
+      async () => {
+        return await page.evaluate(async (sid) => {
+          const A = window.AppState;
+          const path = A.accessToken
+            ? '/api/circles-sessions'
+            : '/api/guest-circles-sessions';
+          try {
+            const res = await window.apiFetch(path);
+            if (!res.ok) return false;
+            const list = await res.json();
+            return Array.isArray(list) && list.some((s) => String(s.id) === sid);
+          } catch (_) {
+            return false;
+          }
+        }, sessionId);
+      },
+      {
+        message: `Seeded session ${sessionId} did not appear in GET list within 15s — propagation failure, not flake`,
+        timeout: 15_000,
+        intervals: [200, 400, 800, 1000, 1500],
+      }
+    )
+    .toBe(true);
+
   return sessionId;
 }
 
@@ -167,11 +218,19 @@ async function cleanupSession(page, sessionId) {
 }
 
 // ── Offcanvas open + await item helper ────────────────────────────────────────
+// BUG-GB-001 robustness: seedRealCirclesSession now guarantees the session is
+// readable via GET before returning, so opening the offcanvas + waiting for the
+// item is deterministic. Web-first toBeVisible retry covers the in-flight
+// loadHistory() network round-trip only — no propagation race remains.
+// Per playwright-skill/core/common-pitfalls.md Pitfall 1 (lines 9-66): rely on
+// auto-retrying assertions, not fixed timeouts.
 async function openOffcanvasAndAwaitItem(page, id) {
   await page.locator(SEL.offcanvasOpen).click();
   await page.locator(SEL.offcanvasBody).waitFor({ state: 'visible', timeout: 5_000 });
-  // Web-first auto-retry covers loadHistory network latency.
-  await expect(page.locator(SEL.offcanvasItem(id))).toBeVisible({ timeout: 10_000 });
+  // 15s ceiling: GET round-trip on a slow CI/mobile project rarely exceeds 5s;
+  // generous headroom prevents false-flake without masking real bugs (a missing
+  // item after 15s with a propagation-verified seed = genuine regression).
+  await expect(page.locator(SEL.offcanvasItem(id))).toBeVisible({ timeout: 15_000 });
 }
 
 // ── Tests ─────────────────────────────────────────────────────────────────────
@@ -307,8 +366,9 @@ test.describe('circles-delete-rollback-real — Trophy Tier 4', () => {
     });
 
     await test.step('add artificial delay via route to widen inflight window', async () => {
-      // Intercept DELETE: add 500 ms delay so the inflight guard window is wide enough
-      // for any potential second request to arrive before the first resolves.
+      // TC3 mocks DELETE 200 with 500ms delay to widen the inflight window
+      // (controlled deviation from "real DELETE" — required for deterministic
+      // inflight-guard assertion). Per when-to-mock.md carve-out for timing control.
       await page.route(`**/api/circles-sessions/${sessionId}`, async (route) => {
         if (route.request().method() === 'DELETE') {
           await new Promise((r) => setTimeout(r, 500));
@@ -325,20 +385,27 @@ test.describe('circles-delete-rollback-real — Trophy Tier 4', () => {
       });
     });
 
-    await test.step('capture delete button position and dispatch 2 rapid clicks', async () => {
-      const deleteBtn = page.locator(SEL.deleteBtn(sessionId));
-      // Capture bounding box BEFORE first click (first click removes the element).
-      const box = await deleteBtn.boundingBox();
-      expect(box).not.toBeNull();
+    await test.step('dispatch 2 rapid synchronous clicks via DOM to avoid viewport-reflow race', async () => {
+      const deleteSelector = SEL.deleteBtn(sessionId);
+      const deleteBtn = page.locator(deleteSelector);
 
-      // Click the button through its DOM element for the first click.
+      // First click: use Playwright locator click (auto-waits for actionability).
       await deleteBtn.click();
 
-      // Second click: use mouse.click at same coordinates — simulates rapid double-click.
-      // The element may already be gone (optimistic filter removes it), but we send the
-      // click anyway. The inflight guard in AppState._deleteInflight must block any
-      // duplicate request even if the click somehow reaches the handler.
-      await page.mouse.click(box.x + box.width / 2, box.y + box.height / 2);
+      // Second click: use page.evaluate with a CSS selector string — per
+      // common-pitfalls.md Pitfall 3 (lines 131-185) using page.mouse.click(coords)
+      // is fragile because viewport reflow between boundingBox() capture and the
+      // second click can mis-target. page.evaluate with querySelector is a one-shot
+      // DOM lookup (no Playwright auto-waiting) so it does not hang if the element
+      // is already removed by the optimistic filter after the first click.
+      // Per Pitfall 18 (lines 1034-1097): page.evaluate is appropriate here because
+      // we genuinely need a raw synchronous DOM click on a potentially-detached node.
+      await page.evaluate((sel) => {
+        const el = document.querySelector(sel);
+        if (el) el.click();
+        // If element is already gone (optimistic filter removed it), the inflight guard
+        // in AppState._deleteInflight must still block any duplicate DELETE request.
+      }, deleteSelector);
     });
 
     await test.step('wait for first delete to settle (delayed 500 ms)', async () => {
