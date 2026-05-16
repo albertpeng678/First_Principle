@@ -1,10 +1,10 @@
 # Stage 1D — Hint Cluster (B-Hint) Design Spec
 
-**Date:** 2026-05-16
-**Status:** Draft (awaiting user review)
-**Cluster:** Stage 1 / 1D — B-Hint (4 prompts + CSS + FE renderer)
-**Carve-out:** Modifies 4 BE prompts (Path 2 standing rule invoked: 後端/prompts 不動，except explicit user approval — granted task #174 + 2026-05-16 PNG feedback).
-**Coverage:** ALL hint flows — CIRCLES + NSM (3 violators + 1 format-only). Full closeout.
+**Date:** 2026-05-16 (amended: D1 + D2 gaps closed)
+**Status:** Ready for plan-writing
+**Cluster:** Stage 1 / 1D — B-Hint (4 prompts + 4 routes + FE renderer + CSS + NSM Step 1 hint wiring + 2 new adversarial files)
+**Carve-out:** Modifies 4 BE prompts (Path 2 standing rule invoked: 後端/prompts 不動，except explicit user approval — granted task #174 + 2026-05-16 PNG feedback). FE wiring for NSM Step 1 hint added per D1 director resolution 2026-05-16.
+**Coverage:** ALL hint flows — CIRCLES + NSM Step 1 (NEW FE wiring) + NSM Step 2 + NSM Step 3. Full closeout.
 **Defers:** None. This spec closes the entire B-Hint demand.
 
 ---
@@ -148,7 +148,15 @@ Note: CIRCLES hint routes (`circles-public.js`, `circles-sessions.js`, `guest-ci
 **`public/app.js`**
 - `openNSMStep2HintModal` (line 4019): Remove `var draft = ((AppState.nsmDefinition || {})[field]) || ''` (line 4052) and `userDraft: draft` from the fetch body (line 4057). Payload becomes `{ questionId: qid, field: field }`.
 - `openNSMStep3HintModal` (line 4130): Remove corresponding draft extraction and `userDraft` from step3 fetch payload. Payload becomes `{ questionId: qid, dimId: dimId, dimType: ptype }`.
-- NSM hints modal (step 1 hints, `[data-nsm-hint-toggle]` flow): the NSM Step 1 hints call `/api/nsm-sessions/:id/hints` (or guest variant). Currently FE passes `userNsm: AppState.nsmDefinition?.nsm`. Locate this fetch call, remove `userNsm` from payload.
+- **NEW (per D1 resolution): NSM Step 1 hint button + modal flow.**
+  - **Current reality (verified):** Backend endpoint `POST /api/nsm-sessions/:id/hints` + `POST /api/guest/nsm-sessions/:id/hints` exist (returning 4-dim JSON `{reach, depth, frequency, impact}`); `prompts/nsm-hints.js` exists; FE has **NO** consumer. The `[data-nsm-hint-toggle]` event handler at `app.js:1771` is dead code (no render site emits the attribute).
+  - **Add rendering:** in `renderNSMField` (line 1520, called from `renderNSMStep1` for the 3 fields `nsm/explanation/businessLink`), add a single **「教練思路」** button next to the existing `data-nsm-hint`/example-toggle pair in `field__hint-row`. Use attribute `data-nsm-step1-hint="open"` (no per-field value — Step 1 hints are NSM-level, not field-level; one button per the form, rendered once in the form header, not per field). Decision: render the button in the Step 1 form head (above the 3 fields), NOT inside each field — mirrors mockup 06 §C single coach panel.
+  - **Add open function:** `openNSMStep1HintModal()` — mirrors `openNSMStep2HintModal` structure (loading state → fetch → cache → render). Differences: (a) no `field` arg; (b) endpoint = `/api/nsm-sessions/:sessionId/hints` (auth) or `/api/guest/nsm-sessions/:sessionId/hints` (guest), chosen by `AppState.accessToken`; (c) requires `AppState.nsmSession.id` — if missing, call `ensureNsmDraftSession()` first; (d) response is JSON envelope `{reach, depth, frequency, impact}` — render as **4 stacked sub-sections** in modal body, each labeled (`觸及 reach / 深度 depth / 頻率 frequency / 影響 impact`) followed by `<ul class="example-list">markdownBulletsToHtml(value)</ul>`.
+  - **Cache key:** `_nsmStep1HintCache[qid]` (one per question — endpoint output is question-only, not field-specific).
+  - **Abort controller:** `_nsmStep1HintAbortController` (mirrors step2/3).
+  - **Modal shell:** new helper `_renderNSMStep1HintModalShell(bodyHtml, isLoading, isError)` mirroring `_renderNSMStep2HintModalShell`; title 「教練思路 — NSM 4 維度提示」; same close button + footer pattern. Reuse `nsm-hint-modal-host` DOM host.
+  - **Event binding:** add `document.querySelectorAll('[data-nsm-step1-hint]').forEach(...)` in `bindNSMStep1()` (called via `bindUI` line 307). Click → `openNSMStep1HintModal()`.
+  - **Dead code cleanup:** remove the `[data-nsm-hint-toggle]` handler block at lines 1771-1777 (dead — no render site emits the attribute). Also remove `nsmHintExpanded` from `AppState` defaults (line 97) and from the persist list (line 160) — unused after cleanup.
 - CIRCLES hint modal rendering (`_renderHintState`, line 3896): replace `_markdownHintToHtml(j.hint || '')` with `'<ul class="example-list">' + markdownBulletsToHtml(j.hint || '') + '</ul>'` (unified renderer). Update `_hintCache[cacheKey]` hit path similarly.
 - CIRCLES hint `renderHintModalShell` `data-hint-body` swap path (`_swapHintBody`): ensure it also uses `markdownBulletsToHtml`.
 - `markdownBulletsToHtml` itself: no change — already handles `- top` / `  - sub` / `**bold**`.
@@ -214,20 +222,49 @@ POST hint endpoint
      Rendered with .example-list line-height: 1.85
 ```
 
-### NSM Step 1 hints (4-dimension JSON flow)
+### NSM Step 1 hints (4-dimension JSON flow) — NEW per D1
 
 ```
-[BE] generateNSMHints returns:
+User clicks 「教練思路」 button on NSM Step 1 form (single button, NOT per-field)
+        │
+        ▼
+[FE] openNSMStep1HintModal()
+        │   Check AppState.nsmSession.id; if missing, await ensureNsmDraftSession()
+        │   cache key = qid (one per question; question-only output)
+        │   cache hit? → render immediately, skip fetch
+        │
+        ▼
+[FE] Open nsm-hint-modal-host with loading shell (spinner + "教練思考中…")
+        │
+        ▼
+POST /api/nsm-sessions/:sessionId/hints  (or guest variant if no accessToken)
+  body: {}                                  ← NO userNsm payload
+        │
+        ▼
+[BE] Route loads session.question_json + guessProductType, calls
+     generateNSMHints({ question_json, product_type })  ← user_nsm removed
+        │
+        ▼
+[BE] Returns JSON envelope:
   {
     reach:     "- 你的分子是「打開 App」還是**完成核心動作**？\n  - 登入不等於真實消費",
     depth:     "- 每 session **真正投入**的門檻是什麼？\n  - 時長 vs 完播率哪個更能排除背景播放",
     frequency: "- **習慣養成**和偶發使用的邊界怎麼定？\n  - 促銷高峰會虛高頻率，排除它",
     impact:    "- NSM ↑ 如何具體帶動**留存率**？\n  - 寫出因果鏈，不是泛泛「體驗更好」"
   }
+        │
+        ▼
+[FE] Render 4 sub-sections inside modal body:
+  <div class="nsm-step1-hint-section">
+    <div class="nsm-step1-hint-section__label">觸及 reach</div>
+    <ul class="example-list">{markdownBulletsToHtml(hints.reach)}</ul>
+  </div>
+  ... (depth / frequency / impact identical structure)
 
-[FE] For each dimension card, renders value via markdownBulletsToHtml(hints[dimId])
-     (locate the NSM step1 hint toggle rendering in app.js, wire to markdownBulletsToHtml)
+[FE] Cache: _nsmStep1HintCache[qid] = hints (JSON object)
 ```
+
+**Failure paths:** missing `sessionId` after `ensureNsmDraftSession()` → error shell; 4xx/5xx → error shell with retry button; partial JSON (missing key) → that dim's section renders `<li>（無內容）</li>` via `markdownBulletsToHtml('')` fallback.
 
 ---
 
@@ -253,9 +290,10 @@ No `<pre>` fallback needed — `markdownBulletsToHtml` is already a robust plain
 | Layer | Tool | Scope | Count |
 |---|---|---|---|
 | Unit — prompt builders | jest | 4 prompt functions: (a) `user_nsm` / `userDraft` absent from interpolated string; (b) output format instruction contains `「- 」` bullet keyword; (c) circles-hint output spec includes nested bullet rule | ~12 specs (3 per prompt) |
-| API contract — question-only payload | jest (supertest) or Playwright `request` context | 4 hint endpoints accept `{ questionId/field/dimId/dimType }` with no draft; respond with `{ hint: string }` or JSON envelope | 8 specs (2 per endpoint: happy + missing questionId) |
-| Visual regression — hint modal states | Playwright `toHaveScreenshot` | Hint modal × 3 vp (Mobile-360 / Desktop-1280 / iPhone-14) × 2 states (closed / open with markdown list visible) | 6 baseline specs |
-| Adversarial sweep | `npm run test:adversarial` | Per memory `feedback_adversarial_review_testing`: 4 prompt changes touch CIRCLES hint + NSM hint × 3 stages; sweep must cover all affected stages × 10 cases | required gate before ship |
+| API contract — question-only payload | jest (supertest) or Playwright `request` context | 4 hint endpoints accept `{ questionId/field/dimId/dimType }` (or empty for nsm step1) with no draft; respond with `{ hint: string }` or JSON envelope | 8 specs (2 per endpoint: happy + missing questionId) |
+| Visual regression — hint modal states | Playwright `toHaveScreenshot` | Hint modal × 3 vp (Mobile-360 / Desktop-1280 / iPhone-14) × 2 states (closed / open with markdown list visible); **+ NSM Step 1 hint modal × 3 vp × open state (per D1)** | 6 + 3 = 9 baseline specs |
+| E2E — NSM Step 1 hint flow (NEW per D1) | Playwright | button click → modal open / 4-section render / cache hit on re-open / close | 4 specs |
+| Adversarial sweep | `npm run test:adversarial` | Per memory `feedback_adversarial_review_testing`: 4 prompt changes × 10 cases each = 40 cases across 4 files (2 existing + 2 NEW per D2) | required gate before ship |
 
 ### Unit test specifics — prompt builder verification
 
@@ -283,15 +321,28 @@ expect(prompt).toContain('markdown bullet');
 // nsm-step2/step3 — already tested; confirm 「- 」 still present after refactor
 ```
 
-### Adversarial sweep coverage
+### Adversarial sweep coverage — explicit 4-file list (per D2 resolution)
 
-Per memory `feedback_adversarial_review_testing`, adversarial sweep covers 5 AI stages × 10 cases. The 4 prompt changes affect:
-- CIRCLES hint (stage: circles-hint)
-- NSM step1 hint (stage: nsm-hints)
-- NSM step2 hint (stage: nsm-step2-hint)
-- NSM step3 hint (stage: nsm-step3-hint)
+Per memory `feedback_adversarial_review_testing`, adversarial sweep covers all hint stages × 10 cases each. The 4 prompt changes affect 4 stages; **all 4 test files must exist and be wired into `npm run test:adversarial` before ship**:
 
-All 4 must be included in the sweep. If the existing `npm run test:adversarial` script does not include these stages, they must be added before ship.
+| Stage | Test file | Status | Action |
+|---|---|---|---|
+| nsm-step2-hint | `tests/adversarial/nsm-step2-hint.test.js` | ✅ EXISTS | Update cases to drop `userDraft` arg (post-Prong-A signature) + assert `^- ` bullet present |
+| nsm-step3-hint | `tests/adversarial/nsm-step3-hint.test.js` | ✅ EXISTS | Same — drop `userDraft` arg + assert bullet present |
+| circles-hint | `tests/adversarial/circles-hint.test.js` | ❌ **CREATE NEW** | 10 cases mirroring `nsm-step2-hint.test.js` pattern. Call signature: `generateCirclesHint({ step, field, questionJson })` (no draft — already compliant). Stub adversarial inputs are not draft-based; instead test on different `field` × `step` combos × XSS in `questionJson.company` etc. Assert (a) string returned ≤ 220 chars; (b) `^- ` bullet present (Prong-B contract); (c) no XSS echo; (d) no system-prompt leakage. |
+| nsm-hints (NSM Step 1) | `tests/adversarial/nsm-step1-hint.test.js` | ❌ **CREATE NEW** | 10 cases for `generateNSMHints({ question_json, product_type })` (no `user_nsm`). Cases: 3 product_types (attention/saas/transaction) × diverse question shapes + XSS in scenario + injection in company name + empty product_type fallback + malformed question_json. Assert (a) response is `{reach, depth, frequency, impact}` object; (b) each value is a markdown bullet string starting with `- `; (c) each value ≤ 200 chars; (d) no XSS echo; (e) no system-prompt leakage. |
+
+`npm run test:adversarial` script must include all 4 files; if registration is missing, add before ship-gate run.
+
+### E2E test additions — NSM Step 1 hint modal (per D1)
+
+New Playwright spec `tests/visual/nsm-step1-hint-modal.spec.js`:
+- T-E2E-1: button visible in Step 1 form head; click → modal opens; loading spinner visible.
+- T-E2E-2: stub `/api/nsm-sessions/:id/hints` (or guest) with fixture envelope `{reach, depth, frequency, impact}`; assert modal body contains 4 `.nsm-step1-hint-section` with 4 distinct labels (觸及/深度/頻率/影響); assert each section has `ul.example-list > li` count ≥ 1 (Prong-B bullet contract verified end-to-end).
+- T-E2E-3: close button click → modal removed; re-open → cache hit (no second network request — assert via `page.waitForResponse` timeout / request count).
+- T-E2E-4: visual regression baseline × 3 vp (Mobile-360 / Desktop-1280 / iPhone-14) of open-with-content state.
+
+Network mocking pattern: use `page.route('**/api/**nsm-sessions/*/hints', fulfill JSON)` to keep E2E offline from OpenAI.
 
 ### Failing-test order (per IL-3 discipline)
 
@@ -300,10 +351,12 @@ All 4 must be included in the sweep. If the existing `npm run test:adversarial` 
 3. Refactor 4 prompt files → unit tests green.
 4. Update 4 route files → API contract tests green.
 5. Update FE `app.js` (remove draft from payloads, unify renderer).
-6. Update CSS.
-7. Write visual regression specs → capture baseline.
-8. Run adversarial sweep — block ship if any ❌.
-9. Revert each unit test (confirm red) → restore (confirm green) — IL-3 red-green-revert.
+6. **NEW per D1:** Add NSM Step 1 hint button rendering + `openNSMStep1HintModal` + binding (red → green via Playwright E2E spec).
+7. Update CSS (line-height + `.nsm-step1-hint-section__label` if needed).
+8. Write visual regression specs → capture baseline (includes 3 new NSM Step 1 vp baselines per D1).
+9. **NEW per D2:** Create `tests/adversarial/circles-hint.test.js` + `tests/adversarial/nsm-step1-hint.test.js` (10 cases each).
+10. Run adversarial sweep across all 4 files — block ship if any ❌.
+11. Revert each unit test (confirm red) → restore (confirm green) — IL-3 red-green-revert.
 
 ---
 
@@ -321,15 +374,19 @@ Stage 1D is "done" when all below pass:
 - [ ] **BHint-AC6**: `POST /api/nsm-sessions/:id/hints` and `POST /api/guest/nsm-sessions/:id/hints` accept request body with no `userNsm` field; respond successfully with JSON hint envelope.
 - [ ] **BHint-AC7**: In the browser, opening a CIRCLES hint modal renders the hint content via `markdownBulletsToHtml` (UL/LI structure) — no raw paragraph `<p>` output.
 - [ ] **BHint-AC8**: `.example-list` in `style.css` has `line-height: 1.85`; hint modal bullet items render visually wider than before (verified via director PNG Read).
+- [ ] **BHint-AC9** (NEW per D1): NSM Step 1 form renders one `[data-nsm-step1-hint="open"]` 「教練思路」 button in form head; click opens modal; modal body contains 4 `.nsm-step1-hint-section` blocks labeled 觸及/深度/頻率/影響; each block contains `ul.example-list` with ≥ 1 `li`; close button removes modal.
+- [ ] **BHint-AC10** (NEW per D1): Re-opening modal for same question hits `_nsmStep1HintCache[qid]` — no second network request observed.
+- [ ] **BHint-AC11** (NEW per D2): `tests/adversarial/circles-hint.test.js` and `tests/adversarial/nsm-step1-hint.test.js` exist, contain 10 cases each, included in `npm run test:adversarial`, and pass 0 ❌.
 
 ### Quality gates
 
 - [ ] ~12 unit tests (prompt builders): 0 failures.
 - [ ] 8 API contract tests (4 endpoints × 2 cases): 0 failures.
-- [ ] 6 visual regression baseline specs: 0 failures.
-- [ ] Adversarial sweep: 0 ❌ on CIRCLES hint + NSM hint × 3 stages (4 affected stages total).
+- [ ] 9 visual regression baseline specs (6 hint modal + 3 NSM Step 1 hint per D1): 0 failures.
+- [ ] 4 NSM Step 1 hint E2E specs (per D1): 0 failures.
+- [ ] Adversarial sweep across **4 explicit files** (2 existing + 2 NEW per D2): 0 ❌ × 40 cases total.
 - [ ] Full 8-vp Playwright regression: 0 new failures (pre-existing fail OK per baseline).
-- [ ] Director cold-Read PNG: 6 hint modal PNGs (3 vp × 2 states: closed / open) with inline comments.
+- [ ] Director cold-Read PNG: 6 hint modal PNGs + 3 NSM Step 1 hint modal PNGs (9 total) with inline comments.
 - [ ] Two-stage review (spec compliance + code quality) per memory `feedback_two_stage_review_mandatory`.
 - [ ] iOS Safari 15-item static review (per memory `feedback_ios_review_before_ship`) — hint modal touches mobile UX (bottom-sheet on mobile, touch targets, focus).
 
@@ -371,8 +428,13 @@ This spec is the full closeout of the B-Hint demand. No sub-tasks are deferred w
   - `routes/nsm-sessions.js` (POST `/api/nsm-sessions/:id/hints`) — remove userNsm
   - `routes/guest-nsm-sessions.js` (POST `/api/guest/nsm-sessions/:id/hints`) — remove userNsm
 - FE files:
-  - `public/app.js` — `openNSMStep2HintModal` (line 4019) / `openNSMStep3HintModal` (line 4130) / `_renderHintState` (line 3896) / `markdownBulletsToHtml` (line 3797) / `_markdownHintToHtml` (line 3868)
+  - `public/app.js` — `openNSMStep2HintModal` (line 4019) / `openNSMStep3HintModal` (line 4130) / `_renderHintState` (line 3896) / `markdownBulletsToHtml` (line 3797) / `_markdownHintToHtml` (line 3868) / `renderNSMField` (line 1520, hint button site) / `bindNSMStep1` (binding site) / `[data-nsm-hint-toggle]` handler (line 1771, dead code to remove)
   - `public/style.css` — `.example-list` (line 813) / `.example-list li + li` (line 814) / `.example-sub` (line 815)
+- Adversarial test files (4 total per D2):
+  - `tests/adversarial/nsm-step2-hint.test.js` (existing — update signature)
+  - `tests/adversarial/nsm-step3-hint.test.js` (existing — update signature)
+  - `tests/adversarial/circles-hint.test.js` (NEW)
+  - `tests/adversarial/nsm-step1-hint.test.js` (NEW)
 - Stage 1A spec: `docs/superpowers/specs/2026-05-16-stage-1a-gate-cluster-design.md`
 - Master Spec §0.5: `docs/superpowers/specs/2026-05-02-frontend-rewrite-master-spec.md`
 - Memory: `feedback_adversarial_review_testing.md` / `feedback_hint_example_unified_component.md` / `feedback_two_stage_review_mandatory.md` / `feedback_ios_review_before_ship.md` / `feedback_full_sit_uat_uiux.md` / `feedback_karpathy_guidelines_standard.md`
