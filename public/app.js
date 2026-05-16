@@ -35,6 +35,7 @@
     circlesFinalReport: null,
     circlesStale: false,
     circlesLocked: false,
+    circlesPhase2QchipOpen: false,  // T4 SSE re-render fix — persist qchip open state across renders
     circlesChipExpanded: false,
     circlesDisplayedQuestions: [],
 
@@ -5634,9 +5635,14 @@
     // drill-pill click → set circlesDrillStep + re-render
     // 不重抽 5 題（user 確認 2026-05-04: 每題 7 步通用,不需要切 step 換題;
     // 切 step 是讓 user 想練不同 step 時 hint+範例答案自動切 step-specific 內容,題目可同）
+    // Review-T2 BUG-A fix: derive lock from new step's scored state on every switch —
+    // prevent stale circlesLocked carry-forward when user jumps drill-pill between steps.
     document.querySelectorAll('[data-circles="drill-pill"]').forEach(function (el) {
       el.addEventListener('click', function () {
-        AppState.circlesDrillStep = el.dataset.step;
+        var newStepKey = el.dataset.step;
+        AppState.circlesDrillStep = newStepKey;
+        var scoredMap = AppState.circlesStepScores || {};
+        AppState.circlesLocked = !!scoredMap[newStepKey];
         render();
       });
     });
@@ -6712,8 +6718,20 @@
     // ── qchip 展開面板 toggle (AC-1 spec b2ca935 §3.1: target .qchip-expand) ──
     var qchipBtn = document.querySelector('[data-phase2="qchip"]');
     var qchipPanel = document.querySelector('.qchip-expand');
-    // renderQchipExpand 不帶 display:none，初始化時手動隱藏
-    if (qchipPanel) { qchipPanel.style.display = 'none'; }
+    // T4 SSE fix: respect persisted state, don't unconditionally close on every re-render.
+    // bindCirclesPhase2 fires on every render (incl. SSE chunk) — previously this stomped open qchip.
+    if (qchipPanel) {
+      if (AppState.circlesPhase2QchipOpen) {
+        qchipPanel.style.display = 'block';
+        qchipPanel.classList.add('is-open');
+        if (qchipBtn) {
+          qchipBtn.classList.add('is-open');
+          qchipBtn.setAttribute('aria-expanded', 'true');
+        }
+      } else {
+        qchipPanel.style.display = 'none';
+      }
+    }
     function toggleQchipPanel(open) {
       if (!qchipBtn || !qchipPanel) return;
       if (open) {
@@ -6721,11 +6739,13 @@
         qchipBtn.setAttribute('aria-expanded', 'true');
         qchipPanel.classList.add('is-open');
         qchipPanel.style.display = 'block';
+        AppState.circlesPhase2QchipOpen = true;  // T4 SSE fix
       } else {
         qchipBtn.classList.remove('is-open');
         qchipBtn.setAttribute('aria-expanded', 'false');
         qchipPanel.classList.remove('is-open');
         qchipPanel.style.display = 'none';
+        AppState.circlesPhase2QchipOpen = false;  // T4 SSE fix
       }
     }
     if (qchipBtn) {
@@ -6744,10 +6764,16 @@
 
     // ── back button (go to Phase 1) ──
     // AC-3 (spec b2ca935 §3.3): if THIS step was already scored, lock Phase 1 form
+    // Review-T2 follow-up: canonical step-key resolver — mirror Phase 3 retry (line 6523)
+    // so sim mode (index-based circlesSimStep) also triggers lock, not just drill.
     var backBtn = document.querySelector('[data-phase2="back"]');
     if (backBtn) {
       backBtn.addEventListener('click', function () {
-        var stepKey = AppState.circlesDrillStep;
+        var mode = AppState.circlesMode;
+        var simSteps = ['C1', 'I', 'R', 'C2', 'L', 'E', 'S'];
+        var stepKey = mode === 'drill'
+          ? AppState.circlesDrillStep
+          : simSteps[AppState.circlesSimStep || 0];
         var scoredMap = AppState.circlesStepScores || {};
         if (stepKey && scoredMap[stepKey]) {
           AppState.circlesLocked = true;
@@ -7303,6 +7329,10 @@
             submitFrameworkToGate();
           } else {
             AppState.circlesSimStep = nextIdx;
+            // Review-T2 BUG-A fix: derive lock from new step's scored state
+            var __scoredMapNxt = AppState.circlesStepScores || {};
+            var __nextKey = stepOrder[nextIdx];
+            AppState.circlesLocked = !!(__nextKey && __scoredMapNxt[__nextKey]);
             render();
           }
         }
@@ -7323,6 +7353,11 @@
           } else {
             AppState.circlesSimStep = prevIdx;
           }
+          // Review-T2 BUG-A fix: derive lock from new step's scored state
+          var __simSteps = ['C1', 'I', 'R', 'C2', 'L', 'E', 'S'];
+          var __curKey = __simSteps[AppState.circlesSimStep || 0];
+          var __scoredMapBack = AppState.circlesStepScores || {};
+          AppState.circlesLocked = !!(__curKey && __scoredMapBack[__curKey]);
           render();
         }
       });
@@ -7911,6 +7946,17 @@
             }
           }
         } catch (_) {}
+        // Review-T2 BUG-B fix: derive lock from current step's score row on rehydrate
+        // so resumed sessions land with correct Phase 1 lock state (mirrors canonical
+        // resolver at line 6523 / 8021). Without this, locked sessions read as editable
+        // until user toggles a step.
+        var __rhMode = AppState.circlesMode;
+        var __rhSimSteps = ['C1', 'I', 'R', 'C2', 'L', 'E', 'S'];
+        var __rhStepKey = __rhMode === 'drill'
+          ? AppState.circlesDrillStep
+          : __rhSimSteps[AppState.circlesSimStep || 0];
+        var __rhScoredMap = AppState.circlesStepScores || {};
+        AppState.circlesLocked = !!(__rhStepKey && __rhScoredMap[__rhStepKey]);
         var circlesTitle = (latest.question_json && (latest.question_json.company + (latest.question_json.product ? ' · ' + latest.question_json.product : ''))) || 'CIRCLES';
         AppState._resumeToastMsg = '已載入上次未完成的「' + circlesTitle + '」— Phase ' + AppState.circlesPhase;
       }
@@ -8023,6 +8069,9 @@
       : (['C1','I','R','C2','L','E','S'][AppState.circlesSimStep || 0] || 'C1');
     var __scoreRow = (AppState.circlesStepScores && AppState.circlesStepScores[__stepKey]) || null;
     AppState.circlesScoreResult = (__scoreRow && __scoreRow.totalScore != null) ? __scoreRow : null;
+    // Review-T2 BUG-B fix: derive lock from current step's score row on history-resume
+    // so offcanvas-restored sessions land with correct Phase 1 lock state.
+    AppState.circlesLocked = !!__scoreRow;
     // Block 3: rehydrate extra keys from DB (gate result + phase2 conclusion draft)
     AppState.circlesGateResult = item.gate_result || null;
     AppState.circlesPhase2ConclusionDraft = (item.progress_json && item.progress_json.phase2ConclusionDraft) || '';
