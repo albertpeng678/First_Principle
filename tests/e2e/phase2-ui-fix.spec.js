@@ -82,9 +82,15 @@ async function enterPhase2Normal(page, cleanupTracker) {
 
     // Create a session via ensureCirclesDraftSession() (used by submitFrameworkToGate).
     // We call it directly to get a real session ID for cleanup.
+    // If Supabase auth token has not yet restored async (CDN load timing), the API
+    // call will use guest path and may fail — fall back to a synthetic session so
+    // the Phase 2 render condition (circlesPhase===2 && circlesSession && selectedQ) is met.
     try {
       await window.ensureCirclesDraftSession();
     } catch (_) {}
+    if (!A.circlesSession || !A.circlesSession.id) {
+      A.circlesSession = { id: 'normal-test-session-synthetic' };
+    }
 
     // Now transition AppState to Phase 2 (normal branch, no score).
     A.circlesPhase            = 2;
@@ -106,7 +112,8 @@ async function enterPhase2Normal(page, cleanupTracker) {
     return A.circlesSession && A.circlesSession.id;
   }, c1);
 
-  if (sid && cleanupTracker) {
+  // Only track real (non-synthetic) sessions for cleanup.
+  if (sid && sid !== 'normal-test-session-synthetic' && cleanupTracker) {
     cleanupTracker.track('circles', sid);
   }
 
@@ -262,8 +269,8 @@ test.describe('B5 — 上一步 button inline in input-bar__row', () => {
     await enterPhase2Normal(page, cleanupTracker);
     const q = new CirclesPhase2QchipComponent(page);
     await q.inputBarBackBtn.click();
-    // Phase 1 data-phase="1" container must appear.
-    await expect(page.locator('[data-view="circles"][data-phase="1"]')).toBeVisible({ timeout: 5_000 });
+    // Phase 1 uses data-circles-phase="1" (not data-phase="1") per app.js render.
+    await expect(page.locator('[data-view="circles"][data-circles-phase="1"]')).toBeVisible({ timeout: 5_000 });
   });
 });
 

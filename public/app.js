@@ -788,14 +788,30 @@
       companyDisplay = companyBase;
     }
     var qTitle = q.problem_statement || '';
-    return '<button class="qchip" data-phase2="qchip">'
+    return '<button class="qchip" data-phase2="qchip" aria-expanded="false">'
       + '<span class="qchip__icon"><i class="ph ph-bookmark-simple"></i></span>'
       + '<div class="qchip__main">'
       + '<div class="qchip__company">' + companyDisplay + '</div>'
       + '<div class="qchip__title">' + escHtml(qTitle) + '</div>'
       + '</div>'
-      + '<i class="ph ph-caret-right qchip__caret"></i>'
+      + '<i class="ph ph-caret-down qchip__caret"></i>'
       + '</button>';
+  }
+
+  // ── renderQchipPanelHtml (shared helper — Stage 1C B5 fix) ───────────────
+  // Panel is hidden by default (display:none inline); toggleQchipPanel controls visibility.
+  // CSS class .is-open is also added for caret rotate (via style.css T5).
+  function renderQchipPanelHtml(q) {
+    var typeMap = { improve: '改善題', strategy: '策略題', design: '設計題' };
+    var typeLabel = typeMap[q.question_type] || '設計題';
+    var body = q.problem_statement || '';
+    return '<div class="qchip-panel" data-phase2="qchip-panel" style="display:none">'
+      + '<div class="qchip-panel__type"><i class="ph ph-tag"></i>' + escHtml(typeLabel) + '</div>'
+      + '<div class="qchip-panel__body">' + escHtml(body) + '</div>'
+      + '<button class="qchip-panel__close" data-phase2="qchip-panel-close">'
+      + '<i class="ph ph-caret-up"></i>收合題目'
+      + '</button>'
+      + '</div>';
   }
 
   // ── renderConclusionBox (Section E — mockup 05 line 1553-1575) ───────────
@@ -860,7 +876,7 @@
 
     // ── progress bar (always visible in Phase 2 — mockup 05 shows it) ──
     var progressHtml = renderProgressBar(stepKey);
-    var qchipHtml = renderPhase2QchipHtml(q);
+    var qchipHtml = renderPhase2QchipHtml(q) + renderQchipPanelHtml(q);
 
     // ── Section E: conclusion mode (dim chat + conclusion box) ───────────────
     if (AppState.circlesPhase2ConclusionMode) {
@@ -1002,11 +1018,6 @@
         + '</div>';
     }
 
-    // ── back button row ──────────────────────────────────────────────────────
-    var backRowHtml = '<div class="phase-back-row">'
-      + '<button class="btn btn--ghost" data-phase2="back"><i class="ph ph-arrow-left"></i>上一步</button>'
-      + '</div>';
-
     // ── input bar ─────────────────────────────────────────────────────────────
     // Section D: turns ≥ 3 + not streaming → show submit pill above input
     var suggestHtml = '';
@@ -1026,6 +1037,7 @@
     var inputBarHtml = '<div class="input-bar">'
       + suggestHtml
       + '<div class="input-bar__row">'
+      + '<button class="btn btn--ghost" data-phase2="back"><i class="ph ph-arrow-left"></i>上一步</button>'
       + '<textarea class="input-bar__textarea" placeholder="' + inputPlaceholder + '" rows="1"'
       + inputDisabled
       + ' data-phase2="message-input"></textarea>'
@@ -1041,7 +1053,6 @@
       + phaseHeadHtml
       + qchipHtml
       + chatBodyHtml
-      + backRowHtml
       + inputBarHtml
       + '</div>';
   }
@@ -1050,7 +1061,7 @@
   // ── renderCirclesPhase2Locked (Section F — mockup 05 line 1740-1943) ──────
   function renderCirclesPhase2Locked(q, stepKey, phase2Cfg, conversation, scoreData) {
     var progressHtml = renderProgressBar(stepKey);
-    var qchipHtml = renderPhase2QchipHtml(q);
+    var qchipHtml = renderPhase2QchipHtml(q) + renderQchipPanelHtml(q);
     var totalScore = scoreData && scoreData.totalScore;
 
     // phase-head with 已評分 suffix
@@ -6679,6 +6690,36 @@
         render();
       });
     });
+
+    // ── qchip 展開面板 toggle ──
+    var qchipBtn = document.querySelector('[data-phase2="qchip"]');
+    var qchipPanel = document.querySelector('[data-phase2="qchip-panel"]');
+    function toggleQchipPanel(open) {
+      if (!qchipBtn || !qchipPanel) return;
+      if (open) {
+        qchipBtn.classList.add('is-open');
+        qchipBtn.setAttribute('aria-expanded', 'true');
+        qchipPanel.classList.add('is-open');
+        qchipPanel.style.display = 'block';
+      } else {
+        qchipBtn.classList.remove('is-open');
+        qchipBtn.setAttribute('aria-expanded', 'false');
+        qchipPanel.classList.remove('is-open');
+        qchipPanel.style.display = 'none';
+      }
+    }
+    if (qchipBtn) {
+      qchipBtn.addEventListener('click', function () {
+        toggleQchipPanel(!qchipBtn.classList.contains('is-open'));
+      });
+    }
+    var qchipCloseBtn = document.querySelector('[data-phase2="qchip-panel-close"]');
+    if (qchipCloseBtn) {
+      qchipCloseBtn.addEventListener('click', function (e) {
+        e.stopPropagation();  // 避免冒泡觸發 qchipBtn click
+        toggleQchipPanel(false);
+      });
+    }
 
     // ── back button (go to Phase 1) ──
     var backBtn = document.querySelector('[data-phase2="back"]');
