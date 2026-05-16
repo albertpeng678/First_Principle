@@ -3,11 +3,19 @@
 const OpenAI = require('openai');
 
 jest.mock('openai', () => {
-  const create = jest.fn(async () => ({ choices: [{ message: { content: '{"reach":"- a","depth":"- b","frequency":"- c","impact":"- d"}' } }] }));
+  const create = jest.fn(async (args) => {
+    // Detect: if response_format is json_object, return JSON envelope; else return bullet string
+    if (args && args.response_format && args.response_format.type === 'json_object') {
+      return { choices: [{ message: { content: '{"reach":"- a","depth":"- b","frequency":"- c","impact":"- d"}' } }] };
+    }
+    return { choices: [{ message: { content: '- 思考 **重點** 是什麼？\n  - 從 X 入手' } }] };
+  });
   return jest.fn().mockImplementation(() => ({ chat: { completions: { create } } }));
 });
 
 const { generateNSMHints } = require('../../prompts/nsm-hints');
+const { generateNSMStep2Hint } = require('../../prompts/nsm-step2-hint');
+const { generateNSMStep3Hint } = require('../../prompts/nsm-step3-hint');
 
 describe('nsm-hints — question-only + markdown bullet output (Stage 1D)', () => {
   beforeEach(() => {
@@ -36,5 +44,68 @@ describe('nsm-hints — question-only + markdown bullet output (Stage 1D)', () =
   it('returns 4-dim JSON envelope with reach/depth/frequency/impact keys', async () => {
     const result = await generateNSMHints({ question_json: { company: 'Netflix', scenario: 'x' }, product_type: 'attention' });
     expect(Object.keys(result).sort()).toEqual(['depth', 'frequency', 'impact', 'reach']);
+  });
+});
+
+describe('nsm-step2-hint — question-only (Stage 1D)', () => {
+  beforeEach(() => {
+    const OpenAICtor = require('openai');
+    const mockInstance = OpenAICtor.mock.results[OpenAICtor.mock.results.length - 1];
+    if (mockInstance && mockInstance.value) mockInstance.value.chat.completions.create.mockClear();
+  });
+
+  it('system prompt does not reference userDraft', async () => {
+    await generateNSMStep2Hint({ questionJson: { company: 'X' }, field: 'nsm' });
+    const OpenAICtor = require('openai');
+    const create = OpenAICtor.mock.results[OpenAICtor.mock.results.length - 1].value.chat.completions.create;
+    const sys = create.mock.calls[0][0].messages[0].content;
+    const usr = create.mock.calls[0][0].messages[1].content;
+    expect(sys).not.toContain('userDraft');
+    expect(sys).not.toContain('輸入品質檢查');
+    expect(usr).not.toContain('學員當前草稿');
+  });
+
+  it('signature accepts only {questionJson, field}', async () => {
+    // Function should not throw / not require userDraft to work
+    await expect(generateNSMStep2Hint({ questionJson: { company: 'X' }, field: 'nsm' })).resolves.toBeDefined();
+  });
+
+  it('system prompt still requires bullet output', async () => {
+    await generateNSMStep2Hint({ questionJson: { company: 'X' }, field: 'nsm' });
+    const OpenAICtor = require('openai');
+    const create = OpenAICtor.mock.results[OpenAICtor.mock.results.length - 1].value.chat.completions.create;
+    const sys = create.mock.calls[0][0].messages[0].content;
+    expect(sys).toMatch(/巢狀 markdown bullets|「- 」/);
+  });
+});
+
+describe('nsm-step3-hint — question-only (Stage 1D)', () => {
+  beforeEach(() => {
+    const OpenAICtor = require('openai');
+    const mockInstance = OpenAICtor.mock.results[OpenAICtor.mock.results.length - 1];
+    if (mockInstance && mockInstance.value) mockInstance.value.chat.completions.create.mockClear();
+  });
+
+  it('system prompt does not reference userDraft', async () => {
+    await generateNSMStep3Hint({ questionJson: { company: 'X' }, dimId: 'reach', dimType: 'attention' });
+    const OpenAICtor = require('openai');
+    const create = OpenAICtor.mock.results[OpenAICtor.mock.results.length - 1].value.chat.completions.create;
+    const sys = create.mock.calls[0][0].messages[0].content;
+    const usr = create.mock.calls[0][0].messages[1].content;
+    expect(sys).not.toContain('userDraft');
+    expect(sys).not.toContain('輸入品質檢查');
+    expect(usr).not.toContain('學員當前草稿');
+  });
+
+  it('signature accepts {questionJson, dimId, dimType} only', async () => {
+    await expect(generateNSMStep3Hint({ questionJson: { company: 'X' }, dimId: 'depth', dimType: 'saas' })).resolves.toBeDefined();
+  });
+
+  it('system prompt still requires bullet output', async () => {
+    await generateNSMStep3Hint({ questionJson: { company: 'X' }, dimId: 'reach', dimType: 'attention' });
+    const OpenAICtor = require('openai');
+    const create = OpenAICtor.mock.results[OpenAICtor.mock.results.length - 1].value.chat.completions.create;
+    const sys = create.mock.calls[0][0].messages[0].content;
+    expect(sys).toMatch(/巢狀 markdown bullets|「- 」/);
   });
 });
