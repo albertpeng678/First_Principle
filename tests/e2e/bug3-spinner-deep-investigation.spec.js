@@ -1,37 +1,30 @@
 // tests/e2e/bug3-spinner-deep-investigation.spec.js
 //
-// Bug 3 Deep Investigation — definitive verdict on P2 #253 INCONCLUSIVE
+// Bug 3 Deep Investigation — P2 #253 reclassified P0; FIX VERIFIED
 // Prior 8s window was too short; this spec uses 60s windows.
 //
 // KARPATHY: Think Before first.
 //
-// ROOT CAUSE (static analysis of app.js):
-//   tryResumeLatestSession (app.js:8021-8075) sets circlesStepScores but DOES NOT
+// ROOT CAUSE (static analysis of app.js — FIXED in P2-#253 patch):
+//   tryResumeLatestSession previously set circlesStepScores but did NOT
 //   derive circlesScoreResult from step_scores. The go-phase3 handler (line 6873)
 //   only sets circlesPhase=3 + render(). renderCirclesPhase3 (line 6520) tests
 //   !AppState.circlesScoreResult → spinner branch → starts 5s interval + 60s slow-warn
-//   + 300s EVAL_TIMEOUT. No evaluate-step call is ever fired. Spinner is permanently
+//   + 300s EVAL_TIMEOUT. No evaluate-step call was ever fired. Spinner permanently
 //   stuck (5 min until EVAL_TIMEOUT error).
 //   restoreCirclesPhase1FromSession (line 8180) DOES derive circlesScoreResult (Stage
-//   1B B3 fix), which is why the offcanvas-restore path is fine — but auto-resume
-//   (boot path) lacks the same fix.
+//   1B B3 fix, commit 654d0e8), and now tryResumeLatestSession mirrors that fix.
 //
-// PREDICTION PER SCENARIO (Karpathy "Think Before"):
-//   S1 Extended 60s: RED (spinner visible at 30s, 60s; clears only at 300s EVAL_TIMEOUT)
-//   S2 503-then-200:  GREEN (retry-then-success path: error→user clicks retry→score renders)
-//     [No auto-retry in FE: same EVAL_TIMEOUT path. Verdict TBD from actual run.]
-//   S3 Sustained 503: RED (spinner + error banner eventually, but may take 300s)
-//     [FE retry button is manual — banner appears only if user explicitly retries.
-//      First render = no evaluate-step fired. So: spinner stuck forever unless user
-//      clicks retry. EVAL_TIMEOUT at 300s → error banner. Within 60s: still spinner.]
-//   S4 Slow 30s real: GREEN for scenario (spinner shows, eventually API responds)
-//     [Moot for boot-path bug: evaluate-step is never fired from go-phase3. Spinner
-//      stays because circlesScoreResult=null, not because evaluate-step is slow.]
+// POST-FIX PREDICTION PER SCENARIO (Karpathy "Think Before"):
+//   S1 Extended 60s: GREEN — circlesScoreResult derived on resume; 回評分 renders score
+//   S2 503-then-200:  GREEN — circlesScoreResult already set; score renders immediately
+//   S3 Sustained 503: GREEN — score renders immediately from pre-derived circlesScoreResult
+//   S4 Slow 30s real: GREEN — score renders immediately (evaluate-step not needed)
 //   S5 Phase3→Phase4: PASS / NEEDS_USER_INPUT (navigation clears timers; state OK)
 //
 // SIMPLICITY FIRST: shared helpers extracted, scenario bodies minimal.
-// SURGICAL: new spec + audit doc + PNG folder ONLY — NO production code changes.
-// GOAL-DRIVEN: verdict = BUG / NOT_REPRO / NEEDS_USER_INPUT, not another INCONCLUSIVE.
+// SURGICAL: public/app.js one-region fix (tryResumeLatestSession ~line 8039) + spec polarity flip.
+// GOAL-DRIVEN: L13b's 4 RED scenarios → GREEN; no regression in 6 smoke bundles.
 //
 // SKILLS CITED (per STANDING feedback_playwright_skill_cited_application):
 //   network-mocking.md:839-933 "Intermittent Failure Pattern" → S2/S3/S4 page.route mocks
@@ -283,22 +276,23 @@ async function setupBootPathResume(page, testInfo, scenario) {
 
 
 // ═════════════════════════════════════════════════════════════════════════════
-// SCENARIO 1 — Extended 60s observation window
+// SCENARIO 1 — Boot-path resume → score renders immediately (fix verified)
 //
-// Purpose: Prior INCONCLUSIVE was 8s. Watch for 60s.
-// Prediction: STUCK (no evaluate-step fired; 60s slow-warn appears; score never renders)
+// Purpose: Verify the P2-#253 fix: tryResumeLatestSession now derives
+//   circlesScoreResult so clicking 回評分 renders Phase 3 score immediately.
+// Post-fix prediction: circlesScoreResult non-null after resume → score renders
 // Pitfall 11: Real backend + real Supabase. NO route mocking.
 // ═════════════════════════════════════════════════════════════════════════════
-test.describe('S1 — Extended 60s spinner observation (real backend)', () => {
-  test('boot-path resume → 回評分 → spinner stuck 60s (circlesScoreResult stays null)', async ({ page }, testInfo) => {
-    test.slow(); // 3× timeout = 270s; we need ~90s
+test.describe('S1 — Boot-path resume → score renders immediately (fix verified)', () => {
+  test('boot-path resume → 回評分 → score renders (circlesScoreResult derived by fix)', async ({ page }, testInfo) => {
+    test.slow(); // 3× timeout safety margin
     let sessionId;
     try {
       await test.step('seed: drain + create scored Phase-2 session', async () => {
         sessionId = await setupBootPathResume(page, testInfo, 'S1');
       });
 
-      await test.step('verify bug precondition: Phase 2 locked + circlesScoreResult IS null', async () => {
+      await test.step('verify fix: Phase 2 locked + circlesScoreResult IS derived (non-null)', async () => {
         // tryResumeLatestSession may land on phase 1 or phase 2 depending on current_phase value.
         // If phase 1: navigate to phase 2 to surface locked banner + 回評分 button.
         const phase = await page.evaluate(() => window.AppState.circlesPhase);
@@ -315,71 +309,42 @@ test.describe('S1 — Extended 60s spinner observation (real backend)', () => {
           stepScore: window.AppState.circlesStepScores && window.AppState.circlesStepScores.C1,
           locked: window.AppState.circlesLocked,
         }));
-        // Confirm: step_scores hydrated (lock state correct) but scoreResult is null (the bug)
+        // Confirm: step_scores hydrated (lock state correct) AND scoreResult now derived (the fix)
         expect(state.locked).toBe(true);
         expect(state.stepScore && state.stepScore.totalScore).toBe(78);
-        // PRIMARY BUG ASSERTION: circlesScoreResult was NOT derived from step_scores in auto-resume
-        expect(state.scoreResult).toBeNull();
+        // FIX ASSERTION: circlesScoreResult IS now derived from step_scores in auto-resume
+        expect(state.scoreResult).not.toBeNull();
+        expect(state.scoreResult && state.scoreResult.totalScore).toBe(78);
 
         await screenshot(page, '1', 'precondition-phase2-locked', testInfo);
       });
 
-      await test.step('click 回評分 → spinner appears immediately', async () => {
+      await test.step('click 回評分 → score renders immediately (no spinner stuck)', async () => {
         await page.locator(SEL.goPhase3Btn).click();
         await expect(page.locator(SEL.phase3Root)).toBeVisible({ timeout: 5_000 });
-        // Spinner must appear (circlesScoreResult=null branch in renderCirclesPhase3)
-        await expect(page.locator(SEL.loadingSpinner)).toBeVisible({ timeout: 3_000 });
-        // Score should NOT appear
-        await expect(page.locator(SEL.phase3ScoreNum)).toHaveCount(0);
-        await screenshot(page, '1', 'spinner-at-0s', testInfo);
+        // Score must appear (circlesScoreResult non-null branch in renderCirclesPhase3)
+        // assertions-and-waiting.md:253-295 web-first assertions
+        await expect(page.locator(SEL.phase3ScoreNum)).toBeVisible({ timeout: 10_000 });
+        // Spinner must NOT be stuck (may flash briefly then clear)
+        await expect(page.locator(SEL.loadingSpinner)).toHaveCount(0, { timeout: 5_000 });
+        await screenshot(page, '1', 'score-renders-immediately', testInfo);
       });
 
-      // Key difference from prior spec: 60s window via expect.poll
-      // (assertions-and-waiting.md:253-295 expect.poll pattern)
-      await test.step('expect.poll: verify spinner still stuck at 30s mark', async () => {
-        // At 30s: loadingStep should be ~6 (every 5s tick) but spinner still visible
-        // because circlesScoreResult remains null and no evaluate-step was fired.
-        await expect.poll(async () => {
-          const scr = await page.evaluate(() => window.AppState.circlesScoreResult);
-          return scr;
-        }, {
-          message: 'circlesScoreResult should remain null (no evaluate-step fired from go-phase3)',
-          timeout: 32_000,   // poll for 32s
-          intervals: [2_000, 5_000, 5_000, 5_000, 5_000, 5_000, 5_000],
-        }).toBeNull();
-
-        // Spinner still visible at 30s
-        await expect(page.locator(SEL.loadingSpinner)).toBeVisible({ timeout: 2_000 });
-        await screenshot(page, '1', 'spinner-at-30s', testInfo);
-      });
-
-      await test.step('wait for loadingSlow=true at ~60s mark (app.js:6531-6536 60s timeout)', async () => {
-        // After ~60s the slow-warn variant should appear (mockup 12 Section A).
-        // Use expect.poll on AppState.circlesPhase3LoadingSlow which is set to true
-        // exactly when the 60s timeout fires (app.js:6531-6536).
-        // assertions-and-waiting.md:253-295 — expect.poll with 72s timeout.
-        await expect.poll(async () => {
-          return page.evaluate(() => window.AppState.circlesPhase3LoadingSlow);
-        }, {
-          message: 'After ~60s: circlesPhase3LoadingSlow should become true (app.js:6531)',
-          timeout: 72_000,
-          intervals: [5_000, 5_000, 5_000, 5_000, 5_000, 5_000, 5_000, 5_000, 5_000, 5_000, 5_000, 5_000, 5_000, 5_000, 5_000],
-        }).toBe(true);
-
+      await test.step('verify score value correct + no slow-warn', async () => {
         const finalState = await page.evaluate(() => ({
           scoreResult: window.AppState.circlesScoreResult,
-          loadingStep: window.AppState.circlesPhase3LoadingStep,
           loadingSlow: window.AppState.circlesPhase3LoadingSlow,
           phase3Error: window.AppState.circlesPhase3Error,
         }));
-        // Score still null — evaluate-step was never fired
-        expect(finalState.scoreResult).toBeNull();
-        // No error yet (EVAL_TIMEOUT is at 300s, only 60s elapsed)
+        // Score result confirmed (non-null, totalScore=78)
+        expect(finalState.scoreResult).not.toBeNull();
+        expect(finalState.scoreResult.totalScore).toBe(78);
+        // No error
         expect(finalState.phase3Error).toBeNull();
-        // loadingSlow confirmed true
-        expect(finalState.loadingSlow).toBe(true);
+        // No 60s slow-warn triggered (score rendered before timeout)
+        expect(finalState.loadingSlow).toBeFalsy();
 
-        await screenshot(page, '1', 'slow-warn-at-60s', testInfo);
+        await screenshot(page, '1', 'score-rendered-no-slow-warn', testInfo);
       });
 
     } finally {
@@ -390,17 +355,17 @@ test.describe('S1 — Extended 60s spinner observation (real backend)', () => {
 
 
 // ═════════════════════════════════════════════════════════════════════════════
-// SCENARIO 2 — OpenAI 503-then-200 intermittent failure (mock carve-out)
+// SCENARIO 2 — circlesScoreResult pre-derived; 503 mock irrelevant (fix verified)
 //
-// Purpose: If FE fires evaluate-step from go-phase3 click, would 503-then-200 get stuck?
-// Prediction: MOOT — go-phase3 doesn't fire evaluate-step at all.
-//   If evaluate-step were fired: 503 → FE shows error banner → user retry → 200 → score renders.
-//   Actual result: spinner stuck because evaluate-step is never triggered.
+// Purpose: With the fix, circlesScoreResult is derived at resume time. Even with
+//   a 503 mock on evaluate-step, clicking 回評分 renders score immediately because
+//   go-phase3 detects non-null circlesScoreResult and skips the spinner branch.
+// Post-fix prediction: score renders; 503 mock is never invoked.
 // Pitfall 11 carve-out: 503 simulation requires page.route (cannot inject from real backend).
 // network-mocking.md:906-932 "Intermittent Failure Pattern"
 // ═════════════════════════════════════════════════════════════════════════════
-test.describe('S2 — OpenAI 503-then-200 retry simulation (mock carve-out)', () => {
-  test('boot-path resume → 回評分 → 503 mock → verify FE retry behavior', async ({ page }, testInfo) => {
+test.describe('S2 — circlesScoreResult pre-derived; 503 mock irrelevant (fix verified)', () => {
+  test('boot-path resume → 回評分 → score renders (503 mock never invoked)', async ({ page }, testInfo) => {
     test.slow();
     let sessionId;
     try {
@@ -431,58 +396,38 @@ test.describe('S2 — OpenAI 503-then-200 retry simulation (mock carve-out)', ()
         });
       });
 
-      await test.step('click 回評分 → observe spinner behavior under 503 mock', async () => {
+      await test.step('click 回評分 → score renders immediately (circlesScoreResult pre-derived)', async () => {
         await page.locator(SEL.goPhase3Btn).click();
         await expect(page.locator(SEL.phase3Root)).toBeVisible({ timeout: 5_000 });
         await screenshot(page, '2', 'after-click-t0', testInfo);
 
-        // Key question: does go-phase3 fire evaluate-step at all?
-        // If it does NOT fire evaluate-step → spinner stuck regardless of mock.
-        // If it does fire → 503 → error banner (.error-wrap visible).
-        // Poll 15s to observe which branch.
-        await expect.poll(async () => {
-          const [spinner, score, errWrap] = await Promise.all([
-            page.locator(SEL.loadingSpinner).count(),
-            page.locator(SEL.phase3ScoreNum).count(),
-            page.locator(SEL.errorWrap).count(),
-          ]);
-          return { spinner, score, errWrap };
-        }, {
-          message: 'S2: observe state after go-phase3 click with 503 mock',
-          timeout: 15_000,
-          intervals: [2_000, 3_000, 5_000, 5_000],
-        }).toMatchObject(expect.objectContaining({})); // always passes; we read the value
+        // FIX ASSERTION: score renders immediately because circlesScoreResult was pre-derived.
+        // The 503 mock is never invoked (go-phase3 skips evaluate-step when scoreResult non-null).
+        await expect(page.locator(SEL.phase3ScoreNum)).toBeVisible({ timeout: 10_000 });
+        // Spinner must NOT be stuck
+        await expect(page.locator(SEL.loadingSpinner)).toHaveCount(0, { timeout: 5_000 });
 
         const finalObserved = await page.evaluate(() => ({
           scoreResult: window.AppState.circlesScoreResult,
           phase3Error: window.AppState.circlesPhase3Error,
-          loadingSlow: window.AppState.circlesPhase3LoadingSlow,
         }));
 
-        await screenshot(page, '2', 'after-15s', testInfo);
+        await screenshot(page, '2', 'score-rendered', testInfo);
 
-        // ASSERTION: Since go-phase3 doesn't fire evaluate-step, spinner is stuck
-        // AND error banner does NOT appear (503 mock was never invoked).
-        // circlesScoreResult stays null — same stuck state as S1.
-        expect(finalObserved.scoreResult).toBeNull();
-        // No error should appear because evaluate-step was never called
+        // circlesScoreResult is non-null (fix worked)
+        expect(finalObserved.scoreResult).not.toBeNull();
+        // No error (503 mock not triggered)
         expect(finalObserved.phase3Error).toBeNull();
-        // Spinner visible
-        await expect(page.locator(SEL.loadingSpinner)).toBeVisible({ timeout: 2_000 });
       });
 
-      // Secondary: verify the FE retry button (rendered in error state) can fire evaluate-step
-      // But since we never reach error state from go-phase3, this sub-step is informational.
-      await test.step('verify: 503 mock not invoked from go-phase3 (evaluate-step counter = 0)', async () => {
-        // The route mock tracks calls. If go-phase3 fired evaluate-step, callCount > 0
-        // would have caused the mock to activate. Since spinner is stuck without error,
-        // evaluate-step was never called. This is the mechanistic confirmation.
-        // (We cannot read callCount directly — but the stuck spinner + null error IS the proof.)
+      await test.step('verify: 503 mock not invoked (evaluate-step counter = 0, score pre-derived)', async () => {
+        // With the fix, go-phase3 renders from pre-derived circlesScoreResult — evaluate-step
+        // is never called. 503 mock is dormant. This confirms the fix mechanism is correct.
         const state = await page.evaluate(() => ({
           scoreResult: window.AppState.circlesScoreResult,
           phase3Error: window.AppState.circlesPhase3Error,
         }));
-        expect(state.scoreResult).toBeNull();
+        expect(state.scoreResult).not.toBeNull();
         expect(state.phase3Error).toBeNull();
       });
 
@@ -495,16 +440,15 @@ test.describe('S2 — OpenAI 503-then-200 retry simulation (mock carve-out)', ()
 
 
 // ═════════════════════════════════════════════════════════════════════════════
-// SCENARIO 3 — OpenAI sustained 503 (mock carve-out)
+// SCENARIO 3 — Sustained 503 mock; score pre-derived so mock irrelevant (fix verified)
 //
-// Purpose: If go-phase3 fires evaluate-step AND it always returns 503, does an
-//   error banner appear within 30s?
-// Prediction: Spinner stuck → no error banner → because evaluate-step NOT fired.
-//   If FE retry button pressed → 503 → error banner shows.
+// Purpose: With the fix, circlesScoreResult is pre-derived at resume. Even sustained
+//   503 on evaluate-step cannot cause spinner-stuck: go-phase3 skips evaluate-step.
+// Post-fix prediction: score renders immediately; sustained 503 mock never invoked.
 // Pitfall 11 carve-out: sustained 503 requires page.route.
 // ═════════════════════════════════════════════════════════════════════════════
-test.describe('S3 — Sustained 503 + verify error-banner behavior', () => {
-  test('boot-path resume → 回評分 → sustained 503 mock → error banner behavior', async ({ page }, testInfo) => {
+test.describe('S3 — Sustained 503; score pre-derived so mock irrelevant (fix verified)', () => {
+  test('boot-path resume → 回評分 → score renders (sustained 503 mock never invoked)', async ({ page }, testInfo) => {
     test.slow();
     let sessionId;
     try {
@@ -523,38 +467,35 @@ test.describe('S3 — Sustained 503 + verify error-banner behavior', () => {
         });
       });
 
-      await test.step('click 回評分 → observe 30s window for error banner', async () => {
+      await test.step('click 回評分 → score renders (503 mock irrelevant; go-phase3 skips evaluate-step)', async () => {
         await page.locator(SEL.goPhase3Btn).click();
         await expect(page.locator(SEL.phase3Root)).toBeVisible({ timeout: 5_000 });
         await screenshot(page, '3', 'after-click-t0', testInfo);
 
-        // Poll 30s: expect spinner stuck, NO error banner, NO score
-        // (because evaluate-step is never fired from go-phase3)
-        await expect.poll(async () => {
-          return {
-            scoreResult: await page.evaluate(() => window.AppState.circlesScoreResult),
-            phase3Error: await page.evaluate(() => window.AppState.circlesPhase3Error),
-          };
-        }, {
-          message: 'S3: circlesScoreResult and phase3Error should both remain null (evaluate-step not fired)',
-          timeout: 30_000,
-          intervals: [3_000, 5_000, 5_000, 5_000, 5_000, 5_000, 5_000],
-        }).toMatchObject({ scoreResult: null, phase3Error: null });
+        // FIX ASSERTION: score renders immediately; 503 mock never invoked.
+        await expect(page.locator(SEL.phase3ScoreNum)).toBeVisible({ timeout: 10_000 });
+        await expect(page.locator(SEL.loadingSpinner)).toHaveCount(0, { timeout: 5_000 });
 
-        await screenshot(page, '3', 'at-30s-no-error-banner', testInfo);
-        // Spinner still stuck — confirms evaluate-step never fired (503 mock not triggered)
-        await expect(page.locator(SEL.loadingSpinner)).toBeVisible({ timeout: 2_000 });
+        const state = await page.evaluate(() => ({
+          scoreResult: window.AppState.circlesScoreResult,
+          phase3Error: window.AppState.circlesPhase3Error,
+        }));
+
+        await screenshot(page, '3', 'score-rendered-no-error', testInfo);
+        // Score non-null (fix worked)
+        expect(state.scoreResult).not.toBeNull();
+        // No error (503 mock not triggered)
+        expect(state.phase3Error).toBeNull();
+        // No error banner
+        await expect(page.locator(SEL.errorWrap)).toHaveCount(0, { timeout: 2_000 });
       });
 
       await test.step('secondary: force-set phase3Error → verify error-wrap renders correctly', async () => {
-        // Simulate what the FE retry button does: set circlesPhase3Error to trigger retry path.
-        // This proves the FE error-handling renders correctly when evaluate-step IS fired but fails.
-        // Note: we must also clear step_scores so the retry button is NOT disabled (AC-4 at
-        // app.js:6354-6358 disables retry when step already scored — our fixture HAS scores).
+        // Verify FE error-handling still works correctly if an error were set externally.
+        // Note: we must clear step_scores AND circlesScoreResult so retry button is enabled.
         await page.evaluate(() => {
-          // Clear step scores to allow retry button to be enabled (AC-4 carve-out for test)
           window.AppState.circlesStepScores = {};
-          // Force-set an error to render error state
+          window.AppState.circlesScoreResult = null;
           window.AppState.circlesPhase3Error = { code: 'EVAL_API_ERROR', message: 'Service Unavailable' };
           window.render && window.render();
         });
@@ -569,7 +510,7 @@ test.describe('S3 — Sustained 503 + verify error-banner behavior', () => {
 
         if (retryVisible && !retryDisabled) {
           await retryBtn.click();
-          // After retry + 503 → error state should be reset (EVAL_API_ERROR from 503 response)
+          // After retry + 503 → error state should be set again (EVAL_API_ERROR from 503 response)
           await expect.poll(async () => {
             return page.evaluate(() => window.AppState.circlesPhase3Error);
           }, {
@@ -579,8 +520,7 @@ test.describe('S3 — Sustained 503 + verify error-banner behavior', () => {
           }).not.toBeNull();
           await screenshot(page, '3', 'error-after-retry-503', testInfo);
         } else {
-          // Retry button not clickable in this state — that is also valid behavior
-          // (step already scored or button absent). Document the observation.
+          // Retry button not clickable in this state — document the observation.
           await screenshot(page, '3', 'retry-btn-state', testInfo);
         }
       });
@@ -594,18 +534,16 @@ test.describe('S3 — Sustained 503 + verify error-banner behavior', () => {
 
 
 // ═════════════════════════════════════════════════════════════════════════════
-// SCENARIO 4 — Slow network 30s delay (mock carve-out)
+// SCENARIO 4 — Slow 30s delay mock; score pre-derived renders immediately (fix verified)
 //
-// Purpose: Would a 30s delayed evaluate-step response keep the spinner visible?
-//   And does the progress checklist UI advance during the wait?
-// Prediction: Spinner stuck for different reason than S1 (evaluate-step NOT fired
-//   from go-phase3). The 30s delay mock is never invoked. Spinner stuck same as S1.
-//   Progress checklist DOES advance (5s interval ticks) — this is just the loading
-//   animation, not actual progress signal from evaluate-step.
+// Purpose: With the fix, circlesScoreResult is pre-derived at resume. Even a 30s
+//   delay on evaluate-step cannot block score rendering: go-phase3 renders immediately
+//   from pre-derived circlesScoreResult; the 30s delay mock is never invoked.
+// Post-fix prediction: score renders immediately; 30s delay mock irrelevant.
 // Pitfall 11 carve-out: 30s delay requires page.route.
 // ═════════════════════════════════════════════════════════════════════════════
-test.describe('S4 — Slow network 30s delay simulation', () => {
-  test('boot-path resume → 回評分 → 30s delay mock → checklist animation behavior', async ({ page }, testInfo) => {
+test.describe('S4 — 30s delay mock; score pre-derived renders immediately (fix verified)', () => {
+  test('boot-path resume → 回評分 → score renders immediately (30s delay mock irrelevant)', async ({ page }, testInfo) => {
     test.slow();
     let sessionId;
     try {
@@ -616,49 +554,39 @@ test.describe('S4 — Slow network 30s delay simulation', () => {
       await test.step('install 30s delay mock on evaluate-step', async () => {
         // network-mocking.md:892-904: timeout simulation
         await page.route('**/evaluate-step**', async (route) => {
-          // 30s delay then real response (never reached in bug scenario since evaluate-step not fired)
+          // 30s delay then real response (never reached since evaluate-step not fired when score pre-derived)
           await new Promise((resolve) => setTimeout(resolve, 30_000));
           await route.continue();
         });
       });
 
-      await test.step('click 回評分 → observe checklist animation + spinner state at 15s', async () => {
+      await test.step('click 回評分 → score renders immediately (delay mock irrelevant)', async () => {
         await page.locator(SEL.goPhase3Btn).click();
         await expect(page.locator(SEL.phase3Root)).toBeVisible({ timeout: 5_000 });
         await screenshot(page, '4', 'after-click-t0', testInfo);
 
-        // Record initial loadingStep
-        const initialStep = await page.evaluate(() => window.AppState.circlesPhase3LoadingStep || 0);
+        // FIX ASSERTION: score renders immediately because circlesScoreResult pre-derived.
+        // The 30s delay mock is irrelevant — go-phase3 skips evaluate-step.
+        await expect(page.locator(SEL.phase3ScoreNum)).toBeVisible({ timeout: 10_000 });
+        // Spinner must NOT be stuck
+        await expect(page.locator(SEL.loadingSpinner)).toHaveCount(0, { timeout: 5_000 });
 
-        // Wait 15s then check if checklist animation advanced
-        await expect.poll(async () => {
-          return page.evaluate(() => window.AppState.circlesPhase3LoadingStep || 0);
-        }, {
-          message: 'Checklist step should advance via 5s interval (app.js:6523-6528)',
-          timeout: 18_000,
-          intervals: [5_000, 5_000, 5_000],
-        }).toBeGreaterThan(initialStep);
-
-        const state15s = await page.evaluate(() => ({
-          loadingStep: window.AppState.circlesPhase3LoadingStep,
+        const stateAfter = await page.evaluate(() => ({
           scoreResult: window.AppState.circlesScoreResult,
           phase3Error: window.AppState.circlesPhase3Error,
         }));
-        await screenshot(page, '4', 'at-15s-checklist-animating', testInfo);
+        await screenshot(page, '4', 'score-rendered-immediately', testInfo);
 
-        // Score still null (evaluate-step never fired, delay mock irrelevant)
-        expect(state15s.scoreResult).toBeNull();
-        // Error still null (evaluate-step never called, mock never triggered)
-        expect(state15s.phase3Error).toBeNull();
-        // Checklist animated (cosmetic interval runs regardless)
-        expect(state15s.loadingStep).toBeGreaterThan(initialStep);
+        // Score non-null (fix worked)
+        expect(stateAfter.scoreResult).not.toBeNull();
+        // No error (30s delay mock not triggered)
+        expect(stateAfter.phase3Error).toBeNull();
       });
 
-      await test.step('verify: spinner still visible (not just momentary flicker)', async () => {
-        await expect(page.locator(SEL.loadingSpinner)).toBeVisible({ timeout: 2_000 });
-        // Score not rendered
-        await expect(page.locator(SEL.phase3ScoreNum)).toHaveCount(0);
-        await screenshot(page, '4', 'spinner-confirmed', testInfo);
+      await test.step('verify: score value correct + no spinner', async () => {
+        await expect(page.locator(SEL.phase3ScoreNum)).toBeVisible({ timeout: 2_000 });
+        await expect(page.locator(SEL.loadingSpinner)).toHaveCount(0, { timeout: 2_000 });
+        await screenshot(page, '4', 'score-confirmed', testInfo);
       });
 
     } finally {
@@ -670,16 +598,15 @@ test.describe('S4 — Slow network 30s delay simulation', () => {
 
 
 // ═════════════════════════════════════════════════════════════════════════════
-// SCENARIO 5 — Phase 3 → Phase 4 navigation during evaluate (state consistency)
+// SCENARIO 5 — Phase 3 score renders → navigate back → verify no orphan timer
 //
-// Purpose: Boot-path resume → click 回評分 (spinner stuck) → navigate to Phase 4
-//   → verify no orphan spinner state, no timer leak, state is consistent on reload.
-// Prediction: Navigating away clears phase3 timers (clearPhase3Timers). State OK.
-//   No orphan spinner on reload (Phase 4 has its own render path).
-// Real backend: yes (no mocks needed — no evaluate-step call is made).
+// Purpose: Boot-path resume → click 回評分 (score renders immediately with fix)
+//   → navigate back → verify clearPhase3Timers called, no orphan timer/spinner.
+// Post-fix prediction: score renders immediately; nav-back still clears any timers.
+// Real backend: yes (no mocks needed).
 // ═════════════════════════════════════════════════════════════════════════════
-test.describe('S5 — Phase 3 → Phase 4 navigation state consistency', () => {
-  test('boot-path resume → 回評分 (spinner) → navigate back → verify no orphan timer', async ({ page }, testInfo) => {
+test.describe('S5 — Phase 3 score renders → navigate back → verify no orphan timer', () => {
+  test('boot-path resume → 回評分 (score renders) → navigate back → verify no orphan timer', async ({ page }, testInfo) => {
     test.slow();
     let sessionId;
     try {
@@ -687,17 +614,13 @@ test.describe('S5 — Phase 3 → Phase 4 navigation state consistency', () => {
         sessionId = await setupBootPathResume(page, testInfo, 'S5');
       });
 
-      await test.step('click 回評分 → spinner stuck state entered', async () => {
+      await test.step('click 回評分 → score renders immediately (fix verified)', async () => {
         await page.locator(SEL.goPhase3Btn).click();
         await expect(page.locator(SEL.phase3Root)).toBeVisible({ timeout: 5_000 });
-        await expect(page.locator(SEL.loadingSpinner)).toBeVisible({ timeout: 3_000 });
-        await screenshot(page, '5', 'spinner-active-phase3', testInfo);
-
-        // Confirm timers running (loadingStep increments)
-        const step0 = await page.evaluate(() => window.AppState.circlesPhase3LoadingStep || 0);
-        await page.waitForTimeout(6_000); // one 5s interval tick
-        const step1 = await page.evaluate(() => window.AppState.circlesPhase3LoadingStep || 0);
-        expect(step1).toBeGreaterThanOrEqual(step0); // tick happened
+        // With the fix: score renders immediately (no spinner stuck)
+        await expect(page.locator(SEL.phase3ScoreNum)).toBeVisible({ timeout: 10_000 });
+        await expect(page.locator(SEL.loadingSpinner)).toHaveCount(0, { timeout: 5_000 });
+        await screenshot(page, '5', 'score-rendered-phase3', testInfo);
       });
 
       await test.step('navigate BACK (Phase 3 nav-back) → Phase 1 → verify timers cleared', async () => {
@@ -729,8 +652,7 @@ test.describe('S5 — Phase 3 → Phase 4 navigation state consistency', () => {
       });
 
       await test.step('verify timers fully cleared in-page (no reload needed)', async () => {
-        // Instead of reload (which has session contention issues), verify timer cleared
-        // state in-page: loadingStep should stop advancing after nav-back.
+        // loadingStep should stop advancing after nav-back.
         // This is the core assertion: clearPhase3Timers() was called by nav-back handler.
         const stepBefore = await page.evaluate(() => window.AppState.circlesPhase3LoadingStep || 0);
         await page.waitForTimeout(7_000); // wait another 5s tick
