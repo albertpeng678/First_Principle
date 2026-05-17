@@ -3,7 +3,7 @@
 <head>
   <meta charset="utf-8">
   <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover, interactive-widget=resizes-visual">
-  <title>PM Drill — 13 Phase 4 總報告（總分 + 7-axis radar + step-rows 含步驟建議 + tracking 4 dim + 教練總評）</title>
+  <title>PM Drill — 13 Phase 4 總報告（總分 + 7-axis radar + step-rows 含步驟建議 + tracking 3 dim + 教練總評）</title>
 
   <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/@phosphor-icons/web@2.1.1/src/regular/style.css">
   <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/@phosphor-icons/web@2.1.1/src/fill/style.css">
@@ -221,7 +221,7 @@
       padding-right: 40px;
     }
 
-    /* step-rows S 總結 — nested 4 dim NSM tracking detail */
+    /* step-rows S 總結 — nested 3 dim NSM tracking detail */
     .step-rows__row--with-detail { padding-bottom: var(--s-4); }
     .step-rows__detail-label {
       font-size: var(--t-cap);
@@ -394,12 +394,12 @@
   <div class="ds-page">
     <header class="ds-header">
       <div class="ds-header__eyebrow">Path 2 · Mockup 13 · CONTRACT-LOCKED 草稿</div>
-      <h1>Phase 4 總報告 — 總分 + 7-axis radar + step-rows 含步驟建議 + NSM tracking 4 dim + 教練總評（3 sections × 3 viewports = 9 frames）</h1>
+      <h1>Phase 4 總報告 — 總分 + 7-axis radar + step-rows 含步驟建議 + NSM tracking 3 dim + 教練總評（3 sections × 3 viewports = 9 frames）</h1>
       <p class="ds-header__sub">
         模擬模式（simulation）走完 7 步驟後，對話結束 → call <code>/final-report</code> 回傳整體 overall score / strengths / improvements / coachVerdict / nextSteps + per-step note。
-        Phase 4 把七步驟分數彙整為 7-axis radar + 細項分數含步驟建議（一句 commentary），並把 S 步驟 4 個 tracking dimensions（reach / depth / frequency / impact）獨立為 4 張 card。<br>
-        <strong>已拿掉 grade letter A/B/C/D</strong>（既有分數即可，不需要再用字母評等）；<strong>NSM 區段與 4 dim cards 視覺分開</strong>（用 section-eyebrow 小標題替代 wrapper card，4 dim 各為獨立 card）；<strong>主按鈕「再練一題」</strong>而非「重練這題」（換題不是重做同題）。
-        Path 2 配色：radar navy polygon（去紫）；tracking 4 dim primary / navy / success / warn（去紫）；submit-bar sticky-bottom。
+        Phase 4 把七步驟分數彙整為 7-axis radar + 細項分數含步驟建議（一句 commentary），並把 S 步驟 3 個 tracking dimensions（reach / depth / frequency）獨立為 3 張 card。<br>
+        <strong>已拿掉 grade letter A/B/C/D</strong>（既有分數即可，不需要再用字母評等）；<strong>NSM 區段與 3 dim cards 視覺分開</strong>（用 section-eyebrow 小標題替代 wrapper card，3 dim 各為獨立 card）；<strong>主按鈕「再練一題」</strong>而非「重練這題」（換題不是重做同題）。
+        Path 2 配色：radar navy polygon（去紫）；tracking 3 dim primary / navy / success（去紫）；submit-bar sticky-bottom。
         Mobile/Tablet 直式 stack；Desktop top-grid 2-col + tracking-grid 2-col。
       </p>
     </header>
@@ -407,8 +407,8 @@
     <!-- ============================================================ -->
     <!-- Section A — 預設成功報告（77 分）                                  -->
     <!-- ============================================================ -->
-    <h2 class="vp-section-title">A · 預設成功報告（77 分）<span class="vp-section-title__sub">7 步全綠 + 步驟建議 / 4 dim 獨立 cards / strengths × 3 / improvements × 3 / verdict / nextsteps</span></h2>
-    <div class="anno"><strong>視覺契約：</strong>navbar + circles-nav「模擬面試總結報告 · Spotify · Spotify Podcast」+ qchip（C 澄清情境）+ grade-card（Italic 大字 <code>77</code> navy 88px + <code>分</code> + headline 兩行帶具體判讀；<strong>無 grade letter A/B/C/D</strong>，分數已足夠）+ top-grid（mobile/tablet 直式：radar 上 step-rows 下；desktop 2-col：左 radar 右 step-rows）+ <strong>step-rows 每步補一行 commentary</strong>（C 78 時間框架 / I 82 最強亮點 / R 75 補競品對比 / C2 70 缺 RICE/ICE / L 85 紮實 / E 68 本次最弱量化不足 / S 80 tracking 完整）+ <strong>S 總結 row 內嵌 NSM 4 dim 細項 mini cards</strong>（dashed border 視覺從屬 S 步驟；4 dim 全部統一中性樣式，僅用 Italic 1/2/3/4 編號區分，<strong>不用顏色區分</strong>避免視覺雜亂；mobile/tablet/desktop 一律 1-col 直式）+ strengths（success 綠 + ph-check-circle）+ improvements（warn 橘 + ph-warning-circle）+ verdict（navy + ph-graduation-cap）+ nextsteps row + submit-bar sticky（<strong>再練一題</strong> primary / 匯出 PNG ghost / home icon-only — 換題不重做同題）。</div>
+    <h2 class="vp-section-title">A · 預設成功報告（77 分）<span class="vp-section-title__sub">7 步全綠 + 步驟建議 / 3 dim 獨立 cards / strengths × 3 / improvements × 3 / verdict / nextsteps</span></h2>
+    <div class="anno"><strong>視覺契約：</strong>navbar + circles-nav「模擬面試總結報告 · Spotify · Spotify Podcast」+ qchip（C 澄清情境）+ grade-card（Italic 大字 <code>77</code> navy 88px + <code>分</code> + headline 兩行帶具體判讀；<strong>無 grade letter A/B/C/D</strong>，分數已足夠）+ top-grid（mobile/tablet 直式：radar 上 step-rows 下；desktop 2-col：左 radar 右 step-rows）+ <strong>step-rows 每步補一行 commentary</strong>（C 78 時間框架 / I 82 最強亮點 / R 75 補競品對比 / C2 70 缺 RICE/ICE / L 85 紮實 / E 68 本次最弱量化不足 / S 80 tracking 完整）+ <strong>S 總結 row 內嵌 NSM 3 dim 細項 mini cards</strong>（dashed border 視覺從屬 S 步驟；3 dim 全部統一中性樣式，僅用 Italic 1/2/3 編號區分，<strong>不用顏色區分</strong>避免視覺雜亂；mobile/tablet/desktop 一律 1-col 直式）+ strengths（success 綠 + ph-check-circle）+ improvements（warn 橘 + ph-warning-circle）+ verdict（navy + ph-graduation-cap）+ nextsteps row + submit-bar sticky（<strong>再練一題</strong> primary / 匯出 PNG ghost / home icon-only — 換題不重做同題）。</div>
     <div class="vp-grid">
 
       <!-- A · Mobile 360 -->
@@ -504,8 +504,8 @@
                   </div>
                   <div class="step-rows__row step-rows__row--with-detail">
                     <div class="step-rows__head"><span class="step-rows__name"><span class="step-rows__name-key">S</span>總結</span><span class="step-rows__score step-rows__score--high">80</span></div>
-                    <div class="step-rows__note">北極星指標明確，4 dim 追蹤指標具體可操作</div>
-                    <div class="step-rows__detail-label"><i class="ph ph-target"></i>NSM 追蹤指標 4 dim 拆解</div>
+                    <div class="step-rows__note">北極星指標明確，3 dim 追蹤指標具體可操作</div>
+                    <div class="step-rows__detail-label"><i class="ph ph-target"></i>NSM 追蹤指標 3 dim 拆解</div>
                     <div class="step-rows__detail">
                       <div class="tracking-mini">
                         <div class="tracking-mini__head"><span class="tracking-mini__num">1</span>觸及廣度</div>
@@ -521,11 +521,6 @@
                         <div class="tracking-mini__head"><span class="tracking-mini__num">3</span>習慣頻率</div>
                         <div class="tracking-mini__sub">用戶回訪與重複觸發頻率</div>
                         <div class="tracking-mini__content">試用期內每週啟動 Premium 功能的平均天數 ≥ 4 天</div>
-                      </div>
-                      <div class="tracking-mini">
-                        <div class="tracking-mini__head"><span class="tracking-mini__num">4</span>留存驅力</div>
-                        <div class="tracking-mini__sub">推動用戶留下的核心機制</div>
-                        <div class="tracking-mini__content">試用到期後 30 日內完成訂閱的轉換率 ≥ 12%</div>
                       </div>
                     </div>
                   </div>
@@ -653,8 +648,8 @@
                   </div>
                   <div class="step-rows__row step-rows__row--with-detail">
                     <div class="step-rows__head"><span class="step-rows__name"><span class="step-rows__name-key">S</span>總結</span><span class="step-rows__score step-rows__score--high">80</span></div>
-                    <div class="step-rows__note">北極星指標明確，4 dim 追蹤指標具體可操作</div>
-                    <div class="step-rows__detail-label"><i class="ph ph-target"></i>NSM 追蹤指標 4 dim 拆解</div>
+                    <div class="step-rows__note">北極星指標明確，3 dim 追蹤指標具體可操作</div>
+                    <div class="step-rows__detail-label"><i class="ph ph-target"></i>NSM 追蹤指標 3 dim 拆解</div>
                     <div class="step-rows__detail">
                       <div class="tracking-mini">
                         <div class="tracking-mini__head"><span class="tracking-mini__num">1</span>觸及廣度</div>
@@ -670,11 +665,6 @@
                         <div class="tracking-mini__head"><span class="tracking-mini__num">3</span>習慣頻率</div>
                         <div class="tracking-mini__sub">用戶回訪與重複觸發頻率</div>
                         <div class="tracking-mini__content">試用期內每週啟動 Premium 功能的平均天數 ≥ 4 天</div>
-                      </div>
-                      <div class="tracking-mini">
-                        <div class="tracking-mini__head"><span class="tracking-mini__num">4</span>留存驅力</div>
-                        <div class="tracking-mini__sub">推動用戶留下的核心機制</div>
-                        <div class="tracking-mini__content">試用到期後 30 日內完成訂閱的轉換率 ≥ 12%</div>
                       </div>
                     </div>
                   </div>
@@ -801,8 +791,8 @@
                   </div>
                   <div class="step-rows__row step-rows__row--with-detail">
                     <div class="step-rows__head"><span class="step-rows__name"><span class="step-rows__name-key">S</span>總結</span><span class="step-rows__score step-rows__score--high">80</span></div>
-                    <div class="step-rows__note">北極星指標明確，4 dim 追蹤指標具體可操作</div>
-                    <div class="step-rows__detail-label"><i class="ph ph-target"></i>NSM 追蹤指標 4 dim 拆解</div>
+                    <div class="step-rows__note">北極星指標明確，3 dim 追蹤指標具體可操作</div>
+                    <div class="step-rows__detail-label"><i class="ph ph-target"></i>NSM 追蹤指標 3 dim 拆解</div>
                     <div class="step-rows__detail">
                       <div class="tracking-mini">
                         <div class="tracking-mini__head"><span class="tracking-mini__num">1</span>觸及廣度</div>
@@ -818,11 +808,6 @@
                         <div class="tracking-mini__head"><span class="tracking-mini__num">3</span>習慣頻率</div>
                         <div class="tracking-mini__sub">用戶回訪與重複觸發頻率</div>
                         <div class="tracking-mini__content">試用期內每週啟動 Premium 功能的平均天數 ≥ 4 天</div>
-                      </div>
-                      <div class="tracking-mini">
-                        <div class="tracking-mini__head"><span class="tracking-mini__num">4</span>留存驅力</div>
-                        <div class="tracking-mini__sub">推動用戶留下的核心機制</div>
-                        <div class="tracking-mini__content">試用到期後 30 日內完成訂閱的轉換率 ≥ 12%</div>
                       </div>
                     </div>
                   </div>

@@ -3,7 +3,7 @@
 <head>
   <meta charset="utf-8">
   <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover, interactive-widget=resizes-visual">
-  <title>PM Drill — 07 NSM 步驟 2/3 定義 + 4-dim 拆解</title>
+  <title>PM Drill — 07 NSM 步驟 2/3 定義 + 3-dim 拆解</title>
 
   <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/@phosphor-icons/web@2.1.1/src/regular/style.css">
   <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/@phosphor-icons/web@2.1.1/src/fill/style.css">
@@ -249,7 +249,7 @@
     }
 
     /* ───────────────────────────────────────────
-       07-specific NEW components — 定義 + 4-dim
+       07-specific NEW components — 定義 + 3-dim
        ─────────────────────────────────────────── */
 
     /* context card (selected company + scenario header) */
@@ -674,7 +674,7 @@
     .nsm-step3-banner i { color: var(--c-navy); font-size: 16px; flex: 0 0 auto; margin-top: 2px; }
     .nsm-step3-banner strong { color: var(--c-navy); font-weight: 600; margin-right: 4px; }
 
-    /* step3 type intro (with type badge + 4-dim hint) */
+    /* step3 type intro (with type badge + 3-dim hint) */
     .nsm-step3-intro {
       background: var(--c-bg-soft);
       border: 1px solid var(--c-rule);
@@ -710,7 +710,7 @@
     }
     .nsm-step3-intro strong { color: var(--c-ink); font-weight: 600; }
 
-    /* 4-dim section card (動態 label) */
+    /* 3-dim section card (動態 label) */
     .nsm-dim {
       background: var(--c-card);
       border: 1px solid var(--c-rule);
@@ -829,11 +829,11 @@
   <div class="ds-page">
     <header class="ds-header">
       <div class="ds-header__eyebrow">Path 2 · Mockup 07 · CONTRACT-LOCKED 草稿</div>
-      <h1>NSM 步驟 2 / 步驟 3 — 定義 NSM + 4-dim 動態拆解</h1>
+      <h1>NSM 步驟 2 / 步驟 3 — 定義 NSM + 3-dim 動態拆解</h1>
       <p class="ds-header__sub">
         Screen 8：步驟 2「定義 NSM」（3 fields：北極星指標 / 定義說明 / 與業務目標連結 + 3 步定義法 guide）
-        與 步驟 3「拆解輸入指標」（4-dim section cards，<strong>label / subtitle / coachQ / placeholder 全動態</strong> 隨 product type 切換 — 規格詳見
-        <code>NSM_DIMENSION_CONFIGS</code>，4 type × 4 dim = 16 組組合）。
+        與 步驟 3「拆解輸入指標」（3-dim section cards，<strong>label / subtitle / coachQ / placeholder 全動態</strong> 隨 product type 切換 — 規格詳見
+        <code>NSM_DIMENSION_CONFIGS</code>，4 type × 3 dim = 12 組組合）。
         NSM 審核是 08 mockup 的範圍（gate result 紅 = 必擋）。
         Component 樣式整段 LOCKED copy 自 06（root tokens / navbar / phase-head / submit-bar / btn / nsm-progress / nsm-body）。
       </p>
@@ -1294,10 +1294,10 @@
     </div>
 
     <!-- ============================================================ -->
-    <!-- Section B — Step 3 sub-tab · attention 型 4-dim 空白          -->
+    <!-- Section B — Step 3 sub-tab · attention 型 3-dim 空白          -->
     <!-- ============================================================ -->
-    <h2 class="vp-section-title">B · 步驟 3 拆解（注意力型 4-dim 空白）<span class="vp-section-title__sub">attention 動態 label：觸及廣度 / 互動深度 / 習慣頻率 / 留存驅力</span></h2>
-    <div class="anno"><strong>視覺契約：</strong><code>nsm-progress</code> 拆解 active + <strong>nsm-context-card 4-block expand（mirror Section A）商業模式 / 使用者 / 常見陷阱 / 破題切入（Spotify Podcast 內容，三 viewport 全展開）</strong> + step3-banner（你的 NSM）+ step3-intro（type badge attention navy + 4-dim 隨產品特性說明）+ <strong>4 張 nsm-dim card 用 LOCKED <code>.field__hint-row</code> pattern；first dim (觸及廣度) example-expand visible</strong>。<strong>動態 label 來源：</strong><code>NSM_DIMENSION_CONFIGS.attention</code> — 觸及廣度（reach）/ 互動深度（depth）/ 習慣頻率（frequency）/ 留存驅力（impact）。submit-bar：「送出，取得 AI 評分」disabled。</div>
+    <h2 class="vp-section-title">B · 步驟 3 拆解（注意力型 3-dim 空白）<span class="vp-section-title__sub">attention 動態 label：觸及廣度 / 互動深度 / 習慣頻率</span></h2>
+    <div class="anno"><strong>視覺契約：</strong><code>nsm-progress</code> 拆解 active + <strong>nsm-context-card 4-block expand（mirror Section A）商業模式 / 使用者 / 常見陷阱 / 破題切入（Spotify Podcast 內容，三 viewport 全展開）</strong> + step3-banner（你的 NSM）+ step3-intro（type badge attention navy + 3-dim 隨產品特性說明）+ <strong>3 張 nsm-dim card 用 LOCKED <code>.field__hint-row</code> pattern；first dim (觸及廣度) example-expand visible</strong>。<strong>動態 label 來源：</strong><code>NSM_DIMENSION_CONFIGS.attention</code> — 觸及廣度（reach）/ 互動深度（depth）/ 習慣頻率（frequency）。submit-bar：「送出，取得 AI 評分」disabled。</div>
     <div class="vp-grid">
 
       <!-- B · Mobile 360 -->
@@ -1446,28 +1446,6 @@
               </div>
             </div>
 
-            <div class="nsm-dim">
-              <div class="field__label-row">
-                <label class="field__label">留存驅力</label>
-                <div class="field__hint-row">
-                  <div class="field__hint-row">
-                    <button class="field__hint-link"><i class="ph ph-lightbulb"></i>提示</button>
-                    <button class="field-example-toggle" aria-expanded="false"><i class="ph ph-quotes"></i>範例答案<i class="ph ph-caret-down toggle-caret"></i></button>
-                  </div>
-                </div>
-              </div>
-              <div class="nsm-dim__desc">什麼讓用戶持續回訪而非逐漸流失</div>
-              <div class="nsm-dim__body">
-                <div class="nsm-dim__coach"><i class="ph ph-chat-dots"></i>社交關係？個人化推薦？收藏習慣？找出最強的留存槓桿</div>
-                <div class="rt-field">
-                  <div class="rt-field__toolbar">
-                    <button class="rt-tbtn"><i class="ph ph-text-b"></i></button>
-                    <button class="rt-tbtn"><i class="ph ph-list-bullets"></i></button>
-                  </div>
-                  <textarea class="rt-textarea" placeholder="例：擁有 ≥5 首收藏歌曲的用戶 30 日留存率" rows="2"></textarea>
-                </div>
-              </div>
-            </div>
           </div>
           <div class="submit-bar">
             <div class="submit-bar__left"><button class="btn btn--ghost"><i class="ph ph-arrow-left"></i>上一步</button></div>
@@ -1577,17 +1555,6 @@
                 <div class="rt-field">
                   <div class="rt-field__toolbar"><button class="rt-tbtn"><i class="ph ph-text-b"></i></button><button class="rt-tbtn"><i class="ph ph-list-bullets"></i></button></div>
                   <textarea class="rt-textarea" placeholder="例：每週平均使用天數 ≥ 3 的用戶佔比" rows="2"></textarea>
-                </div>
-              </div>
-            </div>
-            <div class="nsm-dim">
-              <div class="field__label-row"><label class="field__label">留存驅力</label><div class="field__hint-row"><div class="field__hint-row"><button class="field__hint-link"><i class="ph ph-lightbulb"></i>提示</button><button class="field-example-toggle" aria-expanded="false"><i class="ph ph-quotes"></i>範例答案<i class="ph ph-caret-down toggle-caret"></i></button></div></div></div>
-              <div class="nsm-dim__desc">什麼讓用戶持續回訪而非逐漸流失</div>
-              <div class="nsm-dim__body">
-                <div class="nsm-dim__coach"><i class="ph ph-chat-dots"></i>社交關係？個人化推薦？收藏習慣？找出最強的留存槓桿</div>
-                <div class="rt-field">
-                  <div class="rt-field__toolbar"><button class="rt-tbtn"><i class="ph ph-text-b"></i></button><button class="rt-tbtn"><i class="ph ph-list-bullets"></i></button></div>
-                  <textarea class="rt-textarea" placeholder="例：擁有 ≥5 首收藏歌曲的用戶 30 日留存率" rows="2"></textarea>
                 </div>
               </div>
             </div>
@@ -1703,17 +1670,6 @@
                 </div>
               </div>
             </div>
-            <div class="nsm-dim">
-              <div class="field__label-row"><label class="field__label">留存驅力</label><div class="field__hint-row"><div class="field__hint-row"><button class="field__hint-link"><i class="ph ph-lightbulb"></i>提示</button><button class="field-example-toggle" aria-expanded="false"><i class="ph ph-quotes"></i>範例答案<i class="ph ph-caret-down toggle-caret"></i></button></div></div></div>
-              <div class="nsm-dim__desc">什麼讓用戶持續回訪而非逐漸流失</div>
-              <div class="nsm-dim__body">
-                <div class="nsm-dim__coach"><i class="ph ph-chat-dots"></i>社交關係？個人化推薦？收藏習慣？找出最強的留存槓桿</div>
-                <div class="rt-field">
-                  <div class="rt-field__toolbar"><button class="rt-tbtn"><i class="ph ph-text-b"></i></button><button class="rt-tbtn"><i class="ph ph-list-bullets"></i></button></div>
-                  <textarea class="rt-textarea" placeholder="例：擁有 ≥5 首收藏歌曲的用戶 30 日留存率" rows="2"></textarea>
-                </div>
-              </div>
-            </div>
           </div>
           <div class="submit-bar">
             <div class="submit-bar__left"><button class="btn btn--ghost"><i class="ph ph-arrow-left"></i>上一步</button></div>
@@ -1725,10 +1681,10 @@
     </div>
 
     <!-- ============================================================ -->
-    <!-- Section C — Step 3 sub-tab · saas 型 4-dim 已填 + 教練提示展開 -->
+    <!-- Section C — Step 3 sub-tab · saas 型 3-dim 已填 + 教練提示展開 -->
     <!-- ============================================================ -->
-    <h2 class="vp-section-title">C · 步驟 3 拆解（SaaS 型 4-dim 已填 + 教練提示展開）<span class="vp-section-title__sub">saas 動態 label：啟用廣度 / 席次深度 / 黏著頻率 / 擴張信號 — 證明 4-dim 隨 product type 動態切換</span></h2>
-    <div class="anno"><strong>視覺契約：</strong>同 B 結構但 type 切換為 <strong>SaaS 型</strong>（primary blue badge）+ 4-dim label 全變：啟用廣度 / 席次深度 / 黏著頻率 / 擴張信號（<code>NSM_DIMENSION_CONFIGS.saas</code>）。第 1 dim 已填、<strong>第 2 dim 範例答案展開（LOCKED <code>.example-expand</code> pattern，取代原 nsm-dim__hint-content）</strong>、第 3-4 dim 空白。submit-bar：「送出，取得 AI 評分」<strong>enabled</strong>。</div>
+    <h2 class="vp-section-title">C · 步驟 3 拆解（SaaS 型 3-dim 已填 + 教練提示展開）<span class="vp-section-title__sub">saas 動態 label：啟用廣度 / 席次深度 / 黏著頻率 — 證明 3-dim 隨 product type 動態切換</span></h2>
+    <div class="anno"><strong>視覺契約：</strong>同 B 結構但 type 切換為 <strong>SaaS 型</strong>（primary blue badge）+ 3-dim label 全變：啟用廣度 / 席次深度 / 黏著頻率（<code>NSM_DIMENSION_CONFIGS.saas</code>）。第 1 dim 已填、<strong>第 2 dim 範例答案展開（LOCKED <code>.example-expand</code> pattern，取代原 nsm-dim__hint-content）</strong>、第 3 dim 空白。submit-bar：「送出，取得 AI 評分」<strong>enabled</strong>。</div>
     <div class="vp-grid">
 
       <!-- C · Mobile 360 -->
@@ -1813,17 +1769,6 @@
               </div>
             </div>
 
-            <div class="nsm-dim">
-              <div class="field__label-row"><label class="field__label">擴張信號</label><div class="field__hint-row"><div class="field__hint-row"><button class="field__hint-link"><i class="ph ph-lightbulb"></i>提示</button><button class="field-example-toggle" aria-expanded="false"><i class="ph ph-quotes"></i>範例答案<i class="ph ph-caret-down toggle-caret"></i></button></div></div></div>
-              <div class="nsm-dim__desc">現有客戶是否在增加使用（NRR 指標）</div>
-              <div class="nsm-dim__body">
-                <div class="nsm-dim__coach"><i class="ph ph-chat-dots"></i>NRR &gt; 100% 代表客戶在擴張——多少比例帳號在 90 天內擴展？</div>
-                <div class="rt-field">
-                  <div class="rt-field__toolbar"><button class="rt-tbtn"><i class="ph ph-text-b"></i></button><button class="rt-tbtn"><i class="ph ph-list-bullets"></i></button></div>
-                  <textarea class="rt-textarea" placeholder="例：90 天內增加席次或升級方案的帳號比例" rows="2"></textarea>
-                </div>
-              </div>
-            </div>
           </div>
           <div class="submit-bar">
             <div class="submit-bar__left"><button class="btn btn--ghost"><i class="ph ph-arrow-left"></i>上一步</button></div>
@@ -1905,17 +1850,6 @@
                 </div>
               </div>
             </div>
-            <div class="nsm-dim">
-              <div class="field__label-row"><label class="field__label">擴張信號</label><div class="field__hint-row"><div class="field__hint-row"><button class="field__hint-link"><i class="ph ph-lightbulb"></i>提示</button><button class="field-example-toggle" aria-expanded="false"><i class="ph ph-quotes"></i>範例答案<i class="ph ph-caret-down toggle-caret"></i></button></div></div></div>
-              <div class="nsm-dim__desc">現有客戶是否在增加使用（NRR 指標）</div>
-              <div class="nsm-dim__body">
-                <div class="nsm-dim__coach"><i class="ph ph-chat-dots"></i>NRR &gt; 100% 代表客戶在擴張——多少比例帳號在 90 天內擴展？</div>
-                <div class="rt-field">
-                  <div class="rt-field__toolbar"><button class="rt-tbtn"><i class="ph ph-text-b"></i></button><button class="rt-tbtn"><i class="ph ph-list-bullets"></i></button></div>
-                  <textarea class="rt-textarea" placeholder="例：90 天內增加席次或升級方案的帳號比例" rows="2"></textarea>
-                </div>
-              </div>
-            </div>
           </div>
           <div class="submit-bar">
             <div class="submit-bar__left"><button class="btn btn--ghost"><i class="ph ph-arrow-left"></i>上一步</button></div>
@@ -1994,17 +1928,6 @@
                 <div class="rt-field">
                   <div class="rt-field__toolbar"><button class="rt-tbtn"><i class="ph ph-text-b"></i></button><button class="rt-tbtn"><i class="ph ph-list-bullets"></i></button></div>
                   <textarea class="rt-textarea" placeholder="例：每週使用核心功能 ≥ 3 次的帳號佔比" rows="2"></textarea>
-                </div>
-              </div>
-            </div>
-            <div class="nsm-dim">
-              <div class="field__label-row"><label class="field__label">擴張信號</label><div class="field__hint-row"><div class="field__hint-row"><button class="field__hint-link"><i class="ph ph-lightbulb"></i>提示</button><button class="field-example-toggle" aria-expanded="false"><i class="ph ph-quotes"></i>範例答案<i class="ph ph-caret-down toggle-caret"></i></button></div></div></div>
-              <div class="nsm-dim__desc">現有客戶是否在增加使用（NRR 指標）</div>
-              <div class="nsm-dim__body">
-                <div class="nsm-dim__coach"><i class="ph ph-chat-dots"></i>NRR &gt; 100% 代表客戶在擴張——多少比例帳號在 90 天內擴展？</div>
-                <div class="rt-field">
-                  <div class="rt-field__toolbar"><button class="rt-tbtn"><i class="ph ph-text-b"></i></button><button class="rt-tbtn"><i class="ph ph-list-bullets"></i></button></div>
-                  <textarea class="rt-textarea" placeholder="例：90 天內增加席次或升級方案的帳號比例" rows="2"></textarea>
                 </div>
               </div>
             </div>
@@ -2565,9 +2488,9 @@
   <!-- ═════════════════════════════════════════════════════════════════ -->
   <!-- §E · 步驟 3 已評分 locked                                         -->
   <!-- ═════════════════════════════════════════════════════════════════ -->
-  <h2 class="vp-section-title">E · 步驟 3 已評分 locked <span class="vp-section-title__sub">3 viewport — 4 dim cards 全 rt-field--locked</span></h2>
+  <h2 class="vp-section-title">E · 步驟 3 已評分 locked <span class="vp-section-title__sub">3 viewport — 3 dim cards 全 rt-field--locked</span></h2>
   <div class="anno"><strong>視覺契約：</strong>
-    同 §D pattern：nsm-nav + nsm-progress（4 done）+ nsm-context-card 4-block expand + <strong>banner--locked</strong>「⊕ 已評分完成 — 內容鎖定，可繼續查看提示與範例」+ 4 nsm-dim cards 全 <strong>rt-field--locked</strong> + submit-bar 變體。Step 3 attention type 4 dims：觸及廣度 / 互動深度 / 習慣頻率 / 留存驅力。每 dim 完整顯示 user 答的內容 grey readonly + 教練提示 coach-Q 保留可看 + <strong>「提示」「範例答案」buttons 仍可點</strong>（同 §D，只鎖 form 編輯 + submit）。
+    同 §D pattern：nsm-nav + nsm-progress（4 done）+ nsm-context-card 4-block expand + <strong>banner--locked</strong>「⊕ 已評分完成 — 內容鎖定，可繼續查看提示與範例」+ 3 nsm-dim cards 全 <strong>rt-field--locked</strong> + submit-bar 變體。Step 3 attention type 3 dims：觸及廣度 / 互動深度 / 習慣頻率。每 dim 完整顯示 user 答的內容 grey readonly + 教練提示 coach-Q 保留可看 + <strong>「提示」「範例答案」buttons 仍可點</strong>（同 §D，只鎖 form 編輯 + submit）。
     參照 standing rule feedback_lock_state_hint_example_always_available.md。
     LOCKED reuse from mockup 03 §E + mockup 05 §F。
   </div>
@@ -2615,7 +2538,7 @@
             </div>
             <p class="nsm-context-card__scenario">為 Spotify Podcast 業務定義北極星指標，目標是衡量新用戶能否養成日常收聽習慣。</p>
           </div>
-          <!-- 4 nsm-dim cards each rt-field--locked; hint + example buttons remain clickable -->
+          <!-- 3 nsm-dim cards each rt-field--locked; hint + example buttons remain clickable -->
           <div class="nsm-dim">
             <div class="field__label-row">
               <label class="field__label">觸及廣度</label>
@@ -2670,25 +2593,6 @@
               <div class="rt-field rt-field--locked">
                 <div class="rt-field__toolbar"><button class="rt-tbtn" disabled><i class="ph ph-text-b"></i></button><button class="rt-tbtn" disabled><i class="ph ph-list-bullets"></i></button></div>
                 <div class="rt-textarea" contenteditable="false" style="cursor:not-allowed;">每週至少 2 次開啟 Podcast 頻道的月活躍用戶比率。</div>
-              </div>
-            </div>
-          </div>
-          <div class="nsm-dim">
-            <div class="field__label-row">
-              <label class="field__label">留存驅力</label>
-              <div class="field__hint-row">
-                <div class="field__hint-row">
-                  <button class="field__hint-link" type="button"><i class="ph ph-lightbulb"></i>提示</button>
-                  <button class="field-example-toggle" type="button" aria-expanded="false"><i class="ph ph-quotes"></i>範例答案<i class="ph ph-caret-down toggle-caret"></i></button>
-                </div>
-              </div>
-            </div>
-            <div class="nsm-dim__desc">什麼驅使用戶持續回來</div>
-            <div class="nsm-dim__body">
-              <div class="nsm-dim__coach"><i class="ph ph-chalkboard-teacher"></i>教練問：留存的核心動力是內容推薦、社交還是習慣本身？</div>
-              <div class="rt-field rt-field--locked">
-                <div class="rt-field__toolbar"><button class="rt-tbtn" disabled><i class="ph ph-text-b"></i></button><button class="rt-tbtn" disabled><i class="ph ph-list-bullets"></i></button></div>
-                <div class="rt-textarea" contenteditable="false" style="cursor:not-allowed;">連續 3 週以上回訪並完成至少一集收聽的用戶比率。</div>
               </div>
             </div>
           </div>
@@ -2800,25 +2704,6 @@
               </div>
             </div>
           </div>
-          <div class="nsm-dim">
-            <div class="field__label-row">
-              <label class="field__label">留存驅力</label>
-              <div class="field__hint-row">
-                <div class="field__hint-row">
-                  <button class="field__hint-link" type="button"><i class="ph ph-lightbulb"></i>提示</button>
-                  <button class="field-example-toggle" type="button" aria-expanded="false"><i class="ph ph-quotes"></i>範例答案<i class="ph ph-caret-down toggle-caret"></i></button>
-                </div>
-              </div>
-            </div>
-            <div class="nsm-dim__desc">什麼驅使用戶持續回來</div>
-            <div class="nsm-dim__body">
-              <div class="nsm-dim__coach"><i class="ph ph-chalkboard-teacher"></i>教練問：留存的核心動力是內容推薦、社交還是習慣本身？</div>
-              <div class="rt-field rt-field--locked">
-                <div class="rt-field__toolbar"><button class="rt-tbtn" disabled><i class="ph ph-text-b"></i></button><button class="rt-tbtn" disabled><i class="ph ph-list-bullets"></i></button></div>
-                <div class="rt-textarea" contenteditable="false" style="cursor:not-allowed;">連續 3 週以上回訪並完成至少一集收聽的用戶比率。</div>
-              </div>
-            </div>
-          </div>
         </div>
         <div class="submit-bar">
           <div class="submit-bar__left"><button class="btn btn--ghost"><i class="ph ph-arrow-left"></i>上一步</button></div>
@@ -2924,25 +2809,6 @@
               <div class="rt-field rt-field--locked">
                 <div class="rt-field__toolbar"><button class="rt-tbtn" disabled><i class="ph ph-text-b"></i></button><button class="rt-tbtn" disabled><i class="ph ph-list-bullets"></i></button></div>
                 <div class="rt-textarea" contenteditable="false" style="cursor:not-allowed;">每週至少 2 次開啟 Podcast 頻道的月活躍用戶比率。</div>
-              </div>
-            </div>
-          </div>
-          <div class="nsm-dim">
-            <div class="field__label-row">
-              <label class="field__label">留存驅力</label>
-              <div class="field__hint-row">
-                <div class="field__hint-row">
-                  <button class="field__hint-link" type="button"><i class="ph ph-lightbulb"></i>提示</button>
-                  <button class="field-example-toggle" type="button" aria-expanded="false"><i class="ph ph-quotes"></i>範例答案<i class="ph ph-caret-down toggle-caret"></i></button>
-                </div>
-              </div>
-            </div>
-            <div class="nsm-dim__desc">什麼驅使用戶持續回來</div>
-            <div class="nsm-dim__body">
-              <div class="nsm-dim__coach"><i class="ph ph-chalkboard-teacher"></i>教練問：留存的核心動力是內容推薦、社交還是習慣本身？</div>
-              <div class="rt-field rt-field--locked">
-                <div class="rt-field__toolbar"><button class="rt-tbtn" disabled><i class="ph ph-text-b"></i></button><button class="rt-tbtn" disabled><i class="ph ph-list-bullets"></i></button></div>
-                <div class="rt-textarea" contenteditable="false" style="cursor:not-allowed;">連續 3 週以上回訪並完成至少一集收聽的用戶比率。</div>
               </div>
             </div>
           </div>

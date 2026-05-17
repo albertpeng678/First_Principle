@@ -577,7 +577,7 @@
         SP4 § C 規格：4 個 tabs 全部重做；mobile/tablet/desktop 各 layout 不同。
         共用 chrome：navbar + nsm-nav「NSM 報告 · Spotify · Spotify Podcast」+ <strong>qchip 題目情境</strong>（pill「NSM」+ 題目標題 single-line truncated，mirror mockup 13 LOCKED）+ nsm-summary（大字 80 + / 100 + 公司）+ tab-bar 4 tabs（總覽 / 對比 / 亮點 / 完成）。<br>
         <strong>Tab 1 總覽</strong>：mobile/tablet 直式 radar 上 + 5 score rows 下；desktop 2-col（左 380px radar / 右 1fr score-rows）。
-        <strong>Tab 2 對比</strong>：mobile 你的 / 教練上下堆疊每維度自成一塊；tablet/desktop 2-col side-by-side（header row「你的拆解 · 教練版本（點擊看思路）」+ 5 列 = NSM + reach/depth/frequency/impact）。
+        <strong>Tab 2 對比</strong>：mobile 你的 / 教練上下堆疊每維度自成一塊；tablet/desktop 2-col side-by-side（header row「你的拆解 · 教練版本（點擊看思路）」+ 4 列 = NSM + reach/depth/frequency）。
         <strong>Tab 3 亮點</strong>：mobile 1-col 3 cards；tablet 2-col（亮點+陷阱並排，總評跨 2 欄）；desktop 3-col（最大亮點 / 主要陷阱 / <strong>下一步建議</strong> NEW border-left success）+ 總評跨 3 欄。
         <strong>Tab 4 完成</strong>：done-panel（ph-check-circle 64×64 圓 + 「完成這次 NSM 訓練」+ 「本次得分 80 分，距離滿分還差 20 分；表現扎實，4/5 個維度達標」+ 主按鈕「再練一題」+ desktop ghost「回首頁」）+ done-secondary tip card「NSM 練習小技巧」。<br>
         Path 2 配色：radar navy polygon（去紫）；5 dim score bars 全 navy uniform（去原 5 色）；score 字色 grade-based（≥4 success / 3 navy / ≤2 warn）；無紫色。
@@ -898,8 +898,8 @@
     <!-- ============================================================ -->
     <!-- Section B — Tab 2 · 對比（你的 vs 教練版 5 列）                -->
     <!-- ============================================================ -->
-    <h2 class="vp-section-title">B · Tab 2 對比 · 你的 vs 教練版（NSM + 4 dim 5 列）<span class="vp-section-title__sub">mobile 上下堆疊 / tablet+desktop 2-col side-by-side</span></h2>
-    <div class="anno"><strong>視覺契約：</strong><strong>qchip 題目情境</strong>（pill「NSM」+ 題目標題 single-line truncated）持續顯示於所有 frames。mobile 每維度自成 block（dim title + 你的 card grey 邊 + 教練 card navy 邊 上下堆疊）；tablet+desktop 改 2-col grid（header row「你的拆解 / 教練版本（點擊看思路）」+ 5 列 = 北極星指標 + 觸及廣度 + 互動深度 + 習慣頻率 + 留存驅力，每列 label-key 14px serif italic + 你的 card + 教練 card 並列）。</div>
+    <h2 class="vp-section-title">B · Tab 2 對比 · 你的 vs 教練版（NSM + 3 dim 4 列）<span class="vp-section-title__sub">mobile 上下堆疊 / tablet+desktop 2-col side-by-side</span></h2>
+    <div class="anno"><strong>視覺契約：</strong><strong>qchip 題目情境</strong>（pill「NSM」+ 題目標題 single-line truncated）持續顯示於所有 frames。mobile 每維度自成 block（dim title + 你的 card grey 邊 + 教練 card navy 邊 上下堆疊）；tablet+desktop 改 2-col grid（header row「你的拆解 / 教練版本（點擊看思路）」+ 4 列 = 北極星指標 + 觸及廣度 + 互動深度 + 習慣頻率，每列 label-key 14px serif italic + 你的 card + 教練 card 並列）。</div>
     <div class="vp-grid">
 
       <!-- B · Mobile 360 -->
@@ -956,11 +956,6 @@
                 <div class="nsm-compare-block__title">習慣頻率</div>
                 <div class="nsm-compare-card nsm-compare-card--yours"><span class="nsm-compare-card__tag">你的</span><div class="nsm-compare-card__text">試用期間每週使用天數</div></div>
                 <div class="nsm-compare-card nsm-compare-card--coach"><span class="nsm-compare-card__tag">教練版</span><div class="nsm-compare-card__text">試用期內每週啟動 Premium 功能的天數 ≥ 4 天</div></div>
-              </div>
-              <div class="nsm-compare-block">
-                <div class="nsm-compare-block__title">留存驅力</div>
-                <div class="nsm-compare-card nsm-compare-card--yours"><span class="nsm-compare-card__tag">你的</span><div class="nsm-compare-card__text">試用後付費轉換率</div></div>
-                <div class="nsm-compare-card nsm-compare-card--coach"><span class="nsm-compare-card__tag">教練版</span><div class="nsm-compare-card__text">試用結束後 30 天內完成訂閱的轉換率</div></div>
               </div>
             </div>
           </div>
@@ -1022,11 +1017,6 @@
                 <div class="nsm-compare-card nsm-compare-card--yours"><div class="nsm-compare-card__text">試用期間每週使用天數</div></div>
                 <div class="nsm-compare-card nsm-compare-card--coach"><div class="nsm-compare-card__text">試用期內每週啟動 Premium 功能的天數 ≥ 4 天</div></div>
               </div>
-              <div class="nsm-compare-grid__row">
-                <div class="nsm-compare-grid__label"><span class="nsm-compare-grid__label-key">4</span>留存驅力</div>
-                <div class="nsm-compare-card nsm-compare-card--yours"><div class="nsm-compare-card__text">試用後付費轉換率</div></div>
-                <div class="nsm-compare-card nsm-compare-card--coach"><div class="nsm-compare-card__text">試用結束後 30 天內完成訂閱的轉換率</div></div>
-              </div>
             </div>
           </div>
         </div>
@@ -1085,11 +1075,6 @@
                 <div class="nsm-compare-grid__label"><span class="nsm-compare-grid__label-key">3</span>習慣頻率</div>
                 <div class="nsm-compare-card nsm-compare-card--yours"><div class="nsm-compare-card__text">試用期間每週使用天數</div></div>
                 <div class="nsm-compare-card nsm-compare-card--coach"><div class="nsm-compare-card__text">試用期內每週啟動 Premium 功能的天數 ≥ 4 天</div></div>
-              </div>
-              <div class="nsm-compare-grid__row">
-                <div class="nsm-compare-grid__label"><span class="nsm-compare-grid__label-key">4</span>留存驅力</div>
-                <div class="nsm-compare-card nsm-compare-card--yours"><div class="nsm-compare-card__text">試用後付費轉換率</div></div>
-                <div class="nsm-compare-card nsm-compare-card--coach"><div class="nsm-compare-card__text">試用結束後 30 天內完成訂閱的轉換率</div></div>
               </div>
             </div>
           </div>
