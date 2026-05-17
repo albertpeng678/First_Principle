@@ -218,6 +218,9 @@
 | NSM gate adversarial preventive sweep (Lane L9) | ✅ 10/10 rejected, 0 leak | `322dfa8` — NSM gate solid, mirrors L2 CIRCLES finding |
 | jest tests/circles-sessions.test.js cascade restore (Lane L8) | ✅ 62/62 file + 535/552 full jest baseline | `05025b9` — seed lifecycle='gated' in makeSession defaults |
 | jest issue-bug1-nsm-session-restore test drift | ✅ 17/17 (was 16/17) | `f616319` — production normalize 3 shapes, test relaxed |
+| Bug 2 ghost fix (Lane L11) | ✅ Scen C mobile-chrome 30/30 × 5 runs no flake + cross-vp | `c156c6b` — 7-line reset at qcard-confirm |
+| CIRCLES evaluator adversarial preventive sweep (Lane L12) | ✅ 7/7 totalScore=16 (well < 60) | `0efe786` — evaluator robust, 4 dims all min 1/5 |
+| Critical-path 3 pre-existing fails (newly surfaced post L11 verify) | ⚠️ pending — needs O-8 investigation | NOT L11-caused (confirmed identical pre-fix); separate lane needed |
 
 ---
 
