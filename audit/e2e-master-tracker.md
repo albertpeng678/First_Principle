@@ -302,6 +302,9 @@
 | NSM seed helper + B4-E3 unblock (Lane L20) | ✅ 15/15 PASS (5 runs × 3 browsers) + no NSM delete cache leak found | `f292a22` + `961cb09` — closes O-7 + F-P16 |
 | O-9 orphan renderQchipPanelHtml cleanup (Lane L23) | ✅ 15 lines deleted, 0 callers, jest 535/552 + cross-vp 16/16 | `f2a3d58` — closes O-9 |
 | Bug 3 mobile-chrome FLAKE verified (Director 3x) | ✅ 18/18 PASS isolated runs | concurrent smoke contention, not real regression; symptom of P1-#264 auth race |
+| L25 P1-#264 fix (Supabase collision) | ✅ 3 × 16/16 burst GREEN + 5/5 consec | `1e293b3` — waitForServer + tagSessionWithPid; minor :3000 fallback flag for follow-up |
+| L26 NSM /context+/hints+/progress audit | ✅ 19/19 GREEN, 0 leak | `4bdba5b` — 3 endpoint groups SAFE by-design |
+| O-9 orphan cleanup (L23) | ✅ delete 15 lines, jest 535/552 | `f2a3d58` |
 
 ---
 
