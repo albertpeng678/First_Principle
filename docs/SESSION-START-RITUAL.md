@@ -420,6 +420,62 @@ npx playwright test --config tests/e2e/playwright.config.js [spec] --update-snap
 | 17 mockups (LOCKED) | `docs/superpowers/specs/mockups/2026-05-02-frontend-rewrite/` |
 | Playwright-skill (原檔，本檔已 inline 提煉) | `~/.claude/skills/playwright-skill/core/` |
 | Karpathy guidelines | `~/.claude/plugins/cache/karpathy-skills/.../skills/karpathy-guidelines/SKILL.md` |
+| **addyosmani/agent-skills (NEW 2026-05-17)** | `~/.claude/skills/agent-skills-addyosmani/` |
+
+---
+
+## §14 addyosmani/agent-skills 整合（2026-05-17 新加）
+
+> 23 skills + 7 slash commands + 3 personas 全 symlink 進 `~/.claude/`，與 playwright-skill / superpowers / Karpathy **混用不替換**。Memory `reference_addyosmani_agent_skills.md` 有完整索引。
+
+### §14.1 新 slash commands（7 條）
+- `/spec` — PRD before code
+- `/plan` — small atomic tasks
+- `/build` — thin vertical slice
+- `/test` — TDD + browser-testing (Chrome DevTools MCP)
+- `/review` — 5-axis code review (Nit/Optional/FYI severity)
+- `/code-simplify` — Chesterton's Fence + Rule of 500
+- `/ship` — pre-launch checklist + feature flag + rollback
+
+### §14.2 新 personas（3 條，sub-agent dispatch 可指定）
+- `test-engineer` — Trophy 強制 + DAMP > DRY + Prove-It
+- `code-reviewer` — Staff Engineer 5-axis（**取代** 自己拼 2-stage 中的 code-quality 部分）
+- `security-auditor` — OWASP / threat modeling（敏感改動派）
+
+### §14.3 新 skills 重點（23 條，自動觸發 via Skill tool）
+**載重高頻**：
+- `test-driven-development` — Red-Green-Refactor + Prove-It Pattern for bugs
+- `browser-testing-with-devtools` — Chrome DevTools MCP 即時 runtime data
+- `code-review-and-quality` — 5-axis review + change sizing (~100 lines)
+- `security-and-hardening` — OWASP Top 10 + 3-tier boundary
+- `shipping-and-launch` — pre-launch + feature flag + staged rollout
+- `doubt-driven-development` — fresh-context review of in-flight decisions（**Path 2 寶**）
+- `git-workflow-and-versioning` — trunk-based + atomic commit + 100-line norm
+
+### §14.4 4 reference checklists
+`~/.claude/skills/agent-skills-addyosmani/references/`：
+- `testing-patterns.md` / `security-checklist.md` / `performance-checklist.md` / `accessibility-checklist.md`
+
+### §14.5 不替換的對應關係
+
+| 現有 | addy/agent-skills | 規則 |
+|---|---|---|
+| playwright-skill 24 md | test-driven-development + browser-testing | 你的深、addy 廣，**混用** |
+| ui-ux-pro-max-skill | frontend-ui-engineering | mockup-as-spec 主、addy 概念補 |
+| superpowers writing-plans | planning-and-task-breakdown | superpowers 主 |
+| STANDING memory 系統 | in-skill anti-rationalization | memory 跨 session 持續優先 |
+| `audit/e2e-master-tracker.md` | (無等價) | tracker 保留 single source of truth |
+
+### §14.6 何時用 addy 而非 superpowers
+
+- 寫測試 → 用 `/test` slash（自動觸發 tdd + browser-testing）
+- ship 前 checklist → 用 `/ship`
+- code review → 用 `/review` OR dispatch `code-reviewer` persona
+- 漸進實作 → 用 `/build`
+- doubt 模式 → 高風險決定查 `~/.claude/skills/doubt-driven-development/SKILL.md`
+
+### §14.7 hooks（**未啟用**）
+`~/.claude/skills/agent-skills-addyosmani/hooks/` 含 session-start / sdd-cache / simplify-ignore — 需 user `~/.claude/settings.json` wire-up，目前未啟。
 
 ---
 
