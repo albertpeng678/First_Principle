@@ -132,17 +132,16 @@ test.describe('NSM frequency label by product type — post impact-removal', () 
       });
 
       await test.step(`verify frequency dim card shows "${expectedFreqLabel}"`, async () => {
-        // NSM Step 3 renders .nsm-dim cards with .nsm-dim__label for each dim.
-        // The frequency dim card has data-nsm-dim="frequency" on its textarea,
-        // and the label is in the parent .nsm-dim .nsm-dim__label.
-        // Locate the dim card containing the frequency textarea.
+        // NSM Step 3 renders .nsm-dim cards with .field__label inside .field__label-row for each dim
+        // (post Bug B mockup 07 migration, replaces old .nsm-dim__head + .nsm-dim__label).
+        // The frequency dim card has data-nsm-dim="frequency" on its textarea.
         const freqTextarea = page.locator('textarea[data-nsm-dim="frequency"]');
         await expect(freqTextarea).toBeVisible({ timeout: 5_000 });
 
-        // The frequency card's .nsm-dim__label is the closest ancestor .nsm-dim > .nsm-dim__head .nsm-dim__label
+        // The frequency card's .field__label is the closest ancestor .nsm-dim > .field__label-row .field__label
         const freqCard = page.locator('.nsm-dim').filter({ has: page.locator('[data-nsm-dim="frequency"]') });
         await expect(freqCard).toBeVisible({ timeout: 3_000 });
-        const freqLabel = freqCard.locator('.nsm-dim__label');
+        const freqLabel = freqCard.locator('.field__label-row .field__label');
         await expect(freqLabel).toContainText(expectedFreqLabel, { timeout: 3_000 });
       });
 

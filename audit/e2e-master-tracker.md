@@ -2,7 +2,7 @@
 
 > **Single source of truth for ACTIVE unresolved issues.** Per STANDING `feedback_tracker_unresolved_hub`: §1-§3 only list真正待處理 items；resolved 立即剪貼移 §5。User 掃 §1-§3 = brainstorming 清單。
 >
-> **Last updated:** 2026-05-17 PM Taipei — Wave 1 Phase 1 ship: B10 O-6 commit; C-T1 / C-T2 / B6 findings in §2-§3 awaiting Phase 1B user decision
+> **Last updated:** 2026-05-17 PM Taipei — Wave 1B-a (#1+#3) ship `1b75c0f` + Wave 1B-b (Bug A + Bug B + #2) ship (this commit); 4 reviewer-caught Critical 補修完成
 > **Update protocol:** new finding → append §1-§3；fix shipped → cut & paste 整段 → §5 with commit + verify。**禁留 ~~strikethrough~~ 在 §1-§3**。
 > **Read order**: §1 → §2 → §3 → §6 → §7。歷史 audit trail 看 §5 / §9。
 
@@ -10,19 +10,7 @@
 
 ## §1 Active P0 Bugs (user-visible / data integrity)
 
-### NEW-Bug-A (2026-05-17 PM user report) — NSM 切題不清舊答案 (ghost content)
-**User flow**: NSM Step 1 選題 X → Step 2 填 dim 答案 → 返回 Step 1 → 選新題 Y → Step 2 **舊答案還在欄位**
-**Severity**: P1 → ELEVATED to P0 candidate（同 CIRCLES Bug 2 #252 ghost content pattern，user 已踩到視為 data integrity issue）
-**Root cause (Explore agent verified)**:
-- `public/app.js:6322-6326` 「開始練習」start btn click handler 只做 `AppState.nsmStep = 2; render();`，**沒清 `AppState.nsmDefinition` / `AppState.nsmBreakdown`**
-- `AppState.nsmDefinition` / `nsmBreakdown` 是 module-scope mutable 物件，無 session-bound lifetime；back/forward 之間舊值持續存在
-- CIRCLES Bug 2 (#252 fix `c156c6b`) 在 `app.js:5918-5924` `qcard-confirm` handler 內顯式 reset 6 個 draft state — NSM 側**沒 mirror 此 pattern**
-**Proposed fix scope (Karpathy surgical, ~10 lines)**:
-- `app.js:6322-6326` start btn: 加 5 行 reset（`nsmDefinition` / `nsmBreakdown` / `nsmEvalResult` / `nsmGateResult` / `nsmSession`）
-- `app.js:1884` back btn 同樣加 reset，預防反覆 back/forward 也同問題
-**RED e2e design**: `tests/e2e/nsm-question-switch-resets-draft.spec.js` × 3 vp × 6 AC（select X → fill → back → select Y → assert 6 欄位 `toHaveValue('')` + 無 X 字串殘留）
-**Skills cite**: Pitfall 11 / 18 / 3 / 19 + §3.7 storageState + §3.11 cross-vp
-**Cross-ref**: #252 c156c6b CIRCLES pattern；root cause analysis by Explore agent 2026-05-17 PM
+✅ **0 items** — F-1 / F-2 / FLOAT-2 / NEW-Bug-A 全 shipped (見 §5)。下個 P0 finding 出現 → append here。
 
 ---
 
@@ -188,6 +176,21 @@
 
 ---
 
+### NEW-Test-Debt (2026-05-17 PM, Director cold-Read after Bug B 2-stage review)
+**Source**: cross-spec smoke discovered after Bug B class rename — pre-existing test/prod drift unrelated to current commit
+**Severity**: P2 (test-only; production rendering correct per mockup 07)
+**Findings**:
+1. `tests/visual/nsm-step-2-3.spec.js` line 109 + 127: expect 4 dim labels (`觸及/互動/習慣/留存` or `啟用/席次/黏著/擴張`) but production renders only **3 dims** post impact-removal (confirmed via `nsm-freq-label-by-type.spec.js` comment "post impact-removal" + `expect(dimCards).toHaveCount(3)`)
+2. Same spec lines 191, 214: `attention dims desc verbatim` / `saas dims desc verbatim` — same root cause, expect 4 desc strings
+3. Affected: 4 tests × 8 vp in visual config = ~32 failures consistent with pre-existing drift
+**Suggested fix scope (separate task — not in current commit)**:
+- Update expect arrays from 4 → 3 labels (remove `'留存驅力'` / `'擴張信號'`)
+- Update desc arrays from 4 → 3 entries (remove impact dim desc)
+- Verify against `NSM_DIMENSION_CONFIGS.attention/saas` in app.js for exact dim list per type
+**Cross-ref**: `nsm-freq-label-by-type.spec.js:154` `expect(dimCards).toHaveCount(3)` confirms 3-dim production state；Bug B 2-stage review caught this via cross-spec class rename verification
+
+---
+
 ### COMMON design issue (Both NEW-Bug-A and NEW-Bug-B)
 **共同根因**: NSM 跟 CIRCLES 沒共用 component → NSM-only template drift
 - Bug A: 沒抽 `resetNsmDraftState()` helper，CIRCLES 的 reset block 沒 mirror 到 NSM
@@ -306,6 +309,9 @@
 | O-6 B10 `_doOffcanvasDelete` cache invalidate | L31 — 2-line `AppState.circlesRecentSessions = null; render()` (app.js:8547-8550) + spec `offcanvas-delete-invalidates-recent-sessions.spec.js` 7/7 × 3 vp GREEN + Director cold-Read 4 PNG diff `e811378` |
 | F-CT1.1 NSM evaluator spinner 卡死 (partial close of §3 C-T1) | L32 — 1-line `AppState.nsmEvalLoading=false;` at app.js:2042 + spec `nsm-evaluator-error-clears-spinner.spec.js` (281 lines) 15/15 × 5 runs (3 vp) + 3 PNG evidence + no regression (nsm-gate-result/freq-label/hint 25/25 PASS). **F-CT1.2/1.3/1.4/1.5 仍 pending §3** |
 | B6 D-4 warn icon 顏色相反 (partial close of §3 B6 11-drift) | L32 — 1-char swap `ph-warning`→`ph-check-circle` at app.js:5146 + spec `circles-gate-warn-icon-color.spec.js` (186 lines) 45/45 × 5 runs (3 vp × 3 AC) + 3 baseline snapshots + Director cold-Read confirmed visual match mockup 04. **B6 D-1/2/3/5/6/7/8/9/10/11 仍 pending §3** |
+| **NEW-Bug-A** NSM 切題不清舊答案 (P0/P1 ghost content, user reported 2026-05-17 PM) | L33 (this commit) — 10-line reset (start btn app.js:6330-6342 + back btn app.js:1883-1896) mirror CIRCLES Bug 2 c156c6b pattern + new spec `nsm-question-switch-resets-draft.spec.js` (450 lines incl auto-cleanup afterEach hook to prevent Supabase leak per Bug A reviewer Critical) 3/3 desktop + 5x consec 35/35 (earlier sub-agent report) + 15 PNG evidence + Bug-A 2-stage review CRITICAL fixes applied |
+| **NEW-Bug-B** NSM dim hint+example 不在 head row (P2 visual contract, user PNG-31 2026-05-17 PM) | L33 (this commit) — `renderNSMDim` template restructure (app.js:1726-1746) mirror mockup 07 line 1355-1384 `.field__label-row > .field__hint-row` canonical pattern + style.css L1802-1834 dead `.nsm-dim__head/__label/__hint-btn/__hint` 20 lines DELETE + new spec `nsm-dim-card-hint-row-position.spec.js` (194 lines) 4 AC × 3 vp + 3 baseline snapshots + 3 audit PNG + hint test rewritten to assert `.hint-overlay__backdrop` modal (post-architecture migration, replaces obsolete `.nsm-dim__hint-content` inline). Bug-B 2-stage review CRITICAL cross-spec drift fixes: `nsm-freq-label-by-type.spec.js:145` + `nsm-step-2-3.spec.js:108,126,144,145` migrated to new class names |
+| F-CT1.2 CIRCLES Phase 2 evaluator silent fail (partial close of §3 C-T1) | L33 (this commit) — 3 surgical edits app.js:7122-7126 + 7137-7141 + 7158-7168 (raw `fetch` → `window.apiFetch` × 2 sites; `evalRes.ok===false` branch sets `AppState.circlesPhase3Error = {code, message}; render()`) + dead `headers` var removal app.js:7128 (Wave #2 reviewer CRITICAL) + new spec `circles-phase2-evaluator-error-shown.spec.js` (375 lines) AC-1 503 → error UI shown + AC-2 401 → apiFetch refresh+retry succeeds + 6 PNG evidence (3 vp × 2 AC). **F-CT1.3/1.4/1.5 仍 pending §3** |
 | O-7 NSM seed helper for offcanvas-delete | L20 `f292a22` + audit `961cb09` |
 | O-9 orphan renderQchipPanelHtml delete | L23 `f2a3d58` (15 lines, 0 callers verified) |
 

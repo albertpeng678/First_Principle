@@ -1723,18 +1723,21 @@
         + '<i class="ph ph-quotes"></i>範例答案'
         + '</button>';
 
+    // Migrated to LOCKED canonical pattern per mockup 07 line 1355-1384:
+    // .field__label-row holds label + .field__hint-row (hint + example buttons) inline.
+    // .nsm-dim__desc moves outside head. .nsm-dim__body contains only textarea + expand.
     return '<div class="nsm-dim">'
-      + '<div class="nsm-dim__head">'
-      +   '<div class="nsm-dim__label">' + escHtml(dim.label) + '</div>'
-      +   '<div class="nsm-dim__desc">' + escHtml(dim.desc) + '</div>'
-      + '</div>'
-      + '<div class="nsm-dim__body">'
+      + '<div class="field__label-row">'
+      +   '<label class="field__label">' + escHtml(dim.label) + '</label>'
       +   '<div class="field__hint-row">'
       +     '<button class="field__hint-link" type="button" data-nsm-step3-hint="' + escHtml(dim.id) + '" data-nsm-dim-type="' + escHtml(ptype || 'attention') + '">'
       +       '<i class="ph ph-lightbulb"></i>提示'
       +     '</button>'
       +     dimExampleBtnHtml
       +   '</div>'
+      + '</div>'
+      + '<div class="nsm-dim__desc">' + escHtml(dim.desc) + '</div>'
+      + '<div class="nsm-dim__body">'
       +   '<div class="nsm-rt-field"><div class="nsm-rt-toolbar">'
       +     '<button class="nsm-rt-tbtn" data-rt-cmd="bold" title="粗體"><strong>B</strong></button>'
       +     '<button class="nsm-rt-tbtn" data-rt-cmd="insertUnorderedList" title="列點"><i class="ph ph-list-bullets"></i></button>'
@@ -1880,6 +1883,12 @@
         // selection — that visually orphans the user's already-selected question.
         // Route to home (CIRCLES default landing). nsmSelectedQuestion preserved
         // so user can resume via offcanvas (Task 2 smart routing lands at Step 2).
+        // Bug-A fix: also reset draft to prevent ghost content on next question switch
+        AppState.nsmDefinition = { nsm: '', explanation: '', businessLink: '' };
+        AppState.nsmBreakdown = { reach: '', depth: '', frequency: '' };
+        AppState.nsmEvalResult = null;
+        AppState.nsmGateResult = null;
+        AppState.nsmSession = null;
         AppState.view = 'circles';
         AppState.nsmStep = 1; // reset for next NSM session entry
         render();
@@ -6321,6 +6330,12 @@
     if (startBtn && !startBtn.disabled) {
       startBtn.addEventListener('click', function () {
         if (!AppState.nsmSelectedQuestion) return;
+        // Bug-A fix: mirror CIRCLES Bug 2 #252 c156c6b pattern — reset stale draft on question switch
+        AppState.nsmDefinition = { nsm: '', explanation: '', businessLink: '' };
+        AppState.nsmBreakdown = { reach: '', depth: '', frequency: '' };
+        AppState.nsmEvalResult = null;
+        AppState.nsmGateResult = null;
+        AppState.nsmSession = null;
         AppState.nsmStep = 2;
         render();
       });
@@ -7110,9 +7125,9 @@
         if (!sessionId) return;
 
         var basePath = AppState.accessToken ? '/api/circles-sessions/' : '/api/guest-circles-sessions/';
-        var headers = { 'Content-Type': 'application/json' };
-        if (AppState.accessToken) headers['Authorization'] = 'Bearer ' + AppState.accessToken;
-        else if (AppState.guestId) headers['X-Guest-ID'] = AppState.guestId;
+        // F-CT1.2: removed dead `var headers = {...}` block — window.apiFetch
+        // (app.js:293-322) auto-attaches Content-Type + Authorization / X-Guest-ID
+        // headers via its buildHeaders() helper. No callers reference `headers` below.
 
         // Disable button during submit
         conclusionSubmitBtn.disabled = true;
@@ -7120,9 +7135,9 @@
 
         try {
           // Step 1: conclusion-check
-          var checkRes = await fetch(basePath + sessionId + '/conclusion-check', {
+          // F-CT1.2 fix A: use window.apiFetch for 401 refresh+retry (apiFetch adds auth headers)
+          var checkRes = await window.apiFetch(basePath + sessionId + '/conclusion-check', {
             method: 'POST',
-            headers: headers,
             body: JSON.stringify({ conclusionText: draft }),
           });
           var checkData = await checkRes.json().catch(function () { return {}; });
@@ -7134,9 +7149,9 @@
             AppState.evalToastDismissed = false;
             AppState.circlesPhase = 3; // advance view to phase 3 loading before fetch
             render();
-            var evalRes = await fetch(basePath + sessionId + '/evaluate-step', {
+            // F-CT1.2 fix A: use window.apiFetch for 401 refresh+retry (apiFetch adds auth headers)
+            var evalRes = await window.apiFetch(basePath + sessionId + '/evaluate-step', {
               method: 'POST',
-              headers: headers,
               body: '{}',
             });
             if (evalRes.ok) {
@@ -7156,10 +7171,16 @@
               AppState.evalToastDismissed = false;
               render();
             } else {
-              // evaluate-step failed — re-enable button
+              // F-CT1.2 fix B: set phase3 error state so user sees error UI (not just silent button re-enable)
+              var errData = await evalRes.json().catch(function () { return {}; });
+              AppState.circlesPhase3Error = {
+                code: errData.code || (evalRes.status === 503 ? 'EVAL_API_ERROR' : 'EVAL_UNKNOWN'),
+                message: errData.error || 'evaluator-failed-' + evalRes.status,
+              };
               AppState.circlesEvaluating = false;
               conclusionSubmitBtn.disabled = false;
               conclusionSubmitBtn.classList.remove('is-disabled');
+              render();
             }
           } else {
             // conclusion-check warn/error — log and re-enable (future improvement: inline guidance)

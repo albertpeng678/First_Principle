@@ -105,7 +105,8 @@ test.describe('NSM Step 2 + Step 3 (mockup 07)', () => {
       window.render();
     }, { q: Q_ATTENTION });
     await page.waitForSelector('.nsm-dim');
-    var labels = await page.locator('.nsm-dim__label').allTextContents();
+    // post Bug B mockup 07 migration: .nsm-dim__label → .field__label inside .field__label-row
+    var labels = await page.locator('.nsm-dim .field__label').allTextContents();
     expect(labels).toEqual(['觸及廣度', '互動深度', '習慣頻率', '留存驅力']);
   });
 
@@ -123,11 +124,14 @@ test.describe('NSM Step 2 + Step 3 (mockup 07)', () => {
       window.render();
     }, { q: Q_SAAS });
     await page.waitForSelector('.nsm-dim');
-    var labels = await page.locator('.nsm-dim__label').allTextContents();
+    var labels = await page.locator('.nsm-dim .field__label').allTextContents();
     expect(labels).toEqual(['啟用廣度', '席次深度', '黏著頻率', '擴張信號']);
   });
 
-  test('Step 3 dim hint-toggle expands hint', async ({ page }) => {
+  test('Step 3 dim hint button opens overlay modal', async ({ page }) => {
+    // post Bug B migration: hint mechanism is modal (not inline .nsm-dim__hint-content);
+    // button class is .field__hint-link inside .field__hint-row (mockup 07 canonical pattern).
+    // Click [data-nsm-step3-hint] → renders #nsm-hint-modal-host overlay (app.js:4100-4130 area).
     await page.setViewportSize({ width: 1280, height: 900 });
     await mockApis(page);
     await page.goto('/');
@@ -137,12 +141,16 @@ test.describe('NSM Step 2 + Step 3 (mockup 07)', () => {
       window.AppState.nsmSubTab = 'nsm-step3';
       window.AppState.nsmSelectedQuestion = q;
       window.AppState.nsmGateResult = { overall_status: 'ok' };
-      // depth dim for saas has hint content — toggle it open
-      window.AppState.nsmHintExpanded = { depth: true };
       window.render();
     }, { q: Q_SAAS });
-    await page.waitForSelector('.nsm-dim__hint-btn');
-    await expect(page.locator('.nsm-dim__hint-content').first()).toBeVisible();
+    await page.waitForSelector('.field__hint-link[data-nsm-step3-hint]');
+    // Stub the hint API since modal opens only after fetch resolves
+    await page.route('**/api/nsm-step3-hint/**', (route) => route.fulfill({
+      status: 200, contentType: 'application/json',
+      body: JSON.stringify({ hint: 'test hint content for depth dim' }),
+    }));
+    await page.locator('.field__hint-link[data-nsm-step3-hint="depth"]').click();
+    await expect(page.locator('.hint-overlay__backdrop')).toBeVisible({ timeout: 5_000 });
   });
 
   test('Step 3 dim textarea typing updates AppState.nsmBreakdown', async ({ page }) => {
