@@ -90,6 +90,16 @@
 - **Verify**: bug3-deep-investigation 5/5 GREEN × 5 runs no flake + circles-phase3-restore 10/10 + back-nav-lock 16/16 + fe-gate-stale-state 16/16 + critical-path 1/1 + lifecycle-circles 8/8 + jest 535/552
 - Original investigation evidence preserved below.
 
+### P0-NEW-6 Cross-plan integration smoke regression cluster — DISCOVERED 2026-05-17 (Director)
+- **Discovery**: After 7/7 P0 fix batch, cross-plan smoke (per `feedback_cross_plan_smoke_after_each_ship`) surfaces **15 regressions** not caught by per-lane verify:
+  - **API**: 5 failed / 175 passed (full api/ project suite)
+  - **E2E key specs cross-vp**: 9 failed / 73 passed (critical-path + chat-drift + Phase 3 restore + fe-gate-stale + fresh-form-no-ghost + bug3-deep + offcanvas-delete)
+  - **jest**: 1 failed / 534 passed / 17 skipped (regressed from 535 baseline)
+- **Why per-lane verify missed**: each lane verified its own spec + small smoke; only running ALL specs together catches interactions
+- **Lesson cross-ref**: O-8 enforcement + memory `feedback_cross_plan_smoke_after_each_ship` is critical; cannot ship without it
+- **Next**: Director diagnostic bash dispatched (background) — will identify specific failing tests. Then lane(s) to fix per cluster.
+- **PUSH BLOCKED until resolved.**
+
 ### P0-NEW-5 NSM /evaluate gate bypass — REAL PROD BUG (Lane L18, 2026-05-17)
 - **Discovery**: L18 mirror of L3 for NSM-side. Audit + RED spec proved 2 leak instances.
 - **Audit + spec**: `audit/nsm-bypass-path-enumeration-2026-05-17.md` + `tests/api/nsm-no-bypass.spec.js` commit `f441455`
