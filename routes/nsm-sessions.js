@@ -91,6 +91,11 @@ router.delete('/:id', requireAuth, async (req, res) => {
 });
 
 // POST /api/nsm-sessions/:id/evaluate
+// Plan #194 T6 (RES-AC7 + RES-AC8 / F-14): pre-write `evaluating=true` checkpoint
+// to `progress_json` BEFORE the 3-5s AI call so that a mid-evaluate process crash
+// is recoverable (FE sees the checkpoint older than 60s → renders recovery banner).
+// Lifecycle wire (commit b42aac0) preserved verbatim — only progress_json shape
+// gained 2 new keys: `evaluating` (bool) + `evaluating_started_at` (ISO string).
 router.post('/:id/evaluate', requireAuth, async (req, res) => {
   const { userNsm, userBreakdown } = req.body;
   const { data: session, error } = await db
@@ -100,6 +105,20 @@ router.post('/:id/evaluate', requireAuth, async (req, res) => {
     .eq('user_id', req.user.id)
     .single();
   if (error || !session) return res.status(404).json({ error: 'not_found' });
+
+  // T6 step 1 — pre-write checkpoint. Tolerate error (log + continue) because the
+  // checkpoint is best-effort; if the UPDATE fails the worst case is we lose
+  // crash-recovery for this request but the user still gets a normal eval cycle.
+  const prevProgress = session.progress_json || {};
+  const checkpointAt = new Date().toISOString();
+  {
+    const { error: cpErr } = await db.from('nsm_sessions').update({
+      progress_json: { ...prevProgress, evaluating: true, evaluating_started_at: checkpointAt },
+      updated_at: checkpointAt
+    }).eq('id', req.params.id).eq('user_id', req.user.id);
+    if (cpErr) console.error('[nsm-evaluate] checkpoint write failed', cpErr);
+  }
+
   try {
     const result = await evaluateNSM({
       question_json: session.question_json,
@@ -110,6 +129,7 @@ router.post('/:id/evaluate', requireAuth, async (req, res) => {
     // so a TOCTOU race or future regression in the SELECT guard above can't
     // let one user mutate another's session row.
     const nextLifecycle = computeLifecycle(session, {}, 'nsm', 'analysis_done');
+    // T6 step 2 — final UPDATE clears `evaluating` checkpoint alongside scores.
     const { error: upErr } = await db.from('nsm_sessions').update({
       user_nsm: userNsm,
       user_breakdown: userBreakdown,
@@ -117,12 +137,22 @@ router.post('/:id/evaluate', requireAuth, async (req, res) => {
       coach_tree_json: result.coachTree,
       status: 'completed',
       lifecycle: nextLifecycle,
+      progress_json: { ...prevProgress, evaluating: false },
       updated_at: new Date().toISOString()
     }).eq('id', req.params.id).eq('user_id', req.user.id);
     if (upErr) throw upErr;
     cache.invalidate(CACHE_KIND, req.user.id);
     res.json(result);
-  } catch (e) { res.status(500).json({ error: e.message }); }
+  } catch (e) {
+    // T6 step 3 — on AI throw, clear `evaluating` + record `evaluation_error`
+    // so FE recovery banner does not appear (no stuck checkpoint).
+    const { error: errUpErr } = await db.from('nsm_sessions').update({
+      progress_json: { ...prevProgress, evaluating: false, evaluation_error: e.message },
+      updated_at: new Date().toISOString()
+    }).eq('id', req.params.id).eq('user_id', req.user.id);
+    if (errUpErr) console.error('[nsm-evaluate] error checkpoint clear failed', errUpErr);
+    res.status(500).json({ error: e.message });
+  }
 });
 
 // POST /api/nsm-sessions/:id/gate

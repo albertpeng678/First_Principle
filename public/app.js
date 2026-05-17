@@ -2410,6 +2410,26 @@
   }
 
   function renderNSMStep4() {
+    // Plan #194 T6 (RES-AC8 / F-14) — recovery banner for stuck mid-evaluate.
+    // If progress_json.evaluating === true AND no scores AND checkpoint older
+    // than 60 s, the previous evaluate POST crashed mid-flight. Show a retry
+    // banner instead of the report shell (which would render 0/100 garbage).
+    var nsmSess = AppState.nsmSession || {};
+    var pj = nsmSess.progress_json || {};
+    var startedAt = pj.evaluating_started_at ? Date.parse(pj.evaluating_started_at) : 0;
+    var elapsedMs = startedAt ? (Date.now() - startedAt) : 0;
+    var hasScores = !!(AppState.nsmEvalResult && Object.keys(AppState.nsmEvalResult).length > 0);
+    var isStuck = pj.evaluating === true && !hasScores && elapsedMs > 60_000;
+    if (isStuck) {
+      return '<div data-view="nsm" data-nsm-step4 data-nsm-stuck="1">'
+        +   '<div class="nsm-evaluate-recovery">'
+        +     '<i class="ph ph-warning"></i>'
+        +     '<div class="nsm-evaluate-recovery__msg">上次評分未完成，請重新評分</div>'
+        +     '<button class="btn btn--primary" data-nsm-action="retry-evaluate">重新評分</button>'
+        +   '</div>'
+        + '</div>';
+    }
+
     var evalResult = AppState.nsmEvalResult || {};
     var q = AppState.nsmSelectedQuestion || {};
     var tab = AppState.nsmReportTab || 'overview';
@@ -2487,6 +2507,45 @@
   }
 
   function bindNSMStep4() {
+    // Plan #194 T6 (RES-AC8) — recovery retry: re-fire evaluate POST.
+    var retryEvalBtn = document.querySelector('[data-nsm-action="retry-evaluate"]');
+    if (retryEvalBtn) {
+      retryEvalBtn.addEventListener('click', async function () {
+        var sid = AppState.nsmSession && AppState.nsmSession.id;
+        if (!sid) return;
+        retryEvalBtn.disabled = true;
+        retryEvalBtn.innerHTML = '<i class="ph ph-circle-notch"></i>評分中…';
+        try {
+          var basePath = AppState.accessToken ? '/api/nsm-sessions/' : '/api/guest/nsm-sessions/';
+          var res = await window.apiFetch(basePath + sid + '/evaluate', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({
+              userNsm: (AppState.nsmDefinition || {}).nsm || '',
+              userBreakdown: AppState.nsmBreakdown || {},
+            }),
+          });
+          if (res.ok) {
+            var result = await res.json();
+            AppState.nsmEvalResult = result;
+            // Clear the stuck checkpoint locally so render() picks the report path.
+            if (AppState.nsmSession && AppState.nsmSession.progress_json) {
+              AppState.nsmSession.progress_json.evaluating = false;
+              AppState.nsmSession.progress_json.evaluating_started_at = null;
+            }
+            AppState.nsmStep = 4;
+            render();
+          } else {
+            retryEvalBtn.disabled = false;
+            retryEvalBtn.innerHTML = '重新評分';
+          }
+        } catch (_e) {
+          retryEvalBtn.disabled = false;
+          retryEvalBtn.innerHTML = '重新評分';
+        }
+      });
+    }
+
     // Tab switching
     document.querySelectorAll('[data-nsm4-tab]').forEach(function (btn) {
       btn.addEventListener('click', function () {
@@ -3725,7 +3784,10 @@
 
   // ensureCirclesDraftSession — lazy-create backend session row on first save.
   // idempotent: same user×question×mode active session is returned if already exists.
-  // Returns session object (with .id) or null on failure.
+  // Returns session object (with .id) or null on guard fail (missing q/qid).
+  // THROWS on network/5xx (TypeError, status ≥500) so persistRetry can retry;
+  // returns null on 4xx (genuine client error — retry won't help).
+  // T4 (RES-AC5): refactored from silent catch-all → rethrow for retry helper.
   async function ensureCirclesDraftSession() {
     if (AppState.circlesSession && AppState.circlesSession.id) return AppState.circlesSession;
     var q = AppState.circlesSelectedQuestion;
@@ -3735,19 +3797,21 @@
     var path = AppState.accessToken ? '/api/circles-sessions/draft' : '/api/guest-circles-sessions/draft';
     var body = { question_id: q.id, mode: mode };
     if (drillStep) body.drill_step = drillStep;
-    try {
-      var res = await window.apiFetch(path, {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify(body),
-      });
-      if (!res.ok) return null;
-      var session = await res.json();
-      AppState.circlesSession = session;
-      return session;
-    } catch (e) {
-      return null;
+    var res = await window.apiFetch(path, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify(body),
+    });
+    // Retryable: 5xx → throw response-like (persistRetry inspects .status)
+    if (res.status >= 500) {
+      var rerr = new Error('HTTP ' + res.status);
+      rerr.status = res.status;
+      throw rerr;
     }
+    if (!res.ok) return null; // 4xx — non-retryable, callers see null
+    var session = await res.json();
+    AppState.circlesSession = session;
+    return session;
   }
 
   // triggerSaveCycle: input → 800ms debounce → saving → 600ms write → saved → 2000ms idle
@@ -4995,18 +5059,22 @@
   }
 
   function renderGateError(errorCode) {
-    var sub = errorCode === 'GATE_TIMEOUT'      ? '審核逾時，請稍後重試'
-            : errorCode === 'GATE_PARSE_ERROR'  ? '教練回應格式異常，請重試'
-            : errorCode === 'GATE_SYNC_ERROR'   ? '跨裝置同步失敗，請點「送出」重新提交'
-            :                                     '審核服務暫時無法使用，請重試';
-    var title = errorCode === 'GATE_SYNC_ERROR' ? '同步失敗' : '框架審核失敗';
+    var sub = errorCode === 'GATE_TIMEOUT'         ? '審核逾時，請稍後重試'
+            : errorCode === 'GATE_PARSE_ERROR'     ? '教練回應格式異常，請重試'
+            : errorCode === 'GATE_SYNC_ERROR'      ? '跨裝置同步失敗，請點「送出」重新提交'
+            : errorCode === 'DRAFT_CREATE_FAILED'  ? '無法建立練習，請檢查網路後重試'
+            :                                        '審核服務暫時無法使用，請重試';
+    var title = errorCode === 'GATE_SYNC_ERROR'     ? '同步失敗'
+              : errorCode === 'DRAFT_CREATE_FAILED' ? '建立練習失敗'
+              :                                       '框架審核失敗';
+    var retryLabel = errorCode === 'DRAFT_CREATE_FAILED' ? '重新嘗試' : '重新審核';
     return '<div class="gate-content"><div class="error-wrap">'
       + '<i class="ph ph-cloud-warning error-wrap__icon"></i>'
       + '<div class="error-wrap__title">' + escHtml(title) + '</div>'
       + '<div class="error-wrap__sub">' + escHtml(sub) + '</div>'
       + '<div class="error-wrap__code">' + escHtml(errorCode || 'GATE_API_ERROR') + '</div>'
       + '<div class="error-wrap__actions">'
-      +   '<button class="btn btn--primary" data-gate-action="retry">重新審核</button>'
+      +   '<button class="btn btn--primary" data-gate-action="retry">' + escHtml(retryLabel) + '</button>'
       +   '<button class="btn btn--ghost" data-gate-action="back">返回修改</button>'
       + '</div></div></div>';
   }
@@ -7541,12 +7609,25 @@
       AppState.circlesGateResult = null;
       AppState.circlesGateError = null;
       render();
+      // T4 (RES-AC5): retry ensureCirclesDraftSession on 5xx/network. On
+      // RetryExhausted, surface DRAFT_CREATE_FAILED so renderGateError shows
+      // the existing data-gate-action="retry" button (= "重新嘗試").
       try {
-        await ensureCirclesDraftSession();
-      } catch (_) {}
+        await window.persistRetry.persistRetry(function () {
+          return ensureCirclesDraftSession();
+        });
+      } catch (ensureErr) {
+        if (ensureErr && ensureErr.name === 'RetryExhausted') {
+          AppState.circlesGateError = 'DRAFT_CREATE_FAILED';
+          AppState.circlesGateLoading = false;
+          render();
+          return;
+        }
+        // Non-retryable thrown error — fall through to sid check below.
+      }
       var sid = AppState.circlesSession && AppState.circlesSession.id;
       if (!sid) {
-        AppState.circlesGateError = '無法建立 session，請重試';
+        AppState.circlesGateError = 'DRAFT_CREATE_FAILED';
         AppState.circlesGateLoading = false;
         render();
         // No manual mutex release — outer finally handles it (#3 de-duplicate).
