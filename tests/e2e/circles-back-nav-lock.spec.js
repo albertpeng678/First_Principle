@@ -171,6 +171,44 @@ async function seedStepScores(pageRequest, sessionId, stepScores) {
   }
 }
 
+// ── tagSessionWithPid: stamp progress_json._test_pid = process.pid (P1-#264 Option B-2) ──
+// After createDraftSession (idempotent — may return same session as a concurrent CLI run),
+// stamp the row with THIS process's PID so cleanupSession can scope deletes to the current
+// run only. The last writer wins; concurrent runs that lose the stamp will NOT delete the
+// row on cleanup (WHERE clause won't match), preventing cross-run 404 collisions.
+async function tagSessionWithPid(pageRequest, sessionId) {
+  if (!SUPABASE_URL || !SERVICE_KEY) {
+    throw new Error('tagSessionWithPid: SUPABASE_URL + SUPABASE_SERVICE_ROLE_KEY required');
+  }
+  const url = `${SUPABASE_URL}/rest/v1/circles_sessions?id=eq.${sessionId}`;
+  // Fetch current progress_json to merge, then PATCH with _test_pid stamped in.
+  const getRes = await pageRequest.get(url, {
+    headers: {
+      'apikey': SERVICE_KEY,
+      'Authorization': `Bearer ${SERVICE_KEY}`,
+      'Accept': 'application/json',
+    },
+  });
+  const rows = await getRes.json();
+  const existingPj = (rows && rows[0] && rows[0].progress_json) || {};
+  const merged = { ...existingPj, _test_pid: String(process.pid) };
+
+  const patchRes = await pageRequest.patch(url, {
+    headers: {
+      'apikey': SERVICE_KEY,
+      'Authorization': `Bearer ${SERVICE_KEY}`,
+      'Content-Type': 'application/json',
+      'Prefer': 'return=minimal',
+    },
+    data: { progress_json: merged },
+  });
+  const status = patchRes.status();
+  if (status !== 204 && status !== 200) {
+    const body = await patchRes.text();
+    throw new Error(`tagSessionWithPid: Supabase PATCH returned ${status}. Body: ${body}`);
+  }
+}
+
 // ── seedLifecycleGated: set lifecycle='gated' via Supabase REST (data seeding) ──
 // L5 fix (P0-#255): /evaluate-step now requires lifecycle='gated' or 'completed'.
 // Seed via service-role to bypass /gate for tests that are NOT testing the lifecycle guard.
@@ -238,8 +276,33 @@ function fixtureStepScore() {
   };
 }
 
-// ── Cleanup: in-page apiFetch DELETE (best-effort, Bearer auth via AppState) ─
+// ── Cleanup: PID-scoped service-role DELETE (P1-#264 Option B-2) ────────────
+// Scope cleanup to sessions tagged with THIS process's PID (via tagSessionWithPid).
+// When concurrent CLI runs share the same session (draft idempotency), only the run
+// that last stamped progress_json._test_pid will delete the row, preventing the
+// cross-run 404 "session deleted by competing process" failure signature.
+// Falls back to in-page apiFetch DELETE by session ID if service-role creds unavailable.
 async function cleanupSession(page, sessionId) {
+  if (SUPABASE_URL && SERVICE_KEY && sessionId) {
+    try {
+      // Service-role DELETE scoped to this process's PID stamp.
+      // Filter: id=eq.<sessionId> AND progress_json->>'_test_pid'=eq.<pid>
+      // If a concurrent run overwrote the PID stamp, this filter matches 0 rows → no delete.
+      const pidFilter = `progress_json->>'_test_pid'=eq.${process.pid}`;
+      const url = `${SUPABASE_URL}/rest/v1/circles_sessions?id=eq.${sessionId}&${pidFilter}`;
+      // pageRequest may not be available in finally; use global fetch (Node 18+)
+      await fetch(url, {
+        method: 'DELETE',
+        headers: {
+          'apikey': SERVICE_KEY,
+          'Authorization': `Bearer ${SERVICE_KEY}`,
+          'Prefer': 'return=minimal',
+        },
+      });
+    } catch (_) { /* best-effort */ }
+    return;
+  }
+  // Fallback: in-page apiFetch DELETE (no service-role creds)
   try {
     await page.evaluate(async (sid) => {
       const A = window.AppState;
@@ -269,6 +332,8 @@ test.describe('CIRCLES back-nav lock + qchip 4-block — AC-5 (spec b2ca935)', (
 
       await test.step(`seed draft session (drill ${STEP.TC1})`, async () => {
         sessionId = await createDraftSession(page, { questionId: questionForTest(testInfo), drillStep: STEP.TC1 });
+        // P1-#264 Option B-2: stamp PID so concurrent CLI runs cannot collide on cleanup.
+        await tagSessionWithPid(page.request, sessionId);
       });
 
       await test.step('inject step_scores via Supabase REST (data seeding, not own-API mock)', async () => {
@@ -336,6 +401,8 @@ test.describe('CIRCLES back-nav lock + qchip 4-block — AC-5 (spec b2ca935)', (
         await bootApp(page);
         await waitForAuth(page);
         sessionId = await createDraftSession(page, { questionId: questionForTest(testInfo), drillStep: STEP.TC2 });
+        // P1-#264 Option B-2: stamp PID so concurrent CLI runs cannot collide on cleanup.
+        await tagSessionWithPid(page.request, sessionId);
       });
 
       await test.step(`seed step_scores[${STEP.TC2}] + lifecycle='gated' via Supabase REST`, async () => {
@@ -385,6 +452,8 @@ test.describe('CIRCLES back-nav lock + qchip 4-block — AC-5 (spec b2ca935)', (
         await bootApp(page);
         await waitForAuth(page);
         sessionId = await createDraftSession(page, { questionId: questionForTest(testInfo), drillStep: STEP.TC3 });
+        // P1-#264 Option B-2: stamp PID so concurrent CLI runs cannot collide on cleanup.
+        await tagSessionWithPid(page.request, sessionId);
       });
 
       await test.step(`seed step_scores[${STEP.TC3}] via Supabase REST`, async () => {
@@ -427,6 +496,8 @@ test.describe('CIRCLES back-nav lock + qchip 4-block — AC-5 (spec b2ca935)', (
         await bootApp(page);
         await waitForAuth(page);
         sessionId = await createDraftSession(page, { questionId: questionForTest(testInfo), drillStep: STEP.TC4 });
+        // P1-#264 Option B-2: stamp PID so concurrent CLI runs cannot collide on cleanup.
+        await tagSessionWithPid(page.request, sessionId);
         // No step_scores → renderCirclesPhase2 (active variant). Both variants use
         // renderQchipExpand per Task 4; active path is simpler.
         await triggerRealRestore(page, sessionId, STEP.TC4);
@@ -478,9 +549,12 @@ test.describe('CIRCLES back-nav lock + qchip 4-block — AC-5 (spec b2ca935)', (
 
       await test.step(`create ${STEP.TC5_SCORED} session (scored) + ${STEP.TC5_UNSCORED} session (unscored)`, async () => {
         sessionScored = await createDraftSession(page, { questionId: questionForTest(testInfo), drillStep: STEP.TC5_SCORED });
+        // P1-#264 Option B-2: stamp PID so concurrent CLI runs cannot collide on cleanup.
+        await tagSessionWithPid(page.request, sessionScored);
         await seedStepScores(page.request, sessionScored, { [STEP.TC5_SCORED]: fixtureStepScore() });
         // Different drill_step → distinct row (idempotency keys on q+step).
         sessionUnscored = await createDraftSession(page, { questionId: questionForTest(testInfo), drillStep: STEP.TC5_UNSCORED });
+        await tagSessionWithPid(page.request, sessionUnscored);
       });
 
       await test.step(`restore ${STEP.TC5_UNSCORED} session → circlesLocked must be false (no score)`, async () => {

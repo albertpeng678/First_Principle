@@ -43,6 +43,28 @@ setup('authenticate as e2e@first-principle.test', async ({ page, context }) => {
   // no window where AUTH_FILE is missing. Per code-review #9 the stale-state
   // concern is still addressed because rename replaces the file in one op.
 
+  // Defensive preflight: poll /health before goto to handle server warm-up race
+  // (P1-#264 Option B-1). Under burst load (3 concurrent CLI runs), the webServer
+  // process.env.BASE_URL may still be binding its port when auth.setup runs.
+  // Poll up to 30 s with 500 ms intervals; throw a descriptive error if not ready.
+  {
+    const BASE = process.env.BASE_URL || 'http://localhost:3000';
+    const TIMEOUT_MS = 30_000;
+    const INTERVAL_MS = 500;
+    const deadline = Date.now() + TIMEOUT_MS;
+    let serverReady = false;
+    while (Date.now() < deadline) {
+      try {
+        const r = await fetch(`${BASE}/health`);
+        if (r.ok) { serverReady = true; break; }
+      } catch (_) { /* not yet up */ }
+      await new Promise((resolve) => setTimeout(resolve, INTERVAL_MS));
+    }
+    if (!serverReady) {
+      throw new Error(`auth.setup: server at ${BASE} did not become healthy within ${TIMEOUT_MS}ms`);
+    }
+  }
+
   // Force guest state — clear any cookies/localStorage from prior session that
   // might already render .navbar__email and false-positive the post-login wait
   // (per code-review #7).
