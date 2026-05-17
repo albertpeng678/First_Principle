@@ -278,8 +278,10 @@ body:has(.submit-bar) { padding-bottom: calc(var(--touch-min) + var(--s-7)); }
 .nsm-progress__line.is-done { background: var(--c-navy); }
 
 /* NSM body container */
-.nsm-body { padding: var(--s-5) var(--s-4); max-width: 920px; margin: 0 auto; width: 100%; }
-@media (min-width: 768px) { .nsm-body { padding: var(--s-6) var(--s-5); max-width: 720px; } }
+/* F-2 fix 2026-05-17: padding-bottom reserves space for .submit-bar (position:fixed bottom:0)
+   so first form field is not covered. Mobile worst-affected per director walk PNGs 02/03. */
+.nsm-body { padding: var(--s-5) var(--s-4) calc(var(--touch-min) + var(--s-7)) var(--s-4); max-width: 920px; margin: 0 auto; width: 100%; }
+@media (min-width: 768px) { .nsm-body { padding: var(--s-6) var(--s-5) calc(var(--touch-min) + var(--s-7)) var(--s-5); max-width: 720px; } }
 .nsm-instruction { font-size: var(--t-body-sm); color: var(--c-ink-2); line-height: 1.7; margin-bottom: var(--s-4); }
 .nsm-content { display: flex; flex-direction: column; }
 
