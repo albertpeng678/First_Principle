@@ -3,10 +3,11 @@
 // Spec ref: 2026-05-16-stage-1b §6 B4-E1..E3 + §7 B4-AC1..AC6.
 // Pattern: B4-E1 real DELETE + real loadHistory (no mock — per memory
 // feedback_e2e_real_data_only); B4-E2 page.route intercept returns 500 to
-// drive rollback + toast; B4-E3 NSM skipped pending seed helper.
+// drive rollback + toast; B4-E3 NSM real seed helper (L20 2026-05-17).
 // Skill refs:
 //   - playwright-skill/core/assertions-and-waiting.md (web-first retry on .not.toBeVisible)
 //   - playwright-skill/playwright-cli/request-mocking.md (page.route 500 stub)
+//   - playwright-skill/core/api-testing.md:783-848 (service-role seed pattern)
 
 const { test } = require('../fixtures/auto-cleanup.fixture');
 const { expect } = require('@playwright/test');
@@ -119,6 +120,74 @@ async function createRealSession(page) {
   return sessionId;
 }
 
+// ── NSM session creation helper ───────────────────────────────────────────────
+// Create a real NSM session via POST /api/nsm-sessions. Returns session id.
+// Mirrors createRealSession() above but for the NSM flow.
+//
+// NSM lifecycle promotion: POST creates row with lifecycle='created'; the GET
+// list endpoint filters out lifecycle='created' rows (routes/nsm-sessions.js:59).
+// A PATCH /progress with substantive userNsm advances lifecycle → 'editing' so
+// loadHistory returns this session in the offcanvas list.
+//
+// Per memory feedback_e2e_real_data_only: no mocking of own API / no stub timestamps.
+// Skill ref: api-testing.md:783-848 §API Seeding; when-to-mock.md Pitfall 11.
+// Substantive userNsm — passes hasSubstantiveContent (lib/session-lifecycle.js:86)
+// so lifecycle promotes 'created' → 'editing'; mirrors lifecycle-nsm.spec.js line 32.
+const NSM_SUBSTANTIVE = '週活躍 Podcast 用戶數（Weekly Active Podcast Users），定義為過去 7 天內在 Spotify 上播放超過 5 分鐘 Podcast 內容的去重用戶數';
+
+async function createRealNsmSession(page) {
+  // Generate a unique question_id per worker invocation so dedupSessions
+  // (lib/session-dedup.js — deduplicates by question_id) never merges
+  // this test's session with any other concurrent worker's session.
+  // Three browser workers run B4-E3 in parallel; each must see its own item.
+  const uniqueQid = await page.evaluate(() => {
+    // Crypto UUID available in all modern browsers + Node ≥ 16.
+    return 'nsm_b4e3_' + (typeof crypto !== 'undefined' && crypto.randomUUID
+      ? crypto.randomUUID()
+      : Math.random().toString(36).slice(2) + '_' + Date.now());
+  });
+
+  const NSM_QUESTION_JSON = {
+    id: uniqueQid,
+    problem_statement: '設計一個功能，讓 Spotify 的 Podcast 用戶更容易發現和訂閱符合自己喜好的節目',
+    product_context: 'Spotify 是全球最大的音樂串流平台，月活躍用戶超過 5 億，Podcast 是近年重要增長引擎',
+  };
+
+  // POST /api/nsm-sessions — creates row with lifecycle='created'.
+  const id = await page.evaluate(async ({ qid, qjson }) => {
+    const A = window.AppState;
+    const path = A.accessToken ? '/api/nsm-sessions' : '/api/guest/nsm-sessions';
+    const res = await window.apiFetch(path, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ questionId: qid, questionJson: qjson }),
+    });
+    if (!res.ok) return null;
+    const data = await res.json();
+    return data.sessionId || data.id;
+  }, { qid: uniqueQid, qjson: NSM_QUESTION_JSON });
+
+  expect(id).toBeTruthy();
+  const sessionId = String(id);
+
+  // PATCH /progress — promote lifecycle 'created' → 'editing' via substantive userNsm
+  // so the GET list filter (nsm-sessions.js:59 excludes lifecycle='created') returns
+  // this session in offcanvas loadHistory.
+  await page.evaluate(async ({ sid, userNsm }) => {
+    const A = window.AppState;
+    const path = A.accessToken
+      ? `/api/nsm-sessions/${sid}/progress`
+      : `/api/guest/nsm-sessions/${sid}/progress`;
+    await window.apiFetch(path, {
+      method: 'PATCH',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ userNsm }),
+    });
+  }, { sid: sessionId, userNsm: NSM_SUBSTANTIVE });
+
+  return sessionId;
+}
+
 // ── Offcanvas open + await item helper ────────────────────────────────────────
 // Open offcanvas by clicking navbar icon, wait for historyList to load,
 // then assert the given session item is visible.
@@ -198,9 +267,29 @@ test.describe('Stage 1B B4 — offcanvas delete + cache race', () => {
   });
 
   test('B4-E3: NSM session DELETE → immediate re-open → deleted item absent', async ({ page }) => {
-    // TODO: NSM seed helper TBD — track in P3 follow-ups (plan §Pre-Flight).
-    // Create a real NSM session (mirror pattern from any existing NSM E2E or via
-    // API seed) then identical flow to B4-E1 against /api/nsm-sessions/:id.
-    test.skip(true, 'NSM seed helper TBD — track in P3 follow-ups');
+    // L20 2026-05-17: NSM seed helper implemented — mirrors B4-E1 pattern for NSM.
+    // Closes O-7 (master tracker §6) + F-P16 spec gap.
+    await bootApp(page);
+    const id = await createRealNsmSession(page);
+    await openOffcanvasAndAwaitItem(page, id);
+
+    // Delete the NSM item.
+    await page.locator(SELECTORS.deleteBtn(id)).click();
+
+    // Web-first retry: item gone immediately (optimistic filter, same as B4-E1).
+    await expect(page.locator(SELECTORS.offcanvasItem(id))).not.toBeVisible();
+
+    // Close offcanvas immediately (Escape) — the race window starts here.
+    await page.keyboard.press('Escape');
+    // Wait for offcanvas to close.
+    await expect(page.locator(SELECTORS.offcanvasBody)).not.toBeVisible({ timeout: 3_000 });
+
+    // Re-open offcanvas immediately (before DELETE response may have settled).
+    await page.locator(SELECTORS.offcanvasOpen).click();
+    await page.locator(SELECTORS.offcanvasBody).waitFor({ state: 'visible', timeout: 5_000 });
+
+    // Auto-retry until loadHistory GET settles — deleted NSM item must NOT come back.
+    // Validates cache-invalidation path for NSM delete (nsm-sessions route + app.js:8394).
+    await expect(page.locator(SELECTORS.offcanvasItem(id))).not.toBeVisible({ timeout: 10_000 });
   });
 });
