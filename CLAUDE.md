@@ -1,11 +1,25 @@
 # PM Drill — 專案狀態看板
 
 > 即時狀態 single source of truth。**不放歷史（git log 有）**。重大事件即時 Edit。
-> **Last updated:** 2026-05-17（CIRCLES chat drift + lock-on-back ship + Stage 0 + Stage 1A T1-T13 + 1B/1C/1D specs awaiting 放行 + 13 sessions cleanup + lifecycle spec PAUSED）
+> **Last updated:** 2026-05-17 PM（7/7 P0 ship + 4-pillar preventive sweep + cross-plan smoke found regression cluster → PUSH BLOCKED until L24/L25/L26 lane verify GREEN）
 
 ## 當前狀態（30 秒讀完）
 
-- **CIRCLES chat drift + lock-on-back ship (2026-05-17)**：spec `b2ca935` + 7-task plan `4a01550` + commits `d8e4814`/`3a61489`/`49d00ba`/`d930159`/`24c2ac6`/`34c1361`/`c3bc286`/`313b4fd`/`32d348e`/`217c342`/`8e51b8f` + Director cold-Read 6 PNG + E2E 5 TC × 3 projects 16/16 GREEN × 10 runs no flake。AC-1/2/3/4/5/6 全綠；jest 530/552（5 pre-existing fails 全為 lifecycle wiring，未觸我 Task 1-7 範圍）；Task 5 back-nav spec 16/16 GREEN。UAT SOP `audit/sop-2026-05-17-circles-lock-and-qchip-uat.md`。
+- **🏆 7/7 P0 RESOLVED 本 session ship (2026-05-17 PM)** — 4 user-reported + 3 e2e-discovered，全 commit GREEN：
+  - #251 Bug 1 全 Y 過審 → L2 backend + L10 LEAK-A + L13 fix `85f0039`
+  - #252 Bug 2 ghost content → L4 RED + L11 reset `c156c6b`
+  - #255 Bug 6 沒審核放行 → L3 RED + L5 8 handler guards `93b1b26`
+  - #263 iOS Safari Phase 3 → L1 already-shipped `654d0e8`
+  - **NEW #266** persistRetry session-object → L14+L16 dual fix `91fb2ad`（同解 Plan #194 T4 TC1 timeout）
+  - **NEW #267** Bug 3 spinner stuck (reclass P2→P0) → L13b RED + L16+L17 fix `2aa8fd5`
+  - **NEW #268** NSM /evaluate bypass → L18 RED + L19 fix `9142eef`
+- **4-pillar preventive sweep COMPLETE (2026-05-17 PM)** — L2 CIRCLES gate + L9 NSM gate + L12 CIRCLES evaluator + L15 NSM evaluator 全綠（adversarial 7-10 變體 max totalScore=40 < 60）
+- **O-7 closed**：L20 NSM seed helper unblock B4-E3 + 確認 NSM delete cache **無 leak** (`f292a22`+`961cb09`)
+- **O-9 closed**：L23 orphan renderQchipPanelHtml 15 lines delete `f2a3d58`
+- **P1-#264 reclassified**：L22 audit `36f4ba2` — 非 auth race，**Supabase DB session collision** under concurrent CLI burst；L25 fix in flight
+- **🚨 PUSH BLOCKED (P0-NEW-6)**：cross-plan smoke 抓 5 API + 7 e2e test fixture drift（L5+L19 lifecycle guard 加完沒同步部分 spec）；L24 fix in flight
+- **本 session 累計 commits**: `069986e..f2a3d58`（37+ commits 待 push origin/main）
+- **CIRCLES chat drift + lock-on-back ship (2026-05-17 AM)**：早 ship。UAT SOP `audit/sop-2026-05-17-circles-lock-and-qchip-uat.md`
 - **Stage 0 ship (2026-05-16)**：B7 prod 污染清理 + prevention infra（env-guard / auto-cleanup fixture / pre-commit hook / 3-env split / `e2e@first-principle.test`）+ 2 條 STANDING memory（three_iron_laws / e2e_real_data_only）+ skill 整合 plan ship。15 commits `4dba816..1ba062e`；jest 45/45；V2 security-review PASS WITH NOTES。
 - **Stage 1A gate cluster (B1+B6) ship (2026-05-16)**：T1-T12 implementer 完成，T13 jest 410/428（1 pre-existing fail，無 regression）；T14 + T15 收尾待跑。
 - **Stage 1B/1C/1D specs ship (2026-05-16)**：brainstorm 完 → `2c6fa51`（1B）/ `8ca4b81`（1C）/ `93d2695`（1D）— 等 user 放行才 dispatch impl。
@@ -30,13 +44,15 @@
 
 | 項目 | 狀態 |
 |---|---|
-| Stage 1A T14 + T15 收尾 | 🔧 T1-T13 已 ship；T14（Playwright e2e）+ T15（director sign-off）等跑 |
+| **L24 fix 5 API spec lifecycle seed drift** | 🏃 in flight — closes P0-NEW-6 cluster |
+| **L25 apply L22 Option B (Supabase collision fix)** | 🏃 in flight — closes P1-#264 reclassified |
+| **L26 NSM /context+/hints+/progress audit** | 🏃 in flight — preventive completion of L18 scope |
+| **2-stage reviewer wave (7 ship commits)** | 📋 待 L24/L25/L26 完 → dispatch spec-compliance + code-quality per commit |
+| **eyeball-* docs** | 📋 BE-heavy ship；FE 影響 commits（L11/L13/L17）需簡 cold-Read doc |
+| **Push origin/main** | 🚫 BLOCKED — 等 L24/L25 GREEN + reviewer wave |
 | Stage 1B/1C/1D impl | 📋 specs `2c6fa51` / `8ca4b81` / `93d2695` — 等 user 放行 dispatch |
-| Lifecycle state-machine impl | ⏸ spec `33d5bf9` PAUSED；holistic persistence audit running → `audit/persistence-comprehensive-audit-2026-05-16.md` |
-| Holistic persistence audit | 🏃 background；audit 結果出來再決定 lifecycle spec 是否補 |
-| Stage 1D B-Hint cluster | 🔍 inventory agent running（NSM step1 hint location 1 條 spec gap 待確認）|
-| Phase A + B Final Ship Readiness | ✅ Layer 1-6 + 8 全綠；Layer 7 等 user 真機 UAT |
-| P3 follow-ups（8 條） | 📋 memory `project_pending_followups_2026-05-09.md` |
+| Stage 1D B-Hint cluster (#174 paused) | 📋 |
+| Bug 8 PNG-24 test fake data (#257) | 📋 partial done；master plan F-007 65 spec refactor 後 wave |
 
 > 已完成的 plans（A / B SB1-10 + Phase 2-4 / C SB1-3 / D SB1-2 / Combo C / 多輪 hotfix）見 `git log`
 
@@ -112,9 +128,12 @@
 
 ## Tests / Quality Gates
 
-- **jest 基線：** 410/428（17 skipped + 1 pre-existing fail；含 env-guard 14 + auto-cleanup 15 + scan-pollution 31 + Stage 1A T13 batch）
-- **Playwright：** full suite × 8 viewport（iPhone-SE / iPhone-14 / iPhone-15-Pro / iPad / Mobile-360 / Desktop-1280 / 1440 / 2560）+ 3 Phase B specs（typewriter 4/4 / qchip 6/6 / lock state 6/6）
-- **Adversarial sweep：** `npm run test:adversarial` — 5 + 1 stages × 10 cases (新加 circles-coach 9/9 + nsm-step3-hint 8/8)，所有新 AI 審核/gate/評分 ship 前必跑
+- **jest 基線 (2026-05-17 PM)：** **535/552**（17 skipped，0 fail — best baseline ever；本 session 起點 530/552）
+- **API integration tier：** 180 specs，post-L24 expected 全綠（current 5 fail = test fixture drift, L24 in flight）
+- **E2E projects：** 3（e2e-desktop / e2e-mobile-chrome / e2e-mobile-safari）+ 11 api projects + visual specs
+- **4-pillar adversarial preventive sweep (NEW 2026-05-17)：** ✅ L2 CIRCLES gate + L9 NSM gate + L12 CIRCLES evaluator + L15 NSM evaluator 全綠 — 所有 AI prompt 抗 low-quality + meaningless input proven robust
+- **Adversarial sweep (jest)：** `npm run test:adversarial` — 5 + 1 stages × 10 cases，所有新 AI 審核/gate/評分 ship 前必跑
+- **Cross-plan smoke (per memory `feedback_cross_plan_smoke_after_each_ship`)：** 每次 major ship 必跑 — 本 session 抓出 P0-NEW-6 regression cluster 證明此 gate 不可省
 
 ---
 
