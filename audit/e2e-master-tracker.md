@@ -256,6 +256,8 @@
 | Bug 1 FE fix F1+F2 (Lane L13) | ✅ 15/15 e2e × 3 vp + 5x consecutive 0 flake + 7 bundles GREEN | `85f0039` — F1 PERSISTED_KEYS delete + F2 phase 1.5 clip |
 | Critical-path 3 fails investigation (Lane L14, O-8 enforcement) | ✅ 2/3 fixed (V7 mobile drift) + 1 real prod bug surfaced | `2165c2a` — Fail 2+3 closed; Fail 1 = P0-NEW-3 persistRetry (fix lane L16 dispatched) |
 | Bug 1 FE fix F1+F2 (Lane L13) | ✅ 15/15 e2e × 3 vp + 5x consecutive 0 flake | `85f0039` |
+| NSM evaluator adversarial preventive sweep (Lane L15) | ✅ 7/7 max totalScore=40 < 60 | `c853d93` — 4-pillar sweep COMPLETE (L2+L9+L12+L15) |
+| Bug 3 spinner deep investigation (Lane L13b) | ✅ 16/16 setup + S1-S4 BUG CONFIRMED + S5 PASS | `13ed169` — reclassified P2→P0-NEW-4, L17 fix dispatched |
 
 ---
 
