@@ -29,6 +29,17 @@
 - **Audit doc**: `audit/diagnose-iOS-safari-phase3-restore/diagnose-2026-05-17.md` + 2 trace zips + 7 mobile-safari frames
 - **Lesson (cross-ref O-8)**: Master tracker had stale entry — fix was shipped before being reconciled. This is exact case for O-8 enforcement policy (jest/spec status must be re-baselined per ship, not assumed stale).
 
+### ~~P0-#251 Bug 1 Gate 全打 Y 過審~~ — RESOLVED 2026-05-17 (L2 backend + L10 investigation + L13 fix `85f0039`)
+- **L2 backend**: 10/10 adversarial variants rejected × 3 runs — gate prompt + route solid (commit `f7a43ff`)
+- **L10 FE investigation**: LEAK-A confirmed at PERSISTED_KEYS + restore() race — boot rendered phantom Phase 1.5 「繼續 →」 without user action (commit `371881f`)
+- **L13 fix**:
+  - F1: removed `'circlesGateResult'` from PERSISTED_KEYS array (`public/app.js:159`)
+  - F2: clip `circlesPhase === 1.5` → `1` in restore() body (`public/app.js:181`)
+  - Spec polarity flipped post-fix (Scenarios a/c: was RED documenting leak; now GREEN confirming fix)
+  - jest contract test `bug6b-persistence.test.js` updated: asserts circlesGateResult NOT in PERSISTED_KEYS
+- **Verification (all GREEN)**: circles-fe-gate-stale-state 15/15 × 3 vp + 5× consecutive desktop 0 flake + back-nav-lock 16/16 + phase3-restore 10/10 + fresh-form-no-ghost 6/6 + lifecycle-circles 8/8 + circles-no-bypass 5/5 + jest 535/552
+- Original investigation evidence preserved below.
+
 ### P0-#251 Bug 1 Gate 全打 Y 過審 — BACKEND CLEARED, FE INVESTIGATION PENDING (Lane L2)
 - **Audit + spec**: `audit/repro-bug1-all-Y-adversarial-2026-05-17.md` + `tests/api/circles-gate-all-Y-adversarial.spec.js` commit `f7a43ff`
 - **Backend result**: **10/10 variants correctly rejected** across 3 runs (2 Playwright + 1 node probe), real OpenAI gpt-4o temperature=0.3 + JSON mode. Tested: `"Y"`, `"y"`, `"yes"`, `"Y."`, `"Y。"`, `"Y "`, mixed 1-2 char, `"好"`, `"1"`, `"."`. All returned `canProceed=false, overallStatus=error, items: 4× error:輸入無意義`.
@@ -220,6 +231,7 @@
 | jest issue-bug1-nsm-session-restore test drift | ✅ 17/17 (was 16/17) | `f616319` — production normalize 3 shapes, test relaxed |
 | Bug 2 ghost fix (Lane L11) | ✅ Scen C mobile-chrome 30/30 × 5 runs no flake + cross-vp | `c156c6b` — 7-line reset at qcard-confirm |
 | CIRCLES evaluator adversarial preventive sweep (Lane L12) | ✅ 7/7 totalScore=16 (well < 60) | `0efe786` — evaluator robust, 4 dims all min 1/5 |
+| Bug 1 FE fix F1+F2 (Lane L13) | ✅ 15/15 e2e × 3 vp + 5x consecutive 0 flake + 7 bundles GREEN | `85f0039` — F1 PERSISTED_KEYS delete + F2 phase 1.5 clip |
 | Critical-path 3 pre-existing fails (newly surfaced post L11 verify) | ⚠️ pending — needs O-8 investigation | NOT L11-caused (confirmed identical pre-fix); separate lane needed |
 
 ---
