@@ -1812,9 +1812,9 @@ div.rt-textarea[contenteditable="true"] ul li { list-style: disc; }
   letter-spacing: -0.005em;
 }
 .nsm-dim__desc {
-  font-size: var(--t-cap);
-  color: var(--c-ink-3);
-  margin-top: 2px;
+  font-size: var(--t-body-sm);
+  color: var(--c-ink-2);
+  margin-top: var(--s-2);
   line-height: 1.6;
 }
 .nsm-dim__body { padding: var(--s-4); }
