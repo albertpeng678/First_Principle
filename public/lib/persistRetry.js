@@ -62,6 +62,15 @@ async function persistRetry(fn, opts = {}) {
     }
 
     if (resp !== undefined) {
+      // P0-NEW-3 / TC1 fix: only apply HTTP-retry logic when resp is Response-like
+      // (has a numeric .status). Non-Response return values (session objects, null)
+      // mean the fn() succeeded — return them directly so the caller can decide.
+      if (resp !== null && typeof resp === 'object' && typeof resp.status !== 'number') {
+        return resp; // session object or similar — treat as success
+      }
+      if (resp === null) {
+        return resp; // fn() returned null (e.g. 4xx guard) — surface to caller
+      }
       if (resp.ok) return resp;
       if (!isRetryable(resp)) {
         const err = new Error(`HTTP ${resp.status}`);

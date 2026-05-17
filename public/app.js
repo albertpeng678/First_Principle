@@ -7623,21 +7623,28 @@
       AppState.circlesGateResult = null;
       AppState.circlesGateError = null;
       render();
-      // T4 (RES-AC5): retry ensureCirclesDraftSession on 5xx/network. On
-      // RetryExhausted, surface DRAFT_CREATE_FAILED so renderGateError shows
-      // the existing data-gate-action="retry" button (= "重新嘗試").
-      try {
-        await window.persistRetry.persistRetry(function () {
-          return ensureCirclesDraftSession();
-        });
-      } catch (ensureErr) {
-        if (ensureErr && ensureErr.name === 'RetryExhausted') {
-          AppState.circlesGateError = 'DRAFT_CREATE_FAILED';
-          AppState.circlesGateLoading = false;
-          render();
-          return;
+      // P0-NEW-3 fix: skip persistRetry when circlesSession already exists.
+      // ensureCirclesDraftSession's early-exit returns a session object (not an
+      // HTTP Response); persistRetry's resp.ok check fails on session objects and
+      // its isRetryable() fallback returns true, causing RetryExhausted →
+      // DRAFT_CREATE_FAILED for every user who already has a session.
+      if (!AppState.circlesSession) {
+        // T4 (RES-AC5): retry ensureCirclesDraftSession on 5xx/network. On
+        // RetryExhausted, surface DRAFT_CREATE_FAILED so renderGateError shows
+        // the existing data-gate-action="retry" button (= "重新嘗試").
+        try {
+          await window.persistRetry.persistRetry(function () {
+            return ensureCirclesDraftSession();
+          });
+        } catch (ensureErr) {
+          if (ensureErr && ensureErr.name === 'RetryExhausted') {
+            AppState.circlesGateError = 'DRAFT_CREATE_FAILED';
+            AppState.circlesGateLoading = false;
+            render();
+            return;
+          }
+          // Non-retryable thrown error — fall through to sid check below.
         }
-        // Non-retryable thrown error — fall through to sid check below.
       }
       var sid = AppState.circlesSession && AppState.circlesSession.id;
       if (!sid) {
@@ -8030,6 +8037,15 @@
         AppState.circlesSimStep = latest.sim_step_index || 0;
         AppState.circlesConversation = latest.conversation || [];
         AppState.circlesStepScores = latest.step_scores || {};
+        // P2-#253 fix: derive circlesScoreResult from restored step_scores so
+        // clicking 回評分 after boot-path auto-resume renders Phase 3 score UI
+        // instead of spinning. Mirrors restoreCirclesPhase1FromSession (654d0e8)
+        // and the normal eval-completion path at app.js:6556–6561.
+        var __tryStepKey = AppState.circlesMode === 'drill'
+          ? (AppState.circlesDrillStep || 'C1')
+          : (['C1','I','R','C2','L','E','S'][AppState.circlesSimStep || 0] || 'C1');
+        var __tryScoreRow = (AppState.circlesStepScores && AppState.circlesStepScores[__tryStepKey]) || null;
+        AppState.circlesScoreResult = (__tryScoreRow && __tryScoreRow.totalScore != null) ? __tryScoreRow : null;
         AppState.circlesFrameworkDraft = latest.framework_draft || {};
         AppState.circlesGateResult = latest.gate_result || null;
         AppState.circlesPhase2ConclusionDraft = (latest.progress_json && latest.progress_json.phase2ConclusionDraft) || '';
