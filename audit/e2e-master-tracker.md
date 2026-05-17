@@ -366,6 +366,13 @@
 - 4-pillar → 7-pillar coverage
 - Effort: 2-4h (mirror L2/L9/L12/L15 pattern)
 
+### O-13 visual-regression baseline 全庫掃描 + mockup-source 遷移
+- **Source**: 2026-05-17 PM Bug B follow-up; user 親眼抓到 padding 漏；per new STANDING `feedback_visual_baseline_from_mockup_not_production`
+- **Scope**: scan `tests/e2e/*.spec.js-snapshots/` + `tests/visual/baselines/` for all `toHaveScreenshot` baselines
+- **Action**: tag 每個 baseline 是 mockup-sourced 還是 production-sourced；後者視為 debt，逐步用 mockup HTML render 重生
+- **Effort**: large（可能 50+ baseline，需要建 mockup render pipeline）
+- **Priority**: P2（系統性 debt，不阻 ship）；新 visual spec 從今天起必走 mockup-source
+
 ### O-12 L25 :3000 fallback flag
 - L25 commit `1e293b3` `auth.setup.js` waitForServer 用 `BASE_URL || 'localhost:3000'` 但專案 dev server 是 :4000
 - 一般情況 BASE_URL env 設好不會踩，但 fallback misleading

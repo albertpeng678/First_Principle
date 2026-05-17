@@ -1803,10 +1803,17 @@ div.rt-textarea[contenteditable="true"] ul li { list-style: disc; }
   overflow: hidden;
 }
 /* .nsm-dim__head, .nsm-dim__label DELETED — replaced by LOCKED .field__label-row + .field__label (mockup 07 canonical pattern line 1355-1384; CSS DELETED note line 720-721) */
+/* NEW-Bug-B follow-up (Director cold-Read 3 vp 抓到 padding gap): port mockup 07 line 551-561 .nsm-dim padding contract */
+.nsm-dim > .field__label-row {
+  padding: var(--s-3) var(--s-4);
+  background: var(--c-surface);
+  border-bottom: 1px solid var(--c-rule);
+  margin-bottom: 0;
+}
 .nsm-dim__desc {
+  padding: var(--s-3) var(--s-4) var(--s-2);
   font-size: var(--t-body-sm);
   color: var(--c-ink-2);
-  margin-top: var(--s-2);
   line-height: 1.6;
 }
 .nsm-dim__body { padding: var(--s-4); }
