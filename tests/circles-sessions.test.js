@@ -41,7 +41,8 @@ jest.mock('../db/client', () => {
   mockFns.single.mockResolvedValue({ data: null, error: null });
   // maybeSingle is used by PATCH /:id/progress + draft idempotency. Default
   // returns a row so update paths return 200 (override per-test for null cases).
-  mockFns.maybeSingle.mockResolvedValue({ data: { id: 'mock-id' }, error: null });
+  // lifecycle:'gated' satisfies L5 lifecycle guards on PATCH /progress (currentPhase > 1).
+  mockFns.maybeSingle.mockResolvedValue({ data: { id: 'mock-id', lifecycle: 'gated' }, error: null });
   return mockFns;
 });
 
@@ -96,7 +97,8 @@ function resetDbChain() {
   db.single.mockReset();
   db.single.mockResolvedValue({ data: null, error: null });
   db.maybeSingle.mockReset();
-  db.maybeSingle.mockResolvedValue({ data: { id: 'mock-id' }, error: null });
+  // lifecycle:'gated' satisfies L5 lifecycle guards on PATCH /progress (currentPhase > 1).
+  db.maybeSingle.mockResolvedValue({ data: { id: 'mock-id', lifecycle: 'gated' }, error: null });
   db.then.mockReset();
   // Reset state and restore the thenable implementation
   db.__state.chainResult = { data: null, error: null };
@@ -125,6 +127,10 @@ function makeSession(overrides = {}) {
     current_phase: 1,
     sim_step_index: 0,
     status: 'active',
+    // L5 lifecycle guard: message, evaluate-step, final-report require lifecycle∈{gated,completed}.
+    // Unit tests exercise post-gate behavior; seed 'gated' so guards pass and the route
+    // under test (streaming, evaluation, scoring) executes normally.
+    lifecycle: 'gated',
     created_at: '2026-01-01T00:00:00Z',
     ...overrides,
   };
@@ -968,8 +974,13 @@ describe('PATCH /api/circles-sessions/:id/progress', () => {
   });
 
   test('returns 500 when DB update fails', async () => {
-    // Route ends with `.maybeSingle()` — override that specifically.
-    db.maybeSingle.mockResolvedValue({ data: null, error: { message: 'update failed' } });
+    // L5 note: PATCH /progress with currentPhase > 1 now has TWO maybeSingle() calls:
+    //   call 1 — lifecycle guard read (must return {lifecycle:'gated'} to pass guard)
+    //   call 2 — final UPDATE .select('id').maybeSingle() (return the error here)
+    // Use mockResolvedValueOnce to sequence them correctly.
+    db.maybeSingle
+      .mockResolvedValueOnce({ data: { id: 'mock-id', lifecycle: 'gated' }, error: null })
+      .mockResolvedValueOnce({ data: null, error: { message: 'update failed' } });
 
     const res = await request(app)
       .patch('/api/circles-sessions/session-abc/progress')
