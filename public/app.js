@@ -800,22 +800,6 @@
       + '</button>';
   }
 
-  // ── renderQchipPanelHtml (shared helper — Stage 1C B5 fix) ───────────────
-  // Panel is hidden by default (display:none inline); toggleQchipPanel controls visibility.
-  // CSS class .is-open is also added for caret rotate (via style.css T5).
-  function renderQchipPanelHtml(q) {
-    var typeMap = { improve: '改善題', strategy: '策略題', design: '設計題' };
-    var typeLabel = typeMap[q.question_type] || '設計題';
-    var body = q.problem_statement || '';
-    return '<div class="qchip-panel" data-phase2="qchip-panel" style="display:none">'
-      + '<div class="qchip-panel__type"><i class="ph ph-tag"></i>' + escHtml(typeLabel) + '</div>'
-      + '<div class="qchip-panel__body">' + escHtml(body) + '</div>'
-      + '<button class="qchip-panel__close" data-phase2="qchip-panel-close">'
-      + '<i class="ph ph-caret-up"></i>收合題目'
-      + '</button>'
-      + '</div>';
-  }
-
   // ── renderConclusionBox (Section E — mockup 05 line 1553-1575) ───────────
   function renderConclusionBox(stepKey) {
     var cfg = PHASE2_STEP_CONFIG[stepKey] || PHASE2_STEP_CONFIG.C1;
