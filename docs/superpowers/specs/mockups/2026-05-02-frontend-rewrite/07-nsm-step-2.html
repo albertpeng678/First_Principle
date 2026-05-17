@@ -547,10 +547,9 @@
     }
     .example-list li + li { margin-top: var(--s-1); }
     .example-list ul { list-style: circle; padding-left: var(--s-4); margin-top: var(--s-1); }
-    /* nsm-dim head uses field__label-row — add border-left accent + bg */
+    /* nsm-dim head uses field__label-row */
     .nsm-dim > .field__label-row {
       padding: var(--s-3) var(--s-4);
-      border-left: 4px solid var(--c-navy);
       background: var(--c-surface);
       border-bottom: 1px solid var(--c-rule);
       margin-bottom: 0;
@@ -722,18 +721,6 @@
     /* → replaced by LOCKED .field__label-row + .field__hint-row pattern (see above) */
     /* .nsm-dim__desc styles merged into LOCKED section above */
     .nsm-dim__body { padding: var(--s-4); }
-    .nsm-dim__coach {
-      display: flex;
-      gap: var(--s-2);
-      padding: var(--s-3);
-      background: var(--c-bg-soft);
-      border-radius: var(--r-input);
-      margin-bottom: var(--s-3);
-      font-size: var(--t-meta);
-      color: var(--c-ink-2);
-      line-height: 1.6;
-    }
-    .nsm-dim__coach i { color: var(--c-navy); font-size: 14px; flex: 0 0 auto; margin-top: 2px; }
 
     /* viewport frame internal */
     .vp-frame__inner {
@@ -1380,7 +1367,6 @@
               </div>
               <div class="nsm-dim__desc">有多少用戶真正觸碰到核心功能（非僅登入）</div>
               <div class="nsm-dim__body">
-                <div class="nsm-dim__coach"><i class="ph ph-chat-dots"></i>AHA 時刻是什麼動作？做到這個動作的人有多少？</div>
                 <div class="rt-field">
                   <div class="rt-field__toolbar">
                     <button class="rt-tbtn"><i class="ph ph-text-b"></i></button>
@@ -1412,7 +1398,6 @@
               </div>
               <div class="nsm-dim__desc">每位用戶每次使用的品質與投入程度</div>
               <div class="nsm-dim__body">
-                <div class="nsm-dim__coach"><i class="ph ph-chat-dots"></i>用戶停得夠深嗎？時長、完播率、互動次數哪個更能反映價值？</div>
                 <div class="rt-field">
                   <div class="rt-field__toolbar">
                     <button class="rt-tbtn"><i class="ph ph-text-b"></i></button>
@@ -1435,7 +1420,6 @@
               </div>
               <div class="nsm-dim__desc">用戶是否形成定期回訪的使用習慣</div>
               <div class="nsm-dim__body">
-                <div class="nsm-dim__coach"><i class="ph ph-chat-dots"></i>每週/每月回來幾次？DAU/MAU 比越高代表黏性越強</div>
                 <div class="rt-field">
                   <div class="rt-field__toolbar">
                     <button class="rt-tbtn"><i class="ph ph-text-b"></i></button>
@@ -1528,7 +1512,6 @@
               <div class="field__label-row"><label class="field__label">觸及廣度</label><div class="field__hint-row"><div class="field__hint-row"><button class="field__hint-link"><i class="ph ph-lightbulb"></i>提示</button><button class="field-example-toggle is-active" aria-expanded="true"><i class="ph ph-quotes"></i>範例答案<i class="ph ph-caret-down toggle-caret" style="transform:rotate(180deg)"></i></button></div></div></div>
               <div class="nsm-dim__desc">有多少用戶真正觸碰到核心功能（非僅登入）</div>
               <div class="nsm-dim__body">
-                <div class="nsm-dim__coach"><i class="ph ph-chat-dots"></i>AHA 時刻是什麼動作？做到這個動作的人有多少？</div>
                 <div class="rt-field">
                   <div class="rt-field__toolbar"><button class="rt-tbtn"><i class="ph ph-text-b"></i></button><button class="rt-tbtn"><i class="ph ph-list-bullets"></i></button></div>
                   <textarea class="rt-textarea" placeholder="例：每月至少播放 1 首歌的月活用戶數（不是登入數）" rows="2"></textarea>
@@ -1540,7 +1523,6 @@
               <div class="field__label-row"><label class="field__label">互動深度</label><div class="field__hint-row"><div class="field__hint-row"><button class="field__hint-link"><i class="ph ph-lightbulb"></i>提示</button><button class="field-example-toggle" aria-expanded="false"><i class="ph ph-quotes"></i>範例答案<i class="ph ph-caret-down toggle-caret"></i></button></div></div></div>
               <div class="nsm-dim__desc">每位用戶每次使用的品質與投入程度</div>
               <div class="nsm-dim__body">
-                <div class="nsm-dim__coach"><i class="ph ph-chat-dots"></i>用戶停得夠深嗎？時長、完播率、互動次數哪個更能反映價值？</div>
                 <div class="rt-field">
                   <div class="rt-field__toolbar"><button class="rt-tbtn"><i class="ph ph-text-b"></i></button><button class="rt-tbtn"><i class="ph ph-list-bullets"></i></button></div>
                   <textarea class="rt-textarea" placeholder="例：每個 session 平均聆聽時長（分鐘）" rows="2"></textarea>
@@ -1551,7 +1533,6 @@
               <div class="field__label-row"><label class="field__label">習慣頻率</label><div class="field__hint-row"><div class="field__hint-row"><button class="field__hint-link"><i class="ph ph-lightbulb"></i>提示</button><button class="field-example-toggle" aria-expanded="false"><i class="ph ph-quotes"></i>範例答案<i class="ph ph-caret-down toggle-caret"></i></button></div></div></div>
               <div class="nsm-dim__desc">用戶是否形成定期回訪的使用習慣</div>
               <div class="nsm-dim__body">
-                <div class="nsm-dim__coach"><i class="ph ph-chat-dots"></i>每週/每月回來幾次？DAU/MAU 比越高代表黏性越強</div>
                 <div class="rt-field">
                   <div class="rt-field__toolbar"><button class="rt-tbtn"><i class="ph ph-text-b"></i></button><button class="rt-tbtn"><i class="ph ph-list-bullets"></i></button></div>
                   <textarea class="rt-textarea" placeholder="例：每週平均使用天數 ≥ 3 的用戶佔比" rows="2"></textarea>
@@ -1640,7 +1621,6 @@
               <div class="field__label-row"><label class="field__label">觸及廣度</label><div class="field__hint-row"><div class="field__hint-row"><button class="field__hint-link"><i class="ph ph-lightbulb"></i>提示</button><button class="field-example-toggle is-active" aria-expanded="true"><i class="ph ph-quotes"></i>範例答案<i class="ph ph-caret-down toggle-caret" style="transform:rotate(180deg)"></i></button></div></div></div>
               <div class="nsm-dim__desc">有多少用戶真正觸碰到核心功能（非僅登入）</div>
               <div class="nsm-dim__body">
-                <div class="nsm-dim__coach"><i class="ph ph-chat-dots"></i>AHA 時刻是什麼動作？做到這個動作的人有多少？</div>
                 <div class="rt-field">
                   <div class="rt-field__toolbar"><button class="rt-tbtn"><i class="ph ph-text-b"></i></button><button class="rt-tbtn"><i class="ph ph-list-bullets"></i></button><button class="rt-tbtn"><i class="ph ph-text-indent"></i></button></div>
                   <textarea class="rt-textarea" placeholder="例：每月至少播放 1 首歌的月活用戶數（不是登入數）" rows="2"></textarea>
@@ -1652,7 +1632,6 @@
               <div class="field__label-row"><label class="field__label">互動深度</label><div class="field__hint-row"><div class="field__hint-row"><button class="field__hint-link"><i class="ph ph-lightbulb"></i>提示</button><button class="field-example-toggle" aria-expanded="false"><i class="ph ph-quotes"></i>範例答案<i class="ph ph-caret-down toggle-caret"></i></button></div></div></div>
               <div class="nsm-dim__desc">每位用戶每次使用的品質與投入程度</div>
               <div class="nsm-dim__body">
-                <div class="nsm-dim__coach"><i class="ph ph-chat-dots"></i>用戶停得夠深嗎？時長、完播率、互動次數哪個更能反映價值？</div>
                 <div class="rt-field">
                   <div class="rt-field__toolbar"><button class="rt-tbtn"><i class="ph ph-text-b"></i></button><button class="rt-tbtn"><i class="ph ph-list-bullets"></i></button></div>
                   <textarea class="rt-textarea" placeholder="例：每個 session 平均聆聽時長（分鐘）" rows="2"></textarea>
@@ -1663,7 +1642,6 @@
               <div class="field__label-row"><label class="field__label">習慣頻率</label><div class="field__hint-row"><div class="field__hint-row"><button class="field__hint-link"><i class="ph ph-lightbulb"></i>提示</button><button class="field-example-toggle" aria-expanded="false"><i class="ph ph-quotes"></i>範例答案<i class="ph ph-caret-down toggle-caret"></i></button></div></div></div>
               <div class="nsm-dim__desc">用戶是否形成定期回訪的使用習慣</div>
               <div class="nsm-dim__body">
-                <div class="nsm-dim__coach"><i class="ph ph-chat-dots"></i>每週/每月回來幾次？DAU/MAU 比越高代表黏性越強</div>
                 <div class="rt-field">
                   <div class="rt-field__toolbar"><button class="rt-tbtn"><i class="ph ph-text-b"></i></button><button class="rt-tbtn"><i class="ph ph-list-bullets"></i></button></div>
                   <textarea class="rt-textarea" placeholder="例：每週平均使用天數 ≥ 3 的用戶佔比" rows="2"></textarea>
@@ -1728,7 +1706,6 @@
               <div class="field__label-row"><label class="field__label">啟用廣度</label><div class="field__hint-row"><div class="field__hint-row"><button class="field__hint-link"><i class="ph ph-lightbulb"></i>提示</button><button class="field-example-toggle" aria-expanded="false"><i class="ph ph-quotes"></i>範例答案<i class="ph ph-caret-down toggle-caret"></i></button></div></div></div>
               <div class="nsm-dim__desc">新客戶中有多少真正完成啟用（Activation）</div>
               <div class="nsm-dim__body">
-                <div class="nsm-dim__coach"><i class="ph ph-chat-dots"></i>注意是 activation，不是 signup——誰真正跑完了核心工作流？</div>
                 <div class="rt-field">
                   <div class="rt-field__toolbar"><button class="rt-tbtn"><i class="ph ph-text-b"></i></button><button class="rt-tbtn"><i class="ph ph-list-bullets"></i></button></div>
                   <textarea class="rt-textarea" rows="3">建立 7 天內完成至少 3 次核心工作流（建專案 + 邀請成員 + 提交首份成果）的新帳號比例 — 這比 signup 更能預測 90 日續訂率。</textarea>
@@ -1740,7 +1717,6 @@
               <div class="field__label-row"><label class="field__label">席次深度</label><div class="field__hint-row"><div class="field__hint-row"><button class="field__hint-link"><i class="ph ph-lightbulb"></i>提示</button><button class="field-example-toggle is-active" aria-expanded="true"><i class="ph ph-quotes"></i>範例答案<i class="ph ph-caret-down toggle-caret" style="transform:rotate(180deg)"></i></button></div></div></div>
               <div class="nsm-dim__desc">每個帳號內有多少人在真正使用核心功能</div>
               <div class="nsm-dim__body">
-                <div class="nsm-dim__coach"><i class="ph ph-chat-dots"></i>企業付費，但有幾個人實際在用？席次利用率多高？</div>
                 <div class="rt-field">
                   <div class="rt-field__toolbar"><button class="rt-tbtn"><i class="ph ph-text-b"></i></button><button class="rt-tbtn"><i class="ph ph-list-bullets"></i></button></div>
                   <textarea class="rt-textarea" placeholder="例：每個帳號每月平均活躍使用者數（席次利用率）" rows="2"></textarea>
@@ -1761,7 +1737,6 @@
               <div class="field__label-row"><label class="field__label">黏著頻率</label><div class="field__hint-row"><div class="field__hint-row"><button class="field__hint-link"><i class="ph ph-lightbulb"></i>提示</button><button class="field-example-toggle" aria-expanded="false"><i class="ph ph-quotes"></i>範例答案<i class="ph ph-caret-down toggle-caret"></i></button></div></div></div>
               <div class="nsm-dim__desc">使用頻率是否顯示產品已嵌入日常工作流</div>
               <div class="nsm-dim__body">
-                <div class="nsm-dim__coach"><i class="ph ph-chat-dots"></i>每天都用 vs 偶爾用——是剛需工具嗎？DAU/MAU 比多高？</div>
                 <div class="rt-field">
                   <div class="rt-field__toolbar"><button class="rt-tbtn"><i class="ph ph-text-b"></i></button><button class="rt-tbtn"><i class="ph ph-list-bullets"></i></button></div>
                   <textarea class="rt-textarea" placeholder="例：每週使用核心功能 ≥ 3 次的帳號佔比" rows="2"></textarea>
@@ -1820,7 +1795,6 @@
               <div class="field__label-row"><label class="field__label">啟用廣度</label><div class="field__hint-row"><div class="field__hint-row"><button class="field__hint-link"><i class="ph ph-lightbulb"></i>提示</button><button class="field-example-toggle" aria-expanded="false"><i class="ph ph-quotes"></i>範例答案<i class="ph ph-caret-down toggle-caret"></i></button></div></div></div>
               <div class="nsm-dim__desc">新客戶中有多少真正完成啟用（Activation）</div>
               <div class="nsm-dim__body">
-                <div class="nsm-dim__coach"><i class="ph ph-chat-dots"></i>注意是 activation，不是 signup——誰真正跑完了核心工作流？</div>
                 <div class="rt-field">
                   <div class="rt-field__toolbar"><button class="rt-tbtn"><i class="ph ph-text-b"></i></button><button class="rt-tbtn"><i class="ph ph-list-bullets"></i></button></div>
                   <textarea class="rt-textarea" rows="3">建立 7 天內完成至少 3 次核心工作流（建專案 + 邀請成員 + 提交首份成果）的新帳號比例 — 這比 signup 更能預測 90 日續訂率。</textarea>
@@ -1831,7 +1805,6 @@
               <div class="field__label-row"><label class="field__label">席次深度</label><div class="field__hint-row"><div class="field__hint-row"><button class="field__hint-link"><i class="ph ph-lightbulb"></i>提示</button><button class="field-example-toggle is-active" aria-expanded="true"><i class="ph ph-quotes"></i>範例答案<i class="ph ph-caret-down toggle-caret" style="transform:rotate(180deg)"></i></button></div></div></div>
               <div class="nsm-dim__desc">每個帳號內有多少人在真正使用核心功能</div>
               <div class="nsm-dim__body">
-                <div class="nsm-dim__coach"><i class="ph ph-chat-dots"></i>企業付費，但有幾個人實際在用？席次利用率多高？</div>
                 <div class="rt-field">
                   <div class="rt-field__toolbar"><button class="rt-tbtn"><i class="ph ph-text-b"></i></button><button class="rt-tbtn"><i class="ph ph-list-bullets"></i></button></div>
                   <textarea class="rt-textarea" placeholder="例：每個帳號每月平均活躍使用者數（席次利用率）" rows="2"></textarea>
@@ -1843,7 +1816,6 @@
               <div class="field__label-row"><label class="field__label">黏著頻率</label><div class="field__hint-row"><div class="field__hint-row"><button class="field__hint-link"><i class="ph ph-lightbulb"></i>提示</button><button class="field-example-toggle" aria-expanded="false"><i class="ph ph-quotes"></i>範例答案<i class="ph ph-caret-down toggle-caret"></i></button></div></div></div>
               <div class="nsm-dim__desc">使用頻率是否顯示產品已嵌入日常工作流</div>
               <div class="nsm-dim__body">
-                <div class="nsm-dim__coach"><i class="ph ph-chat-dots"></i>每天都用 vs 偶爾用——是剛需工具嗎？DAU/MAU 比多高？</div>
                 <div class="rt-field">
                   <div class="rt-field__toolbar"><button class="rt-tbtn"><i class="ph ph-text-b"></i></button><button class="rt-tbtn"><i class="ph ph-list-bullets"></i></button></div>
                   <textarea class="rt-textarea" placeholder="例：每週使用核心功能 ≥ 3 次的帳號佔比" rows="2"></textarea>
@@ -1901,7 +1873,6 @@
               <div class="field__label-row"><label class="field__label">啟用廣度</label><div class="field__hint-row"><div class="field__hint-row"><button class="field__hint-link"><i class="ph ph-lightbulb"></i>提示</button><button class="field-example-toggle" aria-expanded="false"><i class="ph ph-quotes"></i>範例答案<i class="ph ph-caret-down toggle-caret"></i></button></div></div></div>
               <div class="nsm-dim__desc">新客戶中有多少真正完成啟用（Activation）</div>
               <div class="nsm-dim__body">
-                <div class="nsm-dim__coach"><i class="ph ph-chat-dots"></i>注意是 activation，不是 signup——誰真正跑完了核心工作流？</div>
                 <div class="rt-field">
                   <div class="rt-field__toolbar"><button class="rt-tbtn"><i class="ph ph-text-b"></i></button><button class="rt-tbtn"><i class="ph ph-list-bullets"></i></button><button class="rt-tbtn"><i class="ph ph-text-indent"></i></button></div>
                   <textarea class="rt-textarea" rows="3">建立 7 天內完成至少 3 次核心工作流（建專案 + 邀請成員 + 提交首份成果）的新帳號比例 — 這比 signup 更能預測 90 日續訂率。</textarea>
@@ -1912,7 +1883,6 @@
               <div class="field__label-row"><label class="field__label">席次深度</label><div class="field__hint-row"><div class="field__hint-row"><button class="field__hint-link"><i class="ph ph-lightbulb"></i>提示</button><button class="field-example-toggle is-active" aria-expanded="true"><i class="ph ph-quotes"></i>範例答案<i class="ph ph-caret-down toggle-caret" style="transform:rotate(180deg)"></i></button></div></div></div>
               <div class="nsm-dim__desc">每個帳號內有多少人在真正使用核心功能</div>
               <div class="nsm-dim__body">
-                <div class="nsm-dim__coach"><i class="ph ph-chat-dots"></i>企業付費，但有幾個人實際在用？席次利用率多高？</div>
                 <div class="rt-field">
                   <div class="rt-field__toolbar"><button class="rt-tbtn"><i class="ph ph-text-b"></i></button><button class="rt-tbtn"><i class="ph ph-list-bullets"></i></button></div>
                   <textarea class="rt-textarea" placeholder="例：每個帳號每月平均活躍使用者數（席次利用率）" rows="2"></textarea>
@@ -1924,7 +1894,6 @@
               <div class="field__label-row"><label class="field__label">黏著頻率</label><div class="field__hint-row"><div class="field__hint-row"><button class="field__hint-link"><i class="ph ph-lightbulb"></i>提示</button><button class="field-example-toggle" aria-expanded="false"><i class="ph ph-quotes"></i>範例答案<i class="ph ph-caret-down toggle-caret"></i></button></div></div></div>
               <div class="nsm-dim__desc">使用頻率是否顯示產品已嵌入日常工作流</div>
               <div class="nsm-dim__body">
-                <div class="nsm-dim__coach"><i class="ph ph-chat-dots"></i>每天都用 vs 偶爾用——是剛需工具嗎？DAU/MAU 比多高？</div>
                 <div class="rt-field">
                   <div class="rt-field__toolbar"><button class="rt-tbtn"><i class="ph ph-text-b"></i></button><button class="rt-tbtn"><i class="ph ph-list-bullets"></i></button></div>
                   <textarea class="rt-textarea" placeholder="例：每週使用核心功能 ≥ 3 次的帳號佔比" rows="2"></textarea>
@@ -2551,7 +2520,6 @@
             </div>
             <div class="nsm-dim__desc">有多少用戶真正觸碰到核心功能（非僅登入）</div>
             <div class="nsm-dim__body">
-              <div class="nsm-dim__coach"><i class="ph ph-chalkboard-teacher"></i>教練問：你如何定義「真正使用」？能量化的門檻在哪？</div>
               <div class="rt-field rt-field--locked">
                 <div class="rt-field__toolbar"><button class="rt-tbtn" disabled><i class="ph ph-text-b"></i></button><button class="rt-tbtn" disabled><i class="ph ph-list-bullets"></i></button></div>
                 <div class="rt-textarea" contenteditable="false" style="cursor:not-allowed;">每月活躍 Podcast 收聽者佔總 MAU 比率達 30%。</div>
@@ -2570,7 +2538,6 @@
             </div>
             <div class="nsm-dim__desc">用戶使用核心功能的品質與強度</div>
             <div class="nsm-dim__body">
-              <div class="nsm-dim__coach"><i class="ph ph-chalkboard-teacher"></i>教練問：淺度互動與深度互動如何區分？完播率還是時長？</div>
               <div class="rt-field rt-field--locked">
                 <div class="rt-field__toolbar"><button class="rt-tbtn" disabled><i class="ph ph-text-b"></i></button><button class="rt-tbtn" disabled><i class="ph ph-list-bullets"></i></button></div>
                 <div class="rt-textarea" contenteditable="false" style="cursor:not-allowed;">單次完整收聽（≥ 80% 單集播放完成率）的用戶比率。</div>
@@ -2589,7 +2556,6 @@
             </div>
             <div class="nsm-dim__desc">用戶回訪的規律性與節奏</div>
             <div class="nsm-dim__body">
-              <div class="nsm-dim__coach"><i class="ph ph-chalkboard-teacher"></i>教練問：多久算「習慣」？每週 vs 每月有何不同意義？</div>
               <div class="rt-field rt-field--locked">
                 <div class="rt-field__toolbar"><button class="rt-tbtn" disabled><i class="ph ph-text-b"></i></button><button class="rt-tbtn" disabled><i class="ph ph-list-bullets"></i></button></div>
                 <div class="rt-textarea" contenteditable="false" style="cursor:not-allowed;">每週至少 2 次開啟 Podcast 頻道的月活躍用戶比率。</div>
@@ -2659,7 +2625,6 @@
             </div>
             <div class="nsm-dim__desc">有多少用戶真正觸碰到核心功能（非僅登入）</div>
             <div class="nsm-dim__body">
-              <div class="nsm-dim__coach"><i class="ph ph-chalkboard-teacher"></i>教練問：你如何定義「真正使用」？能量化的門檻在哪？</div>
               <div class="rt-field rt-field--locked">
                 <div class="rt-field__toolbar"><button class="rt-tbtn" disabled><i class="ph ph-text-b"></i></button><button class="rt-tbtn" disabled><i class="ph ph-list-bullets"></i></button></div>
                 <div class="rt-textarea" contenteditable="false" style="cursor:not-allowed;">每月活躍 Podcast 收聽者佔總 MAU 比率達 30%。</div>
@@ -2678,7 +2643,6 @@
             </div>
             <div class="nsm-dim__desc">用戶使用核心功能的品質與強度</div>
             <div class="nsm-dim__body">
-              <div class="nsm-dim__coach"><i class="ph ph-chalkboard-teacher"></i>教練問：淺度互動與深度互動如何區分？完播率還是時長？</div>
               <div class="rt-field rt-field--locked">
                 <div class="rt-field__toolbar"><button class="rt-tbtn" disabled><i class="ph ph-text-b"></i></button><button class="rt-tbtn" disabled><i class="ph ph-list-bullets"></i></button></div>
                 <div class="rt-textarea" contenteditable="false" style="cursor:not-allowed;">單次完整收聽（≥ 80% 單集播放完成率）的用戶比率。</div>
@@ -2697,7 +2661,6 @@
             </div>
             <div class="nsm-dim__desc">用戶回訪的規律性與節奏</div>
             <div class="nsm-dim__body">
-              <div class="nsm-dim__coach"><i class="ph ph-chalkboard-teacher"></i>教練問：多久算「習慣」？每週 vs 每月有何不同意義？</div>
               <div class="rt-field rt-field--locked">
                 <div class="rt-field__toolbar"><button class="rt-tbtn" disabled><i class="ph ph-text-b"></i></button><button class="rt-tbtn" disabled><i class="ph ph-list-bullets"></i></button></div>
                 <div class="rt-textarea" contenteditable="false" style="cursor:not-allowed;">每週至少 2 次開啟 Podcast 頻道的月活躍用戶比率。</div>
@@ -2767,7 +2730,6 @@
             </div>
             <div class="nsm-dim__desc">有多少用戶真正觸碰到核心功能（非僅登入）</div>
             <div class="nsm-dim__body">
-              <div class="nsm-dim__coach"><i class="ph ph-chalkboard-teacher"></i>教練問：你如何定義「真正使用」？能量化的門檻在哪？</div>
               <div class="rt-field rt-field--locked">
                 <div class="rt-field__toolbar"><button class="rt-tbtn" disabled><i class="ph ph-text-b"></i></button><button class="rt-tbtn" disabled><i class="ph ph-list-bullets"></i></button></div>
                 <div class="rt-textarea" contenteditable="false" style="cursor:not-allowed;">每月活躍 Podcast 收聽者佔總 MAU 比率達 30%。</div>
@@ -2786,7 +2748,6 @@
             </div>
             <div class="nsm-dim__desc">用戶使用核心功能的品質與強度</div>
             <div class="nsm-dim__body">
-              <div class="nsm-dim__coach"><i class="ph ph-chalkboard-teacher"></i>教練問：淺度互動與深度互動如何區分？完播率還是時長？</div>
               <div class="rt-field rt-field--locked">
                 <div class="rt-field__toolbar"><button class="rt-tbtn" disabled><i class="ph ph-text-b"></i></button><button class="rt-tbtn" disabled><i class="ph ph-list-bullets"></i></button></div>
                 <div class="rt-textarea" contenteditable="false" style="cursor:not-allowed;">單次完整收聽（≥ 80% 單集播放完成率）的用戶比率。</div>
@@ -2805,7 +2766,6 @@
             </div>
             <div class="nsm-dim__desc">用戶回訪的規律性與節奏</div>
             <div class="nsm-dim__body">
-              <div class="nsm-dim__coach"><i class="ph ph-chalkboard-teacher"></i>教練問：多久算「習慣」？每週 vs 每月有何不同意義？</div>
               <div class="rt-field rt-field--locked">
                 <div class="rt-field__toolbar"><button class="rt-tbtn" disabled><i class="ph ph-text-b"></i></button><button class="rt-tbtn" disabled><i class="ph ph-list-bullets"></i></button></div>
                 <div class="rt-textarea" contenteditable="false" style="cursor:not-allowed;">每週至少 2 次開啟 Podcast 頻道的月活躍用戶比率。</div>

@@ -1700,7 +1700,6 @@
       +   '<div class="nsm-dim__desc">' + escHtml(dim.desc) + '</div>'
       + '</div>'
       + '<div class="nsm-dim__body">'
-      +   '<div class="nsm-dim__coach"><i class="ph ph-chat-dots"></i>' + escHtml(dim.coachQ) + '</div>'
       +   '<div class="field__hint-row">'
       +     '<button class="field__hint-link" type="button" data-nsm-step3-hint="' + escHtml(dim.id) + '" data-nsm-dim-type="' + escHtml(ptype || 'attention') + '">'
       +       '<i class="ph ph-lightbulb"></i>提示'
