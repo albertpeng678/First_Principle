@@ -2039,6 +2039,7 @@
             if (!res.ok) {
               var err = await res.json().catch(function () { return {}; });
               AppState.nsmEvalError = err.error || 'eval_error';
+              AppState.nsmEvalLoading = false;  // F-CT1.1: clear before render so DOM reflects correct state
               render();
               return;
             }
@@ -5145,7 +5146,7 @@
                       : status === 'warn' ? '可繼續但有 ' + countByStatus(result.items, 'warn') + ' 個建議優化點'
                       :                     '有 ' + countByStatus(result.items, 'error') + ' 個方向性問題需修正';
     var iconCls = status === 'ok'   ? 'ph-check-circle'
-                : status === 'warn' ? 'ph-warning'
+                : status === 'warn' ? 'ph-check-circle'
                 :                     'ph-x-circle';
     var actionHtml = (status === 'ok' || status === 'warn')
       ? '<button class="gate-transition__action" data-gate-action="proceed">繼續 <i class="ph ph-arrow-right"></i></button>'

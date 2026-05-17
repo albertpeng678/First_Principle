@@ -10,7 +10,21 @@
 
 ## §1 Active P0 Bugs (user-visible / data integrity)
 
-✅ **0 items** — F-1 / F-2 / FLOAT-2 全 shipped (見 §5)。下個 P0 finding 出現 → append here。
+### NEW-Bug-A (2026-05-17 PM user report) — NSM 切題不清舊答案 (ghost content)
+**User flow**: NSM Step 1 選題 X → Step 2 填 dim 答案 → 返回 Step 1 → 選新題 Y → Step 2 **舊答案還在欄位**
+**Severity**: P1 → ELEVATED to P0 candidate（同 CIRCLES Bug 2 #252 ghost content pattern，user 已踩到視為 data integrity issue）
+**Root cause (Explore agent verified)**:
+- `public/app.js:6322-6326` 「開始練習」start btn click handler 只做 `AppState.nsmStep = 2; render();`，**沒清 `AppState.nsmDefinition` / `AppState.nsmBreakdown`**
+- `AppState.nsmDefinition` / `nsmBreakdown` 是 module-scope mutable 物件，無 session-bound lifetime；back/forward 之間舊值持續存在
+- CIRCLES Bug 2 (#252 fix `c156c6b`) 在 `app.js:5918-5924` `qcard-confirm` handler 內顯式 reset 6 個 draft state — NSM 側**沒 mirror 此 pattern**
+**Proposed fix scope (Karpathy surgical, ~10 lines)**:
+- `app.js:6322-6326` start btn: 加 5 行 reset（`nsmDefinition` / `nsmBreakdown` / `nsmEvalResult` / `nsmGateResult` / `nsmSession`）
+- `app.js:1884` back btn 同樣加 reset，預防反覆 back/forward 也同問題
+**RED e2e design**: `tests/e2e/nsm-question-switch-resets-draft.spec.js` × 3 vp × 6 AC（select X → fill → back → select Y → assert 6 欄位 `toHaveValue('')` + 無 X 字串殘留）
+**Skills cite**: Pitfall 11 / 18 / 3 / 19 + §3.7 storageState + §3.11 cross-vp
+**Cross-ref**: #252 c156c6b CIRCLES pattern；root cause analysis by Explore agent 2026-05-17 PM
+
+---
 
 ---
 
@@ -157,6 +171,31 @@
 
 ---
 
+### NEW-Bug-B (2026-05-17 PM user report PNG-31) — NSM dim card hint+example 不在 head row
+**User report PNG-31**: NSM Step 2/3 dim card（如「啟用廣度」「席次深度」），「💡 提示 99 範例答案 ▼」**獨立一行**顯示在 title 與 textarea 之間。**應該與標題同一區並右對齊**（mirror mockup 03 hint-row pattern, STANDING `feedback_hint_example_unified_component`）。
+**Severity**: P2（外觀違反 STANDING 全站一致規則，功能未受影響）
+**Root cause (Explore agent verified)**:
+- `public/app.js:1726-1743` `renderNSMDim` 用了 NSM-only 自訂雙層結構 `.nsm-dim__head` + `.nsm-dim__body`，把 `.field__hint-row` 放在 `.nsm-dim__body` 內（line 1731-1737）
+- Mockup 07 line 1355-1384 規定：`.field__label-row > .field__hint-row` 同行（同 mockup 03 pattern）
+- Mockup 07 CSS 註解（line 720-721）明確標示舊 `.nsm-dim__head/__label/__hint-btn` 已 DELETED，但 production 未 migrate
+- CIRCLES `app.js:4503-4518` `renderField` 已正確用 `.field__label-row > .field__hint-row` pattern
+**Proposed fix scope (Karpathy surgical, ~6 lines app.js + 0-3 css cleanup)**:
+- `app.js:1726-1743` `renderNSMDim` 重排 template：`.nsm-dim__head` → `.field__label-row`；`.field__hint-row` 從 body 移到 label-row 內；`.nsm-dim__desc` 移到 label-row 外
+- `public/style.css` 確認 `.nsm-dim__head` 舊樣式可移除（如殘存）
+**RED visual spec**: `tests/visual/nsm-dim-card-hint-row-position.spec.js` × 3 vp × 4 AC（DOM structural assert hint-row in label-row not body + negative assert not in body + `toHaveScreenshot` mockup 07 baseline diff + boundingRect top alignment ±4px）
+**Skills cite**: §3.13 visual-regression + §3.11 cross-vp + Pitfall 18 boundingRect read
+**Cross-ref**: mockup `docs/superpowers/specs/mockups/2026-05-02-frontend-rewrite/07-nsm-step-2.html:1355-1384`；CIRCLES canonical pattern `app.js:4503-4518`；STANDING `feedback_hint_example_unified_component`
+
+---
+
+### COMMON design issue (Both NEW-Bug-A and NEW-Bug-B)
+**共同根因**: NSM 跟 CIRCLES 沒共用 component → NSM-only template drift
+- Bug A: 沒抽 `resetNsmDraftState()` helper，CIRCLES 的 reset block 沒 mirror 到 NSM
+- Bug B: NSM `renderNSMDim` 自訂 wrapper 不用 CIRCLES `renderField` 共用 label-row template
+**STANDING 進化建議（user 評估後再做）**: 加一條「NSM 的 draft reset / hint+example row 必須 reuse 與 CIRCLES 同一 helper function」防未來 drift；不在當前 fix scope 內（YAGNI）
+
+---
+
 ### C-T1 finding: AI 4-surface error handling audit (2026-05-17 PM)
 **Source**: Phase 1 C-T1 task per PATH-2-HANDOFF.md §A.5
 **Hypothesis-link**: 99.9% NSM conversion drop（6500 sessions 卡在 lifecycle='created'，只有 1 個到達 'gated'）可能因 AI 呼叫失敗被靜默吞掉而未回滾 lifecycle，或 FE spinner 卡死讓用戶無法重試。
@@ -264,7 +303,9 @@
 ### Optimization closures
 | O | Closed |
 |---|---|
-| O-6 B10 `_doOffcanvasDelete` cache invalidate | L31 (this commit) — 2-line `AppState.circlesRecentSessions = null; render()` (app.js:8547-8550) + spec `offcanvas-delete-invalidates-recent-sessions.spec.js` 7/7 × 3 vp GREEN + Director cold-Read 4 PNG before/after diff confirmed |
+| O-6 B10 `_doOffcanvasDelete` cache invalidate | L31 — 2-line `AppState.circlesRecentSessions = null; render()` (app.js:8547-8550) + spec `offcanvas-delete-invalidates-recent-sessions.spec.js` 7/7 × 3 vp GREEN + Director cold-Read 4 PNG diff `e811378` |
+| F-CT1.1 NSM evaluator spinner 卡死 (partial close of §3 C-T1) | L32 — 1-line `AppState.nsmEvalLoading=false;` at app.js:2042 + spec `nsm-evaluator-error-clears-spinner.spec.js` (281 lines) 15/15 × 5 runs (3 vp) + 3 PNG evidence + no regression (nsm-gate-result/freq-label/hint 25/25 PASS). **F-CT1.2/1.3/1.4/1.5 仍 pending §3** |
+| B6 D-4 warn icon 顏色相反 (partial close of §3 B6 11-drift) | L32 — 1-char swap `ph-warning`→`ph-check-circle` at app.js:5146 + spec `circles-gate-warn-icon-color.spec.js` (186 lines) 45/45 × 5 runs (3 vp × 3 AC) + 3 baseline snapshots + Director cold-Read confirmed visual match mockup 04. **B6 D-1/2/3/5/6/7/8/9/10/11 仍 pending §3** |
 | O-7 NSM seed helper for offcanvas-delete | L20 `f292a22` + audit `961cb09` |
 | O-9 orphan renderQchipPanelHtml delete | L23 `f2a3d58` (15 lines, 0 callers verified) |
 
