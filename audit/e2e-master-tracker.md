@@ -79,6 +79,15 @@
   ```
 - **Critical implication**: gate is currently **advisory only** at backend — entire UX assumes FE conditional rendering blocks user, but any direct API caller (or FE state corruption / future bugs) bypasses freely. This is the actual root cause of user's repeated 沒審核直接放行 reports.
 
+### P0-NEW-4 Bug 3 spinner stuck — RECLASSIFIED P2→P0 (Lane L13b, 2026-05-17)
+- **Was**: P2-#253 INCONCLUSIVE (8s window too short)
+- **Now**: BUG CONFIRMED via 60s deep window — `tryResumeLatestSession` (`app.js:7947`+) sets `circlesStepScores` but does NOT derive `circlesScoreResult`. `renderCirclesPhase3` (line 6520) tests `!circlesScoreResult` → spinner branch → no evaluate-step fires → spinner forever.
+- **Audit + spec + PNG**: `audit/bug3-deep-investigation-2026-05-17.md` + `tests/e2e/bug3-spinner-deep-investigation.spec.js` + `audit/bug3-deep/` (35 PNG × 5 scenarios × 3 projects). Commit `13ed169`.
+- **5 scenarios result**: S1/S2/S3/S4 BUG CONFIRMED (spinner stuck across 60s, no evaluate-step fired); S5 PASS (timers correctly cleared on nav-back)
+- **Prior INCONCLUSIVE explanation**: 8s window captured cosmetic 5s checklist animation tick — NOT actual evaluate-step progress. evaluate-step was never in flight.
+- **Sister bug already fixed**: commit `654d0e8` (Stage 1B B3) fixed same pattern in `restoreCirclesPhase1FromSession` (`app.js:8180`); `tryResumeLatestSession` is the missed twin.
+- **Proposed fix (L17 dispatched)**: mirror 8-LOC pattern from `654d0e8` into `tryResumeLatestSession` immediately after `circlesStepScores = latest.step_scores` assignment (around `app.js:8031`). Verify Scenarios S1-S4 flip RED→GREEN.
+
 ### P0-NEW-3 persistRetry session-object check — REAL PROD BUG (Lane L14, 2026-05-17)
 - **Discovery**: critical-path-full-flow.spec.js desktop Step 2 fail → `DRAFT_CREATE_FAILED`. L14 traced root cause.
 - **Audit + evidence**: `audit/critical-path-3-fails-investigation-2026-05-17.md` + `audit/L14-evidence/` (5 PNG + 2 error-context)
