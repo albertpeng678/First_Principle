@@ -235,6 +235,17 @@
             tryResumeLatestSession();
           }
         }).catch(function () {});
+        // C fix 2026-05-17: keep AppState.accessToken in sync with SDK auto-refresh.
+        // Without this, SDK refreshes JWT in background but AppState still uses stale
+        // token → next apiFetch sends old Bearer → 401 → user gets kicked to login.
+        window.supabaseClient.auth.onAuthStateChange(function (event, session) {
+          if (event === 'TOKEN_REFRESHED' && session && session.access_token) {
+            AppState.accessToken = session.access_token;
+          } else if (event === 'SIGNED_OUT') {
+            AppState.accessToken = null;
+            AppState.userEmail = null;
+          }
+        });
       } else {
         window.supabaseClient = null;
       }
@@ -274,20 +285,38 @@
     window.addEventListener('online',  function () { AppState.isOnline = true;  render(); });
     window.addEventListener('offline', function () { AppState.isOnline = false; render(); });
     // 401 handler — fetch wrapper（Plans B/C 各自 fetch 必經此 wrapper）
+    // C fix 2026-05-17 (Supabase canonical 401 retry pattern):
+    //   On 401, try refreshSession() once. If new token issued, retry original
+    //   request with refreshed Bearer. Only kick to login if refresh ALSO fails.
+    //   Eliminates 99% of "突然跳登入" UX surprises caused by JWT auto-refresh
+    //   race conditions (browser sleep / tab throttle / refresh timer drift).
     window.apiFetch = async function (input, init) {
-      const headers = Object.assign({}, (init && init.headers) || {});
-      if (AppState.accessToken) headers['Authorization'] = 'Bearer ' + AppState.accessToken;
-      else if (AppState.guestId) headers['X-Guest-ID']   = AppState.guestId;
-      headers['Content-Type'] = headers['Content-Type'] || 'application/json';
-      const res = await fetch(input, Object.assign({}, init, { headers }));
-      if (res.status === 401) {
+      const buildHeaders = () => {
+        const h = Object.assign({}, (init && init.headers) || {});
+        if (AppState.accessToken) h['Authorization'] = 'Bearer ' + AppState.accessToken;
+        else if (AppState.guestId) h['X-Guest-ID']   = AppState.guestId;
+        h['Content-Type'] = h['Content-Type'] || 'application/json';
+        return h;
+      };
+      let res = await fetch(input, Object.assign({}, init, { headers: buildHeaders() }));
+      if (res.status === 401 && AppState.accessToken && window.supabaseClient) {
+        try {
+          const refreshResult = await window.supabaseClient.auth.refreshSession();
+          const newSession = refreshResult && refreshResult.data && refreshResult.data.session;
+          if (newSession && newSession.access_token && !refreshResult.error) {
+            AppState.accessToken = newSession.access_token;
+            const retry = await fetch(input, Object.assign({}, init, { headers: buildHeaders() }));
+            if (retry.status !== 401) return retry;
+            res = retry;
+          }
+        } catch (_) { /* fall through to logout */ }
+        // Refresh failed or retry also 401 → kick to login (original behavior)
         AppState.accessToken = null;
         AppState.userEmail = null;
         try { localStorage.setItem('pmDrillReturnPath', JSON.stringify({ view: AppState.view, ts: Date.now() })); } catch (_) {}
         AppState.view = 'auth';
         AppState.authTab = 'login';
         render();
-        return res;
       }
       return res;
     };
