@@ -228,8 +228,14 @@
 
 | Spec / Suite | Result | Last verified |
 |---|---|---|
-| **jest full** | ✅ **538/555** (best baseline ever; +8 from 530/552 session start) | post L29 `cac214c` |
+| **jest full** | ✅ **562/579** (post Wave 1B-b; 17 skip / 0 fail) | post `706d26c` |
 | API integration full suite | ✅ 196/199 (3 are concurrent-load flakes in nsm-context-hints-progress-coverage; isolated 19/19 PASS) | post L24 `ca59bbd` |
+| **nsm-question-switch-resets-draft (NEW-Bug-A)** | ✅ 35/35 × 5 runs (3 vp) + sub-agent report + Director 3/3 desktop verify | post `b126937` |
+| **nsm-dim-card-hint-row-position (NEW-Bug-B)** | ✅ 5/5 desktop (4 AC + setup); 3 baseline snapshots; parallel 3-vp has 1 transient Supabase ConnectTimeoutError (infra) | post `b126937` |
+| **circles-phase2-evaluator-error-shown (F-CT1.2)** | ✅ 3/3 desktop (2 AC + setup); 6 PNG; parallel mobile-safari AC-2 1 transient auth refresh timeout (infra) | post `b126937` |
+| **circles-gate-warn-icon-color (B6 D-4)** | ✅ 45/45 × 5 runs (3 vp × 3 AC) | post `1b75c0f` |
+| **nsm-evaluator-error-clears-spinner (F-CT1.1)** | ✅ 15/15 × 5 runs (3 vp) | post `1b75c0f` |
+| **nsm-freq-label-by-type (post Bug B rename)** | ✅ 5/5 desktop (class-rename verified no regression) | post `b126937` |
 | API lifecycle (CIRCLES+NSM) | ✅ 16/16 real OpenAI | post L19 |
 | circles-no-bypass | ✅ 5/5 × 5 runs no flake | post L5 |
 | nsm-no-bypass | ✅ 4/4 × 5 runs no flake | post L19 |

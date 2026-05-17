@@ -60,10 +60,11 @@
 
 | Phase | 範圍 | 工時 | 任務 |
 |---|---|---|---|
-| **🔴 P1** 商業最痛 | ~1-2 天 | C-T1 find (AI 錯誤 e2e 盤點) / C-T2 find (99.9% conversion 線上深挖) / B10 O-6 offcanvas cosmetic / B6 #21 mockup 04 audit / B13 O-11 adversarial 擴 3 prompt |
+| **🔴 P1 ✅ DONE** | 商業最痛 | ~1-2 天 | C-T1 ✅ find / C-T2 ✅ find / B10 ✅ ship / B6 ✅ find (D-4 ship; 10 drift backlog) / B13 ⚠️ re-dispatch needed |
 | **🟠 P2** 覆蓋率擴張 | ~2-3 天 | C-T3 CIRCLES director walk / C-T4 find (新用戶 journey 斷點 log) / C-T6 8 vp 擴 e2e config / B1 #257 F-007 wave Phase A (20 specs) |
 | **🟡 P3** Robust 防護 | ~2-3 天 | C-T5 iOS Safari 15-item 自動化 / C-T10 cross-tab+device race / C-T11 a11y baseline / B1 #257 F-007 wave Phase B (30 specs) / B2 F-001 Trophy +30 API specs |
 | **🟢 P4** Polish + debt | ~1-2 天 | C-T12 perf budget gate (LCP/TTI/3G) / B7-B14 雜項 (dead code/O-5/fallback flag/refactor/O-8 process) / B3 #207 B5 decision / B4 #199 dup close / B5 #205 Retrofit G |
+| **🔴 P1B 加碼 ✅ ship** | user-reported + reviewer-caught | 半天 | NEW-Bug-A ✅ / NEW-Bug-B ✅ / F-CT1.1 ✅ / F-CT1.2 ✅ / B6 D-4 ✅ + 2-stage review × 3 × 7 Critical 補修 |
 
 **Director 接手節點**（compact 後直接照 phase 動工）：
 1. 開 session 讀本檔 + PATH-2-HANDOFF.md §A.5 + tracker §1-§3
@@ -107,7 +108,7 @@
 
 | 路徑 | branch | 狀態 |
 |---|---|---|
-| 主 repo | main | Stage 0 + Stage 1A T1-T13 ship / jest 410/428 (1 pre-existing fail) |
+| 主 repo | main | Phase 1 + 1B Wave a/b 全 ship (b126937 / 706d26c / 1b75c0f / e811378); jest 562/579 (0 fail) |
 | `first-principle-path2-b-circles` | feat/path-2-circles-core | Plan B 平行 worktree |
 | `first-principle-path2-c-nsm` | feat/path-2-nsm | Plan C 平行 worktree |
 | `first-principle-path2-d-cross` | feat/path-2-cross-cutting | Plan D 平行 worktree |
@@ -145,7 +146,7 @@
 
 ## Tests / Quality Gates
 
-- **jest 基線 (2026-05-17 PM)：** **535/552**（17 skipped，0 fail — best baseline ever；本 session 起點 530/552）
+- **jest 基線 (2026-05-17 PM post Wave 1B-b)：** **562/579**（17 skipped，0 fail；前序 Wave 1B-a 跑 593/610 含本批新 spec）
 - **API integration tier：** 180 specs，post-L24 expected 全綠（current 5 fail = test fixture drift, L24 in flight）
 - **E2E projects：** 3（e2e-desktop / e2e-mobile-chrome / e2e-mobile-safari）+ 11 api projects + visual specs
 - **4-pillar adversarial preventive sweep (NEW 2026-05-17)：** ✅ L2 CIRCLES gate + L9 NSM gate + L12 CIRCLES evaluator + L15 NSM evaluator 全綠 — 所有 AI prompt 抗 low-quality + meaningless input proven robust
