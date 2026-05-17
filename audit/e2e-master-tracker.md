@@ -18,23 +18,45 @@
 - **Verify**: jest 534/552 (was 530/552; +4 fixed). Real API e2e 16/16. Commit `[pending]`.
 - **Lesson (O-8 action)**: master tracker mis-flagged this as P0 user-visible — investigation showed it was test-only. Enforced jest fail tagging policy still warranted (O-8) so next drift caught faster.
 
-### P0-#263 iOS Safari Phase 3 restore fallback — NEW (2026-05-17)
-- **Reproduce**: `tests/e2e/circles-phase3-restore-real.spec.js` B3-R1 fails ONLY on `e2e-mobile-safari` (WebKit). Desktop + mobile-chrome PASS.
-- **Symptom**: page snapshot shows `<div data-view="circles">CIRCLES view — 待 Plan B 實作</div>` — production `renderCirclesStub()` (app.js:353) fallback fired instead of Phase 3 score UI.
-- **Trigger logic** (app.js:325-343): Phase 3 render requires `circlesPhase === 3 && circlesSession`. All conditions failed → fallback.
-- **Hypothesis**: WebKit-specific async hydration race. `AppState.circlesSession=null` at render OR `circlesPhase` not 3.
-- **User-visible match**: matches PNG-23「已填寫內容會消失」report. iOS Safari users may see blank fallback after restoring scored sessions.
-- **Next**: dispatch sonnet (post-cap) to investigate `restoreCirclesPhase1FromSession` + `tryResumeLatestSession` WebKit async ordering. Possible fix: `await` state hydration completion before render() OR add WebKit-specific delay/retry.
+### ~~P0-#263 iOS Safari Phase 3 restore fallback~~ — RESOLVED 2026-05-17 (Lane L1 — was stale tracker entry)
+- **Verdict**: Already fixed in commit `654d0e8` (2026-05-16) before this tracker entry was reconciled. Director cold-verified 3 runs × 4 tests = 12/12 PASS on e2e-mobile-safari (zero flake) + L1's 5/5 burn-in.
+- **Root cause (now historical)**: Pre-fix `restoreCirclesPhase1FromSession` (app.js:8140) did not copy `step_scores[stepKey]` into `circlesScoreResult`. `navigateToPhase3 → renderCirclesPhase3` then hit `if (!circlesScoreResult)` branch at app.js:6513 → spinner-forever. Tracker original PNG snapshot of `renderCirclesStub()` was likely captured in a different transient window during navigateToPhase3 race.
+- **Fix (commit `654d0e8`)**: 8-LOC addition in `restoreCirclesPhase1FromSession` deriving `circlesScoreResult` from restored `step_scores[stepKey]`, mirroring normal eval path at app.js:6556-6561.
+- **Audit doc**: `audit/diagnose-iOS-safari-phase3-restore/diagnose-2026-05-17.md` + 2 trace zips + 7 mobile-safari frames
+- **Lesson (cross-ref O-8)**: Master tracker had stale entry — fix was shipped before being reconciled. This is exact case for O-8 enforcement policy (jest/spec status must be re-baselined per ship, not assumed stale).
 
-### P0-#251 Bug 1 Gate 全打 Y 過審 — NEEDS RE-VERIFY
-- **Status**: Stage 1A T7+T9 shipped tightened prompt + 10/10 adversarial sweep (commits `ae270f3`, `f53038e`).
-- **User report**: still reproducible after ship (per user 2026-05-17 message)
-- **Next**: dispatch sonnet to write deterministic e2e spec with literal "Y" answers to verify gate rejects.
+### P0-#251 Bug 1 Gate 全打 Y 過審 — BACKEND CLEARED, FE INVESTIGATION PENDING (Lane L2)
+- **Audit + spec**: `audit/repro-bug1-all-Y-adversarial-2026-05-17.md` + `tests/api/circles-gate-all-Y-adversarial.spec.js` commit `f7a43ff`
+- **Backend result**: **10/10 variants correctly rejected** across 3 runs (2 Playwright + 1 node probe), real OpenAI gpt-4o temperature=0.3 + JSON mode. Tested: `"Y"`, `"y"`, `"yes"`, `"Y."`, `"Y。"`, `"Y "`, mixed 1-2 char, `"好"`, `"1"`, `"."`. All returned `canProceed=false, overallStatus=error, items: 4× error:輸入無意義`.
+- **Verdict**: API gate (`prompts/circles-gate.js` + `POST /api/circles-sessions/:id/gate`) is **NOT bug source**. Layer 1 (字數<10) + Layer 2 (敷衍) + few-shot 三重覆蓋皆生效。
+- **Pivot — FE candidate surfaces** (待 user 決定下一輪 lane scope):
+  1. Stale `gateResult` / `canProceed=true` cached in localStorage / sessionStorage / `AppState` from prior real submission
+  2. `gateResult` populated via `PATCH /progress` without re-evaluation (cross-ref **LEAK-3** in P0-#255: PATCH /progress 接受 currentPhase 無 gate guard，可能也接受 stale gateResult)
+  3. UI 短路 `POST /gate` 在 state 已有 `canProceed=true` 時
+  4. **Field name mismatch** suspicion: `question_json.field_examples.C1` spec is `問題範圍, 時間範圍, 業務影響, 假設確認` but common usage / SUBSTANTIVE_DRAFT sends `問題範圍, 影響對象, 核心衝突, 目標結果` — name mismatch could cause OpenAI to evaluate fewer fields under stale-cache scenario
+  5. **Cross-ref**: P0-#255 LEAK-5 FE — `bindCirclesGate` proceed handler missing `canProceed` double-check (related root cause)
+- **Proposed next lane (待 user 裁示 — NOT dispatched per STANDING)**: FE Bug 1 investigation lane — audit `bindCirclesGate` / `gateResult` storage / `PATCH /progress` body shape; write e2e spec simulating stale-state scenario
 
-### P0-#255 Bug 6 沒審核直接放行 — VERIFIED PARTIAL
-- **Verified**: Phase 4 final-report 422 incomplete_steps guard GREEN (`tests/api/circles-final-report-contract.spec.js` 2/2 PASS).
-- **Open**: user reported "完整步驟" path may bypass — possibly different surface than F-N-003 guard.
-- **Next**: dispatch sonnet to enumerate all gate→advance code paths + verify each has guard.
+### P0-#255 Bug 6 沒審核直接放行 — RED CONFIRMED 2026-05-17 (Lane L3)
+- **Audit + spec**: `audit/bug6-bypass-path-enumeration-2026-05-17.md` + `tests/api/circles-no-bypass.spec.js` commit `95b7fd5`
+- **Coverage**: 13 BE handlers audited + 8 FE handlers audited
+- **4 confirmed leaks (all RED with actual 200 instead of expected 4xx)**:
+  - **LEAK-1** `POST /api/circles-sessions/:id/evaluate-step` → 200, totalScore=16 returned with lifecycle='editing' (routes/circles-sessions.js:253)
+  - **LEAK-2** `POST /api/circles-sessions/:id/message` → 200, SSE stream opened with lifecycle='editing' (routes/circles-sessions.js:202)
+  - **LEAK-3** `PATCH /api/circles-sessions/:id/progress` with currentPhase=2 → 200, DB current_phase written with lifecycle='editing' (routes/circles-sessions.js:304-379, line 312)
+  - **LEAK-4** `POST /api/circles-sessions/:id/final-report` → 200 with seeded step_scores + lifecycle='editing' (routes/circles-sessions.js:382)
+  - **All 4 mirror to guest variants** (routes/guest-circles-sessions.js): 4 leaks × 2 = 8 handler instances total
+- **LEAK-5 FE (defense-in-depth)**: `bindCirclesGate` proceed handler at app.js:~7542 checks `AppState.gateInflight` (race mutex) but NOT `AppState.circlesGateResult.canProceed` — protected only by render-time conditional in `renderCirclesGate` (~line 1469); failed gate result not double-checked at click time
+- **Control GREEN**: T-BYPASS-5 incomplete_steps guard 400 — regression safe
+- **Proposed fix direction** (待 user 裁示 — NOT yet dispatched per STANDING):
+  ```js
+  // Add at top of /message, /evaluate-step, /final-report handlers (both auth + guest):
+  if (!['gated', 'completed'].includes(session.lifecycle)) {
+    return res.status(403).json({ error: 'gate_required', message: 'Session must pass gate before proceeding.' });
+  }
+  // For PATCH /progress: reject currentPhase > 1 unless lifecycle === 'gated' or 'completed'
+  ```
+- **Critical implication**: gate is currently **advisory only** at backend — entire UX assumes FE conditional rendering blocks user, but any direct API caller (or FE state corruption / future bugs) bypasses freely. This is the actual root cause of user's repeated 沒審核直接放行 reports.
 
 ### P0-#252 Bug 2 PNG-20 Ghost content — RE-REPORTED
 - **Status**: task #209 closed via B2 reproduce + real E2E ship per earlier session
@@ -47,9 +69,8 @@
 
 ## §2 Active P1 Bugs
 
-### P1-#256 Bug 7 已填內容消失 — partial coverage
-- **Verified**: Phase 3 restore desktop + mobile-chrome GREEN.
-- **Open**: iOS Safari fallback fail (see P0-#263 — same root cause).
+### ~~P1-#256 Bug 7 已填內容消失~~ — RESOLVED 2026-05-17 (linked to P0-#263 resolution)
+- **Verdict**: Same root cause as P0-#263 (commit `654d0e8` 2026-05-16). Director cold-verified all 3 e2e projects GREEN. No separate fix needed.
 
 ### P1-#257 Bug 8 Test 沒用真用戶答案 shape — partial
 - **Verified**: retrofit C/D/E/F + Group A V1-V8 all shipped using real Supabase + service-role seed.
@@ -138,6 +159,9 @@
 | **jest issue-bug1-nsm-session-restore** | jest | ❌ 1 fail (sets nsmDefinition from item.user_nsm) | Investigate — likely real NSM restore bug |
 | **jest full suite** | — | 534/552 (1 remaining fail: nsm-session-restore, 17 skip) | Cleaner baseline post P0-NEW resolution |
 | **Real API lifecycle e2e (CIRCLES+NSM)** | api-lifecycle | ✅ 16/16 PASS (60s, real OpenAI) | proves production gate→gated wiring 正常 |
+| **Bug 6 bypass repro (Lane L3)** | api | ❌ 4/5 RED (leaks confirmed) | commit `95b7fd5` — 4 BE handler bypasses + 1 FE defense gap |
+| **Bug 1 全 Y adversarial (Lane L2)** | api-gate-adversarial | ✅ 10/10 PASS × 3 runs (no flake) | commit `f7a43ff` — backend cleared; bug pivots to FE |
+| **iOS Safari Phase 3 restore (Lane L1 verify)** | e2e-mobile-safari | ✅ 12/12 PASS × 3 runs (zero flake) + 5/5 burn-in | commit `654d0e8` (was stale tracker entry; fix shipped 2026-05-16) |
 
 ---
 
@@ -159,8 +183,11 @@
 | 5 P0 Retrofit F (persistRetry helper) | ✅ shipped | `837e435` / `ee9e735` / `5f6b9e2` |
 | Stage 0 B7 (pollution cleanup) | ✅ shipped | `45d0e6e`...`1ba062e` |
 | Session lifecycle state machine schema | ✅ shipped | `59b5537` `acb04e4` `2139859` |
-| CIRCLES + NSM lifecycle wire (handlers) | ✅ verified GREEN end-to-end | `a254e45` `b42aac0` + test stub fix `[pending]` |
-| jest contract stub shape fix (P0-NEW resolution) | ✅ shipped — was mis-diagnosis | `[pending]` |
+| CIRCLES + NSM lifecycle wire (handlers) | ✅ verified GREEN end-to-end | `a254e45` `b42aac0` + test stub fix `069986e` |
+| jest contract stub shape fix (P0-NEW resolution) | ✅ shipped — was mis-diagnosis | `069986e` |
+| iOS Safari Phase 3 restore (P0-#263 + P1-#256) | ✅ already shipped (was stale entry) | `654d0e8` (2026-05-16) — Director verified 12/12 × 3 runs |
+| Bug 6 bypass repro (Lane L3) | ✅ TDD-red spec + audit | `95b7fd5` (Phase 1 repro; fix lane L5 in progress) |
+| Bug 1 全 Y adversarial repro (Lane L2) | ✅ backend cleared 10/10×3 | `f7a43ff` (Phase 1 repro; FE investigation pending) |
 
 ---
 
@@ -247,6 +274,10 @@
 
 ## §8 Update Log
 
+- **2026-05-17 ~10:25**: Phase 1 Lane L1 returned DONE_WITH_CONCERNS — P0-#263 iOS Safari Phase 3 restore + P1-#256 Bug 7 are **STALE entries**, already fixed by commit `654d0e8` (2026-05-16). Director cold-verified 12/12 × 3 runs e2e-mobile-safari zero flake. Both moved to §5 closed. Diagnostic doc + traces + 7 mobile-safari frames preserved. Lanes running: L4 + L5. 1 free slot — holding for L4 (Bug 2 ghost) finding before dispatching Bug 1 FE investigation (potential code-surface overlap).
+- **2026-05-17 ~10:10**: Director 由 user 授權 "由你開單最 robust 方式"。Dispatch **L5 = Bug 6 fix bundle**（per L3 推薦方向）— 4 BE handler + FE LEAK-5 + TDD green via 已存 `tests/api/circles-no-bypass.spec.js`。Rationale: blast radius 最大，可能順帶解 Bug 1 FE root cause（待 L5 完後驗證）。Bug 1 FE investigation lane 延後。L1+L4+L5 = 3 slots full。
+- **2026-05-17 ~10:05**: Phase 1 Lane L2 returned. P0-#251 Bug 1 backend cleared — 10/10 adversarial variants ("Y", "y", "yes", "Y.", "Y。", "Y ", 混合, "好", "1", ".") rejected × 3 runs (50s + 57s + node probe). Real OpenAI gpt-4o + temperature 0.3 + JSON mode. Layer 1 字數<10 + Layer 2 敷衍 + few-shot 三重覆蓋全生效。Bug pivots to FE — candidate surfaces 4 條 + cross-ref P0-#255 LEAK-5 FE. Commit `f7a43ff`. L1/L4 still running.
+- **2026-05-17 ~09:55**: Phase 1 Lane L3 returned. P0-#255 Bug 6 RED confirmed — 4 BE leak paths (evaluate-step / message / progress.currentPhase / final-report) all return 200 with lifecycle='editing', proving gate is advisory-only at backend. + 1 FE defense gap (gate proceed handler missing canProceed double-check). Audit + spec commit `95b7fd5`. Lane L4 (Bug 2 ghost) dispatched. L1/L2 still running.
 - **2026-05-17 ~07:00**: P0-NEW lifecycle gate→gated RESOLVED. Investigation showed stub shape drift `{ok, issues}` (legacy) vs prod `{canProceed, overallStatus, items}` (post task #208). Surgical fix 2 test files. jest 534/552 (+4). Real API e2e 16/16 PASS proves production wiring correct end-to-end via real OpenAI. Master tracker reclassified.
 - **2026-05-17 ~05:30**: jest 5 fail re-audit — discovered 4 lifecycle gate→gated wiring bugs hidden as "pre-existing" (P0-NEW added). Added Bug 2 ghost re-report. Added critical-path mobile flake (P1). Added paused plans §7. Phase 2 qchip visual 24/24 PASS.
 - **2026-05-17 ~05:00**: Initial master tracker. Cap-recovery parallel verification round. Found Bug 7 iOS Safari + Auth race. Verified T3/T6/Bug 6 GREEN. Stage 1B B4 + NSM full flow + adversarial all GREEN.
