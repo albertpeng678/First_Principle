@@ -232,7 +232,8 @@
 | Bug 2 ghost fix (Lane L11) | ✅ Scen C mobile-chrome 30/30 × 5 runs no flake + cross-vp | `c156c6b` — 7-line reset at qcard-confirm |
 | CIRCLES evaluator adversarial preventive sweep (Lane L12) | ✅ 7/7 totalScore=16 (well < 60) | `0efe786` — evaluator robust, 4 dims all min 1/5 |
 | Bug 1 FE fix F1+F2 (Lane L13) | ✅ 15/15 e2e × 3 vp + 5x consecutive 0 flake + 7 bundles GREEN | `85f0039` — F1 PERSISTED_KEYS delete + F2 phase 1.5 clip |
-| Critical-path 3 pre-existing fails (newly surfaced post L11 verify) | ⚠️ pending — needs O-8 investigation | NOT L11-caused (confirmed identical pre-fix); separate lane needed |
+| Critical-path 3 fails investigation (Lane L14, O-8 enforcement) | ✅ 2/3 fixed (V7 mobile drift) + 1 real prod bug surfaced | `2165c2a` — Fail 2+3 closed; Fail 1 = P0-NEW-3 persistRetry (fix lane L16 dispatched) |
+| Bug 1 FE fix F1+F2 (Lane L13) | ✅ 15/15 e2e × 3 vp + 5x consecutive 0 flake | `85f0039` |
 
 ---
 
