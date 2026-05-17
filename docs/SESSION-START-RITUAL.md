@@ -40,7 +40,11 @@
 
 ## §3 E2E Integration Testing Bible（Playwright-skill inline 注入）
 
-> 基於 `/Users/albertpeng/.claude/skills/playwright-skill/core/` 12 個 md 提煉。**載重 patterns + line refs**，要看完整 md 仍可去原檔。
+> **快速版見下** — 載重 patterns 全 inline。
+> **完整深度版**：`audit/playwright-e2e-bible.md`（§0-§26，涵蓋 24 md ~23k lines 提煉，含 20 條 Pitfall 全表 + authentication.md / accessibility.md / error-and-edge-cases.md / test-data-management.md 等深度章節）。
+> **遇到不確定的 e2e 場景必查 bible 對應 § + line refs**。
+>
+> 基於 `/Users/albertpeng/.claude/skills/playwright-skill/core/` 24 個 md 提煉（總 23,210 lines）。本檔 inline 為日常常用 patterns；bible 為完整索引。
 
 ### §3.1 Testing Trophy 分佈目標（test-architecture.md）
 
