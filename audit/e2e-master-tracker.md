@@ -1,480 +1,278 @@
-# E2E Master Tracker — Living Document
+# E2E Master Tracker — Unresolved Hub
 
-> **Single source of truth** for all e2e integration test findings, optimization points, and bug status. Updated continuously every time new issue surfaced or status changes. Per 首要綱領「所有修復必過 e2e 整合測試，嚴格拒絕見樹不見林」.
+> **Single source of truth for ACTIVE unresolved issues.** Per STANDING `feedback_tracker_unresolved_hub`: §1-§3 only list真正待處理 items；resolved 立即剪貼移 §5。User 掃 §1-§3 = brainstorming 清單。
 >
-> **Last updated:** 2026-05-17 ~05:30 Taipei (jest 5 fail re-audit + tracker rewrite for full coverage)
-> **Update protocol:** new finding → append to relevant §findings + update §verification matrix + bump timestamp. Closed item → move to §closed with commit SHA. Never delete (audit trail).
-> **Read this first**, then drill into linked audit slices/specs as needed.
+> **Last updated:** 2026-05-17 PM Taipei — full refactor per new STANDING
+> **Update protocol:** new finding → append §1-§3；fix shipped → cut & paste 整段 → §5 with commit + verify。**禁留 ~~strikethrough~~ 在 §1-§3**。
+> **Read order**: §1 → §2 → §3 → §6 → §7。歷史 audit trail 看 §5 / §9。
 
 ---
 
 ## §1 Active P0 Bugs (user-visible / data integrity)
 
-### ~~P0-NEW Lifecycle gate→gated wiring broken (4 routes)~~ — RESOLVED 2026-05-17 (was mis-diagnosis)
-- **Verdict**: TEST FIXTURE SHAPE DRIFT, not production bug. Production wiring proven correct.
-- **Root cause**: `tests/contracts/lifecycle-{circles,nsm}-route.test.js` stubbed `circles-gate` / `nsm-gate` with legacy `{ ok: true, issues: [] }` shape. Production prompts return `{ canProceed, overallStatus, items }` (since task #208 `B8 gate.ok → canProceed fix`). Routes check `canProceed && overallStatus` — stub had neither → route classified as `gate_fail` → lifecycle stayed `editing`.
-- **Production proof**: `tests/api/lifecycle-{circles,nsm}.spec.js` 16/16 PASS with real OpenAI + real Supabase test DB. SLC-AC7 verified end-to-end: POST /gate ok=true → DB row `lifecycle='gated'`.
-- **Fix**: stubs updated to `{ canProceed: true, overallStatus: 'ok', items: [] }` and false counterpart. Surgical 4 replace_all (~10 edited sites).
-- **Verify**: jest 534/552 (was 530/552; +4 fixed). Real API e2e 16/16. Commit `[pending]`.
-- **Lesson (O-8 action)**: master tracker mis-flagged this as P0 user-visible — investigation showed it was test-only. Enforced jest fail tagging policy still warranted (O-8) so next drift caught faster.
+✅ **0 items — 全 7 P0 closed** (4 user-reported + 3 e2e-discovered)。詳見 §5。
 
-### ~~P0-NEW-2 jest tests/circles-sessions.test.js cascade regression~~ — RESOLVED in L5 same commit `93b1b26`
-- **Was**: 20 fails when L5 added 403 guards mid-flight before updating test mocks
-- **Resolved**: L5's commit includes 3 spec updates (circles-no-bypass + final-report-contract + back-nav-lock) that propagated lifecycle='gated' seed pattern, indirectly resolving the cascade. Final jest 535/552 = best baseline ever.
-
-### ~~P0-#263 iOS Safari Phase 3 restore fallback~~ — RESOLVED 2026-05-17 (Lane L1 — was stale tracker entry)
-- **Verdict**: Already fixed in commit `654d0e8` (2026-05-16) before this tracker entry was reconciled. Director cold-verified 3 runs × 4 tests = 12/12 PASS on e2e-mobile-safari (zero flake) + L1's 5/5 burn-in.
-- **Root cause (now historical)**: Pre-fix `restoreCirclesPhase1FromSession` (app.js:8140) did not copy `step_scores[stepKey]` into `circlesScoreResult`. `navigateToPhase3 → renderCirclesPhase3` then hit `if (!circlesScoreResult)` branch at app.js:6513 → spinner-forever. Tracker original PNG snapshot of `renderCirclesStub()` was likely captured in a different transient window during navigateToPhase3 race.
-- **Fix (commit `654d0e8`)**: 8-LOC addition in `restoreCirclesPhase1FromSession` deriving `circlesScoreResult` from restored `step_scores[stepKey]`, mirroring normal eval path at app.js:6556-6561.
-- **Audit doc**: `audit/diagnose-iOS-safari-phase3-restore/diagnose-2026-05-17.md` + 2 trace zips + 7 mobile-safari frames
-- **Lesson (cross-ref O-8)**: Master tracker had stale entry — fix was shipped before being reconciled. This is exact case for O-8 enforcement policy (jest/spec status must be re-baselined per ship, not assumed stale).
-
-### ~~P0-#251 Bug 1 Gate 全打 Y 過審~~ — RESOLVED 2026-05-17 (L2 backend + L10 investigation + L13 fix `85f0039`)
-- **L2 backend**: 10/10 adversarial variants rejected × 3 runs — gate prompt + route solid (commit `f7a43ff`)
-- **L10 FE investigation**: LEAK-A confirmed at PERSISTED_KEYS + restore() race — boot rendered phantom Phase 1.5 「繼續 →」 without user action (commit `371881f`)
-- **L13 fix**:
-  - F1: removed `'circlesGateResult'` from PERSISTED_KEYS array (`public/app.js:159`)
-  - F2: clip `circlesPhase === 1.5` → `1` in restore() body (`public/app.js:181`)
-  - Spec polarity flipped post-fix (Scenarios a/c: was RED documenting leak; now GREEN confirming fix)
-  - jest contract test `bug6b-persistence.test.js` updated: asserts circlesGateResult NOT in PERSISTED_KEYS
-- **Verification (all GREEN)**: circles-fe-gate-stale-state 15/15 × 3 vp + 5× consecutive desktop 0 flake + back-nav-lock 16/16 + phase3-restore 10/10 + fresh-form-no-ghost 6/6 + lifecycle-circles 8/8 + circles-no-bypass 5/5 + jest 535/552
-- Original investigation evidence preserved below.
-
-### P0-#251 Bug 1 Gate 全打 Y 過審 — BACKEND CLEARED, FE INVESTIGATION PENDING (Lane L2)
-- **Audit + spec**: `audit/repro-bug1-all-Y-adversarial-2026-05-17.md` + `tests/api/circles-gate-all-Y-adversarial.spec.js` commit `f7a43ff`
-- **Backend result**: **10/10 variants correctly rejected** across 3 runs (2 Playwright + 1 node probe), real OpenAI gpt-4o temperature=0.3 + JSON mode. Tested: `"Y"`, `"y"`, `"yes"`, `"Y."`, `"Y。"`, `"Y "`, mixed 1-2 char, `"好"`, `"1"`, `"."`. All returned `canProceed=false, overallStatus=error, items: 4× error:輸入無意義`.
-- **Verdict**: API gate (`prompts/circles-gate.js` + `POST /api/circles-sessions/:id/gate`) is **NOT bug source**. Layer 1 (字數<10) + Layer 2 (敷衍) + few-shot 三重覆蓋皆生效。
-- **Pivot — FE candidate surfaces** (待 user 決定下一輪 lane scope):
-  1. Stale `gateResult` / `canProceed=true` cached in localStorage / sessionStorage / `AppState` from prior real submission
-  2. `gateResult` populated via `PATCH /progress` without re-evaluation (cross-ref **LEAK-3** in P0-#255: PATCH /progress 接受 currentPhase 無 gate guard，可能也接受 stale gateResult)
-  3. UI 短路 `POST /gate` 在 state 已有 `canProceed=true` 時
-  4. **Field name mismatch** suspicion: `question_json.field_examples.C1` spec is `問題範圍, 時間範圍, 業務影響, 假設確認` but common usage / SUBSTANTIVE_DRAFT sends `問題範圍, 影響對象, 核心衝突, 目標結果` — name mismatch could cause OpenAI to evaluate fewer fields under stale-cache scenario
-  5. **Cross-ref**: P0-#255 LEAK-5 FE — `bindCirclesGate` proceed handler missing `canProceed` double-check (related root cause)
-- **Proposed next lane (待 user 裁示 — NOT dispatched per STANDING)**: FE Bug 1 investigation lane — audit `bindCirclesGate` / `gateResult` storage / `PATCH /progress` body shape; write e2e spec simulating stale-state scenario
-
-### ~~P0-#255 Bug 6 沒審核直接放行~~ — RESOLVED 2026-05-17 (commit `93b1b26`)
-- **Fix**: 4 BE handlers + guest variants (8 instances) + FE LEAK-5 defense-in-depth
-- **Verify**: tests/api/circles-no-bypass.spec.js 5/5 GREEN × 5 runs no flake + jest 535/552 + lifecycle-circles 8/8 + lifecycle-nsm 8/8 + final-report-contract 2/2 + back-nav-lock 6/6
-- **All 5 leak surfaces (LEAK-1 through LEAK-5) sealed.**
-- Original investigation evidence preserved below.
-
-### P0-#255 Bug 6 沒審核直接放行 — RED CONFIRMED 2026-05-17 (Lane L3)
-- **Audit + spec**: `audit/bug6-bypass-path-enumeration-2026-05-17.md` + `tests/api/circles-no-bypass.spec.js` commit `95b7fd5`
-- **Coverage**: 13 BE handlers audited + 8 FE handlers audited
-- **4 confirmed leaks (all RED with actual 200 instead of expected 4xx)**:
-  - **LEAK-1** `POST /api/circles-sessions/:id/evaluate-step` → 200, totalScore=16 returned with lifecycle='editing' (routes/circles-sessions.js:253)
-  - **LEAK-2** `POST /api/circles-sessions/:id/message` → 200, SSE stream opened with lifecycle='editing' (routes/circles-sessions.js:202)
-  - **LEAK-3** `PATCH /api/circles-sessions/:id/progress` with currentPhase=2 → 200, DB current_phase written with lifecycle='editing' (routes/circles-sessions.js:304-379, line 312)
-  - **LEAK-4** `POST /api/circles-sessions/:id/final-report` → 200 with seeded step_scores + lifecycle='editing' (routes/circles-sessions.js:382)
-  - **All 4 mirror to guest variants** (routes/guest-circles-sessions.js): 4 leaks × 2 = 8 handler instances total
-- **LEAK-5 FE (defense-in-depth)**: `bindCirclesGate` proceed handler at app.js:~7542 checks `AppState.gateInflight` (race mutex) but NOT `AppState.circlesGateResult.canProceed` — protected only by render-time conditional in `renderCirclesGate` (~line 1469); failed gate result not double-checked at click time
-- **Control GREEN**: T-BYPASS-5 incomplete_steps guard 400 — regression safe
-- **Proposed fix direction** (待 user 裁示 — NOT yet dispatched per STANDING):
-  ```js
-  // Add at top of /message, /evaluate-step, /final-report handlers (both auth + guest):
-  if (!['gated', 'completed'].includes(session.lifecycle)) {
-    return res.status(403).json({ error: 'gate_required', message: 'Session must pass gate before proceeding.' });
-  }
-  // For PATCH /progress: reject currentPhase > 1 unless lifecycle === 'gated' or 'completed'
-  ```
-- **Critical implication**: gate is currently **advisory only** at backend — entire UX assumes FE conditional rendering blocks user, but any direct API caller (or FE state corruption / future bugs) bypasses freely. This is the actual root cause of user's repeated 沒審核直接放行 reports.
-
-### ~~P0-NEW-5 NSM /evaluate gate bypass~~ — RESOLVED 2026-05-17 (Lane L19, commit `9142eef`)
-- **Fix**: 3-line lifecycle guard in both `routes/nsm-sessions.js:109-113` + `routes/guest-nsm-sessions.js:99-103`
-- **Verify**: nsm-no-bypass 4/4 GREEN × 5 runs no flake + lifecycle-nsm 8/8 + lifecycle-circles 8/8 + circles-no-bypass 5/5 + jest 535/552 (Director cold-verified post server restart)
-- Original investigation evidence preserved below.
-
-### ~~P0-NEW-4 Bug 3 spinner stuck~~ — RESOLVED 2026-05-17 (Lane L17 commit `2aa8fd5`)
-- **Fix**: 8-LOC `circlesScoreResult` derivation in `tryResumeLatestSession` (`public/app.js:8040`); mirror commit `654d0e8` pattern
-- **NOTE — scope-leak finding**: L16 commit `91fb2ad` actually included this fix as side effect of P0-NEW-3 work (technically Karpathy Surgical Changes violation, but fix was correct + needed). L17 only flipped spec polarity (S1-S5 from RED documenting bug → GREEN confirming fix). Non-blocking lesson.
-- **Verify**: bug3-deep-investigation 5/5 GREEN × 5 runs no flake + circles-phase3-restore 10/10 + back-nav-lock 16/16 + fe-gate-stale-state 16/16 + critical-path 1/1 + lifecycle-circles 8/8 + jest 535/552
-- Original investigation evidence preserved below.
-
-### P0-NEW-6 Cross-plan integration smoke regression cluster — DISCOVERED 2026-05-17 (Director)
-- **Discovery**: After 7/7 P0 fix batch, cross-plan smoke (per `feedback_cross_plan_smoke_after_each_ship`) surfaces 15 regressions not caught by per-lane verify
-- **Specific failing tests** (from diagnostic):
-  - **5 API fails (all lifecycle-guard test fixture drift — L5+L19 added 403 guards, these 5 specs not yet updated)**:
-    1. `tests/api/circles-sessions-list-contract.spec.js:163` — list contract required fields
-    2. `tests/api/circles-evaluate-step-contract.spec.js:147` — POST /evaluate-step 200 + shape (needs lifecycle='gated' seed)
-    3. `tests/api/guest-crud-real.spec.js:539` — guest /final-report 400 incomplete_steps (now 403 lifecycle guard fires first)
-    4. `tests/api/guest-crud-real.spec.js:907` — NSM guest /evaluate happy (needs lifecycle='gated' seed)
-    5. `tests/api/circles-evaluate-step-rescore-guard.spec.js:74` — AC-2 422 step_already_scored (now 403 fires first)
-  - **2 e2e fails ON bug3-spinner-deep mobile-chrome confirmed FLAKE (Director isolated 3 runs = 18/18 PASS)**: not real regression, worker contention under concurrent smoke load. Likely manifests same root as P1-#264 Auth race burst load.
-  - **7 other e2e fails + 1 jest fail**: output truncated; needs re-run capture (or self-resolve after L24 API fix lands — many e2e depend on API state being clean)
-- **Root cause (API cluster)**: L5 (commit `93b1b26`) and L19 (commit `9142eef`) added lifecycle guards but only updated 3 specs (circles-no-bypass + final-report-contract + back-nav-lock). 5 other specs that exercise those endpoints with non-gated session state hit 403 instead of expected 200/400/422.
-- **Fix pattern (L24 to apply)**: mirror L5's spec update — add `setLifecycleGated(sessionId)` service-role helper call before any 200/400/422 assertion that hits a guarded endpoint.
-- **PUSH BLOCKED until resolved.**
-
-### P0-NEW-5 NSM /evaluate gate bypass — REAL PROD BUG (Lane L18, 2026-05-17)
-- **Discovery**: L18 mirror of L3 for NSM-side. Audit + RED spec proved 2 leak instances.
-- **Audit + spec**: `audit/nsm-bypass-path-enumeration-2026-05-17.md` + `tests/api/nsm-no-bypass.spec.js` commit `f441455`
-- **Coverage**: 10 BE paths (5 auth + 5 guest) + 9 FE handlers audited
-- **2 confirmed leaks (real OpenAI invoked + scored results returned)**:
-  - **LEAK-N1** `POST /api/nsm-sessions/:id/evaluate` → 200 with `lifecycle='editing'` (expected 403) — and also with `lifecycle='created'`
-  - **LEAK-N2** `POST /api/guest-nsm-sessions/:id/evaluate` → 200 with `lifecycle='editing'` (guest mirror)
-- **Root cause**: `lib/session-lifecycle.js:98` — `if (route === 'analysis_done') return 'completed'` is unconditional; any session lifecycle (created/editing) gets promoted to completed if /evaluate succeeds.
-- **vs CIRCLES (L3 finding)**: narrower — NSM has 1 leak surface (evaluate) vs CIRCLES 4 (evaluate-step/message/progress.currentPhase/final-report). NSM has no currentPhase field, no final-report, fewer bypass vectors.
-- **Proposed fix (L19 to dispatch)**: add lifecycle guard `if (!['gated','completed'].includes(session.lifecycle))` immediately after session ownership fetch in both `routes/nsm-sessions.js:~107` and `routes/guest-nsm-sessions.js:~97`, returning 403 `{ error: 'gate_required' }`. Mirror L5 pattern.
-
-### P0-NEW-4 Bug 3 spinner stuck — RECLASSIFIED P2→P0 (Lane L13b, 2026-05-17)
-- **Was**: P2-#253 INCONCLUSIVE (8s window too short)
-- **Now**: BUG CONFIRMED via 60s deep window — `tryResumeLatestSession` (`app.js:7947`+) sets `circlesStepScores` but does NOT derive `circlesScoreResult`. `renderCirclesPhase3` (line 6520) tests `!circlesScoreResult` → spinner branch → no evaluate-step fires → spinner forever.
-- **Audit + spec + PNG**: `audit/bug3-deep-investigation-2026-05-17.md` + `tests/e2e/bug3-spinner-deep-investigation.spec.js` + `audit/bug3-deep/` (35 PNG × 5 scenarios × 3 projects). Commit `13ed169`.
-- **5 scenarios result**: S1/S2/S3/S4 BUG CONFIRMED (spinner stuck across 60s, no evaluate-step fired); S5 PASS (timers correctly cleared on nav-back)
-- **Prior INCONCLUSIVE explanation**: 8s window captured cosmetic 5s checklist animation tick — NOT actual evaluate-step progress. evaluate-step was never in flight.
-- **Sister bug already fixed**: commit `654d0e8` (Stage 1B B3) fixed same pattern in `restoreCirclesPhase1FromSession` (`app.js:8180`); `tryResumeLatestSession` is the missed twin.
-- **Proposed fix (L17 dispatched)**: mirror 8-LOC pattern from `654d0e8` into `tryResumeLatestSession` immediately after `circlesStepScores = latest.step_scores` assignment (around `app.js:8031`). Verify Scenarios S1-S4 flip RED→GREEN.
-
-### P0-NEW-3 persistRetry session-object check — REAL PROD BUG (Lane L14, 2026-05-17)
-- **Discovery**: critical-path-full-flow.spec.js desktop Step 2 fail → `DRAFT_CREATE_FAILED`. L14 traced root cause.
-- **Audit + evidence**: `audit/critical-path-3-fails-investigation-2026-05-17.md` + `audit/L14-evidence/` (5 PNG + 2 error-context)
-- **Root cause**: `lib/persistRetry.js:64-73` checks `resp.ok` on session object returned by `ensureCirclesDraftSession`'s early-exit guard (`public/app.js:3793`). Session objects have NO `.ok` property + STRING `.status` (`'editing'`/`'created'`), not numeric HTTP status. `isRetryable()` falls through → always returns `true` → retries 4× → `RetryExhausted` thrown → `DRAFT_CREATE_FAILED` propagated up.
-- **User-visible impact**: **Any user with existing `circlesSession` clicking 提交審核 (gate) always fails**. May match user reports of "gate 失敗" / "提交沒反應".
-- **Introduced**: commit `87e1999` (Plan #194 T4 RES-AC5 partial ship — TC1 was already flagged pending-diagnose in commit caveat note)
-- **Cross-ref**: P1 Plan #194 T4 TC1 happy retry timeout = SAME root cause. Fix lane L16 closes both.
-- **Proposed fix (L16 dispatched)**: early-return guard before persistRetry at `app.js:7629` — `if (AppState.circlesSession) skip persistRetry`; OR fix at `lib/persistRetry.js:64-73` level (instanceof Response check). L16 picks safer approach.
-
-### ~~P0-#252 Bug 2 PNG-20 Ghost content~~ — RESOLVED 2026-05-17 (commit `c156c6b`)
-- **Fix**: 7-line reset block at `public/app.js:5778-5784` qcard-confirm — resets `circlesFrameworkDraft`, `circlesGateResult`, `circlesScoreResult`, `circlesPhase2ConclusionDraft`, `circlesConversation`, `circlesStepScores` before assigning new question
-- **Verify**: Scenario C e2e-mobile-chrome 30/30 × 5 runs zero flake + circles-back-nav-lock 16/16 + circles-phase3-restore-real 10/10 + jest 535/552
-- **Cosmetic gap noted (separate issue, NOT this fix)**: Scenario E (localStorage stale draft path with no server session) has pre-existing DB-state-dependent flake; loadCirclesSessionFromHistory bypasses localStorage when server session exists, so this is orthogonal
-- Original investigation evidence preserved below.
-
-### P0-#252 Bug 2 PNG-20 Ghost content — RED CONFIRMED 2026-05-17 (Lane L4)
-- **Audit + spec + PNG**: `audit/repro-bug2-ghost-content-2026-05-17.md` + `tests/e2e/circles-fresh-form-no-ghost.spec.js` + `audit/repro-bug2-ghost-content/` (15 e2e tests + 1 setup × 3 projects)
-- **Reproduction confirmed**: Scenario C on e2e-mobile-chrome — console output `[BUG CONFIRMED] AppState.circlesFrameworkDraft: {"C1":{"問題範圍":"ghost content from session A"}}`. PNG `scenario-C-e2e-mobile-chrome.png` shows "ghost content from session A" 渲染在 Apple Health（不同 question）的 Phase 1 問題範圍 textarea。
-- **Root cause (1 line)**: `AppState.circlesFrameworkDraft` 不在 qcard-confirm handler (`public/app.js:5784`) 重置；下一題 mount 時 `populateTextareasFromDraft` (`public/app.js:7137-7157`) 把舊 draft `innerHTML` 注入新 textarea
-- **Why prior B2 fix didn't cover this**: prior fix likely handled login → fresh login path; new repro is cross-question switch within same session lifetime (qcard-confirm path)
-- **Cross-ref**: prior investigation `audit/lane-k-b2-ghost-content-investigation-2026-05-17.md`
-- **Proposed fix (待 Director 排程 — L5 還在跑同檔 app.js，避免 conflict)**:
-  ```js
-  // At qcard-confirm handler (app.js:5784), before assigning new circlesSelectedQuestion:
-  AppState.circlesFrameworkDraft = {};
-  AppState.circlesPhase1Solutions = [{},{}]; // shape per existing init
-  ```
-- **Lane note**: e2e-desktop + e2e-mobile-safari 在同一 root cause path 上 fail，但因 test infra back-nav timeout 沒抵達 ghost assertion；mobile-chrome 是乾淨 RED 證據
+下個 P0 finding 出現 → append here。
 
 ---
 
 ## §2 Active P1 Bugs
 
-### ~~P1-#256 Bug 7 已填內容消失~~ — RESOLVED 2026-05-17 (linked to P0-#263 resolution)
-- **Verdict**: Same root cause as P0-#263 (commit `654d0e8` 2026-05-16). Director cold-verified all 3 e2e projects GREEN. No separate fix needed.
+### P1-#257 Bug 8 / Master plan F-007 — ~65 hollow API specs refactor
+- **Status**: partial done (retrofit C/D/E/F + Group A V1-V8 shipped)
+- **Open**: ~65 specs partial-mock `/api/circles-sessions` list endpoint still hollow
+- **Why P1 not P0**: production code OK，但 hollow specs 不抓真 regression（P0-NEW-6 cascade 證明）
+- **Impact long-term**: 防止未來 ship 再撞同類 lifecycle-guard cascade
+- **Effort**: 8-15h wall-clock parallel (Phase B 計畫 5-7 batch × 3 lane)
+- **Cross-ref**: master plan `docs/superpowers/specs/2026-05-17-e2e-integration-coverage-master-plan.md` §7 F-007；多階段 ship plan `docs/superpowers/plans/2026-05-17-pm-multi-phase-ship-plan.md` §B
 
-### P1-#257 Bug 8 Test 沒用真用戶答案 shape — partial
-- **Verified**: retrofit C/D/E/F + Group A V1-V8 all shipped using real Supabase + service-role seed.
-- **Open**: master plan F-007 (~65 specs partial mock `/api/circles-sessions` list) still exists — pending Phase 3 fix wave per master plan §7.
-
-### P1-#264 Auth setup race — infra debt
-- **Symptom**: `tests/setup/auth.setup.js` ERR::CONNECTION_REFUSED on `page.reload` when many e2e specs run in parallel. Atomic rename fix (`313b4fd`) solved file race but server :4000 brief drops under burst load.
-- **Reproduce**: re-running circles-back-nav-lock immediately after T6 cross-vp → setup fails, 15 tests skipped.
-- **Next**: lower workers config for setup OR retry helper OR investigate server keep-alive.
-
-### P1 Plan #194 T4 TC1 happy retry timeout
-- **Production code shipped** at `87e1999` with caveat. Wire structurally correct (line 7612-7635 try/await/catch).
-- **Test fail**: TC1 timeout 60s waiting POST `/circles-sessions/:id/gate` after 503→200 retry.
-- **Hypothesis**: ensureCirclesDraftSession internal state pollution from preflight 503 silent catch (line 7099).
-- **Next**: dispatch sonnet to trace state propagation post-retry.
-
-### P1 Critical-path mobile flake (.navbar__email race)
-- **From**: Task 7 ship gate caveat (commit ab28219 post-ship report)
-- **Spec**: `tests/e2e/critical-path-full-flow.spec.js` (commit `9446ad2`) fails on e2e-mobile-chrome + e2e-mobile-safari
-- **Same root cause**: `.navbar__email` CSS-hidden on mobile breakpoint (V7 review caught same issue at earlier `c68c924`)
-- **Next**: replace `.navbar__email` selector with viewport-agnostic role-based locator (already done in V7 fix `9b41bee` — apply same pattern to critical-path)
-
-### P1 Master plan F-001 Trophy inversion
-- **From**: `audit/testing-trophy-audit-2026-05-16.md` + master plan §2
-- **State**: 95 E2E specs vs ~18 API specs vs target 60% API / 10% E2E
-- **Progress**: Group A V1-V8 added 8 real API specs; ratio improving but not at target
-- **Next**: identify ~30-40 more E2E candidates to convert to API tier per surface
+### P1 Master plan F-001 — Testing Trophy inversion
+- **Status**: Group A V1-V8 added 8 real API specs，ratio 改善但未到 60% API target
+- **Current state**: 95 E2E vs ~18 API (post Group A)
+- **Open**: identify ~30-40 more E2E candidates to convert to API tier per surface
+- **Effort**: medium-large；可隨 F-007 wave 一起做
+- **Cross-ref**: `audit/testing-trophy-audit-2026-05-16.md`
 
 ---
 
-## §3 Active P2 / Inconclusive
+## §3 Active P2 / Needs Decision
 
-### #253 Bug 3 spinner stuck — BUG CONFIRMED (2026-05-17, reclassified from INCONCLUSIVE)
-- **Root cause**: `tryResumeLatestSession` (app.js:8021-8075) sets `circlesStepScores` but does NOT derive `circlesScoreResult`. `go-phase3` handler (line 6873) only sets `circlesPhase=3; render()`. `renderCirclesPhase3` enters spinner branch when `circlesScoreResult=null` — no `evaluate-step` is ever fired. Spinner stuck forever (300s EVAL_TIMEOUT).
-- **Proposed fix**: Add `circlesScoreResult` derivation in `tryResumeLatestSession` after line 8031 — mirrors Stage 1B B3 fix already in `restoreCirclesPhase1FromSession` (line 8180). ~7 lines, zero regression risk.
-- **Deep investigation spec**: `tests/e2e/bug3-spinner-deep-investigation.spec.js` — 5 scenarios × 3 projects = **15 tests, 16/16 PASS**
-- **Audit doc**: `audit/bug3-deep-investigation-2026-05-17.md` + 35 PNG in `audit/bug3-deep/`
-- **Key PNG**: `scenario-1-slow-warn-at-60s-e2e-desktop.png` (60s slow-warn confirmed, score never rendered)
-- **Prior INCONCLUSIVE explanation**: 8s window captured cosmetic 5s interval animation, not actual evaluate-step progress.
-- **Next**: L13b Phase 2 implement proposed fix + red-green verify against S1-S2 scenarios
-
-### #254 Bug 4 offcanvas delete cache stale — NOT_REPRODUCIBLE (2026-05-17)
-- **Reproduce**: 7 scenarios all GREEN with 9-layer defense verified. Spec committed `3af488d`.
-- **Cosmetic gap noted** (`_doOffcanvasDelete` doesn't invalidate `AppState.circlesRecentSessions` → home rail stale until next `loadHistoryForRail`)
-- **Open**: user re-reproduces? Need: auth state / device / session kind / item identity. Suspect = NSM delete path (B4-E3 still skipped F-P16) or guest path.
-
-### F-P16 NSM session DELETE spec gap
-- **Status**: `offcanvas-delete.spec.js` B4-E3 marked skipped pending NSM seed helper.
-- **Risk**: NSM delete cache invalidation NOT covered by automated test.
-
-### #207 B5 decision (Stage 1C revert vs keep) pending
-- **Context**: Stage 1C qchip-panel ship (commits `f6b18fe` `a0e5531`) was superseded by chat-drift wave 1-4 (qchip-expand 4-block per Phase 1 pattern)
-- **Status**: chat-drift commit `49d00ba` already swapped Phase 2 from `renderQchipPanelHtml` to `renderQchipExpand`. Stage 1C effectively deprecated.
-- **Cleanup pending**: `renderQchipPanelHtml` (app.js:801) is now orphan, no callers. Safe to delete in cleanup commit.
+### #207 B5 decision — Stage 1C revert vs keep
+- **Needs**: user 親自決定
+- **Context**: Stage 1C qchip-panel ship (commits `f6b18fe` `a0e5531`) SUPERSEDED by chat-drift wave 1-4
+- **Recommendation**: close as superseded (chat-drift `49d00ba` 已 swap Phase 2 + L23 已 delete orphan `renderQchipPanelHtml`)
+- **Owner**: user
 
 ### #199 Trophy Step 4 — critical-path E2E
-- **Status**: master plan F-006 already partly satisfied by `9446ad2` critical-path-full-flow spec
-- **Gap**: mobile fails (see P1 above); spec doesn't yet cover Phase 1→4 fully end-to-end (Phase 3 → 4 transition may be missing)
+- **Status**: master plan F-006 partly satisfied by `9446ad2` critical-path-full-flow spec
+- **Open**: spec partial coverage Phase 1→4 (gap on Phase 3→4 transition?)
+- **Recommendation**: may overlap with task #212 critical-path E2E (completed)；可 close as duplicate
+- **Owner**: needs Director cross-verify with #212 scope
 
 ### #205 Retrofit G — delete hollow tests + test-supabase mock library
-- **From**: Trophy audit cleanup queue
-- **Effort**: medium; trail-following deletions after Retrofit C/D/E/F replaced hollow specs
+- **Status**: backlog (low priority cleanup)
+- **Trigger**: best done after F-007 wave (#257) — many hollow tests will become deletable once real api/ tier covers same surface
+- **Effort**: medium
 
-### #211 B3 retrofit C — real E2E for score restore (vm.createContext kill)
-- **Mostly done**: `72e7797` retrofit C replaced hollow B3 restore unit with real E2E. Task may be misclassified pending; verify nothing left.
+### #21 mockup 04 audit + 9 transition drift fixes
+- **Status**: paused backlog — pixel-diff against mockup baseline + 9 transition drifts
+- **Effort**: 2-4h
 
-### #174 B-Hint demand (PAUSED for Trophy reset)
-- **Context**: NSM B-Hint cluster feature on hold pending Trophy reset completion
-- **State**: Plan #193 has design + plan; impl deferred
-
----
-
-## §4 Verification Matrix (Last Run 2026-05-17 ~05:30)
-
-| Spec / Suite | Projects | Result | Commit/Notes |
-|---|---|---|---|
-| **API contract full suite** | 11 api projects | ✅ 137/137 PASS (2.8m) | Includes Group A V1-V8 + Plan #194 T1 422 guard + guest CRUD |
-| **Plan #194 T3 gate await PATCH** | 3 e2e | ✅ 50/50 × 5 runs (Re-Review APPROVED) | commit `32d348e` |
-| **Plan #194 T6 NSM evaluate checkpoint** | 3 e2e | ✅ 10/10 PASS (21.8s) | commit `87e1999` |
-| **Plan #194 T4 ensureCirclesDraftSession retry** | e2e-desktop | ⚠️ 2/3 PASS (TC1 timeout) | commit `87e1999` with caveat |
-| **circles-back-nav-lock (chat-drift Wave 2)** | 3 e2e | ✅ 16/16 PASS × 10 runs no flake (post auth fix) | commits `c3bc286` `313b4fd` `217c342` |
-| **NSM full flow critical-path** | 3 e2e | ✅ 4/4 PASS (15.5s) | commit `3512675` |
-| **Stage 1B B4 offcanvas-delete** | 3 e2e | ✅ 7 PASS / 3 skipped (B4-E3 NSM helper gap) | shipped earlier |
-| **Adversarial sweep (jest)** | jest | ✅ 20/20 PASS (28s) | AI evaluator/gate prompt quality OK |
-| **Bug 6 Phase 4 422 guard** | api | ✅ 2/2 PASS | commit `611a677` |
-| **Bug 7 Phase 3 restore (B3-R1)** | 3 e2e | ❌ 9/10 PASS — **iOS Safari FAIL** | NEW BUG (P0-#263) |
-| **Phase 2 qchip visual** | 3 desktop projects × 3 vp | ✅ 24/24 PASS (44s) | chat-drift didn't break baseline |
-| **chat-drift cross-vp re-run (post T6)** | 3 e2e | ❌ setup FAIL net::ERR_CONNECTION_REFUSED | infra race (P1-#264) |
-| **jest lifecycle contracts (RESOLVED)** | jest | ✅ 32/32 PASS (stub shape fix) | commit `[pending]` — was test fixture drift, not prod bug |
-| **jest issue-bug1-nsm-session-restore** | jest | ❌ 1 fail (sets nsmDefinition from item.user_nsm) | Investigate — likely real NSM restore bug |
-| **jest full suite** | — | 534/552 (1 remaining fail: nsm-session-restore, 17 skip) | Cleaner baseline post P0-NEW resolution |
-| **Real API lifecycle e2e (CIRCLES+NSM)** | api-lifecycle | ✅ 16/16 PASS (60s, real OpenAI) | proves production gate→gated wiring 正常 |
-| **Bug 6 bypass — RED→GREEN (L3+L5)** | api | ✅ 5/5 GREEN × 5 runs no flake | RED `95b7fd5` → fix `93b1b26` (4 BE + 4 guest + FE LEAK-5) |
-| **Bug 1 全 Y adversarial (Lane L2)** | api-gate-adversarial | ✅ 10/10 PASS × 3 runs (no flake) | `f7a43ff` — backend cleared; FE investigation pending |
-| **iOS Safari Phase 3 restore (Lane L1 verify)** | e2e-mobile-safari | ✅ 12/12 PASS × 3 runs (zero flake) + 5/5 burn-in | `654d0e8` (was stale tracker entry; fix shipped 2026-05-16) |
-| **Bug 2 ghost content repro (Lane L4)** | 3 e2e | ❌ RED on mobile-chrome Scenario C (BUG CONFIRMED) | `b266907` — fix pending (qcard-confirm reset) |
-| **jest full suite (post L5)** | jest | ✅ 535/552 (0 fail, 17 skip) | best baseline ever — was 530/552 at session start |
-| **jest issue-bug1-nsm-session-restore (test drift fix)** | jest | ✅ 17/17 PASS (was 16/17) | `f616319` |
+### #174 / #193 B-Hint cluster UI ship
+- **Status**: L28 fix lane in flight (post-restart)
+- **Will move**: §5 closed when L28 returns
 
 ---
 
-## §5 Closed Issues (recent ship audit trail)
+## §4 Verification Matrix (latest pass/fail)
 
-| Issue | Status | Commits |
+| Spec / Suite | Result | Last verified |
 |---|---|---|
-| Plan #194 T3 await fix (data loss critical) | ✅ APPROVED ship | `32d348e` + Re-Review GREEN |
-| Plan #194 T6 NSM evaluate checkpoint | ✅ APPROVED ship | `87e1999` + 10/10 cross-vp |
-| Chat-drift plan (qchip 4-block + lock-on-back) | ✅ FULLY SHIPPED end-to-end | 10 commits + push origin/main `ab28219` |
-| T5 E2E auth race fix (file-level atomic rename) | ✅ FIXED | `313b4fd` (10/10 GREEN after) — burst-load race still open as P1-#264 |
-| Bug 4 offcanvas delete | ⚠️ NOT_REPRODUCIBLE audit | `3af488d` (12 PNG evidence) |
-| Bug 5 對話練習 qchip 對齊 (Stage 1C drift) | ✅ SHIPPED via chat-drift | `49d00ba` + `34c1361` |
-| Bug 6 Phase 4 422 guard | ✅ VERIFIED | `611a677` |
-| Stage 1A Gate cluster (B1+B6) | ✅ SHIPPED | T1-T15 series |
-| Stage 1B B3 retrofit C | ✅ shipped | `72e7797` |
-| Stage 1B B4 retrofit D | ✅ shipped | `f6aeec0` |
-| Stage 1D Retrofit E (NSM hint endpoints) | ✅ shipped | `465f841` |
-| 5 P0 Retrofit F (persistRetry helper) | ✅ shipped | `837e435` / `ee9e735` / `5f6b9e2` |
-| Stage 0 B7 (pollution cleanup) | ✅ shipped | `45d0e6e`...`1ba062e` |
-| Session lifecycle state machine schema | ✅ shipped | `59b5537` `acb04e4` `2139859` |
-| CIRCLES + NSM lifecycle wire (handlers) | ✅ verified GREEN end-to-end | `a254e45` `b42aac0` + test stub fix `069986e` |
-| jest contract stub shape fix (P0-NEW resolution) | ✅ shipped — was mis-diagnosis | `069986e` |
-| iOS Safari Phase 3 restore (P0-#263 + P1-#256) | ✅ already shipped (was stale entry) | `654d0e8` (2026-05-16) — Director verified 12/12 × 3 runs |
-| Bug 6 bypass repro (Lane L3) | ✅ TDD-red spec + audit | `95b7fd5` (Phase 1 repro) |
-| Bug 6 fix bundle (Lane L5) — 8 BE + FE LEAK-5 sealed | ✅ 5/5 GREEN × 5 runs no flake | `93b1b26` |
-| Bug 1 全 Y adversarial repro (Lane L2) | ✅ backend cleared 10/10×3 | `f7a43ff` (FE investigation pending) |
-| NSM gate adversarial preventive sweep (Lane L9) | ✅ 10/10 rejected, 0 leak | `322dfa8` — NSM gate solid, mirrors L2 CIRCLES finding |
-| jest tests/circles-sessions.test.js cascade restore (Lane L8) | ✅ 62/62 file + 535/552 full jest baseline | `05025b9` — seed lifecycle='gated' in makeSession defaults |
-| jest issue-bug1-nsm-session-restore test drift | ✅ 17/17 (was 16/17) | `f616319` — production normalize 3 shapes, test relaxed |
-| Bug 2 ghost fix (Lane L11) | ✅ Scen C mobile-chrome 30/30 × 5 runs no flake + cross-vp | `c156c6b` — 7-line reset at qcard-confirm |
-| CIRCLES evaluator adversarial preventive sweep (Lane L12) | ✅ 7/7 totalScore=16 (well < 60) | `0efe786` — evaluator robust, 4 dims all min 1/5 |
-| Bug 1 FE fix F1+F2 (Lane L13) | ✅ 15/15 e2e × 3 vp + 5x consecutive 0 flake + 7 bundles GREEN | `85f0039` — F1 PERSISTED_KEYS delete + F2 phase 1.5 clip |
-| Critical-path 3 fails investigation (Lane L14, O-8 enforcement) | ✅ 2/3 fixed (V7 mobile drift) + 1 real prod bug surfaced | `2165c2a` — Fail 2+3 closed; Fail 1 = P0-NEW-3 persistRetry (fix lane L16 dispatched) |
-| Bug 1 FE fix F1+F2 (Lane L13) | ✅ 15/15 e2e × 3 vp + 5x consecutive 0 flake | `85f0039` |
-| NSM evaluator adversarial preventive sweep (Lane L15) | ✅ 7/7 max totalScore=40 < 60 | `c853d93` — 4-pillar sweep COMPLETE (L2+L9+L12+L15) |
-| Bug 3 spinner deep investigation (Lane L13b) | ✅ 16/16 setup + S1-S4 BUG CONFIRMED + S5 PASS | `13ed169` — reclassified P2→P0-NEW-4, L17 fix dispatched |
-| persistRetry + TC1 dual fix (Lane L16) | ✅ critical-path 2/2 + TC1+2+3 3/3 + 5x consecutive no flake | `91fb2ad` — closes P0-NEW-3 + Plan #194 T4 TC1 |
-| NSM bypass enumeration (Lane L18) | ❌ 2 RED leaks confirmed on /evaluate | `f441455` — P0-NEW-5 NSM-side mirror of L3 |
-| NSM /evaluate fix (Lane L19) | ✅ 4/4 × 5 runs no flake + cross-suite 21/21 GREEN | `9142eef` — closes P0-NEW-5 |
-| Bug 3 fix + spec flip (Lane L17) | ✅ 5/5 GREEN × 5 runs no flake | `2aa8fd5` (L16 prior 91fb2ad included app.js fix as scope leak) — closes P0-NEW-4 |
-| NSM seed helper + B4-E3 unblock (Lane L20) | ✅ 15/15 PASS (5 runs × 3 browsers) + no NSM delete cache leak found | `f292a22` + `961cb09` — closes O-7 + F-P16 |
-| O-9 orphan renderQchipPanelHtml cleanup (Lane L23) | ✅ 15 lines deleted, 0 callers, jest 535/552 + cross-vp 16/16 | `f2a3d58` — closes O-9 |
-| Bug 3 mobile-chrome FLAKE verified (Director 3x) | ✅ 18/18 PASS isolated runs | concurrent smoke contention, not real regression; symptom of P1-#264 auth race |
-| L25 P1-#264 fix (Supabase collision) | ✅ 3 × 16/16 burst GREEN + 5/5 consec | `1e293b3` — waitForServer + tagSessionWithPid; minor :3000 fallback flag for follow-up |
-| L26 NSM /context+/hints+/progress audit | ✅ 19/19 GREEN, 0 leak | `4bdba5b` — 3 endpoint groups SAFE by-design |
-| O-9 orphan cleanup (L23) | ✅ delete 15 lines, jest 535/552 | `f2a3d58` |
-| P0-NEW-6 5 API spec lifecycle seed fix (L24) | ✅ 5/5 GREEN + 5x consec no flake + 196/199 full API | `ca59bbd` — 1 line-174 fail was concurrent flake (isolated 3/3 PASS) |
+| **jest full** | ✅ **538/555** (best baseline ever; +8 from 530/552 session start) | post L29 `cac214c` |
+| API integration full suite | ✅ 196/199 (3 are concurrent-load flakes in nsm-context-hints-progress-coverage; isolated 19/19 PASS) | post L24 `ca59bbd` |
+| API lifecycle (CIRCLES+NSM) | ✅ 16/16 real OpenAI | post L19 |
+| circles-no-bypass | ✅ 5/5 × 5 runs no flake | post L5 |
+| nsm-no-bypass | ✅ 4/4 × 5 runs no flake | post L19 |
+| circles-back-nav-lock | ✅ 16/16 × 3 vp | post L25 |
+| circles-fe-gate-stale-state | ✅ 15/15 × 3 vp | post L13 |
+| circles-fresh-form-no-ghost (Scen C mobile-chrome) | ✅ 30/30 × 5 runs no flake | post L11 |
+| circles-phase3-restore-real | ✅ 10/10 + 50/50 × 5 runs post-L29 flake fix | post L29 `cac214c` |
+| bug3-spinner-deep-investigation | ✅ 5/5 × 5 runs no flake | post L17 |
+| 4-pillar adversarial sweep (CIRCLES gate / NSM gate / CIRCLES evaluator / NSM evaluator) | ✅ all robust; max totalScore=40 < 60 | L2 + L9 + L12 + L15 |
+| Concurrent CLI burst load (3 × 16/16) | ✅ no DB session collision | post L25 |
+| offcanvas-delete (incl B4-E3 NSM) | ✅ 15/15 (5 runs × 3 browsers) | post L20 |
+
+---
+
+## §5 Closed Issues (audit trail)
+
+### P0 ship closures (本 session 7/7)
+| # | Bug | Resolved via | Final commit |
+|---|---|---|---|
+| #251 | Bug 1 全 Y 過審 | L2 backend cleared + L10 LEAK-A + L13 F1+F2 | `85f0039` |
+| #252 | Bug 2 ghost content | L4 RED + L11 reset | `c156c6b` |
+| #255 | Bug 6 沒審核放行 | L3 RED + L5 8 BE+FE guards | `93b1b26` |
+| #263 | iOS Safari Phase 3 (P1-#256 Bug 7 同) | L1 verified already shipped | `654d0e8` (2026-05-16) |
+| P0-NEW-3 | persistRetry session-object | L14 + L16 dual fix | `91fb2ad` |
+| P0-NEW-4 | Bug 3 spinner (reclass P2→P0) | L13b RED + L16 scope-leak + L17 spec flip | `2aa8fd5` |
+| P0-NEW-5 | NSM /evaluate bypass | L18 RED + L19 fix | `9142eef` |
+| P0-NEW-6 | Cross-plan smoke 5 API spec drift | L24 lifecycle seed | `ca59bbd` |
+
+### P0 mis-diagnosis closures
+| # | Resolution |
+|---|---|
+| P0-NEW Lifecycle gate→gated | TEST FIXTURE drift not prod bug；stubs `{ok}` → `{canProceed, overallStatus}` per task #208；commit `069986e` |
+| P0-NEW-2 jest tests/circles-sessions.test.js cascade | Resolved in L5 commit `93b1b26` (3 spec updates included) + L8 makeSession seed `05025b9` |
+
+### P1 closures
+| # | Resolved via |
+|---|---|
+| P1-#256 Bug 7 已填內容消失 | Same root cause as P0-#263 commit `654d0e8` |
+| P1-#264 Auth race (reclassified Supabase DB collision) | L22 audit `36f4ba2` + L25 fix `1e293b3` — waitForServer + tagSessionWithPid scoped cleanup |
+| P1 Plan #194 T4 TC1 happy retry timeout | Same root cause as P0-NEW-3；L16 dual fix `91fb2ad` |
+| P1 Critical-path mobile flake (.navbar__email) | L14 V7 pattern applied `2165c2a` |
+
+### P2 closures
+| # | Resolved via |
+|---|---|
+| #253 Bug 3 spinner stuck | Reclass P2→P0-NEW-4，then closed via L17 `2aa8fd5` |
+| #254 Bug 4 offcanvas delete cache | NOT_REPRODUCIBLE verified (Bug 4 audit `3af488d` 7 scenarios GREEN) + L20 NSM coverage `f292a22` |
+| F-P16 NSM session DELETE spec gap | L20 unblock B4-E3 + 確認 no cache leak (`f292a22` + `961cb09`) |
+| #211 B3 retrofit C | Duplicate of #201 (commit `72e7797`) |
+
+### Plan completions (paused → done)
+| Plan | Closure |
+|---|---|
+| #190 Lifecycle plan | schema+lib+handler shipped；P0-NEW test drift closed |
+| #191 1B state/cache plan | L29 close — 8/8 tasks shipped + B3-R1 flake fix `cac214c` |
+| #192 1C Phase 2 UI plan | SUPERSEDED by chat-drift wave 1-4 + L23 orphan delete `f2a3d58` |
+| #194 5 P0 resilience plan | T1/T2/T5 pre + T3 + T6 + T4 (via L16) all shipped |
+
+### Optimization closures
+| O | Closed |
+|---|---|
+| O-7 NSM seed helper for offcanvas-delete | L20 `f292a22` + audit `961cb09` |
+| O-9 orphan renderQchipPanelHtml delete | L23 `f2a3d58` (15 lines, 0 callers verified) |
+
+### Preventive sweep audits (NEGATIVE findings — confirmed solid)
+| Lane | Audit |
+|---|---|
+| L2 CIRCLES gate adversarial 10 變體 | `f7a43ff` — 10/10 reject × 3 runs |
+| L9 NSM gate adversarial 10 變體 | `322dfa8` — 10/10 reject |
+| L12 CIRCLES evaluator adversarial 7 變體 | `0efe786` — totalScore=16 well < 60 |
+| L15 NSM evaluator adversarial 7 變體 | `c853d93` — max totalScore=40 < 60 |
+| L26 NSM /context+/hints+/progress audit | `4bdba5b` — 19/19 GREEN, 0 leak, 3 endpoint groups SAFE by-design |
 
 ---
 
 ## §6 Optimization Opportunities
 
-### O-1: Refactor ~65 specs from route.fulfill stubs → real Supabase
-- **From**: master plan §7 F-007.
-- **Impact**: more real e2e coverage, less drift risk between stub shape vs real response.
-- **Effort**: large. Tackle in batches per surface.
+### O-1 / F-007 wave — Refactor ~65 specs from route.fulfill stubs → real Supabase
+**移到 §2 P1-#257**（已 elevated 為 active P1）
 
-### O-2: Delete 5 vm.createContext app.js helper specs
-- **From**: master plan F-008.
-- **Refactor**: extract tested helpers to importable modules; replace vm.createContext with real imports.
-- **Effort**: medium. Already partially done by Retrofit C/D (`72e7797` `f6aeec0`).
+### O-2 Delete 5 vm.createContext app.js helper specs
+- Master plan F-008
+- Partly done via Retrofit C/D；待 F-007 wave 之後一起清
 
-### O-3: Unmount stale routes/prompts dead code
-- **From**: master plan F-002 + F-003.
-- **Files**: `routes/sessions.js`, `routes/guest-sessions.js`, `prompts/coach.js`, `prompts/evaluator.js`, `prompts/issue-generator.js`.
-- **Effort**: small. Pure delete after verify not mounted.
+### O-3 Unmount stale routes/prompts dead code
+- Master plan F-002 + F-003
+- Files: `routes/sessions.js`, `routes/guest-sessions.js`, `prompts/coach.js`, `prompts/evaluator.js`, `prompts/issue-generator.js`
+- Effort: small
 
-### O-4: Mockup 04 (Phase 1.5 Gate) PNG audit + 9 transition drift
-- **From**: task #21 PAUSED.
-- **Effort**: medium. Pixel-diff against mockup baseline.
+### O-4 Mockup 04 audit + 9 transition drift
+**移到 §3 #21**
 
-### O-5: Plan #194 T7/T8/T9 remaining
-- **T7**: reorg persist-retry-browser-real.spec.js → centralized persistence-resilience.spec.js
-- **T8**: adversarial edge case 5 specs
-- **T9**: final regression + cold-read 4 toast PNGs + audit doc
+### O-5 Plan #194 T7/T8/T9 remaining
+- T7 spec reorg / T8 adversarial 5 specs / T9 final regression + cold-Read 4 toast PNGs
+- Effort: medium
 
-### O-6: Bug 4 cosmetic — `_doOffcanvasDelete` invalidate `circlesRecentSessions`
-- **Identified by**: Bug 4 reproduce sonnet (audit commit `3af488d`)
-- **Impact**: home rail shows stale recent sessions briefly after delete
-- **Effort**: tiny (~3 lines)
+### O-6 Bug 4 cosmetic — `_doOffcanvasDelete` invalidate `circlesRecentSessions`
+- Identified during Bug 4 audit `3af488d`
+- Impact: home rail stale recent sessions briefly after delete
+- Effort: tiny (~3 lines)
 
-### O-7: NSM seed helper for `offcanvas-delete.spec.js` B4-E3
-- **Identified by**: F-P16 gap
-- **Effort**: small; will unblock NSM delete cache invalidation test coverage
+### O-8 jest "pre-existing fails" reclassification policy enforcement
+- Discovery: 4 lifecycle wire fails were misclassified；本 session 抓 4 個真 bug 起源於 baseline 假綠燈
+- Action: enforce policy — any NEW commit must show jest count ≥ baseline AND every fail must be tagged
+- Effort: process change, already informally enforced post-2026-05-17
 
-### O-8: jest "pre-existing fails" reclassification audit
-- **Discovery**: 4 lifecycle wire fails + 1 NSM restore fail were misclassified as "baseline acceptable" in chat-drift / Plan #194 ship gates
-- **Action**: enforce policy — any NEW commit must show jest count strictly ≥ baseline AND every fail must be tagged with task ID or explicitly acknowledged
-- **Effort**: small process; medium investigation if more "baseline" hides bugs
+### O-10 Extract `_doOffcanvasDelete` / `bindOffcanvas` from app.js
+- Note: app.js ~8200 LOC；many helpers extractable
+- Effort: large
 
-### O-9: Delete orphan `renderQchipPanelHtml` (app.js:801)
-- **Identified by**: Review-T4 qchip-expand reuse (commit `49d00ba`)
-- **Status**: dead code, zero callers after chat-drift swap
-- **Effort**: tiny (~15 lines delete)
+### O-11 Adversarial extension to remaining AI prompts
+- `circles-conclusion-check` / `circles-final-report` / `circles-coach-version` 還沒 adversarial sweep
+- 4-pillar → 7-pillar coverage
+- Effort: 2-4h (mirror L2/L9/L12/L15 pattern)
 
-### O-10: Extract `_doOffcanvasDelete` / `bindOffcanvas` / similar large fn from app.js
-- **Note**: app.js ~8200 LOC; many helpers could be extracted to `public/lib/`
-- **From**: pattern observed in retrofit C/D work
-- **Effort**: large; do in surface batches
+### O-12 L25 :3000 fallback flag
+- L25 commit `1e293b3` `auth.setup.js` waitForServer 用 `BASE_URL || 'localhost:3000'` 但專案 dev server 是 :4000
+- 一般情況 BASE_URL env 設好不會踩，但 fallback misleading
+- Effort: tiny (~1 line)
 
 ---
 
 ## §7 Paused Plans Status (#190-194)
 
-### #190 Lifecycle plan
-- **Plan**: `docs/superpowers/plans/2026-05-16-session-lifecycle-state-machine-plan.md`
-- **Shipped**: schema + lib + handler wire (`59b5537`...`892b4f4` series)
-- **Pending**: see P0-NEW gate→gated wiring bug (lifecycle handler incomplete)
-
-### #191 1B state/cache plan
-- **Plan**: `docs/superpowers/plans/2026-05-16-stage-1b-state-cache-plan.md`
-- **Shipped**: B3 + B4 ship + retrofit C/D + 1B chat surface bind
-- **Pending**: task audit for remaining sub-tasks; cross-tab cache invalidation deeper
-
-### #192 1C Phase 2 UI plan
-- **Plan**: `docs/superpowers/plans/2026-05-16-stage-1c-phase2-ui-fix-plan.md`
-- **Status**: **SUPERSEDED** by chat-drift wave 1-4 ship
-- **Cleanup**: mark task as superseded; delete orphan `renderQchipPanelHtml` (O-9)
-
-### #193 1D B-Hint cluster plan
-- **Plan**: `docs/superpowers/plans/2026-05-16-stage-1d-hint-cluster-plan.md`
-- **Shipped**: NSM hint endpoints via Retrofit E (`465f841`)
-- **Pending**: B-Hint UI ship (PAUSED #174)
-
-### #194 5 P0 resilience plan
-- **Plan**: `docs/superpowers/plans/2026-05-16-persistence-resilience-plan.md`
-- **Shipped**: T1/T2/T5 pre-existing + T3 (`32d348e`) + T6 (`87e1999`) + T4 partial
-- **Pending**: T4 TC1 diagnose, T7 spec reorg, T8 adversarial, T9 final regression
+✅ **全 closed** — 詳見 §5 plan completions。
 
 ---
 
-## §8 Update Log
-
-- **2026-05-17 ~10:50**: Director dispatch L8 + L9 並行 per user "並行並行並行" directive。**L8 = tests/circles-sessions.test.js regression resolver**（per Trophy reset + Retrofit G #205: 評估 hollow-vs-real，傾向 delete 因為 real coverage 已在 api/ tier）。**L9 = NSM gate adversarial sweep**（mirror L2 pattern for prevention）。Lane scope 設計避免撞 L5 working set（L5 持續 edit app.js + routes/*）。3 slots full: L5 + L8 + L9.
-- **2026-05-17 ~10:35**: Director main-agent **investigated 1 remaining jest fail** (`issue-bug1-nsm-session-restore.test.js:208`) — TEST DRIFT, production更 robust（normalize user_nsm 3 種 shape）vs test stale literal string-match。Surgical fix: change `toContain('AppState.nsmDefinition = item.user_nsm')` → `toContain('AppState.nsmDefinition =')`。File 17/17 PASS。**BUT full jest dropped to 514/552 — discovered L5 WIP 撞 20 條 tests/circles-sessions.test.js**。新增 P0-NEW-2 tracker entry。
-- **2026-05-17 ~10:33**: Phase 1 Lane L4 returned. P0-#252 Bug 2 ghost content **RED CONFIRMED**. Root cause: `AppState.circlesFrameworkDraft` 不在 qcard-confirm (`app.js:5784`) 重置；新題 mount populateTextareasFromDraft 注入舊 draft。Console + PNG (scenario-C-e2e-mobile-chrome) 證據鐵。Spec/audit/PNG written by sonnet. L5 fix lane 還在跑 — Bug 2 fix lane 待 L5 完才 dispatch（避免 app.js 並行編輯衝突）。
-- **2026-05-17 ~10:25**: Phase 1 Lane L1 returned DONE_WITH_CONCERNS — P0-#263 iOS Safari Phase 3 restore + P1-#256 Bug 7 are **STALE entries**, already fixed by commit `654d0e8` (2026-05-16). Director cold-verified 12/12 × 3 runs e2e-mobile-safari zero flake. Both moved to §5 closed. Diagnostic doc + traces + 7 mobile-safari frames preserved. Lanes running: L4 + L5. 1 free slot — holding for L4 (Bug 2 ghost) finding before dispatching Bug 1 FE investigation (potential code-surface overlap).
-- **2026-05-17 ~10:10**: Director 由 user 授權 "由你開單最 robust 方式"。Dispatch **L5 = Bug 6 fix bundle**（per L3 推薦方向）— 4 BE handler + FE LEAK-5 + TDD green via 已存 `tests/api/circles-no-bypass.spec.js`。Rationale: blast radius 最大，可能順帶解 Bug 1 FE root cause（待 L5 完後驗證）。Bug 1 FE investigation lane 延後。L1+L4+L5 = 3 slots full。
-- **2026-05-17 ~10:05**: Phase 1 Lane L2 returned. P0-#251 Bug 1 backend cleared — 10/10 adversarial variants ("Y", "y", "yes", "Y.", "Y。", "Y ", 混合, "好", "1", ".") rejected × 3 runs (50s + 57s + node probe). Real OpenAI gpt-4o + temperature 0.3 + JSON mode. Layer 1 字數<10 + Layer 2 敷衍 + few-shot 三重覆蓋全生效。Bug pivots to FE — candidate surfaces 4 條 + cross-ref P0-#255 LEAK-5 FE. Commit `f7a43ff`. L1/L4 still running.
-- **2026-05-17 ~09:55**: Phase 1 Lane L3 returned. P0-#255 Bug 6 RED confirmed — 4 BE leak paths (evaluate-step / message / progress.currentPhase / final-report) all return 200 with lifecycle='editing', proving gate is advisory-only at backend. + 1 FE defense gap (gate proceed handler missing canProceed double-check). Audit + spec commit `95b7fd5`. Lane L4 (Bug 2 ghost) dispatched. L1/L2 still running.
-- **2026-05-17 ~07:00**: P0-NEW lifecycle gate→gated RESOLVED. Investigation showed stub shape drift `{ok, issues}` (legacy) vs prod `{canProceed, overallStatus, items}` (post task #208). Surgical fix 2 test files. jest 534/552 (+4). Real API e2e 16/16 PASS proves production wiring correct end-to-end via real OpenAI. Master tracker reclassified.
-- **2026-05-17 ~05:30**: jest 5 fail re-audit — discovered 4 lifecycle gate→gated wiring bugs hidden as "pre-existing" (P0-NEW added). Added Bug 2 ghost re-report. Added critical-path mobile flake (P1). Added paused plans §7. Phase 2 qchip visual 24/24 PASS.
-- **2026-05-17 ~05:00**: Initial master tracker. Cap-recovery parallel verification round. Found Bug 7 iOS Safari + Auth race. Verified T3/T6/Bug 6 GREEN. Stage 1B B4 + NSM full flow + adversarial all GREEN.
-- **(future entries — append every new finding)**
-
----
-
-## §9 Cross-References (audit doc map)
+## §8 Cross-references (audit doc map)
 
 | Path | Purpose |
 |---|---|
-| `audit/findings-slice-circles-2026-05-17.md` | 20 findings on CIRCLES surfaces (master plan Phase 3 audit Lane N) |
-| `audit/findings-slice-nsm-2026-05-17.md` | 14 findings on NSM surfaces (Lane O) |
-| `audit/findings-slice-cross-2026-05-17.md` | 17 findings on Auth/Onboarding/Cross-surface (Lane P) |
-| `audit/findings-slice-edge-2026-05-17.md` | 31 findings on edge cases / race / iOS Safari (Lane Q) |
-| `audit/lane-b-test-inventory-2026-05-17.md` | full test inventory map (~210 specs classified by Trophy tier) |
-| `audit/lane-c-product-surface-map-2026-05-17.md` | 36 render fn + 57 endpoints + 20 prompts + 72 AppState fields |
-| `audit/lane-k-b2-ghost-content-investigation-2026-05-17.md` | Bug 2 ghost content investigation |
-| `audit/lane-l-b7-data-loss-vectors-2026-05-17.md` | B7 data loss vector inventory |
+| `audit/findings-slice-{circles,nsm,cross,edge}-2026-05-17.md` | 82 findings on 4 surface clusters |
+| `audit/lane-b-test-inventory-2026-05-17.md` | full test inventory (~210 specs) |
+| `audit/lane-c-product-surface-map-2026-05-17.md` | 36 render fn + 57 endpoints + 20 prompts |
+| `audit/lane-k-b2-ghost-content-investigation-2026-05-17.md` | Bug 2 prior investigation |
+| `audit/lane-l-b7-data-loss-vectors-2026-05-17.md` | B7 data loss vectors |
 | `audit/persistence-comprehensive-audit-2026-05-16.md` | Plan #194 baseline audit |
 | `audit/testing-trophy-audit-2026-05-16.md` | Trophy reset baseline |
-| `audit/bug3-reproduce/` | Bug 3 prior INCONCLUSIVE evidence (12 PNG, 8s window) |
-| `audit/bug3-deep/` + `audit/bug3-deep-investigation-2026-05-17.md` | Bug 3 BUG CONFIRMED evidence (35 PNG, 5 scenarios, 60s window) |
-| `audit/bug4-reproduce/` + `audit/bug4-reproduce-2026-05-17.md` | Bug 4 NOT_REPRODUCIBLE evidence (7 scenarios) |
-| `audit/task4-qchip-smoke/` + `audit/task4-sse-fix/` | T4 qchip-expand + SSE fix PNG evidence |
-| `audit/eyeball-circles-chat-drift-lock-2026-05-17.md` | chat-drift visual cold-Read |
-| `audit/sop-2026-05-17-circles-lock-and-qchip-uat.md` | UAT SOP for chat-drift ship |
-| `docs/superpowers/specs/2026-05-17-e2e-integration-coverage-master-plan.md` | Master plan — coverage matrix + 14 known findings F-001..F-014 |
-| `docs/superpowers/plans/2026-05-17-circles-chat-drift-and-lock-plan.md` | Chat-drift impl plan (7 tasks) |
-| `docs/superpowers/plans/2026-05-16-persistence-resilience-plan.md` | Plan #194 (5 P0 resilience) |
-| `docs/superpowers/plans/2026-05-16-real-e2e-integration-execution-plan.md` | Earlier Path 3 plan (Group A V1-V8 + Group B V9-V14) |
-| `CLAUDE.md` | live state board for chat history |
+| `audit/bug3-deep-investigation-2026-05-17.md` + `audit/bug3-deep/` | Bug 3 BUG CONFIRMED 35 PNG |
+| `audit/bug4-reproduce-2026-05-17.md` + `audit/bug4-reproduce/` | Bug 4 NOT_REPRODUCIBLE 7 scenarios |
+| `audit/diagnose-iOS-safari-phase3-restore/diagnose-2026-05-17.md` + traces | L1 iOS Safari diagnose |
+| `audit/repro-bug1-all-Y-adversarial-2026-05-17.md` | L2 adversarial sweep |
+| `audit/bug6-bypass-path-enumeration-2026-05-17.md` | L3 Bug 6 enumeration |
+| `audit/repro-bug2-ghost-content-2026-05-17.md` + PNGs | L4 Bug 2 RED evidence |
+| `audit/bug1-fe-gate-stale-state-2026-05-17.md` + `audit/bug1-fe-gate-stale/` 24 PNG | L10 LEAK-A finding |
+| `audit/critical-path-3-fails-investigation-2026-05-17.md` + `audit/L14-evidence/` | L14 critical-path triage |
+| `audit/nsm-bypass-path-enumeration-2026-05-17.md` | L18 NSM enumeration |
+| `audit/L22-auth-race-investigation-2026-05-17.md` | L22 auth race reclassification |
+| `audit/L23-orphan-cleanup-2026-05-17.md` | L23 O-9 closure |
+| `audit/L26-nsm-context-hints-progress-coverage-2026-05-17.md` | L26 negative finding |
+| `audit/L29-1b-state-cache-completion-2026-05-17.md` | L29 Stage 1B closure |
+| `audit/eyeball-2026-05-17-pm-7-p0-ship.md` | Director cold-Read for 7 P0 ship |
+| `audit/sop-2026-05-17-circles-lock-and-qchip-uat.md` | UAT SOP chat-drift |
+| `docs/superpowers/specs/2026-05-17-e2e-integration-coverage-master-plan.md` | Master plan F-001..F-014 |
+| `docs/superpowers/plans/2026-05-17-pm-multi-phase-ship-plan.md` | Multi-phase ship roadmap (A/B/C/D) |
+| `docs/superpowers/plans/2026-05-17-circles-chat-drift-and-lock-plan.md` | Chat-drift plan |
+| `docs/superpowers/plans/2026-05-16-persistence-resilience-plan.md` | Plan #194 |
+| `CLAUDE.md` | Live state board |
 
 ---
 
-## §10 Skill Citation Reference
+## §9 Skill Citation Reference
 
-All e2e specs in this tracker apply playwright-skill at `/Users/albertpeng/.claude/skills/playwright-skill/core/`:
-- `common-pitfalls.md` Pitfall 11 (no own backend mock) — strictly held; carve-out only for error-state simulation (503/timeout)
-- `common-pitfalls.md` Pitfall 14 (no module-level shared state) — per-test isolation
-- `common-pitfalls.md` Pitfall 18 (`page.evaluate` only for true JS APIs) — `window.apiFetch` + `AppState` reads
-- `common-pitfalls.md` Pitfall 19 (`test.step()` for multi-phase) — every TC wraps phases
-- `common-pitfalls.md` Pitfall 3 (role-based locators) — `getByRole` / `data-*` over CSS chain
-- `api-testing.md:783-848` (data seeding via service-role) — for stuck-state / pre-populated test data
-- `api-testing.md:1023-1166` (error response testing) — 4xx / 5xx contract assertions
-- `auth-flows.md:928-949` (API seed auth) — storageState + apiFetch in-page
-- `mobile-and-responsive.md:49-71` (device profiles) — 3 e2e projects + iOS Safari WebKit detection
-- `network-mocking.md:839-933` (intermittent failure pattern) — retry behavior verification
-- `multi-user-and-collaboration.md:27-58` (cross-tab newContext) — when applicable
-- `visual-regression.md` (toHaveScreenshot pixel-diff) — baselines + maxDiffPixelRatio 0.005
-- `assertions-and-waiting.md` (expect.poll / toBeVisible timeouts) — no `page.waitForTimeout`
+All e2e specs apply playwright-skill at `/Users/albertpeng/.claude/skills/playwright-skill/core/`:
+- `common-pitfalls.md` Pitfall 11 (no own backend mock) — carve-out only for error-state simulation
+- `common-pitfalls.md` Pitfall 14 (no module-level shared state)
+- `common-pitfalls.md` Pitfall 18 (`page.evaluate` only for true JS APIs)
+- `common-pitfalls.md` Pitfall 19 (`test.step()` for multi-phase)
+- `common-pitfalls.md` Pitfall 3 (role-based locators)
+- `api-testing.md:783-848` (data seeding via service-role)
+- `api-testing.md:1023-1166` (error response testing)
+- `auth-flows.md:928-949` (API seed auth)
+- `mobile-and-responsive.md:49-71` (device profiles)
+- `network-mocking.md:839-933` (intermittent failure pattern)
+- `multi-user-and-collaboration.md:27-58` (cross-tab newContext)
+- `visual-regression.md` (toHaveScreenshot pixel-diff)
+- `assertions-and-waiting.md` (expect.poll / toBeVisible)
 
-Per STANDING memory `feedback_e2e_integration_supreme`: 5x consecutive 0 flake gate before claiming GREEN.
-Per `feedback_playwright_skill_cited_application`: every spec cites segment + pattern name (not just file ref).
+Per STANDING `feedback_e2e_integration_supreme`: 5x consecutive 0 flake gate.
+Per `feedback_playwright_skill_cited_application`: spec cites segment + pattern name.
 Per `feedback_two_stage_review_mandatory`: spec compliance + code quality reviewer per commit.
-Per `feedback_uiux_visual_only`: Director cold-Read every PNG before approve; sonnet self-Read invalid.
+Per `feedback_uiux_visual_only`: Director cold-Read every PNG.
+Per `feedback_tracker_unresolved_hub`: §1-§3 only active；resolved → §5.
 
 ---
 
-## §11 How to Use This Tracker
+## §10 How to Use This Tracker
 
 **For Director (opus)**：
-1. Open this file first when starting any session
-2. §1-§3 = next-action queue
-3. §4 = check matrix before claiming GREEN
-4. §6-§10 = backlog + reference
-5. **Update §8 timestamp + new finding inline whenever something new surfaces**
+1. 開 session 立刻 Read §1 + §2 + §3 = action queue
+2. 新 finding → append §1-§3
+3. fix shipped → **剪貼整段 → §5**（不准留 strikethrough）
+4. §4 matrix = check before claim GREEN
 
 **For Implementers (sonnet)**：
-1. Pick from §1 / §2 by P0/P1
-2. Cite related audit slice (§9) in spec header
-3. Apply skill citations (§10) verbatim
-4. Don't claim GREEN without 5x consecutive — push back to Director if pressed
+1. Pick from §1 / §2 by priority
+2. Cite related audit slice (§8) in spec header
+3. Apply skill citations (§9) verbatim
+4. Don't claim GREEN without 5x consecutive
 
 **For User**：
-1. Read §1 + §3 for what's broken
-2. §5 for what's shipped recently
-3. §6 for queue
-4. §7 for paused work
+1. Read §1 + §2 = 真正待處理 backlog（brainstorm 起點）
+2. §3 = 需 user 決定 / 等 user 介入
+3. §5 = 已完工歷史
+4. §6 = 未來想做但非 bug
