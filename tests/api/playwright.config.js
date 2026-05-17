@@ -183,5 +183,12 @@ module.exports = defineConfig({
       name: 'api-nsm-context-hints-progress',
       testMatch: /nsm-context-hints-progress-coverage\.spec\.js$/,
     },
+    // Lane L15b — NSM evaluator adversarial sweep: 3-dim schema (post impact-removal).
+    // Verifies evaluator still rejects low-quality input after dropping impact dim.
+    // 4 variants × real OpenAI (server-to-server; page.route cannot intercept).
+    {
+      name: 'api-nsm-evaluator-3dim-adversarial',
+      testMatch: /nsm-evaluator-3dim-adversarial\.spec\.js$/,
+    },
   ],
 });

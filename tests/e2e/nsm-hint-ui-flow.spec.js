@@ -27,7 +27,6 @@ const MOCK_HINTS = {
   reach: '- 你的分子是「打開 App」還是 **完成核心動作**？\n  - 登入不等於真實消費',
   depth: '- 每 session **真正投入** 的門檻是什麼？\n  - 時長 vs 完播率',
   frequency: '- **習慣養成** 的邊界？\n  - 排除促銷高峰',
-  impact: '- NSM ↑ 如何具體帶動 **留存率**？\n  - 寫出因果鏈',
 };
 
 async function bootApp(page) {
@@ -119,20 +118,19 @@ test.describe('NSM Step 1 hint modal — Stage 1D D1', () => {
       await expect(page.locator('#nsm-hint-modal-host .modal-card')).toBeVisible({ timeout: 10_000 });
     });
 
-    await test.step('modal contains 4 labeled sections', async () => {
+    await test.step('modal contains 3 labeled sections', async () => {
       const sections = page.locator('.nsm-step1-hint-section');
-      await expect(sections).toHaveCount(4, { timeout: 10_000 });
+      await expect(sections).toHaveCount(3, { timeout: 10_000 });
 
       const labels = page.locator('.nsm-step1-hint-section__label');
       await expect(labels.nth(0)).toContainText('觸及');
       await expect(labels.nth(1)).toContainText('深度');
       await expect(labels.nth(2)).toContainText('頻率');
-      await expect(labels.nth(3)).toContainText('影響');
     });
 
     await test.step('each section has bullet list items', async () => {
       const sections = page.locator('.nsm-step1-hint-section');
-      for (let i = 0; i < 4; i++) {
+      for (let i = 0; i < 3; i++) {
         const listItems = sections.nth(i).locator('ul.example-list > li');
         await expect(listItems.first()).toBeVisible();
       }
@@ -158,7 +156,7 @@ test.describe('NSM Step 1 hint modal — Stage 1D D1', () => {
 
     await test.step('first open — 1 network request', async () => {
       await page.locator('[data-nsm-step1-hint="open"]').click();
-      await expect(page.locator('.nsm-step1-hint-section')).toHaveCount(4, { timeout: 10_000 });
+      await expect(page.locator('.nsm-step1-hint-section')).toHaveCount(3, { timeout: 10_000 });
       expect(requestCount).toBe(1);
     });
 
@@ -170,7 +168,7 @@ test.describe('NSM Step 1 hint modal — Stage 1D D1', () => {
 
     await test.step('re-open — still only 1 network request (cache hit)', async () => {
       await page.locator('[data-nsm-step1-hint="open"]').click();
-      await expect(page.locator('.nsm-step1-hint-section')).toHaveCount(4, { timeout: 5_000 });
+      await expect(page.locator('.nsm-step1-hint-section')).toHaveCount(3, { timeout: 5_000 });
       expect(requestCount).toBe(1);
     });
   });
@@ -181,7 +179,7 @@ test.describe('NSM Step 1 hint modal — Stage 1D D1', () => {
       await seedAndNavigateToStep1(page);
       await mockHintEndpoints(page);
       await page.locator('[data-nsm-step1-hint="open"]').click();
-      await expect(page.locator('.nsm-step1-hint-section')).toHaveCount(4, { timeout: 10_000 });
+      await expect(page.locator('.nsm-step1-hint-section')).toHaveCount(3, { timeout: 10_000 });
     });
 
     await test.step('click close → modal dismissed', async () => {

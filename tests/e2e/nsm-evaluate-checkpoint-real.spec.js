@@ -43,7 +43,6 @@ const SUBSTANTIVE_BREAKDOWN = {
   reach:     '每週至少訪問 Spotify 的用戶，約 3.5 億，其中 Podcast 觸及率目前 40%，即 1.4 億人',
   depth:     '播放超過 5 分鐘代表有意圖的消費行為，而非意外點擊',
   frequency: '週活躍而非月活躍，符合 Podcast 聆聽習慣，同時避免 day-of-week 偏差',
-  impact:    '與廣告收入直接相關：Podcast 廣告 CPM 是音樂的 3-5 倍，提升此指標直接增加變現效率',
 };
 
 const QUESTION_ID = 'nsm_001';
@@ -100,7 +99,7 @@ async function seedNsmSession(page) {
       explanation: '__EXP__',
       businessLink: '__BIZ__',
     };
-    window.AppState.nsmBreakdown = { reach: '', depth: '', frequency: '', impact: '' };
+    window.AppState.nsmBreakdown = { reach: '', depth: '', frequency: '' };
     return sid;
   }, { qid: QUESTION_ID, qjson: QUESTION_JSON });
 }
@@ -308,7 +307,6 @@ test.describe('NSM evaluate checkpoint + recovery — T6 RES-AC7/AC8', () => {
           reach: '每週至少訪問 Spotify 的用戶，約 3.5 億',
           depth: '播放超過 5 分鐘代表有意圖的消費行為',
           frequency: '週活躍符合 Podcast 聆聽習慣',
-          impact: 'Podcast 廣告 CPM 是音樂的 3-5 倍',
         };
         window.AppState.view = 'nsm';
         window.AppState.nsmStep = 4;

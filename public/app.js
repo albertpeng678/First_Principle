@@ -63,7 +63,7 @@
       recommendation: '',
       reasoning: '',
       nsm: '',
-      tracking: { reach: '', depth: '', frequency: '', impact: '' },
+      tracking: { reach: '', depth: '', frequency: '' },
     },
 
     // Plan B additions
@@ -93,7 +93,7 @@
     nsmSearchText: '',
     nsmTypeFilter: 'all',
     nsmDefinition: { nsm: '', explanation: '', businessLink: '' },
-    nsmBreakdown: { reach: '', depth: '', frequency: '', impact: '' },
+    nsmBreakdown: { reach: '', depth: '', frequency: '' },
     nsmExampleExpanded: {},
     nsmDimExampleExpanded: {},
     nsmContextExpanded: false,         // Step 2/3 context-card 4-block expand toggle (Gap C)
@@ -1655,7 +1655,7 @@
       +     '<div class="nsm-step3-intro__top">'
       +       '<span class="nsm-step3-intro__type nsm-step3-intro__type--' + ptype + '"><i class="ph ' + typeCfg.typeIcon + '"></i>' + escHtml(typeCfg.label) + '</span>'
       +     '</div>'
-      +     '<p>輸入指標是驅動 NSM 的<strong>領先訊號</strong>——這些指標翻倍，NSM 應該跟著成長。以下 4 個維度依 <strong>' + escHtml(typeCfg.label) + '</strong> 產品特性設計。</p>'
+      +     '<p>輸入指標是驅動 NSM 的<strong>領先訊號</strong>——這些指標翻倍，NSM 應該跟著成長。以下 3 個維度依 <strong>' + escHtml(typeCfg.label) + '</strong> 產品特性設計。</p>'
       +   '</div>'
       +   typeCfg.dims.map(function (d) { return renderNSMDim(d, br[d.id] || '', ptype); }).join('')
       + '</div>'
@@ -2220,7 +2220,6 @@
       reach:     { label: typeCfg.dims[0].label, key: '1' },
       depth:     { label: typeCfg.dims[1].label, key: '2' },
       frequency: { label: typeCfg.dims[2].label, key: '3' },
-      impact:    { label: typeCfg.dims[3].label, key: '4' },
     };
     var dimInfo = DIM_MAP[dimKey] || { label: dimKey, key: '' };
     // Bug D fix: "教練思路" = coach's actual answer (coachTree); "為什麼這樣拆解" = explanation (coachRationale)
@@ -2259,13 +2258,12 @@
         : { nsm: '', explanation: '', businessLink: '' };
     var userBreakdown = AppState.nsmBreakdown || {};
 
-    // 5 rows: NSM + 4 dims
+    // 4 rows: NSM + 3 dims
     var COMPARE_ROWS = [
       { key: 'nsm',       labelKey: 'NSM', label: '北極星指標',       yourText: userDef.nsm || '',           coachText: coachTree.nsm || '' },
       { key: 'reach',     labelKey: '1',   label: typeCfg.dims[0].label, yourText: userBreakdown.reach || '',     coachText: coachTree.reach || '' },
       { key: 'depth',     labelKey: '2',   label: typeCfg.dims[1].label, yourText: userBreakdown.depth || '',     coachText: coachTree.depth || '' },
       { key: 'frequency', labelKey: '3',   label: typeCfg.dims[2].label, yourText: userBreakdown.frequency || '', coachText: coachTree.frequency || '' },
-      { key: 'impact',    labelKey: '4',   label: typeCfg.dims[3].label, yourText: userBreakdown.impact || '',    coachText: coachTree.impact || '' },
     ];
 
     if (!isTabletPlus) {
@@ -2578,7 +2576,7 @@
         AppState.nsmEvalResult = null;
         AppState.nsmGateResult = null;
         AppState.nsmDefinition = { nsm: '', explanation: '', businessLink: '' };
-        AppState.nsmBreakdown = { reach: '', depth: '', frequency: '', impact: '' };
+        AppState.nsmBreakdown = { reach: '', depth: '', frequency: '' };
         AppState.nsmActiveCompareNode = null;
         AppState.nsmSelectedQuestion = null;
         nsmPickDisplayed(true);
@@ -2599,7 +2597,7 @@
         AppState.nsmSession = null;
         AppState.nsmSelectedQuestion = null;
         AppState.nsmDefinition = { nsm: '', explanation: '', businessLink: '' };
-        AppState.nsmBreakdown = { reach: '', depth: '', frequency: '', impact: '' };
+        AppState.nsmBreakdown = { reach: '', depth: '', frequency: '' };
         // Reset CIRCLES state so renderView() lands on home grid, not Phase 1 form
         resetCirclesToHome();
         AppState.view = 'circles';
@@ -3159,7 +3157,7 @@
       recommendation: '',
       reasoning: '',
       nsm: '',
-      tracking: { reach: '', depth: '', frequency: '', impact: '' },
+      tracking: { reach: '', depth: '', frequency: '' },
     };
     AppState.circlesExpandedQid = null;
     // Phase 3 state reset
@@ -3428,28 +3426,26 @@
         { key: '北極星指標', placeholder: 'NSM 定義含行為門檻 / 為什麼能反映成效',               rows: 2 },
       ],
       trackingDimsByType: {
-        attention:   { reach: '觸及廣度', depth: '互動深度', frequency: '習慣頻率', impact: '留存驅力' },
-        transaction: { reach: '供給廣度', depth: '需求深度', frequency: '匹配效率', impact: '復購留存' },
-        creator:     { reach: '創造廣度', depth: '成果品質', frequency: '採用廣度', impact: '商業轉化' },
-        saas:        { reach: '啟用廣度', depth: '席次深度', frequency: '黏著頻率', impact: '擴張信號' },
+        attention:   { reach: '觸及廣度', depth: '互動深度', frequency: '習慣頻率' },
+        transaction: { reach: '供給廣度', depth: '需求深度', frequency: '匹配頻率' },
+        creator:     { reach: '創造廣度', depth: '成果品質', frequency: '採用頻率' },
+        saas:        { reach: '啟用廣度', depth: '席次深度', frequency: '黏著頻率' },
       },
       trackingPlaceholders: {
         reach: '例：MAU ≥ 1.2M',
         depth: '例：avg 25 min/session',
         frequency: '例：65% 用戶 weekly ≥ 3 days',
-        impact: '例：70% retention',
       },
       trackingSubsByType: {
         attention: {
           reach: '每月至少播放 1 首歌的 MAU 數',
           depth: '每 session 平均聆聽時長（分鐘）',
           frequency: '每週使用 ≥ 3 天的用戶佔比',
-          impact: '擁有 ≥ 5 首收藏歌曲的 30 日留存率',
         },
       },
       railTitle: 'S 步重點',
-      railIntro: '總結推薦 + NSM + 4 維度追蹤',
-      railBody: '推薦方案要可操作，NSM 必須含「行為門檻 + 為什麼能反映成效」。4 維度排除虛榮指標。',
+      railIntro: '總結推薦 + NSM + 3 維度追蹤',
+      railBody: '推薦方案要可操作，NSM 必須含「行為門檻 + 為什麼能反映成效」。3 維度排除虛榮指標。',
       railTitle2: '產業類型動態 label',
       railBody2Dynamic: true, // rendered with type substitution
     },
@@ -3494,7 +3490,6 @@
       reach:     ['廣度', '觸及', '啟用', '覆蓋', '影響範圍', 'reach'],
       depth:     ['深度', '互動', '席次', '專注', 'depth'],
       frequency: ['頻率', '習慣', '黏著', 'frequency'],
-      impact:    ['留存', '影響', '驅力', '擴張', 'impact', 'MAU', '業務']
     };
     var markers = dimMarkers[dimKey] || [];
     var lines = md.split('\n');
@@ -4151,7 +4146,7 @@
   }
 
   // ── NSM Step 3 Hint Modal — mirrors openNSMStep2HintModal ──────────────────
-  // Params: dimId (reach/depth/frequency/impact), dimType (attention/saas/…)
+  // Params: dimId (reach/depth/frequency), dimType (attention/saas/…)
   var _nsmStep3HintCache = {};
   var _nsmStep3HintAbortController = null;
 
@@ -4294,7 +4289,7 @@
   }
 
   // ── NSM Step 1 Hint Modal — 4-dimension teach modal (Stage 1D D1) ──────────
-  var _nsmStep1HintCache = {};          // key: questionId → JSON {reach, depth, frequency, impact}
+  var _nsmStep1HintCache = {};          // key: questionId → JSON {reach, depth, frequency}
   var _nsmStep1HintAbortController = null;
 
   function _renderNSMStep1HintModalShell(bodyHtml, isLoading, isError) {
@@ -4329,7 +4324,6 @@
       { id: 'reach',     label: '觸及 reach' },
       { id: 'depth',     label: '深度 depth' },
       { id: 'frequency', label: '頻率 frequency' },
-      { id: 'impact',    label: '影響 impact' },
     ];
     return dims.map(function (d) {
       var v = (hints && hints[d.id]) || '';
@@ -4973,10 +4967,10 @@
         + '</div>';
     });
 
-    // tracking-section with 4 tracking-cards
-    var dimKeys = ['reach', 'depth', 'frequency', 'impact'];
-    var dimNums = ['01', '02', '03', '04'];
-    var dimEnLabels = { reach: 'reach', depth: 'depth', frequency: 'frequency', impact: 'impact' };
+    // tracking-section with 3 tracking-cards
+    var dimKeys = ['reach', 'depth', 'frequency'];
+    var dimNums = ['01', '02', '03'];
+    var dimEnLabels = { reach: 'reach', depth: 'depth', frequency: 'frequency' };
     var trackingCardsHtml = '';
     dimKeys.forEach(function (dimKey, i) {
       var dimZh = dimLabels[dimKey];
@@ -5007,7 +5001,7 @@
     var industry = (q && q.industry) ? q.industry : '';
 
     var trackingSectionHtml = '<div class="tracking-section">'
-      + '<h3 class="tracking-section__head">追蹤指標 · 4 個維度</h3>'
+      + '<h3 class="tracking-section__head">追蹤指標 · 3 個維度</h3>'
       + '<div class="tracking-grid">' + trackingCardsHtml + '</div>'
       + '</div>';
 
@@ -5955,7 +5949,7 @@
         AppState.nsmSession = null;
         AppState.nsmSelectedQuestion = null;
         AppState.nsmDefinition = { nsm: '', explanation: '', businessLink: '' };
-        AppState.nsmBreakdown = { reach: '', depth: '', frequency: '', impact: '' };
+        AppState.nsmBreakdown = { reach: '', depth: '', frequency: '' };
         render();
       });
     }
@@ -6011,7 +6005,6 @@
         { id: 'reach',     label: '觸及廣度', desc: '有多少用戶真正觸碰到核心功能（非僅登入）',     coachQ: 'AHA 時刻是什麼動作？做到這個動作的人有多少？',           hint: '' },
         { id: 'depth',     label: '互動深度', desc: '每位用戶每次使用的品質與投入程度',             coachQ: '用戶停得夠深嗎？時長、完播率、互動次數哪個更能反映價值？', hint: '' },
         { id: 'frequency', label: '習慣頻率', desc: '用戶是否形成定期回訪的使用習慣',               coachQ: '每週/每月回來幾次？DAU/MAU 比越高代表黏性越強',           hint: '' },
-        { id: 'impact', label: '留存驅力', desc: '什麼讓用戶持續回訪而非逐漸流失',               coachQ: '社交關係？個人化推薦？收藏習慣？找出最強的留存槓桿',     hint: '' },
       ],
     },
     transaction: {
@@ -6021,8 +6014,7 @@
       dims: [
         { id: 'reach',     label: '供給廣度', desc: '有多少符合需求的供給方在平台',                 coachQ: '供給端的廣度與覆蓋率是否充足？',                         hint: '' },
         { id: 'depth',     label: '需求深度', desc: '每筆需求的訂單規模與複雜度',                   coachQ: '單筆訂單金額或訂單複雜度是否能反映價值？',               hint: '' },
-        { id: 'frequency', label: '匹配效率', desc: '需求成功匹配到供給的速度與比例',               coachQ: '從搜尋到成交的轉換率與時間？',                           hint: '' },
-        { id: 'impact', label: '復購留存', desc: '完成首次交易後再次回購的比例',                 coachQ: '哪一段時間內復購比例最能反映平台健康？',                 hint: '' },
+        { id: 'frequency', label: '匹配頻率', desc: '需求成功匹配到供給的速度與比例',               coachQ: '從搜尋到成交的轉換率與時間？',                           hint: '' },
       ],
     },
     creator: {
@@ -6032,8 +6024,7 @@
       dims: [
         { id: 'reach',     label: '創造廣度', desc: '有多少創作者持續產出內容',                     coachQ: '活躍創作者數與內容產出量哪個更代表平台活力？',           hint: '' },
         { id: 'depth',     label: '成果品質', desc: '創作者產出內容的品質與互動量',                 coachQ: '每件作品平均互動量、停留時間怎樣最能反映品質？',         hint: '' },
-        { id: 'frequency', label: '採用廣度', desc: '創作者作品被消費端採用的比例',                 coachQ: '消費者觸及創作者作品的比例與深度？',                     hint: '' },
-        { id: 'impact', label: '商業轉化', desc: '創作行為轉化為持續商業價值的能力',             coachQ: '創作者收入或商業轉化指標如何衡量？',                     hint: '' },
+        { id: 'frequency', label: '採用頻率', desc: '創作者作品被消費端採用的比例',                 coachQ: '消費者觸及創作者作品的比例與深度？',                     hint: '' },
       ],
     },
     saas: {
@@ -6044,7 +6035,6 @@
         { id: 'reach',     label: '啟用廣度', desc: '新客戶中有多少真正完成啟用',                   coachQ: '注意是 activation，不是 signup——誰真正跑完了核心工作流？', hint: '' },
         { id: 'depth',     label: '席次深度', desc: '每個帳號內有多少人在真正使用核心功能',           coachQ: '企業付費，但有幾個人實際在用？席次利用率多高？',             hint: '席次利用率拆法：分母用「已開通席次數」、分子用「過去 30 天有登入並完成核心動作的人數」。注意排除 admin、IT、純 viewer 角色 — 那些是「被動觀察」非「主動使用」。例如：100 席的客戶若 60 人活躍，席次利用率 = 60%；低於 40% 通常代表續約風險。' },
         { id: 'frequency', label: '黏著頻率', desc: '使用頻率是否顯示產品已嵌入日常工作流',           coachQ: '每天都用 vs 偶爾用——是剛需工具嗎？DAU/MAU 比多高？',         hint: '' },
-        { id: 'impact', label: '擴張信號', desc: '現有客戶是否在增加使用',                         coachQ: 'NRR > 100% 代表客戶在擴張——多少比例帳號在 90 天內擴展？',   hint: '' },
       ],
     },
   };
@@ -8143,7 +8133,7 @@
         } else {
           AppState.nsmDefinition = { nsm: '', explanation: '', businessLink: '' };
         }
-        AppState.nsmBreakdown = latest.user_breakdown || { reach: '', depth: '', frequency: '', impact: '' };
+        AppState.nsmBreakdown = latest.user_breakdown || { reach: '', depth: '', frequency: '' };
         AppState.nsmEvalResult = latest.scores_json || null;
         var _prog = latest.progress_json || {};
         var _s = latest.scores_json && Object.keys(latest.scores_json).length > 0;
@@ -8275,7 +8265,7 @@
           } else if (_rawNsm6 && typeof _rawNsm6 === 'object') {
             AppState.nsmDefinition = { nsm: _rawNsm6.nsm || '', explanation: _rawNsm6.explanation || '', businessLink: _rawNsm6.businessLink || '' };
           }
-          AppState.nsmBreakdown = _latestNsm.user_breakdown || { reach: '', depth: '', frequency: '', impact: '' };
+          AppState.nsmBreakdown = _latestNsm.user_breakdown || { reach: '', depth: '', frequency: '' };
           AppState.nsmEvalResult = _latestNsm.scores_json || null;
           // Smart step routing — mirrors loadCirclesSessionFromHistory NSM branch
           var _ns6scored = _latestNsm.scores_json && Object.keys(_latestNsm.scores_json).length > 0;
@@ -8400,7 +8390,7 @@
       } else {
         AppState.nsmDefinition = { nsm: '', explanation: '', businessLink: '' };
       }
-      AppState.nsmBreakdown = item.user_breakdown || { reach: '', depth: '', frequency: '', impact: '' };
+      AppState.nsmBreakdown = item.user_breakdown || { reach: '', depth: '', frequency: '' };
       AppState.nsmEvalResult = item.scores_json || null;
       // Bug 1 fix (2026-05-11): smart routing per spec — restore lands at
       // the saved checkpoint inferred from session data presence.
@@ -8441,7 +8431,7 @@
         } else {
           AppState.nsmDefinition = { nsm: '', explanation: '', businessLink: '' };
         }
-        AppState.nsmBreakdown = full.user_breakdown || { reach: '', depth: '', frequency: '', impact: '' };
+        AppState.nsmBreakdown = full.user_breakdown || { reach: '', depth: '', frequency: '' };
         AppState.nsmEvalResult = full.scores_json || null;
         // Block 3: update progress_json fields from full fetch
         if (full.progress_json) {
