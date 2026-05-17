@@ -109,6 +109,19 @@ async function seedStepScores(sessionId, steps) {
   if (error) throw new Error(`seedStepScores failed: ${error.message}`);
 }
 
+/**
+ * Set lifecycle='gated' via service-role.
+ * L5 fix (P0-#255): /final-report now requires lifecycle='gated' or 'completed'.
+ * Seed via service-role to bypass /gate (which is not under test here).
+ */
+async function setLifecycleGated(sessionId) {
+  const { error } = await adminDb
+    .from('circles_sessions')
+    .update({ lifecycle: 'gated' })
+    .eq('id', sessionId);
+  if (error) throw new Error(`setLifecycleGated failed: ${error.message}`);
+}
+
 // ── setup ────────────────────────────────────────────────────────────────────
 
 test.beforeAll(async () => {
@@ -130,6 +143,10 @@ test.describe('CIRCLES /final-report contract — F-N-003', () => {
   // Per api-testing.md 1095-1102: test unprocessable-entity class errors.
   test('400 when step_scores < 7 (F-N-003 guard — cited routes/circles-sessions.js:387)', async ({ request, cleanupTracker }) => {
     const session = await createDraftSession(request, cleanupTracker);
+
+    // L5 fix (P0-#255): set lifecycle='gated' so lifecycle guard passes;
+    // we are testing the incomplete_steps guard, not the lifecycle guard.
+    await setLifecycleGated(session.id);
 
     // Seed only 3 of 7 steps — deliberate incomplete set
     await seedStepScores(session.id, ['C1', 'I', 'R']);
@@ -159,6 +176,9 @@ test.describe('CIRCLES /final-report contract — F-N-003', () => {
     test.slow(); // generateFinalReport calls real OpenAI — allow extra time
 
     const session = await createDraftSession(request, cleanupTracker);
+
+    // L5 fix (P0-#255): set lifecycle='gated' before /final-report (lifecycle guard required)
+    await setLifecycleGated(session.id);
 
     // Seed all 7 step_scores via service-role (no evaluate-step OpenAI calls needed)
     await seedStepScores(session.id, ALL_STEPS);

@@ -171,6 +171,30 @@ async function seedStepScores(pageRequest, sessionId, stepScores) {
   }
 }
 
+// ── seedLifecycleGated: set lifecycle='gated' via Supabase REST (data seeding) ──
+// L5 fix (P0-#255): /evaluate-step now requires lifecycle='gated' or 'completed'.
+// Seed via service-role to bypass /gate for tests that are NOT testing the lifecycle guard.
+async function seedLifecycleGated(pageRequest, sessionId) {
+  if (!SUPABASE_URL || !SERVICE_KEY) {
+    throw new Error('seedLifecycleGated: SUPABASE_URL + SUPABASE_SERVICE_ROLE_KEY required');
+  }
+  const url = `${SUPABASE_URL}/rest/v1/circles_sessions?id=eq.${sessionId}`;
+  const res = await pageRequest.patch(url, {
+    headers: {
+      'apikey': SERVICE_KEY,
+      'Authorization': `Bearer ${SERVICE_KEY}`,
+      'Content-Type': 'application/json',
+      'Prefer': 'return=minimal',
+    },
+    data: { lifecycle: 'gated' },
+  });
+  const status = res.status();
+  if (status !== 204 && status !== 200) {
+    const body = await res.text();
+    throw new Error(`seedLifecycleGated: Supabase PATCH returned ${status}. Body: ${body}`);
+  }
+}
+
 // ── triggerRealRestore: real GET via window._loadCirclesSessionItem ─────────
 async function triggerRealRestore(page, sessionId, drillStep) {
   await page.waitForFunction(
@@ -314,8 +338,11 @@ test.describe('CIRCLES back-nav lock + qchip 4-block — AC-5 (spec b2ca935)', (
         sessionId = await createDraftSession(page, { questionId: questionForTest(testInfo), drillStep: STEP.TC2 });
       });
 
-      await test.step(`seed step_scores[${STEP.TC2}] via Supabase REST`, async () => {
+      await test.step(`seed step_scores[${STEP.TC2}] + lifecycle='gated' via Supabase REST`, async () => {
+        // L5 fix (P0-#255): lifecycle='gated' required for /evaluate-step. Seed both
+        // step_scores and lifecycle so we reach the 422 step_already_scored guard.
         await seedStepScores(page.request, sessionId, { [STEP.TC2]: fixtureStepScore() });
+        await seedLifecycleGated(page.request, sessionId);
       });
 
       await test.step('in-page apiFetch POST /evaluate-step → expect 422 step_already_scored', async () => {

@@ -7545,6 +7545,12 @@
             console.warn('[gate] phase transition blocked — gate inflight, target=2');
             return;
           }
+          // L5 defense-in-depth (P0-#255): verify canProceed before phase advance
+          var gr = AppState.circlesGateResult;
+          if (!gr || gr.canProceed !== true || (gr.overallStatus !== 'ok' && gr.overallStatus !== 'warn')) {
+            console.warn('[bindCirclesGate] proceed blocked — invalid gate state', gr);
+            return;
+          }
           AppState.circlesPhase = 2;
           clearGateState();
           render();

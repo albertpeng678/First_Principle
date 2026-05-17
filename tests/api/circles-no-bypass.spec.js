@@ -139,7 +139,7 @@ test.describe('CIRCLES gate bypass attempts — must be rejected', () => {
   //
   // api-testing.md:1023-1166: assert 4xx; 2xx = bug evidence.
   // TDD-red: this test FAILS (returns 200 or 500) until the guard is added.
-  test('T-BYPASS-1: POST /evaluate-step on editing session → must be 4xx, not 200 (LEAK-1)', async ({ request, cleanupTracker }) => {
+  test('T-BYPASS-1: POST /evaluate-step on editing session → must be 403 (LEAK-1)', async ({ request, cleanupTracker }) => {
     // Seed: draft session → set lifecycle='editing' (no gate pass)
     const session = await createDraftSession(request, cleanupTracker);
     await setLifecycleEditing(session.id);
@@ -160,17 +160,16 @@ test.describe('CIRCLES gate bypass attempts — must be rejected', () => {
     const status = evalRes.status();
     const body = await evalRes.json().catch(() => ({}));
 
-    // TDD-red assertion: guard should reject with >= 400.
-    // If 200 is returned → LEAK confirmed (P0-#255 evidence).
-    // If 500 is returned → could be OpenAI failure (not a guard), still not a proper 4xx guard.
+    // Guard should reject with 403 gate_required.
     if (status === 200) {
       // BUG CONFIRMED: evaluate-step accepted without gate pass
       console.error('[T-BYPASS-1] BUG: evaluate-step returned 200 with lifecycle=editing (no gate). body:', JSON.stringify(body).slice(0, 200));
     }
     expect(
       status,
-      `T-BYPASS-1 LEAK: /evaluate-step returned ${status} without prior gate pass. Expected >= 400. Body: ${JSON.stringify(body)}`
-    ).toBeGreaterThanOrEqual(400);
+      `T-BYPASS-1 LEAK: /evaluate-step returned ${status} without prior gate pass. Expected 403. Body: ${JSON.stringify(body)}`
+    ).toBe(403);
+    expect(body).toMatchObject({ error: 'gate_required' });
   });
 
   // ── T-BYPASS-2: POST /message without prior gate pass ────────────────────
@@ -183,7 +182,7 @@ test.describe('CIRCLES gate bypass attempts — must be rejected', () => {
   // initial HTTP response status code — if the guard is absent the server returns
   // 200 with text/event-stream header before streaming anything.
   // Per api-testing.md:1023-1166: a guard must reject at the HTTP status level.
-  test('T-BYPASS-2: POST /message on editing session → must be 4xx, not 200 (LEAK-2)', async ({ request, cleanupTracker }) => {
+  test('T-BYPASS-2: POST /message on editing session → must be 403 (LEAK-2)', async ({ request, cleanupTracker }) => {
     const session = await createDraftSession(request, cleanupTracker);
     await setLifecycleEditing(session.id);
 
@@ -206,8 +205,10 @@ test.describe('CIRCLES gate bypass attempts — must be rejected', () => {
 
     expect(
       status,
-      `T-BYPASS-2 LEAK: /message returned ${status} without prior gate pass. Expected >= 400.`
-    ).toBeGreaterThanOrEqual(400);
+      `T-BYPASS-2 LEAK: /message returned ${status} without prior gate pass. Expected 403.`
+    ).toBe(403);
+    const body2 = await msgRes.json().catch(() => ({}));
+    expect(body2).toMatchObject({ error: 'gate_required' });
   });
 
   // ── T-BYPASS-3: PATCH /progress with currentPhase=2 without gate pass ────
@@ -220,7 +221,7 @@ test.describe('CIRCLES gate bypass attempts — must be rejected', () => {
   // This is a data integrity bypass: even if BE correctly gates /message and /evaluate-step,
   // PATCH /progress can write current_phase=2/3 which the FE reads on reload
   // to show the wrong phase UI, bypassing the visible gate.
-  test('T-BYPASS-3: PATCH /progress currentPhase=2 on editing session → must be 4xx (LEAK-3)', async ({ request, cleanupTracker }) => {
+  test('T-BYPASS-3: PATCH /progress currentPhase=2 on editing session → must be 403 (LEAK-3)', async ({ request, cleanupTracker }) => {
     const session = await createDraftSession(request, cleanupTracker);
     await setLifecycleEditing(session.id);
 
@@ -249,8 +250,9 @@ test.describe('CIRCLES gate bypass attempts — must be rejected', () => {
 
     expect(
       status,
-      `T-BYPASS-3 LEAK: PATCH /progress accepted currentPhase=2 with lifecycle=editing. Expected >= 400. Body: ${JSON.stringify(body)}`
-    ).toBeGreaterThanOrEqual(400);
+      `T-BYPASS-3 LEAK: PATCH /progress accepted currentPhase=2 with lifecycle=editing. Expected 403. Body: ${JSON.stringify(body)}`
+    ).toBe(403);
+    expect(body).toMatchObject({ error: 'gate_required_for_phase_advance' });
   });
 
   // ── T-BYPASS-4: POST /final-report with seeded step_scores, no gate pass ──
@@ -262,7 +264,7 @@ test.describe('CIRCLES gate bypass attempts — must be rejected', () => {
   //
   // Scenario: attacker seeds step_scores via LEAK-1 or service-role, then calls
   // /final-report without ever passing /gate.
-  test('T-BYPASS-4: POST /final-report with seeded scores, editing lifecycle → must be 4xx (LEAK-4)', async ({ request, cleanupTracker }) => {
+  test('T-BYPASS-4: POST /final-report with seeded scores, editing lifecycle → must be 403 (LEAK-4)', async ({ request, cleanupTracker }) => {
     // Seed: draft session + editing lifecycle + all 7 step_scores (no gate)
     const session = await createDraftSession(request, cleanupTracker);
     await setLifecycleEditing(session.id);
@@ -289,21 +291,26 @@ test.describe('CIRCLES gate bypass attempts — must be rejected', () => {
       console.error('[T-BYPASS-4] BUG: /final-report returned 200 with lifecycle=editing (no gate). step_scores were seeded but gate never passed.');
     }
 
+    const body4 = await finalRes.json().catch(() => ({}));
     expect(
       status,
-      `T-BYPASS-4 LEAK: /final-report returned ${status} without prior gate pass. Expected >= 400.`
-    ).toBeGreaterThanOrEqual(400);
+      `T-BYPASS-4 LEAK: /final-report returned ${status} without prior gate pass. Expected 403. Body: ${JSON.stringify(body4)}`
+    ).toBe(403);
+    expect(body4).toMatchObject({ error: 'gate_required' });
   });
 
-  // ── T-BYPASS-5 (control): POST /final-report without step_scores still → 400 ──
+  // ── T-BYPASS-5 (control): POST /final-report without step_scores + editing lifecycle → 403 ──
   //
-  // Verifies the EXISTING incomplete_steps guard still works (regression control).
+  // L5 fix (P0-#255): lifecycle guard fires BEFORE incomplete_steps guard.
+  // With lifecycle='editing' and no step_scores, the 403 gate_required fires first.
+  // The incomplete_steps guard remains intact for sessions with lifecycle='gated'/'completed'
+  // but fewer than 7 step_scores — that path is protected by the prior gate requirement.
   // Per crud-testing.md "Standard CRUD": always include a passing control alongside
   // the bypass attempt tests to confirm the fixture setup is correct.
-  test('T-BYPASS-5 (control): existing incomplete_steps guard still returns 400', async ({ request, cleanupTracker }) => {
+  test('T-BYPASS-5 (control): lifecycle gate fires before incomplete_steps → 403', async ({ request, cleanupTracker }) => {
     const session = await createDraftSession(request, cleanupTracker);
     await setLifecycleEditing(session.id);
-    // No step_scores seeded — existing guard should reject
+    // No step_scores seeded — lifecycle guard fires first (before incomplete_steps)
 
     const headers = await authHeaders();
     const finalRes = await request.post(
@@ -311,10 +318,10 @@ test.describe('CIRCLES gate bypass attempts — must be rejected', () => {
       { headers, data: {} }
     );
 
-    // This SHOULD already return 400 (existing guard at circles-sessions.js:397-399)
-    expect(finalRes.status()).toBe(400);
+    // L5: lifecycle guard fires first → 403 gate_required (lifecycle='editing')
+    expect(finalRes.status()).toBe(403);
     const body = await finalRes.json();
-    expect(body).toMatchObject({ error: 'incomplete_steps' });
+    expect(body).toMatchObject({ error: 'gate_required' });
   });
 
 });

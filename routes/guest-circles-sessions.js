@@ -209,6 +209,10 @@ router.post('/:id/message', requireGuestId, async (req, res) => {
     .eq('guest_id', req.guestId)
     .single();
   if (error || !session) return res.status(404).json({ error: 'not_found' });
+  // L5 lifecycle gate guard (P0-#255): Phase 2 SSE requires gate pass
+  if (!['gated', 'completed'].includes(session.lifecycle)) {
+    return res.status(403).json({ error: 'gate_required', message: 'Session must pass gate before proceeding.' });
+  }
 
   res.setHeader('Content-Type', 'text/event-stream');
   res.setHeader('Cache-Control', 'no-cache');
@@ -250,6 +254,10 @@ router.post('/:id/evaluate-step', requireGuestId, async (req, res) => {
     .eq('guest_id', req.guestId)
     .single();
   if (error || !session) return res.status(404).json({ error: 'not_found' });
+  // L5 lifecycle gate guard (P0-#255): scoring requires gate pass
+  if (!['gated', 'completed'].includes(session.lifecycle)) {
+    return res.status(403).json({ error: 'gate_required', message: 'Session must pass gate before proceeding.' });
+  }
   try {
     const { result } = await runEvaluateStep({
       session,
@@ -292,6 +300,21 @@ router.patch('/:id/progress', requireGuestId, async (req, res) => {
   let priorSession = { lifecycle: 'created' }; // default; overwritten by fetches below
   let lifecycleFetched = false;
 
+  // L5 lifecycle gate guard (P0-#255): currentPhase > 1 requires gate pass
+  if (currentPhase !== undefined && currentPhase > 1) {
+    const { data: phaseGuardSession } = await db
+      .from('circles_sessions')
+      .select('lifecycle')
+      .eq('id', req.params.id)
+      .eq('guest_id', req.guestId)
+      .maybeSingle();
+    if (!phaseGuardSession) return res.status(404).json({ error: 'not_found' });
+    if (!['gated', 'completed'].includes(phaseGuardSession.lifecycle)) {
+      return res.status(403).json({ error: 'gate_required_for_phase_advance', message: 'Phase advance requires gate pass.' });
+    }
+    priorSession = phaseGuardSession;
+    lifecycleFetched = true;
+  }
   if (currentPhase   !== undefined) patch.current_phase    = currentPhase;
   if (simStepIndex   !== undefined) patch.sim_step_index   = simStepIndex;
   if (frameworkDraft !== undefined) patch.framework_draft  = frameworkDraft;
@@ -366,6 +389,10 @@ router.post('/:id/final-report', requireGuestId, async (req, res) => {
     return res.status(500).json({ error: 'db_error' });
   }
   if (!session) return res.status(404).json({ error: 'not_found' });
+  // L5 lifecycle gate guard (P0-#255): final-report requires gate pass (fires before incomplete_steps)
+  if (!['gated', 'completed'].includes(session.lifecycle)) {
+    return res.status(403).json({ error: 'gate_required', message: 'Session must pass gate before proceeding.' });
+  }
   if (!session.step_scores || Object.keys(session.step_scores).length < 7) {
     return res.status(400).json({ error: 'incomplete_steps' });
   }
