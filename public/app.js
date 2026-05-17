@@ -8546,6 +8546,10 @@
       try {
         const resp = await window.apiFetch(path, { method: 'DELETE' });
         if (!resp || (!resp.ok && resp.status !== 404)) throw new Error('delete-failed-' + (resp && resp.status));
+        // B10 / O-6: invalidate circlesRecentSessions cache so the home rail
+        // re-fetches on next render and no longer shows the deleted session.
+        AppState.circlesRecentSessions = null;
+        render();
       } catch (_err) {
         AppState.historyList = __originalList;
         AppState._resumeToastMsg = '刪除失敗，請再試一次';

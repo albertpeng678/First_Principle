@@ -2,7 +2,7 @@
 
 > **Single source of truth for ACTIVE unresolved issues.** Per STANDING `feedback_tracker_unresolved_hub`: §1-§3 only list真正待處理 items；resolved 立即剪貼移 §5。User 掃 §1-§3 = brainstorming 清單。
 >
-> **Last updated:** 2026-05-17 PM Taipei — full refactor per new STANDING
+> **Last updated:** 2026-05-17 PM Taipei — Wave 1 Phase 1 ship: B10 O-6 commit; C-T1 / C-T2 / B6 findings in §2-§3 awaiting Phase 1B user decision
 > **Update protocol:** new finding → append §1-§3；fix shipped → cut & paste 整段 → §5 with commit + verify。**禁留 ~~strikethrough~~ 在 §1-§3**。
 > **Read order**: §1 → §2 → §3 → §6 → §7。歷史 audit trail 看 §5 / §9。
 
@@ -15,6 +15,79 @@
 ---
 
 ## §2 Active P1 Bugs
+
+### C-T2 finding: NSM 99.9% conversion 線上資料深挖 (2026-05-17 PM)
+**Source**: Phase 1 C-T2 task per PATH-2-HANDOFF.md §A.5
+**Script**: `scripts/audit-nsm-conversion-funnel.js` (read-only, service-role)
+
+**Live Supabase snapshot** (2026-05-17T11:12:15Z, total 6509 rows):
+
+| lifecycle | count | % |
+|---|---|---|
+| created | 6508 | 99.98% |
+| gated | 1 | 0.02% |
+| editing | 0 | 0% |
+| completed | 0 | 0% |
+
+**資料組成拆解**（關鍵：不能直接用 lifecycle=created 推轉換率）:
+
+| 類型 | 行數 | 說明 |
+|---|---|---|
+| q3 (Slack) 題目 — 全為空殼 | 5,487 (84%) | 全是 guest 每次點 q3 卡片立刻觸發 `ensureNsmDraftSession()` 建立，但 0 個用戶填了任何文字；`created_at ≈ updated_at < 2秒`，是 UX 設計導致的噪音 session |
+| E2E/director walk 測試帳號 (4501e548) | 124 (2%) | question_id=nsm_001；非真實用戶 |
+| 真實用戶 session（其餘） | ~898 (14%) | 含 guest 點各題卡片後離開 (empty {})；只有 2 個真人實際填了 NSM 內容 |
+
+**Per-step completion (真實人類 + 去污染)**:
+
+| 步驟 | Count | % of total | 說明 |
+|---|---|---|---|
+| S1 — 選題（session 建立）| 6,509 | 100% | 點卡片就建 session，無法區分「真的要練」vs「誤觸」 |
+| S2 — 填 NSM 定義 | ~21 (all data) | 0.3% | 其中 ~8 筆是 e2e 汙染；真實 = 3 人（2 真人 + 1 汙染） |
+| S3 — 填 breakdown | ~12 | 0.2% | 真實 = 1 人（同上那位 ee133f7e 和 real human） |
+| S4 — 完成評估 | ~12 | 0.2% | 含 12 筆 lifecycle=created + scores_json（pre-L19 bug） |
+| gated | 1 | 0.015% | 唯一 1 位真人進到 gated |
+
+**Drop funnel（真實訊號）**:
+
+| 段落 | 掉率 | 根因 |
+|---|---|---|
+| S1 → S2 | 99.7% | q3 題設計：點卡片即建 session，但用戶大多未進入 Step 2 表單 |
+| S2 → S3 | 42.9% of S2 | 填了 NSM 定義後未填 breakdown |
+| S3 → S4 | 0% | 填完 breakdown 的人都送出評估 |
+| S4 → gated lifecycle | 91.7% | 12 筆有 scores 但 lifecycle=created（pre-L19 bug，L19 已修） |
+
+**Time-to-drop median**: 0.0 分鐘（6498/6508 stuck sessions 在建立後 1 分鐘內就 abandoned）
+
+**Recent 7 days vs historical**:
+- Last 7d: 5,703 sessions，S2 rate = 0.2%（9/5703）；S4 = 0%（0 sessions）
+- Historical (>7d): 806 sessions，S2 rate = 1.5%（12/806）；S4 = 1.5%
+
+**User-level**: 2 distinct auth users；6,381 unique guest IDs；1 auth + 10 guests completed evaluation
+
+**Error breadcrumbs**: 無 last_error / error_count / retry_count 欄位。`progress_json` 有 11 non-empty rows，含 `{gateResult: {items: [...error...]}}` — gate 失敗的用戶把失敗結果 persist 到 progress_json 但 lifecycle 沒推進。
+
+**Top drop-points (ranked)**:
+
+1. **[F-CT2.1]** [Sev P1] — q3 / Slack 題「點卡片即建 session」設計，5,487 個空殼 sessions，S1→S2 drop 99.7%
+   **Why matters**: 污染轉換率指標，讓所有「lifecycle=created」的分析數字失真；刪掉或不建 session 直到 Step 2 才能還原真實轉換數據。
+   **檔案**: `public/app.js:6270` — `ensureNsmDraftSession().catch(...)` on question card click
+   **Suggested fix scope**: 延後 session 建立到 Step 2 第一次 PATCH 時；或在 `GET /api/nsm-sessions` 的 `lifecycle=created` filter 只隱藏而已，需同時在 analytics 過濾掉這批 draft sessions。
+
+2. **[F-CT2.2]** [Sev P1] — 真實 S2→S3 drop 42.9%（3 個真人填了 NSM 定義，其中 2 個沒填 breakdown 就離開）
+   **Why matters**: 實際到達 Step 2 表單的用戶有 57% 未繼續到 Step 3 — 說明 Step 2→3 之間有 UX 斷點；F-2（mobile sticky bar 蓋第一欄）是主因之一（已修），但還需要觀察 post-F-2 改善。
+   **Suggested fix scope**: F-2 已修（`a221cf0`）。追蹤 F-2 後的 conversion 改善。同時考慮在 Step 2 未填完時加入提醒 toast 或 save progress 提示。
+
+3. **[F-CT2.3]** [Sev P2] — 12 個 sessions 有 `scores_json` 但 `lifecycle=created`（資料完整性 bug）
+   **Why matters**: pre-L19 時代（2026-04-22 ~ 2026-05-01）的 session 繞過了 gate，直接用 /evaluate，server 寫入了 scores_json 但 lifecycle 沒從 'created' 推進。這批已是歷史資料，L19 fix 後不再新增。
+   **Suggested fix scope**: 不需修 prod code（L19 已封閉）；可選擇性用 script backfill lifecycle 到 'completed'。
+
+4. **[F-CT2.4]** [Sev P2] — q3 (Slack) 題是 NSM Step 1 隨機 5 題中最常被選的，但是否是預設第一題需確認
+   **Why matters**: q3 有 5,487 sessions vs q1 有 154（下一名）— 倍數差距太大，可能是 UI 呈現順序 / 視覺權重讓 q3 成為「最先被點擊」的題目；需要 UX 調整。
+   **Suggested fix scope**: 追蹤 NSM Step 1 的 5 個隨機題中哪個在視覺上最突出（大小、位置、公司名稱熟悉度）。
+
+**Instrumentation spec**: `tests/e2e/audit-nsm-conversion-funnel-instrumentation.spec.js` (Pitfall 11 compliant, 3 vp, §3.8 API seed, §3.5 test.step per boundary, captures timing + lifecycle + console errors)
+
+---
 
 ### P1-#257 Bug 8 / Master plan F-007 — ~65 hollow API specs refactor
 - **Status**: partial done (retrofit C/D/E/F + Group A V1-V8 shipped)
@@ -52,9 +125,74 @@
 - **Trigger**: best done after F-007 wave (#257) — many hollow tests will become deletable once real api/ tier covers same surface
 - **Effort**: medium
 
-### #21 mockup 04 audit + 9 transition drift fixes
-- **Status**: paused backlog — pixel-diff against mockup baseline + 9 transition drifts
-- **Effort**: 2-4h
+### B6 / #21 — mockup 04 Phase 1.5 Gate pixel-diff audit (2026-05-17 PM)
+**Source**: Phase 1 B6 per PATH-2-HANDOFF.md §A.5；supersedes prior backlog entry #21
+**Status**: FIND COMPLETE — 11 drifts confirmed，awaiting user decision on Phase 1B fix scope
+**Coverage**: 4 states × 3 vp = 12 production vs 12 mockup baseline pairs (24 PNG total)
+**Method**: Playwright production capture + mockup HTML frame screenshot；director cold-Read all 24 PNG
+**Production code diff**: ZERO — audit-only, no production changes
+
+| # | State × VP | Drift 分類 | Mockup 期望 | Production 現況 | PNG 證據 | 嚴重度 |
+|---|---|---|---|---|---|---|
+| D-1 | ok / warn / error × 全 vp | **transition bar copy — ok** | 「框架完整」/ sub：「四個欄位都對齊到 I 步核心定義，沒有需要修正」 | 「框架完整」/ sub：「所有欄位都對齊到 C 步核心定義」（step letter 動態但 copy 結尾不同：mockup 說「沒有需要修正」；prod 沒有） | gate-ok-Mobile-360.png vs mockup-ok-Mobile-360.png | minor |
+| D-2 | warn × 全 vp | **transition bar copy — warn** | title「通過附提醒」/ sub：「2 處可優化，繼續 Phase 2 不會卡」 | title「框架可通過」/ sub：「可繼續但有 2 個建議優化點」（title 與 sub 字句都不同） | gate-warn-Mobile-360.png vs mockup-warn-Mobile-360.png | medium |
+| D-3 | error × 全 vp | **transition bar copy — error** | title「需要修正方向」/ sub：「N 個欄位偏離 C 步核心，請回頭調整」 | title「方向需修正」/ sub：「有 N 個方向性問題需修正」（title 語序不同；sub 措辭不同） | gate-error-Mobile-360.png vs mockup-error-Mobile-360.png | medium |
+| D-4 | warn × 全 vp | **transition bar icon — warn** | `ph-fill ph-check-circle`（綠色 filled check-circle，因 warn 仍通過） | `ph-fill ph-warning`（三角驚嘆號，橘色）| gate-warn-Mobile-360.png vs mockup-warn-Mobile-360.png | **HIGH** |
+| D-5 | warn / error × 全 vp | **gate-section-label count 格式** | Mockup ok：「4 / 4 通過」；warn：「2 通過 · 2 提醒」；error：「2 通過 · 2 阻擋」（不同文字 per state） | 全部用「N / M 通過」格式（例如 warn 時顯示「2 / 4 通過」，error 顯示「3 / 4 通過」）— warn/error 沒有分開計數提醒/阻擋 | gate-warn-iPad.png vs mockup-warn-iPad.png | medium |
+| D-6 | warn × 全 vp | **gate-item 建議 label** | Mockup：warn item 建議框 label 是「建議」（暖橘色） | Production：「修正方向：」（紅色，和 error 一樣，沒有區分 warn / error 語氣） | gate-warn-Mobile-360.png vs mockup-warn-Mobile-360.png | medium |
+| D-7 | loading × 全 vp | **loading title + sub copy** | title「AI 正在審核你的框架」/ sub「通常需要 8 - 15 秒」 | title「正在審核框架」/ sub「教練閱讀你的回答中…」（title 少「AI」，sub 完全不同，缺少時間提示） | gate-loading-Mobile-360.png vs mockup-loading-Mobile-360.png | medium |
+| D-8 | loading × 全 vp | **loading checklist 步驟數** | 5 個步驟（解析框架草稿 / 檢查欄位對齊步驟核心 / 偵測陷阱方向 / 生成具體建議 / 整合通行判斷） | 4 個步驟（解析欄位內容 / 對照 C 步重點 / 檢查方向性 / 整理回饋）— 少 1 步，copy 也全部不同 | gate-loading-Mobile-360.png vs mockup-loading-Mobile-360.png | minor |
+| D-9 | loading × tablet / desktop | **phase-head meta — loading 狀態文字** | Mockup tablet：phase-head meta 顯示「等待 AI 審核回應」；desktop：「等待 AI 審核回應」+ 「已」標記 | Production tablet：phase-head meta 只顯示「等待 AI 審核回應」（只有 tablet 顯示，desktop 缺「已」標記）— tablet OK，desktop 的「已」marker 缺失 | gate-loading-iPad.png mockup-loading-Desktop-1280.png vs gate-loading-Desktop-1280.png | minor |
+| D-10 | ok / warn × 全 vp | **phase-head — no meta on mobile / no timer on tablet+desktop** | Mockup tablet：phase-head meta 顯示「N.N 秒」timer icon；desktop：「審核耗時 N.N 秒 · N 個欄位 · 全部通過」多欄位 meta | Production：mobile/tablet/desktop 的 phase-head 均不顯示 timer 或欄位計數（renderCirclesGate 的 phaseHeadHtml 完全沒有 meta div） | gate-ok-iPad.png vs mockup-ok-iPad.png；gate-ok-Desktop-1280.png vs mockup-ok-Desktop-1280.png | **HIGH** |
+| D-11 | ok / warn × desktop | **qchip content — desktop** | Mockup desktop：qchip 顯示完整題目 + 公司 · drill mode · type（長版）；qchip__icon 用 `ph-bookmark-simple` | Production desktop：qchip 顯示公司 · 產品名（無 drill mode / type 說明）；qchip__icon 用 `ph-info`（不同 icon） | gate-ok-Desktop-1280.png vs mockup-ok-Desktop-1280.png | minor |
+
+**Total drifts found**: 11（vs original estimate "9"）
+
+**Suggested fix scope（供 user 決定 Phase 1B）**：
+- **Phase A 高影響（3 項）**：D-4（warn icon 語意相反影響用戶判斷通行 vs 阻擋）、D-10（desktop/tablet phase-head meta 計時器缺失，mockup 明確要求）、D-6（warn 建議 label 與 error 同色同文字，UX 混淆）
+- **Phase B 中影響（5 項）**：D-2（warn transition bar copy）、D-3（error transition bar copy）、D-5（section label count 格式）、D-7（loading title/sub copy）、D-8（loading 步驟數與 copy）
+- **Phase C 低影響（3 項）**：D-1（ok sub copy 末尾「沒有需要修正」缺失）、D-9（loading desktop 「已」marker）、D-11（qchip icon + 內容格式）
+
+**Cross-refs**: mockup `docs/superpowers/specs/mockups/2026-05-02-frontend-rewrite/04-phase-1-5-gate.html`；production `public/app.js` renderCirclesGate / renderGateResult / renderGateLoading（行 5082-5198）；PNG 證據 `audit/B6-mockup04-audit/`；原始 production PNGs `audit/png-mockup-04/`；mockup HTML capture spec `tests/visual/capture-mockup-04-mockup-html.spec.js`
+
+---
+
+### C-T1 finding: AI 4-surface error handling audit (2026-05-17 PM)
+**Source**: Phase 1 C-T1 task per PATH-2-HANDOFF.md §A.5
+**Hypothesis-link**: 99.9% NSM conversion drop（6500 sessions 卡在 lifecycle='created'，只有 1 個到達 'gated'）可能因 AI 呼叫失敗被靜默吞掉而未回滾 lifecycle，或 FE spinner 卡死讓用戶無法重試。
+
+| Surface | Catch coverage | Lifecycle on error | User msg | Retry? | Gap |
+|---|---|---|---|---|---|
+| NSM gate | 通用 catch(e) 兜底；prompt 層 3 次重試 800ms/1600ms 間隔 | 不推進（gate_fail 路徑不改 lifecycle）；但 throw 會跳過 `computeLifecycle+update` → lifecycle 停在 created | FE 顯示「審核服務暫時無法使用，請重試。」banner + 返回修改按鈕 | Prompt 層有 3 次，BE route 無額外重試；FE 無自動重試 | 429/500/timeout 全吐 e.message 出去，FE 看到 undefined 就顯示 'gate_error'；沒有區分 rate-limit vs server error；錯誤後 lifecycle 留在 created **完全正確**（不是問題） |
+| NSM evaluator | try/catch 兜底；T6 checkpoint write/clear；prompt 層 3 次重試 1000ms/2000ms | catch 後清 evaluating checkpoint + 寫 evaluation_error；lifecycle **不回退**（已在 gated 因為有 L19 guard） | FE：`nsmEvalError` 設 e.message；但 **`nsmEvalLoading` 在 early-return 路徑沒有清除** → spinner 卡死 | Prompt 層 3 次；BE route 無額外重試；FE 無自動重試 | `!res.ok` early return（app.js:2043）沒有 `AppState.nsmEvalLoading = false` → 用戶看到轉圈永遠不停；必須重新整理頁面 |
+| CIRCLES gate | 通用 catch(e)；FE 有 AbortError/timeout 分類；prompt 層 3 次重試 | 不推進；lifecycle 停在 created（gate_fail 不改狀態） | FE 有 GATE_TIMEOUT/GATE_API_ERROR/GATE_PARSE_ERROR 分類顯示；互斥鎖 finally 一定 release | Prompt 層 3 次；FE persistRetry 只管 PATCH，不管 gate API 本身 | circles-gate.js:117 第 2、3 次 attempt 之間沒有 backoff 延遲（相較 nsm-gate.js 有 `setTimeout(r, 800*(attempt+1))`）；429 會被快速重試兩次再拋出 |
+| CIRCLES evaluator | evaluate-step-handler.js M2 分類：AbortError→EVAL_TIMEOUT / SyntaxError→EVAL_PARSE_ERROR / 401→EVAL_AUTH_ERROR；30s AbortController timeout | DB update 在 success path；catch 不改 lifecycle（已是 gated）；但 Phase 2 結論送出路徑（app.js:7136）用 **raw `fetch`** 而非 `window.apiFetch` | FE renderPhase3Error 有完整 4 類錯誤文案；retry 按鈕（已評分時 disable）| evaluate-step-handler.js 無重試（intentional：`// No retry — callers own retry`）；FE Phase 2 結論提交路徑的 evaluate-step 失敗後只 re-enable button，不渲染錯誤 UI，用戶不知道 evaluate 失敗 | Phase 2 評分失敗靜默（app.js:7157-7161 沒有設 circlesPhase3Error），同時 Phase 2 路徑用 raw fetch 跳過 401 refresh+retry |
+
+**Top findings（依對 99.9% 轉換率假說的影響力排序）**：
+
+1. **[F-CT1.1] [Sev P1] [NSM evaluator]** — `nsmEvalLoading` spinner 卡死：用戶點送出 AI 評分後，若伺服器回 4xx/5xx，FE early-return 不清 `nsmEvalLoading`，spinner 永久不消失，用戶唯一出路是整頁重整（app.js:2039-2043）。
+   **Why matters**: 直接貢獻「評分送出後沒反應」的放棄率；但此 surface 在 L19 前已被 403 gate-required 擋死（NSM 卡在 created 連 /evaluate 都打不到），所以實際觸發需要先修 F-2 + 轉換率提升後才會大量觸發。修 F-CT1.1 應與 F-2 配套。
+   **Suggested fix scope**: `app.js` NSM evaluate `!res.ok` branch 補 `AppState.nsmEvalLoading = false` + `render()`（1 行）
+
+2. **[F-CT1.2] [Sev P1] [CIRCLES evaluator Phase 2 path]** — Phase 2 結論送出的 evaluate-step 失敗靜默吞掉：`app.js:7157-7161` `evalRes.ok === false` 只做 `conclusionSubmitBtn.disabled = false`，不設 `circlesPhase3Error`，用戶不知道評分失敗，也看不到重試按鈕（只有 button 重新 enable）。同路徑使用 raw `fetch` 而非 `window.apiFetch`，跳過 401 token refresh 機制（app.js:7136）。
+   **Why matters**: 用戶填完答案點送出，進入 loading，AI 失敗 → 靜默回到 Phase 2 submit 狀態，無任何錯誤提示，100% 的錯誤對用戶不可見，且 token 過期後會出現 401 靜默失敗。
+   **Suggested fix scope**: 補 `AppState.circlesPhase3Error = { code: errCode, ... }` + `render()`；raw fetch 改 `window.apiFetch`（app.js:7136 + 7157-7161）
+
+3. **[F-CT1.3] [Sev P2] [CIRCLES gate]** — prompt retry 無 backoff 延遲：`circles-gate.js:104-121` 第 2、3 次 attempt 之間無 `setTimeout` 延遲，遇到 429 rate-limit 時連續打三次 OpenAI，只要第一次 429 大概率三次都 429，等效於無 retry 保護（相比 nsm-gate.js 有 800ms/1600ms 漸進等待）。
+   **Why matters**: 流量尖峰時 CIRCLES gate 審核失敗率顯著高於 NSM gate；若 CIRCLES 是 conversion funnel 的前置關卡，此 gap 直接影響用戶能否完成審核並繼續。
+   **Suggested fix scope**: `circles-gate.js:119` 前加 `await new Promise(r => setTimeout(r, 800 * (attempt + 1)));`（1 行，mirror nsm-gate.js 模式）
+
+4. **[F-CT1.4] [Sev P2] [NSM gate]** — 錯誤訊息洩漏 + 分類缺失：`routes/nsm-sessions.js:189` catch 直接回傳 `e.message`（OpenAI SDK 拋出的英文錯誤訊息，可能含敏感 API 錯誤細節）；FE 只顯示 `err.error || 'gate_error'` 字串而非中文說明；沒有區分 429（rate limit）/ 500（server error）/ timeout（網路）給用戶不同的 UX 提示。（NSM evaluator 同樣問題 routes/nsm-sessions.js:152-161）
+   **Why matters**: 用戶看到英文錯誤或 undefined 時完全不知道該等多久還是重試，導致放棄率高。
+   **Suggested fix scope**: route catch 統一回 `{ error: 'ai_service_error', code: 'GATE_TIMEOUT/GATE_API_ERROR' }`；FE 對應中文訊息（mirror CIRCLES evaluator 模式）
+
+5. **[F-CT1.5] [Sev P3] [NSM gate — lifecycle root cause]** — 最核心發現：NSM lifecycle='created' 堆積的主因**不是 AI 錯誤**，而是**設計本身**：`GET /api/nsm-sessions` 預設過濾掉 lifecycle='created' 的 row（routes/nsm-sessions.js:59）；每次 NSM session 建立後就是 'created'，只有通過 gate 才升 'gated'。所以 6500 rows 中 99.9% lifecycle='created' = 6499 個用戶建立 session 但還沒按「送出 NSM 定義」。AI 錯誤頂多造成已按送出但 gate 失敗者無法繼續（佔比估計 < 1%）。F-2 修 sticky bar 蓋輸入框才是最直接的 conversion 提升點。
+   **Why matters**: 重新定位 C-T1 調查範圍——AI error handling 的 gap 是真實的，但主要影響 already-past-gate 的用戶體驗，不是造成 99.9% drop 的根因。建議 C-T2 深挖 UX 流程斷點（用戶是否有機會填寫 + 按送出）。
+
+**Cross-refs**:
+- `feedback_find_first_fix_later_via_tracker.md`：以上全是 find-only，不動 production
+- C-T2 task（線上深挖 99.9% conversion 斷點）— 本 finding #5 指向 F-2 UX 修正後追蹤 conversion 變化才能驗證
+- `routes/nsm-sessions.js:59`（lifecycle filter），`app.js:2039-2043`（spinner bug），`app.js:7136,7157-7161`（CIRCLES Phase 2 silent fail），`prompts/circles-gate.js:104-121`（no backoff）
 
 ---
 
@@ -126,6 +264,7 @@
 ### Optimization closures
 | O | Closed |
 |---|---|
+| O-6 B10 `_doOffcanvasDelete` cache invalidate | L31 (this commit) — 2-line `AppState.circlesRecentSessions = null; render()` (app.js:8547-8550) + spec `offcanvas-delete-invalidates-recent-sessions.spec.js` 7/7 × 3 vp GREEN + Director cold-Read 4 PNG before/after diff confirmed |
 | O-7 NSM seed helper for offcanvas-delete | L20 `f292a22` + audit `961cb09` |
 | O-9 orphan renderQchipPanelHtml delete | L23 `f2a3d58` (15 lines, 0 callers verified) |
 
@@ -173,11 +312,6 @@
 ### O-5 Plan #194 T7/T8/T9 remaining
 - T7 spec reorg / T8 adversarial 5 specs / T9 final regression + cold-Read 4 toast PNGs
 - Effort: medium
-
-### O-6 Bug 4 cosmetic — `_doOffcanvasDelete` invalidate `circlesRecentSessions`
-- Identified during Bug 4 audit `3af488d`
-- Impact: home rail stale recent sessions briefly after delete
-- Effort: tiny (~3 lines)
 
 ### O-8 jest "pre-existing fails" reclassification policy enforcement
 - Discovery: 4 lifecycle wire fails were misclassified；本 session 抓 4 個真 bug 起源於 baseline 假綠燈
