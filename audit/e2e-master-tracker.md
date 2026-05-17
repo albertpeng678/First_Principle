@@ -79,6 +79,17 @@
   ```
 - **Critical implication**: gate is currently **advisory only** at backend — entire UX assumes FE conditional rendering blocks user, but any direct API caller (or FE state corruption / future bugs) bypasses freely. This is the actual root cause of user's repeated 沒審核直接放行 reports.
 
+### P0-NEW-5 NSM /evaluate gate bypass — REAL PROD BUG (Lane L18, 2026-05-17)
+- **Discovery**: L18 mirror of L3 for NSM-side. Audit + RED spec proved 2 leak instances.
+- **Audit + spec**: `audit/nsm-bypass-path-enumeration-2026-05-17.md` + `tests/api/nsm-no-bypass.spec.js` commit `f441455`
+- **Coverage**: 10 BE paths (5 auth + 5 guest) + 9 FE handlers audited
+- **2 confirmed leaks (real OpenAI invoked + scored results returned)**:
+  - **LEAK-N1** `POST /api/nsm-sessions/:id/evaluate` → 200 with `lifecycle='editing'` (expected 403) — and also with `lifecycle='created'`
+  - **LEAK-N2** `POST /api/guest-nsm-sessions/:id/evaluate` → 200 with `lifecycle='editing'` (guest mirror)
+- **Root cause**: `lib/session-lifecycle.js:98` — `if (route === 'analysis_done') return 'completed'` is unconditional; any session lifecycle (created/editing) gets promoted to completed if /evaluate succeeds.
+- **vs CIRCLES (L3 finding)**: narrower — NSM has 1 leak surface (evaluate) vs CIRCLES 4 (evaluate-step/message/progress.currentPhase/final-report). NSM has no currentPhase field, no final-report, fewer bypass vectors.
+- **Proposed fix (L19 to dispatch)**: add lifecycle guard `if (!['gated','completed'].includes(session.lifecycle))` immediately after session ownership fetch in both `routes/nsm-sessions.js:~107` and `routes/guest-nsm-sessions.js:~97`, returning 403 `{ error: 'gate_required' }`. Mirror L5 pattern.
+
 ### P0-NEW-4 Bug 3 spinner stuck — RECLASSIFIED P2→P0 (Lane L13b, 2026-05-17)
 - **Was**: P2-#253 INCONCLUSIVE (8s window too short)
 - **Now**: BUG CONFIRMED via 60s deep window — `tryResumeLatestSession` (`app.js:7947`+) sets `circlesStepScores` but does NOT derive `circlesScoreResult`. `renderCirclesPhase3` (line 6520) tests `!circlesScoreResult` → spinner branch → no evaluate-step fires → spinner forever.
@@ -258,6 +269,8 @@
 | Bug 1 FE fix F1+F2 (Lane L13) | ✅ 15/15 e2e × 3 vp + 5x consecutive 0 flake | `85f0039` |
 | NSM evaluator adversarial preventive sweep (Lane L15) | ✅ 7/7 max totalScore=40 < 60 | `c853d93` — 4-pillar sweep COMPLETE (L2+L9+L12+L15) |
 | Bug 3 spinner deep investigation (Lane L13b) | ✅ 16/16 setup + S1-S4 BUG CONFIRMED + S5 PASS | `13ed169` — reclassified P2→P0-NEW-4, L17 fix dispatched |
+| persistRetry + TC1 dual fix (Lane L16) | ✅ critical-path 2/2 + TC1+2+3 3/3 + 5x consecutive no flake | `91fb2ad` — closes P0-NEW-3 + Plan #194 T4 TC1 |
+| NSM bypass enumeration (Lane L18) | ❌ 2 RED leaks confirmed on /evaluate | `f441455` — P0-NEW-5 NSM-side mirror of L3; L19 fix dispatched |
 
 ---
 
