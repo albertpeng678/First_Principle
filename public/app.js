@@ -5775,6 +5775,13 @@
         AppState.circlesSimStep = 0;
         AppState.circlesExpandedQid = null;
         AppState.circlesPhase1Solutions = [{ name: '', mechanism: '' }, { name: '', mechanism: '' }];
+        // Reset draft state when switching questions to prevent ghost content (P0-#252 fix)
+        AppState.circlesFrameworkDraft = {};
+        AppState.circlesGateResult = null;
+        AppState.circlesScoreResult = null;
+        AppState.circlesPhase2ConclusionDraft = '';
+        AppState.circlesConversation = [];
+        AppState.circlesStepScores = {};
         try {
           var raw = localStorage.getItem('pmdrill:circles:draft:' + qid);
           if (raw) {
