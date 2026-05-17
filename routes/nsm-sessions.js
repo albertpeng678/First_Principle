@@ -106,6 +106,12 @@ router.post('/:id/evaluate', requireAuth, async (req, res) => {
     .single();
   if (error || !session) return res.status(404).json({ error: 'not_found' });
 
+  // L19 lifecycle gate guard — mirror of CIRCLES L5 fix (commit 93b1b26).
+  // Reject /evaluate unless session has passed the gate (lifecycle in ['gated','completed']).
+  if (!['gated', 'completed'].includes(session.lifecycle)) {
+    return res.status(403).json({ error: 'gate_required', message: 'Session must pass gate before evaluation.' });
+  }
+
   // T6 step 1 — pre-write checkpoint. Tolerate error (log + continue) because the
   // checkpoint is best-effort; if the UPDATE fails the worst case is we lose
   // crash-recovery for this request but the user still gets a normal eval cycle.

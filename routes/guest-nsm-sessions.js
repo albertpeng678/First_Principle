@@ -95,6 +95,13 @@ router.post('/:id/evaluate', requireGuestId, async (req, res) => {
     .eq('guest_id', req.guestId)
     .single();
   if (error || !session) return res.status(404).json({ error: 'not_found' });
+
+  // L19 lifecycle gate guard — mirror of CIRCLES L5 fix (commit 93b1b26).
+  // Reject /evaluate unless session has passed the gate (lifecycle in ['gated','completed']).
+  if (!['gated', 'completed'].includes(session.lifecycle)) {
+    return res.status(403).json({ error: 'gate_required', message: 'Session must pass gate before evaluation.' });
+  }
+
   try {
     const result = await evaluateNSM({
       question_json: session.question_json,
