@@ -79,6 +79,17 @@
   ```
 - **Critical implication**: gate is currently **advisory only** at backend — entire UX assumes FE conditional rendering blocks user, but any direct API caller (or FE state corruption / future bugs) bypasses freely. This is the actual root cause of user's repeated 沒審核直接放行 reports.
 
+### ~~P0-NEW-5 NSM /evaluate gate bypass~~ — RESOLVED 2026-05-17 (Lane L19, commit `9142eef`)
+- **Fix**: 3-line lifecycle guard in both `routes/nsm-sessions.js:109-113` + `routes/guest-nsm-sessions.js:99-103`
+- **Verify**: nsm-no-bypass 4/4 GREEN × 5 runs no flake + lifecycle-nsm 8/8 + lifecycle-circles 8/8 + circles-no-bypass 5/5 + jest 535/552 (Director cold-verified post server restart)
+- Original investigation evidence preserved below.
+
+### ~~P0-NEW-4 Bug 3 spinner stuck~~ — RESOLVED 2026-05-17 (Lane L17 commit `2aa8fd5`)
+- **Fix**: 8-LOC `circlesScoreResult` derivation in `tryResumeLatestSession` (`public/app.js:8040`); mirror commit `654d0e8` pattern
+- **NOTE — scope-leak finding**: L16 commit `91fb2ad` actually included this fix as side effect of P0-NEW-3 work (technically Karpathy Surgical Changes violation, but fix was correct + needed). L17 only flipped spec polarity (S1-S5 from RED documenting bug → GREEN confirming fix). Non-blocking lesson.
+- **Verify**: bug3-deep-investigation 5/5 GREEN × 5 runs no flake + circles-phase3-restore 10/10 + back-nav-lock 16/16 + fe-gate-stale-state 16/16 + critical-path 1/1 + lifecycle-circles 8/8 + jest 535/552
+- Original investigation evidence preserved below.
+
 ### P0-NEW-5 NSM /evaluate gate bypass — REAL PROD BUG (Lane L18, 2026-05-17)
 - **Discovery**: L18 mirror of L3 for NSM-side. Audit + RED spec proved 2 leak instances.
 - **Audit + spec**: `audit/nsm-bypass-path-enumeration-2026-05-17.md` + `tests/api/nsm-no-bypass.spec.js` commit `f441455`
@@ -270,7 +281,10 @@
 | NSM evaluator adversarial preventive sweep (Lane L15) | ✅ 7/7 max totalScore=40 < 60 | `c853d93` — 4-pillar sweep COMPLETE (L2+L9+L12+L15) |
 | Bug 3 spinner deep investigation (Lane L13b) | ✅ 16/16 setup + S1-S4 BUG CONFIRMED + S5 PASS | `13ed169` — reclassified P2→P0-NEW-4, L17 fix dispatched |
 | persistRetry + TC1 dual fix (Lane L16) | ✅ critical-path 2/2 + TC1+2+3 3/3 + 5x consecutive no flake | `91fb2ad` — closes P0-NEW-3 + Plan #194 T4 TC1 |
-| NSM bypass enumeration (Lane L18) | ❌ 2 RED leaks confirmed on /evaluate | `f441455` — P0-NEW-5 NSM-side mirror of L3; L19 fix dispatched |
+| NSM bypass enumeration (Lane L18) | ❌ 2 RED leaks confirmed on /evaluate | `f441455` — P0-NEW-5 NSM-side mirror of L3 |
+| NSM /evaluate fix (Lane L19) | ✅ 4/4 × 5 runs no flake + cross-suite 21/21 GREEN | `9142eef` — closes P0-NEW-5 |
+| Bug 3 fix + spec flip (Lane L17) | ✅ 5/5 GREEN × 5 runs no flake | `2aa8fd5` (L16 prior 91fb2ad included app.js fix as scope leak) — closes P0-NEW-4 |
+| NSM seed helper + B4-E3 unblock (Lane L20) | ✅ 15/15 PASS (5 runs × 3 browsers) + no NSM delete cache leak found | `f292a22` + `961cb09` — closes O-7 + F-P16 |
 
 ---
 
