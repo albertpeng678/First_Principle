@@ -1,11 +1,18 @@
 # PM Drill — 專案狀態看板
 
 > 即時狀態 single source of truth。**不放歷史（git log 有）**。重大事件即時 Edit。
-> **Last updated:** 2026-05-17（L29 Stage 1B #191 CLOSED — B3-R1 parallel flake fixed; jest 538/555; all smokes GREEN）
+> **Last updated:** 2026-05-17 PM Live-demo-gate session（F-2 + F-1 + C fix shipped + hook installed + STANDING memory × 3）
 
 ## 當前狀態（30 秒讀完）
 
-- **🏆 7/7 P0 RESOLVED 本 session ship (2026-05-17 PM)** — 4 user-reported + 3 e2e-discovered，全 commit GREEN：
+- **🏆 本 session 2026-05-17 PM Live-demo-gate** — 7 commits push origin/main：
+  - `c70b8e9` mockup-07 砍 9 行 orphan hint（align production renderNSMContextCard）
+  - `a221cf0` **F-2 prod CSS bug** — `.nsm-body` padding-bottom 修 sticky bar 蓋 mobile first field（director walk 3 vp 確認）
+  - `d2d1d2f` **F-1 test fixture** — walk spec 換真 Netflix q1 shape
+  - `e883eb8` **C fix 401 auto-logout** — apiFetch refreshSession→retry + onAuthStateChange TOKEN_REFRESHED sync（Supabase canonical pattern via WebSearch）
+  - 配套：director walk infra (27 PNG × 3 vp) + apiFetch-401-refresh-retry spec (6/6 × 3 vp GREEN) + tracker §5 sweep + 3 STANDING memory (plain-language / sound-ping / live-demo-gate) + UserPromptSubmit hook inject ritual-mini per 7 messages
+- **Live Supabase insight (2026-05-17 PM)**: nsm_sessions 6500 rows, lifecycle 'created':999 vs 'gated':1 = **99.9% NSM 沒完成** — F-2 修了應該大幅改善 conversion，可追蹤
+- **🏆 7/7 P0 RESOLVED 上一輪 session ship (2026-05-17)** — 4 user-reported + 3 e2e-discovered，全 commit GREEN：
   - #251 Bug 1 全 Y 過審 → L2 backend + L10 LEAK-A + L13 fix `85f0039`
   - #252 Bug 2 ghost content → L4 RED + L11 reset `c156c6b`
   - #255 Bug 6 沒審核放行 → L3 RED + L5 8 handler guards `93b1b26`
