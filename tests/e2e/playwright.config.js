@@ -53,7 +53,7 @@ module.exports = defineConfig({
     // 3. E2E project — desktop chrome
     {
       name: 'e2e-desktop',
-      testMatch: /(circles-gate|circles-gate-await-patch-real|circles-draft-retry-real|circles-phase3-restore|circles-phase3-restore-real|offcanvas-delete|phase2-ui-fix|circles-phase2-qchip-sse-rerender|capture-t4-qchip-sse|circles-delete-rollback-real|persist-retry-browser-real|critical-path-full-flow|auth-flow-real|nsm-full-flow|nsm-evaluate-checkpoint-real|circles-back-nav-lock|bug3-spinner-stuck-reproduce|bug3-spinner-deep-investigation|circles-fresh-form-no-ghost|circles-fe-gate-stale-state|nsm-hint-ui-flow|nsm-gate-result-ui-display|nsm-impact-removal-fresh-session|nsm-impact-backward-compat|nsm-freq-label-by-type)\.spec\.js$/,
+      testMatch: /(circles-gate|circles-gate-await-patch-real|circles-draft-retry-real|circles-phase3-restore|circles-phase3-restore-real|offcanvas-delete|phase2-ui-fix|circles-phase2-qchip-sse-rerender|capture-t4-qchip-sse|circles-delete-rollback-real|persist-retry-browser-real|critical-path-full-flow|auth-flow-real|nsm-full-flow|nsm-evaluate-checkpoint-real|circles-back-nav-lock|bug3-spinner-stuck-reproduce|bug3-spinner-deep-investigation|circles-fresh-form-no-ghost|circles-fe-gate-stale-state|nsm-hint-ui-flow|nsm-gate-result-ui-display|nsm-impact-removal-fresh-session|nsm-impact-backward-compat|nsm-freq-label-by-type|audit-nsm-director-walk-2026-05-17)\.spec\.js$/,
       use: { ...devices['Desktop Chrome'], storageState: AUTH_FILE },
       dependencies: ['setup'],
     },
@@ -61,7 +61,7 @@ module.exports = defineConfig({
     // 4. E2E project — mobile chrome (for race + reflow on small viewport)
     {
       name: 'e2e-mobile-chrome',
-      testMatch: /(circles-gate|circles-gate-await-patch-real|circles-draft-retry-real|circles-phase3-restore|circles-phase3-restore-real|offcanvas-delete|phase2-ui-fix|circles-phase2-qchip-sse-rerender|capture-t4-qchip-sse|circles-delete-rollback-real|persist-retry-browser-real|critical-path-full-flow|auth-flow-real|nsm-full-flow|nsm-evaluate-checkpoint-real|circles-back-nav-lock|bug3-spinner-stuck-reproduce|bug3-spinner-deep-investigation|circles-fresh-form-no-ghost|circles-fe-gate-stale-state|nsm-hint-ui-flow|nsm-gate-result-ui-display|nsm-impact-removal-fresh-session|nsm-impact-backward-compat|nsm-freq-label-by-type)\.spec\.js$/,
+      testMatch: /(circles-gate|circles-gate-await-patch-real|circles-draft-retry-real|circles-phase3-restore|circles-phase3-restore-real|offcanvas-delete|phase2-ui-fix|circles-phase2-qchip-sse-rerender|capture-t4-qchip-sse|circles-delete-rollback-real|persist-retry-browser-real|critical-path-full-flow|auth-flow-real|nsm-full-flow|nsm-evaluate-checkpoint-real|circles-back-nav-lock|bug3-spinner-stuck-reproduce|bug3-spinner-deep-investigation|circles-fresh-form-no-ghost|circles-fe-gate-stale-state|nsm-hint-ui-flow|nsm-gate-result-ui-display|nsm-impact-removal-fresh-session|nsm-impact-backward-compat|nsm-freq-label-by-type|audit-nsm-director-walk-2026-05-17)\.spec\.js$/,
       use: { ...devices['Pixel 5'], storageState: AUTH_FILE },
       dependencies: ['setup'],
     },
@@ -69,7 +69,7 @@ module.exports = defineConfig({
     // 5. E2E project — mobile WebKit (per memory feedback_ios_review_before_ship)
     {
       name: 'e2e-mobile-safari',
-      testMatch: /(circles-gate|circles-gate-await-patch-real|circles-draft-retry-real|circles-phase3-restore|circles-phase3-restore-real|offcanvas-delete|phase2-ui-fix|circles-phase2-qchip-sse-rerender|capture-t4-qchip-sse|circles-delete-rollback-real|persist-retry-browser-real|critical-path-full-flow|auth-flow-real|nsm-full-flow|nsm-evaluate-checkpoint-real|circles-back-nav-lock|bug3-spinner-stuck-reproduce|bug3-spinner-deep-investigation|circles-fresh-form-no-ghost|circles-fe-gate-stale-state|nsm-hint-ui-flow|nsm-gate-result-ui-display|nsm-impact-removal-fresh-session|nsm-impact-backward-compat|nsm-freq-label-by-type)\.spec\.js$/,
+      testMatch: /(circles-gate|circles-gate-await-patch-real|circles-draft-retry-real|circles-phase3-restore|circles-phase3-restore-real|offcanvas-delete|phase2-ui-fix|circles-phase2-qchip-sse-rerender|capture-t4-qchip-sse|circles-delete-rollback-real|persist-retry-browser-real|critical-path-full-flow|auth-flow-real|nsm-full-flow|nsm-evaluate-checkpoint-real|circles-back-nav-lock|bug3-spinner-stuck-reproduce|bug3-spinner-deep-investigation|circles-fresh-form-no-ghost|circles-fe-gate-stale-state|nsm-hint-ui-flow|nsm-gate-result-ui-display|nsm-impact-removal-fresh-session|nsm-impact-backward-compat|nsm-freq-label-by-type|audit-nsm-director-walk-2026-05-17)\.spec\.js$/,
       use: { ...devices['iPhone 14'], storageState: AUTH_FILE },
       dependencies: ['setup'],
     },

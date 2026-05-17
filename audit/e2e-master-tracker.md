@@ -10,9 +10,41 @@
 
 ## §1 Active P0 Bugs (user-visible / data integrity)
 
-✅ **0 items** — P0-NEW-7 closed via L30 `58d6749`，詳見 §5。
+✅ **0 items confirmed P0** — pending NSM walk full expansion may add new P0.
 
-下個 P0 finding 出現 → append here。
+### F-1 — NSM context-card 空殼（ROOT CAUSE CONFIRMED = TEST FIXTURE BUG，非 production bug）
+- **Status**: ROOT CAUSE 已確認 2026-05-17 PM Director investigation
+- **Symptom**: NSM Step 2/3 context-card 空白（navy 短條 = empty company chip + 無 industry text + 無 scenario text）+ 注意力型 chip 在右上 + 「深入了解問題」toggle
+- **Affected PNGs**: 02 / 03 / 05 / 06 × 3 vp = 12 instances（director walk）
+- **Root cause CONFIRMED**:
+  - `renderNSMContextCard` (app.js:1582-1633) 讀 `q.company` / `q.industry` / `q.scenario` 用 `escHtml(q.company || '')` fallback empty string — **production code OK**
+  - 真 DB `nsm_plan/nsm_database.json` `q1` Netflix shape: `{ id, company, industry, scenario, target_nsm_keywords, anti_patterns, field_examples, context }` — **HAS all required fields**
+  - Walk spec test fixture: `{ id: 'nsm_001', problem_statement, product_context }` — **MISSING company/industry/scenario** = empty render
+- **Verdict**: **NOT production bug** — walk spec uses fake fixture shape that real DB never produces
+- **Fix**: Update `audit-nsm-director-walk-2026-05-17.spec.js` + `nsm-full-flow.spec.js` QUESTION_JSON to mirror `nsm_database.json` q1 shape
+- **Effort**: tiny (~10 lines per spec)
+- **Side benefit**: re-walk → 02/03/05/06 PNGs show Netflix branding ✓ F-1 disappears
+- **Owner**: Director — brainstorm fix with user before applying
+
+### F-2 — Step 2/3 sticky bottom bar 蓋住第一欄（ROOT CAUSE CONFIRMED = PRODUCTION CSS BUG）
+- **Status**: ROOT CAUSE 已確認 2026-05-17 PM Director investigation
+- **Symptom**:
+  - Desktop 1280×800: 「上一步 / 提交審核」sticky bar 部分覆蓋「北極星指標 (NSM)」first field
+  - Mobile-chrome / mobile-safari: 完全覆蓋 first field — user 在 mobile 必須 scroll 才能看到/填第一欄（**P1 severe UX bug**）
+- **Affected PNGs**: 02 / 03 / 05 / 06 × 3 vp = 12 instances，mobile worst
+- **Root cause CONFIRMED**:
+  - `style.css:136` `.submit-bar { position: fixed; bottom: 0; ... }` — full-width sticky bar
+  - `style.css:281-282` `.nsm-body { padding: var(--s-5) var(--s-4); max-width: 920px; margin: 0 auto; }` — **缺 `padding-bottom` reserved for submit-bar height**
+  - Form content 渲染緊貼 viewport bottom → sticky bar overlay 蓋住底部 form
+- **Verdict**: **PRODUCTION CSS BUG** — P1 severity
+- **Fix options**:
+  - A. Add `padding-bottom: calc(var(--touch-min) + var(--s-7))` to `.nsm-body` (covers all NSM 步驟，最簡單)
+  - B. Add only to `[data-nsm-step="2"] .nsm-body` + `[data-nsm-step="3"] .nsm-body`（surgical）
+  - C. Use `env(safe-area-inset-bottom)` + measured submit-bar height（複雜）
+- **Recommendation**: A — 1-line CSS change, side effect 0（覆蓋所有 NSM 視圖）
+- **Effort**: 1 line CSS
+- **Test**: re-walk → 02/03 PNG first field visible without scroll
+- **Owner**: Director — brainstorm fix with user before applying
 
 ---
 
@@ -57,6 +89,25 @@
 ### #21 mockup 04 audit + 9 transition drift fixes
 - **Status**: paused backlog — pixel-diff against mockup baseline + 9 transition drifts
 - **Effort**: 2-4h
+
+### FLOAT-1 — mockup 07 hint 9 行已 sed 刪除未 commit
+- **Status**: working tree dirty，9 行 `<span class="nsm-context-card__hint">核心價值在於讓用戶在產品上花有意義的時間</span>` 已從 `docs/superpowers/specs/mockups/2026-05-02-frontend-rewrite/07-nsm-step-2.html` 刪除
+- **Why staged not committed**: user 截圖紅劃 + 確認方向 A（mockup 對齊 production 0 hint render），但 Live demo gate 後 freeze 等逐項 yes
+- **Action needed**: user 親看 mockup 07 confirm 對齊 → 「對」 → commit
+- **Owner**: user
+
+### FLOAT-2 — 401 逾時登出 4 方向決定
+- **Status**: root cause located at `public/app.js:283-291` global 401 handler in `apiFetch`
+- **Mechanism**: Supabase JWT 過期後（默認 1hr），下一個 API call 401 → 強制清 token + 跳登入頁
+- **4 options pending**: A 全砍 / B toast 軟提示 / C refresh-then-fall / D 拉長 token 有效期
+- **Action needed**: user 選 A/B/C/D
+- **Owner**: user
+
+### FLOAT-3 — mockup 07 對齊狀態 user 親看
+- **Status**: 4 commits made today（M1 / M2-expanded / M3 / M4 = `2d2f0a0` / `110762c` / `08bc642` / `26cf084`）+ FLOAT-1 hint 9 行尚未 commit
+- **Why pending**: user 抱怨「我還有抓到別的沒有對其的」未 enumerate；user 親開 browser 列清單才能 sweep
+- **Action needed**: user open `file:///.../07-nsm-step-2.html` + 列出剩餘 misalign 區塊
+- **Owner**: user
 
 
 ---
