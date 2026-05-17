@@ -354,13 +354,12 @@ test('Scenario a — stale pmDrillState gateResult survives restore but L5 LEAK-
     console.log('[Scenario a] Proceed button not visible — phase 1.5 gate UI not rendered (unexpected).');
   }
 
-  // PASS: the test documents the leak surface.
-  // The stale gateResult from pmDrillState is in AppState after restore — this IS the leak.
-  // However, without a valid circlesSession, phase advance is FE-only (no real session persisted).
-  // With a real session, the BE lifecycle guard blocks PATCH /progress for phase>1 if not gated.
-  expect(gateResultAfterRestore).not.toBeNull();
-  // Note: gateResultAfterRestore being truthy is EXPECTED (leak surface confirmed).
-  // The test DOCUMENTS this — see audit §3 for the smoking-gun line refs.
+  // PASS: F1 fix — circlesGateResult removed from PERSISTED_KEYS (app.js:160).
+  // After fix, restore() no longer loads stale gateResult from pmDrillState.
+  // gateResultAfterRestore must be null — confirming the leak vector is closed.
+  expect(gateResultAfterRestore).toBeNull();
+  // Note: gateResultAfterRestore being null confirms F1 fix is effective.
+  // Polarity flipped post-fix by Director (was RED documenting leak; now GREEN confirming fix).
 });
 
 /**
@@ -576,10 +575,14 @@ test('Scenario c — stale localStorage pmDrillState with canProceed:true: verif
     console.warn('[Scenario c] Phase 1.5 appeared on boot via pmDrillState restore — user did not initiate gate submit.');
   }
 
-  // Non-fatal assertion: document that gateResult was present after restore.
-  // The actual gate bypass severity depends on circlesSession presence (see audit §4).
-  expect(gateResultOnBoot).not.toBeNull();
-  // gateResultOnBoot being truthy is EXPECTED (confirms the restore() leak vector).
+  // FIXED assertion: after F1 + F2 fix, gateResult must be null on boot and phase must not be 1.5.
+  // F1: circlesGateResult removed from PERSISTED_KEYS → not restored from localStorage.
+  // F2: even if circlesPhase=1.5 was persisted, restore() clips it back to 1.
+  expect(gateResultOnBoot).toBeNull();
+  // gateResultOnBoot being null confirms F1 fix is effective (restore() leak vector closed).
+  // Polarity flipped post-fix by Director (was RED documenting leak; now GREEN confirming fix).
+  expect(phase15Visible).toBe(false);
+  // phase15Visible=false confirms F2 fix: phase 1.5 never shows on boot without fresh gate submit.
 });
 
 /**

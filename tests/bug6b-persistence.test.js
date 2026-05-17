@@ -660,11 +660,14 @@ describe('Source contract — app.js persistence (Block 1-4)', () => {
     expect(keysSection).toContain("'nsmGateResult'");
   });
 
-  it('PERSISTED_KEYS includes circlesGateResult', () => {
+  it('PERSISTED_KEYS does NOT include circlesGateResult (F1 fix: Bug 1 LEAK-A closed)', () => {
+    // F1 fix (Bug 1 LEAK-A): circlesGateResult must NOT be persisted across sessions.
+    // Stale gate-pass in localStorage was causing phantom Phase 1.5 on boot.
+    // Polarity flipped post-fix by Director (was asserting presence; now asserts absence).
     const keysStart = appSrc.indexOf('const PERSISTED_KEYS = [');
     const keysEnd = appSrc.indexOf('];', keysStart) + 2;
     const keysSection = appSrc.slice(keysStart, keysEnd);
-    expect(keysSection).toContain("'circlesGateResult'");
+    expect(keysSection).not.toContain("'circlesGateResult'");
   });
 
   it('restoreCirclesPhase1FromSession sets circlesGateResult from gate_result', () => {

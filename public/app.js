@@ -157,7 +157,6 @@
     'nsmStep',
     'nsmReportTab',
     'nsmGateResult',
-    'circlesGateResult',
     'nsmHintExpanded',
     'nsmExampleExpanded',
     'nsmContextExpanded',
@@ -178,6 +177,8 @@
       for (const k of PERSISTED_KEYS) {
         if (snap[k] !== undefined) AppState[k] = snap[k];
       }
+      // Phase 1.5 gate state must always require fresh /gate submission — never persist
+      if (AppState.circlesPhase === 1.5) AppState.circlesPhase = 1;
     } catch (_) {}
   }
   window.persist = persist;
