@@ -10,14 +10,13 @@
 
 ## §1 Active P0 Bugs (user-visible / data integrity)
 
-### P0-NEW Lifecycle gate→gated wiring broken (4 routes) — DISCOVERED 2026-05-17
-- **Reproduce**: `npx jest tests/contracts/lifecycle-circles-route.test.js tests/contracts/lifecycle-nsm-route.test.js` → 4 fails
-- **Symptom (all 4)**: `POST /:id/gate ok=true → Expected: "gated" / Received: "editing"`
-- **Routes affected**: CIRCLES auth + CIRCLES guest + NSM auth + NSM guest
-- **Misclassified as "pre-existing"** in chat-drift / Plan #194 ship gates — these are **real bugs** hiding in jest baseline 530/552 stats
-- **User-visible impact**: gate-passed sessions stay `lifecycle='editing'` in DB. Sessions list filter (`?status=`, `?lifecycle=`, default exclude rules per commit `68d22ec`) returns wrong subsets. Practice records show wrong UI states. Critical for SLC-AC7.
-- **Root cause hypothesis**: Stage 1B lifecycle wire commits `a254e45` (CIRCLES) + `b42aac0` (NSM) wired the column but `setLifecycle('gated')` call missing or conditional broken in gate handler success path.
-- **Next**: P0 fix — locate gate handler in `routes/circles-sessions.js` + `routes/nsm-sessions.js`, ensure `gated` lifecycle update fires when `gateResult.canProceed === true`. Add e2e integration verifying DB row lifecycle = 'gated' post gate-pass.
+### ~~P0-NEW Lifecycle gate→gated wiring broken (4 routes)~~ — RESOLVED 2026-05-17 (was mis-diagnosis)
+- **Verdict**: TEST FIXTURE SHAPE DRIFT, not production bug. Production wiring proven correct.
+- **Root cause**: `tests/contracts/lifecycle-{circles,nsm}-route.test.js` stubbed `circles-gate` / `nsm-gate` with legacy `{ ok: true, issues: [] }` shape. Production prompts return `{ canProceed, overallStatus, items }` (since task #208 `B8 gate.ok → canProceed fix`). Routes check `canProceed && overallStatus` — stub had neither → route classified as `gate_fail` → lifecycle stayed `editing`.
+- **Production proof**: `tests/api/lifecycle-{circles,nsm}.spec.js` 16/16 PASS with real OpenAI + real Supabase test DB. SLC-AC7 verified end-to-end: POST /gate ok=true → DB row `lifecycle='gated'`.
+- **Fix**: stubs updated to `{ canProceed: true, overallStatus: 'ok', items: [] }` and false counterpart. Surgical 4 replace_all (~10 edited sites).
+- **Verify**: jest 534/552 (was 530/552; +4 fixed). Real API e2e 16/16. Commit `[pending]`.
+- **Lesson (O-8 action)**: master tracker mis-flagged this as P0 user-visible — investigation showed it was test-only. Enforced jest fail tagging policy still warranted (O-8) so next drift caught faster.
 
 ### P0-#263 iOS Safari Phase 3 restore fallback — NEW (2026-05-17)
 - **Reproduce**: `tests/e2e/circles-phase3-restore-real.spec.js` B3-R1 fails ONLY on `e2e-mobile-safari` (WebKit). Desktop + mobile-chrome PASS.
@@ -135,9 +134,10 @@
 | **Bug 7 Phase 3 restore (B3-R1)** | 3 e2e | ❌ 9/10 PASS — **iOS Safari FAIL** | NEW BUG (P0-#263) |
 | **Phase 2 qchip visual** | 3 desktop projects × 3 vp | ✅ 24/24 PASS (44s) | chat-drift didn't break baseline |
 | **chat-drift cross-vp re-run (post T6)** | 3 e2e | ❌ setup FAIL net::ERR_CONNECTION_REFUSED | infra race (P1-#264) |
-| **jest lifecycle contracts (NEW finding)** | jest | ❌ 4 fails: gate→gated wiring broken | **P0-NEW above** |
+| **jest lifecycle contracts (RESOLVED)** | jest | ✅ 32/32 PASS (stub shape fix) | commit `[pending]` — was test fixture drift, not prod bug |
 | **jest issue-bug1-nsm-session-restore** | jest | ❌ 1 fail (sets nsmDefinition from item.user_nsm) | Investigate — likely real NSM restore bug |
-| **jest full suite** | — | 530/552 (5 fail, NOW reclassified as real bugs, 17 skip) | Baseline contamination |
+| **jest full suite** | — | 534/552 (1 remaining fail: nsm-session-restore, 17 skip) | Cleaner baseline post P0-NEW resolution |
+| **Real API lifecycle e2e (CIRCLES+NSM)** | api-lifecycle | ✅ 16/16 PASS (60s, real OpenAI) | proves production gate→gated wiring 正常 |
 
 ---
 
@@ -159,7 +159,8 @@
 | 5 P0 Retrofit F (persistRetry helper) | ✅ shipped | `837e435` / `ee9e735` / `5f6b9e2` |
 | Stage 0 B7 (pollution cleanup) | ✅ shipped | `45d0e6e`...`1ba062e` |
 | Session lifecycle state machine schema | ✅ shipped | `59b5537` `acb04e4` `2139859` |
-| CIRCLES + NSM lifecycle wire (handlers) | ⚠️ partial (gate→gated broken — see P0-NEW) | `a254e45` `b42aac0` |
+| CIRCLES + NSM lifecycle wire (handlers) | ✅ verified GREEN end-to-end | `a254e45` `b42aac0` + test stub fix `[pending]` |
+| jest contract stub shape fix (P0-NEW resolution) | ✅ shipped — was mis-diagnosis | `[pending]` |
 
 ---
 
@@ -246,6 +247,7 @@
 
 ## §8 Update Log
 
+- **2026-05-17 ~07:00**: P0-NEW lifecycle gate→gated RESOLVED. Investigation showed stub shape drift `{ok, issues}` (legacy) vs prod `{canProceed, overallStatus, items}` (post task #208). Surgical fix 2 test files. jest 534/552 (+4). Real API e2e 16/16 PASS proves production wiring correct end-to-end via real OpenAI. Master tracker reclassified.
 - **2026-05-17 ~05:30**: jest 5 fail re-audit — discovered 4 lifecycle gate→gated wiring bugs hidden as "pre-existing" (P0-NEW added). Added Bug 2 ghost re-report. Added critical-path mobile flake (P1). Added paused plans §7. Phase 2 qchip visual 24/24 PASS.
 - **2026-05-17 ~05:00**: Initial master tracker. Cap-recovery parallel verification round. Found Bug 7 iOS Safari + Auth race. Verified T3/T6/Bug 6 GREEN. Stage 1B B4 + NSM full flow + adversarial all GREEN.
 - **(future entries — append every new finding)**

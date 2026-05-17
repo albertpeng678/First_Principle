@@ -15,7 +15,7 @@ jest.mock('../../db/client', () => {
 jest.mock('../../prompts/circles-gate', () => ({
   reviewFramework: jest.fn(async () => {
     const { aiStubs } = require('../helpers/test-supabase');
-    return aiStubs['circles-gate'] || { ok: true, issues: [] };
+    return aiStubs['circles-gate'] || { canProceed: true, overallStatus: 'ok', items: [] };
   }),
 }));
 
@@ -97,7 +97,7 @@ describe('CIRCLES lifecycle wiring', () => {
 
   test('POST /:id/gate ok=true → gated (SLC-AC7)', async () => {
     const id = seedSession.insert('circles_sessions', { lifecycle: 'editing', user_id: 'test-user-1' });
-    seedSession.stubAi('circles-gate', { ok: true, issues: [] });
+    seedSession.stubAi('circles-gate', { canProceed: true, overallStatus: 'ok', items: [] });
     const res = await request(app)
       .post(`/api/circles-sessions/${id}/gate`)
       .set('Authorization', 'Bearer test-user-1')
@@ -109,7 +109,7 @@ describe('CIRCLES lifecycle wiring', () => {
 
   test('POST /:id/gate ok=false does NOT promote (SLC-AC7 negative)', async () => {
     const id = seedSession.insert('circles_sessions', { lifecycle: 'editing', user_id: 'test-user-1' });
-    seedSession.stubAi('circles-gate', { ok: false, issues: ['too vague'] });
+    seedSession.stubAi('circles-gate', { canProceed: false, overallStatus: 'error', items: [] });
     await request(app)
       .post(`/api/circles-sessions/${id}/gate`)
       .set('Authorization', 'Bearer test-user-1')
@@ -205,7 +205,7 @@ describe('GUEST CIRCLES lifecycle wiring', () => {
 
   test('POST /:id/gate ok=true → gated (SLC-AC7 guest)', async () => {
     const id = seedSession.insert('circles_sessions', { lifecycle: 'editing', guest_id: GUEST_ID });
-    seedSession.stubAi('circles-gate', { ok: true, issues: [] });
+    seedSession.stubAi('circles-gate', { canProceed: true, overallStatus: 'ok', items: [] });
     const res = await request(app)
       .post(`/api/guest-circles-sessions/${id}/gate`)
       .set('X-Guest-ID', GUEST_ID)
@@ -217,7 +217,7 @@ describe('GUEST CIRCLES lifecycle wiring', () => {
 
   test('POST /:id/gate ok=false does NOT promote (SLC-AC7 negative guest)', async () => {
     const id = seedSession.insert('circles_sessions', { lifecycle: 'editing', guest_id: GUEST_ID });
-    seedSession.stubAi('circles-gate', { ok: false, issues: ['too vague'] });
+    seedSession.stubAi('circles-gate', { canProceed: false, overallStatus: 'error', items: [] });
     await request(app)
       .post(`/api/guest-circles-sessions/${id}/gate`)
       .set('X-Guest-ID', GUEST_ID)

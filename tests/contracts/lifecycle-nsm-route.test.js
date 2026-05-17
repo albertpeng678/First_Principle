@@ -15,7 +15,7 @@ jest.mock('../../db/client', () => {
 jest.mock('../../prompts/nsm-gate', () => ({
   reviewNSMGate: jest.fn(async () => {
     const { aiStubs } = require('../helpers/test-supabase');
-    return aiStubs['nsm-gate'] || { ok: true, issues: [] };
+    return aiStubs['nsm-gate'] || { canProceed: true, overallStatus: 'ok', items: [] };
   }),
 }));
 
@@ -95,7 +95,7 @@ describe('NSM lifecycle wiring', () => {
 
   test('POST /:id/gate ok=true → gated (SLC-AC7)', async () => {
     const id = seedSession.insert('nsm_sessions', { lifecycle: 'editing', user_id: 'test-user-1' });
-    seedSession.stubAi('nsm-gate', { ok: true, issues: [] });
+    seedSession.stubAi('nsm-gate', { canProceed: true, overallStatus: 'ok', items: [] });
     const res = await request(app)
       .post(`/api/nsm-sessions/${id}/gate`)
       .set('Authorization', 'Bearer test-user-1')
@@ -107,7 +107,7 @@ describe('NSM lifecycle wiring', () => {
 
   test('POST /:id/gate ok=false does NOT promote (SLC-AC7 negative)', async () => {
     const id = seedSession.insert('nsm_sessions', { lifecycle: 'editing', user_id: 'test-user-1' });
-    seedSession.stubAi('nsm-gate', { ok: false, issues: ['too vague'] });
+    seedSession.stubAi('nsm-gate', { canProceed: false, overallStatus: 'error', items: [] });
     await request(app)
       .post(`/api/nsm-sessions/${id}/gate`)
       .set('Authorization', 'Bearer test-user-1')
@@ -199,7 +199,7 @@ describe('GUEST NSM lifecycle wiring', () => {
 
   test('POST /:id/gate ok=true → gated (SLC-AC7 guest)', async () => {
     const id = seedSession.insert('nsm_sessions', { lifecycle: 'editing', guest_id: GUEST_ID });
-    seedSession.stubAi('nsm-gate', { ok: true, issues: [] });
+    seedSession.stubAi('nsm-gate', { canProceed: true, overallStatus: 'ok', items: [] });
     const res = await request(app)
       .post(`/api/guest-nsm-sessions/${id}/gate`)
       .set('X-Guest-ID', GUEST_ID)
@@ -211,7 +211,7 @@ describe('GUEST NSM lifecycle wiring', () => {
 
   test('POST /:id/gate ok=false does NOT promote (SLC-AC7 negative guest)', async () => {
     const id = seedSession.insert('nsm_sessions', { lifecycle: 'editing', guest_id: GUEST_ID });
-    seedSession.stubAi('nsm-gate', { ok: false, issues: ['too vague'] });
+    seedSession.stubAi('nsm-gate', { canProceed: false, overallStatus: 'error', items: [] });
     await request(app)
       .post(`/api/guest-nsm-sessions/${id}/gate`)
       .set('X-Guest-ID', GUEST_ID)
