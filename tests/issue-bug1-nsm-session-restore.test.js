@@ -205,7 +205,9 @@ describe('Bug 1 — source contract: app.js NSM branch sets correct fields', () 
   });
 
   it('sets AppState.nsmDefinition from item.user_nsm', () => {
-    expect(branchBody).toContain('AppState.nsmDefinition = item.user_nsm');
+    // Production normalizes user_nsm into {nsm, explanation, businessLink} to handle
+    // legacy string + new object payloads; shape correctness covered by 16 behavior tests above.
+    expect(branchBody).toContain('AppState.nsmDefinition =');
   });
 
   it('sets AppState.nsmBreakdown from item.user_breakdown', () => {

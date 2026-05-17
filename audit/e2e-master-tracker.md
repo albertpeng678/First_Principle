@@ -18,6 +18,13 @@
 - **Verify**: jest 534/552 (was 530/552; +4 fixed). Real API e2e 16/16. Commit `[pending]`.
 - **Lesson (O-8 action)**: master tracker mis-flagged this as P0 user-visible — investigation showed it was test-only. Enforced jest fail tagging policy still warranted (O-8) so next drift caught faster.
 
+### P0-NEW-2 jest tests/circles-sessions.test.js 20 fails — L5 WIP IN-FLIGHT (NOT permanent regression)
+- **Detected 2026-05-17 ~10:30**: full jest 514/552 (was 534/552). Delta = 20 fails in `tests/circles-sessions.test.js` (POST /message + /evaluate-step + PATCH /progress + 1 file appears twice in output).
+- **Root cause**: L5 sonnet (Bug 6 fix bundle) is modifying `routes/circles-sessions.js` + `routes/guest-circles-sessions.js` adding 403 lifecycle guards. Older jest specs `tests/circles-sessions.test.js` expect 200 from these endpoints with default mock setup that doesn't seed `lifecycle='gated'` — now they hit 403.
+- **Verification needed when L5 returns**: L5 must update `tests/circles-sessions.test.js` mock setup to seed `lifecycle='gated'` for tests that should pass; or fix the mock fixtures to reflect new guard expectations.
+- **Director action**: when L5 reports DONE, IL-2 cold-verify jest full count must be ≥ 534/552 + previous fix (535/552 baseline including nsm-restore test drift fix). If L5 left 514/552, dispatch L5-followup to update jest fixtures.
+- **Director should NOT prematurely close L5** — full regression check mandatory.
+
 ### ~~P0-#263 iOS Safari Phase 3 restore fallback~~ — RESOLVED 2026-05-17 (Lane L1 — was stale tracker entry)
 - **Verdict**: Already fixed in commit `654d0e8` (2026-05-16) before this tracker entry was reconciled. Director cold-verified 3 runs × 4 tests = 12/12 PASS on e2e-mobile-safari (zero flake) + L1's 5/5 burn-in.
 - **Root cause (now historical)**: Pre-fix `restoreCirclesPhase1FromSession` (app.js:8140) did not copy `step_scores[stepKey]` into `circlesScoreResult`. `navigateToPhase3 → renderCirclesPhase3` then hit `if (!circlesScoreResult)` branch at app.js:6513 → spinner-forever. Tracker original PNG snapshot of `renderCirclesStub()` was likely captured in a different transient window during navigateToPhase3 race.
@@ -58,12 +65,19 @@
   ```
 - **Critical implication**: gate is currently **advisory only** at backend — entire UX assumes FE conditional rendering blocks user, but any direct API caller (or FE state corruption / future bugs) bypasses freely. This is the actual root cause of user's repeated 沒審核直接放行 reports.
 
-### P0-#252 Bug 2 PNG-20 Ghost content — RE-REPORTED
-- **Status**: task #209 closed via B2 reproduce + real E2E ship per earlier session
-- **User report**: still seeing「進入 form 前就出現不知道哪來的已填寫內容」
-- **Likely surface**: preflight session creation race / stale localStorage / draft restore hitting wrong session
-- **Cross-ref**: `audit/lane-k-b2-ghost-content-investigation-2026-05-17.md`
-- **Next**: reproduce on real production state with user-style flow (login → enter form fresh) + check what's in `circlesFrameworkDraft` / localStorage at mount
+### P0-#252 Bug 2 PNG-20 Ghost content — RED CONFIRMED 2026-05-17 (Lane L4)
+- **Audit + spec + PNG**: `audit/repro-bug2-ghost-content-2026-05-17.md` + `tests/e2e/circles-fresh-form-no-ghost.spec.js` + `audit/repro-bug2-ghost-content/` (15 e2e tests + 1 setup × 3 projects)
+- **Reproduction confirmed**: Scenario C on e2e-mobile-chrome — console output `[BUG CONFIRMED] AppState.circlesFrameworkDraft: {"C1":{"問題範圍":"ghost content from session A"}}`. PNG `scenario-C-e2e-mobile-chrome.png` shows "ghost content from session A" 渲染在 Apple Health（不同 question）的 Phase 1 問題範圍 textarea。
+- **Root cause (1 line)**: `AppState.circlesFrameworkDraft` 不在 qcard-confirm handler (`public/app.js:5784`) 重置；下一題 mount 時 `populateTextareasFromDraft` (`public/app.js:7137-7157`) 把舊 draft `innerHTML` 注入新 textarea
+- **Why prior B2 fix didn't cover this**: prior fix likely handled login → fresh login path; new repro is cross-question switch within same session lifetime (qcard-confirm path)
+- **Cross-ref**: prior investigation `audit/lane-k-b2-ghost-content-investigation-2026-05-17.md`
+- **Proposed fix (待 Director 排程 — L5 還在跑同檔 app.js，避免 conflict)**:
+  ```js
+  // At qcard-confirm handler (app.js:5784), before assigning new circlesSelectedQuestion:
+  AppState.circlesFrameworkDraft = {};
+  AppState.circlesPhase1Solutions = [{},{}]; // shape per existing init
+  ```
+- **Lane note**: e2e-desktop + e2e-mobile-safari 在同一 root cause path 上 fail，但因 test infra back-nav timeout 沒抵達 ghost assertion；mobile-chrome 是乾淨 RED 證據
 
 ---
 
@@ -162,6 +176,9 @@
 | **Bug 6 bypass repro (Lane L3)** | api | ❌ 4/5 RED (leaks confirmed) | commit `95b7fd5` — 4 BE handler bypasses + 1 FE defense gap |
 | **Bug 1 全 Y adversarial (Lane L2)** | api-gate-adversarial | ✅ 10/10 PASS × 3 runs (no flake) | commit `f7a43ff` — backend cleared; bug pivots to FE |
 | **iOS Safari Phase 3 restore (Lane L1 verify)** | e2e-mobile-safari | ✅ 12/12 PASS × 3 runs (zero flake) + 5/5 burn-in | commit `654d0e8` (was stale tracker entry; fix shipped 2026-05-16) |
+| **Bug 2 ghost content repro (Lane L4)** | 3 e2e | ❌ RED on mobile-chrome Scenario C (BUG CONFIRMED) | spec + PNG + audit; commit pending (L4 may not have committed) |
+| **jest tests/circles-sessions.test.js (L5 WIP transient)** | jest | ❌ 20 fails (was 0) — L5 route guard WIP | NOT permanent; verify post-L5 commit |
+| **jest issue-bug1-nsm-session-restore (test drift fix)** | jest | ✅ 17/17 PASS (was 16/17) | fixed by Director |
 
 ---
 
@@ -274,6 +291,8 @@
 
 ## §8 Update Log
 
+- **2026-05-17 ~10:35**: Director main-agent **investigated 1 remaining jest fail** (`issue-bug1-nsm-session-restore.test.js:208`) — TEST DRIFT, production更 robust（normalize user_nsm 3 種 shape）vs test stale literal string-match。Surgical fix: change `toContain('AppState.nsmDefinition = item.user_nsm')` → `toContain('AppState.nsmDefinition =')`。File 17/17 PASS。**BUT full jest dropped to 514/552 — discovered L5 WIP 撞 20 條 tests/circles-sessions.test.js**。新增 P0-NEW-2 tracker entry。
+- **2026-05-17 ~10:33**: Phase 1 Lane L4 returned. P0-#252 Bug 2 ghost content **RED CONFIRMED**. Root cause: `AppState.circlesFrameworkDraft` 不在 qcard-confirm (`app.js:5784`) 重置；新題 mount populateTextareasFromDraft 注入舊 draft。Console + PNG (scenario-C-e2e-mobile-chrome) 證據鐵。Spec/audit/PNG written by sonnet. L5 fix lane 還在跑 — Bug 2 fix lane 待 L5 完才 dispatch（避免 app.js 並行編輯衝突）。
 - **2026-05-17 ~10:25**: Phase 1 Lane L1 returned DONE_WITH_CONCERNS — P0-#263 iOS Safari Phase 3 restore + P1-#256 Bug 7 are **STALE entries**, already fixed by commit `654d0e8` (2026-05-16). Director cold-verified 12/12 × 3 runs e2e-mobile-safari zero flake. Both moved to §5 closed. Diagnostic doc + traces + 7 mobile-safari frames preserved. Lanes running: L4 + L5. 1 free slot — holding for L4 (Bug 2 ghost) finding before dispatching Bug 1 FE investigation (potential code-surface overlap).
 - **2026-05-17 ~10:10**: Director 由 user 授權 "由你開單最 robust 方式"。Dispatch **L5 = Bug 6 fix bundle**（per L3 推薦方向）— 4 BE handler + FE LEAK-5 + TDD green via 已存 `tests/api/circles-no-bypass.spec.js`。Rationale: blast radius 最大，可能順帶解 Bug 1 FE root cause（待 L5 完後驗證）。Bug 1 FE investigation lane 延後。L1+L4+L5 = 3 slots full。
 - **2026-05-17 ~10:05**: Phase 1 Lane L2 returned. P0-#251 Bug 1 backend cleared — 10/10 adversarial variants ("Y", "y", "yes", "Y.", "Y。", "Y ", 混合, "好", "1", ".") rejected × 3 runs (50s + 57s + node probe). Real OpenAI gpt-4o + temperature 0.3 + JSON mode. Layer 1 字數<10 + Layer 2 敷衍 + few-shot 三重覆蓋全生效。Bug pivots to FE — candidate surfaces 4 條 + cross-ref P0-#255 LEAK-5 FE. Commit `f7a43ff`. L1/L4 still running.
