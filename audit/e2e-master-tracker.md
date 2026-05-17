@@ -159,22 +159,8 @@
 
 ---
 
-### NEW-Bug-B (2026-05-17 PM user report PNG-31) — NSM dim card hint+example 不在 head row
-**User report PNG-31**: NSM Step 2/3 dim card（如「啟用廣度」「席次深度」），「💡 提示 99 範例答案 ▼」**獨立一行**顯示在 title 與 textarea 之間。**應該與標題同一區並右對齊**（mirror mockup 03 hint-row pattern, STANDING `feedback_hint_example_unified_component`）。
-**Severity**: P2（外觀違反 STANDING 全站一致規則，功能未受影響）
-**Root cause (Explore agent verified)**:
-- `public/app.js:1726-1743` `renderNSMDim` 用了 NSM-only 自訂雙層結構 `.nsm-dim__head` + `.nsm-dim__body`，把 `.field__hint-row` 放在 `.nsm-dim__body` 內（line 1731-1737）
-- Mockup 07 line 1355-1384 規定：`.field__label-row > .field__hint-row` 同行（同 mockup 03 pattern）
-- Mockup 07 CSS 註解（line 720-721）明確標示舊 `.nsm-dim__head/__label/__hint-btn` 已 DELETED，但 production 未 migrate
-- CIRCLES `app.js:4503-4518` `renderField` 已正確用 `.field__label-row > .field__hint-row` pattern
-**Proposed fix scope (Karpathy surgical, ~6 lines app.js + 0-3 css cleanup)**:
-- `app.js:1726-1743` `renderNSMDim` 重排 template：`.nsm-dim__head` → `.field__label-row`；`.field__hint-row` 從 body 移到 label-row 內；`.nsm-dim__desc` 移到 label-row 外
-- `public/style.css` 確認 `.nsm-dim__head` 舊樣式可移除（如殘存）
-**RED visual spec**: `tests/visual/nsm-dim-card-hint-row-position.spec.js` × 3 vp × 4 AC（DOM structural assert hint-row in label-row not body + negative assert not in body + `toHaveScreenshot` mockup 07 baseline diff + boundingRect top alignment ±4px）
-**Skills cite**: §3.13 visual-regression + §3.11 cross-vp + Pitfall 18 boundingRect read
-**Cross-ref**: mockup `docs/superpowers/specs/mockups/2026-05-02-frontend-rewrite/07-nsm-step-2.html:1355-1384`；CIRCLES canonical pattern `app.js:4503-4518`；STANDING `feedback_hint_example_unified_component`
+<!-- NEW-Bug-B moved to §5 closure (commit b126937 2026-05-17 PM Wave 1B-b) -->
 
----
 
 ### NEW-Test-Debt (2026-05-17 PM, Director cold-Read after Bug B 2-stage review)
 **Source**: cross-spec smoke discovered after Bug B class rename — pre-existing test/prod drift unrelated to current commit

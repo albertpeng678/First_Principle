@@ -1,11 +1,16 @@
 # PM Drill — 專案狀態看板
 
 > 即時狀態 single source of truth。**不放歷史（git log 有）**。重大事件即時 Edit。
-> **Last updated:** 2026-05-17 PM Live-demo-gate session（F-2 + F-1 + C fix shipped + hook installed + STANDING memory × 3）
+> **Last updated:** 2026-05-17 PM Wave 1B-b ship — Bug A NSM ghost + Bug B hint position + F-CT1.2 silent + 7 reviewer-caught Critical 補修 (`b126937`)
 
 ## 當前狀態（30 秒讀完）
 
-- **🏆 本 session 2026-05-17 PM Live-demo-gate** — 7 commits push origin/main：
+- **🏆 本 session Phase 1 + Phase 1B Wave a/b 全 ship (2026-05-17 PM)**：
+  - `b126937` **Wave 1B-b**: NEW-Bug-A NSM 切題 ghost content (mirror CIRCLES #252 c156c6b 10-line reset) + NEW-Bug-B PNG-31 NSM hint+example position (mockup 07 line 1355-1384 canonical pattern) + F-CT1.2 CIRCLES Phase 2 silent fail (fetch→apiFetch+circlesPhase3Error setter) + **7 個 reviewer-caught Critical 補修**（2 cross-spec drift + 2 untracked spec + 1 dead var + 1 missing auto-cleanup + 1 comment line# error）
+  - `1b75c0f` **Wave 1B-a**: F-CT1.1 NSM evaluator spinner 卡死 (1 line) + B6 D-4 warn icon 顏色相反 (1 char swap `ph-warning`→`ph-check-circle`)
+  - `e811378` **Wave 1 B10 / O-6**: `_doOffcanvasDelete` invalidate `circlesRecentSessions` cache (2 lines)
+  - 前序 Phase 1 find 完成：C-T1 (4 AI surface error audit, 5 findings P1-P3) / C-T2 (NSM 99.9% drop 線上深挖 — q3 卡片即建 session 5487 噪音 + 真實 S2→S3 42.9% drop) / B6 mockup 04 pixel-diff (11 drift vs 估 9) / B13 adversarial 擴 3 prompt (sub-agent silently failed — re-dispatch needed)
+- **舊 Live-demo-gate session 上一輪 (2026-05-17 PM)** — 7 commits：
   - `c70b8e9` mockup-07 砍 9 行 orphan hint（align production renderNSMContextCard）
   - `a221cf0` **F-2 prod CSS bug** — `.nsm-body` padding-bottom 修 sticky bar 蓋 mobile first field（director walk 3 vp 確認）
   - `d2d1d2f` **F-1 test fixture** — walk spec 換真 Netflix q1 shape
