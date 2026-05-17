@@ -48,19 +48,23 @@
 **標竿：** iOS Safari 滑順度 ≥ aistockmap.com（手機 web）
 **Master Spec：** `docs/superpowers/specs/2026-05-02-frontend-rewrite-master-spec.md`
 
-### 進行中 / 待收尾
+### Phase 計畫 — B+C 全收（user 立 2026-05-17 PM Live-demo-gate session）
 
-| 項目 | 狀態 |
-|---|---|
-| **L24 fix 5 API spec lifecycle seed drift** | 🏃 in flight — closes P0-NEW-6 cluster |
-| **L25 apply L22 Option B (Supabase collision fix)** | 🏃 in flight — closes P1-#264 reclassified |
-| **L26 NSM /context+/hints+/progress audit** | 🏃 in flight — preventive completion of L18 scope |
-| **2-stage reviewer wave (7 ship commits)** | 📋 待 L24/L25/L26 完 → dispatch spec-compliance + code-quality per commit |
-| **eyeball-* docs** | 📋 BE-heavy ship；FE 影響 commits（L11/L13/L17）需簡 cold-Read doc |
-| **Push origin/main** | 🚫 BLOCKED — 等 L24/L25 GREEN + reviewer wave |
-| Stage 1B/1C/1D impl | 📋 specs `2c6fa51` / `8ca4b81` / `93d2695` — 等 user 放行 dispatch |
-| Stage 1D B-Hint cluster (#174 paused) | 📋 |
-| Bug 8 PNG-24 test fake data (#257) | 📋 partial done；master plan F-007 65 spec refactor 後 wave |
+> **規矩**：所有新 task 一律 **find-first → log tracker → user brainstorm → 才 fix**（per `feedback_find_first_fix_later_via_tracker.md`）。
+> **完整 task 描述** + 規格 → `docs/PATH-2-HANDOFF.md` §A.5。
+
+| Phase | 範圍 | 工時 | 任務 |
+|---|---|---|---|
+| **🔴 P1** 商業最痛 | ~1-2 天 | C-T1 find (AI 錯誤 e2e 盤點) / C-T2 find (99.9% conversion 線上深挖) / B10 O-6 offcanvas cosmetic / B6 #21 mockup 04 audit / B13 O-11 adversarial 擴 3 prompt |
+| **🟠 P2** 覆蓋率擴張 | ~2-3 天 | C-T3 CIRCLES director walk / C-T4 find (新用戶 journey 斷點 log) / C-T6 8 vp 擴 e2e config / B1 #257 F-007 wave Phase A (20 specs) |
+| **🟡 P3** Robust 防護 | ~2-3 天 | C-T5 iOS Safari 15-item 自動化 / C-T10 cross-tab+device race / C-T11 a11y baseline / B1 #257 F-007 wave Phase B (30 specs) / B2 F-001 Trophy +30 API specs |
+| **🟢 P4** Polish + debt | ~1-2 天 | C-T12 perf budget gate (LCP/TTI/3G) / B7-B14 雜項 (dead code/O-5/fallback flag/refactor/O-8 process) / B3 #207 B5 decision / B4 #199 dup close / B5 #205 Retrofit G |
+
+**Director 接手節點**（compact 後直接照 phase 動工）：
+1. 開 session 讀本檔 + PATH-2-HANDOFF.md §A.5 + tracker §1-§3
+2. 從當前 phase 第 1 個 task 起跑
+3. find-phase task → 不 commit production，只 append tracker
+4. fix-phase task → Live demo gate（stage → PNG → user 對 → commit）
 
 > 已完成的 plans（A / B SB1-10 + Phase 2-4 / C SB1-3 / D SB1-2 / Combo C / 多輪 hotfix）見 `git log`
 
