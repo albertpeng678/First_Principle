@@ -25,10 +25,45 @@
 // Closes F-P04 from audit/findings-slice-cross-2026-05-17.md.
 
 const { test: base, expect } = require('@playwright/test');
+const { createClient } = require('@supabase/supabase-js');
 require('dotenv').config({ path: '.env.local' });
 require('dotenv').config({ path: '.env', override: false });
 
 const BASE_URL = (process.env.API_BASE_URL || 'http://localhost:4000').replace(/\/$/, '');
+
+// ── Service-role client — api-testing.md:783-848 "Data seeding via service-role" ──
+// Used to seed lifecycle='gated' without calling /gate (bypasses RLS for fixture setup).
+const adminDb = createClient(
+  process.env.SUPABASE_URL,
+  process.env.SUPABASE_SERVICE_ROLE_KEY,
+  { auth: { persistSession: false } }
+);
+
+/**
+ * Set lifecycle='gated' for a circles session via service-role.
+ * L5 fix (P0-#255): /final-report and /evaluate-step require lifecycle in ['gated','completed'].
+ * Seed via service-role to bypass /gate (gate is not under test for these guards).
+ */
+async function setCirclesLifecycleGated(sessionId) {
+  const { error } = await adminDb
+    .from('circles_sessions')
+    .update({ lifecycle: 'gated' })
+    .eq('id', sessionId);
+  if (error) throw new Error(`setCirclesLifecycleGated failed: ${error.message}`);
+}
+
+/**
+ * Set lifecycle='gated' for a NSM session via service-role.
+ * L19 fix: /evaluate requires lifecycle in ['gated','completed'].
+ * Seed via service-role to bypass /gate (gate is not under test for this guard).
+ */
+async function setNsmLifecycleGated(sessionId) {
+  const { error } = await adminDb
+    .from('nsm_sessions')
+    .update({ lifecycle: 'gated' })
+    .eq('id', sessionId);
+  if (error) throw new Error(`setNsmLifecycleGated failed: ${error.message}`);
+}
 
 // ── stable test data ──────────────────────────────────────────────────────────
 
@@ -538,6 +573,9 @@ test.describe('CIRCLES guest routes — real API (F-P04)', () => {
 
     test('400 — incomplete_steps (no step_scores)', async ({ request, guestId, guestCleanup }) => {
       const session = await createCirclesDraft(request, guestId, guestCleanup);
+      // L5 fix (P0-#255): set lifecycle='gated' so lifecycle guard passes first;
+      // we are testing the incomplete_steps guard (400), not the lifecycle guard (403).
+      await setCirclesLifecycleGated(session.id);
       // Session has no step_scores yet — should return 400 incomplete_steps
       const res = await request.post(
         `${BASE_URL}/api/guest-circles-sessions/${session.id}/final-report`,
@@ -907,6 +945,9 @@ test.describe('NSM guest routes — real API (F-P04)', () => {
     test('happy — evaluate returns scores shape', async ({ request, guestId, guestCleanup }) => {
       test.slow(); // real OpenAI call
       const sessionId = await createNsmSession(request, guestId, guestCleanup);
+      // L19 fix: /evaluate requires lifecycle='gated' or 'completed'.
+      // Seed via service-role to bypass /gate (gate is not under test here).
+      await setNsmLifecycleGated(sessionId);
       const res = await request.post(
         `${BASE_URL}/api/guest/nsm-sessions/${sessionId}/evaluate`,
         {

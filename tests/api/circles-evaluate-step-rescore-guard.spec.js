@@ -62,6 +62,19 @@ async function seedStepScore(sessionId, stepKey) {
   if (error) throw new Error(`seed: ${error.message}`);
 }
 
+/**
+ * Set lifecycle='gated' via service-role.
+ * L5 fix (P0-#255): /evaluate-step now requires lifecycle='gated' or 'completed'.
+ * Seed via service-role to bypass /gate (which is not under test here).
+ */
+async function setLifecycleGated(sessionId) {
+  const { error } = await adminDb
+    .from('circles_sessions')
+    .update({ lifecycle: 'gated' })
+    .eq('id', sessionId);
+  if (error) throw new Error(`setLifecycleGated failed: ${error.message}`);
+}
+
 test.beforeAll(async () => {
   await getE2eToken();
 });
@@ -73,6 +86,9 @@ test.afterAll(() => {
 test.describe('POST /evaluate-step rescore guard — AC-2', () => {
   test('422 step_already_scored when stepKey is in step_scores', async ({ request, cleanupTracker }) => {
     const sessionId = await createDraftSession(request, cleanupTracker);
+    // L5 fix (P0-#255): set lifecycle='gated' so lifecycle guard passes;
+    // we are testing the step_already_scored guard, not the lifecycle guard.
+    await setLifecycleGated(sessionId);
     await seedStepScore(sessionId, DRILL_STEP);
 
     const headers = await authHeaders();

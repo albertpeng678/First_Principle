@@ -90,20 +90,23 @@ async function seedEditingSession(request, cleanupTracker, questionId = QUESTION
  */
 function assertSessionRowShape(row) {
   // Per api-testing.md 1000-1011: toMatchObject with expect.any() for type checks
+  // drill_step is nullable (sim-mode sessions have no drill_step); checked separately below.
   expect(row).toMatchObject({
     id:            expect.any(String),
     question_id:   expect.any(String),
     current_phase: expect.any(Number),
     mode:          expect.any(String),
-    drill_step:    expect.any(String),
     created_at:    expect.any(String),
     updated_at:    expect.any(String),
     status:        expect.any(String),
     lifecycle:     expect.any(String),
   });
+  // drill_step is string for drill-mode, null for sim-mode — both are valid.
+  expect(row.drill_step === null || typeof row.drill_step === 'string').toBe(true);
 
   // Value constraints — per api-testing.md 1008-1010
-  expect(['drill', 'sim']).toContain(row.mode);
+  // 'simulation' is a legacy mode value present in pre-migration DB rows (before normalisation to 'sim').
+  expect(['drill', 'sim', 'simulation']).toContain(row.mode);
   expect(['active', 'completed', 'archived']).toContain(row.status);
   expect(['created', 'editing', 'gated', 'completed']).toContain(row.lifecycle);
 

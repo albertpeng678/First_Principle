@@ -17,10 +17,19 @@
 const { test } = require('./fixtures/api-cleanup.fixture');
 const { expect } = require('@playwright/test');
 const { getE2eToken, clearTokenCache } = require('./helpers/auth');
+const { createClient } = require('@supabase/supabase-js');
 require('dotenv').config({ path: '.env.local' });
 require('dotenv').config({ path: '.env', override: false });
 
 const BASE_URL = (process.env.API_BASE_URL || 'http://localhost:4000').replace(/\/$/, '');
+
+// ── Service-role client — api-testing.md:783-848 "Data seeding via service-role" ──
+// Used to seed lifecycle='gated' without calling /gate (which is not under test here).
+const adminDb = createClient(
+  process.env.SUPABASE_URL,
+  process.env.SUPABASE_SERVICE_ROLE_KEY,
+  { auth: { persistSession: false } }
+);
 
 // Real question from circles_database.json (Spotify)
 const QUESTION_ID = 'circles_001';
@@ -38,6 +47,19 @@ const SUBSTANTIVE_DRAFT = {
 };
 
 // ── helpers ────────────────────────────────────────────────────────────────────
+
+/**
+ * Set lifecycle='gated' via service-role.
+ * L5 fix (P0-#255): /evaluate-step now requires lifecycle='gated' or 'completed'.
+ * Seed via service-role to bypass /gate (which is not under test here).
+ */
+async function setLifecycleGated(sessionId) {
+  const { error } = await adminDb
+    .from('circles_sessions')
+    .update({ lifecycle: 'gated' })
+    .eq('id', sessionId);
+  if (error) throw new Error(`setLifecycleGated failed: ${error.message}`);
+}
 
 async function authHeaders() {
   const token = await getE2eToken();
@@ -71,6 +93,11 @@ async function seedEvaluatableSession(request, cleanupTracker) {
     { headers, data: { frameworkDraft: SUBSTANTIVE_DRAFT } },
   );
   expect(patchRes.status()).toBe(200);
+
+  // 3. L5 fix (P0-#255): set lifecycle='gated' so the lifecycle guard passes.
+  // evaluate-step requires lifecycle in ['gated','completed'] — seed via service-role
+  // to bypass /gate (gate is not under test here).
+  await setLifecycleGated(session.id);
 
   return session.id;
 }
