@@ -1,7 +1,7 @@
 # PM Drill — 專案狀態看板
 
 > 即時狀態 single source of truth。**不放歷史（git log 有）**。重大事件即時 Edit。
-> **Last updated:** 2026-05-17 PM（7/7 P0 ship + 4-pillar preventive sweep + cross-plan smoke found regression cluster → PUSH BLOCKED until L24/L25/L26 lane verify GREEN）
+> **Last updated:** 2026-05-17（L29 Stage 1B #191 CLOSED — B3-R1 parallel flake fixed; jest 538/555; all smokes GREEN）
 
 ## 當前狀態（30 秒讀完）
 
@@ -22,7 +22,8 @@
 - **CIRCLES chat drift + lock-on-back ship (2026-05-17 AM)**：早 ship。UAT SOP `audit/sop-2026-05-17-circles-lock-and-qchip-uat.md`
 - **Stage 0 ship (2026-05-16)**：B7 prod 污染清理 + prevention infra（env-guard / auto-cleanup fixture / pre-commit hook / 3-env split / `e2e@first-principle.test`）+ 2 條 STANDING memory（three_iron_laws / e2e_real_data_only）+ skill 整合 plan ship。15 commits `4dba816..1ba062e`；jest 45/45；V2 security-review PASS WITH NOTES。
 - **Stage 1A gate cluster (B1+B6) ship (2026-05-16)**：T1-T12 implementer 完成，T13 jest 410/428（1 pre-existing fail，無 regression）；T14 + T15 收尾待跑。
-- **Stage 1B/1C/1D specs ship (2026-05-16)**：brainstorm 完 → `2c6fa51`（1B）/ `8ca4b81`（1C）/ `93d2695`（1D）— 等 user 放行才 dispatch impl。
+- **Stage 1B CLOSED (L29 2026-05-17)**：B3 (Phase 3 spinner stuck on restore) + B4 (offcanvas delete cache race) 全船；B3-R1 parallel flake 修 via per-project question ID map；audit `audit/L29-1b-state-cache-completion-2026-05-17.md`；closes #191。
+- **Stage 1C/1D specs (2026-05-16)**：brainstorm 完 → `8ca4b81`（1C）/ `93d2695`（1D）— 等 user 放行才 dispatch impl。
 - **Production data cleanup (2026-05-16)**：13 sessions DELETE（7 circles 污染 + 4 nsm 污染 + 2 nsm empty-stub）via `scripts/execute-cleanup.js`；receipt `audit/data-pollution-executed-2026-05-16.md`。
 - **scan-pollution.js patch (2026-05-16)** `e34d825`：修 `repro-bug1-*` + 廣義化 timestamp-suffix shape，jest 15→31 specs。
 - **Lifecycle state-machine spec (2026-05-16)** `33d5bf9`：`docs/superpowers/specs/2026-05-16-session-lifecycle-state-machine-design.md` — **PAUSED** 等 holistic persistence audit 結果。

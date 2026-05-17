@@ -78,19 +78,38 @@ async function waitForAuth(page) {
   );
 }
 
+// Per-project question ID map: 3 tests × 3 projects = 9 unique IDs.
+// Offsets from circles_031 to avoid colliding with bug3-spinner-stuck-reproduce.spec.js
+// which uses circles_021..circles_023 (3 projects × 1 test).
+// Each (test slot, project) pair gets its own question so parallel workers never
+// share a draft-endpoint session (the draft endpoint is idempotent per user+question).
+const QUESTION_BY_SLOT_AND_PROJECT = {
+  // B3-R1 happy (slot 0)
+  0: { 'e2e-desktop': 'circles_031', 'e2e-mobile-chrome': 'circles_032', 'e2e-mobile-safari': 'circles_033' },
+  // B3-R2 sad (slot 1)
+  1: { 'e2e-desktop': 'circles_034', 'e2e-mobile-chrome': 'circles_035', 'e2e-mobile-safari': 'circles_036' },
+  // B3-R3 regression guard (slot 2)
+  2: { 'e2e-desktop': 'circles_037', 'e2e-mobile-chrome': 'circles_038', 'e2e-mobile-safari': 'circles_039' },
+};
+function questionIdForSlot(testInfo, slot) {
+  const byProject = QUESTION_BY_SLOT_AND_PROJECT[slot] || QUESTION_BY_SLOT_AND_PROJECT[0];
+  return byProject[testInfo.project.name] || byProject['e2e-desktop'];
+}
+
 // ── createRealSession: POST /api/circles-sessions/draft via apiFetch ─────────
-// questionIndex: 0-based index into CIRCLES_QUESTIONS (use different per test
-// to avoid the draft-endpoint's idempotency dedup returning the same session).
+// questionId: explicit circles_XXX ID so each (test slot, browser project) pair
+// uses a unique question → draft endpoint never deduplicates across parallel workers.
 // Returns { sessionId: string, isAuth: boolean }.
-async function createRealSession(page, questionIndex) {
+async function createRealSession(page, questionId) {
   await page.waitForFunction(
     () => window.CIRCLES_QUESTIONS && window.CIRCLES_QUESTIONS.length > 0,
     { timeout: 10_000 }
   );
 
-  const result = await page.evaluate(async (qIdx) => {
+  const result = await page.evaluate(async (qid) => {
     const A = window.AppState;
-    const q = window.CIRCLES_QUESTIONS[qIdx];
+    const q = window.CIRCLES_QUESTIONS.find(function (x) { return x.id === qid; })
+      || window.CIRCLES_QUESTIONS[0];
     const isAuth = !!A.accessToken;
     const path = isAuth ? '/api/circles-sessions/draft' : '/api/guest-circles-sessions/draft';
     const res = await window.apiFetch(path, {
@@ -104,7 +123,7 @@ async function createRealSession(page, questionIndex) {
     // recognises it exists (we will clear this before triggering restore).
     A.circlesSession = session;
     return { sessionId: session.id, isAuth };
-  }, questionIndex);
+  }, questionId);
 
   expect(result).toBeTruthy();
   expect(result.sessionId).toBeTruthy();
@@ -236,15 +255,15 @@ async function navigateToPhase3(page) {
 test.describe('B3 Phase 3 restore — real Supabase seed + real browser restore', () => {
 
   // B3-R1: happy path — step_scores present → circlesScoreResult set → Phase 3 shows score
-  test('B3-R1 happy: step_scores in DB → restore sets circlesScoreResult → Phase 3 shows score UI', async ({ page }) => {
+  test('B3-R1 happy: step_scores in DB → restore sets circlesScoreResult → Phase 3 shows score UI', async ({ page }, testInfo) => {
     await test.step('boot app + wait for auth', async () => {
       await bootApp(page);
       await waitForAuth(page);
     });
 
     let sessionId, isAuth;
-    await test.step('seed real session (question index 0, drill C1)', async () => {
-      const result = await createRealSession(page, 0);
+    await test.step('seed real session (per-project unique question, slot 0, drill C1)', async () => {
+      const result = await createRealSession(page, questionIdForSlot(testInfo, 0));
       sessionId = result.sessionId;
       isAuth = result.isAuth;
       await promoteLifecycle(page, sessionId, isAuth);
@@ -286,16 +305,16 @@ test.describe('B3 Phase 3 restore — real Supabase seed + real browser restore'
   });
 
   // B3-R2: sad path — empty step_scores → circlesScoreResult=null → Phase 3 shows spinner
-  test('B3-R2 sad: empty step_scores in DB → restore sets circlesScoreResult=null → Phase 3 shows spinner', async ({ page }) => {
+  test('B3-R2 sad: empty step_scores in DB → restore sets circlesScoreResult=null → Phase 3 shows spinner', async ({ page }, testInfo) => {
     await test.step('boot app + wait for auth', async () => {
       await bootApp(page);
       await waitForAuth(page);
     });
 
     let sessionId, isAuth;
-    await test.step('seed real session with no step_scores (question index 1, drill C1)', async () => {
-      // Use question index 1 to avoid dedup with B3-R1 test (same user + q0 session may still exist)
-      const result = await createRealSession(page, 1);
+    await test.step('seed real session with no step_scores (per-project unique question, slot 1, drill C1)', async () => {
+      // Per-project unique question (slot 1) avoids dedup with B3-R1 test workers (slot 0).
+      const result = await createRealSession(page, questionIdForSlot(testInfo, 1));
       sessionId = result.sessionId;
       isAuth = result.isAuth;
       await promoteLifecycle(page, sessionId, isAuth);
@@ -324,7 +343,7 @@ test.describe('B3 Phase 3 restore — real Supabase seed + real browser restore'
   });
 
   // B3-R3: regression guard — "回評分" path NOT stuck on spinner (B3 original bug)
-  test('B3-R3 regression guard: "回評分" path does NOT get stuck on spinner after restore with step_scores', async ({ page }) => {
+  test('B3-R3 regression guard: "回評分" path does NOT get stuck on spinner after restore with step_scores', async ({ page }, testInfo) => {
     // B3 bug (pre-fix): restoreCirclesPhase1FromSession did NOT set circlesScoreResult
     // from step_scores. So Phase 3 rendered spinner even when score existed in DB.
     // This test proves the regression cannot silently reappear.
@@ -334,9 +353,9 @@ test.describe('B3 Phase 3 restore — real Supabase seed + real browser restore'
     });
 
     let sessionId, isAuth;
-    await test.step('seed session with completed step_scores (question index 2, simulates post-evaluation)', async () => {
-      // Use question index 2 to avoid dedup with R1/R2
-      const result = await createRealSession(page, 2);
+    await test.step('seed session with completed step_scores (per-project unique question, slot 2, simulates post-evaluation)', async () => {
+      // Per-project unique question (slot 2) avoids dedup with R1 (slot 0) + R2 (slot 1) workers.
+      const result = await createRealSession(page, questionIdForSlot(testInfo, 2));
       sessionId = result.sessionId;
       isAuth = result.isAuth;
       await promoteLifecycle(page, sessionId, isAuth);
