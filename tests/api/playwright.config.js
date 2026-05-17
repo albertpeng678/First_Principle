@@ -165,5 +165,14 @@ module.exports = defineConfig({
       name: 'api-no-bypass',
       testMatch: /circles-no-bypass\.spec\.js$/,
     },
+    // Lane L18 — NSM gate bypass path enumeration (preventive, mirror L3 for NSM side).
+    // 4 tests: 3 bypass attempts (auth editing, auth created, guest editing) + 1 control.
+    // Tests assert >= 400; 2xx = leak confirmed (evaluate accepted without gate pass).
+    // T-NSM-BYPASS-1/2/3 expected RED until BE lifecycle guard added to /evaluate.
+    // T-NSM-CONTROL-1 calls real OpenAI (test.slow) — must remain GREEN after guard added.
+    {
+      name: 'api-nsm-no-bypass',
+      testMatch: /nsm-no-bypass\.spec\.js$/,
+    },
   ],
 });
