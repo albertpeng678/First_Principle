@@ -174,5 +174,14 @@ module.exports = defineConfig({
       name: 'api-nsm-no-bypass',
       testMatch: /nsm-no-bypass\.spec\.js$/,
     },
+    // Lane L26 — NSM /context + /hints + PATCH /progress comprehensive bypass audit.
+    // Extends L18 coverage: confirms /context + /hints are by-design open (no mutation),
+    // and PATCH /progress cannot advance lifecycle to 'gated' (closing L18 medium-risk vector).
+    // 18 tests across §A (/context), §B (/hints), §C (PATCH /progress).
+    // Most OpenAI-calling tests use test.slow(); PATCH /progress tests are instant.
+    {
+      name: 'api-nsm-context-hints-progress',
+      testMatch: /nsm-context-hints-progress-coverage\.spec\.js$/,
+    },
   ],
 });
