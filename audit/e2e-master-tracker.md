@@ -79,6 +79,15 @@
   ```
 - **Critical implication**: gate is currently **advisory only** at backend — entire UX assumes FE conditional rendering blocks user, but any direct API caller (or FE state corruption / future bugs) bypasses freely. This is the actual root cause of user's repeated 沒審核直接放行 reports.
 
+### P0-NEW-3 persistRetry session-object check — REAL PROD BUG (Lane L14, 2026-05-17)
+- **Discovery**: critical-path-full-flow.spec.js desktop Step 2 fail → `DRAFT_CREATE_FAILED`. L14 traced root cause.
+- **Audit + evidence**: `audit/critical-path-3-fails-investigation-2026-05-17.md` + `audit/L14-evidence/` (5 PNG + 2 error-context)
+- **Root cause**: `lib/persistRetry.js:64-73` checks `resp.ok` on session object returned by `ensureCirclesDraftSession`'s early-exit guard (`public/app.js:3793`). Session objects have NO `.ok` property + STRING `.status` (`'editing'`/`'created'`), not numeric HTTP status. `isRetryable()` falls through → always returns `true` → retries 4× → `RetryExhausted` thrown → `DRAFT_CREATE_FAILED` propagated up.
+- **User-visible impact**: **Any user with existing `circlesSession` clicking 提交審核 (gate) always fails**. May match user reports of "gate 失敗" / "提交沒反應".
+- **Introduced**: commit `87e1999` (Plan #194 T4 RES-AC5 partial ship — TC1 was already flagged pending-diagnose in commit caveat note)
+- **Cross-ref**: P1 Plan #194 T4 TC1 happy retry timeout = SAME root cause. Fix lane L16 closes both.
+- **Proposed fix (L16 dispatched)**: early-return guard before persistRetry at `app.js:7629` — `if (AppState.circlesSession) skip persistRetry`; OR fix at `lib/persistRetry.js:64-73` level (instanceof Response check). L16 picks safer approach.
+
 ### ~~P0-#252 Bug 2 PNG-20 Ghost content~~ — RESOLVED 2026-05-17 (commit `c156c6b`)
 - **Fix**: 7-line reset block at `public/app.js:5778-5784` qcard-confirm — resets `circlesFrameworkDraft`, `circlesGateResult`, `circlesScoreResult`, `circlesPhase2ConclusionDraft`, `circlesConversation`, `circlesStepScores` before assigning new question
 - **Verify**: Scenario C e2e-mobile-chrome 30/30 × 5 runs zero flake + circles-back-nav-lock 16/16 + circles-phase3-restore-real 10/10 + jest 535/552
