@@ -36,7 +36,6 @@ const SUBSTANTIVE_BREAKDOWN = {
   reach:     '每週至少訪問 Spotify 的用戶，約 3.5 億，其中 Podcast 觸及率目前 40%，即 1.4 億人',
   depth:     '播放超過 5 分鐘代表有意圖的消費行為，而非意外點擊',
   frequency: '週活躍而非月活躍，符合 Podcast 聆聽習慣，同時避免 day-of-week 偏差',
-  impact:    '與廣告收入直接相關：Podcast 廣告 CPM 是音樂的 3-5 倍，提升此指標直接增加變現效率',
 };
 
 // Polluted stub — matches POLLUTION_REGEX in session-lifecycle.js
@@ -124,7 +123,7 @@ function openAiEvaluateBody() {
         role: 'assistant',
         content: JSON.stringify({
           total: 82,
-          dimensions: { reach: 85, depth: 80, frequency: 82, impact: 83 },
+          dimensions: { reach: 85, depth: 80, frequency: 82 },
           coachTree: { main: '整體表現良好', details: {} },
         }),
       },

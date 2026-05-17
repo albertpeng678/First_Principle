@@ -17,7 +17,7 @@ async function generateNSMHints({ question_json, product_type }) {
 情境：${scenario}
 產品類型：${typeHints[product_type] || '注意力型'}
 
-請為學員提供 4 個維度的引導提示。每個維度需要：
+請為學員提供 3 個維度的引導提示。每個維度需要：
 1. 針對「${company}」這個具體公司的情境
 2. 以一個啟發性問題開頭（讓學員主動思考）
 3. 接著給出 1 個具體的參考方向（不是答案，是思考方向）
@@ -32,8 +32,7 @@ async function generateNSMHints({ question_json, product_type }) {
 {
   "reach":     "<以 markdown bullets 格式 (- 開頭) 描述針對 ${company} 的廣度維度提示>",
   "depth":     "<以 markdown bullets 格式 (- 開頭) 描述針對 ${company} 的深度維度提示>",
-  "frequency": "<以 markdown bullets 格式 (- 開頭) 描述針對 ${company} 的頻率維度提示>",
-  "impact":    "<以 markdown bullets 格式 (- 開頭) 描述針對 ${company} 的業務影響維度提示>"
+  "frequency": "<以 markdown bullets 格式 (- 開頭) 描述針對 ${company} 的頻率維度提示>"
 }`;
 
   const response = await client.chat.completions.create({

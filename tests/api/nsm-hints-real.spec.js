@@ -298,7 +298,7 @@ test.describe('POST /api/nsm-public/step3-hint', () => {
   test('returns 200 even when userDraft is included (route strips it)', async ({ request }) => {
     test.slow();
     const res = await request.post(`${BASE_URL}/api/nsm-public/step3-hint`, {
-      data: { questionId: QUESTION_ID, dimId: 'impact', dimType: 'attention', userDraft: 'ignored' },
+      data: { questionId: QUESTION_ID, dimId: 'frequency', dimType: 'attention', userDraft: 'ignored' },
     });
     expect([200, 500]).toContain(res.status());
     if (res.status() === 200) {
@@ -349,8 +349,8 @@ test.describe('POST /api/nsm-sessions/:id/hints', () => {
     expect(body.error).toBe('not_found');
   });
 
-  // Happy path: valid auth + real session → 200 + 4-dim hints object
-  test('returns 200 with 4-dim hint object for valid session', async ({ request, cleanupTracker }) => {
+  // Happy path: valid auth + real session → 200 + 3-dim hints object
+  test('returns 200 with 3-dim hint object for valid session', async ({ request, cleanupTracker }) => {
     test.slow(); // creates real Supabase session + calls real OpenAI
     const sessionId = await createNsmSession(request, cleanupTracker);
 
@@ -361,15 +361,14 @@ test.describe('POST /api/nsm-sessions/:id/hints', () => {
     });
     expect(res.status()).toBe(200);
     const body = await res.json();
-    // Per api-testing.md §JSON Response Assertions: assert all 4 dim keys present
+    // Per api-testing.md §JSON Response Assertions: assert all 3 dim keys present
     expect(body).toMatchObject({
       reach:     expect.any(String),
       depth:     expect.any(String),
       frequency: expect.any(String),
-      impact:    expect.any(String),
     });
     // Each dim hint should be a non-empty markdown string
-    for (const dim of ['reach', 'depth', 'frequency', 'impact']) {
+    for (const dim of ['reach', 'depth', 'frequency']) {
       expect(body[dim].length).toBeGreaterThan(0);
     }
   });
@@ -390,7 +389,6 @@ test.describe('POST /api/nsm-sessions/:id/hints', () => {
     expect(body).toHaveProperty('reach');
     expect(body).toHaveProperty('depth');
     expect(body).toHaveProperty('frequency');
-    expect(body).toHaveProperty('impact');
   });
 
 });

@@ -611,7 +611,7 @@ test.describe('PATCH /progress — no lifecycle-bypass risk (by-design safe)', (
         data: {
           userNsm: SUBSTANTIVE_NSM,
           userBreakdown: {
-            reach: 'r', depth: 'd', frequency: 'f', impact: 'i',
+            reach: 'r', depth: 'd', frequency: 'f',
           },
         },
       }

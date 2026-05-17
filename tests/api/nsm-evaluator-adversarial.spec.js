@@ -37,9 +37,9 @@
 //   - 純 emoji / 隨機 unicode 序列
 //   - 內容與題目情境完全無關
 //   - HTML/JS injection
-//   - 5 個欄位（user_nsm + 4 breakdown）原封不動同字串
+//   - 4 個欄位（user_nsm + 3 breakdown）原封不動同字串
 //   → triggered dim score = 1 (嚴禁給高分)
-//   → if all 5 fields triggered: all 5 dim scores = 1, totalScore = 20
+//   → if all 4 fields triggered: all 5 dim scores = 1, totalScore = 20
 //
 // Skills applied:
 //   api-testing.md:1023-1166 §Error response testing
@@ -60,23 +60,23 @@
 // ── Karpathy Think Before — pre-run leak predictions (§3 of audit doc) ─────────
 //
 // The NSM evaluator prompt has §輸入品質檢查 at highest priority:
-//   - 5 個欄位原封不動同字串 → all 5 dim scores=1, totalScore=20
+//   - 4 個欄位原封不動同字串 → all 5 dim scores=1, totalScore=20
 //   - 字數 < 10 → triggered dim score=1
 //   - 內容與題目情境完全無關 → triggered dim score=1
 //
 // Predicted totalScore per variant (5 dims × score × 4 = totalScore):
-//   a (通用廢話句 × all 5 identical):
-//     Triggers "5 個欄位同字串" rule → all dims score=1 → totalScore=20
-//   b (模糊理由句 × all 5 identical):
-//     Same as (a) — triggers "5 個欄位同字串" → totalScore=20
-//   c (後設討論句 × all 5 identical):
-//     Same — triggers "5 個欄位同字串" → totalScore=20
+//   a (通用廢話句 × all 4 identical):
+//     Triggers "4 個欄位同字串" rule → all dims score=1 → totalScore=20
+//   b (模糊理由句 × all 4 identical):
+//     Same as (a) — triggers "4 個欄位同字串" → totalScore=20
+//   c (後設討論句 × all 4 identical):
+//     Same — triggers "4 個欄位同字串" → totalScore=20
 //   d (中文 lorem-ipsum 亂句, unique per field):
 //     No duplicate trigger; vague/meaningless → dims 1-2 each → totalScore ≤ 40
 //     Most likely leaky: actionability/simplicity might get partial credit if
 //     LLM misreads filler as "a simple concept"
-//   e (same paragraph × all 5 fields identical):
-//     Triggers "5 個欄位同字串" rule → totalScore=20
+//   e (same paragraph × all 4 fields identical):
+//     Triggers "4 個欄位同字串" rule → totalScore=20
 //   f (離題好文章：cooking essay, unique per field):
 //     Triggers "內容與題目情境完全無關" for all fields → all dims score=1 → totalScore=20
 //   g (AI 冗長空話風格, unique per field):
@@ -216,44 +216,44 @@ test.afterAll(() => {
 //   g — AI-generated verbose style: wordy corporate jargon (unique per field, highest risk)
 
 /**
- * Build an adversarial body where userNsm and all 4 breakdown dims share the same text.
- * Triggers the "5 個欄位原封不動同字串" rule in nsm-evaluator.js prompt.
+ * Build an adversarial body where userNsm and all 3 breakdown dims share the same text.
+ * Triggers the "4 個欄位原封不動同字串" rule in nsm-evaluator.js prompt.
  */
 function allFieldsSame(text) {
   return {
     userNsm: text,
-    userBreakdown: { reach: text, depth: text, frequency: text, impact: text },
+    userBreakdown: { reach: text, depth: text, frequency: text },
   };
 }
 
 /**
  * Build an adversarial body with different text per field (unique, no duplicate trigger).
- * nsmText + array of 4 breakdown texts (reach, depth, frequency, impact).
+ * nsmText + array of 3 breakdown texts (reach, depth, frequency).
  */
-function uniquePerField(nsmText, [reach, depth, frequency, impact]) {
+function uniquePerField(nsmText, [reach, depth, frequency]) {
   return {
     userNsm: nsmText,
-    userBreakdown: { reach, depth, frequency, impact },
+    userBreakdown: { reach, depth, frequency },
   };
 }
 
 const ADVERSARIAL_VARIANTS = [
   {
-    label: 'a. 通用廢話句 × 5 欄相同 (generic platitude, NSM + all 4 dims identical)',
+    label: 'a. 通用廢話句 × 4 欄相同 (generic platitude, NSM + all 3 dims identical)',
     body: allFieldsSame('我們的目標是提升用戶體驗，讓產品更加優秀並滿足用戶需求以促進增長'),
-    // All 5 fields identical → triggers "5 個欄位原封不動同字串" rule
+    // All 4 fields identical → triggers "4 個欄位原封不動同字串" rule
     // Predicted: all 5 dim scores=1 → totalScore=20
   },
   {
-    label: 'b. 模糊理由句 × 5 欄相同 (vague rationale, NSM + all 4 dims identical)',
+    label: 'b. 模糊理由句 × 4 欄相同 (vague rationale, NSM + all 3 dims identical)',
     body: allFieldsSame('因為很重要所以要做這個，這樣可以讓情況變得更好並帶來正面的商業影響'),
-    // All 5 fields identical → triggers duplicate rule → totalScore=20
+    // All 4 fields identical → triggers duplicate rule → totalScore=20
     // Predicted: totalScore ≤ 20
   },
   {
-    label: 'c. 後設討論句 × 5 欄相同 (meta-discussion, NSM + all 4 dims identical)',
+    label: 'c. 後設討論句 × 4 欄相同 (meta-discussion, NSM + all 3 dims identical)',
     body: allFieldsSame('需要考慮各種因素和場景，並對不同維度進行全面的分析和評估以確認結果'),
-    // All 5 fields identical → triggers duplicate rule → totalScore=20
+    // All 4 fields identical → triggers duplicate rule → totalScore=20
     // Predicted: totalScore ≤ 20
   },
   {
@@ -264,7 +264,6 @@ const ADVERSARIAL_VARIANTS = [
         '雖然但是然而不過其實其然確實如此這般那樣總歸一句話大概就這樣了',
         '反正總之大致上基本上原則上整體來看綜合評估下來嗯嗯嗯感覺還可以',
         '喔對然後就這樣了還有其他的嗎沒有了就這樣了差不多了吧也差不多了',
-        '就是大概那個什麼然後這個這樣的話基本上就可以了吧感覺應該是可以的',
       ],
     ),
     // Each field ≥ 14 chars, meaningless Chinese filler — no Spotify/Podcast connection
@@ -272,11 +271,11 @@ const ADVERSARIAL_VARIANTS = [
     // Predicted: totalScore ≤ 40 (dims 1-2 per field); most leak risk: simplicity dim
   },
   {
-    label: 'e. 同一段落貼滿 5 欄 (copy-paste identical paragraph across NSM + 4 dims)',
+    label: 'e. 同一段落貼滿 4 欄 (copy-paste identical paragraph across NSM + 3 dims)',
     body: allFieldsSame(
       '用戶體驗非常重要，我們需要提升留存率和活躍度，通過數據分析找到問題根本原因並制定解決方案',
     ),
-    // All 5 fields identical → triggers "5 個欄位原封不動同字串" rule → all dims=1
+    // All 4 fields identical → triggers "4 個欄位原封不動同字串" rule → all dims=1
     // Predicted: totalScore=20
   },
   {
@@ -287,7 +286,6 @@ const ADVERSARIAL_VARIANTS = [
         '醬汁的調配是料理的靈魂，生抽老抽比例要恰當，糖的份量影響整道菜的甜鹹平衡，加入薑片去腥。',
         '刀工決定食材受熱的均勻程度，切絲要細而均勻，切塊要大小一致，確保食材在相同時間內熟透。',
         '擺盤是料理最後的藝術，顏色的搭配要有層次，青翠的蔬菜搭配金黃蛋白質，淋醬方式影響美感。',
-        '火候控制是廚師最難掌握的技藝，需要多年實踐才能感受不同食材所需的熱度與翻炒節奏變化。',
       ],
     ),
     // Content is topically coherent but about cooking, not Spotify/Podcast metrics
@@ -302,7 +300,6 @@ const ADVERSARIAL_VARIANTS = [
         '透過深度分析各個利益相關方的核心訴求與期待，我們能夠更好地理解廣度觸及的本質，並制定最優策略',
         '基於數據驅動的決策框架，結合質性研究的深度洞察，可以幫助團隊在不確定環境中量化用戶深度互動',
         '通過持續迭代優化的敏捷方法論，結合跨部門協作的組織能力建設，有效衡量用戶參與的頻率與習慣',
-        '最終通過系統性思維整合多維度數據分析，配合商業邏輯的嚴謹推導，實現業務影響指標的可持續增長',
       ],
     ),
     // Verbose corporate jargon — well-formed Chinese, ≥ 30 chars per field, unique fields

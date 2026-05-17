@@ -122,7 +122,7 @@ describe('NSM lifecycle wiring', () => {
     const res = await request(app)
       .post(`/api/nsm-sessions/${id}/evaluate`)
       .set('Authorization', 'Bearer test-user-1')
-      .send({ userNsm: '週活躍用戶數', userBreakdown: { reach: '...', depth: '...', frequency: '...', impact: '...' } });
+      .send({ userNsm: '週活躍用戶數', userBreakdown: { reach: '...', depth: '...', frequency: '...' } });
     expect(res.status).toBe(200);
     const row = seedSession.fetch('nsm_sessions', id);
     expect(row.lifecycle).toBe('completed');
@@ -226,7 +226,7 @@ describe('GUEST NSM lifecycle wiring', () => {
     const res = await request(app)
       .post(`/api/guest-nsm-sessions/${id}/evaluate`)
       .set('X-Guest-ID', GUEST_ID)
-      .send({ userNsm: '週活躍用戶數', userBreakdown: { reach: '...', depth: '...', frequency: '...', impact: '...' } });
+      .send({ userNsm: '週活躍用戶數', userBreakdown: { reach: '...', depth: '...', frequency: '...' } });
     expect(res.status).toBe(200);
     const row = seedSession.fetch('nsm_sessions', id);
     expect(row.lifecycle).toBe('completed');
