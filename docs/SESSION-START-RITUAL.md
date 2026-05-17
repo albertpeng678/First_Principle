@@ -461,7 +461,7 @@ npx playwright test --config tests/e2e/playwright.config.js [spec] --update-snap
 | 現有 | addy/agent-skills | 規則 |
 |---|---|---|
 | playwright-skill 24 md | test-driven-development + browser-testing | 你的深、addy 廣，**混用** |
-| ui-ux-pro-max-skill | frontend-ui-engineering | mockup-as-spec 主、addy 概念補 |
+| `frontend-design:frontend-design` plugin（**取代** ui-ux-pro-max 2026-05-17） | addy `frontend-ui-engineering` | frontend-design 主、addy 概念補 |
 | superpowers writing-plans | planning-and-task-breakdown | superpowers 主 |
 | STANDING memory 系統 | in-skill anti-rationalization | memory 跨 session 持續優先 |
 | `audit/e2e-master-tracker.md` | (無等價) | tracker 保留 single source of truth |

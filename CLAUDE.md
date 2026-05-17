@@ -144,4 +144,4 @@
 - **UI 覆蓋盤點：** `docs/superpowers/specs/path-2-ui-coverage-audit.md`
 - **CIRCLES DB：** `circles_plan/circles_database.json`（103 題）
 - **NSM 規格：** `nsm_plan/nsm_trainer_full_spec.md`
-- **Plugins：** superpowers v5.1.0 / frontend-design / code-review / playwright / context7 / karpathy-skills / **ruflo**（core/swarm/autopilot/federation）
+- **Plugins：** superpowers v5.1.0 / **frontend-design (取代 ui-ux-pro-max 2026-05-17)** / code-review / playwright / context7 / karpathy-skills / **ruflo**（core/swarm/autopilot/federation）/ **addyosmani/agent-skills**（23 skills + 7 commands + 3 personas）
