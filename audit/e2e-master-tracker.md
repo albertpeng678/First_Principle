@@ -10,33 +10,9 @@
 
 ## §1 Active P0 Bugs (user-visible / data integrity)
 
-### P0-NEW-7 NSM gate ok/warn 結果直接跳 Step 3，**略過 gate 結果 UI** — DISCOVERED 2026-05-17 PM (user manual report)
+✅ **0 items** — P0-NEW-7 closed via L30 `58d6749`，詳見 §5。
 
-- **User report**: "nsm 指標填答完畢，送交審核的時候，會直接略過審核結果頁，跳到下一個步驟（拆解）"
-- **Reproduce path**: NSM Step 2 (拆解) → click `[data-nsm-submit]` (`提交審核`) → POST /api/nsm-sessions/:id/gate → if response `overall_status` is `ok` or `warn` → **immediately skips gate result UI, jumps to nsm-step3**
-- **Symptom**: user 看不到 gate AI 評估的 ok/warn 反饋（mockup 08 「三態 gate」契約規定 ok/warn/error 三者都該顯示）
-- **Root cause** (3 evidence pieces, code reading + existing spec self-documentation + mockup spec):
-  1. **Code**: `public/app.js:1973-1978` — for ok/warn case immediately `nsmSubTab = 'nsm-step3'; nsmStep = 3; render()` (bypasses gate UI)
-  2. **Existing spec自承**: `tests/e2e/nsm-full-flow.spec.js:211-212` comment: *"Either gate passes (ok/warn → Step 3 auto-advance) or gate fails (error → shows gate UI)"* — test author documented this behavior but didn't question if mockup contract permitted it
-  3. **Mockup contract violation**: CLAUDE.md mockup index "08 nsm-step-3-gate v2: 5 維度 gate **三態** + loading" — ok/warn/error 三態必顯
-- **Comparison to CIRCLES Phase 1.5 (mockup 04)**: CIRCLES gate ALWAYS shows result UI before user clicks "繼續" (per mockup 04 ok/warn/error 三態 + loading), even for ok case. NSM should mirror but doesn't.
-- **Why missed by previous e2e coverage** (e2e integration testing gap):
-  - L9 NSM gate adversarial — only API response assert
-  - L18 NSM bypass enumeration — only security assert
-  - L19 NSM /evaluate guard fix — only API guard assert
-  - L26 NSM /context+/hints+/progress — endpoint state mutation
-  - L29 1B state/cache — state machine
-  - **NONE asserted "gate result UI visible after submit" for ok/warn path**
-- **Lesson**: e2e specs must assert **FE flow narrative** (`toBeVisible` per phase), not just API contract. Existing `nsm-full-flow.spec.js` could have caught this if it asserted gate result UI before checking auto-advance.
-- **Proposed fix direction** (待 user 決定):
-  - **Option A (simplest)**: At app.js:1973-1978, change ok/warn branch to keep `nsmSubTab = 'nsm-gate'` (don't auto-advance); user must click `[data-nsm-gate-action="proceed"]` button (already exists at app.js:1500) to advance to step 3
-  - **Option B**: Add intermediate state — show gate result for ~3 sec then auto-advance (preserves auto-flow but gives user feedback)
-  - **Option C**: User config (always-show vs auto-advance preference) — overkill
-- **TDD red spec needed**: write `tests/e2e/nsm-gate-result-ui-display.spec.js` that asserts gate result UI visible after submit (currently RED for ok/warn, GREEN for error) — flip to GREEN after fix
-- **Skill citations applied** in investigation:
-  - `common-pitfalls.md` Pitfall 19 (test.step per phase)
-  - `assertions-and-waiting.md` Quick Reference (waitForFunction + toBeVisible)
-  - `test-organization.md` Pattern 2 (multi-step describe pattern)
+下個 P0 finding 出現 → append here。
 
 ---
 
@@ -82,9 +58,6 @@
 - **Status**: paused backlog — pixel-diff against mockup baseline + 9 transition drifts
 - **Effort**: 2-4h
 
-### #174 / #193 B-Hint cluster UI ship
-- **Status**: L28 fix lane in flight (post-restart)
-- **Will move**: §5 closed when L28 returns
 
 ---
 
@@ -121,6 +94,7 @@
 | P0-NEW-4 | Bug 3 spinner (reclass P2→P0) | L13b RED + L16 scope-leak + L17 spec flip | `2aa8fd5` |
 | P0-NEW-5 | NSM /evaluate bypass | L18 RED + L19 fix | `9142eef` |
 | P0-NEW-6 | Cross-plan smoke 5 API spec drift | L24 lifecycle seed | `ca59bbd` |
+| P0-NEW-7 | NSM gate ok/warn 略過 result UI (user report 2026-05-17 PM) | L30 Option A fix (keep nsmSubTab='nsm-gate' for ok/warn, mirror error case persist; user click proceed required) | `58d6749` — mockup 08 三態 contract restored; new TDD spec `nsm-gate-result-ui-display.spec.js` 2/2 GREEN × 5 runs no flake + nsm-full-flow workaround removed + lifecycle-nsm 8/8 + no regression |
 
 ### P0 mis-diagnosis closures
 | # | Resolution |
