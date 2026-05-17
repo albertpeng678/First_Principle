@@ -146,10 +146,14 @@
 
 ## §3 Active P2 / Inconclusive
 
-### #253 Bug 3 spinner stuck — INCONCLUSIVE (2026-05-17)
-- **Reproduce**: 8s sample window too short; normal evaluate progress observed (checklist stage 1→3).
-- **Audit doc**: `audit/bug3-reproduce/` 12 PNG committed `536a1e9`.
-- **Next**: longer 60s window + multiple OpenAI hang scenarios OR user input on actual stuck symptom.
+### #253 Bug 3 spinner stuck — BUG CONFIRMED (2026-05-17, reclassified from INCONCLUSIVE)
+- **Root cause**: `tryResumeLatestSession` (app.js:8021-8075) sets `circlesStepScores` but does NOT derive `circlesScoreResult`. `go-phase3` handler (line 6873) only sets `circlesPhase=3; render()`. `renderCirclesPhase3` enters spinner branch when `circlesScoreResult=null` — no `evaluate-step` is ever fired. Spinner stuck forever (300s EVAL_TIMEOUT).
+- **Proposed fix**: Add `circlesScoreResult` derivation in `tryResumeLatestSession` after line 8031 — mirrors Stage 1B B3 fix already in `restoreCirclesPhase1FromSession` (line 8180). ~7 lines, zero regression risk.
+- **Deep investigation spec**: `tests/e2e/bug3-spinner-deep-investigation.spec.js` — 5 scenarios × 3 projects = **15 tests, 16/16 PASS**
+- **Audit doc**: `audit/bug3-deep-investigation-2026-05-17.md` + 35 PNG in `audit/bug3-deep/`
+- **Key PNG**: `scenario-1-slow-warn-at-60s-e2e-desktop.png` (60s slow-warn confirmed, score never rendered)
+- **Prior INCONCLUSIVE explanation**: 8s window captured cosmetic 5s interval animation, not actual evaluate-step progress.
+- **Next**: L13b Phase 2 implement proposed fix + red-green verify against S1-S2 scenarios
 
 ### #254 Bug 4 offcanvas delete cache stale — NOT_REPRODUCIBLE (2026-05-17)
 - **Reproduce**: 7 scenarios all GREEN with 9-layer defense verified. Spec committed `3af488d`.
@@ -357,7 +361,8 @@
 | `audit/lane-l-b7-data-loss-vectors-2026-05-17.md` | B7 data loss vector inventory |
 | `audit/persistence-comprehensive-audit-2026-05-16.md` | Plan #194 baseline audit |
 | `audit/testing-trophy-audit-2026-05-16.md` | Trophy reset baseline |
-| `audit/bug3-reproduce/` + `audit/bug3-reproduce-2026-05-17.md` | Bug 3 INCONCLUSIVE evidence |
+| `audit/bug3-reproduce/` | Bug 3 prior INCONCLUSIVE evidence (12 PNG, 8s window) |
+| `audit/bug3-deep/` + `audit/bug3-deep-investigation-2026-05-17.md` | Bug 3 BUG CONFIRMED evidence (35 PNG, 5 scenarios, 60s window) |
 | `audit/bug4-reproduce/` + `audit/bug4-reproduce-2026-05-17.md` | Bug 4 NOT_REPRODUCIBLE evidence (7 scenarios) |
 | `audit/task4-qchip-smoke/` + `audit/task4-sse-fix/` | T4 qchip-expand + SSE fix PNG evidence |
 | `audit/eyeball-circles-chat-drift-lock-2026-05-17.md` | chat-drift visual cold-Read |
