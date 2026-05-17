@@ -248,8 +248,12 @@ test.describe('Critical Path — Lifecycle + Stage 1A + 1B + 1C + 1D end-to-end'
         // CIRCLES home: mode selector must be visible with an active auth session.
         await expect(page.locator('[data-circles-mode="drill"]')).toBeVisible();
 
-        // Verify navbar shows user email (post-login signal per auth.setup.js).
-        await expect(page.locator('.navbar__email')).toBeVisible({ timeout: 10_000 });
+        // Verify post-login signal: logout button visible (viewport-agnostic).
+        // Deliberately avoid `.navbar__email` — style.css:61 hides it at max-width:480px
+        // (mobile-chrome Pixel-5 393px + mobile-safari iPhone-14 390px both fail).
+        // V7 pattern from commit 9b41bee (auth-flow-real.spec.js same fix).
+        // button[data-nav="logout"] renders in navbar only when AppState.accessToken set (app.js:3047).
+        await expect(page.locator('button[data-nav="logout"]')).toBeVisible({ timeout: 10_000 });
       });
 
       // ════════════════════════════════════════════════════════════════════════
