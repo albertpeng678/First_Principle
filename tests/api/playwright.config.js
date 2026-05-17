@@ -149,6 +149,14 @@ module.exports = defineConfig({
       name: 'api-evaluator-adversarial',
       testMatch: /circles-evaluator-adversarial\.spec\.js$/,
     },
+    // Lane L15 — NSM evaluator adversarial sweep (preventive, completes 4-pillar sweep).
+    // 7 variants × real OpenAI: gate-passable but low-quality NSM inputs → assert totalScore < 60.
+    // FAIL = NSM evaluator awarded ≥ 60 total for low-quality content (evaluator leak confirmed).
+    // 4-pillar sweep: L2(CIRCLES gate) + L9(NSM gate) + L12(CIRCLES eval) + L15(NSM eval).
+    {
+      name: 'api-nsm-evaluator-adversarial',
+      testMatch: /nsm-evaluator-adversarial\.spec\.js$/,
+    },
     // P0-#255 Bug 6 — gate bypass path enumeration (TDD-red, Phase 1 Lane L3).
     // 5 tests × 4 leaky paths + 1 control. No OpenAI calls (service-role seeding).
     // Tests assert >= 400; 2xx returned = leak confirmed. All expected to be RED
