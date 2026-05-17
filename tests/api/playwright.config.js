@@ -128,5 +128,20 @@ module.exports = defineConfig({
       name: 'api-evaluate-step-rescore-guard',
       testMatch: /circles-evaluate-step-rescore-guard\.spec\.js$/,
     },
+    // P0-#251 Bug 1 — gate 全打 Y 過審 adversarial reproduction (TDD-red, Phase 1 Lane L2).
+    // 10 variants × real OpenAI (server-to-server; page.route cannot intercept).
+    // Each variant asserts canProceed=false; FAIL = bug confirmed for that variant.
+    {
+      name: 'api-gate-adversarial',
+      testMatch: /circles-gate-all-Y-adversarial\.spec\.js$/,
+    },
+    // P0-#255 Bug 6 — gate bypass path enumeration (TDD-red, Phase 1 Lane L3).
+    // 5 tests × 4 leaky paths + 1 control. No OpenAI calls (service-role seeding).
+    // Tests assert >= 400; 2xx returned = leak confirmed. All expected to be RED
+    // until BE lifecycle guards are added.
+    {
+      name: 'api-no-bypass',
+      testMatch: /circles-no-bypass\.spec\.js$/,
+    },
   ],
 });
