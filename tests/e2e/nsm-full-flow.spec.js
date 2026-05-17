@@ -208,7 +208,7 @@ test.describe('NSM full flow critical-path — N-02 (Group B V9)', () => {
 
         // Gate loading state appears first (nsmSubTab='nsm-gate', nsmGateLoading=true).
         // Then gate result renders. Timeout 90 s covers OpenAI latency.
-        // Either gate passes (ok/warn → Step 3 auto-advance) or gate fails (error → shows gate UI).
+        // Post P0-NEW-7 fix: ok/warn no longer auto-advances — gate result UI always shown first.
         // Wait for nsmGateResult to be set in AppState.
         await page.waitForFunction(
           () => window.AppState && window.AppState.nsmGateResult !== null && window.AppState.nsmGateResult !== undefined,
@@ -222,24 +222,32 @@ test.describe('NSM full flow critical-path — N-02 (Group B V9)', () => {
         const overallStatus = gateResult.overall_status || gateResult.overallStatus;
         expect(['ok', 'warn', 'error']).toContain(overallStatus);
 
-        // If gate returned error (canProceed=false), we cannot proceed to Step 3.
-        // This is NOT a BE bug — it means our SUBSTANTIVE_NSM content got a poor AI
-        // evaluation. Document and proceed conditionally.
-        if (!gateResult.canProceed) {
+        if (gateResult.canProceed) {
+          // ok/warn: gate result UI shows proceed button (P0-NEW-7 fix).
+          // Assert gate UI visible then click proceed to advance to Step 3.
+          await expect(page.locator('[data-nsm-gate-action="proceed"]')).toBeVisible({ timeout: 5_000 });
+          await page.locator('[data-nsm-gate-action="proceed"]').click();
+          // Wait for step 3 to be active.
+          await page.waitForFunction(
+            () => window.AppState && window.AppState.nsmSubTab === 'nsm-step3',
+            { timeout: 10_000 }
+          );
+        } else {
+          // error (canProceed=false): gate result UI shows back-to-step2 only.
+          // This is NOT a BE bug — substantive content may still fail AI evaluation.
+          // Force advance to step 3 via AppState to allow the rest of the flow test.
+          // This simulates a user who has already passed the gate (tests step 3/4 path).
           console.warn(
             'N-02/gate: substantive NSM content received canProceed=false from real OpenAI.',
             'overallStatus:', overallStatus,
-            '— This may indicate an AI evaluation variance; gate result is valid.'
+            '— AI evaluation variance; gate result valid. Force-advancing to test step 3/4 path.'
           );
-          // Force advance to step 3 via AppState to allow the rest of the flow test.
-          // This simulates a user who has already passed the gate (tests step 3/4 path).
           await page.evaluate(() => {
             window.AppState.nsmSubTab = 'nsm-step3';
             window.AppState.nsmStep = 3;
             window.render();
           });
         }
-        // If canProceed=true (ok/warn), app.js:1997-2000 already advanced to Step 3.
       });
 
       // ═══════════════════════════════════════════════════════════════════════

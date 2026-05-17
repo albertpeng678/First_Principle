@@ -1971,10 +1971,18 @@
               })();
               render();
             } else {
-              // ok or warn → advance to Step 3
-              AppState.nsmSubTab = 'nsm-step3';
-              AppState.nsmStep = 3;
-              nsmPersistStep(3);
+              // ok or warn → keep on nsm-gate subtab to show gate result UI
+              // (mockup 08 三態 contract: ok/warn/error all display gate result first)
+              // user clicks [data-nsm-gate-action="proceed"] (handler at line 1890) to advance
+              AppState.nsmSubTab = 'nsm-gate';
+              nsmPersistStep(undefined, undefined);
+              // Persist gateResult so it survives reload (mirror error case at line 1966-1971)
+              (function () {
+                var sid = AppState.nsmSession && AppState.nsmSession.id;
+                if (!sid) return;
+                var p = (AppState.accessToken ? '/api/nsm-sessions/' : '/api/guest/nsm-sessions/') + sid + '/progress';
+                window.apiFetch(p, { method: 'PATCH', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ gateResult: result }) }).catch(function () {});
+              })();
               render();
             }
           } catch (e) {
