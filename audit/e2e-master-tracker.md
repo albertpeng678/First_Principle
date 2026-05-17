@@ -68,6 +68,12 @@
   ```
 - **Critical implication**: gate is currently **advisory only** at backend — entire UX assumes FE conditional rendering blocks user, but any direct API caller (or FE state corruption / future bugs) bypasses freely. This is the actual root cause of user's repeated 沒審核直接放行 reports.
 
+### ~~P0-#252 Bug 2 PNG-20 Ghost content~~ — RESOLVED 2026-05-17 (commit `c156c6b`)
+- **Fix**: 7-line reset block at `public/app.js:5778-5784` qcard-confirm — resets `circlesFrameworkDraft`, `circlesGateResult`, `circlesScoreResult`, `circlesPhase2ConclusionDraft`, `circlesConversation`, `circlesStepScores` before assigning new question
+- **Verify**: Scenario C e2e-mobile-chrome 30/30 × 5 runs zero flake + circles-back-nav-lock 16/16 + circles-phase3-restore-real 10/10 + jest 535/552
+- **Cosmetic gap noted (separate issue, NOT this fix)**: Scenario E (localStorage stale draft path with no server session) has pre-existing DB-state-dependent flake; loadCirclesSessionFromHistory bypasses localStorage when server session exists, so this is orthogonal
+- Original investigation evidence preserved below.
+
 ### P0-#252 Bug 2 PNG-20 Ghost content — RED CONFIRMED 2026-05-17 (Lane L4)
 - **Audit + spec + PNG**: `audit/repro-bug2-ghost-content-2026-05-17.md` + `tests/e2e/circles-fresh-form-no-ghost.spec.js` + `audit/repro-bug2-ghost-content/` (15 e2e tests + 1 setup × 3 projects)
 - **Reproduction confirmed**: Scenario C on e2e-mobile-chrome — console output `[BUG CONFIRMED] AppState.circlesFrameworkDraft: {"C1":{"問題範圍":"ghost content from session A"}}`. PNG `scenario-C-e2e-mobile-chrome.png` shows "ghost content from session A" 渲染在 Apple Health（不同 question）的 Phase 1 問題範圍 textarea。
