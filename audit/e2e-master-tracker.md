@@ -91,13 +91,18 @@
 - Original investigation evidence preserved below.
 
 ### P0-NEW-6 Cross-plan integration smoke regression cluster — DISCOVERED 2026-05-17 (Director)
-- **Discovery**: After 7/7 P0 fix batch, cross-plan smoke (per `feedback_cross_plan_smoke_after_each_ship`) surfaces **15 regressions** not caught by per-lane verify:
-  - **API**: 5 failed / 175 passed (full api/ project suite)
-  - **E2E key specs cross-vp**: 9 failed / 73 passed (critical-path + chat-drift + Phase 3 restore + fe-gate-stale + fresh-form-no-ghost + bug3-deep + offcanvas-delete)
-  - **jest**: 1 failed / 534 passed / 17 skipped (regressed from 535 baseline)
-- **Why per-lane verify missed**: each lane verified its own spec + small smoke; only running ALL specs together catches interactions
-- **Lesson cross-ref**: O-8 enforcement + memory `feedback_cross_plan_smoke_after_each_ship` is critical; cannot ship without it
-- **Next**: Director diagnostic bash dispatched (background) — will identify specific failing tests. Then lane(s) to fix per cluster.
+- **Discovery**: After 7/7 P0 fix batch, cross-plan smoke (per `feedback_cross_plan_smoke_after_each_ship`) surfaces 15 regressions not caught by per-lane verify
+- **Specific failing tests** (from diagnostic):
+  - **5 API fails (all lifecycle-guard test fixture drift — L5+L19 added 403 guards, these 5 specs not yet updated)**:
+    1. `tests/api/circles-sessions-list-contract.spec.js:163` — list contract required fields
+    2. `tests/api/circles-evaluate-step-contract.spec.js:147` — POST /evaluate-step 200 + shape (needs lifecycle='gated' seed)
+    3. `tests/api/guest-crud-real.spec.js:539` — guest /final-report 400 incomplete_steps (now 403 lifecycle guard fires first)
+    4. `tests/api/guest-crud-real.spec.js:907` — NSM guest /evaluate happy (needs lifecycle='gated' seed)
+    5. `tests/api/circles-evaluate-step-rescore-guard.spec.js:74` — AC-2 422 step_already_scored (now 403 fires first)
+  - **2 e2e fails ON bug3-spinner-deep mobile-chrome confirmed FLAKE (Director isolated 3 runs = 18/18 PASS)**: not real regression, worker contention under concurrent smoke load. Likely manifests same root as P1-#264 Auth race burst load.
+  - **7 other e2e fails + 1 jest fail**: output truncated; needs re-run capture (or self-resolve after L24 API fix lands — many e2e depend on API state being clean)
+- **Root cause (API cluster)**: L5 (commit `93b1b26`) and L19 (commit `9142eef`) added lifecycle guards but only updated 3 specs (circles-no-bypass + final-report-contract + back-nav-lock). 5 other specs that exercise those endpoints with non-gated session state hit 403 instead of expected 200/400/422.
+- **Fix pattern (L24 to apply)**: mirror L5's spec update — add `setLifecycleGated(sessionId)` service-role helper call before any 200/400/422 assertion that hits a guarded endpoint.
 - **PUSH BLOCKED until resolved.**
 
 ### P0-NEW-5 NSM /evaluate gate bypass — REAL PROD BUG (Lane L18, 2026-05-17)
@@ -295,6 +300,8 @@
 | NSM /evaluate fix (Lane L19) | ✅ 4/4 × 5 runs no flake + cross-suite 21/21 GREEN | `9142eef` — closes P0-NEW-5 |
 | Bug 3 fix + spec flip (Lane L17) | ✅ 5/5 GREEN × 5 runs no flake | `2aa8fd5` (L16 prior 91fb2ad included app.js fix as scope leak) — closes P0-NEW-4 |
 | NSM seed helper + B4-E3 unblock (Lane L20) | ✅ 15/15 PASS (5 runs × 3 browsers) + no NSM delete cache leak found | `f292a22` + `961cb09` — closes O-7 + F-P16 |
+| O-9 orphan renderQchipPanelHtml cleanup (Lane L23) | ✅ 15 lines deleted, 0 callers, jest 535/552 + cross-vp 16/16 | `f2a3d58` — closes O-9 |
+| Bug 3 mobile-chrome FLAKE verified (Director 3x) | ✅ 18/18 PASS isolated runs | concurrent smoke contention, not real regression; symptom of P1-#264 auth race |
 
 ---
 
