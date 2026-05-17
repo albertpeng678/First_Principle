@@ -855,9 +855,10 @@ div.rt-textarea[contenteditable="true"] ul li { list-style: disc; }
 .example-expand__title i { color: var(--c-navy); font-size: 15px; }
 .example-expand__close { width: 28px; height: 28px; border-radius: var(--r-pill); display: inline-flex; align-items: center; justify-content: center; color: var(--c-ink-3); font-size: 14px; cursor: pointer; }
 .example-expand__close:hover { background: var(--c-bg-deep); color: var(--c-ink); }
-.example-list { padding-left: var(--s-4); font-size: var(--t-body-sm); color: var(--c-ink-2); line-height: 1.7; margin: 0; }
-.example-list li + li { margin-top: var(--s-2); }
-.example-sub { padding-left: var(--s-4); }
+.example-list { padding-left: var(--s-4); font-size: var(--t-body-sm); color: var(--c-ink-2); line-height: 1.85; margin: 0; }
+.example-list li + li { margin-top: var(--s-3); }
+.example-sub { padding-left: var(--s-4); line-height: 1.85; }
+.hint-content { line-height: 1.85; }
 
 /* ── rail aside (desktop drill right column, line 1197-1205) ── */
 .rail { display: none; padding: var(--s-4); background: var(--c-bg-soft); border: 1px solid var(--c-rule); border-radius: var(--r-card); font-size: var(--t-meta); align-self: start; }
@@ -3650,3 +3651,9 @@ div.rt-textarea[contenteditable="true"] ul li { list-style: disc; }
   margin-top: 4px;
   line-height: 1.4;
 }
+
+/* Stage 1D — NSM Step 1 hint CTA + modal sections */
+.nsm-step1-hint-cta { display: flex; align-items: center; }
+.nsm-step1-hint-section { margin-bottom: var(--s-4); }
+.nsm-step1-hint-section:last-child { margin-bottom: 0; }
+.nsm-step1-hint-section__label { font-size: var(--t-meta); font-weight: 600; color: var(--c-navy); letter-spacing: 0.04em; margin-bottom: var(--s-2); }

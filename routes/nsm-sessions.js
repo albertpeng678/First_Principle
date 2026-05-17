@@ -269,7 +269,6 @@ router.patch('/:id/progress', requireAuth, async (req, res) => {
 
 // POST /api/nsm-sessions/:id/hints
 router.post('/:id/hints', requireAuth, async (req, res) => {
-  const { userNsm } = req.body;
   const { data: session, error } = await db
     .from('nsm_sessions')
     .select('question_json')
@@ -280,7 +279,6 @@ router.post('/:id/hints', requireAuth, async (req, res) => {
   try {
     const hints = await generateNSMHints({
       question_json: session.question_json,
-      user_nsm: userNsm || '',
       product_type: guessProductType(session.question_json),
     });
     res.json(hints);

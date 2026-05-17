@@ -196,13 +196,21 @@ async function generateCirclesHint({ step, field, questionJson }) {
 
   const systemPrompt = `你是 PM 面試教練，為學員提供一個欄位的快速思路提示。
 
-格式硬規定（嚴格遵守）：
-• 總長 100-140 字（含標點）。超過會破版。
-• 用 3-4 個短行，每行 1 句、≤30 字
-• 行與行之間用單一換行符號分隔，不要空行、不要 markdown 標題、不要列點符號（「-」「•」「1.」都不要）
-• 可用 **粗體** 標記 1-3 個「定錨關鍵點」(load-bearing 的關鍵字)，請用雙星號 \`**X**\`。只標：① 具體範圍／場景（例：**東南亞市場**、**新手保護期前 30 天**）② 量化指標／時程（例：**8-10 週**、**+5pp**）③ 方案／指標名稱（例：**信任卡**、**月活躍學習用戶**）。**禁止**標結構性 label（**核心痛點**、**情感層**、**問題範圍**、**目標用戶** 這類字面 label 一律不要 bold）。原則：bold 的是「換另一道題就會不一樣」的內容，不是「每道題都會出現」的字眼
-• 直接開始第一行思路，不要任何前言（例如「以下是…」「這個提示…」「首先」一律禁止）
-• 整段繁體中文
+輸出格式（嚴格遵守）：
+- 巢狀 markdown bullets（頂層「- 」，子項「  - 」）
+- 頂層 2 項，每項可帶 1 子項
+- 整段 ≤ 180 chars（含標點，純繁體中文）
+- 可用 **粗體** 標記 1-3 個「定錨關鍵點」(load-bearing 的關鍵字)，請用雙星號 \`**X**\`。只標：① 具體範圍／場景（例：**東南亞市場**、**新手保護期前 30 天**）② 量化指標／時程（例：**8-10 週**、**+5pp**）③ 方案／指標名稱（例：**信任卡**、**月活躍學習用戶**）。**禁止**標結構性 label（**核心痛點**、**情感層**、**問題範圍**、**目標用戶** 這類字面 label 一律不要 bold）。原則：bold 的是「換另一道題就會不一樣」的內容，不是「每道題都會出現」的字眼
+- 直接開始第一個 bullet，不要任何前言（例如「以下是…」「這個提示…」「首先」一律禁止）
+
+格式範例（good）：
+- 先界定 **東南亞市場** 的「問題」是頻率還是內容相關性
+  - 對應的 metric：完播率 vs 回訪率
+- 排除 **付費會員** vs 廣告用戶混在一起的雜訊
+  - 廣告用戶受推薦演算法影響大
+
+格式範例（bad，禁止）：
+先界定問題範圍。對於 Spotify 來說，可以從南亞市場切入。接著考慮排除廣告用戶。
 
 內容要求：
 • 必須具體針對「${questionJson.company}」與這道題的情境（不是泛泛通用建議）
@@ -216,7 +224,7 @@ ${fieldContext}`;
 當前步驟：${step}
 當前欄位：${field}
 
-請生成此欄位的分析思路提示（100-140 字，3-4 行短行）：`;
+請生成此欄位的分析思路提示（markdown bullets 格式，≤ 180 chars）：`;
 
   for (let attempt = 0; attempt < 3; attempt++) {
     try {
@@ -227,15 +235,15 @@ ${fieldContext}`;
           { role: 'user', content: userMsg },
         ],
         temperature: 0.4,
-        max_tokens: 240,
+        max_tokens: 280,
       });
       let text = resp.choices[0].message.content.trim();
-      // Strip filler prefixes / markdown / bullets if model ignores instructions
+      // Strip filler prefixes if model ignores instructions
       text = text.replace(/^(以下是|這個提示|這是|提示：|首先，?)[^\n]*\n+/, '');
-      text = text.replace(/^[\-•·*]\s+/gm, '').replace(/^\d+[.、)]\s+/gm, '');
-      text = text.replace(/\n{2,}/g, '\n').trim();
-      // Hard cap at 200 chars — UI is sized for ~140
-      if (text.length > 200) text = text.slice(0, 198) + '…';
+      // NOTE: do NOT strip bullet markers — output format now requires them
+      text = text.replace(/\n{3,}/g, '\n\n').trim();
+      // Hard cap at 220 chars (bullet overhead vs old 200; UI sized for ~180 + slack)
+      if (text.length > 220) text = text.slice(0, 218) + '…';
       return text;
     } catch (e) {
       if (attempt === 2) throw new Error('提示生成暫時失敗，請重試');

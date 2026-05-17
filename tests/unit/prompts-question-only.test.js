@@ -16,6 +16,7 @@ jest.mock('openai', () => {
 const { generateNSMHints } = require('../../prompts/nsm-hints');
 const { generateNSMStep2Hint } = require('../../prompts/nsm-step2-hint');
 const { generateNSMStep3Hint } = require('../../prompts/nsm-step3-hint');
+const { generateCirclesHint } = require('../../prompts/circles-hint');
 
 describe('nsm-hints — question-only + markdown bullet output (Stage 1D)', () => {
   beforeEach(() => {
@@ -107,5 +108,37 @@ describe('nsm-step3-hint — question-only (Stage 1D)', () => {
     const create = OpenAICtor.mock.results[OpenAICtor.mock.results.length - 1].value.chat.completions.create;
     const sys = create.mock.calls[0][0].messages[0].content;
     expect(sys).toMatch(/巢狀 markdown bullets|「- 」/);
+  });
+});
+
+describe('circles-hint — markdown bullet output (Stage 1D)', () => {
+  beforeEach(() => {
+    const OpenAICtor = require('openai');
+    const mockInstance = OpenAICtor.mock.results[OpenAICtor.mock.results.length - 1];
+    if (mockInstance && mockInstance.value) mockInstance.value.chat.completions.create.mockClear();
+  });
+
+  it('system prompt requires nested bullet format', async () => {
+    await generateCirclesHint({ step: 'C1', field: '問題範圍', questionJson: { company: 'Spotify', problem_statement: 'x' } });
+    const OpenAICtor = require('openai');
+    const create = OpenAICtor.mock.results[OpenAICtor.mock.results.length - 1].value.chat.completions.create;
+    const sys = create.mock.calls[0][0].messages[0].content;
+    expect(sys).toMatch(/巢狀 markdown bullets|「- 」/);
+    expect(sys).not.toContain('行與行之間用單一換行符號分隔');
+    expect(sys).not.toContain('不要列點符號');
+  });
+
+  it('system prompt removes paragraph contract', async () => {
+    await generateCirclesHint({ step: 'C1', field: '問題範圍', questionJson: { company: 'Spotify', problem_statement: 'x' } });
+    const OpenAICtor = require('openai');
+    const create = OpenAICtor.mock.results[OpenAICtor.mock.results.length - 1].value.chat.completions.create;
+    const sys = create.mock.calls[0][0].messages[0].content;
+    expect(sys).not.toMatch(/3-4 個短行|每行 1 句、≤30 字/);
+  });
+
+  it('returned text starts with bullet marker', async () => {
+    const result = await generateCirclesHint({ step: 'C1', field: '問題範圍', questionJson: { company: 'Spotify', problem_statement: 'x' } });
+    expect(typeof result).toBe('string');
+    expect(result).toMatch(/^- /);
   });
 });

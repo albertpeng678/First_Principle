@@ -95,7 +95,6 @@
     nsmDefinition: { nsm: '', explanation: '', businessLink: '' },
     nsmBreakdown: { reach: '', depth: '', frequency: '', impact: '' },
     nsmExampleExpanded: {},
-    nsmHintExpanded: {},
     nsmDimExampleExpanded: {},
     nsmContextExpanded: false,         // Step 2/3 context-card 4-block expand toggle (Gap C)
 
@@ -157,7 +156,6 @@
     'nsmStep',
     'nsmReportTab',
     'nsmGateResult',
-    'nsmHintExpanded',
     'nsmExampleExpanded',
     'nsmContextExpanded',
     'circlesPhase2CoachHintExpanded',
@@ -1767,14 +1765,6 @@
         render();
       });
     });
-    document.querySelectorAll('[data-nsm-hint-toggle]').forEach(function (btn) {
-      btn.addEventListener('click', function () {
-        var did = btn.dataset.nsmHintToggle;
-        AppState.nsmHintExpanded[did] = !AppState.nsmHintExpanded[did];
-        render();
-      });
-    });
-
     // ── NSM Step 2 hint modal open — [data-nsm-hint] ─────────────────────────
     document.querySelectorAll('[data-nsm-hint]').forEach(function (btn) {
       btn.addEventListener('click', function () {
@@ -3930,6 +3920,7 @@
       + '</div>';
   }
 
+  // DEPRECATED Stage 1D — superseded by markdownBulletsToHtml; safe to remove once no other call sites.
   function _markdownHintToHtml(md) {
     if (!md) return '<p>（提示為空）</p>';
     var paras = md.split(/\n\n+/).filter(Boolean);
@@ -3966,8 +3957,8 @@
     var cacheKey = stepKey + ':' + fieldKey + ':' + (questionId || 'none');
 
     if (_hintCache[cacheKey]) {
-      // Cache hit — render content immediately
-      host.innerHTML = renderHintModalShell(stepKey, fieldKey, _markdownHintToHtml(_hintCache[cacheKey]), false);
+      // Cache hit — render content immediately (unified bullet renderer per Stage 1D)
+      host.innerHTML = renderHintModalShell(stepKey, fieldKey, '<ul class="example-list">' + markdownBulletsToHtml(_hintCache[cacheKey]) + '</ul>', false);
       _bindHintHostEvents(host, stepKey, fieldKey);
       return;
     }
@@ -3999,7 +3990,7 @@
       // Only update if modal still open and same field
       var current = document.getElementById('__hint_overlay_host__');
       if (current && current.dataset.stepKey === stepKey && current.dataset.fieldKey === fieldKey) {
-        _swapHintBody(current, _markdownHintToHtml(j.hint || ''), false);
+        _swapHintBody(current, '<ul class="example-list">' + markdownBulletsToHtml(j.hint || '') + '</ul>', false);
       }
     }).catch(function(err){
       if (err.name === 'AbortError') return;
@@ -4114,12 +4105,11 @@
     // Cancel previous in-flight + start new fetch
     if (_nsmHintAbortController) { try { _nsmHintAbortController.abort(); } catch (e) {} }
     _nsmHintAbortController = new AbortController();
-    var draft = ((AppState.nsmDefinition || {})[field]) || '';
 
     fetch('/api/nsm-public/step2-hint', {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({ questionId: qid, field: field, userDraft: draft }),
+      body: JSON.stringify({ questionId: qid, field: field }),
       signal: _nsmHintAbortController.signal,
     }).then(function (res) {
       if (!res.ok) throw new Error('hint_fetch_failed_' + res.status);
@@ -4226,12 +4216,11 @@
     // Cancel previous in-flight + start new fetch
     if (_nsmStep3HintAbortController) { try { _nsmStep3HintAbortController.abort(); } catch (e) {} }
     _nsmStep3HintAbortController = new AbortController();
-    var draft = ((AppState.nsmBreakdown || {})[dimId]) || '';
 
     fetch('/api/nsm-public/step3-hint', {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({ questionId: qid, dimId: dimId, dimType: ptype, userDraft: draft }),
+      body: JSON.stringify({ questionId: qid, dimId: dimId, dimType: ptype }),
       signal: _nsmStep3HintAbortController.signal,
     }).then(function (res) {
       if (!res.ok) throw new Error('hint_fetch_failed_' + res.status);
@@ -4258,7 +4247,7 @@
   }
 
   // Document-level delegation for NSM hint modal close paths (registered once).
-  // 4 close paths: backdrop / X / 「了解了」 → data-nsm-modal-close=* ; retry → data-nsm-modal-retry / data-nsm-step3-modal-retry
+  // 4 close paths: backdrop / X / 「了解了」 → data-nsm-modal-close=* ; retry → data-nsm-modal-retry / data-nsm-step3-modal-retry / data-nsm-step1-hint-retry
   if (!window._nsmHintModalDelegateRegistered) {
     window._nsmHintModalDelegateRegistered = true;
     document.addEventListener('click', function (e) {
@@ -4279,6 +4268,13 @@
         var dt = retry3.dataset.nsmDimType;
         closeNSMStep2HintModal();
         setTimeout(function () { openNSMStep3HintModal(did, dt); }, 100);
+        return;
+      }
+      if (e.target.closest('[data-nsm-step1-hint-retry]')) {
+        var q1 = AppState.nsmSelectedQuestion || {};
+        if (q1.id) delete _nsmStep1HintCache[q1.id];
+        closeNSMStep2HintModal();
+        setTimeout(function () { openNSMStep1HintModal(); }, 100);
       }
     });
     document.addEventListener('keydown', function (e) {
@@ -4287,6 +4283,134 @@
         if (host && host.innerHTML) closeNSMStep2HintModal();
       }
     });
+  }
+
+  // ── NSM Step 1 Hint Modal — 4-dimension teach modal (Stage 1D D1) ──────────
+  var _nsmStep1HintCache = {};          // key: questionId → JSON {reach, depth, frequency, impact}
+  var _nsmStep1HintAbortController = null;
+
+  function _renderNSMStep1HintModalShell(bodyHtml, isLoading, isError) {
+    var footHtml;
+    if (isLoading) {
+      footHtml = '<button class="btn btn--ghost" type="button" data-nsm-modal-close="ok">關閉</button>';
+    } else if (isError) {
+      footHtml = '<button class="btn btn--ghost" type="button" data-nsm-modal-close="ok">關閉</button>'
+               + '<button class="btn btn--primary" type="button" data-nsm-step1-hint-retry>重試</button>';
+    } else {
+      footHtml = '<button class="btn btn--primary" type="button" data-nsm-modal-close="ok">了解了</button>';
+    }
+    return '<div class="hint-overlay" aria-hidden="false">'
+      + '<div class="hint-overlay__backdrop" data-nsm-modal-close="bg"></div>'
+      + '<div class="modal-card" role="dialog" aria-modal="true" aria-label="教練思路 — NSM 4 維度提示">'
+      +   '<div class="modal__head">'
+      +     '<span class="modal__head-icon"><i class="ph ph-lightbulb"></i></span>'
+      +     '<div style="flex:1;">'
+      +       '<div class="modal__sub">教練思路</div>'
+      +       '<h3 class="modal__title">NSM 4 維度提示</h3>'
+      +     '</div>'
+      +     '<button class="modal__close" type="button" data-nsm-modal-close="x" aria-label="關閉"><i class="ph ph-x"></i></button>'
+      +   '</div>'
+      +   '<div class="modal__body">' + bodyHtml + '</div>'
+      +   '<div class="modal__foot">' + footHtml + '</div>'
+      + '</div>'
+      + '</div>';
+  }
+
+  function _renderNSMStep1HintSections(hints) {
+    var dims = [
+      { id: 'reach',     label: '觸及 reach' },
+      { id: 'depth',     label: '深度 depth' },
+      { id: 'frequency', label: '頻率 frequency' },
+      { id: 'impact',    label: '影響 impact' },
+    ];
+    return dims.map(function (d) {
+      var v = (hints && hints[d.id]) || '';
+      return '<div class="nsm-step1-hint-section">'
+        +    '<div class="nsm-step1-hint-section__label">' + escHtml(d.label) + '</div>'
+        +    '<ul class="example-list">' + markdownBulletsToHtml(v) + '</ul>'
+        +  '</div>';
+    }).join('');
+  }
+
+  function _renderNSMStep1HintError(host, msg) {
+    var errBody = '<div style="text-align:center;padding:var(--s-4) 0;">'
+      + '<i class="ph ph-cloud-warning" style="font-size:32px;color:var(--c-danger);"></i>'
+      + '<div style="margin-top:var(--s-2);font-size:var(--t-body-sm);color:var(--c-ink);">提示生成失敗</div>'
+      + '<div style="font-size:var(--t-cap);margin-top:var(--s-2);">' + escHtml(msg || '請稍後再試') + '</div>'
+      + '</div>';
+    host.innerHTML = _renderNSMStep1HintModalShell(errBody, false, true);
+  }
+
+  async function openNSMStep1HintModal() {
+    var q = AppState.nsmSelectedQuestion || {};
+    var qid = q.id;
+    if (!qid) return;
+
+    // Ensure modal host
+    var host = document.getElementById('nsm-hint-modal-host');
+    if (!host) {
+      host = document.createElement('div');
+      host.id = 'nsm-hint-modal-host';
+      document.body.appendChild(host);
+    }
+
+    // Cache hit
+    if (_nsmStep1HintCache[qid]) {
+      host.innerHTML = _renderNSMStep1HintModalShell(
+        _renderNSMStep1HintSections(_nsmStep1HintCache[qid]),
+        false, false
+      );
+      return;
+    }
+
+    // Loading state
+    var loadingBody = '<div style="padding:var(--s-5) 0;display:flex;flex-direction:column;align-items:center;gap:var(--s-3);color:var(--c-ink-3);">'
+      + '<div class="hint-spinner" style="width:32px;height:32px;border:2px solid var(--c-rule-bold);border-top-color:var(--c-navy);border-radius:50%;animation:spin 0.8s linear infinite;"></div>'
+      + '<div style="font-size:var(--t-body-sm);color:var(--c-ink);">教練思考中…</div>'
+      + '<div style="font-size:var(--t-cap);text-align:center;">針對 ' + escHtml(q.company || '本題') + ' 產生 4 維度提示</div>'
+      + '</div>';
+    host.innerHTML = _renderNSMStep1HintModalShell(loadingBody, true, false);
+
+    // Ensure session exists (NSM hint endpoint requires :sessionId)
+    var sessionId = (AppState.nsmSession && AppState.nsmSession.id) || null;
+    if (!sessionId) {
+      try {
+        sessionId = await ensureNsmDraftSession();
+      } catch (e) {
+        _renderNSMStep1HintError(host, 'session_create_failed');
+        return;
+      }
+    }
+    if (!sessionId) {
+      _renderNSMStep1HintError(host, 'no_session');
+      return;
+    }
+
+    // Abort previous + fetch
+    if (_nsmStep1HintAbortController) { try { _nsmStep1HintAbortController.abort(); } catch (e) {} }
+    _nsmStep1HintAbortController = new AbortController();
+
+    var basePath = AppState.accessToken ? '/api/nsm-sessions' : '/api/guest/nsm-sessions';
+
+    try {
+      var res = await window.apiFetch(basePath + '/' + sessionId + '/hints', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({}),
+        signal: _nsmStep1HintAbortController.signal,
+      });
+      if (!res.ok) throw new Error('hint_fetch_failed_' + res.status);
+      var data = await res.json();
+      _nsmStep1HintCache[qid] = data;
+      var current = document.getElementById('nsm-hint-modal-host');
+      if (current && current.innerHTML) {
+        current.innerHTML = _renderNSMStep1HintModalShell(_renderNSMStep1HintSections(data), false, false);
+      }
+    } catch (e) {
+      if (e && e.name === 'AbortError') return;
+      var currentErr = document.getElementById('nsm-hint-modal-host');
+      if (currentErr) _renderNSMStep1HintError(currentErr, e && e.message);
+    }
   }
 
   // renderExampleExpand — mockup 03 line 1905-1920 verbatim
@@ -6061,9 +6185,16 @@
       + renderNSMRecentRail()
       + '</div>';
     var submitEnabled = !!sel;
+    var hintCta = submitEnabled
+      ? '<div class="nsm-step1-hint-cta">'
+        + '<button class="field__hint-link" type="button" data-nsm-step1-hint="open">'
+        + '<i class="ph ph-lightbulb"></i>教練思路（4 維度）'
+        + '</button>'
+        + '</div>'
+      : '';
     var submitBar = '<div class="submit-bar">'
       + '<div class="submit-bar__left">'
-      + (submitEnabled ? '' : '<span style="font-size:var(--t-meta);color:var(--c-ink-3)">請先選擇一個情境</span>')
+      + (submitEnabled ? hintCta : '<span style="font-size:var(--t-meta);color:var(--c-ink-3)">請先選擇一個情境</span>')
       + '</div><div class="submit-bar__right">'
       + '<button class="btn btn--primary' + (submitEnabled ? '' : ' is-disabled') + '"'
       + (submitEnabled ? '' : ' disabled')
@@ -6167,6 +6298,11 @@
         render();
       });
     }
+    // ── NSM Step 1 hint modal open — [data-nsm-step1-hint] (Stage 1D D1) ──────
+    document.querySelectorAll('[data-nsm-step1-hint]').forEach(function (btn) {
+      btn.addEventListener('click', function () { openNSMStep1HintModal(); });
+    });
+
     // Load NSM stats async (non-blocking) — Bug 4 fix 2026-05-11
     loadNsmStats();
   }
