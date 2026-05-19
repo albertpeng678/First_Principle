@@ -117,6 +117,8 @@ JSON 格式：
       return JSON.parse(resp.choices[0].message.content);
     } catch (e) {
       if (attempt === 2) throw new Error('框架審核暫時失敗，請重試');
+      // F-CT1.3 fix: progressive backoff mirror nsm-gate.js pattern (per tracker §3)
+      await new Promise(r => setTimeout(r, 800 * (attempt + 1)));
     }
   }
 }
