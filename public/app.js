@@ -54,6 +54,7 @@
     // Plan B SB9a additions — save indicator 4-state visual cycle (mockup 03 Section F line 2160-2174)
     // states: 'idle' (已暫存) | 'saving' (儲存中) | 'saved' (已儲存到雲端) | 'error' (離線中·點擊重試)
     circlesPhase1SaveState: 'idle',
+    nsmPhase2SaveState: 'idle',          // 'idle' | 'saving' | 'saved' | 'error' (C-Drift-3 / D-11)
 
     // Plan B SB10 — empty-draft inline hint banner (GAP 1)
     circlesPhase1EmptyHint: false,
@@ -72,6 +73,7 @@
     circlesQaOpen: false,               // qa-row default closed (user 2026-05-04)
     circlesExpandedQid: null,           // single qcard expanded (SB2 — mockup 01 line 1801)
     circlesRecentSessions: null,        // null = not loaded; [] = empty; [...] = items (SB2)
+    nsmRecentSessions: null,            // null = not loaded; [] = empty; [...] = NSM-only items (C-Drift-4 / D-12)
 
     // NSM (Plan C fills)
     nsmStep: 1,
@@ -118,6 +120,7 @@
 
     // R3: loading state for session detail fetch (Option B)
     circlesSessionLoading: false,
+    nsmSessionLoading: false,            // loading state for NSM session detail fetch (C-Drift-3 / D-8)
 
     // Plan B Phase 3 — score view (mockup 11/12)
     circlesPhase3LoadingStep: 1,         // 0-3 — Loading checklist current active step (starts at 1: 解析框架 done)
@@ -139,6 +142,7 @@
 
     // B6 mutex — in-memory only, never persisted
     gateInflight: false,
+    nsmGateInflight: false,              // NSM Step 2 /gate submit mutex (C-Drift-1 / D-4); in-memory only, never persisted
 
     // Mockup 16 §D — cross-tab resume-toast (Phase 3 / Phase 4 / NSM gate in-flight)
     evalToastDismissed: false,           // user clicked X on resume-toast

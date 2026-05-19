@@ -18,6 +18,32 @@ const { assertNotProdWithRealAccount } = require('../helpers/env-guard');
 
 const AUTH_FILE = path.join(__dirname, '..', '..', 'playwright', '.auth', 'user.json');
 
+// Phase A prep #3 — per-lane auth files for Wave 2 parallel implementers
+// (lanes 1-4) so drainSessions helpers operating on one lane's user cannot
+// 互殺 sessions on a sibling lane (per #199 verify finding).
+const C_DRIFT_LANES = [
+  {
+    name: 'c-drift-1',
+    email: 'e2e+c-drift-1@first-principle.test',
+    file: path.join(__dirname, '..', '..', 'playwright', '.auth', 'c-drift-1-user.json'),
+  },
+  {
+    name: 'c-drift-2',
+    email: 'e2e+c-drift-2@first-principle.test',
+    file: path.join(__dirname, '..', '..', 'playwright', '.auth', 'c-drift-2-user.json'),
+  },
+  {
+    name: 'c-drift-3',
+    email: 'e2e+c-drift-3@first-principle.test',
+    file: path.join(__dirname, '..', '..', 'playwright', '.auth', 'c-drift-3-user.json'),
+  },
+  {
+    name: 'c-drift-4',
+    email: 'e2e+c-drift-4@first-principle.test',
+    file: path.join(__dirname, '..', '..', 'playwright', '.auth', 'c-drift-4-user.json'),
+  },
+];
+
 setup('authenticate as e2e@first-principle.test', async ({ page, context }) => {
   // Defense-in-depth: refuse UI-login against prod with real account
   assertNotProdWithRealAccount({
@@ -109,3 +135,75 @@ setup('authenticate as e2e@first-principle.test', async ({ page, context }) => {
   // Atomic swap — overwrites AUTH_FILE in a single FS op (no ENOENT window).
   fs.renameSync(TEMP_FILE, AUTH_FILE);
 });
+
+// Phase A prep #3 — register one setup test per c-drift lane.
+// Each lane logs in with its own unique email (provisioned by
+// scripts/register-c-drift-test-accounts.js) and saves storageState to
+// its own playwright/.auth/c-drift-N-user.json file. Wave 2 implementers
+// can then attach storageState per-project so drainSessions on lane N
+// never touches lane M.
+//
+// All four setups share the same env-guard / preflight / atomic-write
+// disciplines as the baseline e2e@ setup above. We do NOT factor this
+// into a shared helper because Playwright's `setup('name', fn)` must be
+// declared at top level — wrapping it in a forEach over an array keeps
+// each call site clearly attributable.
+for (const lane of C_DRIFT_LANES) {
+  setup(`authenticate as ${lane.email}`, async ({ page, context }) => {
+    // Defense-in-depth: refuse UI-login against prod with the lane account.
+    // c-drift-* still ends with @first-principle.test so this is permissive
+    // by design; the guard exists to catch accidental TEST_EMAIL override.
+    assertNotProdWithRealAccount({
+      baseUrl: process.env.BASE_URL,
+      email: lane.email,
+    });
+
+    if (!process.env.TEST_PASSWORD) {
+      throw new Error(`auth.setup[${lane.name}]: TEST_PASSWORD required in .env.local`);
+    }
+
+    fs.mkdirSync(path.dirname(lane.file), { recursive: true });
+
+    // Health preflight — same 30 s budget as baseline.
+    {
+      const BASE = process.env.BASE_URL || 'http://localhost:3000';
+      const TIMEOUT_MS = 30_000;
+      const INTERVAL_MS = 500;
+      const deadline = Date.now() + TIMEOUT_MS;
+      let serverReady = false;
+      while (Date.now() < deadline) {
+        try {
+          const r = await fetch(`${BASE}/health`);
+          if (r.ok) { serverReady = true; break; }
+        } catch (_) { /* not yet up */ }
+        await new Promise((resolve) => setTimeout(resolve, INTERVAL_MS));
+      }
+      if (!serverReady) {
+        throw new Error(`auth.setup[${lane.name}]: server at ${BASE} did not become healthy within ${TIMEOUT_MS}ms`);
+      }
+    }
+
+    // Force guest state
+    await context.clearCookies();
+    await page.goto('/');
+    await page.evaluate(() => { try { localStorage.clear(); sessionStorage.clear(); } catch (e) {} });
+    await page.reload();
+
+    await expect(page.locator('button[data-nav="auth"]')).toBeVisible({ timeout: 5_000 });
+    await page.locator('button[data-nav="auth"]').click();
+    await page.locator('#auth-email').fill(lane.email);
+    await page.locator('#auth-pw').fill(process.env.TEST_PASSWORD);
+    await page.locator('#auth-submit').click();
+    await expect(page.locator('.navbar__email')).toBeVisible({ timeout: 15_000 });
+
+    // Atomic write (same pattern as baseline)
+    const TEMP_FILE = lane.file + '.tmp';
+    await page.context().storageState({ path: TEMP_FILE });
+    const stat = fs.statSync(TEMP_FILE);
+    expect(stat.size).toBeGreaterThan(100);
+    const parsed = JSON.parse(fs.readFileSync(TEMP_FILE, 'utf8'));
+    expect(parsed).toHaveProperty('cookies');
+    expect(Array.isArray(parsed.cookies)).toBe(true);
+    fs.renameSync(TEMP_FILE, lane.file);
+  });
+}
