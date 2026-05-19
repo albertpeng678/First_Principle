@@ -9,13 +9,21 @@
 // Skill citations:
 //   test-architecture.md 60-77   — E2E justified: multi-page workflow, state carries across
 //   api-testing.md 783-848       — API seeding via page.evaluate / apiFetch (10-100× faster than UI)
+//                                — Step 7: service-role direct DB seed for step_scores (avoid 7× OpenAI)
 //   common-pitfalls.md Pitfall 11 — mock ONLY external OpenAI, never own API
+//                                  Step 7 /final-report is REAL POST (own API not mocked)
 //   common-pitfalls.md Pitfall 14 — no module-level mutable state; all data local to test
-//   common-pitfalls.md Pitfall 19 — test.step() for each phase (6 steps)
+//   common-pitfalls.md Pitfall 19 — test.step() for each phase (7 steps including Phase 4)
+//   common-pitfalls.md Pitfall 3  — role/data-attr locators, no CSS chains
 //   authentication.md 29-70      — storageState reuse from existing auth setup
-//   fixtures-and-hooks.md 19-60  — test-scoped auto-cleanup fixture for teardown
+//   fixtures-and-hooks.md 19-60  — in-test deleteSessionFromPage cleanup
+//   assertions-and-waiting.md     — page.waitForResponse for real backend round-trip;
+//                                   no waitForTimeout hard sleeps
 
 'use strict';
+
+require('dotenv').config({ path: '.env.local' });
+require('dotenv').config({ path: '.env', override: false });
 
 const { test, expect } = require('@playwright/test');
 
@@ -206,6 +214,81 @@ async function installOpenAIMock(page) {
   });
 }
 
+// ── Phase 4 helpers (Step 7 — #199 supplementary coverage) ───────────────────
+//
+// Phase 4 entry is currently UI-unreachable in production (audit:
+// audit/199-phase3-to-phase4-wiring-gap-2026-05-19.md). renderCirclesPhase4 +
+// triggerFinalReport are real but only fire when AppState.circlesPhase=4, which
+// only happens via tryResumeLatestSession from DB current_phase=4. Backend never
+// sets that. We simulate the resume path by:
+//   1. service-role seeding step_scores (all 7) + lifecycle='gated' into DB row
+//   2. injecting AppState.circlesPhase = 4 + render() → triggerFinalReport fires
+//   3. waitForResponse on real /final-report → assert renderPhase4Success UI
+//
+// Per api-testing.md 783-848: service-role direct DB write is "data seeding"
+// carve-out, NOT mocking. The real /final-report POST still reads same DB row.
+
+const SUPABASE_URL_FOR_SEED = process.env.SUPABASE_URL;
+const SUPABASE_SERVICE_ROLE_KEY_FOR_SEED = process.env.SUPABASE_SERVICE_ROLE_KEY;
+
+// Shape-valid step_score per isValidEvaluatorResult (lib/evaluate-step-handler.js)
+// + per generateFinalReport prompt schema. Mirrors makeStepScore from
+// circles-final-report-contract.spec.js so generateFinalReport reliably produces
+// a full report.
+function makeStepScoreFor(stepKey) {
+  return {
+    totalScore: 78,
+    highlight: `${stepKey} 框架清楚，層次分明`,
+    improvement: `${stepKey} 可更具體說明取捨原因`,
+    dimensions: [
+      { name: '維度A', score: 4, comment: `${stepKey} 表現良好` },
+      { name: '維度B', score: 4, comment: `${stepKey} 架構清晰` },
+      { name: '維度C', score: 3, comment: `${stepKey} 尚可改進` },
+      { name: '維度D', score: 3, comment: `${stepKey} 細節待補` },
+    ],
+    coachVersion: {
+      context: `${stepKey} 步驟的核心任務是確認分析框架的完整性，這直接影響後續評估品質。`,
+      perField: [
+        { field: '主欄位', demo: `${stepKey} 範例說明，展示結構化思維。` },
+      ],
+      reasoning: `${stepKey} 的推薦做法是先定義邊界再逐步深入，避免跳步。`,
+    },
+  };
+}
+
+// Seed all 7 step_scores + lifecycle='gated' into DB row directly via service-role
+// REST PATCH. Per api-testing.md 783-848 data seeding carve-out (NOT mock).
+// Uses Playwright request fixture (browser-less HTTP) — pattern from
+// bug3-spinner-deep-investigation.spec.js:152-185.
+async function seedAllStepScoresAndGated(pageRequest, sessionId) {
+  if (!SUPABASE_URL_FOR_SEED || !SUPABASE_SERVICE_ROLE_KEY_FOR_SEED) {
+    throw new Error('seedAllStepScoresAndGated requires SUPABASE_URL + SUPABASE_SERVICE_ROLE_KEY in env');
+  }
+  const allSteps = ['C1', 'I', 'R', 'C2', 'L', 'E', 'S'];
+  const stepScores = {};
+  for (const k of allSteps) stepScores[k] = makeStepScoreFor(k);
+
+  const url = `${SUPABASE_URL_FOR_SEED}/rest/v1/circles_sessions?id=eq.${sessionId}`;
+  const res = await pageRequest.patch(url, {
+    headers: {
+      'apikey': SUPABASE_SERVICE_ROLE_KEY_FOR_SEED,
+      'Authorization': `Bearer ${SUPABASE_SERVICE_ROLE_KEY_FOR_SEED}`,
+      'Content-Type': 'application/json',
+      'Prefer': 'return=minimal',
+    },
+    data: {
+      step_scores: stepScores,
+      lifecycle: 'gated',
+      current_phase: 3,
+    },
+  });
+  const status = res.status();
+  if (status !== 204 && status !== 200) {
+    const body = await res.text();
+    throw new Error(`seedAllStepScoresAndGated: Supabase PATCH ${status}. Body: ${body}`);
+  }
+}
+
 // ── THE TEST ──────────────────────────────────────────────────────────────────
 
 test.describe('Critical Path — Lifecycle + Stage 1A + 1B + 1C + 1D end-to-end', () => {
@@ -214,14 +297,15 @@ test.describe('Critical Path — Lifecycle + Stage 1A + 1B + 1C + 1D end-to-end'
   test.slow();
 
   test(
-    'login → Phase 1 fill + gate → Phase 2 UI → Phase 2 → score → offcanvas delete → hint modal',
-    async ({ page }) => {
+    'login → Phase 1 fill + gate → Phase 2 UI → Phase 2 → score → offcanvas delete → hint modal → Phase 4 final report',
+    async ({ page, request }) => {
       // ── State: sessions created are tracked here (Pitfall 14 — no module-level var).
       // Cleanup is done via deleteSessionFromPage (apiFetch carries Bearer token),
       // matching circles-gate.spec.js pattern (auto-cleanup fixture uses standalone
       // request which lacks Bearer token header → 401 / ECONNREFUSED at teardown).
       let mainSessionId = null;
       let hintSessionId = null;
+      let phase4SessionId = null;
 
       // ════════════════════════════════════════════════════════════════════════
       // STEP 1 — Login via storageState + enter CIRCLES + pick question
@@ -525,11 +609,123 @@ test.describe('Critical Path — Lifecycle + Stage 1A + 1B + 1C + 1D end-to-end'
         hintSessionId = null; // Mark as cleaned.
       });
 
+      // ════════════════════════════════════════════════════════════════════════
+      // STEP 7 — Phase 3 → Phase 4 transition + real /final-report round-trip
+      //           (#199 supplementary — closes Phase 3→4 coverage gap)
+      // ════════════════════════════════════════════════════════════════════════
+      // Background: renderCirclesPhase4 + triggerFinalReport are real production
+      // code but UI-unreachable (no Phase 3 → 4 button). Audit:
+      //   audit/199-phase3-to-phase4-wiring-gap-2026-05-19.md
+      // This step simulates the resume-path entry (tryResumeLatestSession sets
+      // circlesPhase=4 when DB current_phase=4) by directly injecting AppState.
+      // The /final-report POST itself is REAL (Pitfall 11: no own backend mock).
+      await test.step('Step 7: Phase 3→4 transition (#199 gap fix) — real /final-report + Phase 4 UI', async () => {
+        // Seed a fresh session for Phase 4 (mainSessionId was deleted in Step 5).
+        phase4SessionId = await seedCirclesSession(page, 0);
+
+        // Service-role: write all 7 step_scores + lifecycle='gated' into DB row.
+        // Required by backend guard at routes/circles-sessions.js:421-425
+        // (gate_required + incomplete_steps). This is data seeding carve-out
+        // per api-testing.md 783-848 — NOT mocking own API.
+        await seedAllStepScoresAndGated(request, phase4SessionId);
+
+        // Mirror tryResumeLatestSession's Phase 4 restore (app.js:8328):
+        // inject circlesPhase=4 + circlesStepScores + circlesScoreResult into
+        // AppState so renderCirclesPhase4 → triggerFinalReport auto-fires.
+        await page.evaluate(() => {
+          const A = window.AppState;
+          A.circlesPhase = 4;
+          // Reset Phase 4 state so triggerFinalReport actually fires (app.js:681).
+          A.circlesPhase4Error = null;
+          A.circlesPhase4LoadingStep = 0;
+          A.circlesFinalReport = null;
+          A._phase4FinalReportFired = false;
+          // Phase 4 UI also reads step_scores for radar + step-rows; keep populated
+          // so renderPhase4Success renders fully when report comes back.
+          A.circlesStepScores = {
+            C1: { totalScore: 82, highlight: 'C1 高分', improvement: '', dimensions: [] },
+            I:  { totalScore: 78, highlight: 'I 高分',  improvement: '', dimensions: [] },
+            R:  { totalScore: 80, highlight: 'R 高分',  improvement: '', dimensions: [] },
+            C2: { totalScore: 76, highlight: 'C2 高分', improvement: '', dimensions: [] },
+            L:  { totalScore: 81, highlight: 'L 高分',  improvement: '', dimensions: [] },
+            E:  { totalScore: 79, highlight: 'E 高分',  improvement: '', dimensions: [] },
+            S:  { totalScore: 77, highlight: 'S 高分',  improvement: '', dimensions: [] },
+          };
+          A.view = 'circles';
+          window.render();
+        });
+
+        // Phase 4 container must be visible (Loading or Success — both share
+        // [data-view="circles"][data-phase="4"] root per app.js:509,533,663).
+        await expect(page.locator('[data-view="circles"][data-phase="4"]')).toBeVisible({ timeout: 5_000 });
+
+        // Loading UI appears first (renderPhase4Loading app.js:486 — auto-fire
+        // already triggered by render() above; spinner + checklist visible).
+        await expect(page.locator('.loading-wrap .loading-spinner')).toBeVisible({ timeout: 5_000 });
+        await expect(page.locator('.loading-wrap .loading-title')).toContainText('生成總結報告');
+
+        // ── Real POST /final-report round-trip ──────────────────────────────
+        // Per assertions-and-waiting.md: waitForResponse, not waitForTimeout.
+        // Real backend → real OpenAI → final-report shape. Allow up to 60 s
+        // (matches app.js:695 internal timeout, and test.slow() 90s × 3 budget).
+        const finalReportResp = await page.waitForResponse(
+          (r) => r.url().includes(`/api/circles-sessions/${phase4SessionId}/final-report`)
+              && r.request().method() === 'POST',
+          { timeout: 60_000 }
+        );
+        expect(finalReportResp.status()).toBe(200);
+
+        const reportBody = await finalReportResp.json();
+        // Shape per circles-final-report.js prompt schema (also asserted in
+        // tests/api/circles-final-report-contract.spec.js).
+        expect(reportBody).toMatchObject({
+          overallScore: expect.any(Number),
+          grade:        expect.stringMatching(/^[ABCD]$/),
+          headline:     expect.any(String),
+          strengths:    expect.any(Array),
+          improvements: expect.any(Array),
+          nextSteps:    expect.any(String),
+          coachVerdict: expect.any(String),
+        });
+
+        // ── renderPhase4Success UI render (app.js:548) ──────────────────────
+        // After response, render() called → loading-wrap removed → grade-card +
+        // panel-card (radar + step-rows) appear.
+        // Wait for circlesFinalReport to populate in AppState (triggers next render).
+        await page.waitForFunction(
+          () => window.AppState && window.AppState.circlesFinalReport != null,
+          { timeout: 10_000 }
+        );
+
+        // grade-card with score number (app.js:568-574).
+        await expect(page.locator('.grade-card')).toBeVisible({ timeout: 5_000 });
+        await expect(page.locator('.grade-card__score-num')).toBeVisible();
+
+        // radar SVG rendered (app.js:577-580 panel + app.js:477 svg.radar-svg).
+        await expect(page.locator('svg.radar-svg')).toBeVisible({ timeout: 5_000 });
+
+        // step-rows populated — 7 rows for 7 steps (app.js:583-599).
+        // step-rows__list contains 7 .step-rows__row children.
+        await expect(page.locator('.step-rows__list')).toBeVisible();
+        await expect(page.locator('.step-rows__list .step-rows__row')).toHaveCount(7);
+
+        // AppState invariant: circlesFinalReport populated, circlesPhase4Error null.
+        const finalState = await page.evaluate(() => ({
+          phase: window.AppState && window.AppState.circlesPhase,
+          report: window.AppState && window.AppState.circlesFinalReport,
+          error: window.AppState && window.AppState.circlesPhase4Error,
+        }));
+        expect(finalState.phase).toBe(4);
+        expect(finalState.report).not.toBeNull();
+        expect(finalState.error).toBeNull();
+      });
+
       // ── Safety-net cleanup: delete any sessions not yet cleaned up above.
       // Runs inside the test body (not in fixture teardown) so the page is
       // still live and apiFetch can carry the Bearer token.
-      if (mainSessionId) await deleteSessionFromPage(page, mainSessionId);
-      if (hintSessionId) await deleteSessionFromPage(page, hintSessionId);
+      if (mainSessionId)   await deleteSessionFromPage(page, mainSessionId);
+      if (hintSessionId)   await deleteSessionFromPage(page, hintSessionId);
+      if (phase4SessionId) await deleteSessionFromPage(page, phase4SessionId);
     }
   );
 });

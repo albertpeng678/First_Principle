@@ -1,0 +1,1437 @@
+<!doctype html>
+<html lang="zh-TW">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover, interactive-widget=resizes-visual">
+  <title>PM Drill — 2026-05-17 對話練習統一 mockup（3 state × 3 vp = 9 view）</title>
+
+  <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/@phosphor-icons/web@2.1.1/src/regular/style.css">
+  <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/@phosphor-icons/web@2.1.1/src/fill/style.css">
+  <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Instrument+Serif:ital@0;1&display=swap">
+
+  <style>
+    /* ───────────────────────────────────────────
+       LOCKED tokens — verbatim from mockup 00/05
+       ─────────────────────────────────────────── */
+    :root {
+      --c-bg: #F2F0EB; --c-bg-soft: #ECE9E1; --c-bg-deep: #E5E1D7;
+      --c-card: #FFFFFF; --c-surface: #FAFAF7;
+      --c-ink: #1F1D1B; --c-ink-2: #5A5046; --c-ink-3: #8A7E70; --c-ink-4: #B8AC9D;
+      --c-rule: rgba(60,45,30,0.10); --c-rule-bold: rgba(60,45,30,0.18);
+      --c-primary: #1A56DB;
+      --c-navy: #1B2D5C; --c-navy-2: #142347; --c-navy-lt: rgba(27,45,92,0.08);
+      --c-success: #137A3D; --c-success-lt: #DCEFE0;
+      --c-warn: #B85C00; --c-warn-lt: #FBE9D0;
+      --c-danger: #B61F1F; --c-danger-lt: #FADCDC;
+      --font-sans: system-ui, -apple-system, BlinkMacSystemFont, 'PingFang TC', 'Microsoft JhengHei', 'Heiti TC', 'Noto Sans TC', sans-serif;
+      --font-serif: 'Instrument Serif', 'Times New Roman', serif;
+      --t-h1: 24px; --t-h2: 19px; --t-h3: 16px; --t-body: 15px; --t-body-sm: 14px; --t-meta: 13px; --t-cap: 12px;
+      --s-1: 4px; --s-2: 8px; --s-3: 12px; --s-4: 16px; --s-5: 20px; --s-6: 24px; --s-7: 32px; --s-8: 40px; --s-9: 56px; --s-10: 80px;
+      --r-input: 6px; --r-card: 10px; --r-pill: 999px;
+      --touch-min: 44px;
+      --t-fast: 120ms; --t-norm: 200ms; --t-slow: 300ms;
+      --ease: cubic-bezier(0.4, 0, 0.2, 1);
+      --shadow-1: 0 1px 0 rgba(60,45,30,0.04);
+      --shadow-2: 0 1px 2px rgba(60,45,30,0.06);
+      --shadow-3: 0 4px 12px rgba(60,45,30,0.08);
+      --shadow-focus: 0 0 0 3px rgba(26,86,219,0.18);
+    }
+
+    *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+    html, body {
+      background: var(--c-bg);
+      color: var(--c-ink);
+      font-family: var(--font-sans);
+      font-size: var(--t-body);
+      line-height: 1.55;
+      -webkit-font-smoothing: antialiased;
+      -webkit-tap-highlight-color: transparent;
+    }
+    button { font: inherit; color: inherit; cursor: pointer; background: none; border: none; }
+    a { color: inherit; text-decoration: none; }
+    @media (max-width: 767px) { input, textarea, select { font-size: 16px !important; } }
+
+    /* ───────────────────────────────────────────
+       Page scaffolding — 9 view grid
+       ─────────────────────────────────────────── */
+    .ds-page { padding: var(--s-6); }
+    .ds-header { max-width: 2540px; margin: 0 auto var(--s-7); padding-bottom: var(--s-6); border-bottom: 1px solid var(--c-rule); }
+    .ds-header__eyebrow { font-size: var(--t-cap); letter-spacing: 0.12em; text-transform: uppercase; color: var(--c-ink-3); }
+    .ds-header h1 { font-size: var(--t-h1); margin-top: var(--s-2); }
+    .ds-header__sub { color: var(--c-ink-2); font-size: var(--t-body-sm); margin-top: var(--s-3); max-width: 880px; line-height: 1.7; }
+
+    .vp-grid {
+      display: grid;
+      grid-template-columns: 360px 768px 1280px;
+      gap: var(--s-6);
+      padding: var(--s-4) 0;
+      align-items: start;
+    }
+    .vp-frame {
+      border: 1px solid var(--c-rule-bold);
+      border-radius: var(--r-card);
+      background: var(--c-bg);
+      overflow: hidden;
+    }
+    .vp-frame__label {
+      padding: var(--s-3) var(--s-4);
+      border-bottom: 1px solid var(--c-rule);
+      background: var(--c-card);
+      display: flex;
+      justify-content: space-between;
+      font-size: var(--t-cap);
+      letter-spacing: 0.08em;
+      text-transform: uppercase;
+      color: var(--c-ink-2);
+    }
+    .vp-frame__label span:last-child { font-family: ui-monospace, 'SF Mono', monospace; color: var(--c-ink-3); }
+    .vp-frame__inner {
+      background: var(--c-bg);
+      min-height: 880px;
+      display: flex;
+      flex-direction: column;
+    }
+
+    .vp-section-title {
+      max-width: 2540px;
+      margin: var(--s-7) auto var(--s-3);
+      padding-bottom: var(--s-2);
+      border-bottom: 1px solid var(--c-rule);
+      font-size: var(--t-h2);
+      display: flex;
+      align-items: baseline;
+      gap: var(--s-3);
+    }
+    .vp-section-title__sub {
+      font-size: var(--t-cap);
+      color: var(--c-ink-3);
+      letter-spacing: 0.04em;
+      text-transform: uppercase;
+    }
+    .anno {
+      background: var(--c-bg-soft);
+      border-left: 2px solid var(--c-ink-3);
+      padding: var(--s-3) var(--s-4);
+      font-size: var(--t-meta);
+      color: var(--c-ink-2);
+      max-width: 2540px;
+      line-height: 1.7;
+      margin-bottom: var(--s-3);
+    }
+    .anno strong { color: var(--c-ink); }
+    .anno code { font-family: ui-monospace, 'SF Mono', monospace; font-size: 12px; background: var(--c-card); padding: 1px 6px; border-radius: 4px; border: 1px solid var(--c-rule); }
+
+    /* ───── LOCKED navbar — verbatim from 05 ───── */
+    .navbar {
+      display: flex;
+      align-items: center;
+      gap: var(--s-3);
+      padding: var(--s-3) var(--s-4);
+      background: rgba(255,255,255,0.85);
+      -webkit-backdrop-filter: saturate(140%) blur(10px);
+      backdrop-filter: saturate(140%) blur(10px);
+      border-bottom: 1px solid var(--c-rule);
+    }
+    .navbar__icon-btn { width: 40px; height: 40px; border-radius: var(--r-pill); display: inline-flex; align-items: center; justify-content: center; color: var(--c-ink-2); }
+    .navbar__icon-btn:hover { background: var(--c-bg-soft); color: var(--c-ink); }
+    .navbar__brand {
+      display: flex;
+      align-items: center;
+      gap: var(--s-2);
+      padding: 4px var(--s-2);
+      border-radius: var(--r-input);
+      cursor: pointer;
+    }
+    .navbar__brand-icon { width: 28px; height: 28px; border-radius: 6px; background: var(--c-navy); color: #fff; display: inline-flex; align-items: center; justify-content: center; font-size: 16px; }
+    .navbar__brand-name { font-size: var(--t-body-sm); font-weight: 500; }
+    .navbar__tabs { display: flex; gap: var(--s-2); margin-left: var(--s-4); }
+    .navbar__tab { padding: 6px var(--s-3); border-radius: var(--r-pill); font-size: var(--t-meta); color: var(--c-ink-3); }
+    .navbar__tab.is-active { background: var(--c-navy); color: #fff; }
+    .navbar__actions { margin-left: auto; display: flex; align-items: center; gap: var(--s-2); }
+    .navbar__email { font-size: var(--t-cap); color: var(--c-ink-3); max-width: 180px; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+
+    /* ───── LOCKED progress — verbatim from 05 ───── */
+    .progress {
+      padding: var(--s-3) var(--s-4);
+      background: var(--c-bg-soft);
+      border-bottom: 1px solid var(--c-rule);
+      display: flex;
+      gap: var(--s-2);
+      align-items: center;
+      overflow-x: auto;
+      white-space: nowrap;
+    }
+    .progress__step {
+      flex: 0 0 auto;
+      padding: 4px 10px;
+      border-radius: var(--r-pill);
+      font-size: var(--t-cap);
+      color: var(--c-ink-3);
+    }
+    .progress__step.is-done { color: var(--c-ink); }
+    .progress__step.is-active { background: var(--c-navy); color: #fff; }
+    .progress__step .step-letter { font-family: var(--font-serif); font-style: italic; margin-right: 4px; font-size: 14px; }
+
+    /* ───── LOCKED phase-head — verbatim from 05 ───── */
+    .phase-head {
+      padding: var(--s-3) var(--s-5);
+      background: var(--c-bg-soft);
+      border-bottom: 1px solid var(--c-rule);
+      display: flex;
+      align-items: center;
+      gap: var(--s-3);
+    }
+    .phase-head__num { font-family: var(--font-serif); font-style: italic; font-size: 22px; color: var(--c-navy); line-height: 1; flex: 0 0 auto; }
+    .phase-head__main { flex: 1; min-width: 0; }
+    .phase-head__eyebrow { font-size: var(--t-cap); letter-spacing: 0.08em; text-transform: uppercase; color: var(--c-ink-3); }
+    .phase-head__title { font-size: var(--t-h3); color: var(--c-ink); margin-top: 2px; letter-spacing: -0.005em; }
+    .phase-head__meta { flex: 0 0 auto; font-size: var(--t-meta); color: var(--c-ink-3); display: flex; gap: var(--s-3); align-items: center; flex-wrap: wrap; justify-content: flex-end; }
+
+    /* ───── DRIFT FIX #1：q-card full-card pattern（取代 qchip compact）
+       對齊 mockup 03 .qchip-expand__statement — full body 不 truncate
+       此 card 永遠展開、永遠顯示題目；無收合 ───── */
+    .q-card {
+      background: var(--c-card);
+      border-bottom: 1px solid var(--c-rule);
+      padding: var(--s-4) var(--s-5);
+    }
+    .q-card__head {
+      display: flex;
+      align-items: flex-start;
+      gap: var(--s-3);
+      margin-bottom: var(--s-3);
+    }
+    .q-card__icon {
+      width: 32px; height: 32px;
+      flex: 0 0 auto;
+      border-radius: var(--r-input);
+      background: var(--c-navy-lt);
+      color: var(--c-navy);
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+      font-size: 16px;
+    }
+    .q-card__head-main { flex: 1; min-width: 0; }
+    .q-card__company {
+      font-size: var(--t-cap);
+      color: var(--c-ink-3);
+      letter-spacing: 0.04em;
+      margin-bottom: 2px;
+    }
+    .q-card__title {
+      font-size: var(--t-body);
+      color: var(--c-ink);
+      font-weight: 500;
+      letter-spacing: -0.005em;
+      line-height: 1.45;
+    }
+    .q-card__body {
+      font-size: var(--t-body-sm);
+      line-height: 1.7;
+      color: var(--c-ink-2);
+      padding: var(--s-3) var(--s-4);
+      background: var(--c-surface);
+      border: 1px solid var(--c-rule);
+      border-radius: var(--r-input);
+    }
+    .q-card__body strong { color: var(--c-navy); font-weight: 600; }
+
+    /* ───── LOCKED chat-body — verbatim from 05 ───── */
+    .chat-content { flex: 1; min-height: 0; overflow-y: auto; display: flex; flex-direction: column; }
+    .chat-body {
+      padding: var(--s-5) var(--s-4);
+      max-width: 920px;
+      margin: 0 auto;
+      width: 100%;
+      display: flex;
+      flex-direction: column;
+      gap: var(--s-3);
+      flex: 1;
+    }
+    @media (min-width: 768px) {
+      .chat-body { padding: var(--s-6) var(--s-5); }
+    }
+
+    /* ───── LOCKED icebreaker — verbatim from 05 ───── */
+    .icebreaker {
+      background: var(--c-navy-lt);
+      border: 1px solid rgba(27,45,92,0.18);
+      border-radius: var(--r-input);
+      padding: var(--s-3) var(--s-4);
+      margin-bottom: var(--s-3);
+    }
+    .icebreaker__label {
+      font-size: var(--t-cap);
+      font-weight: 600;
+      color: var(--c-navy);
+      letter-spacing: 0.04em;
+      display: flex;
+      align-items: center;
+      gap: var(--s-1);
+      margin-bottom: var(--s-1);
+    }
+    .icebreaker__label i { font-size: 14px; }
+    .icebreaker__text {
+      font-size: var(--t-body-sm);
+      color: var(--c-ink-2);
+      line-height: 1.7;
+    }
+
+    /* ───── LOCKED bubbles — verbatim from 05
+       Role mapping（user 訪談者 / AI 被訪談者）：
+       - bubble--user  = 訪談者（PM 練習者）右側白卡
+       - bubble--interviewee = 被訪談者（AI 扮演 domain user）左側暖米卡
+       - bubble--coach = 教練點評（系統旁白），保留但少用
+       ───── */
+    .bubble {
+      padding: var(--s-3) var(--s-4);
+      max-width: 88%;
+      font-size: var(--t-body-sm);
+      line-height: 1.7;
+      color: var(--c-ink);
+    }
+    .bubble__section {
+      font-size: var(--t-cap);
+      font-weight: 600;
+      letter-spacing: 0.04em;
+      margin-bottom: var(--s-1);
+      display: flex;
+      align-items: center;
+      gap: var(--s-1);
+    }
+    .bubble__section i { font-size: 12px; }
+    .bubble--user {
+      background: var(--c-card);
+      border: 1px solid var(--c-rule-bold);
+      border-radius: var(--r-card) 4px var(--r-card) var(--r-card);
+      align-self: flex-end;
+      margin-left: auto;
+    }
+    .bubble--user .bubble__section { color: var(--c-ink-3); }
+    .bubble--interviewee {
+      background: var(--c-bg-soft);
+      border: 1px solid var(--c-rule);
+      border-radius: 4px var(--r-card) var(--r-card) var(--r-card);
+      align-self: flex-start;
+    }
+    .bubble--interviewee .bubble__section { color: var(--c-ink-3); }
+
+    /* turn badge */
+    .turn-badge {
+      font-size: var(--t-meta);
+      color: var(--c-ink-2);
+      background: var(--c-bg-soft);
+      padding: 2px var(--s-2);
+      border-radius: var(--r-pill);
+      flex: 0 0 auto;
+    }
+
+    /* ───── LOCKED input-bar — verbatim from 05
+       DRIFT FIX #2：上一步 必為 .input-bar__row first child
+       （textarea + send 之前），不獨立 .phase-back-row ───── */
+    .input-bar {
+      background: var(--c-card);
+      border-top: 1px solid var(--c-rule);
+      padding: var(--s-3) var(--s-4) max(var(--s-3), env(safe-area-inset-bottom));
+      display: flex;
+      flex-direction: column;
+      gap: var(--s-2);
+      align-items: stretch;
+    }
+    .input-bar__row {
+      display: flex;
+      gap: var(--s-2);
+      align-items: flex-end;
+    }
+    .input-bar__textarea {
+      flex: 1;
+      min-height: 44px;
+      max-height: 120px;
+      padding: 10px var(--s-3);
+      border: 1px solid var(--c-rule-bold);
+      border-radius: var(--r-input);
+      background: var(--c-surface);
+      font-size: var(--t-body-sm);
+      line-height: 1.5;
+      color: var(--c-ink);
+      resize: none;
+      font-family: inherit;
+    }
+    .input-bar__textarea::placeholder { color: var(--c-ink-3); }
+    .input-bar__textarea:focus { outline: none; border-color: var(--c-navy); box-shadow: 0 0 0 3px var(--c-navy-lt); }
+    .input-bar__send {
+      width: 44px;
+      height: 44px;
+      flex: 0 0 auto;
+      background: var(--c-navy);
+      color: #fff;
+      border-radius: var(--r-input);
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+      font-size: 18px;
+    }
+    .input-bar__send:hover { background: var(--c-navy-2); }
+    .input-bar__send:disabled { background: var(--c-ink-4); cursor: not-allowed; }
+
+    /* btn variants — LOCKED from 05 */
+    .btn {
+      display: inline-flex;
+      align-items: center;
+      gap: var(--s-2);
+      min-height: var(--touch-min);
+      padding: 0 var(--s-4);
+      border-radius: var(--r-input);
+      font-size: var(--t-body-sm);
+      font-weight: 500;
+      transition: all var(--t-fast) var(--ease);
+      flex: 0 0 auto;
+    }
+    .btn--primary { background: var(--c-navy); color: #fff; }
+    .btn--primary:hover { background: var(--c-navy-2); }
+    .btn--ghost { background: transparent; color: var(--c-ink-2); border: 1px solid var(--c-rule-bold); }
+    .btn--ghost:hover { background: var(--c-bg-soft); color: var(--c-ink); }
+
+    /* ───────────────────────────────────────────
+       State C — 完整步驟 view（Phase 4 style mix）
+       sub-set of mockup 13 step-rows + locked variant
+       DRIFT FIX #3：locked step 顯示為 grey bg + 不可編輯 input
+         + score badge + 「提示」「範例」永遠可用
+       ─────────────────────────────────────────── */
+    .review-body {
+      max-width: 920px;
+      margin: 0 auto;
+      padding: var(--s-5) var(--s-4) var(--s-9);
+      width: 100%;
+      display: flex;
+      flex-direction: column;
+      gap: var(--s-3);
+    }
+    @media (min-width: 768px) {
+      .review-body { padding: var(--s-6) var(--s-5) var(--s-9); }
+    }
+    .review-intro {
+      font-size: var(--t-meta);
+      color: var(--c-ink-3);
+      margin-bottom: var(--s-2);
+      line-height: 1.6;
+    }
+
+    .step-row {
+      background: var(--c-card);
+      border: 1px solid var(--c-rule);
+      border-radius: var(--r-card);
+      padding: var(--s-4) var(--s-5);
+      display: flex;
+      flex-direction: column;
+      gap: var(--s-3);
+    }
+    .step-row--locked { background: var(--c-bg-deep); border-color: var(--c-rule); }
+    .step-row--active { border-color: var(--c-navy); box-shadow: var(--shadow-2); }
+    .step-row--pending { background: var(--c-surface); opacity: 0.78; }
+
+    .step-row__head {
+      display: flex;
+      align-items: center;
+      gap: var(--s-3);
+    }
+    .step-row__num {
+      font-family: var(--font-serif);
+      font-style: italic;
+      font-size: 20px;
+      color: var(--c-ink-3);
+      flex: 0 0 auto;
+      width: 22px;
+    }
+    .step-row__name { flex: 1; font-size: var(--t-body-sm); font-weight: 500; color: var(--c-ink); }
+    .step-row__name-key { font-family: var(--font-serif); font-style: italic; color: var(--c-ink-3); margin-right: var(--s-2); }
+    .step-row__state {
+      font-size: var(--t-cap);
+      letter-spacing: 0.04em;
+      color: var(--c-ink-3);
+      padding: 2px var(--s-2);
+      border-radius: var(--r-pill);
+      background: var(--c-bg-soft);
+      flex: 0 0 auto;
+    }
+    .step-row--active .step-row__state { color: var(--c-navy); background: var(--c-navy-lt); }
+    .step-row--locked .step-row__state { color: var(--c-success); background: var(--c-success-lt); }
+    .step-row__score {
+      font-family: var(--font-serif);
+      font-style: italic;
+      font-size: 22px;
+      color: var(--c-success);
+      line-height: 1;
+      flex: 0 0 auto;
+      margin-left: var(--s-2);
+    }
+
+    /* locked step：fields 與「提示/範例」皆可看，僅不可編輯 */
+    .step-row__field-label-row {
+      display: flex;
+      align-items: baseline;
+      justify-content: space-between;
+      gap: var(--s-3);
+      margin-bottom: var(--s-1);
+      flex-wrap: wrap;
+    }
+    .step-row__field-label { font-size: var(--t-meta); color: var(--c-ink-2); font-weight: 500; }
+    .step-row__hint-row {
+      display: flex;
+      gap: var(--s-3);
+      align-items: center;
+      margin-left: auto;
+      flex: 0 0 auto;
+    }
+    .hint-link {
+      display: inline-flex;
+      align-items: center;
+      gap: 4px;
+      font-size: var(--t-cap);
+      color: var(--c-navy);
+      cursor: pointer;
+    }
+    .hint-link:hover { color: var(--c-navy-2); }
+    .hint-link i { font-size: 14px; }
+
+    .step-row__readonly {
+      padding: var(--s-3) var(--s-4);
+      background: var(--c-surface);
+      border: 1px solid var(--c-rule);
+      border-radius: var(--r-input);
+      font-size: var(--t-meta);
+      color: var(--c-ink-2);
+      line-height: 1.65;
+    }
+    .step-row__editable {
+      padding: var(--s-3) var(--s-4);
+      background: var(--c-card);
+      border: 1px solid var(--c-rule-bold);
+      border-radius: var(--r-input);
+      font-size: var(--t-meta);
+      color: var(--c-ink);
+      line-height: 1.65;
+      min-height: 72px;
+    }
+    .step-row__editable:focus-within { border-color: var(--c-primary); box-shadow: var(--shadow-focus); }
+    .step-row__editable textarea {
+      width: 100%;
+      border: 0;
+      outline: none;
+      background: transparent;
+      font: inherit;
+      color: inherit;
+      resize: none;
+      min-height: 60px;
+    }
+
+    .step-row__note {
+      font-size: var(--t-cap);
+      color: var(--c-ink-3);
+      line-height: 1.6;
+    }
+
+    .step-row__actions {
+      display: flex;
+      gap: var(--s-2);
+      flex-wrap: wrap;
+      align-items: center;
+    }
+    .step-row__continue {
+      padding: 8px var(--s-4);
+      border-radius: var(--r-input);
+      background: var(--c-navy);
+      color: #fff;
+      font-size: var(--t-meta);
+      font-weight: 500;
+      display: inline-flex;
+      align-items: center;
+      gap: var(--s-1);
+    }
+    .step-row__continue:hover { background: var(--c-navy-2); }
+    .step-row__pending-msg {
+      font-size: var(--t-cap);
+      color: var(--c-ink-3);
+      font-style: italic;
+    }
+
+    /* responsive collapse — under 1100px hide other vp frames */
+    @media (max-width: 2680px) {
+      .vp-grid { overflow-x: auto; }
+    }
+  </style>
+</head>
+<body>
+
+<div class="ds-page">
+  <header class="ds-header">
+    <div class="ds-header__eyebrow">PM Drill · 2026-05-17 · CIRCLES 對話練習統一 mockup · 9 view</div>
+    <h1>CIRCLES 對話練習 — 3 state × 3 viewport（待 user 放行）</h1>
+    <p class="ds-header__sub">
+      角色：<strong>user 是 PM 訪談者</strong>練習做需求分析；<strong>AI 是被訪談者</strong>（domain expert，本 mockup 中扮演 Spotify Podcast 用戶）。對話練習的目的是 user 用問問題挖需求，而不是 AI 評分 user 答案。
+      本檔修 3 個既有 drift：(1) 題目顯示用 full q-card（取代 mockup 05 compact qchip），(2)「上一步」改為 input-bar inline first child，(3) 完整步驟 view 含 locked + editable mix，locked step 仍可看「提示」+「範例」。
+      其餘元素（qchip 展開 panel / 對話摘要 / Phase 1.5 入口）此 mockup <strong>不重設計</strong>。
+    </p>
+  </header>
+
+  <!-- ════════════════════════════════════════════════════════════ -->
+  <!-- State A — 剛進入對話練習（C1 step / 第一個 AI 開場 / user 還沒回答） -->
+  <!-- ════════════════════════════════════════════════════════════ -->
+  <h2 class="vp-section-title">State A · 剛進入對話練習 <span class="vp-section-title__sub">C1 step · 1 句 icebreaker 開場 · user 還沒回應</span></h2>
+  <div class="anno">
+    <strong>視覺契約：</strong>navbar + progress（C 高亮）+ phase-head（Phase 2 · C 澄清情境）+ <strong>q-card full body</strong>（含 problem_statement 完整內容、不 truncate）+ icebreaker 卡（給訪談方向）+ input-bar 含「上一步」inline。turns=0，沒有對話 bubble。
+    <br>角色示意：user 還沒問問題；icebreaker 提示 user「身為 PM 訪談者，先從哪個方向切入問被訪談者」。
+  </div>
+  <div class="vp-grid">
+
+    <!-- View 1: Mobile 360 · State A -->
+    <div class="vp-frame">
+      <div class="vp-frame__label"><span>Mobile · State A</span><span>360 × 880</span></div>
+      <div class="vp-frame__inner" style="width:360px">
+        <div class="navbar">
+          <button class="navbar__icon-btn" aria-label="menu"><i class="ph ph-list"></i></button>
+          <div class="navbar__brand"><span class="navbar__brand-icon"><i class="ph ph-circles-three"></i></span><span class="navbar__brand-name">PM Drill</span></div>
+          <div class="navbar__actions">
+            <button class="navbar__icon-btn" aria-label="home"><i class="ph ph-house"></i></button>
+          </div>
+        </div>
+        <div class="progress">
+          <span class="progress__step is-active"><span class="step-letter">C</span>澄清</span>
+          <span class="progress__step"><span class="step-letter">I</span>用戶</span>
+          <span class="progress__step"><span class="step-letter">R</span>需求</span>
+          <span class="progress__step"><span class="step-letter">C</span>排序</span>
+          <span class="progress__step"><span class="step-letter">L</span>方案</span>
+          <span class="progress__step"><span class="step-letter">E</span>取捨</span>
+          <span class="progress__step"><span class="step-letter">S</span>總結</span>
+        </div>
+        <div class="phase-head">
+          <span class="phase-head__num">2</span>
+          <div class="phase-head__main">
+            <div class="phase-head__eyebrow">Phase 2 · 對話練習</div>
+            <div class="phase-head__title">C · 澄清情境</div>
+          </div>
+        </div>
+
+        <!-- DRIFT FIX #1：q-card full body（取代 qchip compact） -->
+        <div class="q-card">
+          <div class="q-card__head">
+            <span class="q-card__icon"><i class="ph ph-info"></i></span>
+            <div class="q-card__head-main">
+              <div class="q-card__company">Spotify · Podcast</div>
+              <div class="q-card__title">設計新功能，提升 Spotify Podcast 新用戶黏著度</div>
+            </div>
+          </div>
+          <div class="q-card__body">
+            既有新用戶聽 Podcast 的留存比聽音樂低（30 天留存 35% vs 音樂 62%）；目標把 7 日留存從 18% 拉到 25%，但<strong>不能影響廣告收入或訂閱轉換</strong>。
+          </div>
+        </div>
+
+        <div class="chat-content">
+          <div class="chat-body">
+            <div class="icebreaker">
+              <div class="icebreaker__label"><i class="ph ph-compass"></i>開始訪談方向</div>
+              <div class="icebreaker__text">你是 PM，現在要訪談一位 Spotify Podcast 重度用戶。先從「最近一次使用情境」切入 — 例如「您最近一次用 Spotify 聽 Podcast 是什麼時候、在做什麼？」</div>
+            </div>
+          </div>
+        </div>
+
+        <!-- DRIFT FIX #2：上一步 inline as first child -->
+        <div class="input-bar">
+          <div class="input-bar__row">
+            <button class="btn btn--ghost"><i class="ph ph-arrow-left"></i>上一步</button>
+            <textarea class="input-bar__textarea" placeholder="向被訪談者提問..." rows="1"></textarea>
+            <button class="input-bar__send" aria-label="送出" disabled><i class="ph ph-paper-plane-tilt"></i></button>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- View 2: Tablet 768 · State A -->
+    <div class="vp-frame">
+      <div class="vp-frame__label"><span>Tablet · State A</span><span>768 × 880</span></div>
+      <div class="vp-frame__inner" style="width:768px">
+        <div class="navbar">
+          <button class="navbar__icon-btn" aria-label="menu"><i class="ph ph-list"></i></button>
+          <div class="navbar__brand"><span class="navbar__brand-icon"><i class="ph ph-circles-three"></i></span><span class="navbar__brand-name">PM Drill</span></div>
+          <nav class="navbar__tabs">
+            <button class="navbar__tab is-active">CIRCLES</button>
+            <button class="navbar__tab">北極星</button>
+          </nav>
+          <div class="navbar__actions">
+            <button class="navbar__icon-btn" aria-label="search"><i class="ph ph-magnifying-glass"></i></button>
+            <button class="navbar__icon-btn" aria-label="home"><i class="ph ph-house"></i></button>
+          </div>
+        </div>
+        <div class="progress">
+          <span class="progress__step is-active"><span class="step-letter">C</span>澄清</span>
+          <span class="progress__step"><span class="step-letter">I</span>用戶</span>
+          <span class="progress__step"><span class="step-letter">R</span>需求</span>
+          <span class="progress__step"><span class="step-letter">C</span>排序</span>
+          <span class="progress__step"><span class="step-letter">L</span>方案</span>
+          <span class="progress__step"><span class="step-letter">E</span>取捨</span>
+          <span class="progress__step"><span class="step-letter">S</span>總結</span>
+        </div>
+        <div class="phase-head">
+          <span class="phase-head__num">2</span>
+          <div class="phase-head__main">
+            <div class="phase-head__eyebrow">Phase 2 · 對話練習</div>
+            <div class="phase-head__title">C · 澄清情境</div>
+          </div>
+          <div class="phase-head__meta"><span>建議 5-10 輪對話</span></div>
+        </div>
+
+        <div class="q-card">
+          <div class="q-card__head">
+            <span class="q-card__icon"><i class="ph ph-info"></i></span>
+            <div class="q-card__head-main">
+              <div class="q-card__company">Spotify · Podcast · 設計題</div>
+              <div class="q-card__title">設計一個新功能，提升 Spotify Podcast 新用戶 7 日留存</div>
+            </div>
+          </div>
+          <div class="q-card__body">
+            既有新用戶聽 Podcast 的留存比聽音樂低（30 天留存 35% vs 音樂 62%）。本次目標：把 7 日留存從 18% 拉到 25%，鎖定「30 天內註冊但未養成日常收聽習慣的新用戶」，<strong>不能影響廣告收入或訂閱轉換率</strong>。訪談者可從「目前用戶實際使用情境 → 痛點 → 期待」展開。
+          </div>
+        </div>
+
+        <div class="chat-content">
+          <div class="chat-body">
+            <div class="icebreaker">
+              <div class="icebreaker__label"><i class="ph ph-compass"></i>開始訪談方向</div>
+              <div class="icebreaker__text">你是 PM，現在要訪談一位 Spotify Podcast 重度用戶。建議先從「最近一次使用情境」切入 — 例如「您最近一次用 Spotify 聽 Podcast 是什麼時候、在做什麼、有沒有遇到讓您困擾的地方？」。從具體情境問起，比直接問「您覺得 Spotify Podcast 怎麼樣」更能挖到真實需求。</div>
+            </div>
+          </div>
+        </div>
+
+        <div class="input-bar">
+          <div class="input-bar__row">
+            <button class="btn btn--ghost"><i class="ph ph-arrow-left"></i>上一步</button>
+            <textarea class="input-bar__textarea" placeholder="向被訪談者提問..." rows="1"></textarea>
+            <button class="input-bar__send" aria-label="送出" disabled><i class="ph ph-paper-plane-tilt"></i></button>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- View 3: Desktop 1280 · State A -->
+    <div class="vp-frame">
+      <div class="vp-frame__label"><span>Desktop · State A</span><span>1280 × 880</span></div>
+      <div class="vp-frame__inner" style="width:1280px">
+        <div class="navbar">
+          <button class="navbar__icon-btn" aria-label="menu"><i class="ph ph-list"></i></button>
+          <div class="navbar__brand"><span class="navbar__brand-icon"><i class="ph ph-circles-three"></i></span><span class="navbar__brand-name">PM Drill</span></div>
+          <nav class="navbar__tabs">
+            <button class="navbar__tab is-active">CIRCLES</button>
+            <button class="navbar__tab">北極星</button>
+          </nav>
+          <div class="navbar__actions">
+            <span class="navbar__email">albertpeng678@gmail.com</span>
+            <button class="navbar__icon-btn" aria-label="search"><i class="ph ph-magnifying-glass"></i></button>
+            <button class="navbar__icon-btn" aria-label="home"><i class="ph ph-house"></i></button>
+          </div>
+        </div>
+        <div class="progress">
+          <span class="progress__step is-active"><span class="step-letter">C</span>澄清</span>
+          <span class="progress__step"><span class="step-letter">I</span>用戶</span>
+          <span class="progress__step"><span class="step-letter">R</span>需求</span>
+          <span class="progress__step"><span class="step-letter">C</span>排序</span>
+          <span class="progress__step"><span class="step-letter">L</span>方案</span>
+          <span class="progress__step"><span class="step-letter">E</span>取捨</span>
+          <span class="progress__step"><span class="step-letter">S</span>總結</span>
+        </div>
+        <div class="phase-head">
+          <span class="phase-head__num">2</span>
+          <div class="phase-head__main">
+            <div class="phase-head__eyebrow">Phase 2 · 對話練習</div>
+            <div class="phase-head__title">C · 澄清情境</div>
+          </div>
+          <div class="phase-head__meta"><span>建議 5-10 輪對話 · 隨時可暫停</span></div>
+        </div>
+
+        <div class="q-card">
+          <div class="q-card__head">
+            <span class="q-card__icon"><i class="ph ph-info"></i></span>
+            <div class="q-card__head-main">
+              <div class="q-card__company">Spotify · Podcast（Drill mode · Design type · 難度 中）</div>
+              <div class="q-card__title">設計一個新功能，提升 Spotify Podcast 新用戶 7 日留存率（18% → 25%）</div>
+            </div>
+          </div>
+          <div class="q-card__body">
+            既有新用戶聽 Podcast 的留存比聽音樂低（30 天留存 35% vs 音樂 62%）；產品團隊認為 Podcast 是長期成長關鍵但新用戶上手摩擦大。本次目標：<strong>把第一週新用戶 7 日留存從 18% 拉到 25%</strong>，鎖定「30 天內註冊但未養成日常收聽習慣的新用戶」（免費 + 訂閱混合，80% 為免費）。商業限制：<strong>不能影響廣告收入或訂閱轉換率</strong>。訪談者可從「目前用戶實際使用情境 → 痛點 → 期待 → 替代方案」順序展開挖需求。
+          </div>
+        </div>
+
+        <div class="chat-content">
+          <div class="chat-body">
+            <div class="icebreaker">
+              <div class="icebreaker__label"><i class="ph ph-compass"></i>開始訪談方向</div>
+              <div class="icebreaker__text">你是 PM，現在要訪談一位 Spotify Podcast 重度用戶。建議先從「最近一次使用情境」切入 — 例如「您最近一次用 Spotify 聽 Podcast 是什麼時候、在做什麼、有沒有遇到讓您困擾的地方？」。從具體情境問起，比直接問「您覺得 Spotify Podcast 怎麼樣」更能挖到真實需求。記得追問「為什麼」，把表象問題挖到根本動機。</div>
+            </div>
+          </div>
+        </div>
+
+        <div class="input-bar">
+          <div class="input-bar__row">
+            <button class="btn btn--ghost"><i class="ph ph-arrow-left"></i>上一步</button>
+            <textarea class="input-bar__textarea" placeholder="向被訪談者提問（例：您最近一次聽 Podcast 是什麼時候？）..." rows="1"></textarea>
+            <button class="input-bar__send" aria-label="送出" disabled><i class="ph ph-paper-plane-tilt"></i></button>
+          </div>
+        </div>
+      </div>
+    </div>
+
+  </div>
+
+  <!-- ════════════════════════════════════════════════════════════ -->
+  <!-- State B — 對話進行中（I step / 3-4 turn / 上一步 inline）  -->
+  <!-- ════════════════════════════════════════════════════════════ -->
+  <h2 class="vp-section-title">State B · 對話進行中 <span class="vp-section-title__sub">I step · 3-4 turn 訪談對話 · 上一步 inline first child</span></h2>
+  <div class="anno">
+    <strong>視覺契約：</strong>navbar 含 turn-badge · phase-head 顯示「I · 認識用戶」· q-card 持續顯示題目 · chat-body 有 3-4 turn 對話 bubble · input-bar 仍有「上一步」inline first child。
+    <br>角色示意：<strong>user bubble（右側白卡）= 訪談者 PM 提問</strong>「您通常什麼時候會聽 Podcast？」「為什麼會切回播放器？」；<strong>interviewee bubble（左側暖米卡）= 被訪談者 AI 回答</strong>像「我通常通勤的時候會聽...」「因為一直被廣告打斷...」。
+  </div>
+  <div class="vp-grid">
+
+    <!-- View 4: Mobile 360 · State B -->
+    <div class="vp-frame">
+      <div class="vp-frame__label"><span>Mobile · State B</span><span>360 × 880</span></div>
+      <div class="vp-frame__inner" style="width:360px">
+        <div class="navbar">
+          <button class="navbar__icon-btn" aria-label="menu"><i class="ph ph-list"></i></button>
+          <div class="navbar__brand"><span class="navbar__brand-icon"><i class="ph ph-circles-three"></i></span><span class="navbar__brand-name">PM Drill</span></div>
+          <div class="navbar__actions">
+            <span class="turn-badge">4 輪</span>
+            <button class="navbar__icon-btn" aria-label="home"><i class="ph ph-house"></i></button>
+          </div>
+        </div>
+        <div class="progress">
+          <span class="progress__step is-done"><span class="step-letter">C</span>澄清</span>
+          <span class="progress__step is-active"><span class="step-letter">I</span>用戶</span>
+          <span class="progress__step"><span class="step-letter">R</span>需求</span>
+          <span class="progress__step"><span class="step-letter">C</span>排序</span>
+          <span class="progress__step"><span class="step-letter">L</span>方案</span>
+          <span class="progress__step"><span class="step-letter">E</span>取捨</span>
+          <span class="progress__step"><span class="step-letter">S</span>總結</span>
+        </div>
+        <div class="phase-head">
+          <span class="phase-head__num">2</span>
+          <div class="phase-head__main">
+            <div class="phase-head__eyebrow">Phase 2 · 對話練習</div>
+            <div class="phase-head__title">I · 認識用戶</div>
+          </div>
+        </div>
+
+        <div class="q-card">
+          <div class="q-card__head">
+            <span class="q-card__icon"><i class="ph ph-info"></i></span>
+            <div class="q-card__head-main">
+              <div class="q-card__company">Spotify · Podcast</div>
+              <div class="q-card__title">設計新功能，提升 Spotify Podcast 新用戶 7 日留存</div>
+            </div>
+          </div>
+          <div class="q-card__body">
+            目標把 7 日留存從 18% 拉到 25%，鎖定 30 天內註冊但未養成日常收聽習慣的新用戶，<strong>不能影響廣告收入或訂閱轉換</strong>。
+          </div>
+        </div>
+
+        <div class="chat-content">
+          <div class="chat-body">
+            <div class="bubble bubble--user">
+              <div class="bubble__section">訪談者</div>
+              您通常什麼時候會聽 Podcast？最近一次大概是什麼情境？
+            </div>
+            <div class="bubble bubble--interviewee">
+              <div class="bubble__section">被訪談者</div>
+              嗯，我通常通勤的時候會聽，大概早上 8 點搭捷運那 30 分鐘。最近一次是昨天，聽商業類的 podcast，但中間被廣告打斷三次後我就切回音樂播放器了。
+            </div>
+            <div class="bubble bubble--user">
+              <div class="bubble__section">訪談者</div>
+              為什麼會切回播放器，而不是直接跳過廣告？
+            </div>
+            <div class="bubble bubble--interviewee">
+              <div class="bubble__section">被訪談者</div>
+              因為跳過按鈕要等 5 秒才會亮，連續被打斷三次心情就煩了，乾脆換音樂比較順。其實我不是不能接受廣告，只是節奏被打斷整集就回不去了。
+            </div>
+          </div>
+        </div>
+
+        <div class="input-bar">
+          <div class="input-bar__row">
+            <button class="btn btn--ghost"><i class="ph ph-arrow-left"></i>上一步</button>
+            <textarea class="input-bar__textarea" placeholder="繼續向被訪談者提問..." rows="1"></textarea>
+            <button class="input-bar__send" aria-label="送出"><i class="ph ph-paper-plane-tilt"></i></button>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- View 5: Tablet 768 · State B -->
+    <div class="vp-frame">
+      <div class="vp-frame__label"><span>Tablet · State B</span><span>768 × 880</span></div>
+      <div class="vp-frame__inner" style="width:768px">
+        <div class="navbar">
+          <button class="navbar__icon-btn" aria-label="menu"><i class="ph ph-list"></i></button>
+          <div class="navbar__brand"><span class="navbar__brand-icon"><i class="ph ph-circles-three"></i></span><span class="navbar__brand-name">PM Drill</span></div>
+          <nav class="navbar__tabs">
+            <button class="navbar__tab is-active">CIRCLES</button>
+            <button class="navbar__tab">北極星</button>
+          </nav>
+          <div class="navbar__actions">
+            <span class="turn-badge">4 輪</span>
+            <button class="navbar__icon-btn" aria-label="search"><i class="ph ph-magnifying-glass"></i></button>
+            <button class="navbar__icon-btn" aria-label="home"><i class="ph ph-house"></i></button>
+          </div>
+        </div>
+        <div class="progress">
+          <span class="progress__step is-done"><span class="step-letter">C</span>澄清</span>
+          <span class="progress__step is-active"><span class="step-letter">I</span>用戶</span>
+          <span class="progress__step"><span class="step-letter">R</span>需求</span>
+          <span class="progress__step"><span class="step-letter">C</span>排序</span>
+          <span class="progress__step"><span class="step-letter">L</span>方案</span>
+          <span class="progress__step"><span class="step-letter">E</span>取捨</span>
+          <span class="progress__step"><span class="step-letter">S</span>總結</span>
+        </div>
+        <div class="phase-head">
+          <span class="phase-head__num">2</span>
+          <div class="phase-head__main">
+            <div class="phase-head__eyebrow">Phase 2 · 對話練習</div>
+            <div class="phase-head__title">I · 認識用戶</div>
+          </div>
+          <div class="phase-head__meta"><span>4 輪對話</span></div>
+        </div>
+
+        <div class="q-card">
+          <div class="q-card__head">
+            <span class="q-card__icon"><i class="ph ph-info"></i></span>
+            <div class="q-card__head-main">
+              <div class="q-card__company">Spotify · Podcast · 設計題</div>
+              <div class="q-card__title">設計新功能，提升 Spotify Podcast 新用戶 7 日留存（18% → 25%）</div>
+            </div>
+          </div>
+          <div class="q-card__body">
+            目標把 7 日留存從 18% 拉到 25%，鎖定「30 天內註冊但未養成日常收聽習慣的新用戶」，<strong>不能影響廣告收入或訂閱轉換率</strong>。訪談者可從「實際使用情境 → 痛點 → 期待」展開挖需求。
+          </div>
+        </div>
+
+        <div class="chat-content">
+          <div class="chat-body">
+            <div class="bubble bubble--user">
+              <div class="bubble__section">訪談者</div>
+              您通常什麼時候會聽 Podcast？最近一次大概是什麼情境？
+            </div>
+            <div class="bubble bubble--interviewee">
+              <div class="bubble__section">被訪談者</div>
+              嗯，我通常通勤的時候會聽，大概早上 8 點搭捷運那 30 分鐘。最近一次是昨天，聽商業類的 podcast，但中間被廣告打斷三次後我就切回音樂播放器了 — 因為節奏被打斷之後整集都回不去了。
+            </div>
+            <div class="bubble bubble--user">
+              <div class="bubble__section">訪談者</div>
+              為什麼會切回播放器，而不是直接跳過廣告？廣告的哪一點讓您最困擾？
+            </div>
+            <div class="bubble bubble--interviewee">
+              <div class="bubble__section">被訪談者</div>
+              因為跳過按鈕要等 5 秒才會亮，連續被打斷三次心情就煩了，乾脆換音樂比較順。其實我不是不能接受廣告 — 我會看免費版 YouTube — 但 podcast 的廣告通常插在很關鍵的句子中間，整段思路就斷了。如果是音樂只是少聽到一段副歌，但 podcast 等於那集白聽。
+            </div>
+            <div class="bubble bubble--user">
+              <div class="bubble__section">訪談者</div>
+              如果您可以設計一個解法讓您不想切走，會是什麼樣子？
+            </div>
+          </div>
+        </div>
+
+        <div class="input-bar">
+          <div class="input-bar__row">
+            <button class="btn btn--ghost"><i class="ph ph-arrow-left"></i>上一步</button>
+            <textarea class="input-bar__textarea" placeholder="繼續向被訪談者提問..." rows="1"></textarea>
+            <button class="input-bar__send" aria-label="送出"><i class="ph ph-paper-plane-tilt"></i></button>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- View 6: Desktop 1280 · State B -->
+    <div class="vp-frame">
+      <div class="vp-frame__label"><span>Desktop · State B</span><span>1280 × 880</span></div>
+      <div class="vp-frame__inner" style="width:1280px">
+        <div class="navbar">
+          <button class="navbar__icon-btn" aria-label="menu"><i class="ph ph-list"></i></button>
+          <div class="navbar__brand"><span class="navbar__brand-icon"><i class="ph ph-circles-three"></i></span><span class="navbar__brand-name">PM Drill</span></div>
+          <nav class="navbar__tabs">
+            <button class="navbar__tab is-active">CIRCLES</button>
+            <button class="navbar__tab">北極星</button>
+          </nav>
+          <div class="navbar__actions">
+            <span class="turn-badge">4 輪</span>
+            <span class="navbar__email">albertpeng678@gmail.com</span>
+            <button class="navbar__icon-btn" aria-label="home"><i class="ph ph-house"></i></button>
+          </div>
+        </div>
+        <div class="progress">
+          <span class="progress__step is-done"><span class="step-letter">C</span>澄清</span>
+          <span class="progress__step is-active"><span class="step-letter">I</span>用戶</span>
+          <span class="progress__step"><span class="step-letter">R</span>需求</span>
+          <span class="progress__step"><span class="step-letter">C</span>排序</span>
+          <span class="progress__step"><span class="step-letter">L</span>方案</span>
+          <span class="progress__step"><span class="step-letter">E</span>取捨</span>
+          <span class="progress__step"><span class="step-letter">S</span>總結</span>
+        </div>
+        <div class="phase-head">
+          <span class="phase-head__num">2</span>
+          <div class="phase-head__main">
+            <div class="phase-head__eyebrow">Phase 2 · 對話練習</div>
+            <div class="phase-head__title">I · 認識用戶</div>
+          </div>
+          <div class="phase-head__meta"><span>4 輪對話 · 建議 5-10 輪</span></div>
+        </div>
+
+        <div class="q-card">
+          <div class="q-card__head">
+            <span class="q-card__icon"><i class="ph ph-info"></i></span>
+            <div class="q-card__head-main">
+              <div class="q-card__company">Spotify · Podcast（Drill · Design · 難度 中）</div>
+              <div class="q-card__title">設計一個新功能，提升 Spotify Podcast 新用戶 7 日留存率（18% → 25%）</div>
+            </div>
+          </div>
+          <div class="q-card__body">
+            既有新用戶聽 Podcast 的留存比聽音樂低（30 天留存 35% vs 音樂 62%）。本次目標：<strong>把第一週新用戶 7 日留存從 18% 拉到 25%</strong>，鎖定「30 天內註冊但未養成日常收聽習慣的新用戶」（免費 + 訂閱混合，80% 為免費）。商業限制：<strong>不能影響廣告收入或訂閱轉換率</strong>。訪談者可從「目前用戶實際使用情境 → 痛點 → 期待 → 替代方案」順序展開挖需求。
+          </div>
+        </div>
+
+        <div class="chat-content">
+          <div class="chat-body">
+            <div class="bubble bubble--user">
+              <div class="bubble__section">訪談者</div>
+              您通常什麼時候會聽 Podcast？最近一次大概是什麼情境，發生了什麼事？
+            </div>
+            <div class="bubble bubble--interviewee">
+              <div class="bubble__section">被訪談者</div>
+              嗯，我通常通勤的時候會聽，大概早上 8 點搭捷運那 30 分鐘。最近一次是昨天，聽商業類的 podcast，但中間被廣告打斷三次後我就切回音樂播放器了 — 因為節奏被打斷之後整集都回不去了，腦袋還停在剛才那個重點，等廣告結束又要重新拉回來。
+            </div>
+            <div class="bubble bubble--user">
+              <div class="bubble__section">訪談者</div>
+              為什麼會選擇切回播放器，而不是直接跳過廣告？廣告的哪一點讓您最困擾？
+            </div>
+            <div class="bubble bubble--interviewee">
+              <div class="bubble__section">被訪談者</div>
+              因為跳過按鈕要等 5 秒才會亮，連續被打斷三次心情就煩了，乾脆換音樂比較順。其實我不是不能接受廣告 — 我會看免費版 YouTube — 但 podcast 的廣告通常插在很關鍵的句子中間，整段思路就斷了。如果是音樂只是少聽到一段副歌，但 podcast 等於那集白聽。我會想說「算了，回家再用筆電補聽」，但通常就忘了。
+            </div>
+            <div class="bubble bubble--user">
+              <div class="bubble__section">訪談者</div>
+              如果您可以設計一個解法讓您不想切走，會是什麼樣子？您理想的 podcast 廣告體驗應該長怎樣？
+            </div>
+          </div>
+        </div>
+
+        <div class="input-bar">
+          <div class="input-bar__row">
+            <button class="btn btn--ghost"><i class="ph ph-arrow-left"></i>上一步</button>
+            <textarea class="input-bar__textarea" placeholder="繼續向被訪談者提問（追問「為什麼」把表象問題挖到根本動機）..." rows="1"></textarea>
+            <button class="input-bar__send" aria-label="送出"><i class="ph ph-paper-plane-tilt"></i></button>
+          </div>
+        </div>
+      </div>
+    </div>
+
+  </div>
+
+  <!-- ════════════════════════════════════════════════════════════ -->
+  <!-- State C — 完整步驟 view（4 step rows：2 locked / 1 active / 1 pending） -->
+  <!-- ════════════════════════════════════════════════════════════ -->
+  <h2 class="vp-section-title">State C · 完整步驟 view（locked + editable mix）<span class="vp-section-title__sub">2 已評分 locked · 1 進行中 editable · 1 未開始 pending</span></h2>
+  <div class="anno">
+    <strong>視覺契約：</strong>navbar + progress（C/I 已 done，R active）+ phase-head（顯示「步驟總覽」）+ 4 個 step-row 卡（C 已評分 78 / I 已評分 82 / R 進行中 editable / C2 未開始 pending）。
+    <br><strong>locked step</strong> = grey bg + readonly snippet + score badge；<strong>但「提示」+「範例」永遠可用</strong>（per STANDING memory <code>feedback_lock_state_hint_example_always_available</code>）。
+    <br>角色示意：locked step 的 readonly 顯示前次對話彙整出的訪談重點（user 訪談者問了什麼 + 被訪談者怎麼回答的摘要）；active step 的 editable 欄是 user 正在補的訪談筆記；pending step 顯示「完成上一步後解鎖」。
+  </div>
+  <div class="vp-grid">
+
+    <!-- View 7: Mobile 360 · State C -->
+    <div class="vp-frame">
+      <div class="vp-frame__label"><span>Mobile · State C</span><span>360 × 1180</span></div>
+      <div class="vp-frame__inner" style="width:360px; min-height:1180px;">
+        <div class="navbar">
+          <button class="navbar__icon-btn" aria-label="menu"><i class="ph ph-list"></i></button>
+          <div class="navbar__brand"><span class="navbar__brand-icon"><i class="ph ph-circles-three"></i></span><span class="navbar__brand-name">PM Drill</span></div>
+          <div class="navbar__actions">
+            <button class="navbar__icon-btn" aria-label="home"><i class="ph ph-house"></i></button>
+          </div>
+        </div>
+        <div class="progress">
+          <span class="progress__step is-done"><span class="step-letter">C</span>澄清</span>
+          <span class="progress__step is-done"><span class="step-letter">I</span>用戶</span>
+          <span class="progress__step is-active"><span class="step-letter">R</span>需求</span>
+          <span class="progress__step"><span class="step-letter">C</span>排序</span>
+          <span class="progress__step"><span class="step-letter">L</span>方案</span>
+          <span class="progress__step"><span class="step-letter">E</span>取捨</span>
+          <span class="progress__step"><span class="step-letter">S</span>總結</span>
+        </div>
+        <div class="phase-head">
+          <span class="phase-head__num">2</span>
+          <div class="phase-head__main">
+            <div class="phase-head__eyebrow">Phase 2 · 對話練習</div>
+            <div class="phase-head__title">步驟總覽</div>
+          </div>
+        </div>
+
+        <div class="q-card">
+          <div class="q-card__head">
+            <span class="q-card__icon"><i class="ph ph-info"></i></span>
+            <div class="q-card__head-main">
+              <div class="q-card__company">Spotify · Podcast</div>
+              <div class="q-card__title">設計新功能提升 Spotify Podcast 新用戶 7 日留存</div>
+            </div>
+          </div>
+        </div>
+
+        <div class="review-body">
+          <div class="review-intro">已完成 2 步，可隨時回看或修改已評分的步驟（不會清除分數）。</div>
+
+          <!-- C step — locked + scored -->
+          <div class="step-row step-row--locked">
+            <div class="step-row__head">
+              <span class="step-row__num">1</span>
+              <span class="step-row__name"><span class="step-row__name-key">C</span>澄清情境</span>
+              <span class="step-row__state">已評分</span>
+              <span class="step-row__score">78</span>
+            </div>
+            <div>
+              <div class="step-row__field-label-row">
+                <span class="step-row__field-label">訪談重點彙整</span>
+                <div class="step-row__hint-row">
+                  <button class="hint-link"><i class="ph ph-lightbulb"></i>提示</button>
+                  <button class="hint-link"><i class="ph ph-quotes"></i>範例</button>
+                </div>
+              </div>
+              <div class="step-row__readonly">
+                訪談者釐清題目鎖定免費版新用戶（80%），主指標 7 日留存 18% → 25%。被訪談者澄清不能犧牲廣告收入。邊界與成功指標清晰。
+              </div>
+              <div class="step-row__note" style="margin-top:8px;">教練：邊界清楚，可再強化時間框架具體性</div>
+            </div>
+          </div>
+
+          <!-- I step — locked + scored -->
+          <div class="step-row step-row--locked">
+            <div class="step-row__head">
+              <span class="step-row__num">2</span>
+              <span class="step-row__name"><span class="step-row__name-key">I</span>認識用戶</span>
+              <span class="step-row__state">已評分</span>
+              <span class="step-row__score">82</span>
+            </div>
+            <div>
+              <div class="step-row__field-label-row">
+                <span class="step-row__field-label">訪談重點彙整</span>
+                <div class="step-row__hint-row">
+                  <button class="hint-link"><i class="ph ph-lightbulb"></i>提示</button>
+                  <button class="hint-link"><i class="ph ph-quotes"></i>範例</button>
+                </div>
+              </div>
+              <div class="step-row__readonly">
+                通勤族（早 8 點 30 分鐘）被廣告打斷思路後切回音樂；廣告 5 秒跳過按鈕延遲是痛點。分群清楚並佐以行為數據。
+              </div>
+              <div class="step-row__note" style="margin-top:8px;">教練：本次最強亮點，分群清楚並佐以行為數據</div>
+            </div>
+          </div>
+
+          <!-- R step — active + editable -->
+          <div class="step-row step-row--active">
+            <div class="step-row__head">
+              <span class="step-row__num">3</span>
+              <span class="step-row__name"><span class="step-row__name-key">R</span>釐清需求</span>
+              <span class="step-row__state">進行中</span>
+            </div>
+            <div>
+              <div class="step-row__field-label-row">
+                <span class="step-row__field-label">訪談重點彙整</span>
+                <div class="step-row__hint-row">
+                  <button class="hint-link"><i class="ph ph-lightbulb"></i>提示</button>
+                  <button class="hint-link"><i class="ph ph-quotes"></i>範例</button>
+                </div>
+              </div>
+              <div class="step-row__editable">
+                <textarea placeholder="從 C/I 步驟對話摘錄需求重點，或繼續向被訪談者追問需求...">通勤族痛點：廣告打斷整段思路、5 秒跳過延遲、整集白聽。需求：希望廣告插入不打斷重點段</textarea>
+              </div>
+              <div class="step-row__actions" style="margin-top:12px;">
+                <button class="step-row__continue"><i class="ph ph-chats-circle"></i>繼續對話</button>
+                <button class="btn btn--ghost" style="font-size:13px; min-height:36px;">完成此步</button>
+              </div>
+            </div>
+          </div>
+
+          <!-- C2 step — pending -->
+          <div class="step-row step-row--pending">
+            <div class="step-row__head">
+              <span class="step-row__num">4</span>
+              <span class="step-row__name"><span class="step-row__name-key">C2</span>排序</span>
+              <span class="step-row__state">未開始</span>
+            </div>
+            <div class="step-row__pending-msg">完成「R 釐清需求」後解鎖</div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- View 8: Tablet 768 · State C -->
+    <div class="vp-frame">
+      <div class="vp-frame__label"><span>Tablet · State C</span><span>768 × 1180</span></div>
+      <div class="vp-frame__inner" style="width:768px; min-height:1180px;">
+        <div class="navbar">
+          <button class="navbar__icon-btn" aria-label="menu"><i class="ph ph-list"></i></button>
+          <div class="navbar__brand"><span class="navbar__brand-icon"><i class="ph ph-circles-three"></i></span><span class="navbar__brand-name">PM Drill</span></div>
+          <nav class="navbar__tabs">
+            <button class="navbar__tab is-active">CIRCLES</button>
+            <button class="navbar__tab">北極星</button>
+          </nav>
+          <div class="navbar__actions">
+            <button class="navbar__icon-btn" aria-label="search"><i class="ph ph-magnifying-glass"></i></button>
+            <button class="navbar__icon-btn" aria-label="home"><i class="ph ph-house"></i></button>
+          </div>
+        </div>
+        <div class="progress">
+          <span class="progress__step is-done"><span class="step-letter">C</span>澄清</span>
+          <span class="progress__step is-done"><span class="step-letter">I</span>用戶</span>
+          <span class="progress__step is-active"><span class="step-letter">R</span>需求</span>
+          <span class="progress__step"><span class="step-letter">C</span>排序</span>
+          <span class="progress__step"><span class="step-letter">L</span>方案</span>
+          <span class="progress__step"><span class="step-letter">E</span>取捨</span>
+          <span class="progress__step"><span class="step-letter">S</span>總結</span>
+        </div>
+        <div class="phase-head">
+          <span class="phase-head__num">2</span>
+          <div class="phase-head__main">
+            <div class="phase-head__eyebrow">Phase 2 · 對話練習</div>
+            <div class="phase-head__title">步驟總覽</div>
+          </div>
+          <div class="phase-head__meta"><span>2 / 7 步完成</span></div>
+        </div>
+
+        <div class="q-card">
+          <div class="q-card__head">
+            <span class="q-card__icon"><i class="ph ph-info"></i></span>
+            <div class="q-card__head-main">
+              <div class="q-card__company">Spotify · Podcast · 設計題</div>
+              <div class="q-card__title">設計新功能，提升 Spotify Podcast 新用戶 7 日留存（18% → 25%）</div>
+            </div>
+          </div>
+        </div>
+
+        <div class="review-body">
+          <div class="review-intro">已完成 2 步，可隨時回看或修改已評分的步驟（不會清除分數）。已評分的步驟「提示」與「範例」依然可看。</div>
+
+          <div class="step-row step-row--locked">
+            <div class="step-row__head">
+              <span class="step-row__num">1</span>
+              <span class="step-row__name"><span class="step-row__name-key">C</span>澄清情境</span>
+              <span class="step-row__state">已評分</span>
+              <span class="step-row__score">78</span>
+            </div>
+            <div>
+              <div class="step-row__field-label-row">
+                <span class="step-row__field-label">訪談重點彙整</span>
+                <div class="step-row__hint-row">
+                  <button class="hint-link"><i class="ph ph-lightbulb"></i>提示</button>
+                  <button class="hint-link"><i class="ph ph-quotes"></i>範例</button>
+                </div>
+              </div>
+              <div class="step-row__readonly">
+                訪談者釐清題目鎖定免費版新用戶（80%），主指標 7 日留存 18% → 25%，次指標「7 日內聽過 ≥ 3 集」用戶比例。被訪談者澄清不能犧牲廣告收入或訂閱轉換。邊界與成功指標清晰。
+              </div>
+              <div class="step-row__note" style="margin-top:8px;">教練：邊界與成功指標清晰，可再強化「時間框架」具體性（30 / 60 / 90 天 milestone）</div>
+            </div>
+          </div>
+
+          <div class="step-row step-row--locked">
+            <div class="step-row__head">
+              <span class="step-row__num">2</span>
+              <span class="step-row__name"><span class="step-row__name-key">I</span>認識用戶</span>
+              <span class="step-row__state">已評分</span>
+              <span class="step-row__score">82</span>
+            </div>
+            <div>
+              <div class="step-row__field-label-row">
+                <span class="step-row__field-label">訪談重點彙整</span>
+                <div class="step-row__hint-row">
+                  <button class="hint-link"><i class="ph ph-lightbulb"></i>提示</button>
+                  <button class="hint-link"><i class="ph ph-quotes"></i>範例</button>
+                </div>
+              </div>
+              <div class="step-row__readonly">
+                主分群：通勤族（早 8 點搭捷運 30 分鐘）。被訪談者表示廣告打斷思路後傾向切回音樂；5 秒跳過按鈕延遲是主要痛點；對 podcast 廣告體驗的容忍度低於音樂（因內容黏著度高）。分群清楚並佐以行為數據。
+              </div>
+              <div class="step-row__note" style="margin-top:8px;">教練：本次最強亮點 — 分群清楚並佐以行為數據；持續強化此能力</div>
+            </div>
+          </div>
+
+          <div class="step-row step-row--active">
+            <div class="step-row__head">
+              <span class="step-row__num">3</span>
+              <span class="step-row__name"><span class="step-row__name-key">R</span>釐清需求</span>
+              <span class="step-row__state">進行中</span>
+            </div>
+            <div>
+              <div class="step-row__field-label-row">
+                <span class="step-row__field-label">訪談重點彙整</span>
+                <div class="step-row__hint-row">
+                  <button class="hint-link"><i class="ph ph-lightbulb"></i>提示</button>
+                  <button class="hint-link"><i class="ph ph-quotes"></i>範例</button>
+                </div>
+              </div>
+              <div class="step-row__editable">
+                <textarea placeholder="從 C/I 步驟對話摘錄需求重點，或繼續向被訪談者追問需求...">通勤族痛點：廣告打斷整段思路、5 秒跳過延遲、整集白聽不會回補。
+需求：希望廣告插入不打斷重點段（段落間切入而非句子中間）、跳過更即時、或可選擇「集前 + 集後雙廣告換中段無廣告」</textarea>
+              </div>
+              <div class="step-row__actions" style="margin-top:12px;">
+                <button class="step-row__continue"><i class="ph ph-chats-circle"></i>繼續對話</button>
+                <button class="btn btn--ghost" style="font-size:13px; min-height:36px;">完成此步並評分</button>
+              </div>
+            </div>
+          </div>
+
+          <div class="step-row step-row--pending">
+            <div class="step-row__head">
+              <span class="step-row__num">4</span>
+              <span class="step-row__name"><span class="step-row__name-key">C2</span>排序</span>
+              <span class="step-row__state">未開始</span>
+            </div>
+            <div class="step-row__pending-msg">完成「R 釐清需求」後解鎖</div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- View 9: Desktop 1280 · State C -->
+    <div class="vp-frame">
+      <div class="vp-frame__label"><span>Desktop · State C</span><span>1280 × 1180</span></div>
+      <div class="vp-frame__inner" style="width:1280px; min-height:1180px;">
+        <div class="navbar">
+          <button class="navbar__icon-btn" aria-label="menu"><i class="ph ph-list"></i></button>
+          <div class="navbar__brand"><span class="navbar__brand-icon"><i class="ph ph-circles-three"></i></span><span class="navbar__brand-name">PM Drill</span></div>
+          <nav class="navbar__tabs">
+            <button class="navbar__tab is-active">CIRCLES</button>
+            <button class="navbar__tab">北極星</button>
+          </nav>
+          <div class="navbar__actions">
+            <span class="navbar__email">albertpeng678@gmail.com</span>
+            <button class="navbar__icon-btn" aria-label="search"><i class="ph ph-magnifying-glass"></i></button>
+            <button class="navbar__icon-btn" aria-label="home"><i class="ph ph-house"></i></button>
+          </div>
+        </div>
+        <div class="progress">
+          <span class="progress__step is-done"><span class="step-letter">C</span>澄清</span>
+          <span class="progress__step is-done"><span class="step-letter">I</span>用戶</span>
+          <span class="progress__step is-active"><span class="step-letter">R</span>需求</span>
+          <span class="progress__step"><span class="step-letter">C</span>排序</span>
+          <span class="progress__step"><span class="step-letter">L</span>方案</span>
+          <span class="progress__step"><span class="step-letter">E</span>取捨</span>
+          <span class="progress__step"><span class="step-letter">S</span>總結</span>
+        </div>
+        <div class="phase-head">
+          <span class="phase-head__num">2</span>
+          <div class="phase-head__main">
+            <div class="phase-head__eyebrow">Phase 2 · 對話練習</div>
+            <div class="phase-head__title">步驟總覽 · Spotify Podcast 留存題</div>
+          </div>
+          <div class="phase-head__meta"><span>2 / 7 步完成 · 平均分 80</span></div>
+        </div>
+
+        <div class="q-card">
+          <div class="q-card__head">
+            <span class="q-card__icon"><i class="ph ph-info"></i></span>
+            <div class="q-card__head-main">
+              <div class="q-card__company">Spotify · Podcast（Drill · Design · 難度 中）</div>
+              <div class="q-card__title">設計一個新功能，提升 Spotify Podcast 新用戶 7 日留存率（18% → 25%）</div>
+            </div>
+          </div>
+        </div>
+
+        <div class="review-body">
+          <div class="review-intro">已完成 2 步，可隨時回看或修改已評分的步驟（修改不會清除分數，會再次評分）。已評分的步驟「提示」與「範例」依然可看 — 拿來對照訪談重點是否漏問關鍵切角。</div>
+
+          <div class="step-row step-row--locked">
+            <div class="step-row__head">
+              <span class="step-row__num">1</span>
+              <span class="step-row__name"><span class="step-row__name-key">C</span>澄清情境</span>
+              <span class="step-row__state">已評分</span>
+              <span class="step-row__score">78</span>
+            </div>
+            <div>
+              <div class="step-row__field-label-row">
+                <span class="step-row__field-label">訪談重點彙整（從對話自動摘錄）</span>
+                <div class="step-row__hint-row">
+                  <button class="hint-link"><i class="ph ph-lightbulb"></i>提示</button>
+                  <button class="hint-link"><i class="ph ph-quotes"></i>範例</button>
+                </div>
+              </div>
+              <div class="step-row__readonly">
+                訪談者釐清題目鎖定免費版新用戶（佔 80%），主指標 7 日留存 18% → 25%，次指標「7 日內聽過 ≥ 3 集 / 平均單集完播率 ≥ 60%」用戶比例。被訪談者澄清商業限制：不能犧牲廣告收入或訂閱轉換率。邊界與成功指標清晰，雙方對「成功」的定義一致。
+              </div>
+              <div class="step-row__note" style="margin-top:8px;">教練：邊界與成功指標清晰，可再強化「時間框架」具體性（建議：30 / 60 / 90 天分階段 milestone，讓後續方案能對應時間階段）</div>
+            </div>
+          </div>
+
+          <div class="step-row step-row--locked">
+            <div class="step-row__head">
+              <span class="step-row__num">2</span>
+              <span class="step-row__name"><span class="step-row__name-key">I</span>認識用戶</span>
+              <span class="step-row__state">已評分</span>
+              <span class="step-row__score">82</span>
+            </div>
+            <div>
+              <div class="step-row__field-label-row">
+                <span class="step-row__field-label">訪談重點彙整（從對話自動摘錄）</span>
+                <div class="step-row__hint-row">
+                  <button class="hint-link"><i class="ph ph-lightbulb"></i>提示</button>
+                  <button class="hint-link"><i class="ph ph-quotes"></i>範例</button>
+                </div>
+              </div>
+              <div class="step-row__readonly">
+                主分群：通勤族（早 8 點搭捷運 30 分鐘）。被訪談者表示廣告打斷思路後傾向切回音樂；廣告 5 秒跳過按鈕延遲是主要痛點；對 podcast 廣告的容忍度低於音樂，因為 podcast「內容黏著度」高、思路被打斷就回不去。替代行為：切回音樂、改用筆電補聽（但通常忘記）。
+              </div>
+              <div class="step-row__note" style="margin-top:8px;">教練：本次最強亮點 — 分群清楚並佐以具體行為數據（時間 / 場景 / 替代方案）；繼續保持此「情境 → 痛點 → 替代行為」的訪談結構</div>
+            </div>
+          </div>
+
+          <div class="step-row step-row--active">
+            <div class="step-row__head">
+              <span class="step-row__num">3</span>
+              <span class="step-row__name"><span class="step-row__name-key">R</span>釐清需求</span>
+              <span class="step-row__state">進行中</span>
+            </div>
+            <div>
+              <div class="step-row__field-label-row">
+                <span class="step-row__field-label">訪談重點彙整</span>
+                <div class="step-row__hint-row">
+                  <button class="hint-link"><i class="ph ph-lightbulb"></i>提示</button>
+                  <button class="hint-link"><i class="ph ph-quotes"></i>範例</button>
+                </div>
+              </div>
+              <div class="step-row__editable">
+                <textarea placeholder="從 C/I 步驟對話摘錄需求重點，或繼續向被訪談者追問需求...">通勤族痛點：廣告打斷整段思路、5 秒跳過延遲、整集白聽不會回補。
+需求初稿：
+1. 廣告插入點對齊段落 break（句子中間 → 段落間切入）
+2. 跳過更即時（5 秒 → 1 秒，或無延遲）
+3. 可選「集前 + 集後雙廣告，換中段無廣告」的替代廣告組合</textarea>
+              </div>
+              <div class="step-row__actions" style="margin-top:12px;">
+                <button class="step-row__continue"><i class="ph ph-chats-circle"></i>繼續對話追問</button>
+                <button class="btn btn--ghost" style="font-size:13px; min-height:36px;">完成此步並評分</button>
+              </div>
+            </div>
+          </div>
+
+          <div class="step-row step-row--pending">
+            <div class="step-row__head">
+              <span class="step-row__num">4</span>
+              <span class="step-row__name"><span class="step-row__name-key">C2</span>排序</span>
+              <span class="step-row__state">未開始</span>
+            </div>
+            <div class="step-row__pending-msg">完成「R 釐清需求」後解鎖。本步將請訪談者把 R 的需求做優先排序，可繼續對話或直接填寫。</div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+  </div>
+
+</div>
+
+</body>
+</html>

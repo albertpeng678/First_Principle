@@ -190,5 +190,14 @@ module.exports = defineConfig({
       name: 'api-nsm-evaluator-3dim-adversarial',
       testMatch: /nsm-evaluator-3dim-adversarial\.spec\.js$/,
     },
+    // #199 supplementary — CIRCLES Phase 2→3 real 7× evaluate-step chain on
+    // one session + final-report aggregate. Heavy (~$0.24/run, ~70-160 s wall).
+    // Replaces synthetic-only circles-score-sequence (which mocks /evaluate-step
+    // via page.route, never hitting real evaluator). This spec exercises the
+    // real evaluator chain + real /final-report aggregate.
+    {
+      name: 'api-phase2-evaluate-sequence',
+      testMatch: /circles-phase2-evaluate-sequence\.spec\.js$/,
+    },
   ],
 });

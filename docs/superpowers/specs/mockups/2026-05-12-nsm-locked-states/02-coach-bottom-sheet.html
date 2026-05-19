@@ -1,0 +1,840 @@
+<!doctype html>
+<html lang="zh-TW">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover, interactive-widget=resizes-visual">
+  <title>PM Drill — 02 NSM Step 4 對比 Tab · 教練思路 Bottom-Sheet（mobile only）</title>
+
+  <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/@phosphor-icons/web@2.1.1/src/regular/style.css">
+  <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Instrument+Serif:ital@0;1&display=swap">
+
+  <style>
+    /* ───── DESIGN TOKENS — verbatim from 03/14 LOCKED ───── */
+    :root {
+      --c-bg: #F2F0EB; --c-bg-soft: #ECE9E1; --c-bg-deep: #E5E1D7;
+      --c-card: #FFFFFF; --c-surface: #FAFAF7;
+      --c-ink: #1F1D1B; --c-ink-2: #5A5046; --c-ink-3: #8A7E70; --c-ink-4: #B8AC9D;
+      --c-rule: rgba(60,45,30,0.10); --c-rule-bold: rgba(60,45,30,0.18);
+      --c-primary: #1A56DB;
+      --c-navy: #1B2D5C; --c-navy-2: #142347; --c-navy-lt: rgba(27,45,92,0.08);
+      --c-success: #137A3D; --c-success-lt: #DCEFE0;
+      --c-warn: #B85C00; --c-warn-lt: #FBE9D0;
+      --c-danger: #B61F1F; --c-danger-lt: #FADCDC;
+      --font-sans: system-ui, -apple-system, BlinkMacSystemFont, 'PingFang TC', 'Microsoft JhengHei', 'Heiti TC', 'Noto Sans TC', sans-serif;
+      --font-serif: 'Instrument Serif', 'Times New Roman', serif;
+      --t-h1: 24px; --t-h2: 19px; --t-h3: 16px; --t-h4: 15px;
+      --t-body: 15px; --t-body-sm: 14px; --t-meta: 13px; --t-cap: 12px;
+      --s-1: 4px; --s-2: 8px; --s-3: 12px; --s-4: 16px; --s-5: 20px; --s-6: 24px;
+      --s-7: 32px; --s-8: 40px; --s-9: 56px; --s-10: 80px;
+      --r-input: 6px; --r-card: 10px; --r-pill: 999px;
+      --touch-min: 44px;
+      --t-fast: 120ms; --t-norm: 200ms; --t-slow: 300ms;
+      --ease: cubic-bezier(0.4, 0, 0.2, 1);
+      --shadow-1: 0 1px 0 rgba(60,45,30,0.04);
+      --shadow-2: 0 1px 2px rgba(60,45,30,0.06);
+      --shadow-3: 0 4px 12px rgba(60,45,30,0.08);
+      --shadow-sheet: 0 -8px 32px rgba(15,23,42,0.18);
+    }
+
+    *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+    html, body {
+      background: var(--c-bg);
+      color: var(--c-ink);
+      font-family: var(--font-sans);
+      font-size: var(--t-body);
+      line-height: 1.55;
+      -webkit-font-smoothing: antialiased;
+      -webkit-tap-highlight-color: transparent;
+    }
+    button { font: inherit; color: inherit; cursor: pointer; background: none; border: none; }
+    @media (max-width: 767px) { input, textarea, select { font-size: 16px !important; } }
+
+    /* ───── PAGE CHROME ───── */
+    .ds-page { padding: var(--s-6); }
+    .ds-header {
+      max-width: 1880px; margin: 0 auto var(--s-7);
+      padding-bottom: var(--s-6); border-bottom: 1px solid var(--c-rule);
+    }
+    .ds-header__eyebrow { font-size: var(--t-cap); letter-spacing: 0.12em; text-transform: uppercase; color: var(--c-ink-3); }
+    .ds-header h1 { font-size: var(--t-h1); margin-top: var(--s-2); }
+    .ds-header__sub { color: var(--c-ink-2); font-size: var(--t-body-sm); margin-top: var(--s-3); max-width: 720px; line-height: 1.7; }
+    .anno {
+      background: var(--c-bg-soft); border-left: 2px solid var(--c-ink-3);
+      padding: var(--s-3) var(--s-4); font-size: var(--t-meta); color: var(--c-ink-2);
+      margin: var(--s-4) auto; max-width: 1880px; line-height: 1.7;
+    }
+    .anno strong { color: var(--c-ink); }
+    .anno code { font-family: ui-monospace, 'SF Mono', monospace; font-size: 12px; background: var(--c-card); padding: 1px 6px; border-radius: 4px; border: 1px solid var(--c-rule); }
+
+    /* ───── THREE-VIEWPORT GRID ───── */
+    .vp-grid {
+      display: grid;
+      grid-template-columns: 360px 768px 1280px;
+      gap: var(--s-6);
+      padding: var(--s-6);
+      align-items: start;
+      overflow-x: auto;
+    }
+    .vp-frame {
+      border: 1px solid var(--c-rule-bold);
+      border-radius: var(--r-card);
+      background: var(--c-bg);
+      overflow: hidden;
+    }
+    .vp-frame__label {
+      padding: var(--s-3) var(--s-4);
+      border-bottom: 1px solid var(--c-rule);
+      background: var(--c-card);
+      display: flex;
+      justify-content: space-between;
+      font-size: var(--t-cap);
+      letter-spacing: 0.08em;
+      text-transform: uppercase;
+      color: var(--c-ink-2);
+    }
+    .vp-frame__label span:last-child { font-family: ui-monospace, 'SF Mono', monospace; color: var(--c-ink-3); }
+    .vp-frame__inner { background: var(--c-bg); min-height: 1100px; display: flex; flex-direction: column; position: relative; overflow: hidden; }
+
+    /* ───── LOCKED PRODUCTION COMPONENTS (from mockup 14) ───── */
+    .navbar {
+      display: flex; align-items: center; gap: var(--s-3);
+      padding: var(--s-3) var(--s-4);
+      background: rgba(255,255,255,0.85);
+      -webkit-backdrop-filter: saturate(140%) blur(10px);
+      backdrop-filter: saturate(140%) blur(10px);
+      border-bottom: 1px solid var(--c-rule);
+    }
+    .navbar__icon-btn { width: 40px; height: 40px; border-radius: var(--r-pill); display: inline-flex; align-items: center; justify-content: center; color: var(--c-ink-2); }
+    .navbar__icon-btn:hover { background: var(--c-bg-soft); color: var(--c-ink); }
+    .navbar__brand { display: flex; align-items: center; gap: var(--s-2); padding: 4px var(--s-2); border-radius: var(--r-input); cursor: pointer; }
+    .navbar__brand-icon { width: 28px; height: 28px; border-radius: 6px; background: var(--c-navy); color: #fff; display: inline-flex; align-items: center; justify-content: center; font-size: 16px; }
+    .navbar__brand-name { font-size: var(--t-body-sm); font-weight: 500; }
+    .navbar__tabs { display: flex; gap: var(--s-2); margin-left: var(--s-4); }
+    .navbar__tab { padding: 6px var(--s-3); border-radius: var(--r-pill); font-size: var(--t-meta); color: var(--c-ink-3); }
+    .navbar__tab.is-active { background: var(--c-navy); color: #fff; }
+    .navbar__actions { margin-left: auto; display: flex; align-items: center; gap: var(--s-2); }
+    .navbar__email { font-size: var(--t-cap); color: var(--c-ink-3); max-width: 180px; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+
+    /* nsm-nav (back + title + sub) */
+    .nsm-nav { display: flex; align-items: center; gap: var(--s-3); padding: var(--s-3) var(--s-4); background: var(--c-bg-soft); border-bottom: 1px solid var(--c-rule); }
+    .nsm-nav__back { width: 40px; height: 40px; border-radius: var(--r-pill); display: inline-flex; align-items: center; justify-content: center; color: var(--c-ink-2); flex: 0 0 auto; }
+    .nsm-nav__back:hover { background: var(--c-card); color: var(--c-ink); }
+    .nsm-nav__main { flex: 1; min-width: 0; }
+    .nsm-nav__title { font-size: var(--t-body-sm); font-weight: 600; color: var(--c-ink); letter-spacing: -0.005em; }
+    .nsm-nav__sub { font-size: var(--t-cap); color: var(--c-ink-3); margin-top: 2px; }
+
+    /* qchip */
+    .qchip { padding: var(--s-2) var(--s-4); background: var(--c-bg); border-bottom: 1px solid var(--c-rule); display: flex; align-items: center; gap: var(--s-2); cursor: pointer; }
+    .qchip__pill { padding: 2px var(--s-2); border-radius: var(--r-pill); font-size: var(--t-cap); background: var(--c-navy-lt); color: var(--c-navy); font-weight: 600; flex: 0 0 auto; }
+    .qchip__title { flex: 1; font-size: var(--t-meta); color: var(--c-ink-2); white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+    .qchip__caret { color: var(--c-ink-3); font-size: 14px; flex: 0 0 auto; }
+
+    /* nsm-summary */
+    .nsm-summary { padding: var(--s-5) var(--s-4); background: var(--c-card); border-bottom: 1px solid var(--c-rule); display: flex; align-items: baseline; gap: var(--s-3); }
+    .nsm-summary__score { font-family: var(--font-serif); font-style: italic; font-size: 56px; color: var(--c-navy); line-height: 1; letter-spacing: -0.02em; flex: 0 0 auto; }
+    .nsm-summary__unit { font-size: var(--t-h3); color: var(--c-ink-3); flex: 0 0 auto; }
+    .nsm-summary__company { margin-left: auto; font-size: var(--t-body-sm); color: var(--c-ink-2); font-weight: 500; text-align: right; }
+    .nsm-summary__company-name { font-weight: 600; color: var(--c-ink); }
+    .nsm-summary__company-sub { font-size: var(--t-cap); color: var(--c-ink-3); margin-top: 2px; }
+
+    /* tab-bar */
+    .tab-bar { display: flex; background: var(--c-card); border-bottom: 1px solid var(--c-rule); padding: 0 var(--s-2); }
+    .tab-bar__btn { flex: 1; padding: var(--s-3) var(--s-2); font-size: var(--t-body-sm); color: var(--c-ink-3); border-bottom: 2px solid transparent; transition: color var(--t-fast) var(--ease), border-color var(--t-fast) var(--ease); min-height: var(--touch-min); }
+    .tab-bar__btn:hover { color: var(--c-ink-2); }
+    .tab-bar__btn.is-active { color: var(--c-navy); border-bottom-color: var(--c-navy); font-weight: 600; }
+
+    /* nsm-body container */
+    .nsm-body { padding: var(--s-5) var(--s-4); max-width: 920px; margin: 0 auto; width: 100%; flex: 1; display: flex; flex-direction: column; gap: var(--s-4); }
+
+    /* nsm-compare components */
+    .nsm-compare { display: flex; flex-direction: column; gap: var(--s-4); }
+    .nsm-compare-block { display: flex; flex-direction: column; gap: var(--s-2); }
+    .nsm-compare-block__title { font-size: var(--t-cap); letter-spacing: 0.08em; text-transform: uppercase; color: var(--c-ink-3); font-weight: 600; padding: 0 var(--s-2); }
+    .nsm-compare-card {
+      background: var(--c-card);
+      border: 1px solid var(--c-rule);
+      border-left-width: 3px;
+      border-radius: var(--r-card);
+      padding: var(--s-3) var(--s-4);
+      box-shadow: var(--shadow-1);
+      cursor: pointer;
+      transition: background var(--t-fast) var(--ease);
+    }
+    .nsm-compare-card:hover { background: var(--c-bg-soft); }
+    .nsm-compare-card--yours { border-left-color: var(--c-ink-3); }
+    .nsm-compare-card--coach { border-left-color: var(--c-navy); }
+    .nsm-compare-card__tag { display: inline-block; font-size: var(--t-cap); letter-spacing: 0.04em; padding: 2px var(--s-2); border-radius: var(--r-pill); margin-bottom: var(--s-2); font-weight: 500; }
+    .nsm-compare-card--yours .nsm-compare-card__tag { background: var(--c-bg-soft); color: var(--c-ink-3); }
+    .nsm-compare-card--coach .nsm-compare-card__tag { background: var(--c-navy-lt); color: var(--c-navy); }
+    .nsm-compare-card__text { font-size: var(--t-body-sm); color: var(--c-ink-2); line-height: 1.6; }
+    .nsm-compare-card.is-active { box-shadow: 0 0 0 2px var(--c-navy); background: var(--c-navy-lt); }
+
+    /* Tablet/Desktop grid */
+    .nsm-compare--grid { display: flex; flex-direction: column; gap: var(--s-3); }
+    .nsm-compare-grid__header { display: grid; grid-template-columns: 140px 1fr 1fr; gap: var(--s-3); padding: var(--s-2); font-size: var(--t-cap); letter-spacing: 0.08em; text-transform: uppercase; color: var(--c-ink-3); font-weight: 600; border-bottom: 1px solid var(--c-rule); }
+    .nsm-compare-grid__header-coach { color: var(--c-navy); display: flex; align-items: center; gap: var(--s-2); }
+    .nsm-compare-grid__header-coach-hint { font-size: var(--t-cap); color: var(--c-ink-4); font-weight: 400; letter-spacing: 0; text-transform: none; }
+    .nsm-compare-grid__row { display: grid; grid-template-columns: 140px 1fr 1fr; gap: var(--s-3); align-items: stretch; }
+    .nsm-compare-grid__label { font-size: var(--t-body-sm); font-weight: 600; color: var(--c-ink); padding: var(--s-3) var(--s-2); display: flex; align-items: center; }
+    .nsm-compare-grid__label-key { font-family: var(--font-serif); font-style: italic; color: var(--c-ink-3); margin-right: var(--s-2); }
+    .nsm-compare--grid .nsm-compare-card { margin: 0; }
+
+    /* Inline coach detail (tablet/desktop) */
+    .nsm-coach-detail {
+      background: var(--c-card);
+      border: 1px solid var(--c-rule);
+      border-left: 3px solid var(--c-navy);
+      border-radius: var(--r-card);
+      padding: var(--s-4);
+      box-shadow: var(--shadow-1);
+    }
+    .nsm-coach-detail__head { display: flex; align-items: center; gap: var(--s-2); margin-bottom: var(--s-3); }
+    .nsm-coach-detail__icon { width: 28px; height: 28px; border-radius: var(--r-pill); background: var(--c-navy-lt); color: var(--c-navy); display: inline-flex; align-items: center; justify-content: center; font-size: 14px; flex: 0 0 auto; }
+    .nsm-coach-detail__title { font-size: var(--t-body-sm); font-weight: 600; color: var(--c-ink); }
+    .nsm-coach-detail__title-key { font-family: var(--font-serif); font-style: italic; color: var(--c-ink-3); margin-right: var(--s-2); }
+    .nsm-coach-detail__close { margin-left: auto; width: 32px; height: 32px; border-radius: var(--r-pill); color: var(--c-ink-3); display: inline-flex; align-items: center; justify-content: center; }
+    .nsm-coach-detail__close:hover { background: var(--c-bg-soft); color: var(--c-ink); }
+    .nsm-coach-detail__section { margin-bottom: var(--s-3); }
+    .nsm-coach-detail__section:last-child { margin-bottom: 0; }
+    .nsm-coach-detail__label { font-size: var(--t-cap); letter-spacing: 0.06em; text-transform: uppercase; color: var(--c-navy); font-weight: 600; margin-bottom: var(--s-1); }
+    .nsm-coach-detail__text { font-size: var(--t-meta); color: var(--c-ink-2); line-height: 1.7; }
+    .nsm-coach-detail__quote { font-size: var(--t-meta); color: var(--c-ink-2); line-height: 1.7; padding: var(--s-3); background: var(--c-bg-soft); border-radius: var(--r-input); font-style: italic; }
+
+    /* ───── MOBILE BOTTOM-SHEET (new) ───── */
+    /*
+     * Design decisions:
+     *  A. Backdrop: fixed full-screen rgba(0,0,0,0.50), z-index 90
+     *  B. Sheet: fixed bottom 0, left 0, right 0; max-height 85vh; white bg;
+     *     border-radius 16px 16px 0 0; overflow-y auto (body section only);
+     *     padding-bottom env(safe-area-inset-bottom) for iOS notch
+     *  C. Handle: 36px × 4px pill, gray-200 (#E5E1D7 = var(--c-bg-deep)), 8px top / 12px bottom
+     *  D. Header: icon + dim label + close X — sticky within sheet
+     *  E. Body: scrollable; two sections (教練思路 + 為什麼這樣拆解)
+     *  F. Footer: 了解了 primary btn (optional, adds closure affordance)
+     *
+     * In this mockup the sheet is rendered WITHIN vp-frame__inner (360px wide)
+     * using position:absolute (not fixed) so it's contained within the frame.
+     * Production uses position:fixed — see annotation.
+     */
+    .coach-sheet-overlay {
+      position: absolute;
+      inset: 0;
+      z-index: 90;
+      pointer-events: none; /* allows backdrop click in mockup context */
+    }
+    .coach-sheet-overlay__backdrop {
+      position: absolute;
+      inset: 0;
+      background: rgba(0, 0, 0, 0.50);
+    }
+    .coach-sheet {
+      position: absolute;
+      bottom: 0;
+      left: 0;
+      right: 0;
+      max-height: 85%;
+      background: var(--c-card);
+      border-radius: 16px 16px 0 0;
+      box-shadow: var(--shadow-sheet);
+      display: flex;
+      flex-direction: column;
+      overflow: hidden;
+      /* In production: padding-bottom: max(var(--s-4), env(safe-area-inset-bottom)) */
+      padding-bottom: var(--s-4);
+    }
+
+    /* Handle */
+    .coach-sheet__handle-wrap {
+      padding-top: var(--s-2); /* 8px above handle */
+      padding-bottom: var(--s-3); /* 12px below handle */
+      display: flex;
+      justify-content: center;
+      flex-shrink: 0;
+    }
+    .coach-sheet__handle {
+      width: 36px;
+      height: 4px;
+      background: var(--c-bg-deep); /* gray-200 equivalent = #E5E1D7 */
+      border-radius: var(--r-pill);
+    }
+
+    /* Header row (sticky within sheet) */
+    .coach-sheet__head {
+      display: flex;
+      align-items: center;
+      gap: var(--s-2);
+      padding: 0 var(--s-4) var(--s-3) var(--s-4);
+      border-bottom: 1px solid var(--c-rule);
+      flex-shrink: 0;
+    }
+    .coach-sheet__head-icon {
+      width: 28px; height: 28px;
+      border-radius: var(--r-pill);
+      background: var(--c-navy-lt);
+      color: var(--c-navy);
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+      font-size: 14px;
+      flex: 0 0 auto;
+    }
+    .coach-sheet__head-title {
+      font-size: var(--t-h4);
+      font-weight: 600;
+      color: var(--c-navy);
+      flex: 1;
+      min-width: 0;
+      overflow: hidden;
+      text-overflow: ellipsis;
+      white-space: nowrap;
+    }
+    .coach-sheet__close {
+      width: var(--touch-min);
+      height: var(--touch-min);
+      border-radius: var(--r-pill);
+      color: var(--c-ink-3);
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+      flex-shrink: 0;
+      margin-right: calc(-1 * var(--s-2)); /* pull to edge */
+    }
+    .coach-sheet__close:hover { background: var(--c-bg-soft); color: var(--c-ink); }
+
+    /* Body (scrollable) */
+    .coach-sheet__body {
+      padding: var(--s-4);
+      overflow-y: auto;
+      flex: 1;
+      display: flex;
+      flex-direction: column;
+      gap: var(--s-4);
+    }
+    .coach-sheet__section-label {
+      font-size: var(--t-cap);
+      letter-spacing: 0.06em;
+      text-transform: uppercase;
+      color: var(--c-navy);
+      font-weight: 600;
+      margin-bottom: var(--s-2);
+    }
+    .coach-sheet__text {
+      font-size: var(--t-body-sm);
+      color: var(--c-ink-2);
+      line-height: 1.7;
+    }
+    .coach-sheet__quote {
+      font-size: var(--t-body-sm);
+      color: var(--c-ink-2);
+      line-height: 1.7;
+      padding: var(--s-3) var(--s-4);
+      background: var(--c-bg-soft);
+      border-radius: var(--r-input);
+      font-style: italic;
+    }
+
+    /* Footer */
+    .coach-sheet__foot {
+      padding: var(--s-3) var(--s-4) 0 var(--s-4);
+      border-top: 1px solid var(--c-rule);
+      flex-shrink: 0;
+    }
+    .btn {
+      display: inline-flex; align-items: center; gap: var(--s-2);
+      min-height: var(--touch-min); padding: 0 var(--s-5);
+      border-radius: var(--r-input); font-size: var(--t-body-sm); font-weight: 500;
+      transition: all var(--t-fast) var(--ease);
+    }
+    .btn--primary { background: var(--c-navy); color: #fff; }
+    .btn--primary:hover { background: var(--c-navy-2); }
+    .btn--block { width: 100%; justify-content: center; }
+  </style>
+</head>
+<body>
+  <div class="ds-page">
+    <header class="ds-header">
+      <div class="ds-header__eyebrow">Path 2 · 2026-05-12-nsm-locked-states · Mockup 02 · 待放行</div>
+      <h1>NSM Step 4 對比 Tab — 教練思路 Bottom-Sheet（Mobile only）</h1>
+      <p class="ds-header__sub">
+        問題：production 目前 mobile 教練思路 overlay 使用 <code>.modal-card</code>（貼 viewport 邊 / 無 handle / 無圓角頂部 / 無 safe-area padding），視覺不專業。<br>
+        本 mockup 設計新的 <strong>bottom-sheet pattern</strong>：16px 圓角頂部 + 36×4 handle pill + safe-area padding + backdrop 50% 暗色 + 可滾 body + 了解了 footer btn。<br>
+        Tablet / Desktop <strong>不變</strong>：仍使用既有 inline grid + <code>.nsm-coach-detail</code> 展開 panel。
+      </p>
+    </header>
+
+    <div class="anno">
+      <strong>三欄說明：</strong>
+      Mobile 360 — bottom-sheet overlay <strong>啟動狀態</strong>（觸及廣度教練版 active，sheet 從底部升起，backdrop 可見）。
+      Tablet 768 — inline grid layout，<strong>無 bottom-sheet</strong>（tablet 點擊教練版顯示 inline .nsm-coach-detail panel，不用 overlay）。
+      Desktop 1280 — 同 tablet，inline grid，<strong>無 bottom-sheet</strong>。
+      <br><br>
+      <strong>生產注意：</strong>mockup 內 <code>.coach-sheet-overlay</code> 用 <code>position:absolute</code>（因框在 vp-frame 內）；
+      production 實作用 <code>position:fixed</code> + <code>padding-bottom: max(var(--s-4), env(safe-area-inset-bottom))</code>。
+      Handle 為視覺 affordance，v1 不要求實作 swipe-to-close（click backdrop / 了解了 btn 關閉即可）。
+    </div>
+
+    <div class="vp-grid">
+
+      <!-- ============================================================ -->
+      <!-- Mobile 360 — bottom-sheet overlay ACTIVE                     -->
+      <!-- ============================================================ -->
+      <div class="vp-frame">
+        <div class="vp-frame__label">
+          <span>Mobile: bottom-sheet overlay active</span>
+          <span>360</span>
+        </div>
+        <div class="vp-frame__inner" style="width:360px">
+
+          <!-- Navbar (mobile) -->
+          <div class="navbar">
+            <button class="navbar__icon-btn"><i class="ph ph-list"></i></button>
+            <div class="navbar__brand">
+              <span class="navbar__brand-icon"><i class="ph ph-circles-three"></i></span>
+              <span class="navbar__brand-name">PM Drill</span>
+            </div>
+            <div class="navbar__actions">
+              <button class="navbar__icon-btn"><i class="ph ph-house"></i></button>
+            </div>
+          </div>
+
+          <!-- NSM nav -->
+          <div class="nsm-nav">
+            <button class="nsm-nav__back"><i class="ph ph-arrow-left"></i></button>
+            <div class="nsm-nav__main">
+              <div class="nsm-nav__title">NSM 報告</div>
+              <div class="nsm-nav__sub">Spotify · Spotify Podcast</div>
+            </div>
+          </div>
+
+          <!-- qchip -->
+          <div class="qchip">
+            <span class="qchip__pill">NSM</span>
+            <span class="qchip__title">為 Spotify Podcast 業務定義北極星指標，目標是衡量新用戶能否養成日常收聽習慣。</span>
+          </div>
+
+          <!-- nsm-summary -->
+          <div class="nsm-summary">
+            <span class="nsm-summary__score">80</span>
+            <span class="nsm-summary__unit">/ 100</span>
+            <div class="nsm-summary__company">
+              <div class="nsm-summary__company-name">Spotify</div>
+              <div class="nsm-summary__company-sub">注意力型</div>
+            </div>
+          </div>
+
+          <!-- tab-bar -->
+          <div class="tab-bar">
+            <button class="tab-bar__btn">總覽</button>
+            <button class="tab-bar__btn is-active">對比</button>
+            <button class="tab-bar__btn">亮點</button>
+            <button class="tab-bar__btn">完成</button>
+          </div>
+
+          <!-- Compare content (dimmed behind overlay) -->
+          <div class="nsm-body">
+            <div class="nsm-compare">
+              <div class="nsm-compare-block">
+                <div class="nsm-compare-block__title">觸及廣度</div>
+                <div class="nsm-compare-card nsm-compare-card--yours">
+                  <span class="nsm-compare-card__tag">你的</span>
+                  <div class="nsm-compare-card__text">所有 Spotify 月活用戶</div>
+                </div>
+                <div class="nsm-compare-card nsm-compare-card--coach is-active">
+                  <span class="nsm-compare-card__tag">教練版</span>
+                  <div class="nsm-compare-card__text">所有曝過情境式提示的 Free 用戶（月活）</div>
+                </div>
+              </div>
+              <div class="nsm-compare-block">
+                <div class="nsm-compare-block__title">互動深度</div>
+                <div class="nsm-compare-card nsm-compare-card--yours">
+                  <span class="nsm-compare-card__tag">你的</span>
+                  <div class="nsm-compare-card__text">點擊試用按鈕進入試用頁的人數</div>
+                </div>
+                <div class="nsm-compare-card nsm-compare-card--coach">
+                  <span class="nsm-compare-card__tag">教練版</span>
+                  <div class="nsm-compare-card__text">看到提示後進入 Premium 試用頁的轉化率</div>
+                </div>
+              </div>
+              <div class="nsm-compare-block">
+                <div class="nsm-compare-block__title">習慣頻率</div>
+                <div class="nsm-compare-card nsm-compare-card--yours">
+                  <span class="nsm-compare-card__tag">你的</span>
+                  <div class="nsm-compare-card__text">試用期間每週使用天數</div>
+                </div>
+                <div class="nsm-compare-card nsm-compare-card--coach">
+                  <span class="nsm-compare-card__tag">教練版</span>
+                  <div class="nsm-compare-card__text">試用期內每週啟動 Premium 功能的天數 ≥ 4 天</div>
+                </div>
+              </div>
+            </div>
+          </div>
+
+          <!-- ───── BOTTOM-SHEET OVERLAY ───── -->
+          <div class="coach-sheet-overlay" aria-hidden="false">
+
+            <!-- A: Backdrop (click outside to close in production) -->
+            <div class="coach-sheet-overlay__backdrop" data-nsm4-action="close-coach"></div>
+
+            <!-- B: Sheet container -->
+            <div class="coach-sheet" role="dialog" aria-modal="true" aria-label="觸及廣度 教練思路">
+
+              <!-- C: Handle bar -->
+              <div class="coach-sheet__handle-wrap" aria-hidden="true">
+                <div class="coach-sheet__handle"></div>
+              </div>
+
+              <!-- D: Header -->
+              <div class="coach-sheet__head">
+                <span class="coach-sheet__head-icon">
+                  <i class="ph ph-graduation-cap"></i>
+                </span>
+                <span class="coach-sheet__head-title">觸及廣度 · 教練思路</span>
+                <button class="coach-sheet__close" data-nsm4-action="close-coach" aria-label="關閉">
+                  <i class="ph ph-x"></i>
+                </button>
+              </div>
+
+              <!-- E: Body (scrollable) -->
+              <div class="coach-sheet__body">
+                <!-- Section 1: 教練思路 -->
+                <div>
+                  <div class="coach-sheet__section-label">教練思路</div>
+                  <div class="coach-sheet__text">
+                    觸及廣度應該量到「真正接觸到核心功能（升級提示）」的用戶，而不是平台總曝光人數。
+                    如果用「所有月活」，會把從未看到推廣的用戶也算入，導致觸及指標失真。
+                    精確的觸及定義能幫助團隊找到真實的轉化瓶頸。
+                  </div>
+                </div>
+
+                <!-- Section 2: 為什麼這樣拆解 -->
+                <div>
+                  <div class="coach-sheet__section-label">為什麼這樣拆解</div>
+                  <blockquote class="coach-sheet__quote">
+                    「觸及」是漏斗最上層 — 它要回答「有多少潛在用戶看到了這個機會」。
+                    建議搭配 instrumentation 確保提示曝光被獨立 log，避免與其他 banner 混淆。
+                  </blockquote>
+                </div>
+              </div>
+
+              <!-- F: Footer -->
+              <div class="coach-sheet__foot">
+                <button class="btn btn--primary btn--block" data-nsm4-action="close-coach">
+                  了解了
+                </button>
+              </div>
+
+            </div><!-- /coach-sheet -->
+          </div><!-- /coach-sheet-overlay -->
+
+        </div><!-- /vp-frame__inner -->
+      </div><!-- /vp-frame Mobile -->
+
+      <!-- ============================================================ -->
+      <!-- Tablet 768 — inline grid layout, NO bottom-sheet             -->
+      <!-- ============================================================ -->
+      <div class="vp-frame">
+        <div class="vp-frame__label">
+          <span>Tablet: inline grid (unchanged)</span>
+          <span>768</span>
+        </div>
+        <div class="vp-frame__inner" style="width:768px">
+
+          <!-- Navbar (tablet) -->
+          <div class="navbar">
+            <button class="navbar__icon-btn"><i class="ph ph-list"></i></button>
+            <div class="navbar__brand">
+              <span class="navbar__brand-icon"><i class="ph ph-circles-three"></i></span>
+              <span class="navbar__brand-name">PM Drill</span>
+            </div>
+            <div class="navbar__tabs">
+              <button class="navbar__tab">CIRCLES</button>
+              <button class="navbar__tab is-active">北極星</button>
+            </div>
+            <div class="navbar__actions">
+              <button class="navbar__icon-btn"><i class="ph ph-magnifying-glass"></i></button>
+              <button class="navbar__icon-btn"><i class="ph ph-house"></i></button>
+            </div>
+          </div>
+
+          <!-- NSM nav -->
+          <div class="nsm-nav">
+            <button class="nsm-nav__back"><i class="ph ph-arrow-left"></i></button>
+            <div class="nsm-nav__main">
+              <div class="nsm-nav__title">NSM 報告</div>
+              <div class="nsm-nav__sub">Spotify · Spotify Podcast</div>
+            </div>
+          </div>
+
+          <!-- qchip -->
+          <div class="qchip">
+            <span class="qchip__pill">NSM</span>
+            <span class="qchip__title">為 Spotify Podcast 業務定義北極星指標，目標是衡量新用戶能否養成日常收聽習慣。</span>
+          </div>
+
+          <!-- nsm-summary -->
+          <div class="nsm-summary">
+            <span class="nsm-summary__score">80</span>
+            <span class="nsm-summary__unit">/ 100</span>
+            <div class="nsm-summary__company">
+              <div class="nsm-summary__company-name">Spotify</div>
+              <div class="nsm-summary__company-sub">注意力型</div>
+            </div>
+          </div>
+
+          <!-- tab-bar -->
+          <div class="tab-bar">
+            <button class="tab-bar__btn">總覽</button>
+            <button class="tab-bar__btn is-active">對比</button>
+            <button class="tab-bar__btn">亮點</button>
+            <button class="tab-bar__btn">完成</button>
+          </div>
+
+          <!-- Compare grid + inline coach detail -->
+          <div class="nsm-body">
+            <div class="nsm-compare nsm-compare--grid">
+              <div class="nsm-compare-grid__header">
+                <div></div>
+                <div>你的拆解</div>
+                <div class="nsm-compare-grid__header-coach">
+                  教練版本
+                  <span class="nsm-compare-grid__header-coach-hint">點擊看思路</span>
+                </div>
+              </div>
+
+              <div class="nsm-compare-grid__row">
+                <div class="nsm-compare-grid__label"><span class="nsm-compare-grid__label-key">NSM</span>北極星指標</div>
+                <div class="nsm-compare-card nsm-compare-card--yours">
+                  <div class="nsm-compare-card__text">每月活躍 Premium 試用者數</div>
+                </div>
+                <div class="nsm-compare-card nsm-compare-card--coach">
+                  <div class="nsm-compare-card__text">每月新增啟動並留存到第 30 天的 Premium 試用者數</div>
+                </div>
+              </div>
+
+              <div class="nsm-compare-grid__row">
+                <div class="nsm-compare-grid__label"><span class="nsm-compare-grid__label-key">1</span>觸及廣度</div>
+                <div class="nsm-compare-card nsm-compare-card--yours">
+                  <div class="nsm-compare-card__text">所有 Spotify 月活用戶</div>
+                </div>
+                <div class="nsm-compare-card nsm-compare-card--coach is-active">
+                  <div class="nsm-compare-card__text">所有曝過情境式提示的 Free 用戶（月活）</div>
+                </div>
+              </div>
+
+              <!-- Inline coach detail panel (tablet/desktop) -->
+              <div class="nsm-coach-detail">
+                <div class="nsm-coach-detail__head">
+                  <span class="nsm-coach-detail__icon"><i class="ph ph-graduation-cap"></i></span>
+                  <span class="nsm-coach-detail__title">
+                    <span class="nsm-coach-detail__title-key">1</span>觸及廣度 · 教練思路
+                  </span>
+                  <button class="nsm-coach-detail__close"><i class="ph ph-x"></i></button>
+                </div>
+                <div class="nsm-coach-detail__section">
+                  <div class="nsm-coach-detail__label">教練思路</div>
+                  <div class="nsm-coach-detail__text">
+                    觸及廣度應該量到「真正接觸到核心功能（升級提示）」的用戶，而不是平台總曝光人數。
+                    如果用「所有月活」，會把從未看到推廣的用戶也算入，導致觸及指標失真。
+                  </div>
+                </div>
+                <div class="nsm-coach-detail__section">
+                  <div class="nsm-coach-detail__label">為什麼這樣拆解</div>
+                  <div class="nsm-coach-detail__quote">
+                    「觸及」是漏斗最上層 — 它要回答「有多少潛在用戶看到了這個機會」。
+                    建議搭配 instrumentation 確保提示曝光被獨立 log，避免與其他 banner 混淆。
+                  </div>
+                </div>
+              </div>
+
+              <div class="nsm-compare-grid__row">
+                <div class="nsm-compare-grid__label"><span class="nsm-compare-grid__label-key">2</span>互動深度</div>
+                <div class="nsm-compare-card nsm-compare-card--yours">
+                  <div class="nsm-compare-card__text">點擊試用按鈕進入試用頁的人數</div>
+                </div>
+                <div class="nsm-compare-card nsm-compare-card--coach">
+                  <div class="nsm-compare-card__text">看到提示後進入 Premium 試用頁的轉化率</div>
+                </div>
+              </div>
+
+              <div class="nsm-compare-grid__row">
+                <div class="nsm-compare-grid__label"><span class="nsm-compare-grid__label-key">3</span>習慣頻率</div>
+                <div class="nsm-compare-card nsm-compare-card--yours">
+                  <div class="nsm-compare-card__text">試用期間每週使用天數</div>
+                </div>
+                <div class="nsm-compare-card nsm-compare-card--coach">
+                  <div class="nsm-compare-card__text">試用期內每週啟動 Premium 功能的天數 ≥ 4 天</div>
+                </div>
+              </div>
+
+              <div class="nsm-compare-grid__row">
+                <div class="nsm-compare-grid__label"><span class="nsm-compare-grid__label-key">4</span>留存驅力</div>
+                <div class="nsm-compare-card nsm-compare-card--yours">
+                  <div class="nsm-compare-card__text">試用後付費轉換率</div>
+                </div>
+                <div class="nsm-compare-card nsm-compare-card--coach">
+                  <div class="nsm-compare-card__text">試用結束後 30 天內完成訂閱的轉換率</div>
+                </div>
+              </div>
+
+            </div>
+          </div>
+
+        </div><!-- /vp-frame__inner Tablet -->
+      </div><!-- /vp-frame Tablet -->
+
+      <!-- ============================================================ -->
+      <!-- Desktop 1280 — inline grid layout, NO bottom-sheet           -->
+      <!-- ============================================================ -->
+      <div class="vp-frame">
+        <div class="vp-frame__label">
+          <span>Desktop: inline grid (unchanged)</span>
+          <span>1280</span>
+        </div>
+        <div class="vp-frame__inner" style="width:1280px">
+
+          <!-- Navbar (desktop) -->
+          <div class="navbar">
+            <div class="navbar__brand">
+              <span class="navbar__brand-icon"><i class="ph ph-circles-three"></i></span>
+              <span class="navbar__brand-name">PM Drill</span>
+            </div>
+            <div class="navbar__tabs">
+              <button class="navbar__tab">CIRCLES</button>
+              <button class="navbar__tab is-active">北極星指標</button>
+            </div>
+            <div class="navbar__actions">
+              <span class="navbar__email">albert@example.com</span>
+              <button class="navbar__icon-btn"><i class="ph ph-house"></i></button>
+            </div>
+          </div>
+
+          <!-- NSM nav -->
+          <div class="nsm-nav">
+            <button class="nsm-nav__back"><i class="ph ph-arrow-left"></i></button>
+            <div class="nsm-nav__main">
+              <div class="nsm-nav__title">NSM 報告</div>
+              <div class="nsm-nav__sub">Spotify · Spotify Podcast</div>
+            </div>
+          </div>
+
+          <!-- qchip -->
+          <div class="qchip">
+            <span class="qchip__pill">NSM</span>
+            <span class="qchip__title">為 Spotify Podcast 業務定義北極星指標，目標是衡量新用戶能否養成日常收聽習慣。</span>
+          </div>
+
+          <!-- nsm-summary -->
+          <div class="nsm-summary">
+            <span class="nsm-summary__score">80</span>
+            <span class="nsm-summary__unit">/ 100</span>
+            <div class="nsm-summary__company">
+              <div class="nsm-summary__company-name">Spotify · Spotify Podcast</div>
+              <div class="nsm-summary__company-sub">注意力型 · 模擬完成</div>
+            </div>
+          </div>
+
+          <!-- tab-bar -->
+          <div class="tab-bar">
+            <button class="tab-bar__btn">總覽</button>
+            <button class="tab-bar__btn is-active">對比</button>
+            <button class="tab-bar__btn">亮點</button>
+            <button class="tab-bar__btn">完成</button>
+          </div>
+
+          <!-- Compare grid + inline coach detail (desktop) -->
+          <div class="nsm-body" style="max-width:1180px; padding: var(--s-7) var(--s-6);">
+            <div class="nsm-compare nsm-compare--grid">
+              <div class="nsm-compare-grid__header">
+                <div></div>
+                <div>你的拆解</div>
+                <div class="nsm-compare-grid__header-coach">
+                  教練版本
+                  <span class="nsm-compare-grid__header-coach-hint">點擊看思路</span>
+                </div>
+              </div>
+
+              <div class="nsm-compare-grid__row">
+                <div class="nsm-compare-grid__label"><span class="nsm-compare-grid__label-key">NSM</span>北極星指標</div>
+                <div class="nsm-compare-card nsm-compare-card--yours">
+                  <div class="nsm-compare-card__text">每月活躍 Premium 試用者數</div>
+                </div>
+                <div class="nsm-compare-card nsm-compare-card--coach">
+                  <div class="nsm-compare-card__text">每月新增啟動並留存到第 30 天的 Premium 試用者數</div>
+                </div>
+              </div>
+
+              <div class="nsm-compare-grid__row">
+                <div class="nsm-compare-grid__label"><span class="nsm-compare-grid__label-key">1</span>觸及廣度</div>
+                <div class="nsm-compare-card nsm-compare-card--yours">
+                  <div class="nsm-compare-card__text">所有 Spotify 月活用戶</div>
+                </div>
+                <div class="nsm-compare-card nsm-compare-card--coach is-active">
+                  <div class="nsm-compare-card__text">所有曝過情境式提示的 Free 用戶（月活）</div>
+                </div>
+              </div>
+
+              <!-- Inline coach detail panel (desktop) -->
+              <div class="nsm-coach-detail">
+                <div class="nsm-coach-detail__head">
+                  <span class="nsm-coach-detail__icon"><i class="ph ph-graduation-cap"></i></span>
+                  <span class="nsm-coach-detail__title">
+                    <span class="nsm-coach-detail__title-key">1</span>觸及廣度 · 教練思路
+                  </span>
+                  <button class="nsm-coach-detail__close"><i class="ph ph-x"></i></button>
+                </div>
+                <div class="nsm-coach-detail__section">
+                  <div class="nsm-coach-detail__label">教練思路</div>
+                  <div class="nsm-coach-detail__text">
+                    觸及廣度應該量到「真正接觸到核心功能（升級提示）」的用戶，而不是平台總曝光人數。
+                    如果用「所有月活」，會把從未看到推廣的用戶也算入，導致觸及指標失真。
+                  </div>
+                </div>
+                <div class="nsm-coach-detail__section">
+                  <div class="nsm-coach-detail__label">為什麼這樣拆解</div>
+                  <div class="nsm-coach-detail__quote">
+                    「觸及」是漏斗最上層 — 它要回答「有多少潛在用戶看到了這個機會」。
+                    建議搭配 instrumentation 確保提示曝光被獨立 log，避免與其他 banner 混淆。
+                  </div>
+                </div>
+              </div>
+
+              <div class="nsm-compare-grid__row">
+                <div class="nsm-compare-grid__label"><span class="nsm-compare-grid__label-key">2</span>互動深度</div>
+                <div class="nsm-compare-card nsm-compare-card--yours">
+                  <div class="nsm-compare-card__text">點擊試用按鈕進入試用頁的人數</div>
+                </div>
+                <div class="nsm-compare-card nsm-compare-card--coach">
+                  <div class="nsm-compare-card__text">看到提示後進入 Premium 試用頁的轉化率</div>
+                </div>
+              </div>
+
+              <div class="nsm-compare-grid__row">
+                <div class="nsm-compare-grid__label"><span class="nsm-compare-grid__label-key">3</span>習慣頻率</div>
+                <div class="nsm-compare-card nsm-compare-card--yours">
+                  <div class="nsm-compare-card__text">試用期間每週使用天數</div>
+                </div>
+                <div class="nsm-compare-card nsm-compare-card--coach">
+                  <div class="nsm-compare-card__text">試用期內每週啟動 Premium 功能的天數 ≥ 4 天</div>
+                </div>
+              </div>
+
+              <div class="nsm-compare-grid__row">
+                <div class="nsm-compare-grid__label"><span class="nsm-compare-grid__label-key">4</span>留存驅力</div>
+                <div class="nsm-compare-card nsm-compare-card--yours">
+                  <div class="nsm-compare-card__text">試用後付費轉換率</div>
+                </div>
+                <div class="nsm-compare-card nsm-compare-card--coach">
+                  <div class="nsm-compare-card__text">試用結束後 30 天內完成訂閱的轉換率</div>
+                </div>
+              </div>
+
+            </div>
+          </div>
+
+        </div><!-- /vp-frame__inner Desktop -->
+      </div><!-- /vp-frame Desktop -->
+
+    </div><!-- /vp-grid -->
+  </div><!-- /ds-page -->
+</body>
+</html>

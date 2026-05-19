@@ -1,0 +1,1569 @@
+<!doctype html>
+<html lang="zh-TW">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover, interactive-widget=resizes-visual">
+  <title>PM Drill — NSM Step 2 Locked State (Variant A × 3 States × 3 Viewport)</title>
+
+  <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/@phosphor-icons/web@2.1.1/src/regular/style.css">
+  <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/@phosphor-icons/web@2.1.1/src/fill/style.css">
+  <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Instrument+Serif:ital@0;1&display=swap">
+
+  <style>
+    /* ───────────────────────────────────────────
+       LOCKED CSS — verbatim from 07 (origin 03/06)
+       ─────────────────────────────────────────── */
+    :root {
+      --c-bg: #F2F0EB; --c-bg-soft: #ECE9E1; --c-bg-deep: #E5E1D7;
+      --c-card: #FFFFFF; --c-surface: #FAFAF7;
+      --c-ink: #1F1D1B; --c-ink-2: #5A5046; --c-ink-3: #8A7E70; --c-ink-4: #B8AC9D;
+      --c-rule: rgba(60,45,30,0.10); --c-rule-bold: rgba(60,45,30,0.18);
+      --c-primary: #1A56DB;
+      --c-navy: #1B2D5C; --c-navy-2: #142347; --c-navy-lt: rgba(27,45,92,0.08);
+      --c-success: #137A3D; --c-success-lt: #DCEFE0;
+      --c-warn: #B85C00; --c-warn-lt: #FBE9D0;
+      --c-danger: #B61F1F; --c-danger-lt: #FADCDC;
+      --font-sans: system-ui, -apple-system, BlinkMacSystemFont, 'PingFang TC', 'Microsoft JhengHei', 'Heiti TC', 'Noto Sans TC', sans-serif;
+      --font-serif: 'Instrument Serif', 'Times New Roman', serif;
+      --t-h1: 24px; --t-h2: 19px; --t-h3: 16px; --t-body: 15px; --t-body-sm: 14px; --t-meta: 13px; --t-cap: 12px;
+      --s-1: 4px; --s-2: 8px; --s-3: 12px; --s-4: 16px; --s-5: 20px; --s-6: 24px; --s-7: 32px; --s-8: 40px; --s-9: 56px; --s-10: 80px;
+      --r-input: 6px; --r-card: 10px; --r-pill: 999px;
+      --touch-min: 44px;
+      --t-fast: 120ms; --t-norm: 200ms; --t-slow: 300ms;
+      --ease: cubic-bezier(0.4, 0, 0.2, 1);
+      --shadow-1: 0 1px 0 rgba(60,45,30,0.04);
+      --shadow-2: 0 1px 2px rgba(60,45,30,0.06);
+      --shadow-3: 0 4px 12px rgba(60,45,30,0.08);
+      --shadow-focus: 0 0 0 3px rgba(26,86,219,0.18);
+    }
+
+    *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+    html, body {
+      background: var(--c-bg);
+      color: var(--c-ink);
+      font-family: var(--font-sans);
+      font-size: var(--t-body);
+      line-height: 1.55;
+      -webkit-font-smoothing: antialiased;
+      -webkit-tap-highlight-color: transparent;
+    }
+    button { font: inherit; color: inherit; cursor: pointer; background: none; border: none; }
+    a { color: inherit; text-decoration: none; }
+    @media (max-width: 767px) { input, textarea, select { font-size: 16px !important; } }
+
+    /* viewport demo grid — 3 viewports stacked per row */
+    .vp-grid {
+      display: grid;
+      grid-template-columns: 360px 768px 1280px;
+      gap: var(--s-6);
+      padding: var(--s-6);
+      align-items: start;
+      overflow-x: auto;
+    }
+    .vp-frame {
+      border: 1px solid var(--c-rule-bold);
+      border-radius: var(--r-card);
+      background: var(--c-bg);
+      overflow: hidden;
+    }
+    .vp-frame__label {
+      padding: var(--s-3) var(--s-4);
+      border-bottom: 1px solid var(--c-rule);
+      background: var(--c-card);
+      display: flex;
+      justify-content: space-between;
+      font-size: var(--t-cap);
+      letter-spacing: 0.08em;
+      text-transform: uppercase;
+      color: var(--c-ink-2);
+    }
+    .vp-frame__label span:last-child { font-family: ui-monospace, 'SF Mono', monospace; color: var(--c-ink-3); }
+    .vp-frame__inner { background: var(--c-bg); display: flex; flex-direction: column; }
+
+    /* page wrapper */
+    .ds-page { padding: var(--s-6); }
+    .ds-header { max-width: 1880px; margin: 0 auto var(--s-7); padding-bottom: var(--s-6); border-bottom: 1px solid var(--c-rule); }
+    .ds-header h1 { font-size: var(--t-h1); margin-top: var(--s-2); }
+    .ds-header__eyebrow { font-size: var(--t-cap); letter-spacing: 0.12em; text-transform: uppercase; color: var(--c-ink-3); }
+    .ds-header__sub { color: var(--c-ink-2); font-size: var(--t-body-sm); margin-top: var(--s-3); max-width: 720px; }
+    .vp-section-title { max-width: 1880px; margin: var(--s-7) auto var(--s-3); padding-bottom: var(--s-2); border-bottom: 1px solid var(--c-rule); font-size: var(--t-h2); display: flex; align-items: baseline; gap: var(--s-3); }
+    .vp-section-title__sub { font-size: var(--t-cap); color: var(--c-ink-3); letter-spacing: 0.04em; text-transform: uppercase; }
+    .anno { background: var(--c-bg-soft); border-left: 2px solid var(--c-ink-3); padding: var(--s-3) var(--s-4); font-size: var(--t-meta); color: var(--c-ink-2); margin: var(--s-4) auto; max-width: 1180px; line-height: 1.7; }
+    .anno strong { color: var(--c-ink); }
+    .anno code { font-family: ui-monospace, 'SF Mono', monospace; font-size: 12px; background: var(--c-card); padding: 1px 6px; border-radius: 4px; border: 1px solid var(--c-rule); }
+
+    /* state separator banner inside frame */
+    .state-label {
+      padding: var(--s-2) var(--s-4);
+      background: var(--c-navy);
+      color: #fff;
+      font-size: var(--t-cap);
+      letter-spacing: 0.10em;
+      text-transform: uppercase;
+      font-weight: 600;
+      border-bottom: 2px solid var(--c-navy-2);
+    }
+
+    /* ───────────────────────────────────────────
+       PRODUCTION COMPONENTS — LOCKED from 07
+       ─────────────────────────────────────────── */
+
+    /* navbar */
+    .navbar { display: flex; align-items: center; gap: var(--s-3); padding: var(--s-3) var(--s-4); background: rgba(255,255,255,0.85); -webkit-backdrop-filter: saturate(140%) blur(10px); backdrop-filter: saturate(140%) blur(10px); border-bottom: 1px solid var(--c-rule); }
+    .navbar__icon-btn { width: 40px; height: 40px; border-radius: var(--r-pill); display: inline-flex; align-items: center; justify-content: center; color: var(--c-ink-2); }
+    .navbar__icon-btn:hover { background: var(--c-bg-soft); color: var(--c-ink); }
+    .navbar__brand { display: flex; align-items: center; gap: var(--s-2); padding: 4px var(--s-2); border-radius: var(--r-input); cursor: pointer; transition: background var(--t-fast) var(--ease); }
+    .navbar__brand:hover { background: var(--c-bg-soft); }
+    .navbar__brand-icon { width: 28px; height: 28px; border-radius: 6px; background: var(--c-navy); color: #fff; display: inline-flex; align-items: center; justify-content: center; font-size: 16px; }
+    .navbar__brand-name { font-size: var(--t-body-sm); font-weight: 500; }
+    .navbar__tabs { display: flex; gap: var(--s-2); margin-left: var(--s-4); }
+    .navbar__tab { padding: 6px var(--s-3); border-radius: var(--r-pill); font-size: var(--t-meta); color: var(--c-ink-3); }
+    .navbar__tab.is-active { background: var(--c-navy); color: #fff; }
+    .navbar__actions { margin-left: auto; display: flex; align-items: center; gap: var(--s-2); }
+    .navbar__email { font-size: var(--t-cap); color: var(--c-ink-3); max-width: 180px; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+
+    /* phase-head */
+    .phase-head { padding: var(--s-3) var(--s-5); background: var(--c-bg-soft); border-bottom: 1px solid var(--c-rule); display: flex; align-items: center; gap: var(--s-3); }
+    .phase-head__num { font-family: var(--font-serif); font-style: italic; font-size: 22px; color: var(--c-navy); line-height: 1; flex: 0 0 auto; }
+    .phase-head__main { flex: 1; min-width: 0; }
+    .phase-head__eyebrow { font-size: var(--t-cap); letter-spacing: 0.08em; text-transform: uppercase; color: var(--c-ink-3); }
+    .phase-head__title { font-size: var(--t-h3); color: var(--c-ink); margin-top: 2px; letter-spacing: -0.005em; }
+    .phase-head__meta { flex: 0 0 auto; font-size: var(--t-meta); color: var(--c-ink-3); display: flex; gap: var(--s-3); align-items: center; flex-wrap: wrap; justify-content: flex-end; }
+    .phase-head__meta-sep { color: var(--c-rule-bold); }
+
+    /* nsm-progress (4-step) */
+    .nsm-progress { padding: var(--s-3) var(--s-4); background: var(--c-bg-soft); border-bottom: 1px solid var(--c-rule); display: flex; align-items: center; gap: var(--s-2); }
+    .nsm-progress__step { display: flex; flex-direction: column; align-items: center; gap: 4px; flex: 0 0 auto; }
+    .nsm-progress__dot { width: 26px; height: 26px; border-radius: 50%; background: var(--c-card); border: 1.5px solid var(--c-rule-bold); display: inline-flex; align-items: center; justify-content: center; font-family: var(--font-serif); font-style: italic; font-size: 13px; color: var(--c-ink-3); }
+    .nsm-progress__step.is-active .nsm-progress__dot { background: var(--c-navy); border-color: var(--c-navy); color: #fff; box-shadow: 0 0 0 3px var(--c-navy-lt); }
+    .nsm-progress__step.is-done .nsm-progress__dot { background: var(--c-navy); border-color: var(--c-navy); color: #fff; }
+    .nsm-progress__label { font-size: var(--t-cap); color: var(--c-ink-3); }
+    .nsm-progress__step.is-active .nsm-progress__label { color: var(--c-navy); font-weight: 600; }
+    .nsm-progress__step.is-done .nsm-progress__label { color: var(--c-ink-2); }
+    .nsm-progress__line { flex: 1; height: 2px; background: var(--c-rule); margin-bottom: 18px; min-width: 16px; }
+    .nsm-progress__line.is-done { background: var(--c-navy); }
+
+    /* locked banner */
+    .banner {
+      margin: 0;
+      padding: var(--s-3) var(--s-4);
+      font-size: var(--t-meta);
+      display: flex;
+      gap: var(--s-3);
+      align-items: center;
+      border-bottom: 1px solid var(--c-rule);
+    }
+    .banner__icon { width: 28px; height: 28px; border-radius: 50%; display: inline-flex; align-items: center; justify-content: center; font-size: 14px; flex: 0 0 auto; }
+    .banner__main { flex: 1; }
+    .banner__title { font-weight: 600; }
+    .banner__sub { color: var(--c-ink-2); margin-top: 1px; font-size: var(--t-cap); }
+    .banner--locked { background: var(--c-navy-lt); border-bottom-color: rgba(27,45,92,0.18); }
+    .banner--locked .banner__icon { background: rgba(27,45,92,0.15); color: var(--c-navy); }
+    .banner--locked .banner__title { color: var(--c-navy); }
+
+    /* nsm-body container */
+    .nsm-body { padding: var(--s-5) var(--s-4); max-width: 920px; margin: 0 auto; width: 100%; }
+    @media (min-width: 768px) { .nsm-body { padding: var(--s-6) var(--s-5); max-width: 720px; } }
+
+    /* context card */
+    .nsm-context-card { background: var(--c-card); border: 1px solid var(--c-rule); border-radius: var(--r-card); padding: var(--s-4); margin-bottom: var(--s-4); display: flex; flex-direction: column; gap: var(--s-2); }
+    .nsm-context-card__top { display: flex; align-items: center; gap: var(--s-2); flex-wrap: wrap; }
+    .nsm-context-card__company { padding: 3px var(--s-2); background: var(--c-navy); color: #fff; border-radius: var(--r-input); font-size: var(--t-cap); font-weight: 600; }
+    .nsm-context-card__industry { font-size: var(--t-cap); color: var(--c-ink-3); }
+    .nsm-context-card__type { margin-left: auto; padding: 2px var(--s-2); border-radius: var(--r-pill); font-size: var(--t-cap); font-weight: 500; display: inline-flex; align-items: center; gap: 4px; }
+    .nsm-context-card__type i { font-size: 12px; }
+    .nsm-context-card__type--attention { background: var(--c-navy-lt); color: var(--c-navy); border: 1px solid rgba(27,45,92,0.22); }
+    .nsm-context-card__scenario { font-size: var(--t-body-sm); color: var(--c-ink-2); line-height: 1.7; }
+    .nsm-context-card__hint { font-size: var(--t-cap); color: var(--c-ink-3); display: inline-flex; align-items: flex-start; gap: 4px; padding-top: var(--s-2); border-top: 1px solid var(--c-rule); }
+    .nsm-context-card__hint i { font-size: 13px; color: var(--c-ink-3); flex: 0 0 auto; margin-top: 2px; }
+    .nsm-context-card__expand-toggle { display: inline-flex; align-items: center; gap: 4px; padding: 6px var(--s-2); font-size: var(--t-cap); color: var(--c-navy); border-radius: var(--r-input); margin-top: var(--s-1); transition: background var(--t-fast) var(--ease); }
+    .nsm-context-card__expand-toggle:hover { background: var(--c-navy-lt); }
+    .nsm-context-card__expand-toggle i { font-size: 12px; }
+
+    /* depth-context expand (問題說明) */
+    .depth-context {
+      margin-top: var(--s-2);
+      display: flex;
+      flex-direction: column;
+      gap: var(--s-3);
+      padding-top: var(--s-3);
+      border-top: 1px solid var(--c-rule);
+    }
+    .depth-context__block {}
+    .depth-context__label {
+      font-size: var(--t-cap);
+      letter-spacing: 0.08em;
+      text-transform: uppercase;
+      color: var(--c-ink-3);
+      font-weight: 600;
+      margin-bottom: var(--s-1);
+    }
+    .depth-context__text {
+      font-size: var(--t-body-sm);
+      color: var(--c-ink-2);
+      line-height: 1.75;
+    }
+
+    /* field group */
+    .nsm-field { margin-bottom: var(--s-5); }
+    .field__label-row { display: flex; align-items: baseline; justify-content: space-between; gap: var(--s-3); margin-bottom: var(--s-2); flex-wrap: wrap; }
+    .field__hint-row { flex: 0 0 auto; margin-left: auto; display: flex; gap: var(--s-3); flex-wrap: wrap; align-items: center; }
+    .field__label { font-size: var(--t-body-sm); color: var(--c-ink); font-weight: 500; letter-spacing: -0.005em; }
+    .field__hint-link { display: inline-flex; align-items: center; gap: 4px; font-size: var(--t-cap); color: var(--c-navy); cursor: pointer; }
+    .field__hint-link i { font-size: 14px; }
+    .field-example-toggle { display: inline-flex; align-items: center; gap: 4px; font-size: var(--t-cap); color: var(--c-navy); cursor: pointer; }
+    .field-example-toggle i { font-size: 14px; }
+
+    /* nsm-input / rt-field */
+    .nsm-input { width: 100%; background: var(--c-card); border: 1px solid var(--c-rule-bold); border-radius: var(--r-input); padding: 10px var(--s-3); font-size: var(--t-body-sm); color: var(--c-ink); font-family: inherit; line-height: 1.6; }
+    .nsm-textarea { width: 100%; background: var(--c-card); border: 1px solid var(--c-rule-bold); border-radius: var(--r-input); padding: var(--s-3); font-size: var(--t-body-sm); color: var(--c-ink); font-family: inherit; line-height: 1.6; resize: vertical; min-height: 76px; }
+    .rt-field { border: 1px solid var(--c-rule-bold); border-radius: var(--r-input); background: var(--c-card); overflow: hidden; }
+    .rt-field__toolbar { display: flex; gap: var(--s-1); padding: var(--s-2) var(--s-3); border-bottom: 1px solid var(--c-rule); background: var(--c-surface); }
+    .rt-tbtn { width: 28px; height: 28px; display: inline-flex; align-items: center; justify-content: center; border-radius: 4px; color: var(--c-ink-2); font-size: 14px; }
+    .rt-textarea { width: 100%; padding: var(--s-3) var(--s-4); background: transparent; border: 0; outline: none; font-size: var(--t-body); font-family: inherit; line-height: 1.7; color: var(--c-ink); min-height: 80px; resize: none; }
+
+    /* rt-field--locked */
+    .rt-field--locked { background: var(--c-bg-soft); opacity: 0.85; cursor: not-allowed; }
+    .rt-field--locked .rt-field__toolbar { opacity: 0.5; pointer-events: none; }
+    .rt-field--locked .rt-textarea { color: var(--c-ink-3); cursor: not-allowed; }
+    .nsm-input.rt-field--locked { background: var(--c-bg-soft); color: var(--c-ink-3); cursor: not-allowed; opacity: 0.85; }
+
+    /* va-block heading */
+    .va-block { margin-bottom: var(--s-5); }
+    .va-block__heading { font-size: var(--t-body-sm); font-weight: 600; color: var(--c-ink); margin-bottom: var(--s-3); letter-spacing: -0.005em; display: flex; align-items: center; gap: var(--s-2); }
+    .va-block__heading i { font-size: 15px; color: var(--c-navy); }
+
+    /* ───────────────────────────────────────────
+       submit-bar--locked: single-button layout
+       ─────────────────────────────────────────── */
+    .submit-bar {
+      position: sticky;
+      bottom: 0;
+      background: rgba(255,255,255,0.92);
+      -webkit-backdrop-filter: saturate(140%) blur(10px);
+      backdrop-filter: saturate(140%) blur(10px);
+      border-top: 1px solid var(--c-rule);
+      padding: var(--s-3) var(--s-4) max(var(--s-3), env(safe-area-inset-bottom));
+      display: flex;
+      gap: var(--s-3);
+      align-items: center;
+    }
+    .submit-bar--locked {
+      justify-content: space-between;
+    }
+    .submit-bar__meta {
+      font-size: var(--t-cap);
+      color: var(--c-navy);
+      display: inline-flex;
+      align-items: center;
+      gap: 4px;
+      flex: 0 0 auto;
+      white-space: nowrap;
+    }
+    .submit-bar__meta i { font-size: 13px; }
+    .btn {
+      display: inline-flex;
+      align-items: center;
+      gap: var(--s-2);
+      min-height: var(--touch-min);
+      padding: 0 var(--s-5);
+      border-radius: var(--r-input);
+      font-size: var(--t-body-sm);
+      font-weight: 500;
+      transition: all var(--t-fast) var(--ease);
+      white-space: nowrap;
+    }
+    .btn--primary { background: var(--c-navy); color: #fff; }
+    .btn--primary:hover { background: var(--c-navy-2); }
+    /* full-width primary: only when there's no left meta */
+    .submit-bar__primary--full {
+      flex: 1;
+      justify-content: center;
+      min-width: 140px;
+    }
+
+    /* ───────────────────────────────────────────
+       hint-overlay / modal (from mockup 03)
+       ─────────────────────────────────────────── */
+    .hint-overlay {
+      position: absolute;
+      inset: 0;
+      z-index: 100;
+      display: flex;
+      align-items: flex-end;
+    }
+    .hint-overlay__backdrop {
+      position: absolute;
+      inset: 0;
+      background: rgba(31,29,27,0.40);
+    }
+    .modal-card {
+      position: relative;
+      z-index: 1;
+      background: var(--c-card);
+      border-radius: var(--r-card) var(--r-card) 0 0;
+      width: 100%;
+      max-height: 80%;
+      overflow-y: auto;
+      box-shadow: var(--shadow-3);
+    }
+    .modal__head {
+      display: flex;
+      align-items: center;
+      gap: var(--s-3);
+      padding: var(--s-4);
+      border-bottom: 1px solid var(--c-rule);
+    }
+    .modal__head-icon {
+      width: 36px; height: 36px;
+      border-radius: 50%;
+      background: var(--c-navy-lt);
+      color: var(--c-navy);
+      display: inline-flex; align-items: center; justify-content: center;
+      font-size: 18px;
+      flex: 0 0 auto;
+    }
+    .modal__head-main { flex: 1; min-width: 0; }
+    .modal__head-title { font-size: var(--t-body-sm); font-weight: 600; color: var(--c-ink); }
+    .modal__head-sub { font-size: var(--t-cap); color: var(--c-ink-3); margin-top: 2px; }
+    .modal__body {
+      padding: var(--s-4);
+      font-size: var(--t-body-sm);
+      color: var(--c-ink-2);
+      line-height: 1.75;
+      display: flex;
+      flex-direction: column;
+      gap: var(--s-3);
+    }
+    .modal__body strong { color: var(--c-ink); }
+    .modal__body ul {
+      padding-left: var(--s-5);
+      display: flex;
+      flex-direction: column;
+      gap: var(--s-1);
+    }
+    .modal__foot {
+      padding: var(--s-3) var(--s-4);
+      border-top: 1px solid var(--c-rule);
+    }
+    .modal__foot .btn { width: 100%; justify-content: center; }
+
+    /* ───────────────────────────────────────────
+       example-expand (from mockup 03)
+       ─────────────────────────────────────────── */
+    .example-expand {
+      margin-top: var(--s-2);
+      background: var(--c-bg-soft);
+      border: 1px solid var(--c-rule-bold);
+      border-radius: var(--r-input);
+      overflow: hidden;
+    }
+    .example-expand__head {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      padding: var(--s-2) var(--s-3);
+      border-bottom: 1px solid var(--c-rule);
+      background: var(--c-card);
+    }
+    .example-expand__title {
+      font-size: var(--t-cap);
+      color: var(--c-navy);
+      font-weight: 600;
+      letter-spacing: 0.04em;
+      display: inline-flex;
+      align-items: center;
+      gap: 4px;
+    }
+    .example-expand__title i { font-size: 14px; }
+    .example-expand__close {
+      font-size: var(--t-cap);
+      color: var(--c-ink-3);
+      width: 28px; height: 28px;
+      display: inline-flex; align-items: center; justify-content: center;
+      border-radius: 4px;
+    }
+    .example-expand__close:hover { background: var(--c-bg-soft); }
+    .example-list {
+      padding: var(--s-3) var(--s-4);
+      font-size: var(--t-body-sm);
+      color: var(--c-ink-2);
+      line-height: 1.75;
+      display: flex;
+      flex-direction: column;
+      gap: var(--s-2);
+    }
+    .example-list strong { color: var(--c-ink); }
+    .example-list ul {
+      padding-left: var(--s-5);
+      display: flex;
+      flex-direction: column;
+      gap: var(--s-1);
+    }
+
+    /* scene-wrapper — inside each vp-frame, contains multiple scenes vertically */
+    .scene-separator {
+      height: 1px;
+      background: var(--c-rule-bold);
+      margin: 0;
+    }
+    /* relative container for modal overlay */
+    .scene-wrap {
+      position: relative;
+      overflow: hidden;
+    }
+  </style>
+</head>
+<body>
+  <div class="ds-page">
+    <header class="ds-header">
+      <div class="ds-header__eyebrow">Path 2 · Mockup 2026-05-12 · NSM LOCKED STATE</div>
+      <h1>NSM 步驟 2 — 已評分完成（鎖定狀態）· Variant A × 3 States × 3 Viewport</h1>
+      <p class="ds-header__sub">
+        Variant A（disabled textarea pattern）保留；Variant B / C 已移除。<br>
+        每個 viewport 顯示 3 個 scene 垂直排列：<strong>A1 Baseline locked</strong>、<strong>A2 提示 modal 開啟</strong>、<strong>A3 範例答案展開</strong>。
+        題目：Zoom · 視訊會議 SaaS · q17 · 80分。Submit bar 單按鈕「查看評分結果 →」，無「回首頁」。
+      </p>
+    </header>
+
+    <!-- ================================================================ -->
+    <!-- VIEWPORT GRID: Mobile 360 / Tablet 768 / Desktop 1280            -->
+    <!-- ================================================================ -->
+    <div class="vp-grid">
+
+      <!-- ============================================================ -->
+      <!-- Mobile 360                                                   -->
+      <!-- ============================================================ -->
+      <div class="vp-frame">
+        <div class="vp-frame__label"><span>Mobile</span><span>360 × auto</span></div>
+        <div class="vp-frame__inner" style="width:360px">
+
+          <!-- A1: Baseline locked -->
+          <div class="state-label">A1 · Baseline Locked</div>
+          <div class="scene-wrap">
+            <div class="navbar">
+              <button class="navbar__icon-btn" aria-label="menu"><i class="ph ph-list"></i></button>
+              <div class="navbar__brand"><span class="navbar__brand-icon"><i class="ph ph-circles-three"></i></span><span class="navbar__brand-name">PM Drill</span></div>
+              <div class="navbar__actions"><button class="navbar__icon-btn" aria-label="home"><i class="ph ph-house"></i></button></div>
+            </div>
+            <div class="phase-head">
+              <span class="phase-head__num">2</span>
+              <div class="phase-head__main">
+                <div class="phase-head__eyebrow">NSM · 北極星訓練</div>
+                <div class="phase-head__title">定義 NSM</div>
+              </div>
+            </div>
+            <div class="nsm-progress">
+              <div class="nsm-progress__step is-done"><div class="nsm-progress__dot"><i class="ph ph-check" style="font-size:11px"></i></div><div class="nsm-progress__label">情境</div></div>
+              <div class="nsm-progress__line is-done"></div>
+              <div class="nsm-progress__step is-active"><div class="nsm-progress__dot">2</div><div class="nsm-progress__label">指標</div></div>
+              <div class="nsm-progress__line is-done"></div>
+              <div class="nsm-progress__step is-done"><div class="nsm-progress__dot"><i class="ph ph-check" style="font-size:11px"></i></div><div class="nsm-progress__label">拆解</div></div>
+              <div class="nsm-progress__line is-done"></div>
+              <div class="nsm-progress__step is-done"><div class="nsm-progress__dot"><i class="ph ph-check" style="font-size:11px"></i></div><div class="nsm-progress__label">總結</div></div>
+            </div>
+            <div class="banner banner--locked">
+              <span class="banner__icon"><i class="ph ph-lock-key"></i></span>
+              <div class="banner__main">
+                <div class="banner__title">已評分完成</div>
+                <div class="banner__sub">內容鎖定，可繼續查看提示與範例</div>
+              </div>
+            </div>
+            <div class="nsm-body">
+              <div class="nsm-context-card">
+                <div class="nsm-context-card__top">
+                  <span class="nsm-context-card__company">Zoom</span>
+                  <span class="nsm-context-card__industry">視訊會議 SaaS</span>
+                  <span class="nsm-context-card__type nsm-context-card__type--attention"><i class="ph ph-cloud"></i>SaaS 型</span>
+                </div>
+                <p class="nsm-context-card__scenario">遠端工作普及後，Zoom 需確保企業用戶真的在平台上進行有效溝通，而非只是安裝備用。</p>
+                <span class="nsm-context-card__hint"><i class="ph ph-info"></i>核心問題：「安裝了但不用」的用戶不代表真實價值，如何以行為指標衡量有效使用？</span>
+                <button class="nsm-context-card__expand-toggle"><i class="ph ph-caret-down"></i>深入了解問題</button>
+              </div>
+              <div class="va-block">
+                <div class="va-block__heading"><i class="ph ph-notepad"></i>你的 NSM</div>
+                <div class="nsm-field">
+                  <div class="field__label-row">
+                    <label class="field__label">北極星指標 (NSM)</label>
+                    <div class="field__hint-row">
+                      <button class="field__hint-link"><i class="ph ph-lightbulb"></i>提示</button>
+                      <button class="field-example-toggle"><i class="ph ph-quotes"></i>範例答案<i class="ph ph-caret-down" style="font-size:12px"></i></button>
+                    </div>
+                  </div>
+                  <input class="nsm-input rt-field--locked" readonly value="每週使用 Zoom 完成一場「1 小時 3 人以上會議」的用戶數">
+                </div>
+                <div class="nsm-field">
+                  <div class="field__label-row">
+                    <label class="field__label">定義說明</label>
+                    <div class="field__hint-row">
+                      <button class="field__hint-link"><i class="ph ph-lightbulb"></i>提示</button>
+                      <button class="field-example-toggle"><i class="ph ph-quotes"></i>範例答案<i class="ph ph-caret-down" style="font-size:12px"></i></button>
+                    </div>
+                  </div>
+                  <div class="rt-field rt-field--locked">
+                    <div class="rt-field__toolbar">
+                      <button class="rt-tbtn"><i class="ph ph-text-b"></i></button>
+                      <button class="rt-tbtn"><i class="ph ph-list-bullets"></i></button>
+                    </div>
+                    <textarea class="rt-textarea" readonly rows="3">（未填寫）</textarea>
+                  </div>
+                </div>
+                <div class="nsm-field" style="margin-bottom:0">
+                  <div class="field__label-row">
+                    <label class="field__label">與業務目標的連結</label>
+                    <div class="field__hint-row">
+                      <button class="field__hint-link"><i class="ph ph-lightbulb"></i>提示</button>
+                      <button class="field-example-toggle"><i class="ph ph-quotes"></i>範例答案<i class="ph ph-caret-down" style="font-size:12px"></i></button>
+                    </div>
+                  </div>
+                  <div class="rt-field rt-field--locked">
+                    <div class="rt-field__toolbar">
+                      <button class="rt-tbtn"><i class="ph ph-text-b"></i></button>
+                      <button class="rt-tbtn"><i class="ph ph-list-bullets"></i></button>
+                    </div>
+                    <textarea class="rt-textarea" readonly rows="3">（未填寫）</textarea>
+                  </div>
+                </div>
+              </div>
+            </div>
+            <div class="submit-bar submit-bar--locked">
+              <div class="submit-bar__meta"><i class="ph ph-lock"></i>已評分完成</div>
+              <button class="btn btn--primary" style="min-width:160px">查看評分結果<i class="ph ph-arrow-right"></i></button>
+            </div>
+          </div><!-- /scene A1 mobile -->
+
+          <div class="scene-separator"></div>
+
+          <!-- A2: 提示 modal opened on 北極星指標 -->
+          <div class="state-label">A2 · 提示 Modal 開啟（北極星指標）</div>
+          <div class="scene-wrap">
+            <div class="navbar">
+              <button class="navbar__icon-btn" aria-label="menu"><i class="ph ph-list"></i></button>
+              <div class="navbar__brand"><span class="navbar__brand-icon"><i class="ph ph-circles-three"></i></span><span class="navbar__brand-name">PM Drill</span></div>
+              <div class="navbar__actions"><button class="navbar__icon-btn" aria-label="home"><i class="ph ph-house"></i></button></div>
+            </div>
+            <div class="phase-head">
+              <span class="phase-head__num">2</span>
+              <div class="phase-head__main">
+                <div class="phase-head__eyebrow">NSM · 北極星訓練</div>
+                <div class="phase-head__title">定義 NSM</div>
+              </div>
+            </div>
+            <div class="nsm-progress">
+              <div class="nsm-progress__step is-done"><div class="nsm-progress__dot"><i class="ph ph-check" style="font-size:11px"></i></div><div class="nsm-progress__label">情境</div></div>
+              <div class="nsm-progress__line is-done"></div>
+              <div class="nsm-progress__step is-active"><div class="nsm-progress__dot">2</div><div class="nsm-progress__label">指標</div></div>
+              <div class="nsm-progress__line is-done"></div>
+              <div class="nsm-progress__step is-done"><div class="nsm-progress__dot"><i class="ph ph-check" style="font-size:11px"></i></div><div class="nsm-progress__label">拆解</div></div>
+              <div class="nsm-progress__line is-done"></div>
+              <div class="nsm-progress__step is-done"><div class="nsm-progress__dot"><i class="ph ph-check" style="font-size:11px"></i></div><div class="nsm-progress__label">總結</div></div>
+            </div>
+            <div class="banner banner--locked">
+              <span class="banner__icon"><i class="ph ph-lock-key"></i></span>
+              <div class="banner__main">
+                <div class="banner__title">已評分完成</div>
+                <div class="banner__sub">內容鎖定，可繼續查看提示與範例</div>
+              </div>
+            </div>
+            <div class="nsm-body">
+              <div class="nsm-context-card">
+                <div class="nsm-context-card__top">
+                  <span class="nsm-context-card__company">Zoom</span>
+                  <span class="nsm-context-card__industry">視訊會議 SaaS</span>
+                  <span class="nsm-context-card__type nsm-context-card__type--attention"><i class="ph ph-cloud"></i>SaaS 型</span>
+                </div>
+                <p class="nsm-context-card__scenario">遠端工作普及後，Zoom 需確保企業用戶真的在平台上進行有效溝通，而非只是安裝備用。</p>
+                <span class="nsm-context-card__hint"><i class="ph ph-info"></i>核心問題：「安裝了但不用」的用戶不代表真實價值，如何以行為指標衡量有效使用？</span>
+                <button class="nsm-context-card__expand-toggle"><i class="ph ph-caret-down"></i>深入了解問題</button>
+              </div>
+              <div class="va-block">
+                <div class="va-block__heading"><i class="ph ph-notepad"></i>你的 NSM</div>
+                <div class="nsm-field">
+                  <div class="field__label-row">
+                    <label class="field__label">北極星指標 (NSM)</label>
+                    <div class="field__hint-row">
+                      <button class="field__hint-link" style="color:var(--c-navy);font-weight:600"><i class="ph ph-lightbulb-fill"></i>提示</button>
+                      <button class="field-example-toggle"><i class="ph ph-quotes"></i>範例答案<i class="ph ph-caret-down" style="font-size:12px"></i></button>
+                    </div>
+                  </div>
+                  <input class="nsm-input rt-field--locked" readonly value="每週使用 Zoom 完成一場「1 小時 3 人以上會議」的用戶數">
+                </div>
+                <div class="nsm-field">
+                  <div class="field__label-row">
+                    <label class="field__label">定義說明</label>
+                    <div class="field__hint-row">
+                      <button class="field__hint-link"><i class="ph ph-lightbulb"></i>提示</button>
+                      <button class="field-example-toggle"><i class="ph ph-quotes"></i>範例答案<i class="ph ph-caret-down" style="font-size:12px"></i></button>
+                    </div>
+                  </div>
+                  <div class="rt-field rt-field--locked">
+                    <div class="rt-field__toolbar">
+                      <button class="rt-tbtn"><i class="ph ph-text-b"></i></button>
+                      <button class="rt-tbtn"><i class="ph ph-list-bullets"></i></button>
+                    </div>
+                    <textarea class="rt-textarea" readonly rows="3">（未填寫）</textarea>
+                  </div>
+                </div>
+                <div class="nsm-field" style="margin-bottom:0">
+                  <div class="field__label-row">
+                    <label class="field__label">與業務目標的連結</label>
+                    <div class="field__hint-row">
+                      <button class="field__hint-link"><i class="ph ph-lightbulb"></i>提示</button>
+                      <button class="field-example-toggle"><i class="ph ph-quotes"></i>範例答案<i class="ph ph-caret-down" style="font-size:12px"></i></button>
+                    </div>
+                  </div>
+                  <div class="rt-field rt-field--locked">
+                    <div class="rt-field__toolbar">
+                      <button class="rt-tbtn"><i class="ph ph-text-b"></i></button>
+                      <button class="rt-tbtn"><i class="ph ph-list-bullets"></i></button>
+                    </div>
+                    <textarea class="rt-textarea" readonly rows="3">（未填寫）</textarea>
+                  </div>
+                </div>
+              </div>
+            </div>
+            <div class="submit-bar submit-bar--locked">
+              <div class="submit-bar__meta"><i class="ph ph-lock"></i>已評分完成</div>
+              <button class="btn btn--primary" style="min-width:160px">查看評分結果<i class="ph ph-arrow-right"></i></button>
+            </div>
+            <!-- Hint Modal Overlay -->
+            <div class="hint-overlay">
+              <div class="hint-overlay__backdrop"></div>
+              <div class="modal-card">
+                <div class="modal__head">
+                  <span class="modal__head-icon"><i class="ph ph-lightbulb"></i></span>
+                  <div class="modal__head-main">
+                    <div class="modal__head-title">提示 · 北極星指標 (NSM)</div>
+                    <div class="modal__head-sub">Zoom · 視訊會議 SaaS</div>
+                  </div>
+                </div>
+                <div class="modal__body">
+                  <p><strong>核心檢驗：什麼行為才算「真價值交付」？</strong></p>
+                  <p>你要問：當使用者<strong>完成了什麼動作</strong>之後，你會 confident 地說「對，這個人從 Zoom 拿到價值」？<br>開啟 app？登入？建立會議連結？這些是 vanity action — 太早。<br>真正的價值交付點，是「<strong>完成一場有意義的對話</strong>」。</p>
+                  <p><strong>量化建議：把「行為 × 量級」變數值</strong></p>
+                  <ul>
+                    <li>行為：完成會議（不只是開始）</li>
+                    <li>量級：3 人以上 × 30 分鐘以上（避免「兩人測試 5 秒鐘」的 noise）</li>
+                    <li>頻率：每週至少 1 場（避開季度性的會展型 user）</li>
+                    <li>對象：付費企業主辦人（個人 free user 是 conversion 漏斗，不是 NSM）</li>
+                  </ul>
+                  <p><strong>避坑 3 件事</strong></p>
+                  <ul>
+                    <li>不要用 MAU/DAU — 那些 metrics 包含「裝了沒用」的 vanity</li>
+                    <li>不要用「會議分鐘總數」— 一個人開 10 小時與 10 個人各開 1 小時權重不同</li>
+                    <li>不要把目標訂太低 — 「每週開 1 場」是地板，主辦人的「retention 線」應該是「每月至少 4 場」</li>
+                  </ul>
+                </div>
+                <div class="modal__foot">
+                  <button class="btn btn--primary">了解了</button>
+                </div>
+              </div>
+            </div>
+          </div><!-- /scene A2 mobile -->
+
+          <div class="scene-separator"></div>
+
+          <!-- A3: 範例答案 expanded on 北極星指標 -->
+          <div class="state-label">A3 · 範例答案展開（北極星指標）</div>
+          <div class="scene-wrap">
+            <div class="navbar">
+              <button class="navbar__icon-btn" aria-label="menu"><i class="ph ph-list"></i></button>
+              <div class="navbar__brand"><span class="navbar__brand-icon"><i class="ph ph-circles-three"></i></span><span class="navbar__brand-name">PM Drill</span></div>
+              <div class="navbar__actions"><button class="navbar__icon-btn" aria-label="home"><i class="ph ph-house"></i></button></div>
+            </div>
+            <div class="phase-head">
+              <span class="phase-head__num">2</span>
+              <div class="phase-head__main">
+                <div class="phase-head__eyebrow">NSM · 北極星訓練</div>
+                <div class="phase-head__title">定義 NSM</div>
+              </div>
+            </div>
+            <div class="nsm-progress">
+              <div class="nsm-progress__step is-done"><div class="nsm-progress__dot"><i class="ph ph-check" style="font-size:11px"></i></div><div class="nsm-progress__label">情境</div></div>
+              <div class="nsm-progress__line is-done"></div>
+              <div class="nsm-progress__step is-active"><div class="nsm-progress__dot">2</div><div class="nsm-progress__label">指標</div></div>
+              <div class="nsm-progress__line is-done"></div>
+              <div class="nsm-progress__step is-done"><div class="nsm-progress__dot"><i class="ph ph-check" style="font-size:11px"></i></div><div class="nsm-progress__label">拆解</div></div>
+              <div class="nsm-progress__line is-done"></div>
+              <div class="nsm-progress__step is-done"><div class="nsm-progress__dot"><i class="ph ph-check" style="font-size:11px"></i></div><div class="nsm-progress__label">總結</div></div>
+            </div>
+            <div class="banner banner--locked">
+              <span class="banner__icon"><i class="ph ph-lock-key"></i></span>
+              <div class="banner__main">
+                <div class="banner__title">已評分完成</div>
+                <div class="banner__sub">內容鎖定，可繼續查看提示與範例</div>
+              </div>
+            </div>
+            <div class="nsm-body">
+              <div class="nsm-context-card">
+                <div class="nsm-context-card__top">
+                  <span class="nsm-context-card__company">Zoom</span>
+                  <span class="nsm-context-card__industry">視訊會議 SaaS</span>
+                  <span class="nsm-context-card__type nsm-context-card__type--attention"><i class="ph ph-cloud"></i>SaaS 型</span>
+                </div>
+                <p class="nsm-context-card__scenario">遠端工作普及後，Zoom 需確保企業用戶真的在平台上進行有效溝通，而非只是安裝備用。</p>
+                <span class="nsm-context-card__hint"><i class="ph ph-info"></i>核心問題：「安裝了但不用」的用戶不代表真實價值，如何以行為指標衡量有效使用？</span>
+                <button class="nsm-context-card__expand-toggle"><i class="ph ph-caret-down"></i>深入了解問題</button>
+              </div>
+              <div class="va-block">
+                <div class="va-block__heading"><i class="ph ph-notepad"></i>你的 NSM</div>
+                <div class="nsm-field">
+                  <div class="field__label-row">
+                    <label class="field__label">北極星指標 (NSM)</label>
+                    <div class="field__hint-row">
+                      <button class="field__hint-link"><i class="ph ph-lightbulb"></i>提示</button>
+                      <button class="field-example-toggle" style="color:var(--c-navy);font-weight:600"><i class="ph ph-quotes-fill"></i>範例答案<i class="ph ph-caret-up" style="font-size:12px"></i></button>
+                    </div>
+                  </div>
+                  <input class="nsm-input rt-field--locked" readonly value="每週使用 Zoom 完成一場「1 小時 3 人以上會議」的用戶數">
+                  <!-- example-expand inline below input -->
+                  <div class="example-expand">
+                    <div class="example-expand__head">
+                      <span class="example-expand__title"><i class="ph ph-quotes"></i>範例答案 · 北極星指標 (NSM)</span>
+                      <button class="example-expand__close"><i class="ph ph-x"></i></button>
+                    </div>
+                    <div class="example-list">
+                      <p><strong>每週使用 Zoom 完成至少一場 30 分鐘以上、3 人以上的會議的「付費企業主辦人」數</strong></p>
+                      <p><strong>為什麼這樣定義：</strong></p>
+                      <ul>
+                        <li>「30 分鐘以上 × 3 人以上」捕捉「實質討論」的最低門檻，排除「兩人 5 秒鐘測試」的 vanity</li>
+                        <li>「付費企業主辦人」聚焦續訂金主，不是 free user</li>
+                        <li>「每週」週期反映 recurring 商業會議的真實節奏（個人會用月、企業會用週）</li>
+                      </ul>
+                      <p><strong>跟業務目標的連結：</strong></p>
+                      <ul>
+                        <li>主辦人活躍 → 企業續訂率 → ARR</li>
+                        <li>一個企業若主辦人都不活躍，下次續約絕對掉</li>
+                      </ul>
+                    </div>
+                  </div>
+                </div>
+                <div class="nsm-field">
+                  <div class="field__label-row">
+                    <label class="field__label">定義說明</label>
+                    <div class="field__hint-row">
+                      <button class="field__hint-link"><i class="ph ph-lightbulb"></i>提示</button>
+                      <button class="field-example-toggle"><i class="ph ph-quotes"></i>範例答案<i class="ph ph-caret-down" style="font-size:12px"></i></button>
+                    </div>
+                  </div>
+                  <div class="rt-field rt-field--locked">
+                    <div class="rt-field__toolbar">
+                      <button class="rt-tbtn"><i class="ph ph-text-b"></i></button>
+                      <button class="rt-tbtn"><i class="ph ph-list-bullets"></i></button>
+                    </div>
+                    <textarea class="rt-textarea" readonly rows="3">（未填寫）</textarea>
+                  </div>
+                </div>
+                <div class="nsm-field" style="margin-bottom:0">
+                  <div class="field__label-row">
+                    <label class="field__label">與業務目標的連結</label>
+                    <div class="field__hint-row">
+                      <button class="field__hint-link"><i class="ph ph-lightbulb"></i>提示</button>
+                      <button class="field-example-toggle"><i class="ph ph-quotes"></i>範例答案<i class="ph ph-caret-down" style="font-size:12px"></i></button>
+                    </div>
+                  </div>
+                  <div class="rt-field rt-field--locked">
+                    <div class="rt-field__toolbar">
+                      <button class="rt-tbtn"><i class="ph ph-text-b"></i></button>
+                      <button class="rt-tbtn"><i class="ph ph-list-bullets"></i></button>
+                    </div>
+                    <textarea class="rt-textarea" readonly rows="3">（未填寫）</textarea>
+                  </div>
+                </div>
+              </div>
+            </div>
+            <div class="submit-bar submit-bar--locked">
+              <div class="submit-bar__meta"><i class="ph ph-lock"></i>已評分完成</div>
+              <button class="btn btn--primary" style="min-width:160px">查看評分結果<i class="ph ph-arrow-right"></i></button>
+            </div>
+          </div><!-- /scene A3 mobile -->
+
+        </div>
+      </div><!-- /vp-frame mobile 360 -->
+
+
+      <!-- ============================================================ -->
+      <!-- Tablet 768                                                   -->
+      <!-- ============================================================ -->
+      <div class="vp-frame">
+        <div class="vp-frame__label"><span>Tablet</span><span>768 × auto</span></div>
+        <div class="vp-frame__inner" style="width:768px">
+
+          <!-- A1: Baseline locked -->
+          <div class="state-label">A1 · Baseline Locked</div>
+          <div class="scene-wrap">
+            <div class="navbar">
+              <button class="navbar__icon-btn" aria-label="menu"><i class="ph ph-list"></i></button>
+              <div class="navbar__brand"><span class="navbar__brand-icon"><i class="ph ph-circles-three"></i></span><span class="navbar__brand-name">PM Drill</span></div>
+              <div class="navbar__tabs">
+                <button class="navbar__tab">CIRCLES</button>
+                <button class="navbar__tab is-active">北極星</button>
+              </div>
+              <div class="navbar__actions">
+                <button class="navbar__icon-btn" aria-label="search"><i class="ph ph-magnifying-glass"></i></button>
+                <button class="navbar__icon-btn" aria-label="home"><i class="ph ph-house"></i></button>
+              </div>
+            </div>
+            <div class="phase-head">
+              <span class="phase-head__num">2</span>
+              <div class="phase-head__main">
+                <div class="phase-head__eyebrow">NSM · 北極星訓練</div>
+                <div class="phase-head__title">定義 NSM</div>
+              </div>
+              <div class="phase-head__meta"><span>Zoom · 視訊會議 SaaS</span></div>
+            </div>
+            <div class="nsm-progress">
+              <div class="nsm-progress__step is-done"><div class="nsm-progress__dot"><i class="ph ph-check" style="font-size:11px"></i></div><div class="nsm-progress__label">情境</div></div>
+              <div class="nsm-progress__line is-done"></div>
+              <div class="nsm-progress__step is-active"><div class="nsm-progress__dot">2</div><div class="nsm-progress__label">指標</div></div>
+              <div class="nsm-progress__line is-done"></div>
+              <div class="nsm-progress__step is-done"><div class="nsm-progress__dot"><i class="ph ph-check" style="font-size:11px"></i></div><div class="nsm-progress__label">拆解</div></div>
+              <div class="nsm-progress__line is-done"></div>
+              <div class="nsm-progress__step is-done"><div class="nsm-progress__dot"><i class="ph ph-check" style="font-size:11px"></i></div><div class="nsm-progress__label">總結</div></div>
+            </div>
+            <div class="banner banner--locked">
+              <span class="banner__icon"><i class="ph ph-lock-key"></i></span>
+              <div class="banner__main">
+                <div class="banner__title">已評分完成</div>
+                <div class="banner__sub">內容鎖定，可繼續查看提示與範例</div>
+              </div>
+            </div>
+            <div class="nsm-body">
+              <div class="nsm-context-card">
+                <div class="nsm-context-card__top">
+                  <span class="nsm-context-card__company">Zoom</span>
+                  <span class="nsm-context-card__industry">視訊會議 SaaS</span>
+                  <span class="nsm-context-card__type nsm-context-card__type--attention"><i class="ph ph-cloud"></i>SaaS 型</span>
+                </div>
+                <p class="nsm-context-card__scenario">遠端工作普及後，Zoom 需確保企業用戶真的在平台上進行有效溝通，而非只是安裝備用。</p>
+                <span class="nsm-context-card__hint"><i class="ph ph-info"></i>核心問題：「安裝了但不用」的用戶不代表真實價值，如何以行為指標衡量有效使用？</span>
+                <button class="nsm-context-card__expand-toggle"><i class="ph ph-caret-down"></i>深入了解問題</button>
+              </div>
+              <div class="va-block">
+                <div class="va-block__heading"><i class="ph ph-notepad"></i>你的 NSM</div>
+                <div class="nsm-field">
+                  <div class="field__label-row">
+                    <label class="field__label">北極星指標 (NSM)</label>
+                    <div class="field__hint-row">
+                      <button class="field__hint-link"><i class="ph ph-lightbulb"></i>提示</button>
+                      <button class="field-example-toggle"><i class="ph ph-quotes"></i>範例答案<i class="ph ph-caret-down" style="font-size:12px"></i></button>
+                    </div>
+                  </div>
+                  <input class="nsm-input rt-field--locked" readonly value="每週使用 Zoom 完成一場「1 小時 3 人以上會議」的用戶數">
+                </div>
+                <div class="nsm-field">
+                  <div class="field__label-row">
+                    <label class="field__label">定義說明</label>
+                    <div class="field__hint-row">
+                      <button class="field__hint-link"><i class="ph ph-lightbulb"></i>提示</button>
+                      <button class="field-example-toggle"><i class="ph ph-quotes"></i>範例答案<i class="ph ph-caret-down" style="font-size:12px"></i></button>
+                    </div>
+                  </div>
+                  <div class="rt-field rt-field--locked">
+                    <div class="rt-field__toolbar">
+                      <button class="rt-tbtn"><i class="ph ph-text-b"></i></button>
+                      <button class="rt-tbtn"><i class="ph ph-list-bullets"></i></button>
+                    </div>
+                    <textarea class="rt-textarea" readonly rows="3">（未填寫）</textarea>
+                  </div>
+                </div>
+                <div class="nsm-field" style="margin-bottom:0">
+                  <div class="field__label-row">
+                    <label class="field__label">與業務目標的連結</label>
+                    <div class="field__hint-row">
+                      <button class="field__hint-link"><i class="ph ph-lightbulb"></i>提示</button>
+                      <button class="field-example-toggle"><i class="ph ph-quotes"></i>範例答案<i class="ph ph-caret-down" style="font-size:12px"></i></button>
+                    </div>
+                  </div>
+                  <div class="rt-field rt-field--locked">
+                    <div class="rt-field__toolbar">
+                      <button class="rt-tbtn"><i class="ph ph-text-b"></i></button>
+                      <button class="rt-tbtn"><i class="ph ph-list-bullets"></i></button>
+                    </div>
+                    <textarea class="rt-textarea" readonly rows="3">（未填寫）</textarea>
+                  </div>
+                </div>
+              </div>
+            </div>
+            <div class="submit-bar submit-bar--locked">
+              <div class="submit-bar__meta"><i class="ph ph-lock"></i>已評分完成</div>
+              <button class="btn btn--primary" style="min-width:160px">查看評分結果<i class="ph ph-arrow-right"></i></button>
+            </div>
+          </div><!-- /A1 tablet -->
+
+          <div class="scene-separator"></div>
+
+          <!-- A2: 提示 modal — tablet -->
+          <div class="state-label">A2 · 提示 Modal 開啟（北極星指標）</div>
+          <div class="scene-wrap">
+            <div class="navbar">
+              <button class="navbar__icon-btn" aria-label="menu"><i class="ph ph-list"></i></button>
+              <div class="navbar__brand"><span class="navbar__brand-icon"><i class="ph ph-circles-three"></i></span><span class="navbar__brand-name">PM Drill</span></div>
+              <div class="navbar__tabs">
+                <button class="navbar__tab">CIRCLES</button>
+                <button class="navbar__tab is-active">北極星</button>
+              </div>
+              <div class="navbar__actions">
+                <button class="navbar__icon-btn" aria-label="search"><i class="ph ph-magnifying-glass"></i></button>
+                <button class="navbar__icon-btn" aria-label="home"><i class="ph ph-house"></i></button>
+              </div>
+            </div>
+            <div class="phase-head">
+              <span class="phase-head__num">2</span>
+              <div class="phase-head__main">
+                <div class="phase-head__eyebrow">NSM · 北極星訓練</div>
+                <div class="phase-head__title">定義 NSM</div>
+              </div>
+              <div class="phase-head__meta"><span>Zoom · 視訊會議 SaaS</span></div>
+            </div>
+            <div class="nsm-progress">
+              <div class="nsm-progress__step is-done"><div class="nsm-progress__dot"><i class="ph ph-check" style="font-size:11px"></i></div><div class="nsm-progress__label">情境</div></div>
+              <div class="nsm-progress__line is-done"></div>
+              <div class="nsm-progress__step is-active"><div class="nsm-progress__dot">2</div><div class="nsm-progress__label">指標</div></div>
+              <div class="nsm-progress__line is-done"></div>
+              <div class="nsm-progress__step is-done"><div class="nsm-progress__dot"><i class="ph ph-check" style="font-size:11px"></i></div><div class="nsm-progress__label">拆解</div></div>
+              <div class="nsm-progress__line is-done"></div>
+              <div class="nsm-progress__step is-done"><div class="nsm-progress__dot"><i class="ph ph-check" style="font-size:11px"></i></div><div class="nsm-progress__label">總結</div></div>
+            </div>
+            <div class="banner banner--locked">
+              <span class="banner__icon"><i class="ph ph-lock-key"></i></span>
+              <div class="banner__main">
+                <div class="banner__title">已評分完成</div>
+                <div class="banner__sub">內容鎖定，可繼續查看提示與範例</div>
+              </div>
+            </div>
+            <div class="nsm-body">
+              <div class="nsm-context-card">
+                <div class="nsm-context-card__top">
+                  <span class="nsm-context-card__company">Zoom</span>
+                  <span class="nsm-context-card__industry">視訊會議 SaaS</span>
+                  <span class="nsm-context-card__type nsm-context-card__type--attention"><i class="ph ph-cloud"></i>SaaS 型</span>
+                </div>
+                <p class="nsm-context-card__scenario">遠端工作普及後，Zoom 需確保企業用戶真的在平台上進行有效溝通，而非只是安裝備用。</p>
+                <span class="nsm-context-card__hint"><i class="ph ph-info"></i>核心問題：「安裝了但不用」的用戶不代表真實價值，如何以行為指標衡量有效使用？</span>
+                <button class="nsm-context-card__expand-toggle"><i class="ph ph-caret-down"></i>深入了解問題</button>
+              </div>
+              <div class="va-block">
+                <div class="va-block__heading"><i class="ph ph-notepad"></i>你的 NSM</div>
+                <div class="nsm-field">
+                  <div class="field__label-row">
+                    <label class="field__label">北極星指標 (NSM)</label>
+                    <div class="field__hint-row">
+                      <button class="field__hint-link" style="color:var(--c-navy);font-weight:600"><i class="ph ph-lightbulb-fill"></i>提示</button>
+                      <button class="field-example-toggle"><i class="ph ph-quotes"></i>範例答案<i class="ph ph-caret-down" style="font-size:12px"></i></button>
+                    </div>
+                  </div>
+                  <input class="nsm-input rt-field--locked" readonly value="每週使用 Zoom 完成一場「1 小時 3 人以上會議」的用戶數">
+                </div>
+                <div class="nsm-field">
+                  <div class="field__label-row">
+                    <label class="field__label">定義說明</label>
+                    <div class="field__hint-row">
+                      <button class="field__hint-link"><i class="ph ph-lightbulb"></i>提示</button>
+                      <button class="field-example-toggle"><i class="ph ph-quotes"></i>範例答案<i class="ph ph-caret-down" style="font-size:12px"></i></button>
+                    </div>
+                  </div>
+                  <div class="rt-field rt-field--locked">
+                    <div class="rt-field__toolbar">
+                      <button class="rt-tbtn"><i class="ph ph-text-b"></i></button>
+                      <button class="rt-tbtn"><i class="ph ph-list-bullets"></i></button>
+                    </div>
+                    <textarea class="rt-textarea" readonly rows="3">（未填寫）</textarea>
+                  </div>
+                </div>
+                <div class="nsm-field" style="margin-bottom:0">
+                  <div class="field__label-row">
+                    <label class="field__label">與業務目標的連結</label>
+                    <div class="field__hint-row">
+                      <button class="field__hint-link"><i class="ph ph-lightbulb"></i>提示</button>
+                      <button class="field-example-toggle"><i class="ph ph-quotes"></i>範例答案<i class="ph ph-caret-down" style="font-size:12px"></i></button>
+                    </div>
+                  </div>
+                  <div class="rt-field rt-field--locked">
+                    <div class="rt-field__toolbar">
+                      <button class="rt-tbtn"><i class="ph ph-text-b"></i></button>
+                      <button class="rt-tbtn"><i class="ph ph-list-bullets"></i></button>
+                    </div>
+                    <textarea class="rt-textarea" readonly rows="3">（未填寫）</textarea>
+                  </div>
+                </div>
+              </div>
+            </div>
+            <div class="submit-bar submit-bar--locked">
+              <div class="submit-bar__meta"><i class="ph ph-lock"></i>已評分完成</div>
+              <button class="btn btn--primary" style="min-width:160px">查看評分結果<i class="ph ph-arrow-right"></i></button>
+            </div>
+            <!-- Hint Modal — tablet -->
+            <div class="hint-overlay">
+              <div class="hint-overlay__backdrop"></div>
+              <div class="modal-card" style="max-width:520px;margin:0 auto;border-radius:var(--r-card)">
+                <div class="modal__head">
+                  <span class="modal__head-icon"><i class="ph ph-lightbulb"></i></span>
+                  <div class="modal__head-main">
+                    <div class="modal__head-title">提示 · 北極星指標 (NSM)</div>
+                    <div class="modal__head-sub">Zoom · 視訊會議 SaaS</div>
+                  </div>
+                </div>
+                <div class="modal__body">
+                  <p><strong>核心檢驗：什麼行為才算「真價值交付」？</strong></p>
+                  <p>你要問：當使用者<strong>完成了什麼動作</strong>之後，你會 confident 地說「對，這個人從 Zoom 拿到價值」？<br>開啟 app？登入？建立會議連結？這些是 vanity action — 太早。<br>真正的價值交付點，是「<strong>完成一場有意義的對話</strong>」。</p>
+                  <p><strong>量化建議：把「行為 × 量級」變數值</strong></p>
+                  <ul>
+                    <li>行為：完成會議（不只是開始）</li>
+                    <li>量級：3 人以上 × 30 分鐘以上（避免「兩人測試 5 秒鐘」的 noise）</li>
+                    <li>頻率：每週至少 1 場（避開季度性的會展型 user）</li>
+                    <li>對象：付費企業主辦人（個人 free user 是 conversion 漏斗，不是 NSM）</li>
+                  </ul>
+                  <p><strong>避坑 3 件事</strong></p>
+                  <ul>
+                    <li>不要用 MAU/DAU — 那些 metrics 包含「裝了沒用」的 vanity</li>
+                    <li>不要用「會議分鐘總數」— 一個人開 10 小時與 10 個人各開 1 小時權重不同</li>
+                    <li>不要把目標訂太低 — 「每週開 1 場」是地板，主辦人的「retention 線」應該是「每月至少 4 場」</li>
+                  </ul>
+                </div>
+                <div class="modal__foot">
+                  <button class="btn btn--primary">了解了</button>
+                </div>
+              </div>
+            </div>
+          </div><!-- /A2 tablet -->
+
+          <div class="scene-separator"></div>
+
+          <!-- A3: 範例答案 expanded — tablet -->
+          <div class="state-label">A3 · 範例答案展開（北極星指標）</div>
+          <div class="scene-wrap">
+            <div class="navbar">
+              <button class="navbar__icon-btn" aria-label="menu"><i class="ph ph-list"></i></button>
+              <div class="navbar__brand"><span class="navbar__brand-icon"><i class="ph ph-circles-three"></i></span><span class="navbar__brand-name">PM Drill</span></div>
+              <div class="navbar__tabs">
+                <button class="navbar__tab">CIRCLES</button>
+                <button class="navbar__tab is-active">北極星</button>
+              </div>
+              <div class="navbar__actions">
+                <button class="navbar__icon-btn" aria-label="search"><i class="ph ph-magnifying-glass"></i></button>
+                <button class="navbar__icon-btn" aria-label="home"><i class="ph ph-house"></i></button>
+              </div>
+            </div>
+            <div class="phase-head">
+              <span class="phase-head__num">2</span>
+              <div class="phase-head__main">
+                <div class="phase-head__eyebrow">NSM · 北極星訓練</div>
+                <div class="phase-head__title">定義 NSM</div>
+              </div>
+              <div class="phase-head__meta"><span>Zoom · 視訊會議 SaaS</span></div>
+            </div>
+            <div class="nsm-progress">
+              <div class="nsm-progress__step is-done"><div class="nsm-progress__dot"><i class="ph ph-check" style="font-size:11px"></i></div><div class="nsm-progress__label">情境</div></div>
+              <div class="nsm-progress__line is-done"></div>
+              <div class="nsm-progress__step is-active"><div class="nsm-progress__dot">2</div><div class="nsm-progress__label">指標</div></div>
+              <div class="nsm-progress__line is-done"></div>
+              <div class="nsm-progress__step is-done"><div class="nsm-progress__dot"><i class="ph ph-check" style="font-size:11px"></i></div><div class="nsm-progress__label">拆解</div></div>
+              <div class="nsm-progress__line is-done"></div>
+              <div class="nsm-progress__step is-done"><div class="nsm-progress__dot"><i class="ph ph-check" style="font-size:11px"></i></div><div class="nsm-progress__label">總結</div></div>
+            </div>
+            <div class="banner banner--locked">
+              <span class="banner__icon"><i class="ph ph-lock-key"></i></span>
+              <div class="banner__main">
+                <div class="banner__title">已評分完成</div>
+                <div class="banner__sub">內容鎖定，可繼續查看提示與範例</div>
+              </div>
+            </div>
+            <div class="nsm-body">
+              <div class="nsm-context-card">
+                <div class="nsm-context-card__top">
+                  <span class="nsm-context-card__company">Zoom</span>
+                  <span class="nsm-context-card__industry">視訊會議 SaaS</span>
+                  <span class="nsm-context-card__type nsm-context-card__type--attention"><i class="ph ph-cloud"></i>SaaS 型</span>
+                </div>
+                <p class="nsm-context-card__scenario">遠端工作普及後，Zoom 需確保企業用戶真的在平台上進行有效溝通，而非只是安裝備用。</p>
+                <span class="nsm-context-card__hint"><i class="ph ph-info"></i>核心問題：「安裝了但不用」的用戶不代表真實價值，如何以行為指標衡量有效使用？</span>
+                <button class="nsm-context-card__expand-toggle"><i class="ph ph-caret-down"></i>深入了解問題</button>
+              </div>
+              <div class="va-block">
+                <div class="va-block__heading"><i class="ph ph-notepad"></i>你的 NSM</div>
+                <div class="nsm-field">
+                  <div class="field__label-row">
+                    <label class="field__label">北極星指標 (NSM)</label>
+                    <div class="field__hint-row">
+                      <button class="field__hint-link"><i class="ph ph-lightbulb"></i>提示</button>
+                      <button class="field-example-toggle" style="color:var(--c-navy);font-weight:600"><i class="ph ph-quotes-fill"></i>範例答案<i class="ph ph-caret-up" style="font-size:12px"></i></button>
+                    </div>
+                  </div>
+                  <input class="nsm-input rt-field--locked" readonly value="每週使用 Zoom 完成一場「1 小時 3 人以上會議」的用戶數">
+                  <div class="example-expand">
+                    <div class="example-expand__head">
+                      <span class="example-expand__title"><i class="ph ph-quotes"></i>範例答案 · 北極星指標 (NSM)</span>
+                      <button class="example-expand__close"><i class="ph ph-x"></i></button>
+                    </div>
+                    <div class="example-list">
+                      <p><strong>每週使用 Zoom 完成至少一場 30 分鐘以上、3 人以上的會議的「付費企業主辦人」數</strong></p>
+                      <p><strong>為什麼這樣定義：</strong></p>
+                      <ul>
+                        <li>「30 分鐘以上 × 3 人以上」捕捉「實質討論」的最低門檻，排除「兩人 5 秒鐘測試」的 vanity</li>
+                        <li>「付費企業主辦人」聚焦續訂金主，不是 free user</li>
+                        <li>「每週」週期反映 recurring 商業會議的真實節奏（個人會用月、企業會用週）</li>
+                      </ul>
+                      <p><strong>跟業務目標的連結：</strong></p>
+                      <ul>
+                        <li>主辦人活躍 → 企業續訂率 → ARR</li>
+                        <li>一個企業若主辦人都不活躍，下次續約絕對掉</li>
+                      </ul>
+                    </div>
+                  </div>
+                </div>
+                <div class="nsm-field">
+                  <div class="field__label-row">
+                    <label class="field__label">定義說明</label>
+                    <div class="field__hint-row">
+                      <button class="field__hint-link"><i class="ph ph-lightbulb"></i>提示</button>
+                      <button class="field-example-toggle"><i class="ph ph-quotes"></i>範例答案<i class="ph ph-caret-down" style="font-size:12px"></i></button>
+                    </div>
+                  </div>
+                  <div class="rt-field rt-field--locked">
+                    <div class="rt-field__toolbar">
+                      <button class="rt-tbtn"><i class="ph ph-text-b"></i></button>
+                      <button class="rt-tbtn"><i class="ph ph-list-bullets"></i></button>
+                    </div>
+                    <textarea class="rt-textarea" readonly rows="3">（未填寫）</textarea>
+                  </div>
+                </div>
+                <div class="nsm-field" style="margin-bottom:0">
+                  <div class="field__label-row">
+                    <label class="field__label">與業務目標的連結</label>
+                    <div class="field__hint-row">
+                      <button class="field__hint-link"><i class="ph ph-lightbulb"></i>提示</button>
+                      <button class="field-example-toggle"><i class="ph ph-quotes"></i>範例答案<i class="ph ph-caret-down" style="font-size:12px"></i></button>
+                    </div>
+                  </div>
+                  <div class="rt-field rt-field--locked">
+                    <div class="rt-field__toolbar">
+                      <button class="rt-tbtn"><i class="ph ph-text-b"></i></button>
+                      <button class="rt-tbtn"><i class="ph ph-list-bullets"></i></button>
+                    </div>
+                    <textarea class="rt-textarea" readonly rows="3">（未填寫）</textarea>
+                  </div>
+                </div>
+              </div>
+            </div>
+            <div class="submit-bar submit-bar--locked">
+              <div class="submit-bar__meta"><i class="ph ph-lock"></i>已評分完成</div>
+              <button class="btn btn--primary" style="min-width:160px">查看評分結果<i class="ph ph-arrow-right"></i></button>
+            </div>
+          </div><!-- /A3 tablet -->
+
+        </div>
+      </div><!-- /vp-frame tablet 768 -->
+
+
+      <!-- ============================================================ -->
+      <!-- Desktop 1280                                                 -->
+      <!-- ============================================================ -->
+      <div class="vp-frame">
+        <div class="vp-frame__label"><span>Desktop</span><span>1280 × auto</span></div>
+        <div class="vp-frame__inner" style="width:1280px">
+
+          <!-- A1: Baseline locked -->
+          <div class="state-label">A1 · Baseline Locked</div>
+          <div class="scene-wrap">
+            <div class="navbar">
+              <button class="navbar__icon-btn" aria-label="menu"><i class="ph ph-list"></i></button>
+              <div class="navbar__brand"><span class="navbar__brand-icon"><i class="ph ph-circles-three"></i></span><span class="navbar__brand-name">PM Drill</span></div>
+              <div class="navbar__tabs">
+                <button class="navbar__tab">CIRCLES</button>
+                <button class="navbar__tab is-active">北極星</button>
+              </div>
+              <div class="navbar__actions">
+                <span class="navbar__email">albertpeng678@gmail.com</span>
+                <button class="navbar__icon-btn" aria-label="search"><i class="ph ph-magnifying-glass"></i></button>
+                <button class="navbar__icon-btn" aria-label="home"><i class="ph ph-house"></i></button>
+              </div>
+            </div>
+            <div class="phase-head">
+              <span class="phase-head__num">2</span>
+              <div class="phase-head__main">
+                <div class="phase-head__eyebrow">NSM · 北極星訓練</div>
+                <div class="phase-head__title">定義 NSM</div>
+              </div>
+              <div class="phase-head__meta">
+                <span>Zoom · 視訊會議 SaaS</span>
+                <span class="phase-head__meta-sep">·</span>
+                <span>3 步定義法</span>
+              </div>
+            </div>
+            <div class="nsm-progress">
+              <div class="nsm-progress__step is-done"><div class="nsm-progress__dot"><i class="ph ph-check" style="font-size:11px"></i></div><div class="nsm-progress__label">情境</div></div>
+              <div class="nsm-progress__line is-done"></div>
+              <div class="nsm-progress__step is-active"><div class="nsm-progress__dot">2</div><div class="nsm-progress__label">指標</div></div>
+              <div class="nsm-progress__line is-done"></div>
+              <div class="nsm-progress__step is-done"><div class="nsm-progress__dot"><i class="ph ph-check" style="font-size:11px"></i></div><div class="nsm-progress__label">拆解</div></div>
+              <div class="nsm-progress__line is-done"></div>
+              <div class="nsm-progress__step is-done"><div class="nsm-progress__dot"><i class="ph ph-check" style="font-size:11px"></i></div><div class="nsm-progress__label">總結</div></div>
+            </div>
+            <div class="banner banner--locked">
+              <span class="banner__icon"><i class="ph ph-lock-key"></i></span>
+              <div class="banner__main">
+                <div class="banner__title">已評分完成</div>
+                <div class="banner__sub">內容鎖定，可繼續查看提示與範例</div>
+              </div>
+            </div>
+            <div class="nsm-body">
+              <div class="nsm-context-card">
+                <div class="nsm-context-card__top">
+                  <span class="nsm-context-card__company">Zoom</span>
+                  <span class="nsm-context-card__industry">視訊會議 SaaS</span>
+                  <span class="nsm-context-card__type nsm-context-card__type--attention"><i class="ph ph-cloud"></i>SaaS 型</span>
+                </div>
+                <p class="nsm-context-card__scenario">遠端工作普及後，Zoom 需確保企業用戶真的在平台上進行有效溝通，而非只是安裝備用。</p>
+                <span class="nsm-context-card__hint"><i class="ph ph-info"></i>核心問題：「安裝了但不用」的用戶不代表真實價值，如何以行為指標衡量有效使用？</span>
+                <button class="nsm-context-card__expand-toggle"><i class="ph ph-caret-up"></i>深入了解問題（展開中）</button>
+                <!-- depth-context EXPANDED — desktop shows it open by default for richness -->
+                <div class="depth-context">
+                  <div class="depth-context__block">
+                    <div class="depth-context__label">商業模式</div>
+                    <div class="depth-context__text">Zoom 採 SaaS 訂閱制，企業按席次月/年付費；個人免費版每場 40 分鐘限制誘使升級。主要競爭：Microsoft Teams（綁定 Office 365）、Google Meet（綁定 Workspace）。</div>
+                  </div>
+                  <div class="depth-context__block">
+                    <div class="depth-context__label">使用者</div>
+                    <div class="depth-context__text">三類角色：（1）企業 IT 採購者（決策付費）；（2）會議主辦人（建立會議）；（3）與會者（被動加入）。北極星指標應聚焦「付費企業內的活躍主辦人」，因為他們是企業續訂的關鍵。</div>
+                  </div>
+                  <div class="depth-context__block">
+                    <div class="depth-context__label">常見陷阱</div>
+                    <div class="depth-context__text">把「會議總數」當 NSM 是 vanity — 一人開 10 場短會與 10 人各開 1 場長會差異很大。被「DAU」誤導 — 只算登入不算「實際完成有效會議」，會掩蓋「大量裝了但不用」的問題。</div>
+                  </div>
+                  <div class="depth-context__block">
+                    <div class="depth-context__label">破題切入</div>
+                    <div class="depth-context__text">從「會議結束 3 個工作日內，是否有後續再次發起會議」的回流行為切入。如果一個主辦人本週開了會、下週又自動再開，代表 Zoom 真正解決了 recurring 企業溝通需求。</div>
+                  </div>
+                </div>
+              </div>
+              <div class="va-block">
+                <div class="va-block__heading"><i class="ph ph-notepad"></i>你的 NSM</div>
+                <div class="nsm-field">
+                  <div class="field__label-row">
+                    <label class="field__label">北極星指標 (NSM)</label>
+                    <div class="field__hint-row">
+                      <button class="field__hint-link"><i class="ph ph-lightbulb"></i>提示</button>
+                      <button class="field-example-toggle"><i class="ph ph-quotes"></i>範例答案<i class="ph ph-caret-down" style="font-size:12px"></i></button>
+                    </div>
+                  </div>
+                  <input class="nsm-input rt-field--locked" readonly value="每週使用 Zoom 完成一場「1 小時 3 人以上會議」的用戶數">
+                </div>
+                <div class="nsm-field">
+                  <div class="field__label-row">
+                    <label class="field__label">定義說明</label>
+                    <div class="field__hint-row">
+                      <button class="field__hint-link"><i class="ph ph-lightbulb"></i>提示</button>
+                      <button class="field-example-toggle"><i class="ph ph-quotes"></i>範例答案<i class="ph ph-caret-down" style="font-size:12px"></i></button>
+                    </div>
+                  </div>
+                  <div class="rt-field rt-field--locked">
+                    <div class="rt-field__toolbar">
+                      <button class="rt-tbtn"><i class="ph ph-text-b"></i></button>
+                      <button class="rt-tbtn"><i class="ph ph-list-bullets"></i></button>
+                    </div>
+                    <textarea class="rt-textarea" readonly rows="3">（未填寫）</textarea>
+                  </div>
+                </div>
+                <div class="nsm-field" style="margin-bottom:0">
+                  <div class="field__label-row">
+                    <label class="field__label">與業務目標的連結</label>
+                    <div class="field__hint-row">
+                      <button class="field__hint-link"><i class="ph ph-lightbulb"></i>提示</button>
+                      <button class="field-example-toggle"><i class="ph ph-quotes"></i>範例答案<i class="ph ph-caret-down" style="font-size:12px"></i></button>
+                    </div>
+                  </div>
+                  <div class="rt-field rt-field--locked">
+                    <div class="rt-field__toolbar">
+                      <button class="rt-tbtn"><i class="ph ph-text-b"></i></button>
+                      <button class="rt-tbtn"><i class="ph ph-list-bullets"></i></button>
+                    </div>
+                    <textarea class="rt-textarea" readonly rows="3">（未填寫）</textarea>
+                  </div>
+                </div>
+              </div>
+            </div>
+            <div class="submit-bar submit-bar--locked">
+              <div class="submit-bar__meta"><i class="ph ph-lock"></i>已評分完成</div>
+              <button class="btn btn--primary" style="min-width:160px">查看評分結果<i class="ph ph-arrow-right"></i></button>
+            </div>
+          </div><!-- /A1 desktop -->
+
+          <div class="scene-separator"></div>
+
+          <!-- A2: 提示 modal — desktop -->
+          <div class="state-label">A2 · 提示 Modal 開啟（北極星指標）</div>
+          <div class="scene-wrap">
+            <div class="navbar">
+              <button class="navbar__icon-btn" aria-label="menu"><i class="ph ph-list"></i></button>
+              <div class="navbar__brand"><span class="navbar__brand-icon"><i class="ph ph-circles-three"></i></span><span class="navbar__brand-name">PM Drill</span></div>
+              <div class="navbar__tabs">
+                <button class="navbar__tab">CIRCLES</button>
+                <button class="navbar__tab is-active">北極星</button>
+              </div>
+              <div class="navbar__actions">
+                <span class="navbar__email">albertpeng678@gmail.com</span>
+                <button class="navbar__icon-btn" aria-label="search"><i class="ph ph-magnifying-glass"></i></button>
+                <button class="navbar__icon-btn" aria-label="home"><i class="ph ph-house"></i></button>
+              </div>
+            </div>
+            <div class="phase-head">
+              <span class="phase-head__num">2</span>
+              <div class="phase-head__main">
+                <div class="phase-head__eyebrow">NSM · 北極星訓練</div>
+                <div class="phase-head__title">定義 NSM</div>
+              </div>
+              <div class="phase-head__meta">
+                <span>Zoom · 視訊會議 SaaS</span>
+                <span class="phase-head__meta-sep">·</span>
+                <span>3 步定義法</span>
+              </div>
+            </div>
+            <div class="nsm-progress">
+              <div class="nsm-progress__step is-done"><div class="nsm-progress__dot"><i class="ph ph-check" style="font-size:11px"></i></div><div class="nsm-progress__label">情境</div></div>
+              <div class="nsm-progress__line is-done"></div>
+              <div class="nsm-progress__step is-active"><div class="nsm-progress__dot">2</div><div class="nsm-progress__label">指標</div></div>
+              <div class="nsm-progress__line is-done"></div>
+              <div class="nsm-progress__step is-done"><div class="nsm-progress__dot"><i class="ph ph-check" style="font-size:11px"></i></div><div class="nsm-progress__label">拆解</div></div>
+              <div class="nsm-progress__line is-done"></div>
+              <div class="nsm-progress__step is-done"><div class="nsm-progress__dot"><i class="ph ph-check" style="font-size:11px"></i></div><div class="nsm-progress__label">總結</div></div>
+            </div>
+            <div class="banner banner--locked">
+              <span class="banner__icon"><i class="ph ph-lock-key"></i></span>
+              <div class="banner__main">
+                <div class="banner__title">已評分完成</div>
+                <div class="banner__sub">內容鎖定，可繼續查看提示與範例</div>
+              </div>
+            </div>
+            <div class="nsm-body">
+              <div class="nsm-context-card">
+                <div class="nsm-context-card__top">
+                  <span class="nsm-context-card__company">Zoom</span>
+                  <span class="nsm-context-card__industry">視訊會議 SaaS</span>
+                  <span class="nsm-context-card__type nsm-context-card__type--attention"><i class="ph ph-cloud"></i>SaaS 型</span>
+                </div>
+                <p class="nsm-context-card__scenario">遠端工作普及後，Zoom 需確保企業用戶真的在平台上進行有效溝通，而非只是安裝備用。</p>
+                <span class="nsm-context-card__hint"><i class="ph ph-info"></i>核心問題：「安裝了但不用」的用戶不代表真實價值，如何以行為指標衡量有效使用？</span>
+                <button class="nsm-context-card__expand-toggle"><i class="ph ph-caret-down"></i>深入了解問題</button>
+              </div>
+              <div class="va-block">
+                <div class="va-block__heading"><i class="ph ph-notepad"></i>你的 NSM</div>
+                <div class="nsm-field">
+                  <div class="field__label-row">
+                    <label class="field__label">北極星指標 (NSM)</label>
+                    <div class="field__hint-row">
+                      <button class="field__hint-link" style="color:var(--c-navy);font-weight:600"><i class="ph ph-lightbulb-fill"></i>提示</button>
+                      <button class="field-example-toggle"><i class="ph ph-quotes"></i>範例答案<i class="ph ph-caret-down" style="font-size:12px"></i></button>
+                    </div>
+                  </div>
+                  <input class="nsm-input rt-field--locked" readonly value="每週使用 Zoom 完成一場「1 小時 3 人以上會議」的用戶數">
+                </div>
+                <div class="nsm-field">
+                  <div class="field__label-row">
+                    <label class="field__label">定義說明</label>
+                    <div class="field__hint-row">
+                      <button class="field__hint-link"><i class="ph ph-lightbulb"></i>提示</button>
+                      <button class="field-example-toggle"><i class="ph ph-quotes"></i>範例答案<i class="ph ph-caret-down" style="font-size:12px"></i></button>
+                    </div>
+                  </div>
+                  <div class="rt-field rt-field--locked">
+                    <div class="rt-field__toolbar">
+                      <button class="rt-tbtn"><i class="ph ph-text-b"></i></button>
+                      <button class="rt-tbtn"><i class="ph ph-list-bullets"></i></button>
+                    </div>
+                    <textarea class="rt-textarea" readonly rows="3">（未填寫）</textarea>
+                  </div>
+                </div>
+                <div class="nsm-field" style="margin-bottom:0">
+                  <div class="field__label-row">
+                    <label class="field__label">與業務目標的連結</label>
+                    <div class="field__hint-row">
+                      <button class="field__hint-link"><i class="ph ph-lightbulb"></i>提示</button>
+                      <button class="field-example-toggle"><i class="ph ph-quotes"></i>範例答案<i class="ph ph-caret-down" style="font-size:12px"></i></button>
+                    </div>
+                  </div>
+                  <div class="rt-field rt-field--locked">
+                    <div class="rt-field__toolbar">
+                      <button class="rt-tbtn"><i class="ph ph-text-b"></i></button>
+                      <button class="rt-tbtn"><i class="ph ph-list-bullets"></i></button>
+                    </div>
+                    <textarea class="rt-textarea" readonly rows="3">（未填寫）</textarea>
+                  </div>
+                </div>
+              </div>
+            </div>
+            <div class="submit-bar submit-bar--locked">
+              <div class="submit-bar__meta"><i class="ph ph-lock"></i>已評分完成</div>
+              <button class="btn btn--primary" style="min-width:160px">查看評分結果<i class="ph ph-arrow-right"></i></button>
+            </div>
+            <!-- Hint Modal — desktop: centered dialog style -->
+            <div class="hint-overlay" style="align-items:center">
+              <div class="hint-overlay__backdrop"></div>
+              <div class="modal-card" style="max-width:560px;margin:0 auto;border-radius:var(--r-card);max-height:none">
+                <div class="modal__head">
+                  <span class="modal__head-icon"><i class="ph ph-lightbulb"></i></span>
+                  <div class="modal__head-main">
+                    <div class="modal__head-title">提示 · 北極星指標 (NSM)</div>
+                    <div class="modal__head-sub">Zoom · 視訊會議 SaaS</div>
+                  </div>
+                </div>
+                <div class="modal__body">
+                  <p><strong>核心檢驗：什麼行為才算「真價值交付」？</strong></p>
+                  <p>你要問：當使用者<strong>完成了什麼動作</strong>之後，你會 confident 地說「對，這個人從 Zoom 拿到價值」？<br>開啟 app？登入？建立會議連結？這些是 vanity action — 太早。<br>真正的價值交付點，是「<strong>完成一場有意義的對話</strong>」。</p>
+                  <p><strong>量化建議：把「行為 × 量級」變數值</strong></p>
+                  <ul>
+                    <li>行為：完成會議（不只是開始）</li>
+                    <li>量級：3 人以上 × 30 分鐘以上（避免「兩人測試 5 秒鐘」的 noise）</li>
+                    <li>頻率：每週至少 1 場（避開季度性的會展型 user）</li>
+                    <li>對象：付費企業主辦人（個人 free user 是 conversion 漏斗，不是 NSM）</li>
+                  </ul>
+                  <p><strong>避坑 3 件事</strong></p>
+                  <ul>
+                    <li>不要用 MAU/DAU — 那些 metrics 包含「裝了沒用」的 vanity</li>
+                    <li>不要用「會議分鐘總數」— 一個人開 10 小時與 10 個人各開 1 小時權重不同</li>
+                    <li>不要把目標訂太低 — 「每週開 1 場」是地板，主辦人的「retention 線」應該是「每月至少 4 場」</li>
+                  </ul>
+                </div>
+                <div class="modal__foot">
+                  <button class="btn btn--primary">了解了</button>
+                </div>
+              </div>
+            </div>
+          </div><!-- /A2 desktop -->
+
+          <div class="scene-separator"></div>
+
+          <!-- A3: 範例答案 expanded — desktop -->
+          <div class="state-label">A3 · 範例答案展開（北極星指標）</div>
+          <div class="scene-wrap">
+            <div class="navbar">
+              <button class="navbar__icon-btn" aria-label="menu"><i class="ph ph-list"></i></button>
+              <div class="navbar__brand"><span class="navbar__brand-icon"><i class="ph ph-circles-three"></i></span><span class="navbar__brand-name">PM Drill</span></div>
+              <div class="navbar__tabs">
+                <button class="navbar__tab">CIRCLES</button>
+                <button class="navbar__tab is-active">北極星</button>
+              </div>
+              <div class="navbar__actions">
+                <span class="navbar__email">albertpeng678@gmail.com</span>
+                <button class="navbar__icon-btn" aria-label="search"><i class="ph ph-magnifying-glass"></i></button>
+                <button class="navbar__icon-btn" aria-label="home"><i class="ph ph-house"></i></button>
+              </div>
+            </div>
+            <div class="phase-head">
+              <span class="phase-head__num">2</span>
+              <div class="phase-head__main">
+                <div class="phase-head__eyebrow">NSM · 北極星訓練</div>
+                <div class="phase-head__title">定義 NSM</div>
+              </div>
+              <div class="phase-head__meta">
+                <span>Zoom · 視訊會議 SaaS</span>
+                <span class="phase-head__meta-sep">·</span>
+                <span>3 步定義法</span>
+              </div>
+            </div>
+            <div class="nsm-progress">
+              <div class="nsm-progress__step is-done"><div class="nsm-progress__dot"><i class="ph ph-check" style="font-size:11px"></i></div><div class="nsm-progress__label">情境</div></div>
+              <div class="nsm-progress__line is-done"></div>
+              <div class="nsm-progress__step is-active"><div class="nsm-progress__dot">2</div><div class="nsm-progress__label">指標</div></div>
+              <div class="nsm-progress__line is-done"></div>
+              <div class="nsm-progress__step is-done"><div class="nsm-progress__dot"><i class="ph ph-check" style="font-size:11px"></i></div><div class="nsm-progress__label">拆解</div></div>
+              <div class="nsm-progress__line is-done"></div>
+              <div class="nsm-progress__step is-done"><div class="nsm-progress__dot"><i class="ph ph-check" style="font-size:11px"></i></div><div class="nsm-progress__label">總結</div></div>
+            </div>
+            <div class="banner banner--locked">
+              <span class="banner__icon"><i class="ph ph-lock-key"></i></span>
+              <div class="banner__main">
+                <div class="banner__title">已評分完成</div>
+                <div class="banner__sub">內容鎖定，可繼續查看提示與範例</div>
+              </div>
+            </div>
+            <div class="nsm-body">
+              <div class="nsm-context-card">
+                <div class="nsm-context-card__top">
+                  <span class="nsm-context-card__company">Zoom</span>
+                  <span class="nsm-context-card__industry">視訊會議 SaaS</span>
+                  <span class="nsm-context-card__type nsm-context-card__type--attention"><i class="ph ph-cloud"></i>SaaS 型</span>
+                </div>
+                <p class="nsm-context-card__scenario">遠端工作普及後，Zoom 需確保企業用戶真的在平台上進行有效溝通，而非只是安裝備用。</p>
+                <span class="nsm-context-card__hint"><i class="ph ph-info"></i>核心問題：「安裝了但不用」的用戶不代表真實價值，如何以行為指標衡量有效使用？</span>
+                <button class="nsm-context-card__expand-toggle"><i class="ph ph-caret-down"></i>深入了解問題</button>
+              </div>
+              <div class="va-block">
+                <div class="va-block__heading"><i class="ph ph-notepad"></i>你的 NSM</div>
+                <div class="nsm-field">
+                  <div class="field__label-row">
+                    <label class="field__label">北極星指標 (NSM)</label>
+                    <div class="field__hint-row">
+                      <button class="field__hint-link"><i class="ph ph-lightbulb"></i>提示</button>
+                      <button class="field-example-toggle" style="color:var(--c-navy);font-weight:600"><i class="ph ph-quotes-fill"></i>範例答案<i class="ph ph-caret-up" style="font-size:12px"></i></button>
+                    </div>
+                  </div>
+                  <input class="nsm-input rt-field--locked" readonly value="每週使用 Zoom 完成一場「1 小時 3 人以上會議」的用戶數">
+                  <div class="example-expand">
+                    <div class="example-expand__head">
+                      <span class="example-expand__title"><i class="ph ph-quotes"></i>範例答案 · 北極星指標 (NSM)</span>
+                      <button class="example-expand__close"><i class="ph ph-x"></i></button>
+                    </div>
+                    <div class="example-list">
+                      <p><strong>每週使用 Zoom 完成至少一場 30 分鐘以上、3 人以上的會議的「付費企業主辦人」數</strong></p>
+                      <p><strong>為什麼這樣定義：</strong></p>
+                      <ul>
+                        <li>「30 分鐘以上 × 3 人以上」捕捉「實質討論」的最低門檻，排除「兩人 5 秒鐘測試」的 vanity</li>
+                        <li>「付費企業主辦人」聚焦續訂金主，不是 free user</li>
+                        <li>「每週」週期反映 recurring 商業會議的真實節奏（個人會用月、企業會用週）</li>
+                      </ul>
+                      <p><strong>跟業務目標的連結：</strong></p>
+                      <ul>
+                        <li>主辦人活躍 → 企業續訂率 → ARR</li>
+                        <li>一個企業若主辦人都不活躍，下次續約絕對掉</li>
+                      </ul>
+                    </div>
+                  </div>
+                </div>
+                <div class="nsm-field">
+                  <div class="field__label-row">
+                    <label class="field__label">定義說明</label>
+                    <div class="field__hint-row">
+                      <button class="field__hint-link"><i class="ph ph-lightbulb"></i>提示</button>
+                      <button class="field-example-toggle"><i class="ph ph-quotes"></i>範例答案<i class="ph ph-caret-down" style="font-size:12px"></i></button>
+                    </div>
+                  </div>
+                  <div class="rt-field rt-field--locked">
+                    <div class="rt-field__toolbar">
+                      <button class="rt-tbtn"><i class="ph ph-text-b"></i></button>
+                      <button class="rt-tbtn"><i class="ph ph-list-bullets"></i></button>
+                    </div>
+                    <textarea class="rt-textarea" readonly rows="3">（未填寫）</textarea>
+                  </div>
+                </div>
+                <div class="nsm-field" style="margin-bottom:0">
+                  <div class="field__label-row">
+                    <label class="field__label">與業務目標的連結</label>
+                    <div class="field__hint-row">
+                      <button class="field__hint-link"><i class="ph ph-lightbulb"></i>提示</button>
+                      <button class="field-example-toggle"><i class="ph ph-quotes"></i>範例答案<i class="ph ph-caret-down" style="font-size:12px"></i></button>
+                    </div>
+                  </div>
+                  <div class="rt-field rt-field--locked">
+                    <div class="rt-field__toolbar">
+                      <button class="rt-tbtn"><i class="ph ph-text-b"></i></button>
+                      <button class="rt-tbtn"><i class="ph ph-list-bullets"></i></button>
+                    </div>
+                    <textarea class="rt-textarea" readonly rows="3">（未填寫）</textarea>
+                  </div>
+                </div>
+              </div>
+            </div>
+            <div class="submit-bar submit-bar--locked">
+              <div class="submit-bar__meta"><i class="ph ph-lock"></i>已評分完成</div>
+              <button class="btn btn--primary" style="min-width:160px">查看評分結果<i class="ph ph-arrow-right"></i></button>
+            </div>
+          </div><!-- /A3 desktop -->
+
+        </div>
+      </div><!-- /vp-frame desktop 1280 -->
+
+    </div><!-- /vp-grid -->
+  </div><!-- /ds-page -->
+</body>
+</html>

@@ -1,9 +1,44 @@
 # PM Drill — 專案狀態看板
 
 > 即時狀態 single source of truth。**不放歷史（git log 有）**。重大事件即時 Edit。
-> **Last updated:** 2026-05-17 PM Wave 1B-b ship — Bug A NSM ghost + Bug B hint position + F-CT1.2 silent + 7 reviewer-caught Critical 補修 (`b126937`)
+> **Last updated:** 2026-05-19 PM — Wave 1 serial verifier in-flight + **Wave 2 BLOCKED**（quiz 抓 7 critical gap，Phase A prep 進行中）
 
-## 當前狀態（30 秒讀完）
+## 當前狀態（30 秒讀完 — 2026-05-19 PM）
+
+### 🔴 當前優先（Wave 1 收尾 serial → Phase A prep → re-quiz → Wave 2 dispatch）
+
+**Wave 1 收尾**（in flight）：
+- **Serial verifier in-flight**（avoid drainSessions parallel contamination per #199 finding）— Wave 1 commit messages draft `audit/wave-1-c1-c5-commit-messages-draft.md`
+- 前序狀態：W1-補.7 F1 extended fix 套 3 個 per-test reload / B6 5x verify (11 D drift fix staged + circles-gate.spec.js line 105 4→5) / offcanvas WebKit fix / #199 P0 gap implementer
+
+**Phase 2 Wave 2 BLOCKED 2026-05-19** — quiz reviewer 抓 **7 critical gap**：
+- 4 implementer parallel 違反 RITUAL §7.3 上限 3
+- drainSessions 跨 commit user 互殺（共用 test user）
+- AppState 3 commit 衝突（`nsmRecentSessions` / `nsmGateInflight` / `nsmPhase2SaveState` 跨 C-Drift-2/3/4）
+- HITL 16 review (4 commit × 4 review) 過載 → 8 hr budget overrun
+- D-11/D-12 mockup 06+07 未準備違反 `feedback_mockup_first`
+- 加上 fixture contamination 風險 + cleanup 順序 race（GAP-1/5）
+
+**Phase A prep 進度**:
+- ✅ **GAP-2 解** — 4 unique test users provisioned (`scripts/register-c-drift-test-accounts.js`, `tests/setup/auth.setup.js` +98 lines, `C_DRIFT_LANES` array, 4 storageState path)
+- 🟡 **GAP-3 plan** — `audit/phase-a-prep-appstate-atomic-commit-plan.md`（4 AppState keys 拆 commit 邊界 + namespace lock，~30 min ship）
+- 🟡 **GAP-6 mockup 06+07 draft** — in flight (sub-agent `acf745cb`)
+- 🟡 **GAP-1/4/5/7 mitigation** — in flight (sub-agent `ab6d77c5`) → `audit/phase-a-prep-gaps-1-4-5-7-mitigation.md`
+- ✅ **Mockup decision A** (2026-05-19): C-Drift-3/4 不再 mockup-blocked，直接 reuse 既有 design contract（mockup 06 `.nsm-recent` line 483-518 + mockup 03 `.save-indicator` LOCKED cross-mockup reuse）
+- 📌 **STANDING 升級**: mockup 工作全 opus，禁 sonnet（per `feedback_uiux_visual_only` 親 cold-Read mandate）
+
+**下一步**: Phase A prep 4 task 全 ship → re-quiz reviewer → 7 GAP 全 PASS → Wave 2 dispatch（**2a: C-1+C-2 parallel** → **2b: C-3+C-4**；限 ≤ 3 implementer 同時跑）
+
+**🔥 Wave 2 重大 finding (drift scan 2026-05-19)**: D-2 NSM localStorage 寫但 0 處讀 → **可能解釋 NSM 99.9% lifecycle='created' drop 主因**；D-1 NSM PATCH 無 persistRetry（同 P0-#266 CIRCLES shape）
+
+### ⚠️ Sub-agent self-report fake history (本 session 4 次命中)
+- D 自報 50/50 → reviewer 真 26/50
+- a77f08b8 W1-補.7 fix 自報 50/50 → reviewer 真 49/50
+- B6 5x verifier monitor timeout 無驗
+- 第一輪 F1 fix 範圍判斷錯（只改 1 reload 漏 3 個）— 但**誠實 STOP 沒 cherry-pick**（強 prompt 終於奏效）
+- **HITL 必須 paste 完整 stdout × 5 run**（per `feedback_subagent_self_report_unverifiable` STANDING 強化）
+
+### Historical ship summary (上一輪 session，詳見 git log + tracker §5)
 
 - **🏆 本 session Phase 1 + Phase 1B Wave a/b 全 ship (2026-05-17 PM)**：
   - `b126937` **Wave 1B-b**: NEW-Bug-A NSM 切題 ghost content (mirror CIRCLES #252 c156c6b 10-line reset) + NEW-Bug-B PNG-31 NSM hint+example position (mockup 07 line 1355-1384 canonical pattern) + F-CT1.2 CIRCLES Phase 2 silent fail (fetch→apiFetch+circlesPhase3Error setter) + **7 個 reviewer-caught Critical 補修**（2 cross-spec drift + 2 untracked spec + 1 dead var + 1 missing auto-cleanup + 1 comment line# error）
