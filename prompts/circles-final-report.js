@@ -53,6 +53,9 @@ async function generateFinalReport({ stepScores, questionJson }) {
 - improvements 必須具體指出「字數不足」「內容過短」「未具體分析」這類根因
 - nextSteps 必須建議「重練基礎欄位填寫」而非進階建議
 - grade 嚴格依 overallScore 映射，不准看其他因素加分
+- **coachVerdict / headline 措辭極性必須對齊 overallScore**：
+  - overallScore < 60 → coachVerdict / headline 嚴禁出現任何正面或中性偏正面詞彙（包含但不限於：扎實／不錯／優秀／清楚／清晰／思路清楚／分析佳／論述強／表現好／表現良好／表現尚可／良好／尚可／亮點／可圈可點／有基礎／展現／深入分析）；只允許用「不足／未達／不到位／需重練／待補強／字數過短／內容過淺」這類陰性詞。
+  - 即使 stepScores 中有 1-2 個 step totalScore ≥ 70，只要 overallScore < 60，仍以陰性語為主；可在 improvements 陣列具體點名「S 步驟有局部嘗試但整體未達」，但 coachVerdict 不准用讚美句式。
 
 若所有 7 step totalScore ≥ 70（代表學員全程認真）→ 正常評分流程，可給 A/B/strengths 等正面評語。
 
@@ -72,7 +75,7 @@ async function generateFinalReport({ stepScores, questionJson }) {
     "<改進點3>"
   ],
   "nextSteps": "<下一步練習建議，40字內，要具體：例如「先用 drill 模式單練 R 步驟 3 次，重點是把痛點分到三個層次」>",
-  "coachVerdict": "<教練總評，60-80字，必須具體針對這道題的分析過程，包含：一個讚賞的關鍵亮點 + 一個直接的批判 + 一句鼓勵>"
+  "coachVerdict": "<教練總評，60-80字，必須具體針對這道題的分析過程。措辭極性嚴格依 overallScore 切換：若 overallScore ≥ 60 → 結構為『一個讚賞的關鍵亮點 + 一個直接的批判 + 一句鼓勵』；若 overallScore < 60 → 結構為『一個具體缺陷 + 一個根因說明 + 一句重練建議』，全段不准出現任何正面詞>"
 }
 
 禁止寫的廢話：
