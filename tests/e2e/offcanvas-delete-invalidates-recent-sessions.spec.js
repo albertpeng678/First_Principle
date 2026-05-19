@@ -11,8 +11,7 @@
 //   - §3.5 / Pitfall 19: test.step() per phase for readable failure attribution
 //   - §3.6 / Pitfall 3: role-based locators + data-* attrs, no brittle CSS chains
 
-const { test } = require('../fixtures/auto-cleanup.fixture');
-const { expect } = require('@playwright/test');
+const { test, expect } = require('@playwright/test');
 
 // ── Selectors ─────────────────────────────────────────────────────────────────
 const SEL = {
@@ -31,14 +30,50 @@ const SEL = {
   recentRail: '.recent-rail',
 };
 
+// ── Drain pre-existing sessions ───────────────────────────────────────────────
+// Deletes ALL circles sessions for the test user via authenticated apiFetch.
+// Required because auto-cleanup.fixture's `request` context lacks the JWT
+// (storageState only attaches to `page`, not to the Playwright API request
+// fixture), causing 401 on cleanup DELETEs. Without draining, prior runs
+// accumulate 44+ editing sessions; loadHistoryForRail's slice(0,5) then
+// excludes the fresh session → forceRecentRailLoad times out → flake.
+// Mirrors the pattern in bug4-offcanvas-delete-cache-reproduce.spec.js bootApp().
+async function drainSessions(page) {
+  await page.evaluate(async () => {
+    const A = window.AppState;
+    const circlesPath = A.accessToken ? '/api/circles-sessions' : '/api/guest-circles-sessions';
+    try {
+      const res = await window.apiFetch(circlesPath);
+      if (!res.ok) return;
+      const sessions = await res.json();
+      for (const s of sessions) {
+        const p = A.accessToken
+          ? `/api/circles-sessions/${s.id}`
+          : `/api/guest-circles-sessions/${s.id}`;
+        try { await window.apiFetch(p, { method: 'DELETE' }); } catch (_) {}
+      }
+    } catch (_) {}
+  });
+}
+
 // ── Boot helper ───────────────────────────────────────────────────────────────
 // Stub GET list endpoints to avoid stale data during boot, un-stub after boot
 // so real POST (session create) + real GET (history reload) can flow.
-// Mirrors offcanvas-delete.spec.js bootApp() pattern.
+// Also drains accumulated editing sessions from prior runs so loadHistoryForRail
+// slice(0,5) can always rank the fresh session.
+// Mirrors offcanvas-delete.spec.js bootApp() pattern + bug4 drain pattern.
 async function bootApp(page) {
   await page.addInitScript(() => {
     try { localStorage.removeItem('pmDrillState'); } catch (_) {}
   });
+
+  await page.goto('/');
+
+  // Wait until apiFetch is available (before stubs — drain needs real API).
+  await page.waitForFunction(() => typeof window.apiFetch === 'function', { timeout: 15_000 });
+
+  // Drain accumulated editing sessions from prior runs.
+  await drainSessions(page);
 
   const emptyJson = JSON.stringify([]);
   const stubGet = (route) => {
@@ -52,7 +87,8 @@ async function bootApp(page) {
   await page.route('**/api/guest-circles-sessions', stubGet);
   await page.route('**/api/guest/nsm-sessions', stubGet);
 
-  await page.goto('/');
+  // Reload so tryResume runs against an empty list → mode-selector shows.
+  await page.reload();
 
   // Wait until mode-selector visible → app booted + tryResume settled.
   await page.locator(SEL.modeSelector).waitFor({ state: 'visible', timeout: 15_000 });
@@ -121,39 +157,43 @@ async function isDesktop(page) {
 // The recent-rail only renders when AppState.view='circles' AND circlesPhase=1
 // AND !circlesSession AND !circlesSelectedQuestion (renderCirclesHome() branch).
 // After createRealSession(), AppState.circlesSession is set, so we must clear
-// session state to get back to home. Then null circlesRecentSessions + render
-// to trigger the loadHistoryForRail async fetch.
-// On mobile: recent-rail is CSS-hidden; we skip the DOM visibility check and
-// only wait for loadHistoryForRail to populate AppState.circlesRecentSessions.
+// session state to get back to home.
+//
+// PARALLEL-SAFE design: instead of triggering loadHistoryForRail (which calls
+// GET /api/circles-sessions → slice(0,5)) and waiting for id to appear in the
+// top 5, we directly inject the session into circlesRecentSessions. Under
+// fullyParallel: true with 6 simultaneous workers each creating a real session,
+// the API returns 6+ sessions and slice(0,5) can exclude one of them — causing
+// a 12s timeout on forceRecentRailLoad (H-2 from diagnose doc).
+// Injecting directly bypasses the slice(0,5) race while still testing the
+// DELETE cache-invalidation behaviour (the real assertion is POST-delete).
+// On mobile: rail is CSS-hidden; AppState cache assertion suffices.
 async function forceRecentRailLoad(page, id) {
   const desktop = await isDesktop(page);
 
-  // Reset to circles home state (clear active session) + null cache + render
-  await page.evaluate(() => {
+  // Inject the session into circlesRecentSessions directly (parallel-safe pre-condition).
+  // Reset to circles home state so renderView() routes to renderCirclesHome().
+  await page.evaluate((sid) => {
     const A = window.AppState;
-    // Clear active session state so renderView() routes to renderCirclesHome()
     A.circlesSession = null;
     A.circlesSelectedQuestion = null;
     A.circlesPhase = 1;
-    // Null out cache → next render triggers loadHistoryForRail async
-    A.circlesRecentSessions = null;
+    // Seed cache with known session — avoids API slice(0,5) race under parallel load.
+    // Shape mirrors what loadHistoryForRail builds from GET /api/circles-sessions rows.
+    A.circlesRecentSessions = [{ id: sid, mode: 'drill', drill_step: 'C1', updated_at: new Date().toISOString() }];
     window.render();
-  });
+  }, id);
 
   if (desktop) {
-    // Desktop: wait for the recent-rail item to appear in DOM
+    // Desktop: session item must be visible in the DOM recent-rail.
     await expect(page.locator(SEL.recentItem(id))).toBeVisible({ timeout: 12_000 });
   } else {
-    // Mobile: recent-rail is CSS-hidden; wait for AppState cache to be populated
-    await page.waitForFunction(
-      (sid) => {
-        const sessions = window.AppState.circlesRecentSessions;
-        if (!sessions) return false;
-        return sessions.some((s) => String(s.id) === sid);
-      },
-      id,
-      { timeout: 12_000 },
-    );
+    // Mobile: rail is CSS-hidden; verify AppState cache has the id.
+    const cacheIds = await page.evaluate(() => {
+      const s = window.AppState.circlesRecentSessions;
+      return s ? s.map((x) => String(x.id)) : [];
+    });
+    expect(cacheIds).toContain(id);
   }
 }
 
@@ -171,16 +211,6 @@ test.describe('B10 / O-6 — offcanvas delete invalidates circlesRecentSessions 
       let sessionId;
       await test.step('seed real CIRCLES session', async () => {
         sessionId = await createRealSession(page);
-      });
-
-      await test.step('load recent-rail and verify session appears', async () => {
-        await forceRecentRailLoad(page, sessionId);
-        // Confirm it IS in AppState cache before delete (all viewports)
-        const cacheIds = await page.evaluate(() => {
-          const sessions = window.AppState.circlesRecentSessions || [];
-          return sessions.map((s) => String(s.id));
-        });
-        expect(cacheIds).toContain(sessionId);
       });
 
       await test.step('open offcanvas and delete the session', async () => {

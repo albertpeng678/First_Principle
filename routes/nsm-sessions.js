@@ -157,7 +157,13 @@ router.post('/:id/evaluate', requireAuth, async (req, res) => {
       updated_at: new Date().toISOString()
     }).eq('id', req.params.id).eq('user_id', req.user.id);
     if (errUpErr) console.error('[nsm-evaluate] error checkpoint clear failed', errUpErr);
-    res.status(500).json({ error: e.message });
+    // F-CT1.4: classify error + do NOT leak e.message (may contain sensitive OpenAI info).
+    const eMsg = e.message || '';
+    let evalCode;
+    if (e.name === 'AbortError' || /timeout/i.test(eMsg)) evalCode = 'EVAL_TIMEOUT';
+    else if (e.status === 429 || /rate.?limit/i.test(eMsg)) evalCode = 'EVAL_RATE_LIMIT';
+    else evalCode = 'EVAL_API_ERROR';
+    res.status(503).json({ error: 'ai_service_error', code: evalCode });
   }
 });
 
@@ -186,7 +192,15 @@ router.post('/:id/gate', requireAuth, async (req, res) => {
     const { error: upErr } = await db.from('nsm_sessions').update({ lifecycle: nextLifecycle }).eq('id', req.params.id).eq('user_id', req.user.id);
     if (upErr) throw upErr;
     res.json(result);
-  } catch (e) { res.status(500).json({ error: e.message }); }
+  } catch (e) {
+    // F-CT1.4: classify error + do NOT leak e.message (may contain sensitive OpenAI info).
+    const eMsg = e.message || '';
+    let gateCode;
+    if (e.name === 'AbortError' || /timeout/i.test(eMsg)) gateCode = 'GATE_TIMEOUT';
+    else if (e.status === 429 || /rate.?limit/i.test(eMsg)) gateCode = 'GATE_RATE_LIMIT';
+    else gateCode = 'GATE_API_ERROR';
+    res.status(503).json({ error: 'ai_service_error', code: gateCode });
+  }
 });
 
 // POST /api/nsm-sessions/:id/context

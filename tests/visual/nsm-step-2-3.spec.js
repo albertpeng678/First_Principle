@@ -91,7 +91,9 @@ test.describe('NSM Step 2 + Step 3 (mockup 07)', () => {
     await expect(page.locator('[data-nsm-submit]')).toBeEnabled();
   });
 
-  test('Step 3 attention type renders 4 dim labels: 觸及/互動/習慣/留存', async ({ page }) => {
+  // tracker §3 NEW-Test-Debt: post impact-removal, NSM_DIMENSION_CONFIGS.attention has 3 dims only
+  // Ground truth: NSM_DIMENSION_CONFIGS.attention.dims = reach/depth/frequency (impact dim REMOVED)
+  test('Step 3 attention type renders 3 dim labels: 觸及廣度/互動深度/習慣頻率 (post impact-removal, tracker §3 NEW-Test-Debt)', async ({ page }) => {
     await page.setViewportSize({ width: 1280, height: 900 });
     await mockApis(page);
     await page.goto('/');
@@ -107,10 +109,12 @@ test.describe('NSM Step 2 + Step 3 (mockup 07)', () => {
     await page.waitForSelector('.nsm-dim');
     // post Bug B mockup 07 migration: .nsm-dim__label → .field__label inside .field__label-row
     var labels = await page.locator('.nsm-dim .field__label').allTextContents();
-    expect(labels).toEqual(['觸及廣度', '互動深度', '習慣頻率', '留存驅力']);
+    expect(labels).toEqual(['觸及廣度', '互動深度', '習慣頻率']);
   });
 
-  test('Step 3 saas type renders 4 dim labels: 啟用/席次/黏著/擴張', async ({ page }) => {
+  // tracker §3 NEW-Test-Debt: post impact-removal, NSM_DIMENSION_CONFIGS.saas has 3 dims only
+  // Ground truth: NSM_DIMENSION_CONFIGS.saas.dims = reach/depth/frequency (impact dim REMOVED)
+  test('Step 3 saas type renders 3 dim labels: 啟用廣度/席次深度/黏著頻率 (post impact-removal, tracker §3 NEW-Test-Debt)', async ({ page }) => {
     await page.setViewportSize({ width: 1280, height: 900 });
     await mockApis(page);
     await page.goto('/');
@@ -125,7 +129,7 @@ test.describe('NSM Step 2 + Step 3 (mockup 07)', () => {
     }, { q: Q_SAAS });
     await page.waitForSelector('.nsm-dim');
     var labels = await page.locator('.nsm-dim .field__label').allTextContents();
-    expect(labels).toEqual(['啟用廣度', '席次深度', '黏著頻率', '擴張信號']);
+    expect(labels).toEqual(['啟用廣度', '席次深度', '黏著頻率']);
   });
 
   test('Step 3 dim hint button opens overlay modal', async ({ page }) => {
@@ -188,6 +192,8 @@ test.describe('NSM Step 2 + Step 3 (mockup 07)', () => {
     await expect(page.locator('[data-nsm-submit]')).toBeDisabled();
   });
 
+  // tracker §3 NEW-Test-Debt: 3 descs only post impact-removal
+  // Ground truth: NSM_DIMENSION_CONFIGS.attention.dims[*].desc (app.js line 6042-6046)
   test('Step 3 attention dims desc verbatim from mockup 07', async ({ page }) => {
     await page.setViewportSize({ width: 1280, height: 900 });
     await mockApis(page);
@@ -207,10 +213,11 @@ test.describe('NSM Step 2 + Step 3 (mockup 07)', () => {
       '有多少用戶真正觸碰到核心功能（非僅登入）',
       '每位用戶每次使用的品質與投入程度',
       '用戶是否形成定期回訪的使用習慣',
-      '什麼讓用戶持續回訪而非逐漸流失',
     ]);
   });
 
+  // tracker §3 NEW-Test-Debt: 3 descs only post impact-removal
+  // Ground truth: NSM_DIMENSION_CONFIGS.saas.dims[*].desc (app.js line 6072-6076)
   test('Step 3 saas dims desc verbatim from mockup 07', async ({ page }) => {
     await page.setViewportSize({ width: 1280, height: 900 });
     await mockApis(page);
@@ -230,7 +237,6 @@ test.describe('NSM Step 2 + Step 3 (mockup 07)', () => {
       '新客戶中有多少真正完成啟用',
       '每個帳號內有多少人在真正使用核心功能',
       '使用頻率是否顯示產品已嵌入日常工作流',
-      '現有客戶是否在增加使用',
     ]);
   });
 });

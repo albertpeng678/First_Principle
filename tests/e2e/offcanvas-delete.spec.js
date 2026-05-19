@@ -195,8 +195,20 @@ async function openOffcanvasAndAwaitItem(page, id) {
   await page.locator(SELECTORS.offcanvasOpen).click();
   // Wait for offcanvas drawer to appear.
   await page.locator(SELECTORS.offcanvasBody).waitFor({ state: 'visible', timeout: 5_000 });
-  // Wait for the specific item (web-first auto-retry covers loadHistory latency).
-  await expect(page.locator(SELECTORS.offcanvasItem(id))).toBeVisible({ timeout: 10_000 });
+  // F-CT-offcanvas-webkit: wait for backend round-trip before asserting visibility.
+  // WebKit slow-start (mobile-safari project) means GET /api/(guest-)?(circles|nsm)-sessions
+  // can be slow to dispatch / resolve; without this gate the 10s expect.toBeVisible
+  // occasionally fires before historyList loads.
+  // Audit: audit/offcanvas-delete-spec-2-prexisting-fails-rootcause.md §5 #2.
+  await page.waitForResponse(
+    (r) => /\/api\/(guest-)?(circles|nsm)-sessions(\?|$)/.test(r.url())
+      && r.request().method() === 'GET'
+      && r.status() === 200,
+    { timeout: 15_000 }
+  );
+  // Wait for the specific item — bumped 10s → 20s to absorb WebKit slowness
+  // (audit recommendation #1 + #2 combined).
+  await expect(page.locator(SELECTORS.offcanvasItem(id))).toBeVisible({ timeout: 20_000 });
 }
 
 // ── Tests ─────────────────────────────────────────────────────────────────────

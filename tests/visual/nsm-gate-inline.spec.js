@@ -210,7 +210,7 @@ test.describe('NSM Gate Inline (mockup 08)', () => {
       window.AppState.nsmSelectedQuestion = q;
       window.AppState.nsmGateResult = null;
       window.AppState.nsmGateLoading = false;
-      window.AppState.nsmGateError = 'gate_error';
+      window.AppState.nsmGateError = 'GATE_API_ERROR';
       window.AppState.nsmSession = { id: 's1' };
       window.render();
     }, { q: Q });

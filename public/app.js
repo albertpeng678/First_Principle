@@ -1457,20 +1457,26 @@
       return html;
     }
 
-    // Gate API error state
+    // Gate API error state — F-CT1.4: code-based i18n + error code display + retry button
     if (gateError && !result) {
+      // Map error code to Chinese copy (mirror CIRCLES renderGateError pattern).
+      var nsmGateErrMsg = gateError === 'GATE_TIMEOUT'     ? '審核服務回應逾時'
+                        : gateError === 'GATE_RATE_LIMIT'  ? '審核服務目前負載過高'
+                        : /* GATE_API_ERROR + fallback */    '審核服務暫時無法使用';
       html += '<div class="gate-wrap">'
         + '<div class="nsm-gate-error-wrap">'
-        +   '<div class="banner banner--save-error">'
-        +     '<i class="ph ph-cloud-warning"></i>'
-        +     '<span>審核服務暫時無法使用，請重試。</span>'
+        +   '<div class="error-wrap">'
+        +     '<i class="ph ph-cloud-warning error-wrap__icon"></i>'
+        +     '<div class="error-wrap__title">NSM 審核失敗</div>'
+        +     '<div class="error-wrap__sub">' + escHtml(nsmGateErrMsg) + '</div>'
+        +     '<code class="error-wrap__code">' + escHtml(gateError) + '</code>'
+        +     '<div class="error-wrap__actions">'
+        +       '<button class="btn btn--primary" data-nsm-gate-action="retry">重試</button>'
+        +       '<button class="btn btn--ghost" data-nsm-gate-action="back-to-step2"><i class="ph ph-arrow-left"></i>返回修改</button>'
+        +     '</div>'
         +   '</div>'
         + '</div>'
-        + '</div></div>'
-        + '<div class="submit-bar">'
-        +   '<div class="submit-bar__left"><button class="btn btn--ghost" data-nsm-gate-action="back-to-step2"><i class="ph ph-arrow-left"></i>返回修改</button></div>'
-        + '</div>'
-        + '</div>';
+        + '</div></div></div>';  // closes gate-wrap + gate-content + data-view="nsm"
       return html;
     }
 
@@ -1668,6 +1674,24 @@
     var br = AppState.nsmBreakdown || {};
     // Bug 5 (2026-05-15): floors removed — submit only blocked when any dim field is entirely empty
     var canSubmit = typeCfg.dims.every(function (d) { return fieldNonEmpty(br[d.id]); });
+
+    // F-CT1.4: NSM eval error banner (shown above submit bar when nsmEvalError is set).
+    var evalErrCode = AppState.nsmEvalError;
+    var evalErrHtml = '';
+    if (evalErrCode && !AppState.nsmEvalResult) {
+      var evalErrMsg = evalErrCode === 'EVAL_TIMEOUT'     ? '評分服務回應逾時'
+                     : evalErrCode === 'EVAL_RATE_LIMIT'  ? '評分服務目前負載過高'
+                     : /* EVAL_API_ERROR + fallback */      '評分服務暫時無法使用';
+      evalErrHtml = '<div class="nsm-eval-error-wrap">'
+        + '<div class="error-wrap">'
+        +   '<i class="ph ph-cloud-warning error-wrap__icon"></i>'
+        +   '<div class="error-wrap__title">NSM 評分失敗</div>'
+        +   '<div class="error-wrap__sub">' + escHtml(evalErrMsg) + '</div>'
+        +   '<code class="error-wrap__code">' + escHtml(evalErrCode) + '</code>'
+        + '</div>'
+        + '</div>';
+    }
+
     var html = '<div data-view="nsm">'
       + '<div class="phase-head">'
       +   '<span class="phase-head__num">3</span>'
@@ -1688,6 +1712,7 @@
       +   '</div>'
       +   typeCfg.dims.map(function (d) { return renderNSMDim(d, br[d.id] || '', ptype); }).join('')
       + '</div>'
+      + evalErrHtml
       + '<div class="submit-bar">'
       +   '<div class="submit-bar__left"><button class="btn btn--ghost" data-nsm-action="back-to-step2"><i class="ph ph-arrow-left"></i>上一步</button></div>'
       +   '<div class="submit-bar__right"><button class="btn btn--primary" data-nsm-submit ' + (canSubmit ? '' : 'disabled') + '>送出，取得 AI 評分<i class="ph ph-arrow-right"></i></button></div>'
@@ -1924,6 +1949,15 @@
           AppState.nsmStep = 2;
           AppState.nsmSubTab = 'nsm-step2';
           render();
+        } else if (action === 'retry') {
+          // F-CT1.4: retry — clear error + return to step 2 form (user re-submits).
+          AppState.nsmGateResult = null;
+          AppState.nsmGateError = null;
+          AppState.nsmGateLoading = false;
+          AppState.nsmGateLoadingStep = 0;
+          AppState.nsmStep = 2;
+          AppState.nsmSubTab = 'nsm-step2';
+          render();
         } else if (action === 'proceed') {
           // ok/warn — advance to step 3
           AppState.nsmSubTab = 'nsm-step3';
@@ -1989,7 +2023,8 @@
             AppState.nsmGateLoading = false;
             if (!res.ok) {
               var err = await res.json().catch(function () { return {}; });
-              AppState.nsmGateError = err.error || 'gate_error';
+              // F-CT1.4: store code for i18n; fallback to GATE_API_ERROR when code absent.
+              AppState.nsmGateError = err.code || 'GATE_API_ERROR';
               render();
               return;
             }
@@ -2025,7 +2060,9 @@
           } catch (e) {
             clearInterval(_nsmGateLoadingTimer);
             AppState.nsmGateLoading = false;
-            AppState.nsmGateError = e.message || 'gate_error';
+            // F-CT1.4: AbortError (network abort / timeout) → GATE_TIMEOUT; else GATE_API_ERROR.
+            AppState.nsmGateError = (e.name === 'AbortError' || /timeout/i.test(e.message || ''))
+              ? 'GATE_TIMEOUT' : 'GATE_API_ERROR';
             render();
           }
         } else if (subTab === 'nsm-step3') {
@@ -2047,7 +2084,8 @@
             });
             if (!res.ok) {
               var err = await res.json().catch(function () { return {}; });
-              AppState.nsmEvalError = err.error || 'eval_error';
+              // F-CT1.4: store code for i18n; fallback to EVAL_API_ERROR when code absent.
+              AppState.nsmEvalError = err.code || 'EVAL_API_ERROR';
               AppState.nsmEvalLoading = false;  // F-CT1.1: clear before render so DOM reflects correct state
               render();
               return;
@@ -2060,7 +2098,9 @@
             console.info('NSM eval done', result);
             render();
           } catch (e) {
-            AppState.nsmEvalError = e.message || 'eval_error';
+            // F-CT1.4: AbortError → EVAL_TIMEOUT; else EVAL_API_ERROR.
+            AppState.nsmEvalError = (e.name === 'AbortError' || /timeout/i.test(e.message || ''))
+              ? 'EVAL_TIMEOUT' : 'EVAL_API_ERROR';
             render();
           } finally {
             AppState.nsmEvalLoading = false;
