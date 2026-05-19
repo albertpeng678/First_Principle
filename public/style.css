@@ -90,6 +90,13 @@ a { color: inherit; text-decoration: none; }
 .qchip__title { font-size: var(--t-meta); color: var(--c-ink-2); white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
 .qchip__pill { padding: 2px var(--s-2); border-radius: var(--r-pill); font-size: var(--t-cap); background: var(--c-navy-lt); color: var(--c-navy); font-weight: 600; flex: 0 0 auto; }
 .qchip__caret { color: var(--c-ink-3); font-size: 14px; flex: 0 0 auto; }
+/* D-11: qchip company responsive — short on mobile, long on tablet+ */
+.qchip__company-short { display: inline; }
+.qchip__company-long  { display: none; }
+@media (min-width: 768px) {
+  .qchip__company-short { display: none; }
+  .qchip__company-long  { display: inline; }
+}
 
 /* qchip caret rotate on open (Stage 1C B5 fix) */
 .qchip.is-open .qchip__caret { transform: rotate(180deg); }
@@ -1303,6 +1310,7 @@ div.rt-textarea[contenteditable="true"] ul li { list-style: disc; }
   align-items: flex-start;
 }
 .gate-item__suggestion strong { flex: 0 0 auto; font-weight: 600; letter-spacing: 0.04em; }
+.gate-item__suggestion-body { flex: 1; min-width: 0; color: var(--c-ink-2); }
 
 /* item ok */
 .gate-item--ok .gate-item__icon { color: var(--c-success); }

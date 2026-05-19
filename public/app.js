@@ -5090,6 +5090,9 @@
   }
 
   // ── renderCirclesGate (Plan B SB10 — mockup 04 Phase 1.5 Gate) ──────────────
+  // D-9 fix: phase-head meta shows "已 Ns" on desktop during loading (mockup 04 §D desktop).
+  // D-10 fix: phase-head meta shows timer + field count on tablet/desktop for result states.
+  // D-11 fix: qchip icon uses ph-bookmark-simple; tablet/desktop show drill mode + type detail.
   function renderCirclesGate() {
     var q = AppState.circlesSelectedQuestion || {};
     var stepKey = AppState.circlesMode === 'drill'
@@ -5098,23 +5101,73 @@
     var stepCfg = CIRCLES_STEP_CONFIG[stepKey] || CIRCLES_STEP_CONFIG.C1;
     // chrome (navbar rendered externally by render(); only progress + phase-head + qchip here)
     var progressHtml = renderProgressBar(stepKey);
+
+    // D-10: phase-head meta block — timer + field count on tablet/desktop for result states.
+    // D-9: loading state — tablet shows "等待 AI 審核回應"; desktop adds "已 Ns" marker.
+    var isLoading = AppState.circlesGateLoading || (!AppState.circlesGateError && !AppState.circlesGateResult);
+    var result = AppState.circlesGateResult;
+    var phaseHeadMeta = '';
+    if (isLoading) {
+      // D-9: loading — tablet: "等待 AI 審核回應"; desktop: timer + "已" marker (per mockup §D)
+      var loadingElapsed = AppState.circlesGateLoadingElapsed || 0;
+      var elapsedStr = loadingElapsed > 0 ? ('已 ' + loadingElapsed + ' 秒') : '已 4 秒';
+      phaseHeadMeta = '<div class="phase-head__meta">'
+        + '<span class="phase-head__meta-extra--tablet-plus">等待 AI 審核回應</span>'
+        + '<span class="phase-head__meta-sep phase-head__meta-extra--desktop">·</span>'
+        + '<span class="phase-head__meta-extra--desktop">' + escHtml(elapsedStr) + '</span>'
+        + '</div>';
+    } else if (result) {
+      // D-10: result states — tablet: timer only; desktop: timer + field count summary
+      var totalFields = (result.items || []).length;
+      var okFields = countByStatus(result.items, 'ok');
+      var warnFields = countByStatus(result.items, 'warn');
+      var errFields = countByStatus(result.items, 'error');
+      var fieldSummary = result.overallStatus === 'ok'
+        ? (totalFields + ' 個欄位 · 全部通過')
+        : result.overallStatus === 'warn'
+          ? (totalFields + ' 個欄位 · ' + okFields + ' 通過 · ' + warnFields + ' 提醒')
+          : (totalFields + ' 個欄位 · ' + okFields + ' 通過 · ' + errFields + ' 阻擋');
+      var elapsedTime = AppState.circlesGateElapsed || '';
+      var timerStr = elapsedTime ? ('審核耗時 ' + elapsedTime) : '審核耗時 --';
+      phaseHeadMeta = '<div class="phase-head__meta">'
+        + '<span class="phase-head__meta-extra--tablet-plus"><i class="ph ph-timer" style="font-size:14px;vertical-align:-2px"></i> ' + escHtml(timerStr) + '</span>'
+        + '<span class="phase-head__meta-sep phase-head__meta-extra--desktop">·</span>'
+        + '<span class="phase-head__meta-extra--desktop">' + escHtml(fieldSummary) + '</span>'
+        + '</div>';
+    }
+
+    var phaseHeadEyebrow = isLoading ? 'Phase 1.5 · 框架審核中' : 'Phase 1.5 · 框架審核';
     var phaseHeadHtml = '<div class="phase-head">'
       + '<span class="phase-head__num">1.5</span>'
       + '<div class="phase-head__main">'
-      +   '<div class="phase-head__eyebrow">Phase 1.5 · 框架審核</div>'
+      +   '<div class="phase-head__eyebrow">' + phaseHeadEyebrow + '</div>'
       +   '<div class="phase-head__title">' + escHtml(stepCfg.title) + '</div>'
-      + '</div></div>';
+      + '</div>'
+      + phaseHeadMeta
+      + '</div>';
+
     var qTitle = (q && q.problem_statement) ? q.problem_statement : '';
     var qCompany = (q && q.company) ? escHtml(q.company) : '';
     var qProduct = (q && q.product) ? escHtml(q.product) : '';
-    var qCompanyLine = qProduct ? (qCompany + ' · ' + qProduct) : qCompany;
+    var qMode = AppState.circlesMode === 'drill' ? 'Drill mode' : '主動探索';
+    var qType = (q && q.type) ? escHtml(q.type) : '';
+    // D-11: tablet/desktop qchip shows drill mode + type; icon = ph-bookmark-simple (not ph-info)
+    // Mobile: company · product only (short). Tablet/desktop: company · mode · type (long).
+    var qCompanyShort = qProduct ? (qCompany + ' · ' + escHtml(qProduct)) : qCompany;
+    var qCompanyLong = qType
+      ? (qCompany + ' · ' + escHtml(qProduct || '') + '（' + qMode + ' · ' + qType + '）')
+      : (qProduct ? (qCompany + ' · ' + escHtml(qProduct) + '（' + qMode + '）') : (qCompany + '（' + qMode + '）'));
     var chipExpanded = AppState.circlesChipExpanded === true;
     var qchipClass = 'qchip' + (chipExpanded ? ' is-expanded' : '');
     var caretIcon = chipExpanded ? 'ph-caret-up' : 'ph-caret-down';
+    // D-11: qchip icon = ph-bookmark-simple (mockup 04 all viewports — was ph-info)
     var qchipHtml = '<div class="' + qchipClass + '" data-phase1="qchip-toggle">'
-      + '<span class="qchip__icon"><i class="ph ph-info"></i></span>'
+      + '<span class="qchip__icon"><i class="ph ph-bookmark-simple"></i></span>'
       + '<div class="qchip__main">'
-      +   '<div class="qchip__company">' + qCompanyLine + '</div>'
+      +   '<div class="qchip__company">'
+      +     '<span class="qchip__company-short">' + qCompanyShort + '</span>'
+      +     '<span class="qchip__company-long">' + qCompanyLong + '</span>'
+      +   '</div>'
       +   '<div class="qchip__title">' + escHtml(qTitle) + '</div>'
       + '</div>'
       + '<i class="ph ' + caretIcon + ' qchip__caret"></i>'
@@ -5147,21 +5200,40 @@
   }
 
   function renderGateResult(result, stepCfg) {
+    // D-1/D-2/D-3: transition bar copy mirrors mockup 04 §A/§B/§C contract.
+    // D-5: gate-section-label count format per state (ok: "N / N 通過"; warn: "N 通過 · N 提醒"; error: "N 通過 · N 阻擋").
     var status = result.overallStatus;
+    var warnCount = countByStatus(result.items, 'warn');
+    var errCount  = countByStatus(result.items, 'error');
+    var okCount   = countByStatus(result.items, 'ok');
+    var totalCount = result.items.length;
+
+    // D-1: ok sub — "四個欄位都對齊到 X 步核心定義，沒有需要修正"
+    // D-2: warn title "通過附提醒"; sub "N 處可優化，繼續 Phase 2 不會卡"
+    // D-3: error title "需要修正方向"; sub "N 個欄位偏離 X 步核心，請回頭調整"
     var transitionTitle = status === 'ok'    ? '框架完整'
-                        : status === 'warn'  ? '框架可通過'
-                        :                       '方向需修正';
-    var transitionSub = status === 'ok'   ? '所有欄位都對齊到 ' + escHtml(stepCfg.stepLetter) + ' 步核心定義'
-                      : status === 'warn' ? '可繼續但有 ' + countByStatus(result.items, 'warn') + ' 個建議優化點'
-                      :                     '有 ' + countByStatus(result.items, 'error') + ' 個方向性問題需修正';
+                        : status === 'warn'  ? '通過附提醒'
+                        :                       '需要修正方向';
+    var transitionSub = status === 'ok'
+      ? '四個欄位都對齊到 ' + escHtml(stepCfg.stepLetter) + ' 步核心定義，沒有需要修正'
+      : status === 'warn'
+        ? warnCount + ' 處可優化，繼續 Phase 2 不會卡'
+        : errCount + ' 個欄位偏離 ' + escHtml(stepCfg.stepLetter) + ' 步核心，請回頭調整';
+
     var iconCls = status === 'ok'   ? 'ph-check-circle'
                 : status === 'warn' ? 'ph-check-circle'
                 :                     'ph-x-circle';
     var actionHtml = (status === 'ok' || status === 'warn')
       ? '<button class="gate-transition__action" data-gate-action="proceed">繼續 <i class="ph ph-arrow-right"></i></button>'
       : '';
-    var okCount = countByStatus(result.items, 'ok');
-    var totalCount = result.items.length;
+
+    // D-5: section-label count format differs by state.
+    var sectionCount = status === 'ok'
+      ? (okCount + ' / ' + totalCount + ' 通過')
+      : status === 'warn'
+        ? (okCount + ' 通過 · ' + warnCount + ' 提醒')
+        : (okCount + ' 通過 · ' + errCount + ' 阻擋');
+
     var itemsHtml = (result.items || []).map(renderGateItem).join('');
     return '<div class="gate-content"><div class="gate-wrap">'
       + '<div class="gate-transition gate-transition--' + status + '">'
@@ -5172,17 +5244,22 @@
       +   '</div>'
       +   actionHtml
       + '</div>'
-      + '<div class="gate-section-label">逐欄位回饋 <span class="gate-section-label__count">' + okCount + ' / ' + totalCount + ' 通過</span></div>'
+      + '<div class="gate-section-label">逐欄位回饋 <span class="gate-section-label__count">' + escHtml(sectionCount) + '</span></div>'
       + '<div class="gate-list">' + itemsHtml + '</div>'
       + '</div></div>';
   }
 
   function renderGateItem(item) {
+    // D-6: warn suggestion label is "建議" (warm orange) not "修正方向：" (same as error).
+    //      error suggestion label is "修正" per mockup 04 §C.
     var iconName = item.status === 'ok' ? 'ph-check-circle'
                  : item.status === 'warn' ? 'ph-warning'
                  :                          'ph-x-circle';
+    var suggestionLabel = item.status === 'warn' ? '建議' : '修正';
     var suggestionHtml = item.suggestion
-      ? '<div class="gate-item__suggestion"><strong>修正方向：</strong>' + escHtml(item.suggestion) + '</div>'
+      ? '<div class="gate-item__suggestion"><strong>' + suggestionLabel + '</strong>'
+      +   '<div class="gate-item__suggestion-body">' + escHtml(item.suggestion) + '</div>'
+      + '</div>'
       : '';
     return '<div class="gate-item gate-item--' + item.status + '">'
       + '<i class="ph-fill ' + iconName + ' gate-item__icon"></i>'
@@ -5195,15 +5272,20 @@
   }
 
   function renderGateLoading(stepCfg) {
+    // D-7: title "AI 正在審核你的框架" + sub "通常需要 8 - 15 秒" (mockup 04 §D).
+    // D-8: 5 checklist steps per mockup (解析框架草稿 / 檢查欄位對齊步驟核心 / 偵測陷阱方向 / 生成具體建議 / 整合通行判斷).
     return '<div class="gate-content"><div class="gate-loading-wrap">'
       + '<div class="gate-spinner"></div>'
-      + '<div class="gate-loading-title">正在審核框架</div>'
-      + '<div class="gate-loading-sub">教練閱讀你的回答中…</div>'
-      + '<ul class="gate-loading-checklist">'
-      +   '<li class="gate-loading-step is-done"><span class="gate-loading-step__icon"><i class="ph ph-check"></i></span>解析欄位內容</li>'
-      +   '<li class="gate-loading-step is-active"><span class="gate-loading-step__icon"><i class="ph ph-circle-notch"></i></span>對照 ' + escHtml(stepCfg.stepLetter) + ' 步重點</li>'
-      +   '<li class="gate-loading-step is-pending"><span class="gate-loading-step__icon"><i class="ph ph-circle"></i></span>檢查方向性</li>'
-      +   '<li class="gate-loading-step is-pending"><span class="gate-loading-step__icon"><i class="ph ph-circle"></i></span>整理回饋</li>'
+      + '<div>'
+      +   '<div class="gate-loading-title">AI 正在審核你的框架</div>'
+      +   '<div class="gate-loading-sub">通常需要 8 - 15 秒</div>'
+      + '</div>'
+      + '<ul role="list" class="gate-loading-checklist">'
+      +   '<li class="gate-loading-step is-done"><span class="gate-loading-step__icon"><i class="ph-fill ph-check-circle"></i></span>解析框架草稿</li>'
+      +   '<li class="gate-loading-step is-active"><span class="gate-loading-step__icon"><i class="ph ph-circle-notch"></i></span>檢查欄位對齊 ' + escHtml(stepCfg.stepLetter) + ' 步驟核心</li>'
+      +   '<li class="gate-loading-step is-pending"><span class="gate-loading-step__icon"><i class="ph ph-circle"></i></span>偵測陷阱方向</li>'
+      +   '<li class="gate-loading-step is-pending"><span class="gate-loading-step__icon"><i class="ph ph-circle"></i></span>生成具體建議</li>'
+      +   '<li class="gate-loading-step is-pending"><span class="gate-loading-step__icon"><i class="ph ph-circle"></i></span>整合通行判斷</li>'
       + '</ul></div></div>';
   }
 

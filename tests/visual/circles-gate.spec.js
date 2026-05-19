@@ -85,7 +85,7 @@ test.describe('Phase 1.5 Gate (mockup 04)', () => {
     expect(await page.locator('.btn').filter({ hasText: '帶風險繼續' }).count()).toBe(0);
   });
 
-  test('Loading state — spinner + 4-step checklist', async ({ page }) => {
+  test('Loading state — spinner + 5-step checklist', async ({ page }) => {
     await page.setViewportSize({ width: 1280, height: 900 });
     await page.route('**/api/(guest-)?circles-stats**', r => r.fulfill({ status: 200, contentType: 'application/json', body: '{}' }));
     await page.route('**/api/(guest-)?circles-sessions', r => r.fulfill({ status: 200, contentType: 'application/json', body: '[]' }));
@@ -102,7 +102,7 @@ test.describe('Phase 1.5 Gate (mockup 04)', () => {
       window.render();
     });
     await expect(page.locator('.gate-spinner')).toBeVisible();
-    expect(await page.locator('.gate-loading-checklist li').count()).toBe(4);
+    expect(await page.locator('.gate-loading-checklist li').count()).toBe(5);
   });
 
   test('OK 繼續 click → circlesPhase = 2', async ({ page }) => {
