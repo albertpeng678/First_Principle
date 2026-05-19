@@ -6272,12 +6272,14 @@
         var q = NSM_QUESTIONS.find(function (x) { return x.id === qid; });
         if (!q) return;
         AppState.nsmSelectedQuestion = q;
-        // Bug 6 fix: create/obtain session immediately on card select so question_id
-        // is persisted server-side. If user leaves and comes back the session list
-        // will contain this question, enabling Step 1 restore via loadHistory.
-        // Non-blocking — failure is silent (user can still proceed to Step 2 which
-        // also calls ensureNsmDraftSession via preflight on bindNSMStep2And3).
-        ensureNsmDraftSession().catch(function () {});
+        // F-CT2.1 fix (2026-05-18): removed eager ensureNsmDraftSession() on card click.
+        // Root cause: each card click created a nsm_sessions row immediately → 5487 empty
+        // shell sessions polluting conversion metrics (99.9% 'created' lifecycle).
+        // Session is now created lazily:
+        //   - Step 2 first mount: bindNSMStep2And3 preflight at line 1777-1783
+        //   - Step 2 submit fallback: ensureNsmSession() inline at line 1944
+        //   - Hints: ensureNsmDraftSession() at line 4418 (needed for hint endpoint)
+        // triggerNsmSaveCycle guards with `if (sessionId)` so no session leaks there.
         var src = getNsmContextSource(q, AppState.nsmContext, _nsmContextQid);
         if (src === 'fetch') {
           AppState.nsmContextLoading = true;
