@@ -1370,34 +1370,8 @@
     '評估操作性',
   ];
 
-  function renderNSMGateItem(item) {
-    var statusIcon, cls;
-    if (item.status === 'ok') {
-      cls = 'gate-item--ok';
-      statusIcon = '<i class="ph-fill ph-check-circle gate-item__icon"></i>';
-    } else if (item.status === 'warn') {
-      cls = 'gate-item--warn';
-      statusIcon = '<i class="ph-fill ph-warning gate-item__icon"></i>';
-    } else {
-      cls = 'gate-item--error';
-      statusIcon = '<i class="ph-fill ph-x-circle gate-item__icon"></i>';
-    }
-    var suggestionHtml = '';
-    if (item.suggestion) {
-      var suggestLabel = item.status === 'error' ? '修正方向：' : '建議：';
-      suggestionHtml = '<div class="gate-item__suggestion"><strong>' + escHtml(suggestLabel) + '</strong>'
-        + '<span class="gate-item__suggestion-body">' + escHtml(item.suggestion) + '</span></div>';
-    }
-    return '<div class="gate-item ' + cls + '">'
-      + statusIcon
-      + '<div class="gate-item__main">'
-      +   '<div class="gate-item__field">' + escHtml(item.criterion) + '</div>'
-      +   '<div class="gate-item__title">' + escHtml(item.title || '') + '</div>'
-      +   '<div class="gate-item__reason">' + escHtml(item.feedback || item.comment || '') + '</div>'
-      +   suggestionHtml
-      + '</div>'
-      + '</div>';
-  }
+  // renderNSMGateItem removed 2026-05-20 — NSM 改用共用 renderGateItem helper (call site adapter).
+  // mockup 08 已對齊 mockup 04 contract (unify per user 2026-05-20 decision).
 
   function renderNSMGateCountLabel(items) {
     var errCount = 0, warnCount = 0, okCount = 0;
@@ -1519,7 +1493,17 @@
         + '</div>'
         + '<div class="gate-section-label">' + items.length + ' 維度檢核<span class="gate-section-label__count">' + countLabel + '</span></div>'
         + '<div class="gate-list">'
-        +   items.map(renderNSMGateItem).join('')
+        +   items.map(function (item) {
+              // Refactor 2026-05-20: NSM 改用共用 renderGateItem helper (unify mockup 04+08 contract,
+              // per user 2026-05-20 decision: 統一到 mockup 04 style — 無冒號 + div wrapper).
+              return renderGateItem({
+                status: item.status,
+                field: item.criterion,
+                title: item.title || '',
+                reason: item.feedback || item.comment || '',
+                suggestion: item.suggestion
+              });
+            }).join('')
         + '</div>'
         + '</div></div>';
 
