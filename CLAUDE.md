@@ -1,15 +1,54 @@
 # PM Drill — 專案狀態看板
 
 > 即時狀態 single source of truth。**不放歷史（git log 有）**。重大事件即時 Edit。
-> **Last updated:** 2026-05-19 PM — Wave 1 serial verifier in-flight + **Wave 2 BLOCKED**（quiz 抓 7 critical gap，Phase A prep 進行中）
+> **Last updated:** 2026-05-21 — **Wave 1 + Wave 1.5 共用層 全 ship 上線**（11 commits push origin/main，session 暫停）
 
-## 當前狀態（30 秒讀完 — 2026-05-19 PM）
+## 當前狀態（30 秒讀完 — 2026-05-21）
 
-### 🔴 當前優先（Wave 1 收尾 serial → Phase A prep → re-quiz → Wave 2 dispatch）
+### 🟢 Wave 1.5 共用層 refactor — 4 commits 上 origin/main（本 session ship）
 
-**Wave 1 收尾**（in flight）：
-- **Serial verifier in-flight**（avoid drainSessions parallel contamination per #199 finding）— Wave 1 commit messages draft `audit/wave-1-c1-c5-commit-messages-draft.md`
-- 前序狀態：W1-補.7 F1 extended fix 套 3 個 per-test reload / B6 5x verify (11 D drift fix staged + circles-gate.spec.js line 105 4→5) / offcanvas WebKit fix / #199 P0 gap implementer
+| Component | Commit | inline → helper |
+|---|---|---|
+| gate-transition | `348cf49` | 2 → renderGateTransition |
+| gate-item (含 mockup 08 unify) | `05ef606` | 2 helper 合一 + mockup 04 canonical |
+| phase-head | `baa8e78` | 8 → renderPhaseHead |
+| submit-bar | `0aa43a4` | 12 → renderSubmitBar |
+
+**累計 24 inline call sites → 4 helpers**。全 byte-perfect equivalent（jest 35 attr 0 變化）。
+User-visible: NSM gate-item 從「建議：/修正方向：」改「建議/修正」+ span→div wrapper（user 親決 canonical to mockup 04）。
+其他 0 變動。
+
+### Wave 1.5 驗證
+- 機械字串等價: 29/29 byte-perfect (6+5+8+10)
+- jest baseline: **607/624** (17 skip, 0 fail) — 比 push 前還救回 1 LLM variance
+- e2e serial 5x (workers=1) on circles-gate: 100/115 GREEN（剩 14 是 pre-existing :272 visual baseline drift O-13 + 1 個 mobile-chrome :349 flake）
+- e2e parallel B1 happy 直接證據: 8/8 全綠（之前 1 次 parallel smoke 抓到 fail = flake 確認，非 regression）
+- iOS Safari 15-item: 0 blocker
+- Cross-plan smoke 3 layer × 2 (post gate-transition + post submit-bar): 全 layer fail 都是 pre-existing infra debt（已 logged tracker §3）
+
+### ⏸ 暫停在此 (2026-05-21)
+
+下次接手 priorities（per `audit/wave-component-inventory-spec.md` §D）:
+- **Batch 2 剩餘**: **qchip (47 處 inline，最大量重複)** / field
+- **Batch 3**: error-wrap / gate-loading / banner
+- **Batch 4**: bubble / modal / circles-nav drift / mode-tag / type-tabs
+- **Batch 5 (defer)**: toast (mockup 有 production 0) / mode-card
+
+### 🟢 Wave 1 完成 (2026-05-19/20) — 7 commits
+
+| Commit | 內容 |
+|---|---|
+| `1826cfc` C1 | F-CT2.1 q3 卡片不再建空白 session（NSM 99.9% lifecycle='created' 主因） |
+| `3dcd285` C2 | B6 mockup 04 11 處 drift 對齊 |
+| `d1045d3` C3 | F-CT1.3 backoff 800/1600ms + 5 spec wire testMatch |
+| `9c2173d` C4 | B13 prompt 學員低分禁讚美詞 (37/37 adversarial) |
+| `91061d3` C5 | W1-補.7 NSM 錯誤中文化 + offcanvas WebKit |
+| `50d37f2` C6 | Phase A infra (4 c-drift accounts + AppState 4 keys) |
+| `5547081` C0 | 736 files audit 文件批次封存 |
+
+### 🔴 既有 P0/P1 其他線 (active，未動)
+
+**Phase 2 Wave 2 BLOCKED 2026-05-19** — quiz reviewer 抓 **7 critical gap**：
 
 **Phase 2 Wave 2 BLOCKED 2026-05-19** — quiz reviewer 抓 **7 critical gap**：
 - 4 implementer parallel 違反 RITUAL §7.3 上限 3
