@@ -1490,24 +1490,21 @@
       var items = result.items || [];
       var canProceed = result.canProceed !== false && (os === 'ok' || os === 'warn');
 
-      // transition bar
-      var transitionCls, transitionIcon, transitionTitle, transitionSub;
+      // transition bar (refactor 2026-05-20: 用 renderGateTransition helper, mockup 04+08 共用)
+      var iconCls, transitionTitle, transitionSub;
       var okCount = items.filter(function (i) { return i.status === 'ok'; }).length;
       var errCount = items.filter(function (i) { return i.status === 'error'; }).length;
       if (os === 'ok') {
-        transitionCls = 'gate-transition--ok';
-        transitionIcon = '<i class="ph-fill ph-check-circle gate-transition__icon"></i>';
+        iconCls = 'ph-check-circle';
         transitionTitle = 'NSM 定義通過審核';
         transitionSub = items.length + ' / ' + items.length + ' 條件達標 — 可以進入拆解指標';
       } else if (os === 'warn') {
-        transitionCls = 'gate-transition--warn';
-        transitionIcon = '<i class="ph-fill ph-check-circle gate-transition__icon"></i>';
+        iconCls = 'ph-check-circle';
         transitionTitle = '通過審核（附提醒）';
         var warnCount = items.filter(function (i) { return i.status === 'warn'; }).length;
         transitionSub = okCount + ' / ' + items.length + ' 達標 · ' + warnCount + ' 項可優化 — 可以進入拆解指標';
       } else {
-        transitionCls = 'gate-transition--error';
-        transitionIcon = '<i class="ph-fill ph-x-circle gate-transition__icon"></i>';
+        iconCls = 'ph-x-circle';
         transitionTitle = '需要修正方向';
         transitionSub = errCount + ' 項根本性問題 — 請回上一步重新定義 NSM';
       }
@@ -1515,13 +1512,7 @@
       var countLabel = renderNSMGateCountLabel(items);
 
       html += '<div class="gate-wrap">'
-        + '<div class="gate-transition ' + transitionCls + '">'
-        +   transitionIcon
-        +   '<div class="gate-transition__main">'
-        +     '<div class="gate-transition__title">' + transitionTitle + '</div>'
-        +     '<div class="gate-transition__sub">' + transitionSub + '</div>'
-        +   '</div>'
-        + '</div>'
+        + renderGateTransition({ state: os, iconCls: iconCls, title: transitionTitle, sub: transitionSub })
         + '<div class="gate-summary">'
         +   '<div class="gate-summary__row"><strong>公司：</strong><span>' + escHtml((q.company || '') + (q.industry ? ' · ' + q.industry : '')) + '</span></div>'
         +   '<div class="gate-summary__row"><strong>你的 NSM：</strong><span>' + escHtml(def.nsm || '') + '</span></div>'
@@ -5243,6 +5234,25 @@
       + '</div>';
   }
 
+  // Shared helper — Phase 1.5 Gate + NSM Step 3 Gate 共用的 transition bar render.
+  // 統一 mockup 04 + mockup 08 contract. Refactor 2026-05-20 from 2 inline duplicates
+  // (CIRCLES app.js:5283 + NSM app.js:1518). Byte-perfect equivalent — no UX change.
+  // opts: { state: 'ok'|'warn'|'error', iconCls: 'ph-check-circle'|'ph-x-circle',
+  //         title: string, sub: string, action?: { label, dataAction } }
+  function renderGateTransition(opts) {
+    var actionHtml = opts.action
+      ? '<button class="gate-transition__action" data-gate-action="' + opts.action.dataAction + '">' + escHtml(opts.action.label) + ' <i class="ph ph-arrow-right"></i></button>'
+      : '';
+    return '<div class="gate-transition gate-transition--' + opts.state + '">'
+      +   '<i class="ph-fill ' + opts.iconCls + ' gate-transition__icon"></i>'
+      +   '<div class="gate-transition__main">'
+      +     '<div class="gate-transition__title">' + escHtml(opts.title) + '</div>'
+      +     '<div class="gate-transition__sub">' + escHtml(opts.sub) + '</div>'
+      +   '</div>'
+      +   actionHtml
+      + '</div>';
+  }
+
   function renderGateResult(result, stepCfg) {
     // D-1/D-2/D-3: transition bar copy mirrors mockup 04 §A/§B/§C contract.
     // D-5: gate-section-label count format per state (ok: "N / N 通過"; warn: "N 通過 · N 提醒"; error: "N 通過 · N 阻擋").
@@ -5267,9 +5277,9 @@
     var iconCls = status === 'ok'   ? 'ph-check-circle'
                 : status === 'warn' ? 'ph-check-circle'
                 :                     'ph-x-circle';
-    var actionHtml = (status === 'ok' || status === 'warn')
-      ? '<button class="gate-transition__action" data-gate-action="proceed">繼續 <i class="ph ph-arrow-right"></i></button>'
-      : '';
+    var actionOpt = (status === 'ok' || status === 'warn')
+      ? { label: '繼續', dataAction: 'proceed' }
+      : null;
 
     // D-5: section-label count format differs by state.
     var sectionCount = status === 'ok'
@@ -5280,14 +5290,7 @@
 
     var itemsHtml = (result.items || []).map(renderGateItem).join('');
     return '<div class="gate-content"><div class="gate-wrap">'
-      + '<div class="gate-transition gate-transition--' + status + '">'
-      +   '<i class="ph-fill ' + iconCls + ' gate-transition__icon"></i>'
-      +   '<div class="gate-transition__main">'
-      +     '<div class="gate-transition__title">' + escHtml(transitionTitle) + '</div>'
-      +     '<div class="gate-transition__sub">' + escHtml(transitionSub) + '</div>'
-      +   '</div>'
-      +   actionHtml
-      + '</div>'
+      + renderGateTransition({ state: status, iconCls: iconCls, title: transitionTitle, sub: transitionSub, action: actionOpt })
       + '<div class="gate-section-label">逐欄位回饋 <span class="gate-section-label__count">' + escHtml(sectionCount) + '</span></div>'
       + '<div class="gate-list">' + itemsHtml + '</div>'
       + '</div></div>';
