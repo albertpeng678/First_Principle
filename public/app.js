@@ -656,13 +656,11 @@
       + '</div>';
 
     // ── Submit bar ───────────────────────────────────────────────────────────
-    var submitBarHtml = '<div class="submit-bar">'
-      + '<div class="submit-bar__left"><button class="btn btn--ghost btn--icon" data-phase4="go-home"><i class="ph ph-house"></i></button></div>'
-      + '<div class="submit-bar__right">'
-      + '<button class="btn btn--ghost" data-phase4="export-png"><i class="ph ph-download-simple"></i>匯出 PNG</button>'
-      + '<button class="btn btn--primary" data-phase4="retry-question"><i class="ph ph-shuffle"></i>再練一題</button>'
-      + '</div>'
-      + '</div>';
+    var submitBarHtml = renderSubmitBar({
+      left:  '<button class="btn btn--ghost btn--icon" data-phase4="go-home"><i class="ph ph-house"></i></button>',
+      right: '<button class="btn btn--ghost" data-phase4="export-png"><i class="ph ph-download-simple"></i>匯出 PNG</button>'
+           + '<button class="btn btn--primary" data-phase4="retry-question"><i class="ph ph-shuffle"></i>再練一題</button>'
+    });
 
     return '<div data-view="circles" data-phase="4">'
       + renderPhase4Nav()
@@ -1097,14 +1095,10 @@
       + '</div>';
 
     // 2-button submit-bar (mockup 05 line 1792-1799)
-    var submitBarHtml = '<div class="submit-bar">'
-      + '<div class="submit-bar__left">'
-      + '<button class="btn btn--ghost" data-phase2="go-phase1"><i class="ph ph-arrow-left"></i>上一步（看框架）</button>'
-      + '</div>'
-      + '<div class="submit-bar__right">'
-      + '<button class="btn btn--primary" data-phase2="go-phase3">回評分</button>'
-      + '</div>'
-      + '</div>';
+    var submitBarHtml = renderSubmitBar({
+      left:  '<button class="btn btn--ghost" data-phase2="go-phase1"><i class="ph ph-arrow-left"></i>上一步（看框架）</button>',
+      right: '<button class="btn btn--primary" data-phase2="go-phase3">回評分</button>'
+    });
 
     return '<div data-view="circles" data-phase="2">'
       + progressHtml
@@ -1314,10 +1308,10 @@
         + '<button class="btn btn--primary submit-bar--locked__primary" data-nsm-action="view-eval-result">查看評分結果 <i class="ph ph-arrow-right"></i></button>'
         + '</div>';
     } else {
-      submitBarHtml = '<div class="submit-bar">'
-        + '<div class="submit-bar__left"><button class="btn btn--ghost" data-nsm-action="back"><i class="ph ph-arrow-left"></i>上一步</button></div>'
-        + '<div class="submit-bar__right"><button class="btn btn--primary" data-nsm-submit ' + (canSubmit ? '' : 'disabled') + '>提交審核<i class="ph ph-arrow-right"></i></button></div>'
-        + '</div>';
+      submitBarHtml = renderSubmitBar({
+        left:  '<button class="btn btn--ghost" data-nsm-action="back"><i class="ph ph-arrow-left"></i>上一步</button>',
+        right: '<button class="btn btn--primary" data-nsm-submit ' + (canSubmit ? '' : 'disabled') + '>提交審核<i class="ph ph-arrow-right"></i></button>'
+      });
     }
 
     var html = '<div data-view="nsm">'
@@ -1482,10 +1476,10 @@
 
       // submit-bar
       if (canProceed) {
-        html += '<div class="submit-bar">'
-          + '<div class="submit-bar__left"><button class="btn btn--ghost" data-nsm-gate-action="back-to-step2"><i class="ph ph-arrow-left"></i>上一步</button></div>'
-          + '<div class="submit-bar__right"><button class="btn btn--primary" data-nsm-gate-action="proceed">繼續到 步驟 3<i class="ph ph-arrow-right"></i></button></div>'
-          + '</div>';
+        html += renderSubmitBar({
+          left:  '<button class="btn btn--ghost" data-nsm-gate-action="back-to-step2"><i class="ph ph-arrow-left"></i>上一步</button>',
+          right: '<button class="btn btn--primary" data-nsm-gate-action="proceed">繼續到 步驟 3<i class="ph ph-arrow-right"></i></button>'
+        });
       } else {
         // error —唯一動作「上一步修改」（無 ghost、無繼續、無 override）
         html += '<div class="submit-bar" style="justify-content:flex-end">'
@@ -1659,10 +1653,11 @@
       +   typeCfg.dims.map(function (d) { return renderNSMDim(d, br[d.id] || '', ptype); }).join('')
       + '</div>'
       + evalErrHtml
-      + '<div class="submit-bar">'
-      +   '<div class="submit-bar__left"><button class="btn btn--ghost" data-nsm-action="back-to-step2"><i class="ph ph-arrow-left"></i>上一步</button></div>'
-      +   '<div class="submit-bar__right"><button class="btn btn--primary" data-nsm-submit ' + (canSubmit ? '' : 'disabled') + '>送出，取得 AI 評分<i class="ph ph-arrow-right"></i></button></div>'
-      + '</div></div>';
+      + renderSubmitBar({
+          left:  '<button class="btn btn--ghost" data-nsm-action="back-to-step2"><i class="ph ph-arrow-left"></i>上一步</button>',
+          right: '<button class="btn btn--primary" data-nsm-submit ' + (canSubmit ? '' : 'disabled') + '>送出，取得 AI 評分<i class="ph ph-arrow-right"></i></button>'
+        })
+      + '</div>';
     return applyNSMStateOverlay(html, 3);
   }
 
@@ -4714,12 +4709,10 @@
         + '<i class="ph ph-arrow-left"></i>上一步'
         + '</button>';
     }
-    var submitBarHtml = '<div class="submit-bar">'
-      + '<div class="submit-bar__left">' + ghostHtml + '</div>'
-      + '<div class="submit-bar__right">'
-      + '<button class="btn btn--primary" data-phase1="submit">下一步<i class="ph ph-arrow-right"></i></button>'
-      + '</div>'
-      + '</div>';
+    var submitBarHtml = renderSubmitBar({
+      left:  ghostHtml,
+      right: '<button class="btn btn--primary" data-phase1="submit">下一步<i class="ph ph-arrow-right"></i></button>'
+    });
 
     return applyPhase1StateOverlay(
         '<div data-view="circles" data-circles-phase="1" data-circles-l-step="true">'
@@ -4825,12 +4818,10 @@
         + '<i class="ph ph-arrow-left"></i>上一步'
         + '</button>';
     }
-    var submitBarHtml = '<div class="submit-bar">'
-      + '<div class="submit-bar__left">' + ghostHtml + '</div>'
-      + '<div class="submit-bar__right">'
-      + '<button class="btn btn--primary" data-phase1="submit">下一步<i class="ph ph-arrow-right"></i></button>'
-      + '</div>'
-      + '</div>';
+    var submitBarHtml = renderSubmitBar({
+      left:  ghostHtml,
+      right: '<button class="btn btn--primary" data-phase1="submit">下一步<i class="ph ph-arrow-right"></i></button>'
+    });
 
     return applyPhase1StateOverlay(
         '<div data-view="circles" data-circles-phase="1" data-circles-e-step="true">'
@@ -5057,12 +5048,10 @@
         + '<i class="ph ph-arrow-left"></i>上一步'
         + '</button>';
     }
-    var submitBarHtml = '<div class="submit-bar">'
-      + '<div class="submit-bar__left">' + ghostHtml + '</div>'
-      + '<div class="submit-bar__right">'
-      + '<button class="btn btn--primary" data-phase1="submit">' + escHtml(stepCfg.cta) + '<i class="ph ph-arrow-right"></i></button>'
-      + '</div>'
-      + '</div>';
+    var submitBarHtml = renderSubmitBar({
+      left:  ghostHtml,
+      right: '<button class="btn btn--primary" data-phase1="submit">' + escHtml(stepCfg.cta) + '<i class="ph ph-arrow-right"></i></button>'
+    });
 
     return applyPhase1StateOverlay(
         '<div data-view="circles" data-circles-phase="1" data-circles-s-step="true">'
@@ -5167,14 +5156,30 @@
     var stickyBar = '';
     var st = AppState.circlesGateResult && AppState.circlesGateResult.overallStatus;
     if (st === 'error') {
-      stickyBar = '<div class="submit-bar">'
-        + '<div class="submit-bar__left"></div>'
-        + '<div class="submit-bar__right">'
-        +   '<button class="btn btn--primary" data-gate-action="back"><i class="ph ph-arrow-left"></i>返回修改</button>'
-        + '</div></div>';
+      stickyBar = renderSubmitBar({
+        left:  '',
+        right: '<button class="btn btn--primary" data-gate-action="back"><i class="ph ph-arrow-left"></i>返回修改</button>'
+      });
     }
     return '<div data-view="circles" data-circles-phase="1.5">'
       + progressHtml + phaseHeadHtml + qchipHtml + bodyHtml + stickyBar
+      + '</div>';
+  }
+
+  // Shared helper — submit-bar 共用 layout (mockup 03/04/05/06/07/08/11/13 contract).
+  // Refactor 2026-05-20 from 12+ standard inline duplicates across Phase 1/2/4 + NSM
+  // Step 1/2/3 + Phase 1.5 gate + Phase 3 score.
+  // Byte-perfect equivalent — caller pass raw btn HTML for left/right.
+  // opts: { left?: string|null, right?: string|null }
+  //   - left/right === undefined OR null → skip wrapper div entirely
+  //   - left/right === '' (empty string) → emit empty wrapper div (preserves CSS layout slot)
+  // NOTE: 2 special-case NOT migrated:
+  //   - submit-bar--locked variant (meta + primary, 完全不同 shape)
+  //   - right-only with inline style="justify-content:flex-end" (one-off NSM gate error)
+  function renderSubmitBar(opts) {
+    return '<div class="submit-bar">'
+      + (opts.left  != null ? '<div class="submit-bar__left">'  + opts.left  + '</div>' : '')
+      + (opts.right != null ? '<div class="submit-bar__right">' + opts.right + '</div>' : '')
       + '</div>';
   }
 
@@ -5452,12 +5457,10 @@
         + '<i class="ph ph-arrow-left"></i>上一步'
         + '</button>';
     }
-    var submitBarHtml = '<div class="submit-bar">'
-      + '<div class="submit-bar__left">' + ghostHtml + '</div>'
-      + '<div class="submit-bar__right">'
-      + '<button class="btn btn--primary" data-phase1="submit">下一步<i class="ph ph-arrow-right"></i></button>'
-      + '</div>'
-      + '</div>';
+    var submitBarHtml = renderSubmitBar({
+      left:  ghostHtml,
+      right: '<button class="btn btn--primary" data-phase1="submit">下一步<i class="ph ph-arrow-right"></i></button>'
+    });
 
     return applyPhase1StateOverlay(
         '<div data-view="circles" data-circles-phase="1">'
@@ -6318,14 +6321,12 @@
         + '</button>'
         + '</div>'
       : '';
-    var submitBar = '<div class="submit-bar">'
-      + '<div class="submit-bar__left">'
-      + (submitEnabled ? hintCta : '<span style="font-size:var(--t-meta);color:var(--c-ink-3)">請先選擇一個情境</span>')
-      + '</div><div class="submit-bar__right">'
-      + '<button class="btn btn--primary' + (submitEnabled ? '' : ' is-disabled') + '"'
-      + (submitEnabled ? '' : ' disabled')
-      + ' data-nsm="start">開始 NSM 訓練 <i class="ph ph-arrow-right"></i></button>'
-      + '</div></div>';
+    var submitBar = renderSubmitBar({
+      left:  (submitEnabled ? hintCta : '<span style="font-size:var(--t-meta);color:var(--c-ink-3)">請先選擇一個情境</span>'),
+      right: '<button class="btn btn--primary' + (submitEnabled ? '' : ' is-disabled') + '"'
+           + (submitEnabled ? '' : ' disabled')
+           + ' data-nsm="start">開始 NSM 訓練 <i class="ph ph-arrow-right"></i></button>'
+    });
     var selAttr = sel ? ' data-nsm-selected' : '';
     // NSM home stats strip (Bug 4 fix 2026-05-11) — mirror CIRCLES stats strip at line ~5274
     // Numbers populated by async loadNsmStats() after render. data-stats-strip="nsm"
@@ -6736,10 +6737,10 @@
       + '</div>';
 
     // ── submit-bar ────────────────────────────────────────────────────────────
-    var submitBarHtml = '<div class="submit-bar">'
-      + '<div class="submit-bar__left"><button class="btn btn--ghost" data-phase3="go-home"><i class="ph ph-house"></i>回首頁</button></div>'
-      + '<div class="submit-bar__right"><button class="btn btn--primary" data-phase3="retry-question"><i class="ph ph-shuffle"></i>再練一題</button></div>'
-      + '</div>';
+    var submitBarHtml = renderSubmitBar({
+      left:  '<button class="btn btn--ghost" data-phase3="go-home"><i class="ph ph-house"></i>回首頁</button>',
+      right: '<button class="btn btn--primary" data-phase3="retry-question"><i class="ph ph-shuffle"></i>再練一題</button>'
+    });
 
     // ── layout: mobile/tablet flat, desktop 2-col ────────────────────────────
     var desktopCls = isDesktop ? ' score-body--desktop' : '';
