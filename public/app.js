@@ -903,14 +903,7 @@
         + '<span class="phase-head__meta-sep phase-head__meta-extra--desktop">·</span>'
         + '<span class="phase-head__meta-extra--desktop">填完即進評分</span>'
         + '</div>';
-      var phaseHeadHtmlE = '<div class="phase-head">'
-        + '<span class="phase-head__num">2</span>'
-        + '<div class="phase-head__main">'
-        + '<div class="phase-head__eyebrow">Phase 2 · 整理結論</div>'
-        + '<div class="phase-head__title">' + escHtml(phase2Cfg.title) + '</div>'
-        + '</div>'
-        + metaHtmlE
-        + '</div>';
+      var phaseHeadHtmlE = renderPhaseHead({ num: '2', eyebrow: 'Phase 2 · 整理結論', title: phase2Cfg.title, metaHtml: metaHtmlE });
 
       // chat body dimmed
       var bubblesHtmlE = conversation.map(function (turn, idx) {
@@ -966,14 +959,7 @@
         + '</div>';
     }
 
-    var phaseHeadHtml = '<div class="phase-head">'
-      + '<span class="phase-head__num">2</span>'
-      + '<div class="phase-head__main">'
-      + '<div class="phase-head__eyebrow">PHASE 2 · 對話練習</div>'
-      + '<div class="phase-head__title">' + escHtml(phase2Cfg.title) + '</div>'
-      + '</div>'
-      + metaHtml
-      + '</div>';
+    var phaseHeadHtml = renderPhaseHead({ num: '2', eyebrow: 'PHASE 2 · 對話練習', title: phase2Cfg.title, metaHtml: metaHtml });
 
     // ── chat-body ─────────────────────────────────────────────────────────────
     var chatBodyHtml;
@@ -1091,14 +1077,7 @@
           + '<span class="phase-head__meta-extra--desktop">當次得分 ' + totalScore + '</span>'
         : '')
       + '</div>';
-    var phaseHeadHtml = '<div class="phase-head">'
-      + '<span class="phase-head__num">2</span>'
-      + '<div class="phase-head__main">'
-      + '<div class="phase-head__eyebrow">Phase 2 · 對話練習（已評分）</div>'
-      + '<div class="phase-head__title">' + escHtml(phase2Cfg.title) + '</div>'
-      + '</div>'
-      + metaHtml
-      + '</div>';
+    var phaseHeadHtml = renderPhaseHead({ num: '2', eyebrow: 'Phase 2 · 對話練習（已評分）', title: phase2Cfg.title, metaHtml: metaHtml });
 
     // locked-banner (mockup 05 line 1767-1770)
     var isDesktop = window.innerWidth >= 1024;
@@ -1342,13 +1321,7 @@
     }
 
     var html = '<div data-view="nsm">'
-      + '<div class="phase-head">'
-      +   '<span class="phase-head__num">2</span>'
-      +   '<div class="phase-head__main">'
-      +     '<div class="phase-head__eyebrow">NSM · 北極星訓練</div>'
-      +     '<div class="phase-head__title">定義 NSM</div>'
-      +   '</div>'
-      + '</div>'
+      + renderPhaseHead({ num: '2', eyebrow: 'NSM · 北極星訓練', title: '定義 NSM' })
       + renderNSMProgress(2)
       + '<div class="nsm-body">'
       +   renderNSMContextCard(q, typeCfg)
@@ -1672,13 +1645,7 @@
     }
 
     var html = '<div data-view="nsm">'
-      + '<div class="phase-head">'
-      +   '<span class="phase-head__num">3</span>'
-      +   '<div class="phase-head__main">'
-      +     '<div class="phase-head__eyebrow">NSM · 北極星訓練</div>'
-      +     '<div class="phase-head__title">拆解輸入指標</div>'
-      +   '</div>'
-      + '</div>'
+      + renderPhaseHead({ num: '3', eyebrow: 'NSM · 北極星訓練', title: '拆解輸入指標' })
       + renderNSMProgress(3)
       + '<div class="nsm-body">'
       +   renderNSMContextCard(q, typeCfg)
@@ -5156,14 +5123,7 @@
     }
 
     var phaseHeadEyebrow = isLoading ? 'Phase 1.5 · 框架審核中' : 'Phase 1.5 · 框架審核';
-    var phaseHeadHtml = '<div class="phase-head">'
-      + '<span class="phase-head__num">1.5</span>'
-      + '<div class="phase-head__main">'
-      +   '<div class="phase-head__eyebrow">' + phaseHeadEyebrow + '</div>'
-      +   '<div class="phase-head__title">' + escHtml(stepCfg.title) + '</div>'
-      + '</div>'
-      + phaseHeadMeta
-      + '</div>';
+    var phaseHeadHtml = renderPhaseHead({ num: '1.5', eyebrow: phaseHeadEyebrow, title: stepCfg.title, metaHtml: phaseHeadMeta });
 
     var qTitle = (q && q.problem_statement) ? q.problem_statement : '';
     var qCompany = (q && q.company) ? escHtml(q.company) : '';
@@ -5215,6 +5175,25 @@
     }
     return '<div data-view="circles" data-circles-phase="1.5">'
       + progressHtml + phaseHeadHtml + qchipHtml + bodyHtml + stickyBar
+      + '</div>';
+  }
+
+  // Shared helper — phase-head 共用 component (mockup 00/03/04/05/06/07/08 contract).
+  // Refactor 2026-05-20 from inline duplicates across Phase 1/1.5/2 + NSM Step 1/2/3.
+  // Byte-perfect equivalent — escHtml of hardcoded Chinese / numeric strings unchanged.
+  // opts: { num: string, eyebrow: string, title: string, metaHtml?: string, extraClass?: string }
+  // NOTE: Special cases NOT migrated to this helper:
+  //   - NSM gate (caller-built phaseNumHtml + phaseMainHtml var pattern)
+  //   - Phase 2 drill / sim 兩處 (pre-built titleHtml 含 .phase-head__title-extra span)
+  function renderPhaseHead(opts) {
+    var classAttr = 'phase-head' + (opts.extraClass ? ' ' + opts.extraClass : '');
+    return '<div class="' + classAttr + '">'
+      + '<span class="phase-head__num">' + escHtml(opts.num) + '</span>'
+      + '<div class="phase-head__main">'
+      +   '<div class="phase-head__eyebrow">' + escHtml(opts.eyebrow) + '</div>'
+      +   '<div class="phase-head__title">' + escHtml(opts.title) + '</div>'
+      + '</div>'
+      + (opts.metaHtml || '')
       + '</div>';
   }
 
@@ -5415,15 +5394,13 @@
         + '</span>';
     }
 
-    var phaseHeadClass = 'phase-head' + (isDrill ? ' phase-head--drill' : '');
-    var phaseHeadHtml = '<div class="' + phaseHeadClass + '">'
-      + '<span class="phase-head__num">' + escHtml(stepNum) + '</span>'
-      + '<div class="phase-head__main">'
-      + '<div class="phase-head__eyebrow">' + escHtml(eyebrow) + '</div>'
-      + '<div class="phase-head__title">' + escHtml(title) + '</div>'
-      + '</div>'
-      + metaHtml
-      + '</div>';
+    var phaseHeadHtml = renderPhaseHead({
+      num: stepNum,
+      eyebrow: eyebrow,
+      title: title,
+      metaHtml: metaHtml,
+      extraClass: isDrill ? 'phase-head--drill' : ''
+    });
 
     // ── qchip ──
     var company = (q && q.company) ? q.company : '';
@@ -6364,13 +6341,7 @@
       + '<span class="stats-strip__hint stats-strip__hint--desktop" data-stat="hint-long"></span>'
       + '</div>';
     return '<div data-view="nsm" data-nsm-step="1"' + selAttr + '>'
-      + '<div class="phase-head"><span class="phase-head__num">1</span>'
-      + '<div class="phase-head__main">'
-      + '<div class="phase-head__eyebrow">NSM · 北極星訓練</div>'
-      + '<div class="phase-head__title">選擇企業情境</div>'
-      + '</div>'
-      + '<div class="phase-head__meta">' + metaContent + '</div>'
-      + '</div>'
+      + renderPhaseHead({ num: '1', eyebrow: 'NSM · 北極星訓練', title: '選擇企業情境', metaHtml: '<div class="phase-head__meta">' + metaContent + '</div>' })
       + renderNSMProgress(1)
       + nsmStatsHtml
       + '<div class="nsm-content">' + mobileBody + desktopShell + '</div>'
