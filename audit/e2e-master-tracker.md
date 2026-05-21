@@ -497,6 +497,36 @@
 
 ## §3 Active P2 / Needs Decision
 
+### 🟡 P2-NCK-1: nsm-evaluate-checkpoint-real TC1+TC3 pre-existing fail (2026-05-22)
+**狀態：【A — 已 find，未動 fix】**
+**Source**: Wave 1.5 banner refactor cross-vp 5x — stash 對照確認 pre-existing
+**Specs affected**: `tests/e2e/nsm-evaluate-checkpoint-real.spec.js:175 (TC1 happy) + :285 (TC3 retry)`
+**Failure mode**: timeout waiting for `window.AppState.nsmEvalResult` non-empty (90s)
+**Projects**: e2e-desktop + e2e-mobile-chrome + e2e-mobile-safari (3 projects × 2 specs = 6 fail)
+**5x serial**: deterministic 5/5 runs all fail same 6
+**Stash baseline**: pre-refactor (no banner changes) ALSO fails same 2 specs → confirmed non-regression
+**Suspect**: real OpenAI /evaluate call latency exceeding 90s window OR nsmEvalResult mutation path broken pre-Wave-1.5
+**Fix scope**: medium — likely needs longer timeout OR checkpoint state mutation audit
+
+---
+
+### 🟡 P2-GL-1: gate-loading 共用層 refactor 暫不做 — drift 太多 ROI 差 (2026-05-22)
+**狀態：【A — 已 find，未動 fix】**
+**Source**: Wave 1.5 batch 3 inventory cold-Read
+**5 inline sites**: app.js 352 (session-load) / 515 (Phase 4) / 1380 (NSM gate) / 5331 (CIRCLES gate) / 6600 (Phase 3)
+**Drift**:
+- Prefix: `loading-` vs `gate-loading-` (2 distinct CSS prefixes, mockup canonical 11/12/13 vs 04/08)
+- Spinner class: `loading-spinner` vs `gate-spinner`
+- Checklist container: `<div>` vs `<ul role="list">`
+- Step item tag: `<div>` vs `<li>`
+- Caller 4 (CIRCLES gate, 5331) 全 hardcode 5 個 step，不迭代 → helper 不適用
+- Done icon class drift: `ph-check-circle` vs `ph-check` vs `ph-fill ph-check-circle`
+**Recommended helper**: per inventory §531 `renderChecklist({prefix, title, sub, slow?, steps})` 但實作會超過 8 個 opts，違反 Karpathy §4.2 simplicity
+**Decision**: 暫不做 — 投入精力 vs 統一收益不對等；後續若 prefix 用法收斂或 mockup 統一再回來
+**Fix scope**: large — 需先 mockup 規範統一 prefix (loading-* OR gate-loading-*) + 設計可 hardcode step 變體的 helper
+
+---
+
 ### 🟡 P2-Q-3: wave1-b6 Layer (b) 3 specs mobile-only pre-existing fail (2026-05-22)
 **狀態：【A — 已 find，未動 fix】**
 **Source**: Wave 1.5 qchip refactor cross-vp 5× serial — pre-refactor stash 對照確認 pre-existing

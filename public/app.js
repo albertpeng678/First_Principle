@@ -3116,11 +3116,12 @@
   function renderGlobalBanners() {
     const banners = [];
     if (!AppState.isOnline) {
-      banners.push(`<div class="banner banner--offline">
-        <span class="banner__icon"><i class="ph ph-wifi-slash"></i></span>
-        <div class="banner__main"><div class="banner__title">網路離線</div>
-          <div class="banner__sub">草稿已存本機，連線恢復後自動同步</div></div>
-      </div>`);
+      banners.push(renderBanner({
+        variant: 'offline',
+        iconName: 'ph-wifi-slash',
+        title: '網路離線',
+        sub: '草稿已存本機，連線恢復後自動同步'
+      }));
     }
     // Migration success banner (post-login guest→authed merge)
     if (AppState.migrationBanner === 'showing') {
@@ -3527,27 +3528,24 @@
 
   // ── Plan B SB9b: locked / stale / save-error banner + variants (mockup 03 Section E line 1953-2106) ──
   function renderLockedBanner(score) {
-    var subText = '只鎖定編輯,答案仍可閱讀;要修改請從首頁開新場練習。';
     var titleHtml = score != null
       ? '已評分鎖定 · ' + score + ' / 100'
       : '已評分鎖定';
-    return '<div class="banner banner--locked">'
-      + '<span class="banner__icon"><i class="ph ph-lock-key"></i></span>'
-      + '<div class="banner__main">'
-      + '<div class="banner__title">' + escHtml(titleHtml) + '</div>'
-      + '<div class="banner__sub">' + escHtml(subText) + '</div>'
-      + '</div>'
-      + '</div>';
+    return renderBanner({
+      variant: 'locked',
+      iconName: 'ph-lock-key',
+      title: titleHtml,
+      sub: '只鎖定編輯,答案仍可閱讀;要修改請從首頁開新場練習。'
+    });
   }
 
   function renderStaleBanner() {
-    return '<div class="banner banner--stale">'
-      + '<span class="banner__icon"><i class="ph ph-warning-octagon"></i></span>'
-      + '<div class="banner__main">'
-      + '<div class="banner__title">題庫已更新 — 顯示為唯讀</div>'
-      + '<div class="banner__sub">這份紀錄的題目陳述（problem_statement）與資料庫目前版本不同。為避免分析錯亂,整份練習轉為唯讀;可回首頁用最新題目重練。</div>'
-      + '</div>'
-      + '</div>';
+    return renderBanner({
+      variant: 'stale',
+      iconName: 'ph-warning-octagon',
+      title: '題庫已更新 — 顯示為唯讀',
+      sub: '這份紀錄的題目陳述（problem_statement）與資料庫目前版本不同。為避免分析錯亂,整份練習轉為唯讀;可回首頁用最新題目重練。'
+    });
   }
 
   function renderSaveErrorBanner() {
@@ -3657,13 +3655,12 @@
     if (!AppState.nsmEvalResult) return html;
 
     // 1) inject banner before <div class="nsm-body"
-    var bannerHtml = '<div class="banner banner--locked">'
-      + '<span class="banner__icon"><i class="ph ph-lock-key"></i></span>'
-      + '<div class="banner__main">'
-      + '<div class="banner__title">已評分完成</div>'
-      + '<div class="banner__sub">內容鎖定，可繼續查看提示與範例</div>'
-      + '</div>'
-      + '</div>';
+    var bannerHtml = renderBanner({
+      variant: 'locked',
+      iconName: 'ph-lock-key',
+      title: '已評分完成',
+      sub: '內容鎖定，可繼續查看提示與範例'
+    });
     var injectMarker = '<div class="nsm-body"';
     var idx = html.indexOf(injectMarker);
     if (idx !== -1) {
@@ -5179,6 +5176,27 @@
       + '<i class="ph ' + caret + ' qchip__caret"></i>'
       + '</' + tag + '>'
       + (opts.trailingHtml || '');
+  }
+
+  // Shared helper — banner 共用 layout (mockup 00/03/07/15 standard banner contract).
+  // Refactor 2026-05-22 from 4 Shape A inline sites: offline (3119) / locked-helper (3534) /
+  // stale-helper (3544) / NSM inline-locked (3660). Plan A 結構性 only, byte-perfect equivalent.
+  // Standard shape: <div class="banner banner--{variant}"><span class="banner__icon"><i class="ph {iconName}"></i></span>
+  //   <div class="banner__main"><div class="banner__title">{escHtml(title)}</div>
+  //   <div class="banner__sub">{escHtml(sub)}</div></div></div>
+  // NOT migrated (different shape):
+  //   - save-error (3553): inline body w/ <strong>, no banner__main/__title/__sub
+  //   - empty-hint warn (3573): one-liner inline text only
+  //   - migration-banner (3127): non-standard banner class
+  // opts: { variant: 'offline'|'locked'|'stale'|..., iconName, title, sub }
+  function renderBanner(opts) {
+    return '<div class="banner banner--' + opts.variant + '">'
+      + '<span class="banner__icon"><i class="ph ' + opts.iconName + '"></i></span>'
+      + '<div class="banner__main">'
+      + '<div class="banner__title">' + escHtml(opts.title) + '</div>'
+      + '<div class="banner__sub">' + escHtml(opts.sub) + '</div>'
+      + '</div>'
+      + '</div>';
   }
 
   // Shared helper — error-wrap 共用 layout (mockup 11/12/13/15 contract).
