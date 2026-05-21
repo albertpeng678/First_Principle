@@ -819,14 +819,14 @@
       companyDisplay = companyBase;
     }
     var qTitle = q.problem_statement || '';
-    return '<button class="qchip" data-phase2="qchip" aria-expanded="false">'
-      + '<span class="qchip__icon"><i class="ph ph-bookmark-simple"></i></span>'
-      + '<div class="qchip__main">'
-      + '<div class="qchip__company">' + companyDisplay + '</div>'
-      + '<div class="qchip__title">' + escHtml(qTitle) + '</div>'
-      + '</div>'
-      + '<i class="ph ph-caret-down qchip__caret"></i>'
-      + '</button>';
+    return renderQchipShell({
+      wrapper: 'button',
+      dataAttr: { name: 'data-phase2', value: 'qchip' },
+      ariaExpanded: 'false',
+      iconName: 'ph-bookmark-simple',
+      companyHtml: companyDisplay,
+      title: qTitle
+    });
   }
 
   // ── renderConclusionBox (Section E — mockup 05 line 1553-1575) ───────────
@@ -4662,17 +4662,15 @@
     }
     var qTitle = (q && q.problem_statement) ? q.problem_statement : '';
     var chipExpanded = AppState.circlesChipExpanded === true;
-    var qchipClass = 'qchip' + (chipExpanded ? ' is-expanded' : '');
-    var caretIcon = chipExpanded ? 'ph-caret-up' : 'ph-caret-down';
-    var qchipHtml = '<div class="' + qchipClass + '" data-phase1="qchip-toggle">'
-      + '<span class="qchip__icon"><i class="ph ph-info"></i></span>'
-      + '<div class="qchip__main">'
-      + '<div class="qchip__company">' + companyDisplayHtml + '</div>'
-      + '<div class="qchip__title">' + escHtml(qTitle) + '</div>'
-      + '</div>'
-      + '<i class="ph ' + caretIcon + ' qchip__caret"></i>'
-      + '</div>'
-      + (chipExpanded ? renderQchipExpand(q) : '');
+    var qchipHtml = renderQchipShell({
+      dataAttr: { name: 'data-phase1', value: 'qchip-toggle' },
+      extraClass: chipExpanded ? 'is-expanded' : '',
+      iconName: 'ph-info',
+      companyHtml: companyDisplayHtml,
+      title: qTitle,
+      caretIcon: chipExpanded ? 'ph-caret-up' : 'ph-caret-down',
+      trailingHtml: chipExpanded ? renderQchipExpand(q) : ''
+    });
 
     // sol-cards
     var solutions = AppState.circlesPhase1Solutions;
@@ -4771,17 +4769,15 @@
       : companyBaseHtml;
     var qTitle = (q && q.problem_statement) ? q.problem_statement : '';
     var chipExpanded = AppState.circlesChipExpanded === true;
-    var qchipClass = 'qchip' + (chipExpanded ? ' is-expanded' : '');
-    var caretIcon = chipExpanded ? 'ph-caret-up' : 'ph-caret-down';
-    var qchipHtml = '<div class="' + qchipClass + '" data-phase1="qchip-toggle">'
-      + '<span class="qchip__icon"><i class="ph ph-info"></i></span>'
-      + '<div class="qchip__main">'
-      + '<div class="qchip__company">' + companyDisplayHtml + '</div>'
-      + '<div class="qchip__title">' + escHtml(qTitle) + '</div>'
-      + '</div>'
-      + '<i class="ph ' + caretIcon + ' qchip__caret"></i>'
-      + '</div>'
-      + (chipExpanded ? renderQchipExpand(q) : '');
+    var qchipHtml = renderQchipShell({
+      dataAttr: { name: 'data-phase1', value: 'qchip-toggle' },
+      extraClass: chipExpanded ? 'is-expanded' : '',
+      iconName: 'ph-info',
+      companyHtml: companyDisplayHtml,
+      title: qTitle,
+      caretIcon: chipExpanded ? 'ph-caret-up' : 'ph-caret-down',
+      trailingHtml: chipExpanded ? renderQchipExpand(q) : ''
+    });
 
     // sol-cards — 數量 = circlesPhase1Solutions.length
     var solutions = AppState.circlesPhase1Solutions || [];
@@ -4940,17 +4936,15 @@
     }
     var qTitle = (q && q.problem_statement) ? q.problem_statement : '';
     var chipExpanded = AppState.circlesChipExpanded === true;
-    var qchipClass = 'qchip' + (chipExpanded ? ' is-expanded' : '');
-    var caretIcon = chipExpanded ? 'ph-caret-up' : 'ph-caret-down';
-    var qchipHtml = '<div class="' + qchipClass + '" data-phase1="qchip-toggle">'
-      + '<span class="qchip__icon"><i class="ph ph-info"></i></span>'
-      + '<div class="qchip__main">'
-      + '<div class="qchip__company">' + companyDisplayHtml + '</div>'
-      + '<div class="qchip__title">' + escHtml(qTitle) + '</div>'
-      + '</div>'
-      + '<i class="ph ' + caretIcon + ' qchip__caret"></i>'
-      + '</div>'
-      + (chipExpanded ? renderQchipExpand(q) : '');
+    var qchipHtml = renderQchipShell({
+      dataAttr: { name: 'data-phase1', value: 'qchip-toggle' },
+      extraClass: chipExpanded ? 'is-expanded' : '',
+      iconName: 'ph-info',
+      companyHtml: companyDisplayHtml,
+      title: qTitle,
+      caretIcon: chipExpanded ? 'ph-caret-up' : 'ph-caret-down',
+      trailingHtml: chipExpanded ? renderQchipExpand(q) : ''
+    });
 
     // 3 main rt-fields (reuse renderPhase1Field but S step uses 2-button toolbar for all fields)
     var fieldsHtml = '';
@@ -5126,21 +5120,17 @@
       ? (qCompany + ' · ' + escHtml(qProduct || '') + '（' + qMode + ' · ' + qType + '）')
       : (qProduct ? (qCompany + ' · ' + escHtml(qProduct) + '（' + qMode + '）') : (qCompany + '（' + qMode + '）'));
     var chipExpanded = AppState.circlesChipExpanded === true;
-    var qchipClass = 'qchip' + (chipExpanded ? ' is-expanded' : '');
-    var caretIcon = chipExpanded ? 'ph-caret-up' : 'ph-caret-down';
     // D-11: qchip icon = ph-bookmark-simple (mockup 04 all viewports — was ph-info)
-    var qchipHtml = '<div class="' + qchipClass + '" data-phase1="qchip-toggle">'
-      + '<span class="qchip__icon"><i class="ph ph-bookmark-simple"></i></span>'
-      + '<div class="qchip__main">'
-      +   '<div class="qchip__company">'
-      +     '<span class="qchip__company-short">' + qCompanyShort + '</span>'
-      +     '<span class="qchip__company-long">' + qCompanyLong + '</span>'
-      +   '</div>'
-      +   '<div class="qchip__title">' + escHtml(qTitle) + '</div>'
-      + '</div>'
-      + '<i class="ph ' + caretIcon + ' qchip__caret"></i>'
-      + '</div>'
-      + (chipExpanded ? renderQchipExpand(q) : '');
+    var qchipHtml = renderQchipShell({
+      dataAttr: { name: 'data-phase1', value: 'qchip-toggle' },
+      extraClass: chipExpanded ? 'is-expanded' : '',
+      iconName: 'ph-bookmark-simple',
+      companyHtml: '<span class="qchip__company-short">' + qCompanyShort + '</span>'
+                 + '<span class="qchip__company-long">' + qCompanyLong + '</span>',
+      title: qTitle,
+      caretIcon: chipExpanded ? 'ph-caret-up' : 'ph-caret-down',
+      trailingHtml: chipExpanded ? renderQchipExpand(q) : ''
+    });
     // body
     var bodyHtml;
     if (AppState.circlesGateError) {
@@ -5164,6 +5154,35 @@
     return '<div data-view="circles" data-circles-phase="1.5">'
       + progressHtml + phaseHeadHtml + qchipHtml + bodyHtml + stickyBar
       + '</div>';
+  }
+
+  // Shared helper — qchip 共用 shell layout (mockup 03/04/05 contract).
+  // Refactor 2026-05-21 from 6 inline duplicates (Phase 2 button + 4 Phase 1 + 1 Phase 1.5 div).
+  // Byte-perfect equivalent — caller passes own canonical iconName per surface's mockup:
+  //   - Phase 2 chat (mockup 05): 'ph-bookmark-simple', wrapper='button', data-phase2='qchip'
+  //   - Phase 1 C/L/S/E (mockup 03): 'ph-info', wrapper='div', data-phase1='qchip-toggle'
+  //   - Phase 1.5 gate (mockup 04): 'ph-bookmark-simple', wrapper='div', data-phase1='qchip-toggle'
+  // NOT migrated (different shape, mockup 14 LOCKED):
+  //   - NSM Step 4 qchip__pill 'NSM' variant (app.js:2475)
+  // opts: { wrapper?, dataAttr?: {name,value}, ariaExpanded?, extraClass?, iconName,
+  //         companyHtml, title, caretIcon?, trailingHtml? }
+  // companyHtml: raw HTML — caller must escape user-provided fragments (e.g. escHtml(company))
+  // OR pass already-safe assembled HTML (e.g. responsive `<span class="qchip__company-short">...`).
+  function renderQchipShell(opts) {
+    var tag = opts.wrapper || 'div';
+    var clsAttr = 'qchip' + (opts.extraClass ? ' ' + opts.extraClass : '');
+    var dataAttrStr = opts.dataAttr ? ' ' + opts.dataAttr.name + '="' + opts.dataAttr.value + '"' : '';
+    var ariaStr = (opts.ariaExpanded != null) ? ' aria-expanded="' + opts.ariaExpanded + '"' : '';
+    var caret = opts.caretIcon || 'ph-caret-down';
+    return '<' + tag + ' class="' + clsAttr + '"' + dataAttrStr + ariaStr + '>'
+      + '<span class="qchip__icon"><i class="ph ' + opts.iconName + '"></i></span>'
+      + '<div class="qchip__main">'
+      + '<div class="qchip__company">' + opts.companyHtml + '</div>'
+      + '<div class="qchip__title">' + escHtml(opts.title) + '</div>'
+      + '</div>'
+      + '<i class="ph ' + caret + ' qchip__caret"></i>'
+      + '</' + tag + '>'
+      + (opts.trailingHtml || '');
   }
 
   // Shared helper — submit-bar 共用 layout (mockup 03/04/05/06/07/08/11/13 contract).
@@ -5420,17 +5439,15 @@
     }
     var qTitle = (q && q.problem_statement) ? q.problem_statement : '';
     var chipExpanded = AppState.circlesChipExpanded === true;
-    var qchipClass = 'qchip' + (chipExpanded ? ' is-expanded' : '');
-    var caretIcon = chipExpanded ? 'ph-caret-up' : 'ph-caret-down';
-    var qchipHtml = '<div class="' + qchipClass + '" data-phase1="qchip-toggle">'
-      + '<span class="qchip__icon"><i class="ph ph-info"></i></span>'
-      + '<div class="qchip__main">'
-      + '<div class="qchip__company">' + escHtml(companyDisplay) + '</div>'
-      + '<div class="qchip__title">' + escHtml(qTitle) + '</div>'
-      + '</div>'
-      + '<i class="ph ' + caretIcon + ' qchip__caret"></i>'
-      + '</div>'
-      + (chipExpanded ? renderQchipExpand(q) : '');
+    var qchipHtml = renderQchipShell({
+      dataAttr: { name: 'data-phase1', value: 'qchip-toggle' },
+      extraClass: chipExpanded ? 'is-expanded' : '',
+      iconName: 'ph-info',
+      companyHtml: escHtml(companyDisplay),
+      title: qTitle,
+      caretIcon: chipExpanded ? 'ph-caret-up' : 'ph-caret-down',
+      trailingHtml: chipExpanded ? renderQchipExpand(q) : ''
+    });
 
     // ── phase-body with 4 fields ──
     // desktop（sim 與 drill 都顯示 rail — user 親要求 7 步全 rail 一致）

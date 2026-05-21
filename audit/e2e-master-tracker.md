@@ -497,6 +497,42 @@
 
 ## §3 Active P2 / Needs Decision
 
+### 🟡 P2-Q-3: wave1-b6 Layer (b) 3 specs mobile-only pre-existing fail (2026-05-22)
+**狀態：【A — 已 find，未動 fix】**
+**Source**: Wave 1.5 qchip refactor cross-vp 5× serial — pre-refactor stash 對照確認 pre-existing
+**Specs affected**: `tests/e2e/wave1-b6-circles-phase1-to-gate-real-flow.spec.js:228,265,318`
+- Layer (b) D-7/D-8 loading state
+- Layer (b) excellent input D-1/D-2/D-5/D-10
+- Layer (b) poor input D-3/D-6
+**Projects affected**: `e2e-mobile-chrome` + `e2e-mobile-safari`（同 3 spec × 2 project = 6 fail）
+**Desktop status**: e2e-desktop 8/8 PASS × 5 runs（無 fail）
+**Deterministic**: 5/5 run same fails；pre-refactor stash 也同樣 6 fail → 非 Wave 1.5 regression
+**Suspect**: mobile viewport gate-loading title text 偵測 / iOS Safari fetch timing
+**Fix scope**: medium — 需 cold-Read 失敗 screenshot 找 selector or timing issue
+
+---
+
+### 🟡 P2-Q-1: Phase 2 qchip caret 與 mockup 05 不符 (pre-existing pre-Wave-1.5) (2026-05-22)
+**狀態：【A — 已 find，未動 fix】**
+**Source**: Wave 1.5 qchip refactor UI/UX reviewer cold-Read 18 PNGs，反查 mockup 抓到
+**Mockup contract**: `docs/superpowers/specs/mockups/2026-05-02-frontend-rewrite/05-phase-2-chat.html:716` 指定 `ph-caret-right`
+**Production**: `public/app.js` Phase 2 qchip 自始用 `ph-caret-down`（pre-refactor + post-refactor 同）
+**Refactor 影響**: 0 — byte-equivalent preserved，不是 Wave 1.5 造成
+**Decision needed**: align production → mockup (ph-caret-right) 或反過來 align mockup → production
+**Fix scope**: 1 char swap if align-to-mockup chosen; or update mockup-05 line 716
+
+---
+
+### 🟡 P2-Q-2: phase2-ui-fix.spec.js 5 specs 用 `qchip-panel` selector 但 selector 在 L23 (`f2a3d58`) 已刪 (2026-05-22)
+**狀態：【A — 已 find，未動 fix】**
+**Source**: Wave 1.5 qchip refactor cross-plan e2e 5× serial，pre-refactor baseline 對照確認 pre-existing
+**Specs affected**: `tests/e2e/phase2-ui-fix.spec.js:205,216,234,280,290` (AC2/AC3/AC4b + B5-AC6 ×2)
+**Selector**: `[data-phase2="qchip-panel"]` → `<div class="qchip-panel">` 已被 `qchip-expand` 取代 (O-9 close)
+**Decision needed**: 改寫 spec 用 `qchip-expand` selector，或 delete spec（已 obsolete）
+**Fix scope**: small — 5 lines POM `qchipPanel` selector swap + 5 spec assertions
+
+---
+
 ### 🟡 P2-SCHEMA-10: 死欄位 `user_explanation` + `user_business_link` (TEXT) 全 null — migration 2026-05-15 加但無人寫 (2026-05-19 DB audit)
 **狀態：【B — 只有 root cause，等 brainstorm fix】**
 **Source**: `audit/supabase-full-schema-strict-audit-2026-05-19.md` §7 D1
