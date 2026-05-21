@@ -1,11 +1,11 @@
 # PM Drill — 專案狀態看板
 
 > 即時狀態 single source of truth。**不放歷史（git log 有）**。重大事件即時 Edit。
-> **Last updated:** 2026-05-22 — **Wave 1.5 qchip ship `de1ceba` push origin/main**
+> **Last updated:** 2026-05-22 — **Wave 1.5 error-wrap ship `85e8a5e` push origin/main**
 
 ## 當前狀態（30 秒讀完 — 2026-05-22）
 
-### 🟢 Wave 1.5 共用層 refactor — 5 commits 上 origin/main
+### 🟢 Wave 1.5 共用層 refactor — 6 commits 上 origin/main
 
 | Component | Commit | inline → helper |
 |---|---|---|
@@ -13,11 +13,21 @@
 | gate-item (含 mockup 08 unify) | `05ef606` | 2 helper 合一 + mockup 04 canonical |
 | phase-head | `baa8e78` | 8 → renderPhaseHead |
 | submit-bar | `0aa43a4` | 12 → renderSubmitBar |
-| **qchip** (2026-05-22 ship) | **`de1ceba`** | **6 → renderQchipShell** |
+| qchip (2026-05-22 ship) | `de1ceba` | 6 → renderQchipShell |
+| **error-wrap** (2026-05-22 ship) | **`85e8a5e`** | **5 → renderErrorWrap** |
 
-**累計 30 inline call sites → 5 helpers**。全 byte-perfect equivalent，Plan A 結構性 only，0 user-visible UX 變動。
+**累計 35 inline call sites → 6 helpers**。全 byte-perfect equivalent，Plan A 結構性 only，0 user-visible UX 變動。
 
-### Wave 1.5 qchip 驗證（本次 ship）
+### Wave 1.5 error-wrap 驗證（本次 ship）
+- Mechanical byte-equivalence: **6/6 PASS** (/tmp/verify-error-wrap.js)
+- 15 PNG cold-Read × 5 surface × 3 vp (audit/error-wrap-refactor-2026-05-22/)
+- **5 e2e specs × 5 consecutive runs × 3 viewport = 175/175 GREEN, 0 flake**:
+  - wave1-fct1.3 CIRCLES gate: real gate → result → reload DB 持久化 verified
+  - wave1-fct1.4 NSM gate i18n × 3 AC (429 / 503 / network abort)
+  - circles-phase3-restore-real / nsm-evaluator-error / circles-phase2-evaluator-error
+- Pre-commit race regression: 13/13 PASS
+
+### Wave 1.5 qchip 驗證（前次 ship）
 - 機械等價: **7/7 byte-perfect** (`/tmp/verify-qchip-equivalence.js`)
 - 18 PNG cold-Read × 6 surface × 3 vp: 全綠 (`audit/qchip-refactor-2026-05-21/`)
 - Opus 嚴審 reviewer (`a845836158ab29ace`): **APPROVED**（引 mockup 03/04/05 line cross-check）
