@@ -1,11 +1,11 @@
 # PM Drill — 專案狀態看板
 
 > 即時狀態 single source of truth。**不放歷史（git log 有）**。重大事件即時 Edit。
-> **Last updated:** 2026-05-21 — **Wave 1 + Wave 1.5 共用層 全 ship 上線**（11 commits push origin/main，session 暫停）
+> **Last updated:** 2026-05-22 — **Wave 1.5 qchip ship `de1ceba` push origin/main**
 
-## 當前狀態（30 秒讀完 — 2026-05-21）
+## 當前狀態（30 秒讀完 — 2026-05-22）
 
-### 🟢 Wave 1.5 共用層 refactor — 4 commits 上 origin/main（本 session ship）
+### 🟢 Wave 1.5 共用層 refactor — 5 commits 上 origin/main
 
 | Component | Commit | inline → helper |
 |---|---|---|
@@ -13,23 +13,28 @@
 | gate-item (含 mockup 08 unify) | `05ef606` | 2 helper 合一 + mockup 04 canonical |
 | phase-head | `baa8e78` | 8 → renderPhaseHead |
 | submit-bar | `0aa43a4` | 12 → renderSubmitBar |
+| **qchip** (2026-05-22 ship) | **`de1ceba`** | **6 → renderQchipShell** |
 
-**累計 24 inline call sites → 4 helpers**。全 byte-perfect equivalent（jest 35 attr 0 變化）。
-User-visible: NSM gate-item 從「建議：/修正方向：」改「建議/修正」+ span→div wrapper（user 親決 canonical to mockup 04）。
-其他 0 變動。
+**累計 30 inline call sites → 5 helpers**。全 byte-perfect equivalent，Plan A 結構性 only，0 user-visible UX 變動。
 
-### Wave 1.5 驗證
-- 機械字串等價: 29/29 byte-perfect (6+5+8+10)
-- jest baseline: **607/624** (17 skip, 0 fail) — 比 push 前還救回 1 LLM variance
-- e2e serial 5x (workers=1) on circles-gate: 100/115 GREEN（剩 14 是 pre-existing :272 visual baseline drift O-13 + 1 個 mobile-chrome :349 flake）
-- e2e parallel B1 happy 直接證據: 8/8 全綠（之前 1 次 parallel smoke 抓到 fail = flake 確認，非 regression）
-- iOS Safari 15-item: 0 blocker
-- Cross-plan smoke 3 layer × 2 (post gate-transition + post submit-bar): 全 layer fail 都是 pre-existing infra debt（已 logged tracker §3）
+### Wave 1.5 qchip 驗證（本次 ship）
+- 機械等價: **7/7 byte-perfect** (`/tmp/verify-qchip-equivalence.js`)
+- 18 PNG cold-Read × 6 surface × 3 vp: 全綠 (`audit/qchip-refactor-2026-05-21/`)
+- Opus 嚴審 reviewer (`a845836158ab29ace`): **APPROVED**（引 mockup 03/04/05 line cross-check）
+- e2e-desktop wave1-b6 5× serial: **8/8 every run**
+- e2e-mobile-chrome/safari 6 fail = pre-existing（stash 對照同 fail）→ tracker P2-Q-3
+- N1 (caret-right pre-existing drift) → tracker P2-Q-1；N2 helper comment + N3 JSDoc safety contract 已修
+- Pre-commit hook race regression: 13/13 PASS
 
-### ⏸ 暫停在此 (2026-05-21)
+### Wave 1.5 earlier 驗證
+- 機械字串等價: 29/29 byte-perfect (gate-transition 6+gate-item 5+phase-head 8+submit-bar 10)
+- jest baseline: 607/624 (17 skip, 0 fail)
+- iOS Safari 15-item: N/A (HTML-string only refactor)
 
-下次接手 priorities（per `audit/wave-component-inventory-spec.md` §D）:
-- **Batch 2 剩餘**: **qchip (47 處 inline，最大量重複)** / field
+### ⏸ 下次接手 priorities
+
+per `audit/wave-component-inventory-spec.md` §D:
+- **Batch 2 剩餘**: field (qchip ✓ ship 2026-05-22)
 - **Batch 3**: error-wrap / gate-loading / banner
 - **Batch 4**: bubble / modal / circles-nav drift / mode-tag / type-tabs
 - **Batch 5 (defer)**: toast (mockup 有 production 0) / mode-card
