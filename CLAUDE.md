@@ -1,11 +1,11 @@
 # PM Drill — 專案狀態看板
 
 > 即時狀態 single source of truth。**不放歷史（git log 有）**。重大事件即時 Edit。
-> **Last updated:** 2026-05-22 — **Wave 1.5 error-wrap ship `85e8a5e` push origin/main**
+> **Last updated:** 2026-05-22 — **Wave 1.5 banner ship `a8b478f` push origin/main**
 
 ## 當前狀態（30 秒讀完 — 2026-05-22）
 
-### 🟢 Wave 1.5 共用層 refactor — 6 commits 上 origin/main
+### 🟢 Wave 1.5 共用層 refactor — 7 commits 上 origin/main
 
 | Component | Commit | inline → helper |
 |---|---|---|
@@ -14,11 +14,20 @@
 | phase-head | `baa8e78` | 8 → renderPhaseHead |
 | submit-bar | `0aa43a4` | 12 → renderSubmitBar |
 | qchip (2026-05-22 ship) | `de1ceba` | 6 → renderQchipShell |
-| **error-wrap** (2026-05-22 ship) | **`85e8a5e`** | **5 → renderErrorWrap** |
+| error-wrap (2026-05-22 ship) | `85e8a5e` | 5 → renderErrorWrap |
+| **banner** (2026-05-22 ship) | **`a8b478f`** | **4 → renderBanner** |
 
-**累計 35 inline call sites → 6 helpers**。全 byte-perfect equivalent，Plan A 結構性 only，0 user-visible UX 變動。
+**累計 39 inline call sites → 7 helpers**。全 byte-perfect equivalent (banner offline caller 是 whitespace-equivalent)，Plan A 結構性 only，0 user-visible UX 變動。
 
-### Wave 1.5 error-wrap 驗證（本次 ship）
+### Wave 1.5 banner 驗證（本次 ship）
+- Mechanical byte-equivalence: **4/4 PASS** (/tmp/verify-banner.js)
+- Cross-vp 5× serial × 3 specs (back-nav-lock + nsm-checkpoint + fe-gate-stale):
+  - **190/220 GREEN** (38/44 per run)
+  - 6 fail × 5 deterministic = pre-existing nsm-checkpoint TC1/TC3 (stash 對照確認，tracker P2-NCK-1)
+- gate-loading ⏭ skip (drift 太多 ROI 差，tracker P2-GL-1)
+- Pre-commit race regression: 13/13 PASS
+
+### Wave 1.5 error-wrap 驗證（前次 ship）
 - Mechanical byte-equivalence: **6/6 PASS** (/tmp/verify-error-wrap.js)
 - 15 PNG cold-Read × 5 surface × 3 vp (audit/error-wrap-refactor-2026-05-22/)
 - **5 e2e specs × 5 consecutive runs × 3 viewport = 175/175 GREEN, 0 flake**:
