@@ -536,16 +536,14 @@
     }
     return '<div data-view="circles" data-phase="4">'
       + renderPhase4Nav()
-      + '<div class="error-wrap">'
-      + '<div class="error-wrap__icon"><i class="ph-fill ph-cloud-warning"></i></div>'
-      + '<div class="error-wrap__title">報告生成失敗</div>'
-      + '<div class="error-wrap__sub">' + escHtml(subCopy) + '</div>'
-      + '<code class="error-wrap__code">' + escHtml(code) + '</code>'
-      + '<div class="error-wrap__actions">'
-      + '<button class="btn btn--ghost" data-phase4="go-home"><i class="ph ph-house"></i>回首頁</button>'
-      + '<button class="btn btn--primary" data-phase4="retry"><i class="ph ph-arrow-clockwise"></i>重試</button>'
-      + '</div>'
-      + '</div>'
+      + renderErrorWrap({
+          iconHtml: '<div class="error-wrap__icon"><i class="ph-fill ph-cloud-warning"></i></div>',
+          title: '報告生成失敗',
+          sub: subCopy,
+          codeText: code,
+          actionsHtml: '<button class="btn btn--ghost" data-phase4="go-home"><i class="ph ph-house"></i>回首頁</button>'
+                     + '<button class="btn btn--primary" data-phase4="retry"><i class="ph ph-arrow-clockwise"></i>重試</button>'
+        })
       + '</div>';
   }
 
@@ -1410,16 +1408,14 @@
                         : /* GATE_API_ERROR + fallback */    '審核服務暫時無法使用';
       html += '<div class="gate-wrap">'
         + '<div class="nsm-gate-error-wrap">'
-        +   '<div class="error-wrap">'
-        +     '<i class="ph ph-cloud-warning error-wrap__icon"></i>'
-        +     '<div class="error-wrap__title">NSM 審核失敗</div>'
-        +     '<div class="error-wrap__sub">' + escHtml(nsmGateErrMsg) + '</div>'
-        +     '<code class="error-wrap__code">' + escHtml(gateError) + '</code>'
-        +     '<div class="error-wrap__actions">'
-        +       '<button class="btn btn--primary" data-nsm-gate-action="retry">重試</button>'
-        +       '<button class="btn btn--ghost" data-nsm-gate-action="back-to-step2"><i class="ph ph-arrow-left"></i>返回修改</button>'
-        +     '</div>'
-        +   '</div>'
+        +   renderErrorWrap({
+              iconHtml: '<i class="ph ph-cloud-warning error-wrap__icon"></i>',
+              title: 'NSM 審核失敗',
+              sub: nsmGateErrMsg,
+              codeText: gateError,
+              actionsHtml: '<button class="btn btn--primary" data-nsm-gate-action="retry">重試</button>'
+                         + '<button class="btn btn--ghost" data-nsm-gate-action="back-to-step2"><i class="ph ph-arrow-left"></i>返回修改</button>'
+            })
         + '</div>'
         + '</div></div></div>';  // closes gate-wrap + gate-content + data-view="nsm"
       return html;
@@ -1629,12 +1625,12 @@
                      : evalErrCode === 'EVAL_RATE_LIMIT'  ? '評分服務目前負載過高'
                      : /* EVAL_API_ERROR + fallback */      '評分服務暫時無法使用';
       evalErrHtml = '<div class="nsm-eval-error-wrap">'
-        + '<div class="error-wrap">'
-        +   '<i class="ph ph-cloud-warning error-wrap__icon"></i>'
-        +   '<div class="error-wrap__title">NSM 評分失敗</div>'
-        +   '<div class="error-wrap__sub">' + escHtml(evalErrMsg) + '</div>'
-        +   '<code class="error-wrap__code">' + escHtml(evalErrCode) + '</code>'
-        + '</div>'
+        + renderErrorWrap({
+            iconHtml: '<i class="ph ph-cloud-warning error-wrap__icon"></i>',
+            title: 'NSM 評分失敗',
+            sub: evalErrMsg,
+            codeText: evalErrCode
+          })
         + '</div>';
     }
 
@@ -5185,6 +5181,30 @@
       + (opts.trailingHtml || '');
   }
 
+  // Shared helper — error-wrap 共用 layout (mockup 11/12/13/15 contract).
+  // Refactor 2026-05-22 from 5 inline blocks across CIRCLES + NSM + Phase 3/4.
+  // Byte-perfect equivalent — caller passes own iconHtml + codeTag per its mockup:
+  //   - Phase 3 / Phase 4 (mockup 11/12): iconHtml `<div class="error-wrap__icon"><i class="ph-fill ph-cloud-warning"></i></div>` + codeTag 'code'
+  //   - NSM gate / NSM eval / CIRCLES gate: iconHtml `<i class="ph ph-cloud-warning error-wrap__icon"></i>` (no div wrap)
+  //   - CIRCLES gate also uses codeTag 'div' (drift logged tracker P2-EW-1)
+  // NOTE: helper does NOT wrap caller-specific outer divs (nsm-gate-error-wrap / gate-content / etc) — caller composes those.
+  // opts: { iconHtml, title, sub, codeTag?, codeText, actionsHtml? }
+  //   - codeTag defaults to 'code'; pass 'div' for CIRCLES gate shape
+  //   - actionsHtml omitted/null → no actions div (NSM eval variant)
+  function renderErrorWrap(opts) {
+    var codeTag = opts.codeTag || 'code';
+    var actions = opts.actionsHtml != null
+      ? '<div class="error-wrap__actions">' + opts.actionsHtml + '</div>'
+      : '';
+    return '<div class="error-wrap">'
+      + opts.iconHtml
+      + '<div class="error-wrap__title">' + escHtml(opts.title) + '</div>'
+      + '<div class="error-wrap__sub">' + escHtml(opts.sub) + '</div>'
+      + '<' + codeTag + ' class="error-wrap__code">' + escHtml(opts.codeText) + '</' + codeTag + '>'
+      + actions
+      + '</div>';
+  }
+
   // Shared helper — submit-bar 共用 layout (mockup 03/04/05/06/07/08/11/13 contract).
   // Refactor 2026-05-20 from 12+ standard inline duplicates across Phase 1/2/4 + NSM
   // Step 1/2/3 + Phase 1.5 gate + Phase 3 score.
@@ -5333,15 +5353,17 @@
               : errorCode === 'DRAFT_CREATE_FAILED' ? '建立練習失敗'
               :                                       '框架審核失敗';
     var retryLabel = errorCode === 'DRAFT_CREATE_FAILED' ? '重新嘗試' : '重新審核';
-    return '<div class="gate-content"><div class="error-wrap">'
-      + '<i class="ph ph-cloud-warning error-wrap__icon"></i>'
-      + '<div class="error-wrap__title">' + escHtml(title) + '</div>'
-      + '<div class="error-wrap__sub">' + escHtml(sub) + '</div>'
-      + '<div class="error-wrap__code">' + escHtml(errorCode || 'GATE_API_ERROR') + '</div>'
-      + '<div class="error-wrap__actions">'
-      +   '<button class="btn btn--primary" data-gate-action="retry">' + escHtml(retryLabel) + '</button>'
-      +   '<button class="btn btn--ghost" data-gate-action="back">返回修改</button>'
-      + '</div></div></div>';
+    return '<div class="gate-content">'
+      + renderErrorWrap({
+          iconHtml: '<i class="ph ph-cloud-warning error-wrap__icon"></i>',
+          title: title,
+          sub: sub,
+          codeTag: 'div',
+          codeText: errorCode || 'GATE_API_ERROR',
+          actionsHtml: '<button class="btn btn--primary" data-gate-action="retry">' + escHtml(retryLabel) + '</button>'
+                     + '<button class="btn btn--ghost" data-gate-action="back">返回修改</button>'
+        })
+      + '</div>';
   }
 
   function countByStatus(items, st) { return (items || []).filter(function (i) { return i.status === st; }).length; }
@@ -6607,26 +6629,23 @@
       ? (AppState.circlesDrillStep || 'C1')
       : (['C1', 'I', 'R', 'C2', 'L', 'E', 'S'][AppState.circlesSimStep || 0] || 'C1');
 
+    // AC-4 (spec b2ca935 §3.4): disable retry when step already scored
+    var alreadyScored = AppState.circlesStepScores && AppState.circlesStepScores[stepKey];
+    var retryAttrs = alreadyScored
+      ? ' disabled aria-disabled="true" title="此步已評分，不可重新評分"'
+      : '';
+    var phase3RetryBtnHtml = '<button class="btn btn--primary" data-phase3="retry"' + retryAttrs + '><i class="ph ph-arrow-clockwise"></i>重新評分</button>';
     return '<div data-view="circles" data-phase="3">'
       + renderCirclesNav(stepKey)
       + renderCirclesProgressBar(stepKey)
-      + '<div class="error-wrap">'
-      + '<div class="error-wrap__icon"><i class="ph-fill ph-cloud-warning"></i></div>'
-      + '<div class="error-wrap__title">' + escHtml(titleCopy) + '</div>'
-      + '<div class="error-wrap__sub">' + escHtml(subCopy) + '</div>'
-      + '<code class="error-wrap__code">' + escHtml(code) + '</code>'
-      + '<div class="error-wrap__actions">'
-      + '<button class="btn btn--ghost" data-phase3="back-to-phase1"><i class="ph ph-arrow-left"></i>返回修改答案</button>'
-      + (function () {
-          // AC-4 (spec b2ca935 §3.4): disable retry when step already scored
-          var alreadyScored = AppState.circlesStepScores && AppState.circlesStepScores[stepKey];
-          var attrs = alreadyScored
-            ? ' disabled aria-disabled="true" title="此步已評分，不可重新評分"'
-            : '';
-          return '<button class="btn btn--primary" data-phase3="retry"' + attrs + '><i class="ph ph-arrow-clockwise"></i>重新評分</button>';
-        })()
-      + '</div>'
-      + '</div>'
+      + renderErrorWrap({
+          iconHtml: '<div class="error-wrap__icon"><i class="ph-fill ph-cloud-warning"></i></div>',
+          title: titleCopy,
+          sub: subCopy,
+          codeText: code,
+          actionsHtml: '<button class="btn btn--ghost" data-phase3="back-to-phase1"><i class="ph ph-arrow-left"></i>返回修改答案</button>'
+                     + phase3RetryBtnHtml
+        })
       + '</div>';
   }
 
