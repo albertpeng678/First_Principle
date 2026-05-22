@@ -844,7 +844,12 @@
 **Rollback**: `audit/rollback-2026-05-22-circles-rls.sql` (ready, not used)
 **Quiz**: 3 rounds — R1 BLOCKED 8 / R2 BLOCKED 6 / R3 APPROVED_WITH_NITS (3 nits all addressed in commit)
 **Skill citations applied**: RITUAL §3.7 + §3.18 + §3.12, playwright-skill `core/api-testing.md` + `core/multi-user-and-collaboration.md`, addy `doubt-driven-development` for irreversible policy change, addy `spec-driven-development` for `audit/p0-schema-fix-wave-spec-2026-05-22.md`
-**Final commit**: (TBD — committing now)
+**E2E supplementation post-ship (2026-05-22 per RITUAL §1)**: user invoked retroactive e2e audit; 3 lanes dispatched parallel —
+- jest baseline: 605/624 (17 skipped, 2 fail in `circles-final-report-adversarial.test.js:450` HALLUCINATED_PRAISE — pre-existing LLM variance tracker NEW-B13-W1, NOT regression)
+- api smoke (3 projects): **97/97 GREEN** — confirms self BE guest CRUD + lifecycle + sessions list unaffected by RLS tighten (SERVICE_ROLE bypass + X-Guest-ID header path intact)
+- cross-vp 5× (`circles-gate.spec` + `wave1-b6` × 3 projects × 5 runs): runs 1+5 completed; fails all match pre-existing tracker entries — circles-gate :272 visual baseline = O-13; wave1-b6 Layer (b) mobile-only = P2-Q-3; auth setup races = #264
+- Stash-revert pre-baseline diff: N/A (DB-level migration cannot be locally reverted without rollback SQL — fail pattern signature match to tracker is the proxy verification)
+**Final commit**: `917d485`
 
 ---
 

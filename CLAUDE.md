@@ -1,34 +1,34 @@
 # PM Drill — 專案狀態看板
 
 > 即時狀態 single source of truth。**不放歷史（git log 有）**。重大事件即時 Edit。
-> **Last updated:** 2026-05-22 — **P0 SCHEMA fix wave brainstorm 中 — 已過 quiz round 2，pg_policies 真實 snapshot 拿到，準備 round 3 quiz 後動工**
+> **Last updated:** 2026-05-22 — **P0-SCHEMA-NEW-1 (CIRCLES RLS) SHIPPED `917d485` + 全 e2e supplementation GREEN**
 
 ## 🚧 當前 phase — P0 SCHEMA fix wave (2026-05-22)
 
 **目標**: 修 tracker §1 5 隻 P0 — NEW-1 CIRCLES RLS policy bug / 1-v2 evaluate path shape / 3 NSM guest_id index / 2 NSM dedupe / 4 NSM RLS codify
 
-**已完成 (pre-ship prep)**:
-- ✅ Skill 全盤點 (14 superpowers + 1 karpathy + 23 addy + 47 playwright md)
-- ✅ RITUAL §3 stage-by-stage skill mapping (12-stage 對應表 in `audit/p0-schema-fix-wave-spec-2026-05-22.md`)
-- ✅ 5 並行 read-only agent scan: live schema / shape stats / dedupe + guest stats / e2e gap / call-site audit
-- ✅ Quiz round 1 → BLOCKED 8 items → addressed → Quiz round 2 → BLOCKED 6 items → addressed
-- ✅ dedupe script Q1 null bug 修：61 groups / **514 deletes** (vs 6790 幻數)
-- ✅ RLS e2e spec Q2 payload schema 修 (`{questionId, questionJson, mode}`)
-- ✅ pg_policies 真實 snapshot 拿到 (`audit/rls-policies-snapshot-2026-05-22.md`) — Q7 closed
-  - **重大發現**: CIRCLES RLS 不是 OFF，是 policy 第二段 OR clause `auth.uid() IS NULL AND guest_id IS NOT NULL` 太寬鬆 (NSM 正確設計用 `x-guest-id` header match)
-  - Fix scope 大幅縮小: `DROP POLICY + CREATE POLICY × 2` 1 個 migration，自家 app 0 影響 verified (FE 只用 `supabaseClient.auth.*`，BE 用 service-role bypass)
-- ✅ Memory STANDING 立: `feedback_update_claude_md_and_tracker_on_ship` (ship 後必同步本檔 + tracker §1→§5)
+**🟢 NEW-1 SHIPPED `917d485` (2026-05-22)** — CIRCLES RLS guest policy 收緊
+- Migration: `migrations/2026-05-22-fix-circles-rls-guest-policy.sql` 已 apply Supabase
+- Verify: `tests/api/rls-cross-user-isolation.spec.js` 6 TC × 5 runs = **30/30 GREEN 0 flake**
+- 3 quiz rounds: R1 BLOCKED 8 / R2 BLOCKED 6 / R3 APPROVED_WITH_NITS
+- **Post-ship e2e supplementation (per RITUAL §1)**:
+  - jest 605/624 (2 pre-existing LLM flake NEW-B13-W1)
+  - api smoke 97/97 GREEN (BE service-role bypass + X-Guest-ID path intact)
+  - cross-vp 5× — fails all match tracker §3 pre-existing (O-13 / P2-Q-3 / #264)
+- Rollback ready: `audit/rollback-2026-05-22-circles-rls.sql`
 
-**進入下一步**:
-- Round 3 quiz reviewer 用真實 pg_policies + 修好的 deliverables 審 → APPROVED → 才動 production
-- 動工順序: NEW-1 (CIRCLES policy fix) → SCHEMA-1-v2 evaluate shape (FE 2 line + BE 4 coerce) → ship + 24h soak → SCHEMA-3 guest_id index → SCHEMA-2 dedupe + UNIQUE → SCHEMA-4 NSM RLS codify
+**進入下一步** (動工順序):
+- **SCHEMA-1-v2 evaluate shape** (FE 2 line + BE 4 coerce) → ship + 24h soak
+- **SCHEMA-3** guest_id index → ship
+- **SCHEMA-2** dedupe + UNIQUE (61 groups / 514 deletes verified) → ship
+- **SCHEMA-4** NSM RLS codify (reproduce 2 correct policies verbatim) → ship
 
 **Deliverables 已寫**:
 - `audit/p0-schema-fix-wave-spec-2026-05-22.md` (canonical spec, 6 quiz items 全 address)
 - `audit/rls-policies-snapshot-2026-05-22.md` (pg_policies 真實狀態)
 - `scripts/dedupe-nsm-dry-run.js` (Q1 修，re-run 514 deletes verified)
 - `scripts/probe-rls-policies.js` (Q7 helper)
-- `tests/api/rls-cross-user-isolation.spec.js` (Q2 修，TC1-4)
+- `tests/api/rls-cross-user-isolation.spec.js` (NEW-1 verify spec, 30/30 GREEN)
 
 ---
 
