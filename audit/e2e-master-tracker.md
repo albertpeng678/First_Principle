@@ -513,6 +513,17 @@
 
 ## §3 Active P2 / Needs Decision
 
+### 🟡 P2-LLM-VAR-1: `circles-coach-version-adversarial.test.js:322` `[f-off-topic]` LLM variance (2026-05-22 SCHEMA-1-v2 Task 5)
+**狀態：【A — 已 find，未動 fix】per `feedback_find_log_no_autonomous_fix`**
+**Source**: SCHEMA-1-v2 Task 5 jest regression run — 1 new fail outside known NEW-B13-W1 family
+**Symptom**: variant `[f-off-topic]` — coaching section correctly redirects user back on topic (visible in output) but assertion format mismatch — pure LLM stochasticity, unrelated to coerce wiring
+**Diff from baseline**: 605/624 → 606/624 (net +1 pass, but different fail). Same prompt-family pattern as NEW-B13-W1 (`circles-final-report-adversarial.test.js:450` HALLUCINATED_PRAISE).
+**Fix scope**: pending — likely prompt schema-guard tightening (same pattern as NEW-B13-W1 brainstorm in `audit/B13-NEW-B13-W1-prompt-fix-scope-brainstorm.md`)
+**Severity**: P2 — adversarial test only, no user-visible impact
+**Cross-ref**: NEW-B13-W1 (final-report) — same family, different prompt
+
+---
+
 ### 🟡 P2-W15-1: Wave 1.5 共用層 refactor 收尾 — 剩餘元件 ROI 較低 (2026-05-22)
 **狀態：【A — 已 find，未動 fix】**
 **Source**: Wave 1.5 8 commits ship 後 inventory 評估

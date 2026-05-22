@@ -1,7 +1,21 @@
 # PM Drill — 專案狀態看板
 
 > 即時狀態 single source of truth。**不放歷史（git log 有）**。重大事件即時 Edit。
-> **Last updated:** 2026-05-22 — **P0-SCHEMA-NEW-1 (CIRCLES RLS) SHIPPED `917d485` + 全 e2e supplementation GREEN**
+> **Last updated:** 2026-05-22 — **P0-SCHEMA-1-v2 Tasks 1-5 + 8-10 完工 (local，未 push)；等 NEW-1 24h soak 才可 Task 6 push**
+
+## 🟡 進行中 — P0-SCHEMA-1-v2 (NSM /evaluate shape coerce)
+- ✅ Brainstorm + spec `371a36d` + plan `ff057e6` + plan-fix `ad8f4fd` 全 push
+- ✅ 3-round quiz: R1 BLOCKED → R2 APPROVED_WITH_NITS → R3 APPROVED_WITH_NITS
+- ✅ Tasks 1-5 (BE coerce helper + 4 wire sites + API spec): **API 30/30 + jest 606/624 + nsm-full-flow 8/8**，server log 抓到 `[coerce-user-nsm] string→object` 在 real flow 觸發
+- ✅ Tasks 8-10 (FE 2 lines + E2E spec + 5× cross-vp): **15/15 GREEN**，15 PNG 證據在 `audit/schema-1-v2-roundtrip/`
+- ✅ Director cold-Read PNG sample 4/15 — pattern validate
+- 📌 Sonnet 抓到 spec assumption 修正：actual BE write sites = **4 不是 6**（line 131/108 是 `evaluateNSM()` JS call 不是 DB write）
+- 📌 Sonnet 抓到 Phase 3 architectural drift：completed status 不在 `tryResumeLatestSession` active filter，reload 不會 restore — 改用 DB-direct shape verify（更強驗證）
+- ⏳ **等 NEW-1 24h soak** (1h+~30min 已過，剩 ~22.5h) → Task 6 commit + push BE
+- ⏳ 6h BE soak → Task 11 commit + push FE
+- ⏳ 24h FE soak → Task 12 closure (tracker §1 → §5 + CLAUDE.md sync)
+
+---
 
 ## 🚧 當前 phase — P0 SCHEMA fix wave (2026-05-22)
 
