@@ -497,6 +497,23 @@
 
 ## §3 Active P2 / Needs Decision
 
+### 🟡 P2-W15-1: Wave 1.5 共用層 refactor 收尾 — 剩餘元件 ROI 較低 (2026-05-22)
+**狀態：【A — 已 find，未動 fix】**
+**Source**: Wave 1.5 8 commits ship 後 inventory 評估
+**Completed (8 helpers, 42 inline → 8 helpers)**:
+- gate-transition (348cf49) / gate-item (05ef606) / phase-head (baa8e78) / submit-bar (0aa43a4)
+- qchip (de1ceba) / error-wrap (85e8a5e) / banner (a8b478f) / hint-modal (0776f7b)
+**Deferred (low ROI per Karpathy §4.2)**:
+- gate-loading (5 sites) → tracker P2-GL-1 (drift 太多 prefix/spinner/checklist tag)
+- bubble (5 sites) → 3 distinct shape (user single-text + interviewee section + coach with hint extras)，user variant 簡單到不需 helper
+- field (~40 sites) → shape 複雜 (toolbar / label-row / hint-row / counter / textarea)，需獨立 brainstorm session
+- NSM step 1 教練思路 modal (line 4303) → extra aria-label，per Karpathy §4.2
+- save-error / empty-hint / migration-banner → non-standard shape，1 site each
+**Decision**: Wave 1.5 natural stopping point；剩餘大型 refactor (field) 需獨立 plan + brainstorm
+**Fix scope**: deferred — 後續 wave 或 user 親 brainstorm
+
+---
+
 ### 🟡 P2-NCK-1: nsm-evaluate-checkpoint-real TC1+TC3 pre-existing fail (2026-05-22)
 **狀態：【A — 已 find，未動 fix】**
 **Source**: Wave 1.5 banner refactor cross-vp 5x — stash 對照確認 pre-existing
