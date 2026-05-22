@@ -774,14 +774,17 @@ test.afterAll(async () => {
   if (createdIds.length) await admin.from('nsm_sessions').delete().in('id', createdIds);
 });
 
-test('SCHEMA-1-v2 roundtrip: 3 fields persist through evaluate + reload', async ({ page }) => {
+test('SCHEMA-1-v2 roundtrip: 3 fields persist through evaluate + reload', async ({ page }, testInfo) => {
+  const vp = testInfo.project.name;
+  const snapDir = `audit/schema-1-v2-roundtrip`;
+
   await test.step('Phase 1: navigate to NSM step 1, pick question', async () => {
     await page.goto('/');
     await page.getByRole('link', { name: /NSM/ }).first().click();
     await expect(page).toHaveURL(/nsm/, { timeout: 10000 });
-    // Click any question card to enter step 1
     await page.locator('[data-nsm-question-id]').first().click();
     await expect(page.locator('.nsm-step-1, [data-nsm-step="1"]')).toBeVisible({ timeout: 10000 });
+    await page.screenshot({ path: `${snapDir}/${vp}-phase1-step1-entered.png`, fullPage: true });
   });
 
   await test.step('Phase 2: fill 3 fields (nsm + explanation + businessLink)', async () => {
@@ -790,27 +793,55 @@ test('SCHEMA-1-v2 roundtrip: 3 fields persist through evaluate + reload', async 
     await page.locator('[data-nsm-field="businessLink"]').fill('TEST_LINK_VALUE');
     // Wait for 800ms debounced save (triggerNsmSaveCycle)
     await page.waitForTimeout(1200);
-    // Wait for PATCH /progress to land
+    // Wait for PATCH /progress to land (object shape, post NEW-Bug-A fix)
     await page.waitForResponse(r => /\/progress/.test(r.url()) && r.request().method() === 'PATCH', { timeout: 5000 }).catch(() => {});
+    await page.screenshot({ path: `${snapDir}/${vp}-phase2-3fields-filled.png`, fullPage: true });
   });
 
   let sessionIdBefore;
-  await test.step('Phase 3: capture session id, navigate to evaluate (step 3)', async () => {
+  await test.step('Phase 2.5: navigate to step 3 evaluate, capture session id, click 送出評分, wait POST /evaluate 2xx', async () => {
     sessionIdBefore = await page.evaluate(() => window.AppState && window.AppState.nsmSession && window.AppState.nsmSession.id);
     expect(sessionIdBefore).toBeTruthy();
     createdIds.push(sessionIdBefore);
+
+    // Navigate to step 3 (evaluate trigger lives on step 3 submit-bar per app.js:2012 + 2514)
+    // Try the canonical "next" / step 3 nav buttons; fallback to direct state manipulation only if locator fails.
+    const nextBtn = page.getByRole('button', { name: /下一步|前往評分|送出評分|評分|送出/ }).first();
+    await nextBtn.waitFor({ state: 'visible', timeout: 10000 });
+
+    // Set up waitForResponse BEFORE click to avoid race
+    const evalRespPromise = page.waitForResponse(
+      r => /\/evaluate$/.test(r.url()) && r.request().method() === 'POST',
+      { timeout: 30000 }
+    );
+
+    await nextBtn.click();
+
+    // Either click navigates to step 3 with auto-submit, OR step 3 needs explicit "送出評分" click.
+    // If step 3 lands without auto-submit, find + click the explicit eval button.
+    const explicitEvalBtn = page.getByRole('button', { name: /送出評分$/ });
+    if (await explicitEvalBtn.isVisible({ timeout: 2000 }).catch(() => false)) {
+      await explicitEvalBtn.click();
+    }
+
+    const evalResp = await evalRespPromise;
+    expect(evalResp.status()).toBeLessThan(500);
+    expect(evalResp.status()).toBeLessThan(400);  // 2xx required for fix verification
+    await page.screenshot({ path: `${snapDir}/${vp}-phase2.5-evaluate-200.png`, fullPage: true });
   });
 
-  await test.step('Phase 4: F5 reload, expect 3 fields restored from DB roundtrip', async () => {
+  await test.step('Phase 3: F5 reload, expect 3 fields restored from DB roundtrip', async () => {
     await page.reload();
     await expect(page.locator('[data-nsm-field="nsm"]')).toHaveValue(/TEST_NSM_VALUE_/, { timeout: 15000 });
     await expect(page.locator('[data-nsm-field="explanation"]')).toHaveValue('TEST_EXPL_VALUE');
     await expect(page.locator('[data-nsm-field="businessLink"]')).toHaveValue('TEST_LINK_VALUE');
+    await page.screenshot({ path: `${snapDir}/${vp}-phase3-reload-3fields-restored.png`, fullPage: true });
   });
 
-  await test.step('Phase 5: verify DB user_nsm is object shape with 3 keys', async () => {
+  await test.step('Phase 4: verify DB user_nsm is object shape with 3 keys', async () => {
     const { data } = await admin.from('nsm_sessions').select('user_nsm').eq('id', sessionIdBefore).single();
     expect(typeof data.user_nsm).toBe('object');
+    expect(Array.isArray(data.user_nsm)).toBe(false);
     expect(data.user_nsm).toMatchObject({
       explanation: 'TEST_EXPL_VALUE',
       businessLink: 'TEST_LINK_VALUE',
@@ -867,6 +898,32 @@ git diff --cached --stat
 - [ ] **Step 3: Dispatch 2-stage review (parallel, opus)**
 
 Same pattern as Task 6 Step 3. Spec compliance + code quality on the 2-line FE change + new E2E spec.
+
+- [ ] **Step 3.5: Director cold-Read PNG gate (per STANDING `feedback_two_stage_review_mandatory` + `feedback_uiux_visual_only`)**
+
+Task 10 spec writes 5 PNG per vp × 3 vp = 15 PNG per run, total 75 PNG across 5 runs into `audit/schema-1-v2-roundtrip/`.
+
+Director (opus, NOT sonnet) must:
+1. Read ≥ 1 PNG per phase per vp = 5 phases × 3 vp = 15 PNG minimum (no sampling reduction)
+2. For each Read, output ≥ 1 sentence describing what's visible (form state / button visible / 3 fields shown / etc.)
+3. Confirm Phase 2.5 PNG shows step 3 with evaluate button OR step 4 result page (proves /evaluate fired)
+4. Confirm Phase 3 reload PNG shows all 3 fields with TEST_ prefix values
+5. Reject commit if any vp shows blank state, error banner, or different feature surface
+
+Output format:
+```
+=== Director cold-Read evidence ===
+[e2e-desktop phase1] <1 sentence what's visible>
+[e2e-desktop phase2] <1 sentence>
+[e2e-desktop phase2.5] <1 sentence proving /evaluate fired>
+[e2e-desktop phase3] <1 sentence confirming reload restored 3 fields>
+[e2e-desktop phase4] (no PNG — pure DB read assert)
+[e2e-mobile-chrome phase1-3] ...
+[e2e-mobile-safari phase1-3] ...
+=== VERDICT: APPROVED / BLOCKED ===
+```
+
+BLOCKED → Director investigates root cause (locator drift / OpenAI 503 / timing) BEFORE committing.
 
 - [ ] **Step 4: Commit**
 
