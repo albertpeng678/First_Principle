@@ -405,13 +405,11 @@
     var company = escHtml(q.company || '');
     var product = escHtml(q.product  || '');
     var sub = company && product ? (company + ' · ' + product) : (company || product);
-    return '<div class="circles-nav">'
-      + '<button class="circles-nav__back" data-phase4="nav-back" aria-label="返回"><i class="ph ph-arrow-left"></i></button>'
-      + '<div class="circles-nav__main">'
-      + '<div class="circles-nav__title">模擬面試總結報告</div>'
-      + (sub ? '<div class="circles-nav__sub">' + escHtml(sub) + '</div>' : '')
-      + '</div>'
-      + '</div>';
+    return renderCirclesNavShell({
+      backDataAttr: 'data-phase4="nav-back"',
+      titleHtml: '模擬面試總結報告',
+      subText: sub
+    });
   }
 
   // Radar SVG helper — 7-axis heptagon from circlesStepScores
@@ -5164,6 +5162,23 @@
       + (opts.trailingHtml || '');
   }
 
+  // Shared helper — circles-nav 共用 layout (mockup 11+12 contract).
+  // Refactor 2026-05-22 from 2 inline blocks: renderPhase4Nav (line 408) + renderCirclesPhase3Nav (line 6604).
+  // Plan A 結構性 only, byte-perfect equivalent.
+  // opts: { backDataAttr, titleHtml, subText }
+  //   - backDataAttr: data-* attribute string (e.g. 'data-phase4="nav-back"')
+  //   - titleHtml: already-escaped or hardcoded literal HTML to embed in title div
+  //   - subText: optional sub line (escHtml applied; falsy → no sub div)
+  function renderCirclesNavShell(opts) {
+    return '<div class="circles-nav">'
+      + '<button class="circles-nav__back" ' + opts.backDataAttr + ' aria-label="返回"><i class="ph ph-arrow-left"></i></button>'
+      + '<div class="circles-nav__main">'
+      + '<div class="circles-nav__title">' + opts.titleHtml + '</div>'
+      + (opts.subText ? '<div class="circles-nav__sub">' + escHtml(opts.subText) + '</div>' : '')
+      + '</div>'
+      + '</div>';
+  }
+
   // Shared helper — hint-overlay + modal-card 共用 layout (mockup 03+07+09 hint modal contract).
   // Refactor 2026-05-22 from 3 inline blocks: CIRCLES hint modal (3893) / NSM step 2 hint modal (4073) / NSM step 3 dim hint modal (4183).
   // NOT migrated: NSM step 1 教練思路 modal (line 4303) — has extra `aria-label` on modal-card,
@@ -6601,13 +6616,11 @@
     var stepTitles = { C1: '澄清情境', I: '用戶分析', R: '需求分析', C2: '方案排序', L: '方案列舉', E: '方案取捨', S: 'NSM 總結' };
     var stepTitle = escHtml((stepTitles[stepKey] || stepKey) + ' 評分結果');
     var sub = company && product ? (company + ' · ' + product) : (company || product);
-    return '<div class="circles-nav">'
-      + '<button class="circles-nav__back" data-phase3="nav-back" aria-label="返回"><i class="ph ph-arrow-left"></i></button>'
-      + '<div class="circles-nav__main">'
-      + '<div class="circles-nav__title">' + stepTitle + '</div>'
-      + (sub ? '<div class="circles-nav__sub">' + escHtml(sub) + '</div>' : '')
-      + '</div>'
-      + '</div>';
+    return renderCirclesNavShell({
+      backDataAttr: 'data-phase3="nav-back"',
+      titleHtml: stepTitle,
+      subText: sub
+    });
   }
 
   function renderPhase3Loading() {
