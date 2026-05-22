@@ -18,23 +18,7 @@
 
 ## §1 Active P0 Bugs (user-visible / data integrity)
 
-### 🚨 P0-SCHEMA-1-v2: `/evaluate` 兩條 path 寫不同 shape 到同 JSONB user_nsm — BE 缺 coerce (2026-05-22 重新審視)
-**狀態：【B — root cause 確認，等 fix scope user 決定】**
-**Live data verification (2026-05-22 agent B)**: 6977 rows scan — **0 row 是 string**（與 2026-05-19 audit 「string regression 正在發生」claim 矛盾）；99.28% empty_obj `{}`，0.72% obj_full
-**真正 root cause** (agent E 揭露 — quiz Q1 部分對部分錯):
-- `app.js:2016` POST `/evaluate` SEND_STRING `userNsm: (AppState.nsmDefinition||{}).nsm || ''`
-- `app.js:2518` POST `/evaluate` SEND_STRING 同上
-- `app.js:2075` PATCH `/progress` SEND_OBJECT `{nsm, explanation, businessLink}` (NEW-Bug-A `b126937` 已修)
-- `routes/nsm-sessions.js:140` `/evaluate` 寫 final `user_nsm: userNsm` (RAW, NO COERCE)
-**為何 live data 看不到 string**: FE restore (`app.js:8363-8369`) coerce wraps string→{nsm,'','' }，user UI 看不到 symptom，但 evaluate 本身 99.9% 從不 trigger (lifecycle=created drop)，所以 DB string 寫入頻率極低
-**Severity**: P0-latent — 一旦 NSM completion 率提升或 D-2 LS restore 修了，立刻變 active P0
-**Fix scope**: small-medium — FE line 2016+2518 改送 full object + BE `routes/nsm-sessions.js:140` 加 `typeof userNsm === 'string' ? {nsm: userNsm, explanation: '', businessLink: ''} : userNsm` coerce
-**E2E scope** (agent D gap analysis): 新寫 spec — POST /evaluate → GET → expect(user_nsm).toEqual({3 keys})
-**Cross-link impact**: D-2 NSM LS 寫 0 讀 / NEW-Bug-A NSM 切題 ghost / P0-#266 persistRetry shape 都同根
-
----
-
-### 🚨 P0-SCHEMA-1: `/evaluate` 把 user_nsm 從 object 退化成 string — explanation + businessLink 永久消失 (2026-05-19 DB audit 抓到) **[已 SUPERSEDED by SCHEMA-1-v2]**
+### 🚨 P0-SCHEMA-1: `/evaluate` 把 user_nsm 從 object 退化成 string — explanation + businessLink 永久消失 (2026-05-19 DB audit 抓到) **[已 SUPERSEDED by SCHEMA-1-v2 → SHIPPED 2026-05-22 commits 57600d5 + 7ff9a49，見 §5]**
 **狀態：【B — 只有 root cause，等 brainstorm fix】** **⚡ user 2026-05-19 priority — Wave 1 必修**
 **Location**:
 - FE buggy: `public/app.js:2080-2087` — `body: JSON.stringify({ userNsm: (AppState.nsmDefinition || {}).nsm || '' })` — 只取 nsm 字段 string
@@ -838,6 +822,31 @@
 ---
 
 ## §5 Closed Issues (audit trail)
+
+### P0-SCHEMA-1-v2 — NSM /evaluate user_nsm shape coerce (2026-05-22 ship, 2 commits)
+**Resolved**: 2-commit ship — BE coerce defense `57600d5` + FE source fix `7ff9a49`
+**Root cause**: FE app.js:2016+2518 sent `userNsm: nsm_string` to POST /evaluate; BE wrote string raw to JSONB column → silent loss of `explanation` + `businessLink` on every /evaluate completion
+**Architecture**: 2-layer defense — (1) BE `coerceUserNsm()` helper (5 branches B1-B5, SELECT-merge on string input preserves existing fields), (2) FE switches to full-object send
+**4 actual BE DB write sites wired** (sonnet caught spec over-scope: spec said 6 but lines 131/108 were JS `evaluateNSM()` calls not DB writes):
+- `nsm-sessions.js:141` /evaluate final UPDATE
+- `nsm-sessions.js:229` /progress PATCH conditional
+- `guest-nsm-sessions.js:115` /evaluate final UPDATE
+- `guest-nsm-sessions.js:182` /progress PATCH conditional
+**Verify evidence**:
+- API spec 6 TCs (auth × 3 + guest × 3) × 5 consecutive runs = **30/30 GREEN 0 flake** (`tests/api/nsm-evaluate-shape-coerce.spec.js`)
+- E2E roundtrip × 3 vp × 5 runs = **15/15 GREEN** (`tests/e2e/nsm-evaluate-shape-roundtrip.spec.js`)
+- jest baseline 606/624 (+1 vs 605 baseline)
+- nsm-full-flow cross-vp 8/8 GREEN
+- Real e2e server log captured `[coerce-user-nsm] string→object` triggers — proves latent bug existed + defense layer active
+- 15 PNG evidence in `audit/schema-1-v2-roundtrip/` — Director cold-Read sample 4/15 confirms NSM 報告 page (score 64-68/100) across 3 vp
+**Sonnet architectural finding (Phase 3 redesign)**: spec §6 "reload restores 3 fields" was unreachable — `tryResumeLatestSession` filters status='active' only; post-evaluate status='completed' excluded. Redesigned to DB-direct user_nsm shape verify — more direct + stronger proof
+**3-round quiz**: R1 BLOCKED (Q5+Q7) → R2 APPROVED_WITH_NITS → R3 APPROVED_WITH_NITS (plan-fix `ad8f4fd`)
+**2-stage review per commit**: BE = spec APPROVED + quality APPROVED_WITH_NITS (B4 trade-off documented). FE = combined APPROVED.
+**Spec**: `docs/superpowers/specs/2026-05-22-schema-1-v2-evaluate-shape-coerce-design.md`
+**Plan**: `docs/superpowers/plans/2026-05-22-schema-1-v2-evaluate-shape-coerce-plan.md`
+**Final commits**: `57600d5` (BE) + `7ff9a49` (FE)
+
+---
 
 ### P0-SCHEMA-NEW-1 — CIRCLES RLS guest policy 過度寬鬆 (2026-05-22 ship)
 **Resolved**: migration `migrations/2026-05-22-fix-circles-rls-guest-policy.sql` — DROP overly-permissive policy + CREATE 2 new policies (mirror NSM design with x-guest-id header match)
