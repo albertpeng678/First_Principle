@@ -208,5 +208,13 @@ module.exports = defineConfig({
       name: 'api-rls-isolation',
       testMatch: /rls-cross-user-isolation\.spec\.js$/,
     },
+    // P0-SCHEMA-1-v2 — NSM /evaluate user_nsm shape coerce verification.
+    // 6 TCs (auth × 3 + guest × 3): TC1 string→object merge preserves explanation/businessLink;
+    // TC2 object passthrough; TC3 invalid type (array) → no-op.
+    // Skills: api-testing.md §APIRequestContext + §Data Seeding (service-role).
+    {
+      name: 'api-nsm-evaluate-shape-coerce',
+      testMatch: /nsm-evaluate-shape-coerce\.spec\.js$/,
+    },
   ],
 });

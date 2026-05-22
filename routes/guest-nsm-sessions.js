@@ -11,6 +11,7 @@ const { rehydrateMany, rehydrateQuestionJson } = require('../lib/session-rehydra
 const cache = require('../lib/session-cache');
 const { dedupSessions } = require('../lib/session-dedup');
 const { computeLifecycle } = require('../lib/session-lifecycle');
+const { coerceUserNsm } = require('./_helpers/coerce-user-nsm');
 
 const CACHE_KIND = 'nsm-guest';
 
@@ -111,7 +112,7 @@ router.post('/:id/evaluate', requireGuestId, async (req, res) => {
     // B6-1 — defense-in-depth: scope to guest owner.
     const nextLifecycle = computeLifecycle(session, {}, 'nsm', 'analysis_done');
     const { error: upErr } = await db.from('nsm_sessions').update({
-      user_nsm: userNsm,
+      user_nsm: await coerceUserNsm({ incoming: userNsm, sessionId: req.params.id, db }),
       user_breakdown: userBreakdown,
       scores_json: result,
       coach_tree_json: result.coachTree,
@@ -178,7 +179,10 @@ router.patch('/:id/progress', requireGuestId, async (req, res) => {
   delete req.body.lifecycle;
   const { currentStep, userNsm, userBreakdown, gateResult, progress, userExplanation, userBusinessLink } = req.body || {};
   const patch = {};
-  if (userNsm       !== undefined) patch.user_nsm       = userNsm;
+  if (userNsm !== undefined) {
+    const coerced = await coerceUserNsm({ incoming: userNsm, sessionId: req.params.id, db });
+    if (coerced !== undefined) patch.user_nsm = coerced;
+  }
   if (userBreakdown !== undefined) patch.user_breakdown = userBreakdown;
   if (userExplanation  !== undefined) patch.user_explanation  = userExplanation;
   if (userBusinessLink !== undefined) patch.user_business_link = userBusinessLink;
