@@ -18,7 +18,23 @@
 
 ## §1 Active P0 Bugs (user-visible / data integrity)
 
-### 🚨 P0-SCHEMA-1: `/evaluate` 把 user_nsm 從 object 退化成 string — explanation + businessLink 永久消失 (2026-05-19 DB audit 抓到)
+### 🚨 P0-SCHEMA-1-v2: `/evaluate` 兩條 path 寫不同 shape 到同 JSONB user_nsm — BE 缺 coerce (2026-05-22 重新審視)
+**狀態：【B — root cause 確認，等 fix scope user 決定】**
+**Live data verification (2026-05-22 agent B)**: 6977 rows scan — **0 row 是 string**（與 2026-05-19 audit 「string regression 正在發生」claim 矛盾）；99.28% empty_obj `{}`，0.72% obj_full
+**真正 root cause** (agent E 揭露 — quiz Q1 部分對部分錯):
+- `app.js:2016` POST `/evaluate` SEND_STRING `userNsm: (AppState.nsmDefinition||{}).nsm || ''`
+- `app.js:2518` POST `/evaluate` SEND_STRING 同上
+- `app.js:2075` PATCH `/progress` SEND_OBJECT `{nsm, explanation, businessLink}` (NEW-Bug-A `b126937` 已修)
+- `routes/nsm-sessions.js:140` `/evaluate` 寫 final `user_nsm: userNsm` (RAW, NO COERCE)
+**為何 live data 看不到 string**: FE restore (`app.js:8363-8369`) coerce wraps string→{nsm,'','' }，user UI 看不到 symptom，但 evaluate 本身 99.9% 從不 trigger (lifecycle=created drop)，所以 DB string 寫入頻率極低
+**Severity**: P0-latent — 一旦 NSM completion 率提升或 D-2 LS restore 修了，立刻變 active P0
+**Fix scope**: small-medium — FE line 2016+2518 改送 full object + BE `routes/nsm-sessions.js:140` 加 `typeof userNsm === 'string' ? {nsm: userNsm, explanation: '', businessLink: ''} : userNsm` coerce
+**E2E scope** (agent D gap analysis): 新寫 spec — POST /evaluate → GET → expect(user_nsm).toEqual({3 keys})
+**Cross-link impact**: D-2 NSM LS 寫 0 讀 / NEW-Bug-A NSM 切題 ghost / P0-#266 persistRetry shape 都同根
+
+---
+
+### 🚨 P0-SCHEMA-1: `/evaluate` 把 user_nsm 從 object 退化成 string — explanation + businessLink 永久消失 (2026-05-19 DB audit 抓到) **[已 SUPERSEDED by SCHEMA-1-v2]**
 **狀態：【B — 只有 root cause，等 brainstorm fix】** **⚡ user 2026-05-19 priority — Wave 1 必修**
 **Location**:
 - FE buggy: `public/app.js:2080-2087` — `body: JSON.stringify({ userNsm: (AppState.nsmDefinition || {}).nsm || '' })` — 只取 nsm 字段 string
@@ -811,6 +827,26 @@
 ---
 
 ## §5 Closed Issues (audit trail)
+
+### P0-SCHEMA-NEW-1 — CIRCLES RLS guest policy 過度寬鬆 (2026-05-22 ship)
+**Resolved**: migration `migrations/2026-05-22-fix-circles-rls-guest-policy.sql` — DROP overly-permissive policy + CREATE 2 new policies (mirror NSM design with x-guest-id header match)
+**Root cause**: Live pg_policies snapshot (`audit/rls-policies-snapshot-2026-05-22.md`) revealed CIRCLES policy had unguarded guest OR clause `(auth.uid() IS NULL AND guest_id IS NOT NULL)` — anon could enumerate ALL guest rows
+**Pre-flight verified safe**:
+- FE only uses `supabaseClient.auth.*` (no direct table calls)
+- BE uses SERVICE_ROLE_KEY (bypasses RLS)
+- FE sends X-Guest-ID header on apiFetch (3 sites)
+**Verify**: `tests/api/rls-cross-user-isolation.spec.js` 6 TCs × 5 consecutive runs = **30/30 GREEN 0 flake**
+- TC1+TC2: authenticated cross-user blocked
+- TC3 (was RED pre-migration): anon CIRCLES no header → 0 rows
+- TC4: anon NSM regression guard
+- TC5: anon WITH correct x-guest-id reads own row (proves USING affirmative)
+- TC6: anon WITH WRONG x-guest-id → 0 rows (no enumeration)
+**Rollback**: `audit/rollback-2026-05-22-circles-rls.sql` (ready, not used)
+**Quiz**: 3 rounds — R1 BLOCKED 8 / R2 BLOCKED 6 / R3 APPROVED_WITH_NITS (3 nits all addressed in commit)
+**Skill citations applied**: RITUAL §3.7 + §3.18 + §3.12, playwright-skill `core/api-testing.md` + `core/multi-user-and-collaboration.md`, addy `doubt-driven-development` for irreversible policy change, addy `spec-driven-development` for `audit/p0-schema-fix-wave-spec-2026-05-22.md`
+**Final commit**: (TBD — committing now)
+
+---
 
 ### P0 ship closures (本 session 7/7)
 | # | Bug | Resolved via | Final commit |

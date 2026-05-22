@@ -1,7 +1,36 @@
 # PM Drill — 專案狀態看板
 
 > 即時狀態 single source of truth。**不放歷史（git log 有）**。重大事件即時 Edit。
-> **Last updated:** 2026-05-22 — **Wave 1.5 hint-modal ship `0776f7b` push origin/main**
+> **Last updated:** 2026-05-22 — **P0 SCHEMA fix wave brainstorm 中 — 已過 quiz round 2，pg_policies 真實 snapshot 拿到，準備 round 3 quiz 後動工**
+
+## 🚧 當前 phase — P0 SCHEMA fix wave (2026-05-22)
+
+**目標**: 修 tracker §1 5 隻 P0 — NEW-1 CIRCLES RLS policy bug / 1-v2 evaluate path shape / 3 NSM guest_id index / 2 NSM dedupe / 4 NSM RLS codify
+
+**已完成 (pre-ship prep)**:
+- ✅ Skill 全盤點 (14 superpowers + 1 karpathy + 23 addy + 47 playwright md)
+- ✅ RITUAL §3 stage-by-stage skill mapping (12-stage 對應表 in `audit/p0-schema-fix-wave-spec-2026-05-22.md`)
+- ✅ 5 並行 read-only agent scan: live schema / shape stats / dedupe + guest stats / e2e gap / call-site audit
+- ✅ Quiz round 1 → BLOCKED 8 items → addressed → Quiz round 2 → BLOCKED 6 items → addressed
+- ✅ dedupe script Q1 null bug 修：61 groups / **514 deletes** (vs 6790 幻數)
+- ✅ RLS e2e spec Q2 payload schema 修 (`{questionId, questionJson, mode}`)
+- ✅ pg_policies 真實 snapshot 拿到 (`audit/rls-policies-snapshot-2026-05-22.md`) — Q7 closed
+  - **重大發現**: CIRCLES RLS 不是 OFF，是 policy 第二段 OR clause `auth.uid() IS NULL AND guest_id IS NOT NULL` 太寬鬆 (NSM 正確設計用 `x-guest-id` header match)
+  - Fix scope 大幅縮小: `DROP POLICY + CREATE POLICY × 2` 1 個 migration，自家 app 0 影響 verified (FE 只用 `supabaseClient.auth.*`，BE 用 service-role bypass)
+- ✅ Memory STANDING 立: `feedback_update_claude_md_and_tracker_on_ship` (ship 後必同步本檔 + tracker §1→§5)
+
+**進入下一步**:
+- Round 3 quiz reviewer 用真實 pg_policies + 修好的 deliverables 審 → APPROVED → 才動 production
+- 動工順序: NEW-1 (CIRCLES policy fix) → SCHEMA-1-v2 evaluate shape (FE 2 line + BE 4 coerce) → ship + 24h soak → SCHEMA-3 guest_id index → SCHEMA-2 dedupe + UNIQUE → SCHEMA-4 NSM RLS codify
+
+**Deliverables 已寫**:
+- `audit/p0-schema-fix-wave-spec-2026-05-22.md` (canonical spec, 6 quiz items 全 address)
+- `audit/rls-policies-snapshot-2026-05-22.md` (pg_policies 真實狀態)
+- `scripts/dedupe-nsm-dry-run.js` (Q1 修，re-run 514 deletes verified)
+- `scripts/probe-rls-policies.js` (Q7 helper)
+- `tests/api/rls-cross-user-isolation.spec.js` (Q2 修，TC1-4)
+
+---
 
 ## 當前狀態（30 秒讀完 — 2026-05-22）
 

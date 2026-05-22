@@ -199,5 +199,14 @@ module.exports = defineConfig({
       name: 'api-phase2-evaluate-sequence',
       testMatch: /circles-phase2-evaluate-sequence\.spec\.js$/,
     },
+    // P0-SCHEMA-NEW-1 — CIRCLES + NSM RLS cross-user isolation probe.
+    // 6 TCs: TC1/TC2 authenticated cross-user (User A→B blocked), TC3 anon
+    // direct REST against CIRCLES (RED before policy fix → GREEN after),
+    // TC4 anon NSM regression guard, TC5 anon WITH correct x-guest-id reads
+    // own row (proves USING affirmative), TC6 anon WITH WRONG header → 0 rows.
+    {
+      name: 'api-rls-isolation',
+      testMatch: /rls-cross-user-isolation\.spec\.js$/,
+    },
   ],
 });
