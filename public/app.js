@@ -2013,7 +2013,7 @@
               method: 'POST',
               headers: { 'Content-Type': 'application/json' },
               body: JSON.stringify({
-                userNsm: (AppState.nsmDefinition || {}).nsm || '',
+                userNsm: AppState.nsmDefinition || { nsm: '', explanation: '', businessLink: '' },
                 userBreakdown: AppState.nsmBreakdown || {},
               }),
             });
@@ -2515,7 +2515,7 @@
             method: 'POST',
             headers: { 'Content-Type': 'application/json' },
             body: JSON.stringify({
-              userNsm: (AppState.nsmDefinition || {}).nsm || '',
+              userNsm: AppState.nsmDefinition || { nsm: '', explanation: '', businessLink: '' },
               userBreakdown: AppState.nsmBreakdown || {},
             }),
           });
