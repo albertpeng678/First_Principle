@@ -3898,21 +3898,17 @@
       ? '<button class="btn btn--ghost" data-hint-action="close" style="font-size:var(--t-meta); min-height:36px;">關閉</button>'
       : '<button class="btn btn--primary" data-hint-action="close" style="font-size:var(--t-meta); min-height:36px;">了解了</button>';
     var iconHtml = isLoading ? '<i class="ph ph-sparkle"></i>' : '<i class="ph ph-lightbulb"></i>';
-    return '<div class="hint-overlay" aria-hidden="false">'
-      + '<div class="hint-overlay__backdrop" data-hint-action="close"></div>'
-      + '<div class="modal-card" role="dialog" aria-modal="true">'
-      +   '<div class="modal__head">'
-      +     '<span class="modal__head-icon">' + iconHtml + '</span>'
-      +     '<div style="flex:1;">'
-      +       '<div class="modal__sub">提示 · ' + escHtml(stepKey) + '</div>'
-      +       '<h3 class="modal__title">' + escHtml(fieldKey) + '</h3>'
-      +     '</div>'
-      +     '<button class="modal__close" data-hint-action="close" aria-label="關閉"><i class="ph ph-x"></i></button>'
-      +   '</div>'
-      +   '<div class="modal__body" data-hint-body>' + bodyInnerHtml + '</div>'
-      +   '<div class="modal__foot" data-hint-foot>' + footHtml + '</div>'
-      + '</div>'
-      + '</div>';
+    return renderHintModal({
+      iconHtml: iconHtml,
+      sub: '提示 · ' + escHtml(stepKey),
+      title: fieldKey,
+      bodyHtml: bodyInnerHtml,
+      footHtml: footHtml,
+      closeAttr: 'data-hint-action="close"',
+      backdropAttr: 'data-hint-action="close"',
+      bodyExtraAttr: 'data-hint-body',
+      footExtraAttr: 'data-hint-foot'
+    });
   }
 
   function _hintLoadingHtml() {
@@ -4070,21 +4066,16 @@
     var headIcon = isError
       ? '<i class="ph-fill ph-warning-circle" style="color:var(--c-danger);"></i>'
       : '<i class="ph ph-sparkle"></i>';
-    return '<div class="hint-overlay" aria-hidden="false">'
-      + '<div class="hint-overlay__backdrop" data-nsm-modal-close="backdrop"></div>'
-      + '<div class="modal-card" role="dialog" aria-modal="true">'
-      +   '<div class="modal__head">'
-      +     '<span class="modal__head-icon">' + headIcon + '</span>'
-      +     '<div style="flex:1;">'
-      +       '<div class="modal__sub">提示 · 個人化</div>'
-      +       '<h3 class="modal__title">' + escHtml(label) + '</h3>'
-      +     '</div>'
-      +     '<button class="modal__close" type="button" data-nsm-modal-close="x" aria-label="關閉"><i class="ph ph-x"></i></button>'
-      +   '</div>'
-      +   '<div class="modal__body">' + bodyHtml + '</div>'
-      +   '<div class="modal__foot">' + footHtml + '</div>'
-      + '</div>'
-      + '</div>';
+    return renderHintModal({
+      iconHtml: headIcon,
+      sub: '提示 · 個人化',
+      title: label,
+      bodyHtml: bodyHtml,
+      footHtml: footHtml,
+      closeAttr: 'data-nsm-modal-close="x"',
+      backdropAttr: 'data-nsm-modal-close="backdrop"',
+      closeType: 'button'
+    });
   }
 
   function openNSMStep2HintModal(field) {
@@ -4180,21 +4171,16 @@
     var headIcon = isError
       ? '<i class="ph-fill ph-warning-circle" style="color:var(--c-danger);"></i>'
       : '<i class="ph ph-sparkle"></i>';
-    return '<div class="hint-overlay" aria-hidden="false">'
-      + '<div class="hint-overlay__backdrop" data-nsm-modal-close="backdrop"></div>'
-      + '<div class="modal-card" role="dialog" aria-modal="true">'
-      +   '<div class="modal__head">'
-      +     '<span class="modal__head-icon">' + headIcon + '</span>'
-      +     '<div style="flex:1;">'
-      +       '<div class="modal__sub">提示 · 個人化</div>'
-      +       '<h3 class="modal__title">' + escHtml(label) + '</h3>'
-      +     '</div>'
-      +     '<button class="modal__close" type="button" data-nsm-modal-close="x" aria-label="關閉"><i class="ph ph-x"></i></button>'
-      +   '</div>'
-      +   '<div class="modal__body">' + bodyHtml + '</div>'
-      +   '<div class="modal__foot">' + footHtml + '</div>'
-      + '</div>'
-      + '</div>';
+    return renderHintModal({
+      iconHtml: headIcon,
+      sub: '提示 · 個人化',
+      title: label,
+      bodyHtml: bodyHtml,
+      footHtml: footHtml,
+      closeAttr: 'data-nsm-modal-close="x"',
+      backdropAttr: 'data-nsm-modal-close="backdrop"',
+      closeType: 'button'
+    });
   }
 
   function openNSMStep3HintModal(dimId, dimType) {
@@ -5176,6 +5162,51 @@
       + '<i class="ph ' + caret + ' qchip__caret"></i>'
       + '</' + tag + '>'
       + (opts.trailingHtml || '');
+  }
+
+  // Shared helper — hint-overlay + modal-card 共用 layout (mockup 03+07+09 hint modal contract).
+  // Refactor 2026-05-22 from 3 inline blocks: CIRCLES hint modal (3893) / NSM step 2 hint modal (4073) / NSM step 3 dim hint modal (4183).
+  // NOT migrated: NSM step 1 教練思路 modal (line 4303) — has extra `aria-label` on modal-card,
+  //   diverges from standard shape per Karpathy §4.2 (adding 1 opt for 1 caller).
+  // Plan A 結構性 only, byte-perfect equivalent. Standard shape:
+  //   <div class="hint-overlay" aria-hidden="false">
+  //     <div class="hint-overlay__backdrop" {backdropAttr}></div>
+  //     <div class="modal-card" role="dialog" aria-modal="true">
+  //       <div class="modal__head">
+  //         <span class="modal__head-icon">{iconHtml}</span>
+  //         <div style="flex:1;">
+  //           <div class="modal__sub">{sub}</div>
+  //           <h3 class="modal__title">{escHtml(title)}</h3>
+  //         </div>
+  //         <button class="modal__close" {closeAttr} aria-label="關閉"><i class="ph ph-x"></i></button>
+  //       </div>
+  //       <div class="modal__body" {bodyExtraAttr}>{bodyHtml}</div>
+  //       <div class="modal__foot" {footExtraAttr}>{footHtml}</div>
+  //     </div>
+  //   </div>
+  // opts: { iconHtml, sub, title, bodyHtml, footHtml,
+  //         closeAttr, backdropAttr,
+  //         closeType?, // 'button' for NSM ('button' type attr), undefined for CIRCLES
+  //         bodyExtraAttr?, footExtraAttr? }  // raw attribute strings
+  function renderHintModal(opts) {
+    var closeType = opts.closeType ? ' type="' + opts.closeType + '"' : '';
+    var bodyExtra = opts.bodyExtraAttr ? ' ' + opts.bodyExtraAttr : '';
+    var footExtra = opts.footExtraAttr ? ' ' + opts.footExtraAttr : '';
+    return '<div class="hint-overlay" aria-hidden="false">'
+      + '<div class="hint-overlay__backdrop" ' + opts.backdropAttr + '></div>'
+      + '<div class="modal-card" role="dialog" aria-modal="true">'
+      +   '<div class="modal__head">'
+      +     '<span class="modal__head-icon">' + opts.iconHtml + '</span>'
+      +     '<div style="flex:1;">'
+      +       '<div class="modal__sub">' + opts.sub + '</div>'
+      +       '<h3 class="modal__title">' + escHtml(opts.title) + '</h3>'
+      +     '</div>'
+      +     '<button class="modal__close"' + closeType + ' ' + opts.closeAttr + ' aria-label="關閉"><i class="ph ph-x"></i></button>'
+      +   '</div>'
+      +   '<div class="modal__body"' + bodyExtra + '>' + opts.bodyHtml + '</div>'
+      +   '<div class="modal__foot"' + footExtra + '>' + opts.footHtml + '</div>'
+      + '</div>'
+      + '</div>';
   }
 
   // Shared helper — banner 共用 layout (mockup 00/03/07/15 standard banner contract).
